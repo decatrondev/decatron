@@ -127,7 +127,7 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <label className="text-sm font-bold text-ds-text flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-ds-ok" />
+              <DollarSign className="w-5 h-5 text-ds-accent-text" />
               💰 Alertas de Donaciones
             </label>
             <p className="text-xs text-ds-soft mt-1">

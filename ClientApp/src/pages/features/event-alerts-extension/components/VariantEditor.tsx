@@ -27,7 +27,7 @@ interface VariantEditorProps {
 const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
   <label className="relative inline-flex items-center cursor-pointer">
     <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="sr-only peer" />
-    <div className="w-11 h-6 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
+    <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-accent"></div>
   </label>
 );
 
@@ -88,8 +88,8 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
   const variantCount = currentConfig.variants.length;
   const canAddMore = variantCount < maxVariants;
 
-  const inputClass = "w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm";
-  const labelClass = "text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1";
+  const inputClass = "w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm";
+  const labelClass = "text-xs font-bold text-ds-soft block mb-1";
 
   const updateConfig = (updates: Partial<VariantsConfig>) => {
     onChange({ ...currentConfig, ...updates });
@@ -133,22 +133,22 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
   };
 
   return (
-    <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+    <div className="mt-4 p-4 bg-ds-accent/10 rounded-lg border border-ds-accent">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <span className="text-xl">🎲</span>
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
+            <label className="text-sm font-bold text-ds-text 3xl:text-base">
               Variantes de Alerta
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
+            <p className="text-xs text-ds-soft 3xl:text-sm">
               Múltiples opciones que se seleccionan automáticamente
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-purple-600 dark:text-purple-400 font-bold 3xl:text-sm">
+          <span className="text-xs text-ds-accent-text font-bold 3xl:text-sm">
             {variantCount}/{maxVariants}
           </span>
           <Toggle
@@ -208,23 +208,23 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
             {currentConfig.variants.map((variant, index) => (
               <div
                 key={variant.id}
-                className="border border-purple-200 dark:border-purple-700 rounded-lg overflow-hidden bg-white dark:bg-[#1B1C1D]"
+                className="border border-ds-accent rounded-lg overflow-hidden bg-ds-surface"
               >
                 {/* Header de variante */}
                 <div
-                  className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/30 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                  className="flex items-center justify-between p-3 bg-ds-accent/10 cursor-pointer hover:bg-ds-accent/10 transition-colors"
                   onClick={() => setExpandedVariant(expandedVariant === variant.id ? null : variant.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center 3xl:text-sm">
+                    <span className="w-6 h-6 rounded-full bg-ds-accent text-ds-on-accent text-xs font-bold flex items-center justify-center 3xl:text-sm">
                       {index + 1}
                     </span>
                     <div>
-                      <span className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
+                      <span className="font-bold text-sm text-ds-text 3xl:text-base">
                         {variant.name}
                       </span>
                       {currentConfig.mode === 'weighted' && (
-                        <span className="ml-2 text-xs text-purple-600 dark:text-purple-400 3xl:text-sm">
+                        <span className="ml-2 text-xs text-ds-accent-text 3xl:text-sm">
                           ({variant.weight}%)
                         </span>
                       )}
@@ -233,20 +233,20 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={e => { e.stopPropagation(); deleteVariant(variant.id); }}
-                      className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-ds-danger/10 rounded-lg transition-colors"
                     >
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <Trash2 className="w-4 h-4 text-ds-danger" />
                     </button>
                     {expandedVariant === variant.id
-                      ? <ChevronUp className="w-4 h-4 text-[#64748b]" />
-                      : <ChevronDown className="w-4 h-4 text-[#64748b]" />
+                      ? <ChevronUp className="w-4 h-4 text-ds-soft" />
+                      : <ChevronDown className="w-4 h-4 text-ds-soft" />
                     }
                   </div>
                 </div>
 
                 {/* Contenido expandido */}
                 {expandedVariant === variant.id && (
-                  <div className="p-4 space-y-4 border-t border-purple-200 dark:border-purple-700">
+                  <div className="p-4 space-y-4 border-t border-ds-accent">
                     {/* Nombre y peso */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -277,7 +277,7 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
                     {/* Mensaje */}
                     <div>
                       <label className={labelClass}>
-                        Mensaje · <code className="text-purple-500">{messageVariables}</code>
+                        Mensaje · <code className="text-ds-accent-text">{messageVariables}</code>
                       </label>
                       <input
                         type="text"
@@ -360,18 +360,18 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
           {canAddMore ? (
             <button
               onClick={addVariant}
-              className="w-full py-3 border-2 border-dashed border-purple-300 dark:border-purple-700 rounded-lg text-purple-600 dark:text-purple-400 font-bold text-sm hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex items-center justify-center gap-2 3xl:text-base"
+              className="w-full py-3 border-2 border-dashed border-ds-accent rounded-lg text-ds-accent-text font-bold text-sm hover:bg-ds-accent/10 transition-colors flex items-center justify-center gap-2 3xl:text-base"
             >
               <Plus className="w-4 h-4" />
               Agregar Variante ({variantCount}/{maxVariants})
             </button>
           ) : (
-            <div className="w-full py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-center">
-              <p className="text-sm text-amber-700 dark:text-amber-400 font-bold 3xl:text-base">
+            <div className="w-full py-3 bg-ds-warn/10 border border-ds-warn/40 rounded-lg text-center">
+              <p className="text-sm text-ds-warn font-bold 3xl:text-base">
                 Has alcanzado el límite de {maxVariants} variantes
               </p>
               {userTier === 'free' && (
-                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1 3xl:text-sm">
+                <p className="text-xs text-ds-warn mt-1 3xl:text-sm">
                   Actualiza a Supporter para más variantes
                 </p>
               )}

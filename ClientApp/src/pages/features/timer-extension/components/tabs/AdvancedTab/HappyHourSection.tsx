@@ -232,7 +232,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
             <div className={card}>
                 <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
                     <div>
-                        <h3 className="text-xl font-black text-ds-text flex items-center gap-2"><Zap className="w-5 h-5 text-ds-warn" /> {t('timerAdvanced.hh.nowTitle')}</h3>
+                        <h3 className="text-xl font-black text-ds-text flex items-center gap-2"><Zap className="w-5 h-5 text-ds-accent-text" /> {t('timerAdvanced.hh.nowTitle')}</h3>
                         <p className="text-sm text-ds-soft mt-1">{t('timerAdvanced.hh.nowDescription')}</p>
                     </div>
                     {tz && tzLine}

@@ -171,3 +171,6 @@ select.ds-input { appearance: none; padding-right: 36px; background-image: url("
 .ds-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--ds-accent); border: 3px solid var(--ds-surface); box-shadow: 0 0 0 1px var(--ds-accent); }
 .ds-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--ds-accent); border: 3px solid var(--ds-surface); box-shadow: 0 0 0 1px var(--ds-accent); }
 .ds-range:focus-visible { outline: 2px solid color-mix(in srgb, var(--ds-accent) 70%, transparent); outline-offset: 4px; }
+
+/* Controles nativos (deslizadores, casillas, radios): siguen el azul del editor en toda la web. */
+input[type="range"], input[type="checkbox"], input[type="radio"] { accent-color: var(--ds-accent); }

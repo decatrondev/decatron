@@ -24,15 +24,15 @@ export const DesignTab: React.FC<DesignTabProps> = ({
     return (
         <div className="space-y-6">
             {/* Info Card */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
+                <p className="text-sm text-ds-soft">
                     🎨 Personaliza el aspecto visual del overlay de metas. Los cambios se reflejan en tiempo real en la vista previa.
                 </p>
             </div>
 
             {/* Layout */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
                     <Box className="w-4 h-4" />
                     Layout
                 </h3>
@@ -40,7 +40,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                 <div className="space-y-4">
                     {/* Layout Type */}
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Disposición de metas
                         </label>
                         <div className="grid grid-cols-3 gap-2">
@@ -52,10 +52,10 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={layout.value}
                                     onClick={() => onUpdateDesign({ layout: layout.value as any })}
-                                    className={`px-4 py-3 rounded-xl text-sm font-medium transition-all border-2 ${
+                                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border-2 ${
                                         design.layout === layout.value
-                                            ? 'bg-[#667eea] text-white border-[#667eea]'
-                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] border-transparent hover:border-[#667eea]'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
                                     }`}
                                 >
                                     <span className="text-lg mr-2">{layout.icon}</span>
@@ -67,7 +67,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
 
                     {/* Max Visible Goals */}
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Máximo de metas visibles: {design.maxVisibleGoals}
                         </label>
                         <input
@@ -76,9 +76,9 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                             max="5"
                             value={design.maxVisibleGoals}
                             onChange={(e) => onUpdateDesign({ maxVisibleGoals: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                            className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                         />
-                        <div className="flex justify-between text-xs text-[#94a3b8] mt-1">
+                        <div className="flex justify-between text-xs text-ds-soft mt-1">
                             <span>1</span>
                             <span>2</span>
                             <span>3</span>
@@ -89,7 +89,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
 
                     {/* Spacing */}
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Espaciado: {design.spacing}px
                         </label>
                         <input
@@ -99,15 +99,15 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                             step="4"
                             value={design.spacing}
                             onChange={(e) => onUpdateDesign({ spacing: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                            className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
                     <Palette className="w-4 h-4" />
                     Barra de Progreso
                 </h3>
@@ -115,7 +115,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                 <div className="space-y-4">
                     {/* Bar Type */}
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Tipo de barra
                         </label>
                         <div className="grid grid-cols-3 gap-2">
@@ -127,10 +127,10 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={type.value}
                                     onClick={() => onUpdateDesignProgressBar({ type: type.value as any })}
-                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border-2 ${
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
                                         design.progressBar.type === type.value
-                                            ? 'bg-[#667eea] text-white border-[#667eea]'
-                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] border-transparent hover:border-[#667eea]'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
                                     }`}
                                 >
                                     {type.label}
@@ -142,7 +142,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     {/* Size */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Ancho: {design.progressBar.width}px
                             </label>
                             <input
@@ -152,11 +152,11 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 step="10"
                                 value={design.progressBar.width}
                                 onChange={(e) => onUpdateDesignProgressBar({ width: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Alto: {design.progressBar.height}px
                             </label>
                             <input
@@ -166,14 +166,14 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 step="2"
                                 value={design.progressBar.height}
                                 onChange={(e) => onUpdateDesignProgressBar({ height: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                     </div>
 
                     {/* Border Radius */}
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Bordes redondeados: {design.progressBar.borderRadius}px
                         </label>
                         <input
@@ -182,14 +182,14 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                             max="24"
                             value={design.progressBar.borderRadius}
                             onChange={(e) => onUpdateDesignProgressBar({ borderRadius: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                            className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                         />
                     </div>
 
                     {/* Colors */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Color de fondo
                             </label>
                             <div className="flex items-center gap-2">
@@ -197,18 +197,18 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="color"
                                     value={design.progressBar.backgroundColor.startsWith('rgba') ? '#374151' : design.progressBar.backgroundColor}
                                     onChange={(e) => onUpdateDesignProgressBar({ backgroundColor: e.target.value })}
-                                    className="w-10 h-10 rounded-lg cursor-pointer border border-[#e2e8f0] dark:border-[#374151]"
+                                    className="w-10 h-10 rounded-lg cursor-pointer border border-ds-border"
                                 />
                                 <input
                                     type="text"
                                     value={design.progressBar.backgroundColor}
                                     onChange={(e) => onUpdateDesignProgressBar({ backgroundColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Color de relleno
                             </label>
                             <div className="flex items-center gap-2">
@@ -216,13 +216,13 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="color"
                                     value={design.progressBar.fillColor}
                                     onChange={(e) => onUpdateDesignProgressBar({ fillColor: e.target.value })}
-                                    className="w-10 h-10 rounded-lg cursor-pointer border border-[#e2e8f0] dark:border-[#374151]"
+                                    className="w-10 h-10 rounded-lg cursor-pointer border border-ds-border"
                                 />
                                 <input
                                     type="text"
                                     value={design.progressBar.fillColor}
                                     onChange={(e) => onUpdateDesignProgressBar({ fillColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>
@@ -231,7 +231,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     {/* Gradient */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-[#64748b] dark:text-[#94a3b8]">
+                            <label className="text-sm font-medium text-ds-soft">
                                 Usar gradiente
                             </label>
                             <label className="relative inline-flex items-center cursor-pointer">
@@ -241,14 +241,14 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     onChange={(e) => onUpdateDesignProgressBar({ useGradient: e.target.checked })}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#667eea]"></div>
+                                <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                             </label>
                         </div>
 
                         {design.progressBar.useGradient && (
                             <div className="grid grid-cols-2 gap-4 mt-3">
                                 <div>
-                                    <label className="block text-xs text-[#94a3b8] mb-1">Desde</label>
+                                    <label className="block text-xs text-ds-soft mb-1">Desde</label>
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="color"
@@ -260,12 +260,12 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                             type="text"
                                             value={design.progressBar.gradientFrom || '#667eea'}
                                             onChange={(e) => onUpdateDesignProgressBar({ gradientFrom: e.target.value })}
-                                            className="flex-1 px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-xs"
+                                            className="flex-1 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-[#94a3b8] mb-1">Hasta</label>
+                                    <label className="block text-xs text-ds-soft mb-1">Hasta</label>
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="color"
@@ -277,7 +277,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                             type="text"
                                             value={design.progressBar.gradientTo || '#764ba2'}
                                             onChange={(e) => onUpdateDesignProgressBar({ gradientTo: e.target.value })}
-                                            className="flex-1 px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-xs"
+                                            className="flex-1 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
                                         />
                                     </div>
                                 </div>
@@ -292,35 +292,35 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 type="checkbox"
                                 checked={design.progressBar.showPercentage}
                                 onChange={(e) => onUpdateDesignProgressBar({ showPercentage: e.target.checked })}
-                                className="w-4 h-4 text-[#667eea] bg-gray-100 border-gray-300 rounded focus:ring-[#667eea]"
+                                className="w-4 h-4 text-ds-accent-text bg-ds-bg border-ds-border rounded focus:ring-ds-accent"
                             />
-                            <span className="text-sm text-[#64748b]">Mostrar porcentaje</span>
+                            <span className="text-sm text-ds-soft">Mostrar porcentaje</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={design.progressBar.showValues}
                                 onChange={(e) => onUpdateDesignProgressBar({ showValues: e.target.checked })}
-                                className="w-4 h-4 text-[#667eea] bg-gray-100 border-gray-300 rounded focus:ring-[#667eea]"
+                                className="w-4 h-4 text-ds-accent-text bg-ds-bg border-ds-border rounded focus:ring-ds-accent"
                             />
-                            <span className="text-sm text-[#64748b]">Mostrar valores (50/100)</span>
+                            <span className="text-sm text-ds-soft">Mostrar valores (50/100)</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={design.progressBar.animated}
                                 onChange={(e) => onUpdateDesignProgressBar({ animated: e.target.checked })}
-                                className="w-4 h-4 text-[#667eea] bg-gray-100 border-gray-300 rounded focus:ring-[#667eea]"
+                                className="w-4 h-4 text-ds-accent-text bg-ds-bg border-ds-border rounded focus:ring-ds-accent"
                             />
-                            <span className="text-sm text-[#64748b]">Animación suave</span>
+                            <span className="text-sm text-ds-soft">Animación suave</span>
                         </label>
                     </div>
                 </div>
             </div>
 
             {/* Text Styling */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
                     <Type className="w-4 h-4" />
                     Tipografía
                 </h3>
@@ -328,13 +328,13 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                 <div className="space-y-4">
                     {/* Font Family */}
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Fuente
                         </label>
                         <select
                             value={design.text.fontFamily}
                             onChange={(e) => onUpdateDesignText({ fontFamily: e.target.value })}
-                            className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                         >
                             <option value="Inter, sans-serif">Inter</option>
                             <option value="Roboto, sans-serif">Roboto</option>
@@ -348,7 +348,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     {/* Goal Name */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Tamaño nombre: {design.text.goalNameSize}px
                             </label>
                             <input
@@ -357,11 +357,11 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 max="32"
                                 value={design.text.goalNameSize}
                                 onChange={(e) => onUpdateDesignText({ goalNameSize: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Color nombre
                             </label>
                             <div className="flex items-center gap-2">
@@ -375,7 +375,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.text.goalNameColor}
                                     onChange={(e) => onUpdateDesignText({ goalNameColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>
@@ -384,7 +384,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     {/* Values */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Tamaño valores: {design.text.valuesSize}px
                             </label>
                             <input
@@ -393,11 +393,11 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 max="24"
                                 value={design.text.valuesSize}
                                 onChange={(e) => onUpdateDesignText({ valuesSize: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Color valores
                             </label>
                             <div className="flex items-center gap-2">
@@ -411,7 +411,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.text.valuesColor}
                                     onChange={(e) => onUpdateDesignText({ valuesColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>
@@ -420,8 +420,8 @@ export const DesignTab: React.FC<DesignTabProps> = ({
             </div>
 
             {/* Container */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
                     <Box className="w-4 h-4" />
                     Contenedor
                 </h3>
@@ -430,7 +430,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     {/* Background */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Color de fondo
                             </label>
                             <div className="flex items-center gap-2">
@@ -444,12 +444,12 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.container.backgroundColor}
                                     onChange={(e) => onUpdateDesignContainer({ backgroundColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Opacidad: {design.container.backgroundOpacity}%
                             </label>
                             <input
@@ -458,7 +458,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 max="100"
                                 value={design.container.backgroundOpacity}
                                 onChange={(e) => onUpdateDesignContainer({ backgroundOpacity: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                     </div>
@@ -466,7 +466,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     {/* Border & Padding */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Bordes redondeados: {design.container.borderRadius}px
                             </label>
                             <input
@@ -475,11 +475,11 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 max="32"
                                 value={design.container.borderRadius}
                                 onChange={(e) => onUpdateDesignContainer({ borderRadius: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Padding: {design.container.padding}px
                             </label>
                             <input
@@ -488,7 +488,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 max="32"
                                 value={design.container.padding}
                                 onChange={(e) => onUpdateDesignContainer({ padding: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
                     </div>
@@ -499,23 +499,23 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                             type="checkbox"
                             checked={design.container.shadow}
                             onChange={(e) => onUpdateDesignContainer({ shadow: e.target.checked })}
-                            className="w-4 h-4 text-[#667eea] bg-gray-100 border-gray-300 rounded focus:ring-[#667eea]"
+                            className="w-4 h-4 text-ds-accent-text bg-ds-bg border-ds-border rounded focus:ring-ds-accent"
                         />
-                        <span className="text-sm text-[#64748b]">Mostrar sombra</span>
+                        <span className="text-sm text-ds-soft">Mostrar sombra</span>
                     </label>
                 </div>
             </div>
 
             {/* Animations */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     Animaciones
                 </h3>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Animación de progreso
                         </label>
                         <div className="grid grid-cols-3 gap-2">
@@ -527,10 +527,10 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={anim.value}
                                     onClick={() => onUpdateDesignAnimations({ progressAnimation: anim.value as any })}
-                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border-2 ${
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
                                         design.animations.progressAnimation === anim.value
-                                            ? 'bg-[#667eea] text-white border-[#667eea]'
-                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] border-transparent hover:border-[#667eea]'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
                                     }`}
                                 >
                                     {anim.label}
@@ -540,7 +540,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Al alcanzar milestone
                         </label>
                         <div className="grid grid-cols-4 gap-2">
@@ -553,10 +553,10 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={anim.value}
                                     onClick={() => onUpdateDesignAnimations({ onMilestone: anim.value as any })}
-                                    className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border-2 ${
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
                                         design.animations.onMilestone === anim.value
-                                            ? 'bg-[#667eea] text-white border-[#667eea]'
-                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] border-transparent hover:border-[#667eea]'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
                                     }`}
                                 >
                                     {anim.label}
@@ -566,7 +566,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             Al completar meta
                         </label>
                         <div className="grid grid-cols-4 gap-2">
@@ -579,10 +579,10 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={anim.value}
                                     onClick={() => onUpdateDesignAnimations({ onComplete: anim.value as any })}
-                                    className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border-2 ${
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
                                         design.animations.onComplete === anim.value
-                                            ? 'bg-[#667eea] text-white border-[#667eea]'
-                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] border-transparent hover:border-[#667eea]'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
                                     }`}
                                 >
                                     {anim.label}

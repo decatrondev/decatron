@@ -85,12 +85,12 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
         await api.post(`/song-request/queue/${item.id}/ban`, { type });
     };
 
-    const iconBtn = 'p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626] hover:text-[#1e293b] dark:hover:text-white transition-colors';
+    const iconBtn = 'p-2 rounded-lg text-ds-soft hover:bg-ds-raised hover:text-ds-text transition-colors';
 
     return (
         <div className="space-y-6">
             {!cfg.enabled && (
-                <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm 3xl:text-base">
+                <div className="p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-ds-warn text-sm 3xl:text-base">
                     {t('songRequest.queue.disabled')}
                 </div>
             )}
@@ -115,37 +115,37 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                                 key={m.id}
                                 disabled={modeBusy}
                                 onClick={async () => { setModeBusy(true); try { await cfg.setRequestMode({ mode: m.id }); } finally { setModeBusy(false); } }}
-                                className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-colors disabled:opacity-60 ${active
-                                    ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30'
-                                    : 'border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'}`}
+                                className={`flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-colors disabled:opacity-60 ${active
+                                    ? 'border-ds-accent bg-ds-accent/10 '
+                                    : 'border-ds-border hover:bg-ds-bg '}`}
                             >
-                                <span className={`text-sm 3xl:text-base font-bold ${active ? 'text-[#1d4ed8] dark:text-[#93c5fd]' : 'text-[#1e293b] dark:text-[#f8fafc]'}`}>{m.icon} {t(`songRequest.modes.${m.id}`)}</span>
-                                <span className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t(`songRequest.modes.${m.id}Hint`)}</span>
+                                <span className={`text-sm 3xl:text-base font-bold ${active ? 'text-ds-accent-text ' : 'text-ds-text '}`}>{m.icon} {t(`songRequest.modes.${m.id}`)}</span>
+                                <span className="text-xs 3xl:text-sm text-ds-soft">{t(`songRequest.modes.${m.id}Hint`)}</span>
                             </button>
                         );
                     })}
                 </div>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('songRequest.modes.chatNote')}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-3">{t('songRequest.modes.chatNote')}</p>
             </Card>
 
             {/* Sonando ahora + controles */}
             <Card title={t('songRequest.queue.nowPlaying')}>
                 {current ? (
                     <div className="flex flex-col sm:flex-row gap-4">
-                        {current.thumbnailUrl && <img src={current.thumbnailUrl} alt="" className="w-full sm:w-48 3xl:w-56 aspect-video object-cover rounded-xl" />}
+                        {current.thumbnailUrl && <img src={current.thumbnailUrl} alt="" className="w-full sm:w-48 3xl:w-56 aspect-video object-cover rounded-lg" />}
                         <div className="flex-1 min-w-0 space-y-1">
-                            <a href={current.originUrl ?? current.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block font-bold text-[#1e293b] dark:text-[#f8fafc] text-base 3xl:text-lg hover:underline break-words">{current.title}</a>
-                            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{current.artist} · {current.isFallback ? t('songRequest.overlayLabels.fallback') : <><PlatformIcon platform={current.platform} /> {t('songRequest.queue.requestedBy', { user: current.requestedBy })}</>}</p>
+                            <a href={current.originUrl ?? current.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block font-bold text-ds-text text-base 3xl:text-lg hover:underline break-words">{current.title}</a>
+                            <p className="text-sm 3xl:text-base text-ds-soft">{current.artist} · {current.isFallback ? t('songRequest.overlayLabels.fallback') : <><PlatformIcon platform={current.platform} /> {t('songRequest.queue.requestedBy', { user: current.requestedBy })}</>}</p>
                             <ProgressBar progress={currentProgress} duration={current.durationSeconds} />
                         </div>
                     </div>
                 ) : (
-                    <p className="text-sm 3xl:text-base text-[#94a3b8]">
+                    <p className="text-sm 3xl:text-base text-ds-soft">
                         {queue.length > 0 && !snapshot?.playerConnected ? t('songRequest.queue.waitingPlayer') : t('songRequest.queue.nothing')}
                     </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-ds-border">
                     {snapshot?.paused ? (
                         <CtlButton onClick={() => control('resume')} icon={<Play className="w-4 h-4" />} label={t('songRequest.queue.resume')} primary />
                     ) : (
@@ -159,15 +159,15 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                         <CtlButton onClick={() => control('open')} icon={<Unlock className="w-4 h-4" />} label={t('songRequest.queue.openRequests')} primary />
                     )}
                     <div className="flex items-center gap-2 ml-auto min-w-[200px] flex-1 sm:flex-none">
-                        <Volume2 className="w-4 h-4 text-[#64748b]" />
+                        <Volume2 className="w-4 h-4 text-ds-soft" />
                         <input
                             type="range" min={0} max={100} value={shownVolume}
                             onChange={e => setVolume(Number(e.target.value))}
                             onPointerUp={() => { if (volume !== null) control('volume', volume).finally(() => setVolume(null)); }}
                             onKeyUp={() => { if (volume !== null) control('volume', volume).finally(() => setVolume(null)); }}
-                            className="flex-1 accent-[#2563eb]"
+                            className="flex-1 accent-ds-accent"
                         />
-                        <span className="w-9 text-right font-mono text-xs 3xl:text-sm text-[#64748b]">{shownVolume}</span>
+                        <span className="w-9 text-right font-mono text-xs 3xl:text-sm text-ds-soft">{shownVolume}</span>
                     </div>
                 </div>
             </Card>
@@ -187,19 +187,19 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
             <Card title={t('songRequest.queue.addTitle')}>
                 <form className="flex gap-2" onSubmit={e => { e.preventDefault(); add(); }}>
                     <input value={input} onChange={e => setInput(e.target.value)} placeholder={t('songRequest.queue.addPlaceholder')} className={inputClass} maxLength={500} />
-                    <button type="submit" disabled={adding || !input.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 shrink-0">
+                    <button type="submit" disabled={adding || !input.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent disabled:opacity-50 shrink-0">
                         <Plus className="w-4 h-4" /> {adding ? t('songRequest.queue.adding') : t('songRequest.queue.add')}
                     </button>
                 </form>
-                {addResult && <p className={`text-sm 3xl:text-base mt-2 ${addResult.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{addResult.text}</p>}
+                {addResult && <p className={`text-sm 3xl:text-base mt-2 ${addResult.ok ? 'text-ds-ok ' : 'text-ds-danger '}`}>{addResult.text}</p>}
             </Card>
 
             {/* Cola */}
             <Card title={t('songRequest.queue.upNext', { count: queue.length })} description={snapshot?.totalDurationSeconds ? t('songRequest.queue.total', { duration: formatDuration(snapshot.totalDurationSeconds) }) : undefined}>
                 {queue.length === 0 ? (
-                    <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.queue.empty')}</p>
+                    <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.queue.empty')}</p>
                 ) : (
-                    <ol className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                    <ol className="divide-y divide-ds-border">
                         {queue.map((item, i) => (
                             <li
                                 key={item.id}
@@ -209,14 +209,14 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                                 onDrop={() => drop(item.id)}
                                 className={`flex items-center gap-3 py-2 ${dragId === item.id ? 'opacity-40' : ''}`}
                             >
-                                <GripVertical className="w-4 h-4 text-[#cbd5e1] dark:text-[#4b5563] cursor-grab shrink-0" />
-                                <span className="w-6 text-right font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0">{i + 1}</span>
+                                <GripVertical className="w-4 h-4 text-ds-text cursor-grab shrink-0" />
+                                <span className="w-6 text-right font-mono text-xs 3xl:text-sm text-ds-soft shrink-0">{i + 1}</span>
                                 {item.thumbnailUrl && <img src={item.thumbnailUrl} alt="" className="w-16 h-9 3xl:w-20 3xl:h-[45px] object-cover rounded shrink-0" />}
                                 <div className="flex-1 min-w-0">
-                                    <a href={item.originUrl ?? item.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate hover:underline">{item.title}</a>
-                                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">{item.artist} · <PlatformIcon platform={item.platform} /> {t('songRequest.queue.requestedBy', { user: item.requestedBy })}</p>
+                                    <a href={item.originUrl ?? item.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block text-sm 3xl:text-base font-semibold text-ds-text truncate hover:underline">{item.title}</a>
+                                    <p className="text-xs 3xl:text-sm text-ds-soft truncate">{item.artist} · <PlatformIcon platform={item.platform} /> {t('songRequest.queue.requestedBy', { user: item.requestedBy })}</p>
                                 </div>
-                                <span className="font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0 hidden sm:inline">{formatDuration(item.durationSeconds)}</span>
+                                <span className="font-mono text-xs 3xl:text-sm text-ds-soft shrink-0 hidden sm:inline">{formatDuration(item.durationSeconds)}</span>
                                 {onDownload && (item.originUrl ?? item.url) && (
                                     <button className={iconBtn} title={t('songRequest.downloads.sendTo')} onClick={() => onDownload((item.originUrl ?? item.url)!)}>
                                         <Download className="w-4 h-4" />
@@ -236,7 +236,7 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                     </ol>
                 )}
                 {current && (
-                    <div className="mt-3 pt-3 border-t border-[#e2e8f0] dark:border-[#374151] flex items-center gap-2 text-xs 3xl:text-sm text-[#64748b]">
+                    <div className="mt-3 pt-3 border-t border-ds-border flex items-center gap-2 text-xs 3xl:text-sm text-ds-soft">
                         <span>{t('songRequest.queue.banCurrent')}</span>
                         <BanMenu item={current} onBan={ban} />
                     </div>
@@ -247,12 +247,12 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
 }
 
 function Status({ ok, label, warn }: { ok: boolean; label: string; warn?: boolean }) {
-    const tone = warn ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
-        : ok ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-            : 'bg-[#f1f5f9] text-[#64748b] dark:bg-[#262626] dark:text-[#94a3b8]';
+    const tone = warn ? 'bg-ds-warn/10 text-ds-warn '
+        : ok ? 'bg-ds-ok/10 text-ds-ok '
+            : 'bg-ds-raised text-ds-soft ';
     return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${tone}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${warn ? 'bg-amber-500' : ok ? 'bg-green-500' : 'bg-[#94a3b8]'}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${warn ? 'bg-ds-warn' : ok ? 'bg-ds-accent' : 'bg-ds-faint'}`} />
             {label}
         </span>
     );
@@ -264,7 +264,7 @@ function CtlButton({ onClick, icon, label, primary, disabled, title }: { onClick
             onClick={onClick}
             disabled={disabled}
             title={title}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors disabled:opacity-40 ${primary ? 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'}`}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors disabled:opacity-40 ${primary ? 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent' : 'bg-ds-raised text-ds-soft hover:bg-ds-raised '}`}
         >
             {icon} {label}
         </button>
@@ -276,10 +276,10 @@ function ProgressBar({ progress, duration }: { progress: PlaybackProgress | null
     const pos = progress?.position ?? 0;
     return (
         <div className="pt-2">
-            <div className="h-1.5 rounded-full bg-[#e2e8f0] dark:bg-[#374151] overflow-hidden">
-                <div className="h-full bg-[#2563eb] transition-[width] duration-1000 ease-linear" style={{ width: total ? `${Math.min(100, (pos / total) * 100)}%` : '0%' }} />
+            <div className="h-1.5 rounded-full bg-ds-raised overflow-hidden">
+                <div className="h-full bg-ds-accent transition-[width] duration-1000 ease-linear" style={{ width: total ? `${Math.min(100, (pos / total) * 100)}%` : '0%' }} />
             </div>
-            <div className="flex justify-between font-mono text-xs 3xl:text-sm text-[#94a3b8] mt-1">
+            <div className="flex justify-between font-mono text-xs 3xl:text-sm text-ds-soft mt-1">
                 <span>{formatDuration(pos) || '0:00'}</span>
                 <span>{formatDuration(total)}</span>
             </div>
@@ -292,15 +292,15 @@ function BanMenu({ item, onBan }: { item: QueueItem; onBan: (item: QueueItem, ty
     const [open, setOpen] = useState(false);
     return (
         <div className="relative">
-            <button className="p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626] hover:text-red-600" title={t('songRequest.queue.ban')} onClick={() => setOpen(o => !o)}>
+            <button className="p-2 rounded-lg text-ds-soft hover:bg-ds-raised hover:text-ds-danger" title={t('songRequest.queue.ban')} onClick={() => setOpen(o => !o)}>
                 <Ban className="w-4 h-4" />
             </button>
             {open && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-56 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-xl p-1" onMouseLeave={() => setOpen(false)}>
+                <div className="absolute right-0 top-full mt-1 z-20 w-56 rounded-lg border border-ds-border bg-ds-surface p-1" onMouseLeave={() => setOpen(false)}>
                     {(['track', 'author', 'user'] as const)
                         .filter(type => type !== 'user' || (item.platform !== 'dashboard' && !item.isFallback))
                         .map(type => (
-                            <button key={type} onClick={() => { setOpen(false); onBan(item, type); }} className="w-full text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#fef2f2] dark:hover:bg-red-900/20">
+                            <button key={type} onClick={() => { setOpen(false); onBan(item, type); }} className="w-full text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-ds-text hover:bg-ds-danger/10">
                                 {t(`songRequest.queue.banOptions.${type}`)}
                             </button>
                         ))}
@@ -322,12 +322,12 @@ function LocalPlayer({ channel, playerKey }: { channel: string; playerKey: strin
 
     return (
         <div className="mt-4 space-y-2">
-            <p className="flex items-center gap-2 text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc]">
-                {status === 'active' ? <Headphones className="w-4 h-4 text-green-500" /> : <Radio className="w-4 h-4 text-[#94a3b8]" />}
+            <p className="flex items-center gap-2 text-sm 3xl:text-base font-semibold text-ds-text">
+                {status === 'active' ? <Headphones className="w-4 h-4 text-ds-accent-text" /> : <Radio className="w-4 h-4 text-ds-soft" />}
                 {t(`songRequest.queue.localStatus.${status}`)}
             </p>
             {status !== 'replaced' && (
-                <div className="w-full max-w-md aspect-video rounded-xl overflow-hidden bg-black">
+                <div className="w-full max-w-md aspect-video rounded-lg overflow-hidden bg-ds-input">
                     <TrackPlayer item={item} paused={snapshot?.paused ?? false} volume={snapshot?.volume ?? 50} onEnded={reportEnded} onError={reportError} onProgress={reportProgress} />
                 </div>
             )}

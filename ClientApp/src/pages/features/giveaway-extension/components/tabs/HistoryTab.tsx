@@ -56,8 +56,8 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
         return (
             <div className="flex items-center justify-center p-12">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">Cargando historial...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ds-accent mx-auto mb-4"></div>
+                    <p className="text-ds-soft">Cargando historial...</p>
                 </div>
             </div>
         );
@@ -69,67 +69,67 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             {statistics && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Total Giveaways */}
-                    <div className="bg-[#f1f5f9] dark:bg-[#262626] border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-2 text-slate-600 dark:text-slate-400">
+                    <div className="bg-ds-raised border border-ds-border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2 text-ds-soft">
                             <Trophy className="w-5 h-5" />
                             <p className="font-bold">Total Giveaways</p>
                         </div>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{statistics.totalGiveaways}</p>
+                        <p className="text-3xl font-black text-ds-text">{statistics.totalGiveaways}</p>
                     </div>
 
                     {/* Total Participations */}
-                    <div className="bg-[#f1f5f9] dark:bg-[#262626] border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400">
+                    <div className="bg-ds-raised border border-ds-border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2 text-ds-accent-text">
                             <Users className="w-5 h-5" />
                             <p className="font-bold">Participaciones</p>
                         </div>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{statistics.totalParticipations}</p>
+                        <p className="text-3xl font-black text-ds-text">{statistics.totalParticipations}</p>
                     </div>
 
                     {/* Total Winners */}
-                    <div className="bg-[#f1f5f9] dark:bg-[#262626] border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-2 text-amber-600 dark:text-amber-500">
+                    <div className="bg-ds-raised border border-ds-border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2 text-ds-warn">
                             <Trophy className="w-5 h-5" />
                             <p className="font-bold">Ganadores</p>
                         </div>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{statistics.totalWinners}</p>
+                        <p className="text-3xl font-black text-ds-text">{statistics.totalWinners}</p>
                     </div>
 
                     {/* Average Participants */}
-                    <div className="bg-[#f1f5f9] dark:bg-[#262626] border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-500">
+                    <div className="bg-ds-raised border border-ds-border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2 text-ds-ok">
                             <TrendingUp className="w-5 h-5" />
                             <p className="font-bold">Promedio</p>
                         </div>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{statistics.averageParticipantsPerGiveaway.toFixed(0)}</p>
+                        <p className="text-3xl font-black text-ds-text">{statistics.averageParticipantsPerGiveaway.toFixed(0)}</p>
                     </div>
                 </div>
             )}
 
             {/* Top Winners */}
             {statistics && statistics.topWinners && statistics.topWinners.length > 0 && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                    <h3 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                        <Trophy className="w-6 h-6 text-amber-500" />
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                    <h3 className="text-xl font-bold text-ds-text mb-4 flex items-center gap-2">
+                        <Trophy className="w-6 h-6 text-ds-accent-text" />
                         Top Ganadores
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {statistics.topWinners.slice(0, 3).map((winner, idx) => (
                             <div
                                 key={winner.username}
-                                className={`p-4 rounded-xl border ${
+                                className={`p-4 rounded-lg border ${
                                     idx === 0
-                                        ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30'
+                                        ? 'bg-ds-warn/10 border-ds-warn/40 '
                                         : idx === 1
-                                        ? 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700'
-                                        : 'bg-orange-50/50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800/30'
+                                        ? 'bg-ds-surface border-ds-border '
+                                        : 'bg-ds-warn/10 border-ds-warn/40 '
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{winner.username}</p>
+                                    <p className="font-bold text-ds-text">{winner.username}</p>
                                     <p className="text-2xl font-black">{winner.winCount}</p>
                                 </div>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                <p className="text-xs text-ds-soft mt-1">
                                     {idx === 0 ? '🥇 Primer lugar' : idx === 1 ? '🥈 Segundo lugar' : '🥉 Tercer lugar'}
                                 </p>
                             </div>
@@ -139,23 +139,23 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             )}
 
             {/* Export Buttons */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Exportar Historial</h3>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Descarga tu historial en diferentes formatos</p>
+                        <h3 className="text-lg font-bold text-ds-text">Exportar Historial</h3>
+                        <p className="text-sm text-ds-soft">Descarga tu historial en diferentes formatos</p>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => handleExport('csv')}
-                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-colors flex items-center gap-2"
                         >
                             <Download className="w-4 h-4" />
                             CSV
                         </button>
                         <button
                             onClick={() => handleExport('json')}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-colors flex items-center gap-2"
                         >
                             <Download className="w-4 h-4" />
                             JSON
@@ -165,62 +165,62 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             </div>
 
             {/* History List */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                    <History className="w-6 h-6 text-purple-500" />
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-xl font-bold text-ds-text mb-4 flex items-center gap-2">
+                    <History className="w-6 h-6 text-ds-accent-text" />
                     Historial de Giveaways ({history.length})
                 </h3>
 
                 {history.length === 0 ? (
                     <div className="text-center py-12">
-                        <Trophy className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">No hay giveaways en el historial</p>
+                        <Trophy className="w-16 h-16 text-ds-soft mx-auto mb-4" />
+                        <p className="text-ds-soft">No hay giveaways en el historial</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {history.map((entry) => (
                             <div
                                 key={entry.id}
-                                className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl overflow-hidden"
+                                className="border border-ds-border rounded-lg overflow-hidden"
                             >
                                 {/* Entry Header */}
                                 <div
-                                    className="p-4 bg-[#f8fafc] dark:bg-[#262626] cursor-pointer hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+                                    className="p-4 bg-ds-bg cursor-pointer hover:bg-ds-raised transition-colors"
                                     onClick={() => setExpandedEntry(expandedEntry === entry.id ? null : entry.id)}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <h4 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                                <h4 className="text-lg font-bold text-ds-text">
                                                     {entry.config.name}
                                                 </h4>
                                                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                                                     entry.status === 'completed'
-                                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                                        ? 'bg-ds-ok/10 text-ds-ok '
+                                                        : 'bg-ds-danger/10 text-ds-danger '
                                                 }`}>
                                                     {entry.status === 'completed' ? 'Completado' : 'Cancelado'}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                            <p className="text-sm text-ds-soft">
                                                 Premio: {entry.config.prizeName}
                                             </p>
                                         </div>
 
                                         <div className="flex items-center gap-6 mr-4">
                                             <div className="text-center">
-                                                <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">{entry.totalParticipants}</p>
-                                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Participantes</p>
+                                                <p className="text-2xl font-black text-ds-text">{entry.totalParticipants}</p>
+                                                <p className="text-xs text-ds-soft">Participantes</p>
                                             </div>
                                             <div className="text-center">
-                                                <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">{entry.winners.length}</p>
-                                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Ganadores</p>
+                                                <p className="text-2xl font-black text-ds-text">{entry.winners.length}</p>
+                                                <p className="text-xs text-ds-soft">Ganadores</p>
                                             </div>
                                             <div className="text-center">
-                                                <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">
+                                                <p className="text-sm font-bold text-ds-soft">
                                                     {new Date(entry.startedAt).toLocaleDateString()}
                                                 </p>
-                                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                                <p className="text-xs text-ds-soft">
                                                     {new Date(entry.startedAt).toLocaleTimeString()}
                                                 </p>
                                             </div>
@@ -231,7 +231,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                                 e.stopPropagation();
                                                 handleDelete(entry.id);
                                             }}
-                                            className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                            className="p-2 text-ds-danger hover:bg-ds-danger/10 rounded-lg transition-colors"
                                         >
                                             <Trash2 className="w-5 h-5" />
                                         </button>
@@ -240,43 +240,43 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
 
                                 {/* Expanded Details */}
                                 {expandedEntry === entry.id && (
-                                    <div className="p-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                    <div className="p-4 border-t border-ds-border">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                             <div>
-                                                <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Duración</p>
-                                                <p className="text-[#1e293b] dark:text-[#f8fafc]">{entry.durationMinutes} minutos</p>
+                                                <p className="text-sm font-bold text-ds-soft mb-1">Duración</p>
+                                                <p className="text-ds-text">{entry.durationMinutes} minutos</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Peso Total</p>
-                                                <p className="text-[#1e293b] dark:text-[#f8fafc]">{entry.totalWeight.toFixed(2)}×</p>
+                                                <p className="text-sm font-bold text-ds-soft mb-1">Peso Total</p>
+                                                <p className="text-ds-text">{entry.totalWeight.toFixed(2)}×</p>
                                             </div>
                                         </div>
 
                                         {/* Winners */}
                                         <div>
-                                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">Ganadores:</p>
+                                            <p className="text-sm font-bold text-ds-soft mb-2">Ganadores:</p>
                                             <div className="space-y-2">
                                                 {entry.winners.map((winner, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className="flex items-center gap-3 p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg"
+                                                        className="flex items-center gap-3 p-3 bg-ds-bg rounded-lg"
                                                     >
-                                                        <div className="p-2 bg-yellow-500 text-white rounded-full font-black">
+                                                        <div className="p-2 bg-ds-warn text-ds-on-accent rounded-full font-black">
                                                             #{winner.position}
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                                            <p className="font-bold text-ds-text">
                                                                 {winner.participant.displayName}
                                                             </p>
-                                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                                            <p className="text-xs text-ds-soft">
                                                                 @{winner.participant.username}
                                                             </p>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                                            <p className="text-sm font-bold text-ds-text">
                                                                 {winner.participant.calculatedWeight.toFixed(2)}×
                                                             </p>
-                                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">peso</p>
+                                                            <p className="text-xs text-ds-soft">peso</p>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -285,9 +285,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
 
                                         {/* Cancel Reason */}
                                         {entry.status === 'cancelled' && entry.cancelReason && (
-                                            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                                                <p className="text-sm font-bold text-red-700 dark:text-red-300 mb-1">Razón de cancelación:</p>
-                                                <p className="text-sm text-red-600 dark:text-red-400">{entry.cancelReason}</p>
+                                            <div className="mt-4 p-3 bg-ds-danger/10 border border-ds-danger/40 rounded-lg">
+                                                <p className="text-sm font-bold text-ds-danger mb-1">Razón de cancelación:</p>
+                                                <p className="text-sm text-ds-danger">{entry.cancelReason}</p>
                                             </div>
                                         )}
                                     </div>

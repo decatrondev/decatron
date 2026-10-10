@@ -61,26 +61,26 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
 
   const clearQueue = () => setQueue([]);
 
-  const inputClass = "w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm";
-  const labelClass = "text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2";
+  const inputClass = "w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm";
+  const labelClass = "text-xs font-bold text-ds-soft block mb-2";
 
   return (
     <div className="space-y-4">
       {/* Header con cola */}
-      <div className="flex items-center justify-between p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D]">
+      <div className="flex items-center justify-between p-4 rounded-lg border border-ds-border bg-ds-surface">
         <div className="flex items-center gap-3">
           <span className="text-xl">🧪</span>
           <div>
-            <div className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">Testing de Alertas</div>
-            <div className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">Simula eventos para probar tus alertas</div>
+            <div className="text-sm font-bold text-ds-text 3xl:text-base">Testing de Alertas</div>
+            <div className="text-xs text-ds-soft 3xl:text-sm">Simula eventos para probar tus alertas</div>
           </div>
         </div>
         {queue.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold 3xl:text-sm">
+            <span className="px-2 py-1 bg-ds-accent/10 text-ds-accent-text rounded-full text-xs font-bold 3xl:text-sm">
               {queue.length} en cola
             </span>
-            <button onClick={clearQueue} className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg text-red-500">
+            <button onClick={clearQueue} className="p-1.5 hover:bg-ds-danger/10 rounded-lg text-ds-danger">
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
@@ -88,7 +88,7 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
       </div>
 
       {/* Formulario compacto */}
-      <div className="p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] space-y-4">
+      <div className="p-4 rounded-lg border border-ds-border bg-ds-surface space-y-4">
         {/* Tipo de evento y Usuario en una fila */}
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -136,8 +136,8 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
                     onClick={() => setAmount(ex)}
                     className={`px-2 py-1 text-xs font-bold rounded-lg transition-all ${
                       amount === ex
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-[#f1f5f9] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                        ? 'bg-ds-accent text-ds-on-accent'
+                        : 'bg-ds-raised text-ds-soft hover:bg-ds-accent/10 '
                     }`}
                   >
                     {ex}
@@ -159,7 +159,7 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
               placeholder="Ej: ¡Gracias por el stream!"
               className={inputClass}
             />
-            <p className="text-xs text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Este mensaje se leerá con TTS si está configurado
             </p>
           </div>
@@ -171,8 +171,8 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
           disabled={sending}
           className={`w-full px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
             sending
-              ? 'bg-green-500 text-white'
-              : 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white'
+              ? 'bg-ds-accent text-ds-on-accent'
+              : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent'
           }`}
         >
           <Play className="w-4 h-4" />
@@ -181,8 +181,8 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
       </div>
 
       {/* Info compacta */}
-      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-        <p className="text-xs text-blue-700 dark:text-blue-300 3xl:text-sm">
+      <div className="p-3 bg-ds-accent/10 border border-ds-accent rounded-lg">
+        <p className="text-xs text-ds-accent-text 3xl:text-sm">
           💡 Asegúrate de tener el overlay abierto en OBS o en otra ventana para ver las alertas.
         </p>
       </div>

@@ -89,50 +89,50 @@ export const RarityRestrictionsTab: React.FC = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-6">
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
+            <div className="flex items-center justify-between pb-4 border-b border-ds-border">
                 <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl">
-                        <Clock className="w-6 h-6 text-white" />
+                    <div className="p-3 bg-ds-accent rounded-lg">
+                        <Clock className="w-6 h-6 text-ds-text" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Limites por Rareza</h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Intervalos de pulls y tiempo por rareza</p>
+                        <h2 className="text-2xl font-black text-ds-text">Limites por Rareza</h2>
+                        <p className="text-sm text-ds-soft">Intervalos de pulls y tiempo por rareza</p>
                     </div>
                 </div>
-                <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all">
+                <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all">
                     <Plus className="w-4 h-4" /> Agregar Restriccion
                 </button>
             </div>
 
             {/* Help Banner */}
-            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+            <div className="rounded-lg border border-ds-border bg-ds-bg overflow-hidden">
                 <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
-                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan los limites de rareza</span>
-                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                    <HelpCircle className="w-5 h-5 text-ds-soft flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-ds-soft">Como funcionan los limites de rareza</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
                 </button>
                 {showHelp && (
-                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="px-4 pb-4 space-y-3 text-sm text-ds-soft">
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
-                            <span>Los limites controlan <strong className="text-[#1e293b] dark:text-[#f8fafc]">cada cuanto</strong> puede salir una carta de cada rareza</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Los limites controlan <strong className="text-ds-text">cada cuanto</strong> puede salir una carta de cada rareza</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Intervalo de pulls</strong> — minimo de tiros entre cartas de la misma rareza (ej: 5 pulls entre legendarias)</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span><strong className="text-ds-text">Intervalo de pulls</strong> — minimo de tiros entre cartas de la misma rareza (ej: 5 pulls entre legendarias)</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Intervalo de tiempo</strong> — tiempo minimo entre cartas de la misma rareza (ej: 1 hora entre epicas)</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span><strong className="text-ds-text">Intervalo de tiempo</strong> — tiempo minimo entre cartas de la misma rareza (ej: 1 hora entre epicas)</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
-                            <span>Aplica por <strong className="text-[#1e293b] dark:text-[#f8fafc]">viewer individual</strong>, no globalmente</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Aplica por <strong className="text-ds-text">viewer individual</strong>, no globalmente</span>
                         </div>
-                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
-                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Esto evita que un viewer con suerte se lleve todas las legendarias de golpe.
+                        <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
+                            <strong className="text-ds-text">Tip:</strong> Esto evita que un viewer con suerte se lleve todas las legendarias de golpe.
                         </div>
                     </div>
                 )}
@@ -140,32 +140,32 @@ export const RarityRestrictionsTab: React.FC = () => {
 
             {/* List */}
             {loading ? (
-                <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando...</p>
+                <p className="text-center text-ds-soft py-8">Cargando...</p>
             ) : restrictions.length === 0 ? (
-                <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">No hay restricciones de rareza configuradas</p>
+                <p className="text-center text-ds-soft py-8">No hay restricciones de rareza configuradas</p>
             ) : (
                 <div className="space-y-3">
                     {restrictions.map((r) => {
                         const rarity = (r.rarity as RarityType) || 'common';
                         const cfg = RARITY_CONFIG[rarity];
                         return (
-                            <div key={r.id} className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+                            <div key={r.id} className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-2">
-                                        {r.participantId ? <User className="w-4 h-4 text-blue-400" /> : <Globe className="w-4 h-4 text-green-400" />}
-                                        <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{getScopeName(r)}</span>
+                                        {r.participantId ? <User className="w-4 h-4 text-ds-accent-text" /> : <Globe className="w-4 h-4 text-ds-accent-text" />}
+                                        <span className="font-bold text-ds-text">{getScopeName(r)}</span>
                                     </div>
-                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Item: {getItemName(r)}</span>
+                                    <span className="text-xs text-ds-soft">Item: {getItemName(r)}</span>
                                     <span className="text-sm font-bold" style={{ color: cfg?.color }}>{getRarityStars(rarity)} {cfg?.label}</span>
-                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Donacion: {r.pullInterval} pulls / {r.timeInterval} {r.timeUnit}</span>
+                                    <span className="text-xs text-ds-soft">Donacion: {r.pullInterval} pulls / {r.timeInterval} {r.timeUnit}</span>
                                     {(r.coinPullInterval || r.coinTimeInterval) && (
-                                        <span className="text-xs text-purple-500 dark:text-purple-400">Coins: {r.coinPullInterval ?? '—'} pulls / {r.coinTimeInterval ?? '—'} {r.coinTimeUnit ?? ''}</span>
+                                        <span className="text-xs text-ds-accent-text">Coins: {r.coinPullInterval ?? '—'} pulls / {r.coinTimeInterval ?? '—'} {r.coinTimeUnit ?? ''}</span>
                                     )}
-                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${r.isActive ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${r.isActive ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-bg text-ds-soft'}`}>
                                         {r.isActive ? 'Activo' : 'Inactivo'}
                                     </span>
                                 </div>
-                                <button onClick={() => handleDelete(r.id)} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all">
+                                <button onClick={() => handleDelete(r.id)} className="p-2 text-ds-danger hover:bg-ds-danger/10 rounded-lg transition-all">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
@@ -176,79 +176,79 @@ export const RarityRestrictionsTab: React.FC = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-2xl w-full max-w-lg space-y-4" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-ds-input/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6 w-full max-w-lg space-y-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Nueva Restriccion</h3>
-                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><X className="w-5 h-5 text-[#64748b]" /></button>
+                            <h3 className="text-xl font-black text-ds-text">Nueva Restriccion</h3>
+                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-ds-bg rounded-lg"><X className="w-5 h-5 text-ds-soft" /></button>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Item (opcional)</label>
-                            <select value={form.itemId} onChange={(e) => setForm({ ...form, itemId: e.target.value })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]">
+                            <label className="block text-sm font-bold text-ds-soft mb-1">Item (opcional)</label>
+                            <select value={form.itemId} onChange={(e) => setForm({ ...form, itemId: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
                                 <option value="">Todos los items</option>
                                 {items.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
                             </select>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Participante (opcional - vacio = global)</label>
-                            <select value={form.participantId} onChange={(e) => setForm({ ...form, participantId: e.target.value })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]">
+                            <label className="block text-sm font-bold text-ds-soft mb-1">Participante (opcional - vacio = global)</label>
+                            <select value={form.participantId} onChange={(e) => setForm({ ...form, participantId: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
                                 <option value="">Global</option>
                                 {participants.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Rareza</label>
-                            <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: e.target.value as RarityType })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]">
+                            <label className="block text-sm font-bold text-ds-soft mb-1">Rareza</label>
+                            <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: e.target.value as RarityType })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
                                 {RARITY_ORDER.map((r) => <option key={r} value={r}>{RARITY_CONFIG[r].label} {getRarityStars(r)}</option>)}
                             </select>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Intervalo de Pulls</label>
-                                <input type="number" min={1} value={form.pullInterval} onChange={(e) => setForm({ ...form, pullInterval: parseInt(e.target.value) || 1 })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                                <label className="block text-sm font-bold text-ds-soft mb-1">Intervalo de Pulls</label>
+                                <input type="number" min={1} value={form.pullInterval} onChange={(e) => setForm({ ...form, pullInterval: parseInt(e.target.value) || 1 })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Intervalo de Tiempo</label>
-                                <input type="number" min={1} value={form.timeInterval} onChange={(e) => setForm({ ...form, timeInterval: parseInt(e.target.value) || 1 })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                                <label className="block text-sm font-bold text-ds-soft mb-1">Intervalo de Tiempo</label>
+                                <input type="number" min={1} value={form.timeInterval} onChange={(e) => setForm({ ...form, timeInterval: parseInt(e.target.value) || 1 })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Unidad de Tiempo</label>
-                                <select value={form.timeUnit} onChange={(e) => setForm({ ...form, timeUnit: e.target.value })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]">
+                                <label className="block text-sm font-bold text-ds-soft mb-1">Unidad de Tiempo</label>
+                                <select value={form.timeUnit} onChange={(e) => setForm({ ...form, timeUnit: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
                                     <option value="minutes">Minutos</option>
                                     <option value="hours">Horas</option>
                                     <option value="days">Dias</option>
                                 </select>
                             </div>
                             <div className="flex items-end">
-                                <button onClick={() => setForm({ ...form, isActive: !form.isActive })} className={`w-full px-4 py-3 rounded-xl font-bold transition-all ${form.isActive ? 'bg-green-500 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
+                                <button onClick={() => setForm({ ...form, isActive: !form.isActive })} className={`w-full px-4 py-3 rounded-lg font-bold transition-all ${form.isActive ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}>
                                     {form.isActive ? 'Activo' : 'Inactivo'}
                                 </button>
                             </div>
                         </div>
 
                         {/* Coin-specific intervals */}
-                        <div className="pt-3 border-t border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-xs font-bold text-purple-600 dark:text-purple-400 mb-2 uppercase tracking-wide">Intervalos para Coins (opcional)</p>
+                        <div className="pt-3 border-t border-ds-border">
+                            <p className="text-xs font-bold text-ds-accent-text mb-2 uppercase tracking-wide">Intervalos para Coins (opcional)</p>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Pulls (coins)</label>
-                                    <input type="number" min={0} value={form.coinPullInterval} onChange={(e) => setForm({ ...form, coinPullInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                                    <label className="block text-sm font-bold text-ds-soft mb-1">Pulls (coins)</label>
+                                    <input type="number" min={0} value={form.coinPullInterval} onChange={(e) => setForm({ ...form, coinPullInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Tiempo (coins)</label>
-                                    <input type="number" min={0} value={form.coinTimeInterval} onChange={(e) => setForm({ ...form, coinTimeInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                                    <label className="block text-sm font-bold text-ds-soft mb-1">Tiempo (coins)</label>
+                                    <input type="number" min={0} value={form.coinTimeInterval} onChange={(e) => setForm({ ...form, coinTimeInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
                                 </div>
                             </div>
                             <div className="mt-2">
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Unidad tiempo (coins)</label>
-                                <select value={form.coinTimeUnit} onChange={(e) => setForm({ ...form, coinTimeUnit: e.target.value })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]">
+                                <label className="block text-sm font-bold text-ds-soft mb-1">Unidad tiempo (coins)</label>
+                                <select value={form.coinTimeUnit} onChange={(e) => setForm({ ...form, coinTimeUnit: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
                                     <option value="">Usar misma que donacion</option>
                                     <option value="minutes">Minutos</option>
                                     <option value="hours">Horas</option>
@@ -257,7 +257,7 @@ export const RarityRestrictionsTab: React.FC = () => {
                             </div>
                         </div>
 
-                        <button onClick={handleCreate} className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all">
+                        <button onClick={handleCreate} className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all">
                             Crear Restriccion
                         </button>
                     </div>

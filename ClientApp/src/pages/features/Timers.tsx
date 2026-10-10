@@ -237,7 +237,7 @@ export default function Timers() {
         return (
             <div className="flex flex-col items-center justify-center py-16">
                 <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-8 max-w-md text-center">
-                    <Lock className="w-16 h-16 text-ds-danger mx-auto mb-4" />
+                    <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
                     <h2 className="text-2xl font-black text-ds-danger mb-2">{t('timers.accessDenied')}</h2>
                     <p className="text-ds-soft mb-6">
                         {t('timers.accessDeniedDesc')}
@@ -323,7 +323,7 @@ export default function Timers() {
                                         className="p-1.5 hover:bg-ds-bg rounded-lg transition-all"
                                         title="Probar timer (envía el mensaje al chat)"
                                     >
-                                        <Zap className="w-4 h-4 text-ds-ok" />
+                                        <Zap className="w-4 h-4 text-ds-accent-text" />
                                     </button>
                                     <button
                                         onClick={() => openEditModal(timer)}

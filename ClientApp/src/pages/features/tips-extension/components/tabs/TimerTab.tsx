@@ -121,7 +121,7 @@ export const TimerTab: React.FC<TimerTabProps> = ({
 
                         <div className="p-4 bg-ds-ok/10 border border-ds-ok/40 rounded-lg">
                             <div className="flex items-center gap-3">
-                                <Zap className="w-6 h-6 text-ds-ok" />
+                                <Zap className="w-6 h-6 text-ds-accent-text" />
                                 <div>
                                     <p className="font-bold text-ds-ok">
                                         {t('tipsTabs.donationMoreTime')}

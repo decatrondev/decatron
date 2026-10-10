@@ -10,7 +10,7 @@ export function LimitsTab({ wheel, onWheel, t }: {
     return (
         <div className="space-y-4">
             <section className={CARD}>
-                <h2 className="px-5 py-4 border-b border-[#374151] font-bold text-[#f8fafc]">{t('wheel.triggers.title')}</h2>
+                <h2 className="px-5 py-4 border-b border-ds-border font-bold text-ds-text">{t('wheel.triggers.title')}</h2>
 
                 <Row label={t('wheel.triggers.commands')} help={t('wheel.triggers.commandsHelp')}>
                     <Toggle on={wheel.commandEnabled !== false} onChange={v => onWheel({ commandEnabled: v })} />
@@ -54,9 +54,9 @@ export function LimitsTab({ wheel, onWheel, t }: {
             </section>
 
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.limits.title')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.limits.help')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.limits.title')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.limits.help')}</p>
                 </div>
 
                 <Row label={t('wheel.limits.cooldown')} help={t('wheel.limits.cooldownHelp')}>
@@ -66,7 +66,7 @@ export function LimitsTab({ wheel, onWheel, t }: {
                         onChange={e => onWheel({ spinCooldownSeconds: Number(e.target.value) })}
                         className={`${FIELD} w-24`}
                     />
-                    <span className="text-xs text-[#94a3b8]">{t('wheel.limits.seconds')}</span>
+                    <span className="text-xs text-ds-soft">{t('wheel.limits.seconds')}</span>
                 </Row>
 
                 <Row label={t('wheel.limits.maxPerStream')} help={t('wheel.limits.maxPerStreamHelp')}>
@@ -82,9 +82,9 @@ export function LimitsTab({ wheel, onWheel, t }: {
 
             {/* --- reglas del sorteo (Fase 7) --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.rules.title')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.rules.help')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.rules.title')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.rules.help')}</p>
                 </div>
 
                 <Row label={t('wheel.rules.noRepeat')} help={t('wheel.rules.noRepeatHelp')}>
@@ -103,7 +103,7 @@ export function LimitsTab({ wheel, onWheel, t }: {
                     <Toggle on={!!wheel.pityEnabled} onChange={v => onWheel({ pityEnabled: v })} />
                     {wheel.pityEnabled && (
                         <>
-                            <span className="text-xs text-[#94a3b8] mx-3">{t('wheel.rules.pityAfter')}</span>
+                            <span className="text-xs text-ds-soft mx-3">{t('wheel.rules.pityAfter')}</span>
                             <input
                                 type="number" min={1} max={100}
                                 value={wheel.pityThreshold ?? ''}
@@ -119,7 +119,7 @@ export function LimitsTab({ wheel, onWheel, t }: {
                     <Toggle on={!!wheel.allowMultiSpin} onChange={v => onWheel({ allowMultiSpin: v })} />
                     {wheel.allowMultiSpin && (
                         <>
-                            <span className="text-xs text-[#94a3b8] mx-3">{t('wheel.rules.multiMax')}</span>
+                            <span className="text-xs text-ds-soft mx-3">{t('wheel.rules.multiMax')}</span>
                             <input
                                 type="number" min={1} max={100}
                                 value={wheel.maxMultiSpin ?? 10}
@@ -131,7 +131,7 @@ export function LimitsTab({ wheel, onWheel, t }: {
                 </Row>
 
                 {wheel.allowMultiSpin && (
-                    <p className="px-5 pb-4 text-xs text-[#64748b]">
+                    <p className="px-5 pb-4 text-xs text-ds-soft">
                         {t('wheel.rules.multiNote', { command: wheel.spinCommand || '!dgirar' })}
                     </p>
                 )}

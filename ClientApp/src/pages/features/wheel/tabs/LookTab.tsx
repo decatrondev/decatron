@@ -50,9 +50,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
         <div className="space-y-4">
             {/* --- presentacion --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.presentationTitle')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.look.presentationHelp')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.look.presentationTitle')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.look.presentationHelp')}</p>
                 </div>
 
                 <Row label={t('wheel.look.presentation')} help={t('wheel.look.presentationRowHelp')}>
@@ -67,7 +67,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         ))}
                     </select>
                     {PRESENTATION_KEYS.length < 2 && (
-                        <span className="text-xs text-[#64748b] ml-3">{t('wheel.look.presentationOnlyOne')}</span>
+                        <span className="text-xs text-ds-soft ml-3">{t('wheel.look.presentationOnlyOne')}</span>
                     )}
                 </Row>
             </section>
@@ -77,9 +77,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                 ver el comentario de cabecera de `templates.ts`. Como el aspecto no
                 se guarda hasta pulsar Guardar, probarse una y salir no deja rastro. */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.templatesTitle')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.look.templatesHelp')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.look.templatesTitle')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.look.templatesHelp')}</p>
                 </div>
 
                 <div className="px-5 py-4 flex flex-wrap gap-3">
@@ -87,7 +87,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         <button
                             key={tpl.key}
                             onClick={() => onVisual(applyTemplate(visual, tpl))}
-                            className="w-32 rounded-xl border border-[#374151] bg-[#262626] hover:border-blue-500 transition-colors p-2 text-center"
+                            className="w-32 rounded-lg border border-ds-border bg-ds-bg hover:border-ds-accent transition-colors p-2 text-center"
                             title={t(`wheel.look.tpl_${tpl.key}`)}
                         >
                             {/* La miniatura la dibuja el MISMO componente que el overlay,
@@ -99,7 +99,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                                     visual={applyTemplate(visual, tpl)}
                                 />
                             </div>
-                            <span className="block text-xs font-medium text-[#cbd5e1] mt-1.5">
+                            <span className="block text-xs font-medium text-ds-text mt-1.5">
                                 {t(`wheel.look.tpl_${tpl.key}`)}
                             </span>
                         </button>
@@ -114,9 +114,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                 carta no sortea a la vista. */}
             {pres.pointer !== 'none' && (
                 <section className={CARD}>
-                    <div className="px-5 py-4 border-b border-[#374151]">
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.pointerTitle')}</h2>
-                        <p className="text-xs text-[#94a3b8] mt-0.5">
+                    <div className="px-5 py-4 border-b border-ds-border">
+                        <h2 className="font-bold text-ds-text">{t('wheel.look.pointerTitle')}</h2>
+                        <p className="text-xs text-ds-soft mt-0.5">
                             {pres.pointer === 'needle'
                                 ? t('wheel.look.pointerHelpNeedle')
                                 : t('wheel.look.pointerHelpViewer')}
@@ -179,9 +179,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                                     type="range" min={0.4} max={3} step={0.1}
                                     value={visual.pointer.size}
                                     onChange={e => onPointer({ size: Number(e.target.value) })}
-                                    className="w-40 accent-[#E8B455]"
+                                    className="w-40 accent-ds-accent"
                                 />
-                                <span className="text-xs text-[#94a3b8] ml-3 tabular-nums">{visual.pointer.size.toFixed(1)}x</span>
+                                <span className="text-xs text-ds-soft ml-3 tabular-nums">{visual.pointer.size.toFixed(1)}x</span>
                             </Row>
 
                             <Row label={t('wheel.look.pointerColor')} help={t('wheel.look.pointerColorHelp')}>
@@ -189,12 +189,12 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                                     type="color"
                                     value={visual.pointer.color ?? visual.accent}
                                     onChange={e => onPointer({ color: e.target.value })}
-                                    className="w-10 h-10 rounded-lg bg-transparent border border-[#374151] cursor-pointer"
+                                    className="w-10 h-10 rounded-lg bg-transparent border border-ds-border cursor-pointer"
                                 />
                                 {visual.pointer.color && (
                                     <button
                                         onClick={() => onPointer({ color: null })}
-                                        className="text-xs text-[#94a3b8] hover:text-[#f8fafc] ml-3"
+                                        className="text-xs text-ds-soft hover:text-ds-text ml-3"
                                     >
                                         {t('wheel.look.pointerColorReset')}
                                     </button>
@@ -207,9 +207,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
 
             {/* --- colores --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.colorsTitle')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.look.colorsHelp')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.look.colorsTitle')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.look.colorsHelp')}</p>
                 </div>
 
                 {([
@@ -222,9 +222,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                             type="color"
                             value={visual[campo]}
                             onChange={e => onVisual({ [campo]: e.target.value } as Partial<WheelVisual>)}
-                            className="w-10 h-10 rounded-lg bg-transparent border border-[#374151] cursor-pointer"
+                            className="w-10 h-10 rounded-lg bg-transparent border border-ds-border cursor-pointer"
                         />
-                        <code className="text-xs text-[#64748b] ml-2">{visual[campo]}</code>
+                        <code className="text-xs text-ds-soft ml-2">{visual[campo]}</code>
                     </Row>
                 ))}
 
@@ -233,20 +233,20 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         on={fondoTransparente}
                         onChange={v => onVisual({ background: v ? 'transparent' : '#12101B' })}
                     />
-                    <span className="text-xs text-[#94a3b8] ml-3">{t('wheel.look.transparent')}</span>
+                    <span className="text-xs text-ds-soft ml-3">{t('wheel.look.transparent')}</span>
                     {!fondoTransparente && (
                         <input
                             type="color"
                             value={visual.background}
                             onChange={e => onVisual({ background: e.target.value })}
-                            className="w-10 h-10 rounded-lg bg-transparent border border-[#374151] cursor-pointer ml-3"
+                            className="w-10 h-10 rounded-lg bg-transparent border border-ds-border cursor-pointer ml-3"
                         />
                     )}
                     {/* El color se elige aca; DONDE se pinta es del lienzo. Antes se
                         pintaba la pantalla entera, que tapaba la escena del streamer
                         de lado a lado. Sin lienzo, se pinta solo alrededor de la rueda. */}
                     {!fondoTransparente && (
-                        <p className="text-xs text-[#64748b] mt-2 basis-full">{t('wheel.look.backgroundBoxNote')}</p>
+                        <p className="text-xs text-ds-soft mt-2 basis-full">{t('wheel.look.backgroundBoxNote')}</p>
                     )}
                 </Row>
 
@@ -256,13 +256,13 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                     {canHideWatermark ? (
                         <Toggle on={visual.showWatermark} onChange={v => onVisual({ showWatermark: v })} />
                     ) : (
-                        <span className="text-xs text-[#64748b]">{t('wheel.look.watermarkAlwaysOn')}</span>
+                        <span className="text-xs text-ds-soft">{t('wheel.look.watermarkAlwaysOn')}</span>
                     )}
                 </Row>
 
-                <div className="px-5 py-4 border-t border-[#374151]">
-                    <p className="text-sm font-medium text-[#f8fafc]">{t('wheel.look.palette')}</p>
-                    <p className="text-xs text-[#94a3b8] mt-0.5 mb-3">{t('wheel.look.paletteHelp')}</p>
+                <div className="px-5 py-4 border-t border-ds-border">
+                    <p className="text-sm font-medium text-ds-text">{t('wheel.look.palette')}</p>
+                    <p className="text-xs text-ds-soft mt-0.5 mb-3">{t('wheel.look.paletteHelp')}</p>
                     <div className="flex flex-wrap items-center gap-2">
                         {visual.palette.map((c, i) => (
                             <div key={i} className="relative">
@@ -274,14 +274,14 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                                         p[i] = e.target.value;
                                         onVisual({ palette: p });
                                     }}
-                                    className="w-10 h-10 rounded-lg bg-transparent border border-[#374151] cursor-pointer"
+                                    className="w-10 h-10 rounded-lg bg-transparent border border-ds-border cursor-pointer"
                                 />
                                 {/* Con un solo color la paleta deja de poder rotar entre
                                     gajos, asi que el ultimo no se puede quitar. */}
                                 {visual.palette.length > 1 && (
                                     <button
                                         onClick={() => onVisual({ palette: visual.palette.filter((_, j) => j !== i) })}
-                                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#262626] border border-[#374151] rounded-full text-[10px] text-[#94a3b8] hover:text-red-400 leading-none"
+                                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-ds-bg border border-ds-border rounded-full text-[10px] text-ds-soft hover:text-ds-danger leading-none"
                                         aria-label={t('wheel.look.paletteRemove')}
                                     >
                                         ×
@@ -291,7 +291,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         ))}
                         <button
                             onClick={() => onVisual({ palette: [...visual.palette, '#E8B455'] })}
-                            className="w-10 h-10 rounded-lg border border-dashed border-[#374151] text-[#64748b] hover:text-[#f8fafc] hover:border-[#4b5563] transition-colors"
+                            className="w-10 h-10 rounded-lg border border-dashed border-ds-border text-ds-soft hover:text-ds-text hover:border-ds-border transition-colors"
                             aria-label={t('wheel.look.paletteAdd')}
                         >
                             +
@@ -303,9 +303,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
             {/* --- cubo central --- */}
             {pres.parts.centerImage && (
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.centerTitle')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.look.centerHelp')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.look.centerTitle')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.look.centerHelp')}</p>
                 </div>
                 <div className="p-5">
                     {/* Sale de la biblioteca de medios compartida, no de un subidor
@@ -320,19 +320,19 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
 
                     {visual.centerImage && (
                         <div className="mt-4 flex flex-wrap items-center gap-3">
-                            <span className="text-xs text-[#94a3b8]">{t('wheel.look.centerSize')}</span>
+                            <span className="text-xs text-ds-soft">{t('wheel.look.centerSize')}</span>
                             <input
                                 type="range" min={20} max={140} step={2}
                                 value={visual.centerImageSize}
                                 onChange={e => onVisual({ centerImageSize: Number(e.target.value) })}
                                 className="w-48"
                             />
-                            <span className="text-xs text-[#94a3b8] tabular-nums w-10">
+                            <span className="text-xs text-ds-soft tabular-nums w-10">
                                 {visual.centerImageSize}
                             </span>
                             <button
                                 onClick={() => onVisual({ centerImage: null })}
-                                className="text-xs text-[#64748b] hover:text-red-400 transition-colors ml-auto"
+                                className="text-xs text-ds-soft hover:text-ds-danger transition-colors ml-auto"
                             >
                                 {t('wheel.look.centerClear')}
                             </button>
@@ -344,9 +344,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
 
             {/* --- tipografia --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.typoTitle')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.look.typoHelp')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.look.typoTitle')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.look.typoHelp')}</p>
                 </div>
 
                 <Row label={t('wheel.look.font')} help={t('wheel.look.fontHelp')}>
@@ -379,7 +379,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                     ) : (
                         // Una familia de un solo peso no ofrece un selector de un item:
                         // parece roto. Se dice que esa letra viene con un grosor solo.
-                        <span className="text-xs text-[#64748b]">{t('wheel.look.fontOneWeight')}</span>
+                        <span className="text-xs text-ds-soft">{t('wheel.look.fontOneWeight')}</span>
                     )}
                 </Row>
 
@@ -388,9 +388,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         type="range" min={0.5} max={2} step={0.05}
                         value={visual.textScale}
                         onChange={e => onVisual({ textScale: Number(e.target.value) })}
-                        className="w-40 accent-[#E8B455]"
+                        className="w-40 accent-ds-accent"
                     />
-                    <span className="text-xs text-[#94a3b8] ml-3 tabular-nums w-12 inline-block">
+                    <span className="text-xs text-ds-soft ml-3 tabular-nums w-12 inline-block">
                         {Math.round(visual.textScale * 100)}%
                     </span>
                 </Row>
@@ -404,13 +404,13 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         on={visual.textColor === null}
                         onChange={v => onVisual({ textColor: v ? null : visual.ink })}
                     />
-                    <span className="text-xs text-[#94a3b8] ml-3">{t('wheel.look.followsInk')}</span>
+                    <span className="text-xs text-ds-soft ml-3">{t('wheel.look.followsInk')}</span>
                     {visual.textColor !== null && (
                         <input
                             type="color"
                             value={visual.textColor}
                             onChange={e => onVisual({ textColor: e.target.value })}
-                            className="ml-3 w-11 h-9 bg-transparent border border-[#374151] rounded-lg cursor-pointer align-middle"
+                            className="ml-3 w-11 h-9 bg-transparent border border-ds-border rounded-lg cursor-pointer align-middle"
                         />
                     )}
                 </Row>
@@ -420,9 +420,9 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         type="range" min={0} max={6} step={0.5}
                         value={visual.textOutline}
                         onChange={e => onVisual({ textOutline: Number(e.target.value) })}
-                        className="w-40 accent-[#E8B455]"
+                        className="w-40 accent-ds-accent"
                     />
-                    <span className="text-xs text-[#94a3b8] ml-3 tabular-nums w-12 inline-block">
+                    <span className="text-xs text-ds-soft ml-3 tabular-nums w-12 inline-block">
                         {visual.textOutline === 0 ? t('wheel.look.outlineOff') : visual.textOutline}
                     </span>
                     {visual.textOutline > 0 && (
@@ -430,7 +430,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                             type="color"
                             value={visual.textOutlineColor ?? visual.bone}
                             onChange={e => onVisual({ textOutlineColor: e.target.value })}
-                            className="ml-3 w-11 h-9 bg-transparent border border-[#374151] rounded-lg cursor-pointer align-middle"
+                            className="ml-3 w-11 h-9 bg-transparent border border-ds-border rounded-lg cursor-pointer align-middle"
                             aria-label={t('wheel.look.textOutlineColor')}
                         />
                     )}
@@ -439,8 +439,8 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
 
             {/* --- movimiento --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.motionTitle')}</h2>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.look.motionTitle')}</h2>
                 </div>
 
                 <Row label={t('wheel.look.visibility')} help={t(`wheel.look.visibilityHelp_${visual.visibility}`)}>
@@ -526,7 +526,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         <button
                             type="button"
                             onClick={onTestCelebration}
-                            className="ml-3 px-3 py-2 bg-[#262626] hover:bg-[#333] border border-[#374151] text-[#f8fafc] rounded-lg text-sm font-medium transition-colors align-middle"
+                            className="ml-3 px-3 py-2 bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg text-sm font-medium transition-colors align-middle"
                         >
                             {t('wheel.look.celebTest')}
                         </button>
@@ -536,14 +536,14 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
 
             {/* --- sonidos --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151] flex flex-wrap items-center justify-between gap-3">
+                <div className="px-5 py-4 border-b border-ds-border flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.soundsTitle')}</h2>
-                        <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.look.soundsHelp')}</p>
+                        <h2 className="font-bold text-ds-text">{t('wheel.look.soundsTitle')}</h2>
+                        <p className="text-xs text-ds-soft mt-0.5">{t('wheel.look.soundsHelp')}</p>
                     </div>
                     <button
                         onClick={() => onVisual({ sounds: DEFAULT_VISUAL.sounds })}
-                        className="px-3 py-1.5 text-sm bg-[#262626] hover:bg-[#333] border border-[#374151] text-[#f8fafc] rounded-lg flex items-center gap-1.5 font-medium transition-colors flex-shrink-0"
+                        className="px-3 py-1.5 text-sm bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg flex items-center gap-1.5 font-medium transition-colors flex-shrink-0"
                     >
                         <RotateCcw className="w-4 h-4" />
                         {t('wheel.look.soundsRestore')}
@@ -557,7 +557,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         onChange={e => onVisual({ sounds: { ...visual.sounds, master: Number(e.target.value) } })}
                         className="w-40"
                     />
-                    <span className="text-xs text-[#94a3b8] ml-3 tabular-nums w-10">
+                    <span className="text-xs text-ds-soft ml-3 tabular-nums w-10">
                         {Math.round(visual.sounds.master * 100)}%
                     </span>
                 </Row>
@@ -570,11 +570,11 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                     const soloDefault = key === 'spin_tick';
 
                     return (
-                        <div key={key} className="px-5 py-4 border-t border-[#374151] space-y-3">
+                        <div key={key} className="px-5 py-4 border-t border-ds-border space-y-3">
                             <div className="flex flex-wrap items-center gap-3">
                                 <div className="flex-1 min-w-[160px]">
-                                    <p className="text-sm font-medium text-[#f8fafc]">{t(`wheel.look.sound_${key}`)}</p>
-                                    <p className="text-xs text-[#94a3b8] mt-0.5">
+                                    <p className="text-sm font-medium text-ds-text">{t(`wheel.look.sound_${key}`)}</p>
+                                    <p className="text-xs text-ds-soft mt-0.5">
                                         {soloDefault
                                             ? `${t(pres.key === 'card' ? 'wheel.look.soundWhen_spin_tick_card' : 'wheel.look.soundWhen_spin_tick')} ${t('wheel.look.tickOnlyDefault')}`
                                             : t(`wheel.look.soundWhen_${key}`)}
@@ -592,8 +592,8 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                                 </select>
 
                                 {cfg.mode === 'mute'
-                                    ? <VolumeX className="w-4 h-4 text-[#64748b]" />
-                                    : <Volume2 className="w-4 h-4 text-[#94a3b8]" />}
+                                    ? <VolumeX className="w-4 h-4 text-ds-soft" />
+                                    : <Volume2 className="w-4 h-4 text-ds-soft" />}
 
                                 {cfg.mode !== 'mute' && (
                                     <>
@@ -604,7 +604,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                                             className="w-28"
                                             aria-label={t('wheel.look.volume')}
                                         />
-                                        <span className="text-xs text-[#94a3b8] tabular-nums w-10">
+                                        <span className="text-xs text-ds-soft tabular-nums w-10">
                                             {Math.round((cfg.volume ?? 1) * 100)}%
                                         </span>
                                     </>

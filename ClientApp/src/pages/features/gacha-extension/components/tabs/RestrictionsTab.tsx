@@ -4,9 +4,9 @@ import api from '../../../../../services/api';
 import type { GachaItemRestriction, GachaItem } from '../../types';
 import { RARITY_CONFIG, getRarityStars } from '../../types';
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-const inputClass = 'w-full px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent';
-const labelClass = 'text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const inputClass = 'w-full px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
+const labelClass = 'text-sm font-bold text-ds-text ';
 
 const COOLDOWN_PERIODS = [
     { value: 'none', label: 'Sin cooldown' },
@@ -142,51 +142,51 @@ export const RestrictionsTab: React.FC = () => {
     };
 
     if (loading) {
-        return <div className={cardClass}><p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando restricciones...</p></div>;
+        return <div className={cardClass}><p className="text-center text-ds-soft py-8">Cargando restricciones...</p></div>;
     }
 
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                <h2 className="text-xl font-black text-ds-text flex items-center gap-2">
                     <Shield className="w-5 h-5" /> Restricciones ({restrictions.length})
                 </h2>
-                <button onClick={openCreate} disabled={items.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">
+                <button onClick={openCreate} disabled={items.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
                     <Plus className="w-4 h-4" /> Agregar Restriccion
                 </button>
             </div>
 
             {/* Help Banner */}
-            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+            <div className="rounded-lg border border-ds-border bg-ds-bg overflow-hidden">
                 <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
-                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan las restricciones</span>
-                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                    <HelpCircle className="w-5 h-5 text-ds-soft flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-ds-soft">Como funcionan las restricciones</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
                 </button>
                 {showHelp && (
-                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="px-4 pb-4 space-y-3 text-sm text-ds-soft">
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
-                            <span>Cada carta puede tener <strong className="text-[#1e293b] dark:text-[#f8fafc]">restricciones</strong> que controlan quien puede ganarla</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Cada carta puede tener <strong className="text-ds-text">restricciones</strong> que controlan quien puede ganarla</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Min Donado</strong> — el viewer debe haber donado al menos esta cantidad en total para que la carta aparezca</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span><strong className="text-ds-text">Min Donado</strong> — el viewer debe haber donado al menos esta cantidad en total para que la carta aparezca</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Milestone</strong> — sistema oculto que acumula progreso con cada donacion. Al llegar al threshold, la carta es garantizada</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span><strong className="text-ds-text">Milestone</strong> — sistema oculto que acumula progreso con cada donacion. Al llegar al threshold, la carta es garantizada</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Unico</strong> — el viewer solo puede ganar esta carta una vez</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span><strong className="text-ds-text">Unico</strong> — el viewer solo puede ganar esta carta una vez</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">5</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Cooldown</strong> — tiempo de espera entre wins de la misma carta</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">5</span>
+                            <span><strong className="text-ds-text">Cooldown</strong> — tiempo de espera entre wins de la misma carta</span>
                         </div>
-                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
-                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> El milestone es invisible para los viewers. Solo tu ves el progreso en el tab Participantes. Usa "Orden de Milestones" abajo para controlar cual se activa primero.
+                        <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
+                            <strong className="text-ds-text">Tip:</strong> El milestone es invisible para los viewers. Solo tu ves el progreso en el tab Participantes. Usa "Orden de Milestones" abajo para controlar cual se activa primero.
                         </div>
                     </div>
                 )}
@@ -194,7 +194,7 @@ export const RestrictionsTab: React.FC = () => {
 
             {restrictions.length === 0 ? (
                 <div className={cardClass}>
-                    <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-12">No hay restricciones configuradas.</p>
+                    <p className="text-center text-ds-soft py-12">No hay restricciones configuradas.</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -204,54 +204,54 @@ export const RestrictionsTab: React.FC = () => {
                         return (
                             <div key={r.id} className={`${cardClass} flex items-center gap-4`}>
                                 {item?.image ? (
-                                    <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover" />
+                                    <img src={item.image} alt={item.name} className="w-14 h-14 rounded-lg object-cover" />
                                 ) : (
-                                    <div className="w-14 h-14 rounded-xl bg-[#f1f5f9] dark:bg-[#374151] flex items-center justify-center">
-                                        <Shield className="w-6 h-6 text-[#94a3b8]" />
+                                    <div className="w-14 h-14 rounded-lg bg-ds-raised flex items-center justify-center">
+                                        <Shield className="w-6 h-6 text-ds-soft" />
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{item?.name ?? `Item #${r.itemId}`}</span>
+                                        <span className="font-bold text-ds-text">{item?.name ?? `Item #${r.itemId}`}</span>
                                         {rc && (
                                             <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: rc.bg, color: rc.color }}>
                                                 {getRarityStars(item!.rarity)} {rc.label}
                                             </span>
                                         )}
                                         {r.isUnique && (
-                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center gap-1">
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-ds-warn/10 text-ds-warn flex items-center gap-1">
                                                 <Fingerprint className="w-3 h-3" /> Unico
                                             </span>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-3 mt-1 text-sm text-[#64748b] dark:text-[#94a3b8] flex-wrap">
+                                    <div className="flex items-center gap-3 mt-1 text-sm text-ds-soft flex-wrap">
                                         <span className="flex items-center gap-1"><DollarSign className="w-3.5 h-3.5" /> ${r.minDonationRequired.toFixed(2)}</span>
                                         <span>Qty: {r.totalQuantity != null ? r.totalQuantity : '∞'}</span>
                                         {r.cooldownPeriod && r.cooldownPeriod !== 'none' && (
                                             <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {r.cooldownValue} {r.cooldownPeriod}</span>
                                         )}
                                         {r.allowedPullTypes !== 'all' && (
-                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${r.allowedPullTypes === 'donation_only' ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-300' : 'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300'}`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${r.allowedPullTypes === 'donation_only' ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-accent/10 text-ds-accent-text '}`}>
                                                 {r.allowedPullTypes === 'donation_only' ? 'Solo Donacion' : 'Solo Coins'}
                                             </span>
                                         )}
                                         {r.cumulativeDonationThreshold != null && (
-                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300">
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-ds-accent/10 text-ds-accent-text">
                                                 Milestone ${r.cumulativeDonationThreshold} {r.cumulativeGuarantee ? '→ Garantizado' : `→ ${r.cumulativeProbability}%`}
                                             </span>
                                         )}
                                         {r.cumulativeCoinsThreshold != null && (
-                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300">
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-ds-accent/10 text-ds-accent-text">
                                                 Milestone {r.cumulativeCoinsThreshold} coins {r.cumulativeGuarantee ? '→ Garantizado' : `→ ${r.cumulativeProbability}%`}
                                             </span>
                                         )}
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => openEdit(r)} className="p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors">
+                                    <button onClick={() => openEdit(r)} className="p-2 rounded-lg bg-ds-accent/10 text-ds-accent-text hover:bg-ds-accent/10 transition-colors">
                                         <Pencil className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => handleDelete(r.id)} className="p-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
+                                    <button onClick={() => handleDelete(r.id)} className="p-2 rounded-lg bg-ds-danger/10 text-ds-danger hover:bg-ds-danger/10 transition-colors">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -302,11 +302,11 @@ export const RestrictionsTab: React.FC = () => {
                 return (
                     <div className={`${cardClass} space-y-3`}>
                         <div className="flex items-center gap-2">
-                            <Trophy className="w-5 h-5 text-amber-500" />
-                            <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Orden de Milestones</h3>
-                            {savingOrder && <span className="text-xs text-blue-500 font-bold animate-pulse">Guardando...</span>}
+                            <Trophy className="w-5 h-5 text-ds-accent-text" />
+                            <h3 className="text-lg font-black text-ds-text">Orden de Milestones</h3>
+                            {savingOrder && <span className="text-xs text-ds-accent-text font-bold animate-pulse">Guardando...</span>}
                         </div>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-xs text-ds-soft">
                             Arrastra para cambiar el orden en que se activan los milestones. El primero se activa antes.
                         </p>
                         <div className="space-y-2">
@@ -320,28 +320,28 @@ export const RestrictionsTab: React.FC = () => {
                                         onDragStart={() => handleDragStart(idx)}
                                         onDragOver={(e) => handleDragOver(e, idx)}
                                         onDragEnd={handleDragEnd}
-                                        className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-grab active:cursor-grabbing transition-all ${
+                                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
                                             dragIdx === idx
-                                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 opacity-70'
-                                                : 'border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626]'
+                                                ? 'border-ds-accent bg-ds-accent/10 opacity-70'
+                                                : 'border-ds-border bg-ds-bg '
                                         }`}
                                     >
-                                        <GripVertical className="w-4 h-4 text-[#94a3b8] flex-shrink-0" />
-                                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                                        <GripVertical className="w-4 h-4 text-ds-soft flex-shrink-0" />
+                                        <span className="w-6 h-6 rounded-full bg-ds-accent text-ds-on-accent text-xs font-bold flex items-center justify-center flex-shrink-0">
                                             {idx + 1}
                                         </span>
                                         {item?.image ? (
                                             <img src={item.image} alt={item.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
                                         ) : (
-                                            <div className="w-8 h-8 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] flex items-center justify-center flex-shrink-0">
-                                                <Trophy className="w-4 h-4 text-[#94a3b8]" />
+                                            <div className="w-8 h-8 rounded-lg bg-ds-raised flex items-center justify-center flex-shrink-0">
+                                                <Trophy className="w-4 h-4 text-ds-soft" />
                                             </div>
                                         )}
                                         <div className="flex-1 min-w-0">
-                                            <span className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc] truncate block">
+                                            <span className="font-bold text-sm text-ds-text truncate block">
                                                 {item?.name ?? `Item #${r.itemId}`}
                                             </span>
-                                            <div className="flex gap-2 text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                            <div className="flex gap-2 text-xs text-ds-soft">
                                                 {r.cumulativeDonationThreshold != null && <span>${r.cumulativeDonationThreshold}</span>}
                                                 {r.cumulativeCoinsThreshold != null && <span>{r.cumulativeCoinsThreshold} coins</span>}
                                                 <span>{r.cumulativeGuarantee ? '→ Garantizado' : `→ ${r.cumulativeProbability}%`}</span>
@@ -362,16 +362,16 @@ export const RestrictionsTab: React.FC = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-ds-input/50 p-4">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{editingId ? 'Editar Restriccion' : 'Nueva Restriccion'}</h3>
-                            <button onClick={() => setShowModal(false)} className="p-1 text-[#64748b] hover:text-red-500"><X className="w-5 h-5" /></button>
+                            <h3 className="text-lg font-black text-ds-text">{editingId ? 'Editar Restriccion' : 'Nueva Restriccion'}</h3>
+                            <button onClick={() => setShowModal(false)} className="p-1 text-ds-soft hover:text-ds-danger"><X className="w-5 h-5" /></button>
                         </div>
                         <div className="space-y-3">
                             <div>
                                 <label className={labelClass}>Item</label>
-                                <select className={`${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`} value={form.itemId} onChange={e => setForm({ ...form, itemId: Number(e.target.value) })}>
+                                <select className={`${inputClass} [&>option]:bg-ds-surface `} value={form.itemId} onChange={e => setForm({ ...form, itemId: Number(e.target.value) })}>
                                     {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                                 </select>
                             </div>
@@ -385,13 +385,13 @@ export const RestrictionsTab: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <label className={labelClass}>Unico por participante</label>
-                                <button onClick={() => setForm({ ...form, isUnique: !form.isUnique })} className={`w-12 h-6 rounded-full transition-colors ${form.isUnique ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.isUnique ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                <button onClick={() => setForm({ ...form, isUnique: !form.isUnique })} className={`w-12 h-6 rounded-full transition-colors ${form.isUnique ? 'bg-ds-accent' : 'bg-ds-raised '}`}>
+                                    <div className={`w-5 h-5 bg-ds-surface rounded-full shadow transition-transform ${form.isUnique ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                 </button>
                             </div>
                             <div>
                                 <label className={labelClass}>Cooldown</label>
-                                <select className={`${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`} value={form.cooldownPeriod} onChange={e => setForm({ ...form, cooldownPeriod: e.target.value })}>
+                                <select className={`${inputClass} [&>option]:bg-ds-surface `} value={form.cooldownPeriod} onChange={e => setForm({ ...form, cooldownPeriod: e.target.value })}>
                                     {COOLDOWN_PERIODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                                 </select>
                             </div>
@@ -403,9 +403,9 @@ export const RestrictionsTab: React.FC = () => {
                             )}
 
                             {/* Pull Type */}
-                            <div className="pt-3 border-t border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="pt-3 border-t border-ds-border">
                                 <label className={labelClass}>Tipo de tiro permitido</label>
-                                <select className={`${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`} value={form.allowedPullTypes} onChange={e => setForm({ ...form, allowedPullTypes: e.target.value as RestrictionForm['allowedPullTypes'] })}>
+                                <select className={`${inputClass} [&>option]:bg-ds-surface `} value={form.allowedPullTypes} onChange={e => setForm({ ...form, allowedPullTypes: e.target.value as RestrictionForm['allowedPullTypes'] })}>
                                     {PULL_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                                 </select>
                             </div>
@@ -417,8 +417,8 @@ export const RestrictionsTab: React.FC = () => {
                             )}
 
                             {/* Milestones */}
-                            <div className="pt-3 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-2 uppercase tracking-wide">Milestones Acumulados</p>
+                            <div className="pt-3 border-t border-ds-border">
+                                <p className="text-xs font-bold text-ds-accent-text mb-2 uppercase tracking-wide">Milestones Acumulados</p>
                                 <div>
                                     <label className={labelClass}>Acumulado donacion USD (vacio = desactivado)</label>
                                     <input type="number" step="0.01" min="0" className={inputClass} value={form.cumulativeDonationThreshold} onChange={e => setForm({ ...form, cumulativeDonationThreshold: e.target.value })} placeholder="Desactivado" />
@@ -432,10 +432,10 @@ export const RestrictionsTab: React.FC = () => {
                                 <>
                                     <div className="flex items-center gap-3">
                                         <label className={labelClass}>Garantizado</label>
-                                        <button onClick={() => setForm({ ...form, cumulativeGuarantee: !form.cumulativeGuarantee })} className={`w-12 h-6 rounded-full transition-colors ${form.cumulativeGuarantee ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                                            <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.cumulativeGuarantee ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                        <button onClick={() => setForm({ ...form, cumulativeGuarantee: !form.cumulativeGuarantee })} className={`w-12 h-6 rounded-full transition-colors ${form.cumulativeGuarantee ? 'bg-ds-accent' : 'bg-ds-raised '}`}>
+                                            <div className={`w-5 h-5 bg-ds-surface rounded-full shadow transition-transform ${form.cumulativeGuarantee ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                         </button>
-                                        <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">{form.cumulativeGuarantee ? 'Premio seguro' : 'Por probabilidad'}</span>
+                                        <span className="text-xs text-ds-soft">{form.cumulativeGuarantee ? 'Premio seguro' : 'Por probabilidad'}</span>
                                     </div>
                                     {!form.cumulativeGuarantee && (
                                         <div>
@@ -447,8 +447,8 @@ export const RestrictionsTab: React.FC = () => {
                             )}
                         </div>
                         <div className="flex gap-2 pt-2">
-                            <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-[#e2e8f0] dark:border-[#374151] rounded-xl font-bold text-[#64748b] hover:bg-gray-50 dark:hover:bg-[#374151]/50 transition-colors">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving || !form.itemId} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">
+                            <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-ds-border rounded-lg font-bold text-ds-soft hover:bg-ds-surface transition-colors">Cancelar</button>
+                            <button onClick={handleSave} disabled={saving || !form.itemId} className="flex-1 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>
                         </div>

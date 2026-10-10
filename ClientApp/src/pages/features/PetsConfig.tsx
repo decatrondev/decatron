@@ -112,7 +112,7 @@ const PetsConfigPage: React.FC = () => {
     const tooShort = !!cfg && cfg.overlay.height < neededHeight;
     const scale = cfg ? Math.min(1, previewWidth / cfg.overlay.width) : 1;
 
-    if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-blue-400" /></div>;
+    if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" /></div>;
     if (!data || !cfg) return <Card><SectionTitle>{t('title')}</SectionTitle><SubLabel>{saveMsg?.text ?? t('loadError')}</SubLabel></Card>;
 
     const modelUrl = manifest ? modelUrls[manifest.id] : undefined;
@@ -122,16 +122,16 @@ const PetsConfigPage: React.FC = () => {
         <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/overlays')} className="p-2 rounded-lg hover:bg-[#262626] text-[#94a3b8]"><ArrowLeft className="w-5 h-5" /></button>
-                    <Cat className="w-6 h-6 text-[#2563eb]" />
+                    <button onClick={() => navigate('/overlays')} className="p-2 rounded-lg hover:bg-ds-bg text-ds-soft"><ArrowLeft className="w-5 h-5" /></button>
+                    <Cat className="w-6 h-6 text-ds-accent-text" />
                     <div>
-                        <h1 className="text-2xl font-black text-[#f8fafc]">{t('title')}</h1>
-                        <p className="text-sm text-[#94a3b8]">{t('subtitle')}</p>
+                        <h1 className="text-2xl font-black text-ds-text">{t('title')}</h1>
+                        <p className="text-sm text-ds-soft">{t('subtitle')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    {saveMsg && <span className={`text-sm ${saveMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>{saveMsg.text}</span>}
-                    <button onClick={save} disabled={!dirty || saving} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold flex items-center gap-2">
+                    {saveMsg && <span className={`text-sm ${saveMsg.type === 'ok' ? 'text-ds-ok' : 'text-ds-danger'}`}>{saveMsg.text}</span>}
+                    <button onClick={save} disabled={!dirty || saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('save')}
                     </button>
                 </div>
@@ -141,17 +141,17 @@ const PetsConfigPage: React.FC = () => {
             <Card>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div><SectionTitle>{t('preview.title')}</SectionTitle><SubLabel>{t('preview.hint', { size: `${cfg.overlay.width}×${cfg.overlay.height}` })}</SubLabel></div>
-                    <button onClick={() => setPreviewPaused(p => !p)} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm border border-[#374151] flex items-center gap-2">
+                    <button onClick={() => setPreviewPaused(p => !p)} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border flex items-center gap-2">
                         {previewPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}{previewPaused ? t('preview.resume') : t('preview.pause')}
                     </button>
                 </div>
                 {tooShort && (
-                    <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200 flex items-center gap-2">
+                    <div className="mt-3 rounded-lg border border-ds-warn/40 bg-ds-warn/10 px-3 py-2 text-sm text-ds-warn flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                         <span>{t('overlay.tooShort', { needed: neededHeight, height: cfg.overlay.height })} <button className="underline" onClick={() => updateOverlay({ height: neededHeight })}>{t('overlay.fixHeight')}</button></span>
                     </div>
                 )}
-                <div ref={previewBox} className="mt-3 w-full overflow-hidden rounded-lg border border-[#374151]"
+                <div ref={previewBox} className="mt-3 w-full overflow-hidden rounded-lg border border-ds-border"
                     style={{ height: cfg.overlay.height * scale, backgroundImage: 'linear-gradient(45deg,#1f2937 25%,transparent 25%),linear-gradient(-45deg,#1f2937 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1f2937 75%),linear-gradient(-45deg,transparent 75%,#1f2937 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0,0 10px,10px -10px,-10px 0', backgroundColor: '#111827' }}>
                     <div style={{ width: cfg.overlay.width, height: cfg.overlay.height, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
                         {manifest && modelUrl && <PetScene config={cfg} manifest={manifest} modelUrl={modelUrl} bus={bus} paused={previewPaused} />}
@@ -162,7 +162,7 @@ const PetsConfigPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-5">
                 <div className="lg:w-48 flex lg:flex-col gap-1">
                     {([['pet', Cat], ['behavior', Footprints], ['reactions', Bell], ['commands', Terminal], ['overlay', Monitor], ['testing', FlaskConical]] as [TabId, React.FC<{ className?: string }>][]).map(([id, Icon]) => (
-                        <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${tab === id ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:bg-[#262626]'}`}><Icon className="w-4 h-4" />{t(`tabs.${id}`)}</button>
+                        <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${tab === id ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-bg'}`}><Icon className="w-4 h-4" />{t(`tabs.${id}`)}</button>
                     ))}
                 </div>
                 <div className="flex-1 min-w-0 space-y-5">
@@ -173,10 +173,10 @@ const PetsConfigPage: React.FC = () => {
                                 <SubLabel>{t('pet.modelHint')}</SubLabel>
                                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {data.catalog.map(m => (
-                                        <button key={m.id} onClick={() => updatePet({ model: m.id })} className={`text-left rounded-lg border px-4 py-3 ${cfg.pets[0].model === m.id ? 'border-blue-500 bg-blue-500/10' : 'border-[#374151] bg-[#111214] hover:bg-[#1a1b1e]'}`}>
-                                            <div className="text-sm font-semibold text-[#f8fafc]">{m.name}</div>
-                                            <div className="text-[11px] text-[#94a3b8]">{m.triangles.toLocaleString()} tris · {Object.values(m.states).filter(s => s.clip).length} {t('pet.clips')}</div>
-                                            <div className="text-[11px] text-[#6b7280] mt-1">
+                                        <button key={m.id} onClick={() => updatePet({ model: m.id })} className={`text-left rounded-lg border px-4 py-3 ${cfg.pets[0].model === m.id ? 'border-ds-accent bg-ds-accent/10' : 'border-ds-border bg-ds-bg hover:bg-ds-bg'}`}>
+                                            <div className="text-sm font-semibold text-ds-text">{m.name}</div>
+                                            <div className="text-[11px] text-ds-soft">{m.triangles.toLocaleString()} tris · {Object.values(m.states).filter(s => s.clip).length} {t('pet.clips')}</div>
+                                            <div className="text-[11px] text-ds-soft mt-1">
                                                 {t('pet.by')} <a className="underline" href={m.credit.authorUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>{m.credit.author}</a> · <a className="underline" href={m.credit.licenseUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>{m.credit.license}</a>
                                             </div>
                                         </button>
@@ -189,8 +189,8 @@ const PetsConfigPage: React.FC = () => {
                                     <SubLabel>{t('pet.skinHint')}</SubLabel>
                                     <div className="mt-3 flex flex-wrap gap-2">
                                         {Object.entries(manifest.skins).map(([key, tint]) => (
-                                            <button key={key} onClick={() => updatePet({ skin: key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm border ${cfg.pets[0].skin === key ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#1a1b1e]'}`}>
-                                                <span className="w-4 h-4 rounded-full border border-black/40" style={{ background: skinSwatch(tint) }} />
+                                            <button key={key} onClick={() => updatePet({ skin: key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm border ${cfg.pets[0].skin === key ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'}`}>
+                                                <span className="w-4 h-4 rounded-full border border-ds-border/40" style={{ background: skinSwatch(tint) }} />
                                                 {t(`pet.skins.${key}`, { defaultValue: key })}
                                             </button>
                                         ))}
@@ -227,7 +227,7 @@ const PetsConfigPage: React.FC = () => {
                         <Card>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div><SectionTitle>{t('behavior.title')}</SectionTitle><SubLabel>{t('behavior.hint')}</SubLabel></div>
-                                <button onClick={() => { if (confirm(t('behavior.confirmReset'))) update({ behavior: defaultPetsConfig().behavior }); }} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm border border-[#374151]" title={t('behavior.reset')}><RotateCcw className="w-4 h-4" /></button>
+                                <button onClick={() => { if (confirm(t('behavior.confirmReset'))) update({ behavior: defaultPetsConfig().behavior }); }} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border" title={t('behavior.reset')}><RotateCcw className="w-4 h-4" /></button>
                             </div>
                             <div className="mt-4 space-y-5">
                                 <div>
@@ -270,16 +270,16 @@ const PetsConfigPage: React.FC = () => {
                         <Card>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div><SectionTitle>{t('reactions.title')}</SectionTitle><SubLabel>{t('reactions.hint')}</SubLabel></div>
-                                <button onClick={() => { if (confirm(t('reactions.confirmReset'))) update({ reactions: JSON.parse(JSON.stringify(DEFAULT_REACTIONS)) }); }} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm border border-[#374151]" title={t('reactions.reset')}><RotateCcw className="w-4 h-4" /></button>
+                                <button onClick={() => { if (confirm(t('reactions.confirmReset'))) update({ reactions: JSON.parse(JSON.stringify(DEFAULT_REACTIONS)) }); }} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border" title={t('reactions.reset')}><RotateCcw className="w-4 h-4" /></button>
                             </div>
                             <div className="mt-4 space-y-3">
                                 {REACTION_KEYS.map(key => {
                                     const r = cfg.reactions[key];
                                     return (
-                                        <div key={key} className={`rounded-lg border px-4 py-3 ${r.enabled ? 'border-[#374151] bg-[#111214]' : 'border-[#2a2b2e] bg-[#0d0e10] opacity-70'}`}>
+                                        <div key={key} className={`rounded-lg border px-4 py-3 ${r.enabled ? 'border-ds-border bg-ds-bg' : 'border-ds-border bg-ds-bg opacity-70'}`}>
                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                 <Toggle checked={r.enabled} onChange={v => updateReaction(key, { enabled: v })} label={t(`reactions.keys.${key}`)} size="sm" />
-                                                <span className="text-[11px] text-[#6b7280]">{t('reactions.vars')}: {REACTION_VARS[key].join(' ')}</span>
+                                                <span className="text-[11px] text-ds-soft">{t('reactions.vars')}: {REACTION_VARS[key].join(' ')}</span>
                                             </div>
                                             {r.enabled && (
                                                 <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -295,7 +295,7 @@ const PetsConfigPage: React.FC = () => {
                                     );
                                 })}
                             </div>
-                            <p className="text-[11px] text-[#6b7280] mt-3">{t('reactions.note')}</p>
+                            <p className="text-[11px] text-ds-soft mt-3">{t('reactions.note')}</p>
                         </Card>
                     )}
 
@@ -303,24 +303,24 @@ const PetsConfigPage: React.FC = () => {
                         <Card>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div><SectionTitle>{t('commands.title')}</SectionTitle><SubLabel>{t('commands.hint')}</SubLabel></div>
-                                <button onClick={addCommand} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />{t('commands.add')}</button>
+                                <button onClick={addCommand} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />{t('commands.add')}</button>
                             </div>
                             <div className="mt-4 space-y-3">
-                                {cfg.commands.length === 0 && <p className="text-sm text-[#6b7280]">{t('commands.empty')}</p>}
+                                {cfg.commands.length === 0 && <p className="text-sm text-ds-soft">{t('commands.empty')}</p>}
                                 {cfg.commands.map((c, i) => {
                                     const name = c.name.trim().toLowerCase();
                                     const dup = name && usedNames.filter(n => n === name).length > 1;
                                     return (
-                                        <div key={i} className={`rounded-lg border px-4 py-3 ${c.enabled ? 'border-[#374151] bg-[#111214]' : 'border-[#2a2b2e] bg-[#0d0e10] opacity-70'}`}>
+                                        <div key={i} className={`rounded-lg border px-4 py-3 ${c.enabled ? 'border-ds-border bg-ds-bg' : 'border-ds-border bg-ds-bg opacity-70'}`}>
                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[#6b7280] font-mono">!</span>
+                                                    <span className="text-ds-soft font-mono">!</span>
                                                     <TextInput value={c.name} onChange={v => updateCommand(i, { name: v.replace(/^!/, '').replace(/\s+/g, '').slice(0, 30) })} placeholder="acariciar" className="w-44" />
-                                                    {dup && <span className="text-[11px] text-red-400">{t('commands.duplicate')}</span>}
+                                                    {dup && <span className="text-[11px] text-ds-danger">{t('commands.duplicate')}</span>}
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <Toggle checked={c.enabled} onChange={v => updateCommand(i, { enabled: v })} label={t('commands.enabled')} size="sm" />
-                                                    <button onClick={() => removeCommand(i)} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title={t('commands.delete')}><Trash2 className="w-4 h-4" /></button>
+                                                    <button onClick={() => removeCommand(i)} className="p-2 rounded-lg text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10" title={t('commands.delete')}><Trash2 className="w-4 h-4" /></button>
                                                 </div>
                                             </div>
                                             <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -335,7 +335,7 @@ const PetsConfigPage: React.FC = () => {
                                     );
                                 })}
                             </div>
-                            <p className="text-[11px] text-[#6b7280] mt-3">{t('commands.note')}</p>
+                            <p className="text-[11px] text-ds-soft mt-3">{t('commands.note')}</p>
                         </Card>
                     )}
 
@@ -345,9 +345,9 @@ const PetsConfigPage: React.FC = () => {
                                 <SectionTitle>{t('url.title')}</SectionTitle>
                                 <SubLabel>{t('url.hint', { size: `${cfg.overlay.width}×${cfg.overlay.height}` })}</SubLabel>
                                 <div className="flex items-center gap-2 mt-3">
-                                    <input readOnly value={overlayUrl} className="flex-1 bg-[#111214] border border-[#374151] rounded-lg px-3 py-2 text-sm text-[#e6edf3] font-mono" />
-                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
-                                    <a href={overlayUrl} target="_blank" rel="noreferrer" className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.open')}><ExternalLink className="w-4 h-4" /></a>
+                                    <input readOnly value={overlayUrl} className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text font-mono" />
+                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
+                                    <a href={overlayUrl} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.open')}><ExternalLink className="w-4 h-4" /></a>
                                 </div>
                                 <div className="mt-4"><Toggle checked={isEnabled} onChange={v => { setIsEnabled(v); setDirty(true); }} label={t('url.enabled')} description={t('url.enabledHint')} size="sm" /></div>
                             </Card>
@@ -375,7 +375,7 @@ const PetsConfigPage: React.FC = () => {
                             <div className="mt-3 flex flex-wrap gap-2">
                                 {states.map(s => {
                                     const own = !!manifest?.states[s]?.clip;
-                                    return <button key={s} onClick={() => setTestState(s)} title={own ? '' : t('testing.noClip')} className={`px-3 py-1.5 rounded-lg text-sm border ${testState === s ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#1a1b1e]'} ${own ? '' : 'border-dashed opacity-70'}`}>{s}{own ? '' : ' *'}</button>;
+                                    return <button key={s} onClick={() => setTestState(s)} title={own ? '' : t('testing.noClip')} className={`px-3 py-1.5 rounded-lg text-sm border ${testState === s ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'} ${own ?'' :'border-dashed opacity-70'}`}>{s}{own ? '' : ' *'}</button>;
                                 })}
                             </div>
                             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -383,10 +383,10 @@ const PetsConfigPage: React.FC = () => {
                                 <div><Label>{t('testing.duration')}</Label><Slider value={testDuration} onChange={setTestDuration} min={1} max={30} unit="s" /></div>
                             </div>
                             <div className="mt-4 flex flex-wrap gap-2">
-                                <button onClick={() => sendTest(false)} className="px-4 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm border border-[#374151]">{t('testing.previewOnly')}</button>
-                                <button onClick={() => sendTest(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold">{t('testing.sendToOverlay')}</button>
+                                <button onClick={() => sendTest(false)} className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border">{t('testing.previewOnly')}</button>
+                                <button onClick={() => sendTest(true)} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold">{t('testing.sendToOverlay')}</button>
                             </div>
-                            <p className="text-[11px] text-[#6b7280] mt-3">{t('testing.note')}</p>
+                            <p className="text-[11px] text-ds-soft mt-3">{t('testing.note')}</p>
                         </Card>
                     )}
                 </div>

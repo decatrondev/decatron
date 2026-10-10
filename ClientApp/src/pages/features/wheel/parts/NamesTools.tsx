@@ -5,7 +5,7 @@ import { FIELD } from '../ui';
 
 /** Botones de cabecera compartidos por la lista de gajos y el pool del Sorteo. */
 export const TOOL_BTN =
-    'px-3 py-1.5 text-sm bg-[#262626] hover:bg-[#333] disabled:opacity-40 border border-[#374151] text-[#f8fafc] rounded-lg flex items-center gap-1.5 font-medium transition-colors';
+    'px-3 py-1.5 text-sm bg-ds-bg hover:bg-ds-raised disabled:opacity-40 border border-ds-border text-ds-text rounded-lg flex items-center gap-1.5 font-medium transition-colors';
 
 /**
  * Exportar: copiar al portapapeles o bajar un .csv. Es un `<details>` y no un menu con estado
@@ -29,24 +29,24 @@ export function ExportMenu({ text, filename, disabled, t }: {
             >
                 <Download className="w-4 h-4" />
                 {t('wheel.io.export')}
-                <ChevronDown className="w-3.5 h-3.5 text-[#94a3b8]" />
+                <ChevronDown className="w-3.5 h-3.5 text-ds-soft" />
             </summary>
-            <div className="absolute right-0 mt-1 z-20 w-56 rounded-lg border border-[#374151] bg-[#1B1C1D] shadow-xl p-1">
+            <div className="absolute right-0 mt-1 z-20 w-56 rounded-lg border border-ds-border bg-ds-surface p-1">
                 <button
                     onClick={async () => { setCopiado((await copyText(text())) ? 'ok' : 'fail'); cerrar(); window.setTimeout(() => setCopiado(null), 2500); }}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm text-[#f8fafc] hover:bg-[#262626] flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 rounded-md text-sm text-ds-text hover:bg-ds-bg flex items-center gap-2"
                 >
-                    <Copy className="w-4 h-4 text-[#94a3b8]" />{t('wheel.io.copy')}
+                    <Copy className="w-4 h-4 text-ds-soft" />{t('wheel.io.copy')}
                 </button>
                 <button
                     onClick={() => { downloadText(filename, text()); cerrar(); }}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm text-[#f8fafc] hover:bg-[#262626] flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 rounded-md text-sm text-ds-text hover:bg-ds-bg flex items-center gap-2"
                 >
-                    <Download className="w-4 h-4 text-[#94a3b8]" />{t('wheel.io.download')}
+                    <Download className="w-4 h-4 text-ds-soft" />{t('wheel.io.download')}
                 </button>
             </div>
             {copiado && (
-                <span role="status" className={`absolute right-0 top-full mt-1 text-xs whitespace-nowrap ${copiado === 'ok' ? 'text-green-300' : 'text-red-300'}`}>
+                <span role="status" className={`absolute right-0 top-full mt-1 text-xs whitespace-nowrap ${copiado === 'ok' ? 'text-ds-ok' : 'text-ds-danger'}`}>
                     {copiado === 'ok' ? t('wheel.io.copied') : t('wheel.io.copyFailed')}
                 </span>
             )}
@@ -61,7 +61,7 @@ export function ImportButton({ open, onClick, disabled, t }: {
     t: any;
 }) {
     return (
-        <button onClick={onClick} disabled={disabled} aria-expanded={open} className={`${TOOL_BTN} ${open ? '!border-blue-500/60 !bg-blue-500/10' : ''}`}>
+        <button onClick={onClick} disabled={disabled} aria-expanded={open} className={`${TOOL_BTN} ${open ? '!border-ds-accent/60 !bg-ds-accent/10' : ''}`}>
             <Upload className="w-4 h-4" />{t('wheel.io.import')}
         </button>
     );
@@ -91,8 +91,8 @@ export function ImportPanel({ help, placeholder, summary, warning, applyLabel, c
     const fileRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="px-5 py-4 border-b border-[#374151] bg-[#161617] space-y-3">
-            <p className="text-sm text-[#94a3b8] max-w-2xl">{help}</p>
+        <div className="px-5 py-4 border-b border-ds-border bg-ds-bg space-y-3">
+            <p className="text-sm text-ds-soft max-w-2xl">{help}</p>
             <textarea
                 value={text}
                 onChange={e => onText(e.target.value)}
@@ -113,19 +113,19 @@ export function ImportPanel({ help, placeholder, summary, warning, applyLabel, c
                 <button onClick={() => fileRef.current?.click()} className={TOOL_BTN}>
                     <Upload className="w-4 h-4" />{t('wheel.io.openFile')}
                 </button>
-                <span className="text-sm text-[#cbd5e1]" role="status">{summary}</span>
+                <span className="text-sm text-ds-text" role="status">{summary}</span>
                 <div className="flex gap-2 ml-auto">
                     <button onClick={onClose} className={TOOL_BTN}>{t('wheel.io.cancel')}</button>
                     <button
                         onClick={onApply}
                         disabled={!canApply || busy}
-                        className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-lg font-bold transition-colors"
+                        className="px-4 py-1.5 text-sm bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 text-ds-on-accent rounded-lg font-bold transition-colors"
                     >
                         {applyLabel}
                     </button>
                 </div>
             </div>
-            {warning && <p className="text-sm text-amber-300">{warning}</p>}
+            {warning && <p className="text-sm text-ds-warn">{warning}</p>}
         </div>
     );
 }

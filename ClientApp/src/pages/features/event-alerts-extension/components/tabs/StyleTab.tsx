@@ -73,17 +73,17 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
     return (
         <div className="space-y-6">
             {/* Preview en vivo */}
-            <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-                <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4 3xl:text-base">
+            <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
+                <label className="text-sm font-bold text-ds-text flex items-center gap-2 mb-4 3xl:text-base">
                     📺 Vista Previa en Vivo
                 </label>
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4 3xl:text-sm">
+                <p className="text-xs text-ds-soft mb-4 3xl:text-sm">
                     Los cambios se reflejan en tiempo real. Así se verá en OBS.
                 </p>
 
                 {/* Canvas Preview */}
                 <div
-                    className="bg-black rounded-lg border border-[#374151] relative overflow-hidden mx-auto"
+                    className="bg-ds-input rounded-lg border border-ds-border relative overflow-hidden mx-auto"
                     style={{ width: previewMaxWidth, height: previewHeight }}
                 >
                     {/* CARD */}
@@ -111,7 +111,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                     {/* MEDIA */}
                     {media.enabled && (
                         <div
-                            className="absolute transition-all duration-300 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center"
+                            className="absolute transition-all duration-300 bg-ds-accent flex items-center justify-center"
                             style={{
                                 left: media.x * previewScale,
                                 top: media.y * previewScale,
@@ -122,7 +122,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                         >
                             <div className="text-center">
                                 <div style={{ fontSize: Math.max(14, 28 * previewScale) }}>🖼️</div>
-                                <div className="text-white font-bold" style={{ fontSize: Math.max(8, 12 * previewScale) }}>MEDIA</div>
+                                <div className="text-ds-text font-bold" style={{ fontSize: Math.max(8, 12 * previewScale) }}>MEDIA</div>
                             </div>
                         </div>
                     )}
@@ -171,7 +171,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                     )}
 
                     {/* Canvas size label */}
-                    <div className="absolute bottom-1 right-1 bg-black/70 px-2 py-1 rounded text-[10px] text-white font-mono">
+                    <div className="absolute bottom-1 right-1 bg-ds-input/70 px-2 py-1 rounded text-[10px] text-ds-text font-mono">
                         {canvasWidth}×{canvasHeight}
                     </div>
                 </div>
@@ -181,7 +181,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
             <Section title="🎨 Fondo">
                 <div className="space-y-4">
                     <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">Tipo de fondo</label>
+                        <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">Tipo de fondo</label>
                         <div className="grid grid-cols-4 gap-2 mt-2">
                             {(['color', 'gradient', 'image', 'transparent'] as const).map(t => (
                                 <button
@@ -189,8 +189,8 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                                     onClick={() => update({ backgroundType: t })}
                                     className={`py-2.5 text-xs font-bold rounded-lg border-2 transition-all ${
                                         style.backgroundType === t
-                                            ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white border-[#2563eb] shadow-lg'
-                                            : 'text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-blue-400'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'text-ds-soft border-ds-border hover:border-ds-accent'
                                     }`}
                                 >
                                     {t === 'gradient' ? 'Degradado' : t === 'transparent' ? 'Transparente' : t === 'color' ? 'Color' : 'Imagen'}
@@ -208,29 +208,29 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                             <ColorField label="Color 1" value={style.backgroundGradient.color1} onChange={v => updateGradient('color1', v)} />
                             <ColorField label="Color 2" value={style.backgroundGradient.color2} onChange={v => updateGradient('color2', v)} />
                             <div>
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">Ángulo (°)</label>
+                                <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">Ángulo (°)</label>
                                 <input
                                     type="range"
                                     min={0}
                                     max={360}
                                     value={style.backgroundGradient.angle}
                                     onChange={e => updateGradient('angle', Number(e.target.value))}
-                                    className="w-full accent-[#2563eb] mt-2"
+                                    className="w-full accent-ds-accent mt-2"
                                 />
-                                <div className="text-center text-xs font-mono text-[#2563eb] mt-1 3xl:text-sm">{style.backgroundGradient.angle}°</div>
+                                <div className="text-center text-xs font-mono text-ds-accent-text mt-1 3xl:text-sm">{style.backgroundGradient.angle}°</div>
                             </div>
                         </div>
                     )}
 
                     {style.backgroundType === 'image' && (
                         <div>
-                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">URL de imagen de fondo</label>
+                            <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">URL de imagen de fondo</label>
                             <input
                                 type="text"
                                 value={style.backgroundImage}
                                 onChange={e => update({ backgroundImage: e.target.value })}
                                 placeholder="https://ejemplo.com/fondo.jpg"
-                                className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm mt-2 3xl:text-base"
+                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-sm mt-2 3xl:text-base"
                             />
                         </div>
                     )}
@@ -242,14 +242,14 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
             {/* Borde y Forma */}
             <Section title="📦 Borde y Forma">
                 <div className="space-y-4">
-                    <label className="flex items-center gap-3 cursor-pointer p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 bg-ds-bg rounded-lg">
                         <input
                             type="checkbox"
                             checked={style.borderEnabled}
                             onChange={e => update({ borderEnabled: e.target.checked })}
-                            className="w-5 h-5 rounded text-[#2563eb]"
+                            className="w-5 h-5 rounded text-ds-accent-text"
                         />
-                        <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">Mostrar borde</span>
+                        <span className="text-sm font-bold text-ds-text 3xl:text-base">Mostrar borde</span>
                     </label>
 
                     {style.borderEnabled && (
@@ -272,11 +272,11 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
             <Section title="✏️ Tipografía">
                 <div className="space-y-4">
                     <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">Fuente</label>
+                        <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">Fuente</label>
                         <select
                             value={style.fontFamily}
                             onChange={e => update({ fontFamily: e.target.value })}
-                            className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm mt-2 3xl:text-base"
+                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm mt-2 3xl:text-base"
                         >
                             {FONT_FAMILIES.map(f => (
                                 <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>
@@ -286,23 +286,23 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">Tamaño (px)</label>
+                            <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">Tamaño (px)</label>
                             <input
                                 type="range"
                                 min={12}
                                 max={72}
                                 value={style.fontSize}
                                 onChange={e => update({ fontSize: Number(e.target.value) })}
-                                className="w-full accent-[#2563eb] mt-2"
+                                className="w-full accent-ds-accent mt-2"
                             />
-                            <div className="text-center text-xs font-mono text-[#2563eb] mt-1 3xl:text-sm">{style.fontSize}px</div>
+                            <div className="text-center text-xs font-mono text-ds-accent-text mt-1 3xl:text-sm">{style.fontSize}px</div>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">Peso</label>
+                            <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">Peso</label>
                             <select
                                 value={style.fontWeight}
                                 onChange={e => update({ fontWeight: e.target.value })}
-                                className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm mt-2 3xl:text-base"
+                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm mt-2 3xl:text-base"
                             >
                                 <option value="normal">Normal</option>
                                 <option value="bold">Bold</option>
@@ -317,7 +317,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                     <div className="grid grid-cols-2 gap-4">
                         <ColorField label="Color de texto" value={style.textColor} onChange={v => update({ textColor: v })} />
                         <div>
-                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">Sombra de texto</label>
+                            <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">Sombra de texto</label>
                             <div className="grid grid-cols-2 gap-2 mt-2">
                                 {(['none', 'normal', 'strong', 'glow'] as const).map(shadow => (
                                     <button
@@ -325,8 +325,8 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                                         onClick={() => update({ textShadow: shadow })}
                                         className={`py-2 text-xs font-bold rounded-lg border-2 transition-all capitalize ${
                                             style.textShadow === shadow
-                                                ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white border-[#2563eb]'
-                                                : 'text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-blue-400'
+                                                ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                                : 'text-ds-soft border-ds-border hover:border-ds-accent'
                                         }`}
                                     >
                                         {shadow === 'none' ? 'Sin' : shadow === 'normal' ? 'Normal' : shadow === 'strong' ? 'Fuerte' : 'Glow'}
@@ -337,7 +337,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                     </div>
 
                     <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block 3xl:text-sm">Alineación</label>
+                        <label className="text-xs font-bold text-ds-soft block 3xl:text-sm">Alineación</label>
                         <div className="grid grid-cols-3 gap-2 mt-2">
                             {(['left', 'center', 'right'] as const).map(align => (
                                 <button
@@ -345,8 +345,8 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                                     onClick={() => update({ textAlign: align })}
                                     className={`py-2.5 text-xs font-bold rounded-lg border-2 transition-all ${
                                         style.textAlign === align
-                                            ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white border-[#2563eb]'
-                                            : 'text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-blue-400'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'text-ds-soft border-ds-border hover:border-ds-accent'
                                     }`}
                                 >
                                     {align === 'left' ? '⬅️ Izquierda' : align === 'center' ? '↔️ Centro' : 'Derecha ➡️'}
@@ -359,7 +359,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
 
             {/* Media Object Fit */}
             <Section title="🖼️ Ajuste de Media">
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4 3xl:text-sm">
+                <p className="text-xs text-ds-soft mb-4 3xl:text-sm">
                     Cómo se ajusta la imagen/video dentro de su contenedor
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -369,8 +369,8 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                             onClick={() => update({ mediaObjectFit: fit })}
                             className={`py-3 text-sm font-bold rounded-lg border-2 transition-all ${
                                 style.mediaObjectFit === fit
-                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-500 shadow-lg'
-                                    : 'text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-purple-400'
+                                    ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                    : 'text-ds-soft border-ds-border hover:border-ds-accent'
                             }`}
                         >
                             {fit === 'contain' ? '📐 Contener' : '🔲 Cubrir'}
@@ -389,8 +389,8 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
-        <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4 3xl:text-base">
+        <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
+            <label className="text-sm font-bold text-ds-text flex items-center gap-2 mb-4 3xl:text-base">
                 {title}
             </label>
             {children}
@@ -398,8 +398,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     );
 }
 
-const labelClass = "text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block";
-const inputClass = "w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm";
+const labelClass = "text-xs font-bold text-ds-soft block";
+const inputClass = "w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm";
 
 function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
     return (
@@ -410,13 +410,13 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
                     type="color"
                     value={value.startsWith('#') ? value : '#ffffff'}
                     onChange={e => onChange(e.target.value)}
-                    className="w-12 h-10 rounded-lg cursor-pointer border border-[#e2e8f0] dark:border-[#374151]"
+                    className="w-12 h-10 rounded-lg cursor-pointer border border-ds-border"
                 />
                 <input
                     type="text"
                     value={value}
                     onChange={e => onChange(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none font-mono text-xs 3xl:text-sm"
+                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-xs 3xl:text-sm"
                 />
             </div>
         </div>
@@ -448,7 +448,7 @@ function SliderField({ label, value, min, max, unit, onChange }: {
         <div>
             <div className="flex justify-between mb-2">
                 <label className={labelClass}>{label}</label>
-                <span className="text-xs font-mono text-[#2563eb] font-bold 3xl:text-sm">{value}{unit}</span>
+                <span className="text-xs font-mono text-ds-accent-text font-bold 3xl:text-sm">{value}{unit}</span>
             </div>
             <input
                 type="range"
@@ -456,7 +456,7 @@ function SliderField({ label, value, min, max, unit, onChange }: {
                 max={max}
                 value={value}
                 onChange={e => onChange(Number(e.target.value))}
-                className="w-full accent-[#2563eb]"
+                className="w-full accent-ds-accent"
             />
         </div>
     );

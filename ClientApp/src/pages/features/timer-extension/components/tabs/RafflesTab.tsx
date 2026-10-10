@@ -1086,7 +1086,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     <div className="flex justify-between items-center">
                                                         <div>
                                                             <label className="text-sm font-bold text-ds-text flex items-center gap-2">
-                                                                <Zap className="w-4 h-4 text-ds-warn" /> Ponderar por Contribución
+                                                                <Zap className="w-4 h-4 text-ds-accent-text" /> Ponderar por Contribución
                                                             </label>
                                                             <p className="text-[11px] text-ds-soft mt-1">Más bits/gifts/tier = más tickets. Tier3 = 4x, Tier2 = 2x, cada 100 bits = +1 ticket</p>
                                                         </div>

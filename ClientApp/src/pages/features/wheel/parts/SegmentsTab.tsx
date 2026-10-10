@@ -154,20 +154,20 @@ export function SegmentsTab({
         .filter(x => x.pct > 0);
 
     return (
-        <section className="bg-[#1B1C1D] rounded-xl border border-[#374151] overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#374151] flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-bold text-[#f8fafc]">{t('wheel.segments.title')}</h2>
+        <section className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
+            <div className="px-5 py-4 border-b border-ds-border flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-bold text-ds-text">{t('wheel.segments.title')}</h2>
                 <div className="flex flex-wrap items-center gap-2">
                     {segments.length >= SEARCH_FROM && (
                         <label className="relative">
-                            <Search className="w-4 h-4 text-[#64748b] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Search className="w-4 h-4 text-ds-soft absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                                 type="search"
                                 value={filtro}
                                 onChange={e => setFiltro(e.target.value)}
                                 placeholder={t('wheel.segments.search')}
                                 aria-label={t('wheel.segments.search')}
-                                className="pl-8 pr-3 py-1.5 w-44 bg-[#262626] border border-[#374151] rounded-lg text-sm text-[#f8fafc] focus:outline-none focus:border-blue-500"
+                                className="pl-8 pr-3 py-1.5 w-44 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:border-ds-accent"
                             />
                         </label>
                     )}
@@ -206,11 +206,11 @@ export function SegmentsTab({
                     onClose={() => { setImportando(false); setTexto(''); setReemplazar(false); }}
                     t={t}
                 >
-                    <label className="flex items-start gap-2 text-sm text-[#cbd5e1] cursor-pointer">
-                        <input type="checkbox" checked={reemplazar} onChange={e => setReemplazar(e.target.checked)} className="mt-1 accent-blue-500" />
+                    <label className="flex items-start gap-2 text-sm text-ds-text cursor-pointer">
+                        <input type="checkbox" checked={reemplazar} onChange={e => setReemplazar(e.target.checked)} className="mt-1 accent-ds-accent" />
                         <span>
                             {t('wheel.io.replace')}
-                            <span className="block text-xs text-[#94a3b8]">{t('wheel.io.replaceHelp')}</span>
+                            <span className="block text-xs text-ds-soft">{t('wheel.io.replaceHelp')}</span>
                         </span>
                     </label>
                 </ImportPanel>
@@ -221,7 +221,7 @@ export function SegmentsTab({
             {tramos.length > 0 && (
                 <div className="px-5 pt-4">
                     <div
-                        className="flex h-8 rounded-lg overflow-hidden border border-[#374151]"
+                        className="flex h-8 rounded-lg overflow-hidden border border-ds-border"
                         role="list"
                         aria-label={t('wheel.segments.strip')}
                     >
@@ -232,7 +232,7 @@ export function SegmentsTab({
                                 onClick={() => s.uid && irA(s.uid)}
                                 title={`${s.icon ? `${s.icon} ` : ''}${s.label || t('wheel.segments.labelPlaceholder')} · ${pct.toFixed(1)}%`}
                                 style={{ flex: `${pct} 1 0`, background: color, color: inkOn(color) }}
-                                className="min-w-[3px] border-r border-[#12101B]/60 last:border-r-0 text-[11px] font-bold px-1 truncate hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                                className="min-w-[3px] border-r border-ds-border/60 last:border-r-0 text-[11px] font-bold px-1 truncate hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ds-border"
                             >
                                 {pct >= 9 ? `${s.icon ? `${s.icon} ` : ''}${s.label}` : ''}
                             </button>
@@ -241,7 +241,7 @@ export function SegmentsTab({
                 </div>
             )}
 
-            <div className="mt-4 divide-y divide-[#374151] border-t border-[#374151]">
+            <div className="mt-4 divide-y divide-ds-border border-t border-ds-border">
                 {visibles.map(({ s: seg, i }) => (
                     <div
                         key={seg.uid ?? `${seg.id}-${i}`}
@@ -288,11 +288,11 @@ export function SegmentsTab({
             </div>
 
             {filtrando && visibles.length === 0 && (
-                <p className="px-5 py-4 text-sm text-[#94a3b8]">{t('wheel.segments.noMatches')}</p>
+                <p className="px-5 py-4 text-sm text-ds-soft">{t('wheel.segments.noMatches')}</p>
             )}
 
             {segments.length < 2 && (
-                <p className="px-5 py-4 text-sm text-[#94a3b8]">{t('wheel.segments.needTwo')}</p>
+                <p className="px-5 py-4 text-sm text-ds-soft">{t('wheel.segments.needTwo')}</p>
             )}
         </section>
     );

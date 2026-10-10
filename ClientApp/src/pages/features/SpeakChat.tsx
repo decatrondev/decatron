@@ -129,11 +129,11 @@ const TABS: { id: TabId; emoji: string; label: string }[] = [
 
 // ===================== SHARED CLASSES =====================
 
-const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg';
-const inputClass = 'w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm';
-const labelClass = 'text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2';
-const sectionTitle = 'text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-1';
-const sectionDesc  = 'text-xs text-[#64748b] dark:text-[#94a3b8] mb-4';
+const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
+const inputClass = 'w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm';
+const labelClass = 'text-xs font-bold text-ds-soft block mb-2';
+const sectionTitle = 'text-sm font-bold text-ds-text flex items-center gap-2 mb-1';
+const sectionDesc = 'text-xs text-ds-soft mb-4';
 
 // ===================== TOGGLE =====================
 
@@ -141,7 +141,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     return (
         <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="sr-only peer" />
-            <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]" />
+            <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent" />
         </label>
     );
 }
@@ -369,7 +369,7 @@ export default function SpeakChat() {
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                     <div className="text-4xl mb-4">🎤</div>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] font-bold">Cargando Speak Chat...</p>
+                    <p className="text-ds-soft font-bold">Cargando Speak Chat...</p>
                 </div>
             </div>
         );
@@ -383,15 +383,15 @@ export default function SpeakChat() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/features')}
-                        className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg"
+                        className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                        <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-3">
+                        <h1 className="text-3xl font-black text-ds-text flex items-center gap-3">
                             🎤 Speak Chat
                         </h1>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <p className="text-sm text-ds-soft mt-1">
                             Lee los mensajes del chat en voz alta con Text-to-Speech
                         </p>
                     </div>
@@ -400,8 +400,8 @@ export default function SpeakChat() {
                     {saved && (
                         <span className={`text-sm font-bold px-3 py-1.5 rounded-lg ${
                             saved === 'success'
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                ? 'bg-ds-ok/10 text-ds-ok '
+                                : 'bg-ds-danger/10 text-ds-danger '
                         }`}>
                             {saved === 'success' ? '✅ Guardado' : `❌ ${testError ?? 'Error al guardar'}`}
                         </span>
@@ -409,7 +409,7 @@ export default function SpeakChat() {
                     <button
                         onClick={save}
                         disabled={saving}
-                        className="px-6 py-3 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-60 text-white rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg"
+                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold"
                     >
                         <Save className="w-5 h-5" />
                         {saving ? 'Guardando...' : 'Guardar'}
@@ -426,8 +426,8 @@ export default function SpeakChat() {
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                                 activeTab === tab.id
-                                    ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                    ? 'bg-ds-accent text-ds-on-accent'
+                                    : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                             }`}
                         >
                             {tab.emoji} {tab.label}
@@ -450,7 +450,7 @@ export default function SpeakChat() {
                                     checked={config.global.enabled}
                                     onChange={v => setConfig(c => ({ ...c, global: { enabled: v } }))}
                                 />
-                                <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                <span className="text-sm font-bold text-ds-text">
                                     {config.global.enabled ? 'Activado' : 'Desactivado'}
                                 </span>
                             </div>
@@ -472,7 +472,7 @@ export default function SpeakChat() {
                             <button
                                 onClick={copyOverlayUrl}
                                 disabled={!overlayUrl}
-                                className="px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-50 text-white rounded-lg transition-all font-bold text-sm flex items-center gap-2 whitespace-nowrap"
+                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2 whitespace-nowrap"
                             >
                                 {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                 {copiedUrl ? '¡Copiado!' : 'Copiar'}
@@ -505,16 +505,16 @@ export default function SpeakChat() {
                                             onChange={v => updateRule(idx, { enabled: v })}
                                         />
                                         <div>
-                                            <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                            <p className="font-bold text-ds-text">
                                                 {meta.emoji} {meta.label}
                                             </p>
-                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{meta.desc}</p>
+                                            <p className="text-xs text-ds-soft">{meta.desc}</p>
                                         </div>
                                     </div>
                                     {rule.type !== 'all' && (
                                         <button
                                             onClick={() => setExpandedRules(e => ({ ...e, [idx]: !e[idx] }))}
-                                            className="p-2 rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+                                            className="p-2 rounded-lg bg-ds-bg text-ds-soft hover:bg-ds-raised transition-colors"
                                         >
                                             {expandedRules[idx] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                         </button>
@@ -523,7 +523,7 @@ export default function SpeakChat() {
 
                                 {/* Body expandible */}
                                 {expandedRules[idx] && rule.type !== 'all' && (
-                                    <div className="border-t border-[#e2e8f0] dark:border-[#374151] p-6 space-y-5 bg-[#f8fafc] dark:bg-[#262626]">
+                                    <div className="border-t border-ds-border p-6 space-y-5 bg-ds-bg">
 
                                         {rule.type === 'command' && (
                                             <div>
@@ -534,8 +534,8 @@ export default function SpeakChat() {
                                                     placeholder="!tts"
                                                     className={`${inputClass} w-48`}
                                                 />
-                                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                                    Ej: <code className="bg-[#e2e8f0] dark:bg-[#374151] px-1 rounded">!tts Hola streamer</code> → lee "Hola streamer"
+                                                <p className="text-xs text-ds-soft mt-1">
+                                                    Ej: <code className="bg-ds-raised px-1 rounded">!tts Hola streamer</code> → lee "Hola streamer"
                                                 </p>
                                             </div>
                                         )}
@@ -577,7 +577,7 @@ export default function SpeakChat() {
                                                                 </option>
                                                             )}
                                                         </select>
-                                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                                        <p className="text-xs text-ds-soft mt-1">
                                                             Recomendado: que la recompensa pida texto al viewer — ese texto es lo que se lee.
                                                         </p>
                                                     </>
@@ -589,7 +589,7 @@ export default function SpeakChat() {
                                                             placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                                                             className={`${inputClass} font-mono`}
                                                         />
-                                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                                        <p className="text-xs text-ds-soft mt-1">
                                                             {rewardsError
                                                                 ? 'No se pudieron cargar tus recompensas (token expirado o canal sin afiliación). Pega el ID a mano.'
                                                                 : 'No hay recompensas de puntos en este canal. Créalas en Twitch o pega el ID a mano.'}
@@ -615,8 +615,8 @@ export default function SpeakChat() {
                                                         onClick={() => updateRoleInRule(idx, key, !(rule.roles?.[key] ?? false))}
                                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                                             (rule.roles?.[key] ?? false)
-                                                                ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow'
-                                                                : 'bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'
+                                                                ? 'bg-ds-accent text-ds-on-accent shadow'
+                                                                : 'bg-ds-surface border border-ds-border text-ds-soft hover:bg-ds-bg '
                                                         }`}
                                                     >
                                                         {label}
@@ -640,10 +640,10 @@ export default function SpeakChat() {
                     <div className={cardClass}>
                         <div className="flex items-center justify-between gap-4 flex-wrap">
                             <div>
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                <p className="font-bold text-ds-text">
                                     El audio se genera en el servidor
                                 </p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                <p className="text-xs text-ds-soft mt-1">
                                     Con voz estándar o premium sale siempre un MP3, así que suena en cualquier
                                     OBS sin depender de las voces que tenga instaladas ese equipo.
                                 </p>
@@ -651,7 +651,7 @@ export default function SpeakChat() {
                             <button
                                 onClick={reloadOverlays}
                                 disabled={reloading}
-                                className="px-4 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] text-xs font-bold hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors disabled:opacity-50"
+                                className="px-4 py-2 rounded-lg border border-ds-border text-ds-text text-xs font-bold hover:bg-ds-bg transition-colors disabled:opacity-50"
                                 title="Los overlays se actualizan solos, pero esto lo hace al instante"
                             >
                                 {reloading ? '♻️ Recargando…' : '♻️ Recargar overlays'}
@@ -662,16 +662,16 @@ export default function SpeakChat() {
                     {/* Plan badge */}
                     <div className={`${cardClass} ${
                         isPollyAvailable
-                            ? 'border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
+                            ? 'border-ds-accent bg-ds-accent/10 '
                             : ''
                     }`}>
                         <div className="flex items-start gap-4">
                             {isPollyAvailable
                                 ? <div className="text-3xl">🎙️</div>
-                                : <Lock className="w-8 h-8 text-[#94a3b8] flex-shrink-0 mt-1" />
+                                : <Lock className="w-8 h-8 text-ds-soft flex-shrink-0 mt-1" />
                             }
                             <div className="flex-1">
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                <p className="font-bold text-ds-text">
                                     {usage?.isUnlimited
                                         ? `Plan ${usage.tier} — créditos ilimitados`
                                         : isPollyAvailable
@@ -679,7 +679,7 @@ export default function SpeakChat() {
                                             : 'Sin créditos premium'
                                     }
                                 </p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                <p className="text-xs text-ds-soft mt-1">
                                     {usage?.isUnlimited
                                         ? 'Las voces de AWS Polly suenan en cualquier OBS.'
                                         : isPollyAvailable
@@ -688,42 +688,42 @@ export default function SpeakChat() {
                                     }
                                 </p>
                                 {usage && !usage.isUnlimited && usage.standardGranted > 0 && (
-                                    <p className="text-xs text-green-700 dark:text-green-400 mt-1 font-bold">
+                                    <p className="text-xs text-ds-ok mt-1 font-bold">
                                         🆓 Voz estándar: {usage.standardRemaining.toLocaleString()} de {usage.standardGranted.toLocaleString()} caracteres este mes, incluidos en tu plan.
                                     </p>
                                 )}
                                 {isPollyAvailable && !usage?.isUnlimited && creditsLow && (
-                                    <p className="text-xs mt-1 font-bold text-yellow-600 dark:text-yellow-500">
+                                    <p className="text-xs mt-1 font-bold text-ds-warn">
                                         ⚠️ Te queda poco saldo premium — al agotarse tendrás que cambiar a voz estándar.
                                     </p>
                                 )}
                                 {creditsExhausted && (
-                                    <p className="text-xs mt-1 font-bold text-red-600 dark:text-red-400">
+                                    <p className="text-xs mt-1 font-bold text-ds-danger">
                                         ❌ Sin créditos premium. Se seguirá leyendo con voz estándar hasta tu cuota del día 1.
                                     </p>
                                 )}
                                 {config.voice.engine === 'polly' && (
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                    <p className="text-xs text-ds-soft mt-1">
                                         Si te quedas sin créditos premium el chat no se queda mudo: se lee con voz estándar.
                                         {config.voice.languageCode.startsWith('ja') && ' Como el japonés no existe en voz estándar, sonará en español.'}
                                     </p>
                                 )}
                                 {usage?.inTransitionWindow && usage.tier === 'free' && transitionEndsLabel && (
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                    <p className="text-xs text-ds-accent-text mt-1">
                                         🎁 Créditos de bienvenida hasta el {transitionEndsLabel}. Después de esa fecha
                                         necesitarás un plan o un paquete de créditos para seguir usando Polly.
                                     </p>
                                 )}
                                 {isPollyAvailable && tierExpiryLabel && (
-                                    <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                                    <p className="text-xs text-ds-warn mt-1">
                                         ⏳ Tu plan vence el {tierExpiryLabel}. Los créditos comprados no se pierden.
                                     </p>
                                 )}
                                 {isPollyAvailable && usage && !usage.isUnlimited && usage.monthlyGranted > 0 && (
-                                    <div className="mt-3 h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden w-64">
+                                    <div className="mt-3 h-2 bg-ds-raised rounded-full overflow-hidden w-64">
                                         <div
                                             className={`h-full rounded-full transition-all ${
-                                                usage.percentage > 90 ? 'bg-red-500' : usage.percentage > 70 ? 'bg-yellow-500' : 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6]'
+                                                usage.percentage > 90 ? 'bg-ds-danger-solid' : usage.percentage > 70 ? 'bg-ds-warn' : 'bg-ds-accent'
                                             }`}
                                             style={{ width: `${Math.min(usage.percentage, 100)}%` }}
                                         />
@@ -747,12 +747,12 @@ export default function SpeakChat() {
                                             key={opt.id}
                                             onClick={() => opt.available && setConfig(c => ({ ...c, voice: { ...c.voice, engine: opt.id as any } }))}
                                             disabled={!opt.available}
-                                            className={`flex-1 py-3 px-4 rounded-xl border-2 text-sm font-bold transition-all ${
+                                            className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-bold transition-all ${
                                                 config.voice.engine === opt.id
-                                                    ? 'border-[#2563eb] bg-blue-50 dark:bg-blue-900/20 text-[#2563eb]'
+                                                    ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text'
                                                     : opt.available
-                                                        ? 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#94a3b8]'
-                                                        : 'border-[#e2e8f0] dark:border-[#374151] text-[#94a3b8] dark:text-[#64748b] opacity-50 cursor-not-allowed'
+                                                        ? 'border-ds-border text-ds-soft hover:border-ds-faint'
+                                                        : 'border-ds-border text-ds-soft opacity-50 cursor-not-allowed'
                                             }`}
                                         >
                                             {opt.label} {!opt.available && <Lock className="w-3 h-3 inline ml-1" />}
@@ -762,7 +762,7 @@ export default function SpeakChat() {
                             </div>
 
                             {config.voice.engine === 'polly' && voiceMismatch && (
-                                <div className="px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-700 dark:text-amber-300">
+                                <div className="px-3 py-2 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-xs text-ds-warn">
                                     ⚠️ {voiceMismatch}
                                 </div>
                             )}
@@ -780,7 +780,7 @@ export default function SpeakChat() {
                                         <option value="neural">Alta calidad · 4 créditos por carácter</option>
                                     </select>
                                     {config.voice.pollyEngine === 'neural' && (
-                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                        <p className="text-xs text-ds-warn mt-1">
                                             Suena mucho mejor, pero cada mensaje gasta cuatro veces más.
                                             Speak Chat lee mucho: revisa el saldo antes de dejarlo puesto.
                                         </p>
@@ -815,11 +815,11 @@ export default function SpeakChat() {
                                     {languageOptions.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
                                 </select>
                                 {config.voice.engine !== 'polly' ? (
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                    <p className="text-xs text-ds-soft mt-1">
                                         El japonés y el coreano solo están en voz premium.
                                     </p>
                                 ) : (
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                    <p className="text-xs text-ds-soft mt-1">
                                         Solo los idiomas con voces en la calidad elegida. Algunos existen
                                         en una y no en la otra.
                                     </p>
@@ -842,7 +842,7 @@ export default function SpeakChat() {
                                         ))}
                                     </select>
                                     {premiumVoicesForLang.length === 0 && (
-                                        <p className="text-xs text-yellow-500 mt-1">
+                                        <p className="text-xs text-ds-warn mt-1">
                                             No hay voces para este idioma en calidad{' '}
                                             {config.voice.pollyEngine === 'neural' ? 'alta' : 'normal'}. Prueba con la otra.
                                         </p>
@@ -860,7 +860,7 @@ export default function SpeakChat() {
                                     </label>
 
                                     {standardVoicesForLang.length === 0 ? (
-                                        <div className="px-4 py-3 rounded-lg border border-yellow-300 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 text-xs text-yellow-700 dark:text-yellow-300">
+                                        <div className="px-4 py-3 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-xs text-ds-warn">
                                             No hay voces estándar para este idioma. Cambia de idioma o usa voz premium.
                                         </div>
                                     ) : (
@@ -877,7 +877,7 @@ export default function SpeakChat() {
                                                     </option>
                                                 ))}
                                             </select>
-                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                            <p className="text-xs text-ds-soft mt-1">
                                                 Se generan en el servidor, así que suenan igual en cualquier OBS.
                                             </p>
                                         </>
@@ -894,7 +894,7 @@ export default function SpeakChat() {
                                     max={100}
                                     value={config.voice.volume}
                                     onChange={e => setConfig(c => ({ ...c, voice: { ...c.voice, volume: parseInt(e.target.value) } }))}
-                                    className="w-full accent-blue-500"
+                                    className="w-full accent-ds-accent"
                                 />
                             </div>
                         </div>
@@ -911,7 +911,7 @@ export default function SpeakChat() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <label className={labelClass}>Cooldown global (segundos)</label>
-                                <p className="text-xs text-[#94a3b8] mb-2">Tiempo mínimo entre cualquier mensaje leído</p>
+                                <p className="text-xs text-ds-soft mb-2">Tiempo mínimo entre cualquier mensaje leído</p>
                                 <input
                                     type="number"
                                     min={0}
@@ -922,7 +922,7 @@ export default function SpeakChat() {
                             </div>
                             <div>
                                 <label className={labelClass}>Cooldown por usuario (segundos)</label>
-                                <p className="text-xs text-[#94a3b8] mb-2">Tiempo mínimo entre mensajes del mismo usuario</p>
+                                <p className="text-xs text-ds-soft mb-2">Tiempo mínimo entre mensajes del mismo usuario</p>
                                 <input
                                     type="number"
                                     min={0}
@@ -988,7 +988,7 @@ export default function SpeakChat() {
                                     checked={config.overlay.showBubble}
                                     onChange={v => setConfig(c => ({ ...c, overlay: { ...c.overlay, showBubble: v } }))}
                                 />
-                                <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                <span className="text-sm font-bold text-ds-text">
                                     {config.overlay.showBubble ? 'Visible' : 'Solo audio'}
                                 </span>
                             </div>
@@ -1006,8 +1006,8 @@ export default function SpeakChat() {
                                                 onClick={() => setConfig(c => ({ ...c, overlay: { ...c.overlay, position: pos } }))}
                                                 className={`py-2 px-2 rounded-lg border text-xs font-bold transition-all ${
                                                     config.overlay.position === pos
-                                                        ? 'border-[#2563eb] bg-blue-50 dark:bg-blue-900/20 text-[#2563eb]'
-                                                        : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#94a3b8]'
+                                                        ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text'
+                                                        : 'border-ds-border text-ds-soft hover:border-ds-faint'
                                                 }`}
                                             >
                                                 {pos.replace('-', ' ')}
@@ -1034,7 +1034,7 @@ export default function SpeakChat() {
                                                 type="color"
                                                 value={config.overlay.textColor}
                                                 onChange={e => setConfig(c => ({ ...c, overlay: { ...c.overlay, textColor: e.target.value } }))}
-                                                className="h-[42px] w-12 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-transparent cursor-pointer p-0.5"
+                                                className="h-[42px] w-12 rounded-lg border border-ds-border bg-transparent cursor-pointer p-0.5"
                                             />
                                             <input
                                                 value={config.overlay.textColor}
@@ -1075,7 +1075,7 @@ export default function SpeakChat() {
                     {config.overlay.showBubble && (
                         <div className={cardClass}>
                             <p className={sectionTitle}>👁️ Vista previa</p>
-                            <div className="relative rounded-xl overflow-hidden bg-black" style={{ paddingBottom: '30%', minHeight: 120 }}>
+                            <div className="relative rounded-lg overflow-hidden bg-ds-input" style={{ paddingBottom: '30%', minHeight: 120 }}>
                                 <div
                                     className="absolute"
                                     style={{
@@ -1084,7 +1084,7 @@ export default function SpeakChat() {
                                         maxWidth: 280,
                                     }}
                                 >
-                                    <div className="rounded-xl px-4 py-3" style={{ backgroundColor: config.overlay.backgroundColor }}>
+                                    <div className="rounded-lg px-4 py-3" style={{ backgroundColor: config.overlay.backgroundColor }}>
                                         <p style={{ color: config.overlay.textColor, fontSize: Math.max(9, config.overlay.fontSize * 0.65), fontWeight: 700, margin: 0, fontFamily: 'Inter, sans-serif' }}>
                                             streamer
                                         </p>
@@ -1107,55 +1107,55 @@ export default function SpeakChat() {
                         <div className={cardClass}>
                             <p className={sectionTitle}>📊 Créditos TTS</p>
                             <div className="flex items-center justify-between text-sm mb-3">
-                                <span className="text-[#64748b] dark:text-[#94a3b8]">
-                                    Plan: <span className="font-bold text-[#1e293b] dark:text-[#f8fafc] capitalize">{usage.tier}</span>
+                                <span className="text-ds-soft">
+                                    Plan: <span className="font-bold text-ds-text capitalize">{usage.tier}</span>
                                 </span>
-                                <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                <span className="font-bold text-ds-text">
                                     {usage.isUnlimited ? '∞' : `${usage.totalAvailable.toLocaleString()} disponibles`}
                                 </span>
                             </div>
                             {!usage.isUnlimited && (
                                 <div className="grid grid-cols-2 gap-3 text-xs mb-3">
-                                    <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#262626]">
-                                        <p className="text-[#64748b] dark:text-[#94a3b8]">Cuota del mes</p>
-                                        <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="p-3 rounded-lg bg-ds-bg">
+                                        <p className="text-ds-soft">Cuota del mes</p>
+                                        <p className="font-bold text-ds-text">
                                             {usage.monthlyRemaining.toLocaleString()} / {usage.monthlyGranted.toLocaleString()}
                                         </p>
-                                        <p className="text-[#94a3b8]">se reinicia el día 1</p>
+                                        <p className="text-ds-soft">se reinicia el día 1</p>
                                     </div>
-                                    <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#262626]">
-                                        <p className="text-[#64748b] dark:text-[#94a3b8]">Comprados</p>
-                                        <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="p-3 rounded-lg bg-ds-bg">
+                                        <p className="text-ds-soft">Comprados</p>
+                                        <p className="font-bold text-ds-text">
                                             {usage.purchasedBalance.toLocaleString()}
                                         </p>
-                                        <p className="text-[#94a3b8]">no caducan</p>
+                                        <p className="text-ds-soft">no caducan</p>
                                     </div>
                                 </div>
                             )}
                             {tierExpiryLabel && (
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3">
+                                <p className="text-xs text-ds-soft mb-3">
                                     Vence el {tierExpiryLabel}
                                 </p>
                             )}
                             {!usage.isUnlimited && usage.monthlyGranted > 0 && (
-                                <div className="h-3 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                                <div className="h-3 bg-ds-raised rounded-full overflow-hidden">
                                     <div
                                         className={`h-full rounded-full transition-all ${
-                                            usage.percentage > 90 ? 'bg-red-500' : usage.percentage > 70 ? 'bg-yellow-500' : 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6]'
+                                            usage.percentage > 90 ? 'bg-ds-danger-solid' : usage.percentage > 70 ? 'bg-ds-warn' : 'bg-ds-accent'
                                         }`}
                                         style={{ width: `${Math.min(usage.percentage, 100)}%` }}
                                     />
                                 </div>
                             )}
                             {!usage.isUnlimited && usage.totalAvailable === 0 && (
-                                <div className="mt-4 flex items-start gap-2 text-xs text-[#64748b] dark:text-[#94a3b8]">
-                                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-yellow-500 mt-0.5" />
+                                <div className="mt-4 flex items-start gap-2 text-xs text-ds-soft">
+                                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-ds-warn mt-0.5" />
                                     Sin créditos solo puedes usar voces del navegador, que no suenan en OBS. Para usar
                                     Polly necesitas un plan o un paquete de créditos.
                                 </div>
                             )}
                             {usage.inTransitionWindow && usage.tier === 'free' && transitionEndsLabel && (
-                                <div className="mt-4 flex items-start gap-2 text-xs text-blue-600 dark:text-blue-400">
+                                <div className="mt-4 flex items-start gap-2 text-xs text-ds-accent-text">
                                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                     Estás usando créditos de bienvenida, disponibles hasta el {transitionEndsLabel}.
                                 </div>
@@ -1178,7 +1178,7 @@ export default function SpeakChat() {
                         <button
                             onClick={sendTest}
                             disabled={testing || !testMessage.trim()}
-                            className="px-6 py-3 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-60 text-white rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg"
+                            className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold"
                         >
                             <TestTube2 className="w-5 h-5" />
                             {testing ? 'Enviando...' : 'Enviar al overlay'}

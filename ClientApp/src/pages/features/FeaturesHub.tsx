@@ -182,7 +182,7 @@ export default function FeaturesHub() {
                                 ) : (
                                     <button
                                         onClick={() => navigate(card.route)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-white rounded-lg transition-all font-semibold text-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
                                     >
                                         <Settings className="w-4 h-4" />
                                         {card.buttonLabel ?? 'Configurar'}

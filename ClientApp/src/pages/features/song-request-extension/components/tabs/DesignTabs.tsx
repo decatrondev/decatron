@@ -34,12 +34,12 @@ function shared(props: DesignProps): Shared.DesignProps {
 export function KindSwitch({ cfg, kind, onKindChange }: DesignProps) {
     const { t } = useTranslation('overlays');
     const other: OverlayKind = kind === 'player' ? 'nowPlaying' : 'player';
-    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`;
+    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`;
     return (
-        <div className="flex items-center justify-between gap-3 flex-wrap bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] px-4 py-3 shadow-lg">
+        <div className="flex items-center justify-between gap-3 flex-wrap bg-ds-surface rounded-lg border border-ds-border px-4 py-3">
             <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('songRequest.kinds.editing')}</span>
-                <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111]">
+                <span className="text-sm 3xl:text-base font-bold text-ds-text">{t('songRequest.kinds.editing')}</span>
+                <div className="flex gap-1 p-1 rounded-lg bg-ds-bg">
                     <button className={seg(kind === 'player')} onClick={() => onKindChange('player')}>{t('songRequest.kinds.player')}</button>
                     <button className={seg(kind === 'nowPlaying')} onClick={() => onKindChange('nowPlaying')}>{t('songRequest.kinds.nowPlaying')}</button>
                 </div>
@@ -49,7 +49,7 @@ export function KindSwitch({ cfg, kind, onKindChange }: DesignProps) {
                     if (!window.confirm(t('songRequest.kinds.copyConfirm', { to: t(`songRequest.kinds.${other}`) }))) return;
                     cfg.updateLayout(other, Shared.onlyOffered(structuredClone(cfg.overlay[kind]), elementIdsFor(other)));
                 }}
-                className="flex items-center gap-1.5 text-xs 3xl:text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-white"
+                className="flex items-center gap-1.5 text-xs 3xl:text-sm font-bold text-ds-soft hover:text-ds-text"
             >
                 <Copy className="w-4 h-4" /> {t('songRequest.kinds.copyTo', { to: t(`songRequest.kinds.${other}`) })}
             </button>

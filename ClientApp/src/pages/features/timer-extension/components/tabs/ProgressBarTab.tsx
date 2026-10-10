@@ -458,7 +458,7 @@ export const ProgressBarTab: React.FC<ProgressBarTabProps> = ({
                         onClick={() => toggleSection('border')}
                         className="flex items-center gap-2 group"
                     >
-                        <Box className="w-4 h-4 text-ds-warn" />
+                        <Box className="w-4 h-4 text-ds-accent-text" />
                         <h3 className="text-sm font-bold text-ds-text">Bordes</h3>
                         {expandedSections.border ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
                     </button>

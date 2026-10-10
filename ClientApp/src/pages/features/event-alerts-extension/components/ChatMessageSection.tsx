@@ -38,22 +38,22 @@ export const ChatMessageSection: React.FC<ChatMessageSectionProps> = ({
     onChange({ ...currentConfig, template: suggestedTemplate });
   };
 
-  const inputClass = "w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none";
+  const inputClass = "w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none";
 
   return (
-    <div className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl overflow-hidden">
+    <div className="border border-ds-border rounded-lg overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center justify-between p-3 bg-[#f8fafc] dark:bg-[#262626] cursor-pointer hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+        className="flex items-center justify-between p-3 bg-ds-bg cursor-pointer hover:bg-ds-raised transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-green-500" />
-          <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
+          <MessageSquare className="w-4 h-4 text-ds-accent-text" />
+          <span className="text-sm font-bold text-ds-text 3xl:text-base">
             Mensaje en Chat
           </span>
           {currentConfig.enabled && (
-            <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold rounded-full 3xl:text-sm">
+            <span className="px-2 py-0.5 bg-ds-ok/10 text-ds-ok text-xs font-bold rounded-full 3xl:text-sm">
               Activo
             </span>
           )}
@@ -66,29 +66,29 @@ export const ChatMessageSection: React.FC<ChatMessageSectionProps> = ({
               onChange={e => handleToggle(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-green-600"></div>
+            <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-ok/40 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[3px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-accent"></div>
           </label>
-          {expanded ? <ChevronUp className="w-4 h-4 text-[#64748b]" /> : <ChevronDown className="w-4 h-4 text-[#64748b]" />}
+          {expanded ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
         </div>
       </div>
 
       {/* Content */}
       {expanded && (
-        <div className="p-4 space-y-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-          <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
+        <div className="p-4 space-y-4 border-t border-ds-border">
+          <p className="text-xs text-ds-soft 3xl:text-sm">
             El bot enviará este mensaje en el chat cuando ocurra el evento.
-            Variables: <code className="bg-[#f8fafc] dark:bg-[#374151] px-2 py-0.5 rounded text-green-600">{messageVariables}</code>
+            Variables: <code className="bg-ds-bg px-2 py-0.5 rounded text-ds-ok">{messageVariables}</code>
           </p>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
+              <label className="text-xs font-bold text-ds-soft 3xl:text-sm">
                 Mensaje del Bot
               </label>
               {!currentConfig.template && suggestedTemplate && (
                 <button
                   onClick={applyTemplate}
-                  className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-300 rounded-lg hover:bg-green-200 font-bold 3xl:text-sm"
+                  className="text-xs px-2 py-1 bg-ds-ok/10 text-ds-ok rounded-lg hover:bg-ds-ok/10 font-bold 3xl:text-sm"
                 >
                   ✨ Usar predefinido
                 </button>
@@ -107,19 +107,19 @@ export const ChatMessageSection: React.FC<ChatMessageSectionProps> = ({
             {!currentConfig.template && suggestedTemplate && currentConfig.enabled && (
               <button
                 onClick={applyTemplate}
-                className="mt-2 w-full p-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800 text-left group hover:border-green-400 transition-all"
+                className="mt-2 w-full p-2 bg-ds-ok/10 rounded-lg border border-ds-ok/40 text-left group hover:border-ds-ok/40 transition-all"
               >
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
-                  💡 <span className="font-bold text-green-600 dark:text-green-400">Sugerido:</span>
+                <p className="text-xs text-ds-soft 3xl:text-sm">
+                  💡 <span className="font-bold text-ds-ok">Sugerido:</span>
                 </p>
-                <p className="text-sm text-green-700 dark:text-green-300 font-mono mt-1 3xl:text-base">"{suggestedTemplate}"</p>
+                <p className="text-sm text-ds-ok font-mono mt-1 3xl:text-base">"{suggestedTemplate}"</p>
               </button>
             )}
 
             {/* Preview */}
             {currentConfig.template && currentConfig.enabled && (
-              <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <p className="text-xs text-green-700 dark:text-green-300 3xl:text-sm">
+              <div className="mt-2 p-2 bg-ds-ok/10 rounded-lg border border-ds-ok/40">
+                <p className="text-xs text-ds-ok 3xl:text-sm">
                   <strong>💬 Bot dirá:</strong> {
                     currentConfig.template
                       .replace('{username}', 'EjemploUser')

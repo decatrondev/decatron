@@ -16,7 +16,7 @@ export function defaultPrizeParams(tipo: PrizeType): Record<string, unknown> {
     }
 }
 
-export const PARAM_FIELD = 'px-2 py-2 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] text-sm focus:outline-none focus:border-blue-500';
+export const PARAM_FIELD = 'px-2 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-sm focus:outline-none focus:border-ds-accent';
 
 /// El nombre del tipo de premio, para el selector y para el resumen de la fila.
 const PRIZE_LABEL_KEY: Record<PrizeType, string> = {
@@ -74,7 +74,7 @@ export function prizeSummary(
 function F({ label, grow, children }: { label: string; grow?: boolean; children: React.ReactNode }) {
     return (
         <label className={`flex flex-col gap-1 min-w-0 ${grow ? 'flex-1 min-w-[12rem]' : ''}`}>
-            <span className="text-xs text-[#94a3b8]">{label}</span>
+            <span className="text-xs text-ds-soft">{label}</span>
             {children}
         </label>
     );
@@ -96,7 +96,7 @@ export function PrizeParams({ prize, onChange, wheels, soundAlerts, t }: {
     switch (prize.type) {
         case 'coins':
             // Ya no existe: guardar este gajo falla en el servidor hasta que se elija otro premio.
-            return <p className="text-sm text-amber-300 max-w-md">{t('wheel.prizes.retiredHelp')}</p>;
+            return <p className="text-sm text-ds-warn max-w-md">{t('wheel.prizes.retiredHelp')}</p>;
 
         case 'free_spin':
             return wrap(
@@ -138,7 +138,7 @@ export function PrizeParams({ prize, onChange, wheels, soundAlerts, t }: {
                         />
                     </F>
                     {/* Sin selector de tipo: los tiros de la Rueda van siempre a la billetera bonus. */}
-                    <p className="text-sm text-[#94a3b8] max-w-sm pb-2">{t('wheel.prizes.pullBonusNote')}</p>
+                    <p className="text-sm text-ds-soft max-w-sm pb-2">{t('wheel.prizes.pullBonusNote')}</p>
                 </>,
             );
 
@@ -180,7 +180,7 @@ export function PrizeParams({ prize, onChange, wheels, soundAlerts, t }: {
 
         case 'sound_alert':
             return soundAlerts.length === 0 ? (
-                <p className="text-sm text-amber-300">{t('wheel.prizes.noSoundAlerts')}</p>
+                <p className="text-sm text-ds-warn">{t('wheel.prizes.noSoundAlerts')}</p>
             ) : wrap(
                 <F label={t('wheel.prizes.soundAlert')} grow>
                     <select

@@ -23,7 +23,7 @@ interface HypeTrainTabProps {
 const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
   <label className="relative inline-flex items-center cursor-pointer">
     <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="sr-only peer" />
-    <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
+    <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
   </label>
 );
 
@@ -31,8 +31,8 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
 
-  const inputClass = "w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none";
-  const labelClass = "text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2";
+  const inputClass = "w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none";
+  const labelClass = "text-xs font-bold text-ds-soft block mb-2";
 
   const levelEmojis = ['🔥', '🔥🔥', '🔥🔥🔥', '🔥🔥🔥🔥', '🔥🔥🔥🔥🔥'];
 
@@ -67,15 +67,15 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <div className="flex items-center justify-between">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">🔥 Alertas de Hype Train</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">Configura alertas para cada nivel del Hype Train</p>
+            <label className="text-sm font-bold text-ds-text 3xl:text-base">🔥 Alertas de Hype Train</label>
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">Configura alertas para cada nivel del Hype Train</p>
           </div>
           <div className="flex items-center gap-3">
             <Toggle checked={config.enabled} onChange={v => onConfigChange({ enabled: v })} />
-            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">{config.enabled ? 'Activado' : 'Desactivado'}</span>
+            <span className="text-sm font-bold text-ds-text 3xl:text-base">{config.enabled ? 'Activado' : 'Desactivado'}</span>
           </div>
         </div>
       </div>
@@ -86,34 +86,34 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
             const levelConfig = config.levels[level];
             if (!levelConfig) return null;
             return (
-              <div key={level} className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl overflow-hidden">
-                <div className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] cursor-pointer hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+              <div key={level} className="border border-ds-border rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between p-4 bg-ds-bg cursor-pointer hover:bg-ds-raised transition-colors"
                   onClick={() => setExpandedLevel(expandedLevel === level ? null : level)}>
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{levelEmojis[level - 1]}</span>
                     <div>
-                      <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Nivel {level}</div>
-                      <div className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">{levelConfig.message.substring(0, 50)}</div>
+                      <div className="font-bold text-ds-text">Nivel {level}</div>
+                      <div className="text-xs text-ds-soft 3xl:text-sm">{levelConfig.message.substring(0, 50)}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <label className="relative inline-flex items-center cursor-pointer" onClick={e => e.stopPropagation()}>
                       <input type="checkbox" checked={levelConfig.enabled} onChange={e => updateLevel(level, 'enabled', e.target.checked)} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
+                      <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[3px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-accent"></div>
                     </label>
-                    {expandedLevel === level ? <ChevronUp className="w-5 h-5 text-[#64748b]" /> : <ChevronDown className="w-5 h-5 text-[#64748b]" />}
+                    {expandedLevel === level ? <ChevronUp className="w-5 h-5 text-ds-soft" /> : <ChevronDown className="w-5 h-5 text-ds-soft" />}
                   </div>
                 </div>
 
                 {expandedLevel === level && (
-                  <div className="p-4 space-y-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                  <div className="p-4 space-y-4 border-t border-ds-border">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className={labelClass + ' mb-0'}>Mensaje · <code className="text-blue-500">{EVENT_VARIABLES.hypeTrain}</code></label>
+                        <label className={labelClass + ' mb-0'}>Mensaje · <code className="text-ds-accent-text">{EVENT_VARIABLES.hypeTrain}</code></label>
                         {!levelConfig.message && getMessageTemplate(level) && (
                           <button
                             onClick={() => updateLevel(level, 'message', getMessageTemplate(level))}
-                            className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold 3xl:text-sm"
+                            className="text-xs px-2 py-1 bg-ds-accent/10 text-ds-accent-text rounded-lg hover:bg-ds-accent/10 font-bold 3xl:text-sm"
                           >
                             ✨ Usar predefinido
                           </button>
@@ -125,10 +125,10 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                       {!levelConfig.message && getMessageTemplate(level) && (
                         <button
                           onClick={() => updateLevel(level, 'message', getMessageTemplate(level))}
-                          className="mt-2 w-full p-2 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200 dark:border-orange-800 text-left group hover:border-orange-400 transition-all"
+                          className="mt-2 w-full p-2 bg-ds-warn/10 rounded-lg border border-ds-warn/40 text-left group hover:border-ds-warn/40 transition-all"
                         >
-                          <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">💡 <span className="font-bold text-orange-600 dark:text-orange-400">Sugerido:</span></p>
-                          <p className="text-sm text-orange-700 dark:text-orange-300 font-mono mt-1 3xl:text-base">"{getMessageTemplate(level)}"</p>
+                          <p className="text-xs text-ds-soft 3xl:text-sm">💡 <span className="font-bold text-ds-warn">Sugerido:</span></p>
+                          <p className="text-sm text-ds-warn font-mono mt-1 3xl:text-base">"{getMessageTemplate(level)}"</p>
                         </button>
                       )}
                     </div>
@@ -188,24 +188,24 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
       </EventSection>
 
       {/* Alerta de Completado */}
-      <div className="rounded-2xl border-2 border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-6 shadow-lg">
+      <div className="rounded-lg border-2 border-ds-warn/40 bg-ds-warn/10 p-6">
         <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setShowCompletion(!showCompletion)}>
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">🏆 Alerta de Hype Train Completado</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">Alerta especial cuando se completa el Hype Train</p>
+            <label className="text-sm font-bold text-ds-text 3xl:text-base">🏆 Alerta de Hype Train Completado</label>
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">Alerta especial cuando se completa el Hype Train</p>
           </div>
-          {showCompletion ? <ChevronUp className="w-5 h-5 text-[#64748b]" /> : <ChevronDown className="w-5 h-5 text-[#64748b]" />}
+          {showCompletion ? <ChevronUp className="w-5 h-5 text-ds-soft" /> : <ChevronDown className="w-5 h-5 text-ds-soft" />}
         </div>
 
         {showCompletion && (
-          <div className="space-y-4 pt-4 border-t border-yellow-200 dark:border-yellow-800">
+          <div className="space-y-4 pt-4 border-t border-ds-warn/40">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className={labelClass + ' mb-0'}>Mensaje</label>
                 {!config.completionAlert.message && (
                   <button
                     onClick={() => updateCompletion('message', MESSAGE_TEMPLATES.hypeTrain.completed)}
-                    className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-300 rounded-lg hover:bg-yellow-200 font-bold 3xl:text-sm"
+                    className="text-xs px-2 py-1 bg-ds-warn/10 text-ds-warn rounded-lg hover:bg-ds-warn/10 font-bold 3xl:text-sm"
                   >
                     ✨ Usar predefinido
                   </button>
@@ -217,10 +217,10 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
               {!config.completionAlert.message && (
                 <button
                   onClick={() => updateCompletion('message', MESSAGE_TEMPLATES.hypeTrain.completed)}
-                  className="mt-2 w-full p-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 text-left group hover:border-yellow-400 transition-all"
+                  className="mt-2 w-full p-2 bg-ds-warn/10 rounded-lg border border-ds-warn/40 text-left group hover:border-ds-warn/40 transition-all"
                 >
-                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">💡 <span className="font-bold text-yellow-600 dark:text-yellow-400">Sugerido:</span></p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300 font-mono mt-1 3xl:text-base">"{MESSAGE_TEMPLATES.hypeTrain.completed}"</p>
+                  <p className="text-xs text-ds-soft 3xl:text-sm">💡 <span className="font-bold text-ds-warn">Sugerido:</span></p>
+                  <p className="text-sm text-ds-warn font-mono mt-1 3xl:text-base">"{MESSAGE_TEMPLATES.hypeTrain.completed}"</p>
                 </button>
               )}
             </div>

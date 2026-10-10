@@ -115,7 +115,7 @@ export default function Donations() {
     useEffect(() => { loadStats(); }, [loadStats]);
     useEffect(() => { loadDonations(); }, [loadDonations]);
 
-    const cardBase = 'bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-5 shadow-sm';
+    const cardBase = 'bg-ds-surface border border-ds-border rounded-lg p-5 ';
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
@@ -125,16 +125,16 @@ export default function Donations() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-2 rounded-xl hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+                            className="p-2 rounded-lg hover:bg-ds-raised transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                            <ArrowLeft className="w-5 h-5 text-ds-soft" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-                                <Heart className="w-6 h-6 text-pink-500" />
+                            <h1 className="text-2xl font-black text-ds-text flex items-center gap-2">
+                                <Heart className="w-6 h-6 text-ds-accent-text" />
                                 Mis Donaciones
                             </h1>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                            <p className="text-sm text-ds-soft mt-0.5">
                                 Historial y estadísticas de tus tips
                             </p>
                         </div>
@@ -142,15 +142,15 @@ export default function Donations() {
 
                     <div className="flex items-center gap-2">
                         {/* Period selector */}
-                        <div className="flex items-center gap-1 bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-1 py-1">
+                        <div className="flex items-center gap-1 bg-ds-surface border border-ds-border rounded-lg px-1 py-1">
                             {(Object.keys(PERIOD_LABELS) as Period[]).map(p => (
                                 <button
                                     key={p}
                                     onClick={() => setPeriod(p)}
                                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                                         period === p
-                                            ? 'bg-purple-600 text-white shadow-sm'
-                                            : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#374151]'
+                                            ? 'bg-ds-accent text-ds-on-accent '
+                                            : 'text-ds-soft hover:bg-ds-raised '
                                     }`}
                                 >
                                     {PERIOD_LABELS[p]}
@@ -160,16 +160,16 @@ export default function Donations() {
 
                         <button
                             onClick={() => { loadStats(); loadDonations(); }}
-                            className="p-2 rounded-xl hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+                            className="p-2 rounded-lg hover:bg-ds-raised transition-colors"
                             title="Actualizar"
                         >
-                            <RefreshCw className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
+                            <RefreshCw className="w-4 h-4 text-ds-soft" />
                         </button>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
+                    <div className="flex items-center gap-2 p-4 bg-ds-danger/10 border border-ds-danger/40 rounded-lg text-ds-danger text-sm">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         {error}
                     </div>
@@ -180,73 +180,73 @@ export default function Donations() {
                     {/* Total recaudado */}
                     <div className={`${cardBase} flex flex-col gap-2`}>
                         <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">Total</p>
-                            <div className="w-8 h-8 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400" />
+                            <p className="text-xs font-semibold text-ds-ok uppercase tracking-wide">Total</p>
+                            <div className="w-8 h-8 rounded-lg bg-ds-ok/10 flex items-center justify-center">
+                                <DollarSign className="w-4 h-4 text-ds-accent-text" />
                             </div>
                         </div>
                         {loadingStats ? (
-                            <div className="h-8 bg-[#e2e8f0] dark:bg-[#262626] rounded-lg animate-pulse" />
+                            <div className="h-8 bg-ds-raised rounded-lg animate-pulse" />
                         ) : (
-                            <p className="text-2xl font-black text-green-700 dark:text-green-300">
+                            <p className="text-2xl font-black text-ds-ok">
                                 {stats ? formatCurrency(stats.totalAmount) : '—'}
                             </p>
                         )}
-                        <p className="text-xs text-[#94a3b8]">{PERIOD_LABELS[period]}</p>
+                        <p className="text-xs text-ds-soft">{PERIOD_LABELS[period]}</p>
                     </div>
 
                     {/* Donaciones */}
                     <div className={`${cardBase} flex flex-col gap-2`}>
                         <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Donaciones</p>
-                            <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <p className="text-xs font-semibold text-ds-accent-text uppercase tracking-wide">Donaciones</p>
+                            <div className="w-8 h-8 rounded-lg bg-ds-accent/10 flex items-center justify-center">
+                                <Users className="w-4 h-4 text-ds-accent-text" />
                             </div>
                         </div>
                         {loadingStats ? (
-                            <div className="h-8 bg-[#e2e8f0] dark:bg-[#262626] rounded-lg animate-pulse" />
+                            <div className="h-8 bg-ds-raised rounded-lg animate-pulse" />
                         ) : (
-                            <p className="text-2xl font-black text-blue-700 dark:text-blue-300">
+                            <p className="text-2xl font-black text-ds-accent-text">
                                 {stats?.totalCount ?? '—'}
                             </p>
                         )}
-                        <p className="text-xs text-[#94a3b8]">donantes únicos</p>
+                        <p className="text-xs text-ds-soft">donantes únicos</p>
                     </div>
 
                     {/* Promedio */}
                     <div className={`${cardBase} flex flex-col gap-2`}>
                         <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide">Promedio</p>
-                            <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                            <p className="text-xs font-semibold text-ds-accent-text uppercase tracking-wide">Promedio</p>
+                            <div className="w-8 h-8 rounded-lg bg-ds-accent/10 flex items-center justify-center">
+                                <TrendingUp className="w-4 h-4 text-ds-accent-text" />
                             </div>
                         </div>
                         {loadingStats ? (
-                            <div className="h-8 bg-[#e2e8f0] dark:bg-[#262626] rounded-lg animate-pulse" />
+                            <div className="h-8 bg-ds-raised rounded-lg animate-pulse" />
                         ) : (
-                            <p className="text-2xl font-black text-purple-700 dark:text-purple-300">
+                            <p className="text-2xl font-black text-ds-accent-text">
                                 {stats ? formatCurrency(stats.averageAmount) : '—'}
                             </p>
                         )}
-                        <p className="text-xs text-[#94a3b8]">por donación</p>
+                        <p className="text-xs text-ds-soft">por donación</p>
                     </div>
 
                     {/* Tiempo añadido */}
                     <div className={`${cardBase} flex flex-col gap-2`}>
                         <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Tiempo</p>
-                            <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                                <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                            <p className="text-xs font-semibold text-ds-warn uppercase tracking-wide">Tiempo</p>
+                            <div className="w-8 h-8 rounded-lg bg-ds-warn/10 flex items-center justify-center">
+                                <Clock className="w-4 h-4 text-ds-accent-text" />
                             </div>
                         </div>
                         {loadingStats ? (
-                            <div className="h-8 bg-[#e2e8f0] dark:bg-[#262626] rounded-lg animate-pulse" />
+                            <div className="h-8 bg-ds-raised rounded-lg animate-pulse" />
                         ) : (
-                            <p className="text-2xl font-black text-orange-700 dark:text-orange-300">
+                            <p className="text-2xl font-black text-ds-warn">
                                 {stats?.formattedTimeAdded ?? '—'}
                             </p>
                         )}
-                        <p className="text-xs text-[#94a3b8]">añadido al timer</p>
+                        <p className="text-xs text-ds-soft">añadido al timer</p>
                     </div>
                 </div>
 
@@ -255,13 +255,13 @@ export default function Donations() {
                     {/* Top donante */}
                     {stats?.topDonor && (
                         <div className={`${cardBase} flex items-center gap-4`}>
-                            <div className="w-12 h-12 rounded-2xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
-                                <Award className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                            <div className="w-12 h-12 rounded-lg bg-ds-warn/10 flex items-center justify-center shrink-0">
+                                <Award className="w-6 h-6 text-ds-accent-text" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-semibold text-yellow-600 dark:text-yellow-400 uppercase tracking-wide">Top Donante</p>
-                                <p className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] truncate">{stats.topDonor}</p>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{formatCurrency(stats.topDonorTotal)} en total</p>
+                                <p className="text-xs font-semibold text-ds-warn uppercase tracking-wide">Top Donante</p>
+                                <p className="text-lg font-black text-ds-text truncate">{stats.topDonor}</p>
+                                <p className="text-sm text-ds-soft">{formatCurrency(stats.topDonorTotal)} en total</p>
                             </div>
                         </div>
                     )}
@@ -269,13 +269,13 @@ export default function Donations() {
                     {/* Mayor donación */}
                     {stats && stats.largestTip > 0 && (
                         <div className={`${cardBase} flex items-center gap-4`}>
-                            <div className="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center shrink-0">
-                                <Star className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                            <div className="w-12 h-12 rounded-lg bg-ds-accent/10 flex items-center justify-center shrink-0">
+                                <Star className="w-6 h-6 text-ds-accent-text" />
                             </div>
                             <div>
-                                <p className="text-xs font-semibold text-pink-600 dark:text-pink-400 uppercase tracking-wide">Mayor Donación</p>
-                                <p className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{formatCurrency(stats.largestTip)}</p>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{PERIOD_LABELS[period]}</p>
+                                <p className="text-xs font-semibold text-ds-accent-text uppercase tracking-wide">Mayor Donación</p>
+                                <p className="text-lg font-black text-ds-text">{formatCurrency(stats.largestTip)}</p>
+                                <p className="text-sm text-ds-soft">{PERIOD_LABELS[period]}</p>
                             </div>
                         </div>
                     )}
@@ -284,11 +284,11 @@ export default function Donations() {
                 {/* Donation History */}
                 <div className={cardBase}>
                     <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-purple-500" />
+                        <h2 className="text-lg font-bold text-ds-text flex items-center gap-2">
+                            <Calendar className="w-5 h-5 text-ds-accent-text" />
                             Historial de donaciones
                         </h2>
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-ds-soft">
                             {donations.length} registros
                         </span>
                     </div>
@@ -296,14 +296,14 @@ export default function Donations() {
                     {loadingDonations ? (
                         <div className="space-y-3">
                             {[...Array(5)].map((_, i) => (
-                                <div key={i} className="h-16 bg-[#e2e8f0] dark:bg-[#262626] rounded-xl animate-pulse" />
+                                <div key={i} className="h-16 bg-ds-raised rounded-lg animate-pulse" />
                             ))}
                         </div>
                     ) : donations.length === 0 ? (
                         <div className="text-center py-16">
-                            <Heart className="w-12 h-12 text-[#e2e8f0] dark:text-[#374151] mx-auto mb-3" />
-                            <p className="text-[#94a3b8] font-medium">Aún no hay donaciones registradas</p>
-                            <p className="text-sm text-[#94a3b8] mt-1">
+                            <Heart className="w-12 h-12 text-ds-text mx-auto mb-3" />
+                            <p className="text-ds-soft font-medium">Aún no hay donaciones registradas</p>
+                            <p className="text-sm text-ds-soft mt-1">
                                 Comparte tu link de donación para empezar a recibir tips
                             </p>
                         </div>
@@ -313,25 +313,25 @@ export default function Donations() {
                                 {donations.map((d) => (
                                     <div
                                         key={d.id}
-                                        className="flex items-center gap-4 p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl hover:bg-[#f1f5f9] dark:hover:bg-[#374151] transition-colors group"
+                                        className="flex items-center gap-4 p-4 bg-ds-bg rounded-lg hover:bg-ds-raised transition-colors group"
                                     >
                                         {/* Avatar placeholder */}
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-ds-accent flex items-center justify-center text-ds-on-accent font-bold text-sm shrink-0">
                                             {d.donorName.charAt(0).toUpperCase()}
                                         </div>
 
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{d.donorName}</span>
+                                                <span className="font-bold text-ds-text">{d.donorName}</span>
                                                 {d.timeAdded > 0 && (
-                                                    <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full font-semibold">
+                                                    <span className="text-xs bg-ds-accent/10 text-ds-accent-text px-2 py-0.5 rounded-full font-semibold">
                                                         +{formatTime(d.timeAdded)}
                                                     </span>
                                                 )}
                                             </div>
                                             {d.message && (
-                                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] truncate mt-0.5">
+                                                <p className="text-sm text-ds-soft truncate mt-0.5">
                                                     "{d.message}"
                                                 </p>
                                             )}
@@ -339,10 +339,10 @@ export default function Donations() {
 
                                         {/* Amount + Date */}
                                         <div className="text-right shrink-0">
-                                            <p className="text-lg font-black text-green-600 dark:text-green-400">
+                                            <p className="text-lg font-black text-ds-ok">
                                                 {formatCurrency(d.amount, d.currency)}
                                             </p>
-                                            <p className="text-xs text-[#94a3b8]">{timeAgo(d.donatedAt)}</p>
+                                            <p className="text-xs text-ds-soft">{timeAgo(d.donatedAt)}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -352,7 +352,7 @@ export default function Donations() {
                             {donations.length >= limit && (
                                 <button
                                     onClick={() => setLimit(l => l + 50)}
-                                    className="mt-4 w-full py-3 flex items-center justify-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors"
+                                    className="mt-4 w-full py-3 flex items-center justify-center gap-2 text-sm font-semibold text-ds-accent-text hover:bg-ds-accent/10 rounded-lg transition-colors"
                                 >
                                     Cargar más
                                     <ChevronRight className="w-4 h-4" />
@@ -365,14 +365,14 @@ export default function Donations() {
                 {/* Quick link to config */}
                 <div className={`${cardBase} flex items-center justify-between`}>
                     <div>
-                        <p className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">Configurar donaciones</p>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="font-semibold text-ds-text">Configurar donaciones</p>
+                        <p className="text-sm text-ds-soft">
                             Ajusta tu página de donación, alertas y timer
                         </p>
                     </div>
                     <button
                         onClick={() => navigate('/features/tips')}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-semibold rounded-lg transition-colors"
                     >
                         Configurar
                         <ChevronRight className="w-4 h-4" />

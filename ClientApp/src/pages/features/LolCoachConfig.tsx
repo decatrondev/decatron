@@ -71,14 +71,14 @@ export default function LolCoachConfig() {
         finally { setSaving(false); }
     };
 
-    if (permissionsLoading || loading) return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('loading')}</div>;
+    if (permissionsLoading || loading) return <div className="text-center py-8 text-ds-soft">{t('loading')}</div>;
     if (!hasMinimumLevel('moderation')) { navigate('/dashboard'); return null; }
     if (!settings) return null;
 
-    const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]';
-    const label = 'text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]';
-    const muted = 'text-sm text-[#64748b] dark:text-[#94a3b8]';
-    const input = 'w-full px-3 py-2 rounded-lg bg-white dark:bg-[#222324] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] text-sm';
+    const card = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+    const label = 'text-sm font-semibold text-ds-text ';
+    const muted = 'text-sm text-ds-soft ';
+    const input = 'w-full px-3 py-2 rounded-lg bg-ds-surface border border-ds-border text-ds-text text-sm';
     const phase = state?.phase;
     const cs = phase?.champSelect;
 
@@ -86,20 +86,20 @@ export default function LolCoachConfig() {
         <div className="max-w-[1200px] mx-auto space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/features')} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222324]"><ArrowLeft className="w-5 h-5 text-[#64748b]" /></button>
+                    <button onClick={() => navigate('/features')} className="p-2 rounded-lg hover:bg-ds-bg"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
                     <div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-3"><Gamepad2 className="w-8 h-8 text-[#c8aa6e]" /> {t('title')}</h1>
+                        <h1 className="text-3xl font-black text-ds-text flex items-center gap-3"><Gamepad2 className="w-8 h-8 text-[#c8aa6e]" /> {t('title')}</h1>
                         <p className={muted}>{t('subtitle')}</p>
                     </div>
                 </div>
                 {canEdit && (
-                    <button onClick={save} disabled={saving} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-[#7c3aed] text-white text-sm inline-flex items-center gap-2 disabled:opacity-50">
+                    <button onClick={save} disabled={saving} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover text-ds-text text-sm inline-flex items-center gap-2 disabled:opacity-50">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('save')}
                     </button>
                 )}
             </div>
 
-            {message && <div className={`p-3 rounded-lg text-sm ${message.error ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300' : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'}`}>{message.text}</div>}
+            {message && <div className={`p-3 rounded-lg text-sm ${message.error ? 'bg-ds-danger/10 text-ds-danger ' : 'bg-ds-ok/10 text-ds-ok '}`}>{message.text}</div>}
 
             <MovedToLiveNotice />
 
@@ -110,7 +110,7 @@ export default function LolCoachConfig() {
                     <Req ok={!!state?.desktopConnected} label={t('req.desktop')} hint={<a href={download.url} className="underline inline-flex items-center gap-1"><Download className="w-3 h-3" /> {download.label}</a>} />
                     <Req ok={!!state?.clientConnected} label={`${t('req.client')}${state?.summoner ? ` (${state.summoner})` : ''}`} hint={t('req.clientHint')} />
                 </div>
-                {meta && !meta.aiAvailable && <p className="mt-3 text-sm text-red-600">{t('aiUnavailable')}</p>}
+                {meta && !meta.aiAvailable && <p className="mt-3 text-sm text-ds-danger">{t('aiUnavailable')}</p>}
             </div>
 
             <div className="grid lg:grid-cols-2 gap-6">
@@ -129,9 +129,9 @@ export default function LolCoachConfig() {
                         <div className={label}>{t('tone')}</div>
                         <div className="grid grid-cols-3 gap-2 mt-1">
                             {TONES.map(tone => (
-                                <button key={tone} disabled={!canEdit} onClick={() => update({ tone })} className={`p-3 rounded-lg border text-left ${settings.tone === tone ? 'border-[#9146FF] bg-[#9146FF]/10' : 'border-[#e2e8f0] dark:border-[#374151]'}`}>
-                                    <div className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">{t(`tones.${tone}.label`)}</div>
-                                    <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">{t(`tones.${tone}.desc`)}</div>
+                                <button key={tone} disabled={!canEdit} onClick={() => update({ tone })} className={`p-3 rounded-lg border text-left ${settings.tone === tone ? 'border-[#9146FF] bg-[#9146FF]/10' : 'border-ds-border '}`}>
+                                    <div className="text-sm font-semibold text-ds-text">{t(`tones.${tone}.label`)}</div>
+                                    <div className="text-xs text-ds-soft">{t(`tones.${tone}.desc`)}</div>
                                 </button>
                             ))}
                         </div>
@@ -140,7 +140,7 @@ export default function LolCoachConfig() {
                     <Check checked={settings.lobbyComments} onChange={v => update({ lobbyComments: v })} disabled={!canEdit} label={t('lobby')} hint={t('lobbyHint')} />
                     <Check checked={settings.tiltCheck} onChange={v => update({ tiltCheck: v })} disabled={!canEdit} label={t('tilt')} hint={t('tiltHint')} />
                     <div>
-                        <div className={label}>{t('dailyGoal')} <span className="font-normal text-[#94a3b8]">({t('optional')})</span></div>
+                        <div className={label}>{t('dailyGoal')} <span className="font-normal text-ds-soft">({t('optional')})</span></div>
                         <div className={muted}>{t('dailyGoalHint')}</div>
                         <input className={`${input} mt-1`} value={settings.dailyGoal} maxLength={200} placeholder={t('dailyGoalPlaceholder')} onChange={e => update({ dailyGoal: e.target.value })} disabled={!canEdit} />
                     </div>
@@ -148,26 +148,26 @@ export default function LolCoachConfig() {
                     <Check checked={settings.postGameSummary} onChange={v => update({ postGameSummary: v })} disabled={!canEdit} label={t('postGame')} hint={t('postGameHint')} />
                     <Check checked={settings.showOnOverlay} onChange={v => update({ showOnOverlay: v })} disabled={!canEdit} label={t('showOnOverlay')} hint={t('showOnOverlayHint')} />
                     <div>
-                        <div className={label}>{t('champPool')} <span className="font-normal text-[#94a3b8]">({t('optional')})</span></div>
+                        <div className={label}>{t('champPool')} <span className="font-normal text-ds-soft">({t('optional')})</span></div>
                         <div className={muted}>{t('champPoolHint')}</div>
                         <input className={`${input} mt-1`} value={settings.champPool} maxLength={400} placeholder="Caitlyn, Jhin, Varus" onChange={e => update({ champPool: e.target.value })} disabled={!canEdit} />
                     </div>
                     <div>
-                        <div className={label}>{t('notes')} <span className="font-normal text-[#94a3b8]">({t('optional')})</span></div>
+                        <div className={label}>{t('notes')} <span className="font-normal text-ds-soft">({t('optional')})</span></div>
                         <div className={muted}>{t('notesHint')}</div>
                         <textarea className={`${input} mt-1`} rows={3} value={settings.notes} maxLength={600} onChange={e => update({ notes: e.target.value })} disabled={!canEdit} />
                     </div>
-                    <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                    <div className="pt-4 border-t border-ds-border space-y-3">
                         <Check checked={settings.predictionsEnabled} onChange={v => update({ predictionsEnabled: v })} disabled={!canEdit} label={t('predictions')} hint={t('predictionsHint')} />
                         {settings.predictionsEnabled && (
                             <div className="grid grid-cols-2 gap-3">
                                 <div><div className={label}>{t('predStartPoints')}</div><input type="number" className={`${input} mt-1`} min={100} max={100000} value={settings.predictionStartPoints} onChange={e => update({ predictionStartPoints: Number(e.target.value) })} disabled={!canEdit} /></div>
                                 <div><div className={label}>{t('predCloseMinutes')}</div><input type="number" className={`${input} mt-1`} min={1} max={20} value={settings.predictionCloseMinutes} onChange={e => update({ predictionCloseMinutes: Number(e.target.value) })} disabled={!canEdit} /></div>
-                                <p className="col-span-2 text-xs text-[#94a3b8]">{t('predCommands')}: <code>!pred win 200</code>, <code>!pred loss</code> ({t('predDefault')}), <code>!pred</code> ({t('predBalance')}), <code>!predtop</code>. {t('predMin')}</p>
+                                <p className="col-span-2 text-xs text-ds-soft">{t('predCommands')}: <code>!pred win 200</code>, <code>!pred loss</code> ({t('predDefault')}), <code>!pred</code> ({t('predBalance')}), <code>!predtop</code>. {t('predMin')}</p>
                             </div>
                         )}
                     </div>
-                    <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                    <div className="pt-4 border-t border-ds-border space-y-3">
                         <div>
                             <div className={label}>{t('chat')}</div>
                             <div className={muted}>{t('chatHint')}</div>
@@ -178,7 +178,7 @@ export default function LolCoachConfig() {
                             </div>
                         </div>
                     </div>
-                    <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                    <div className="pt-4 border-t border-ds-border space-y-3">
                         <Check checked={settings.voiceEnabled} onChange={v => update({ voiceEnabled: v })} disabled={!canEdit || !meta?.voiceAvailable} label={t('voice')} hint={t('voiceHint')} />
                         {settings.voiceEnabled && (
                             <>
@@ -210,31 +210,31 @@ export default function LolCoachConfig() {
                             </>
                         )}
                     </div>
-                    <p className="text-xs text-[#94a3b8]">{t('chatCommands')}: <code>!matchup</code>, <code>!build</code> (<code>!runas</code>), <code>!vs &lt;{t('champion')}&gt;</code>, <code>!duo</code>, <code>!pool</code>, <code>!meta</code>, <code>!coach</code> {t('forEveryone')} ({t('coachCooldown')}); {t('setGoal')} <code>!meta &lt;{t('text')}&gt;</code> {t('forMods')}. {t('enableIn')}</p>
+                    <p className="text-xs text-ds-soft">{t('chatCommands')}: <code>!matchup</code>, <code>!build</code> (<code>!runas</code>), <code>!vs &lt;{t('champion')}&gt;</code>, <code>!duo</code>, <code>!pool</code>, <code>!meta</code>, <code>!coach</code> {t('forEveryone')} ({t('coachCooldown')}); {t('setGoal')} <code>!meta &lt;{t('text')}&gt;</code> {t('forMods')}. {t('enableIn')}</p>
                 </div>
 
                 {/* En vivo */}
                 <div className="space-y-6">
                     <div className={card}>
-                        <div className="flex items-center gap-2 mb-3"><Monitor className="w-4 h-4 text-[#94a3b8]" /><span className={label}>{t('live.title')}</span></div>
+                        <div className="flex items-center gap-2 mb-3"><Monitor className="w-4 h-4 text-ds-soft" /><span className={label}>{t('live.title')}</span></div>
                         {state && (
-                            <p className={`text-xs mb-3 ${state.hasCredits ? 'text-[#94a3b8]' : 'text-amber-500'}`}>
+                            <p className={`text-xs mb-3 ${state.hasCredits ? 'text-ds-soft' : 'text-ds-warn'}`}>
                                 {t('live.callsToday')}: {state.callsToday}
                                 {!state.hasCredits && <> · {t('live.noCredits')} <Link to="/credits" className="underline">{t('live.buyCredits')}</Link></>}
                             </p>
                         )}
                         {!state?.clientConnected ? <p className={muted}>{t('live.noClient')}</p> : (
                             <div className="space-y-2 text-sm">
-                                <div className="text-[#1e293b] dark:text-[#f8fafc] font-semibold">{t(`phases.${phase?.phase ?? 'none'}`)}{phase?.queueName ? ` · ${phase.queueName}` : ''}</div>
+                                <div className="text-ds-text font-semibold">{t(`phases.${phase?.phase ?? 'none'}`)}{phase?.queueName ? ` · ${phase.queueName}` : ''}</div>
                                 {phase?.lobby?.length ? (
                                     <div className={muted}>
                                         <div>{t('live.lobby')}:</div>
                                         <ul className="ml-4 list-disc">
                                             {phase.lobby.map((m, i) => (
                                                 <li key={i}>
-                                                    <span className="text-[#1e293b] dark:text-[#f8fafc]">{m.name}</span>{m.isMe ? ` (${t('live.you')})` : ''}
+                                                    <span className="text-ds-text">{m.name}</span>{m.isMe ? ` (${t('live.you')})` : ''}
                                                     {m.scout && <> · {m.scout.tier ? `${m.scout.tier.charAt(0)}${m.scout.tier.slice(1).toLowerCase()} ${m.scout.division ?? ''} ${m.scout.lp ?? 0} LP` : t('live.unranked')}
-                                                        {m.scout.games > 0 && <> · {t('live.last20')}: {m.scout.winRate}% {m.scout.streak !== 0 && <span className={m.scout.streak > 0 ? 'text-green-500' : 'text-red-500'}>({m.scout.streak > 0 ? '+' : ''}{m.scout.streak})</span>}</>}
+                                                        {m.scout.games > 0 && <> · {t('live.last20')}: {m.scout.winRate}% {m.scout.streak !== 0 && <span className={m.scout.streak > 0 ? 'text-ds-ok' : 'text-ds-danger'}>({m.scout.streak > 0 ? '+' : ''}{m.scout.streak})</span>}</>}
                                                         {m.scout.topChampions.length > 0 && <> · {m.scout.topChampions.join(', ')}</>}</>}
                                                 </li>
                                             ))}
@@ -255,17 +255,17 @@ export default function LolCoachConfig() {
                         )}
                     </div>
                     <div className={card}>
-                        <div className="flex items-center gap-2 mb-3"><MessageSquareText className="w-4 h-4 text-[#94a3b8]" /><span className={label}>{t('history.title')}</span></div>
+                        <div className="flex items-center gap-2 mb-3"><MessageSquareText className="w-4 h-4 text-ds-soft" /><span className={label}>{t('history.title')}</span></div>
                         {!state?.history?.length ? <p className={muted}>{t('history.empty')}</p> : (
                             <div className="space-y-3">
                                 {state.history.map((m, i) => (
-                                    <div key={i} className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#222324] text-sm">
-                                        <div className="flex justify-between text-xs text-[#94a3b8]"><span>{t(`kinds.${m.kind}`, { defaultValue: m.kind })} · {m.coachName}</span><span>{new Date(m.at).toLocaleTimeString()}</span></div>
-                                        <div className="text-[#1e293b] dark:text-[#f8fafc] mt-1">{m.comment}</div>
+                                    <div key={i} className="p-3 rounded-lg bg-ds-bg text-sm">
+                                        <div className="flex justify-between text-xs text-ds-soft"><span>{t(`kinds.${m.kind}`, { defaultValue: m.kind })} · {m.coachName}</span><span>{new Date(m.at).toLocaleTimeString()}</span></div>
+                                        <div className="text-ds-text mt-1">{m.comment}</div>
                                         {m.suggestion && <div className="mt-1"><b>{t('history.suggestion')}:</b> {m.suggestion}</div>}
                                         {m.matchup && <div className="mt-1"><b>{t('history.matchup')}:</b> {m.matchup}</div>}
-                                        {(m.runes || m.spells || m.build) && <div className="mt-1 text-[#64748b] dark:text-[#94a3b8]">{[m.runes, m.spells, m.build].filter(Boolean).join(' · ')}</div>}
-                                        {m.tips?.length > 0 && <ul className="mt-1 list-disc ml-5 text-[#64748b] dark:text-[#94a3b8]">{m.tips.map((tip, j) => <li key={j}>{tip}</li>)}</ul>}
+                                        {(m.runes || m.spells || m.build) && <div className="mt-1 text-ds-soft">{[m.runes, m.spells, m.build].filter(Boolean).join(' · ')}</div>}
+                                        {m.tips?.length > 0 && <ul className="mt-1 list-disc ml-5 text-ds-soft">{m.tips.map((tip, j) => <li key={j}>{tip}</li>)}</ul>}
                                     </div>
                                 ))}
                             </div>
@@ -280,8 +280,8 @@ export default function LolCoachConfig() {
 function Req({ ok, label, hint }: { ok: boolean; label: string; hint: ReactNode }) {
     return (
         <div className="flex items-start gap-2">
-            <span className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${ok ? 'bg-green-500' : 'bg-red-500'}`} />
-            <div><div className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">{label}</div>{!ok && <div className="text-[#64748b] dark:text-[#94a3b8]">{hint}</div>}</div>
+            <span className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${ok ? 'bg-ds-accent' : 'bg-ds-danger-solid'}`} />
+            <div><div className="font-semibold text-ds-text">{label}</div>{!ok && <div className="text-ds-soft">{hint}</div>}</div>
         </div>
     );
 }
@@ -290,7 +290,7 @@ function Check({ checked, onChange, disabled, label, hint }: { checked: boolean;
     return (
         <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" className="w-4 h-4 mt-1" checked={checked} onChange={e => onChange(e.target.checked)} disabled={disabled} />
-            <div><div className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">{label}</div>{hint && <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">{hint}</div>}</div>
+            <div><div className="text-sm font-semibold text-ds-text">{label}</div>{hint && <div className="text-xs text-ds-soft">{hint}</div>}</div>
         </label>
     );
 }
@@ -298,7 +298,7 @@ function Check({ checked, onChange, disabled, label, hint }: { checked: boolean;
 function Team({ label, picks }: { label: string; picks: { cellId: number; champion?: { name: string; icon?: string | null } | null; isMe: boolean; locked: boolean; position?: string | null }[] }) {
     return (
         <div className="flex items-center gap-2">
-            <span className="text-xs text-[#94a3b8] w-16">{label}</span>
+            <span className="text-xs text-ds-soft w-16">{label}</span>
             {picks.map(p => (
                 <div key={p.cellId} title={`${p.champion?.name ?? '—'}${p.position ? ` · ${p.position}` : ''}`} className={`w-8 h-8 rounded overflow-hidden bg-[#1c1f26] border-2 ${p.isMe ? 'border-[#c8aa6e]' : 'border-transparent'} ${p.champion && !p.locked ? 'opacity-50' : ''}`}>
                     {p.champion?.icon && <img src={p.champion.icon} alt="" className="w-full h-full object-cover" />}

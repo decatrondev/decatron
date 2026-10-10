@@ -133,26 +133,26 @@ export const SoundsTab: React.FC = () => {
         setMediaSelectorKey(null);
     };
 
-    if (loading) return <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando...</p>;
+    if (loading) return <p className="text-center text-ds-soft py-8">Cargando...</p>;
 
     const generalKeys = SOUND_EVENT_KEYS.filter(k => SOUND_EVENT_META[k].group === 'general');
     const revealKeys = SOUND_EVENT_KEYS.filter(k => SOUND_EVENT_META[k].group === 'reveal');
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-6">
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-3 pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
-                <div className="p-3 bg-gradient-to-r from-violet-500 to-fuchsia-600 rounded-xl">
-                    <Volume2 className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
+                <div className="p-3 bg-gradient-to-r from-ds-accent to-fuchsia-600 rounded-lg">
+                    <Volume2 className="w-6 h-6 text-ds-text" />
                 </div>
                 <div className="flex-1">
-                    <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Sonidos</h2>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Configura los efectos de sonido del overlay por fase y rareza</p>
+                    <h2 className="text-2xl font-black text-ds-text">Sonidos</h2>
+                    <p className="text-sm text-ds-soft">Configura los efectos de sonido del overlay por fase y rareza</p>
                 </div>
                 <button
                     onClick={() => setEnableSounds(!enableSounds)}
                     className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                        enableSounds ? 'bg-violet-500 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                        enableSounds ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '
                     }`}
                 >
                     {enableSounds ? 'Activado' : 'Desactivado'}
@@ -160,56 +160,56 @@ export const SoundsTab: React.FC = () => {
             </div>
 
             {/* Help Banner */}
-            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+            <div className="rounded-lg border border-ds-border bg-ds-bg overflow-hidden">
                 <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
-                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan los sonidos</span>
-                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                    <HelpCircle className="w-5 h-5 text-ds-soft flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-ds-soft">Como funcionan los sonidos</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
                 </button>
                 {showHelp && (
-                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="px-4 pb-4 space-y-3 text-sm text-ds-soft">
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
-                            <span>El overlay puede reproducir <strong className="text-[#1e293b] dark:text-[#f8fafc]">sonidos</strong> en cada fase de la animacion</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>El overlay puede reproducir <strong className="text-ds-text">sonidos</strong> en cada fase de la animacion</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
-                            <span>Hay <strong className="text-[#1e293b] dark:text-[#f8fafc]">9 eventos</strong>: redoble, flash, 5 reveals por rareza, celebracion y ambiente</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span>Hay <strong className="text-ds-text">9 eventos</strong>: redoble, flash, 5 reveals por rareza, celebracion y ambiente</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
-                            <span>Cada evento tiene su propio <strong className="text-[#1e293b] dark:text-[#f8fafc]">volumen</strong> y puede usar el sonido <strong className="text-[#1e293b] dark:text-[#f8fafc]">default</strong> o uno <strong className="text-[#1e293b] dark:text-[#f8fafc]">custom</strong></span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span>Cada evento tiene su propio <strong className="text-ds-text">volumen</strong> y puede usar el sonido <strong className="text-ds-text">default</strong> o uno <strong className="text-ds-text">custom</strong></span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
                             <span>Sube tus propios archivos MP3 con el selector de medios</span>
                         </div>
-                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
-                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Los sonidos estan desactivados por defecto. Activalos con el boton de arriba y ajusta el volumen master.
+                        <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
+                            <strong className="text-ds-text">Tip:</strong> Los sonidos estan desactivados por defecto. Activalos con el boton de arriba y ajusta el volumen master.
                         </div>
                     </div>
                 )}
             </div>
 
             {/* Master Volume */}
-            <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        {masterVolume === 0 ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5 text-violet-500" />}
-                        <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Volumen Master</span>
+                        {masterVolume === 0 ? <VolumeX className="w-5 h-5 text-ds-accent-text" /> : <Volume2 className="w-5 h-5 text-ds-accent-text" />}
+                        <span className="font-bold text-ds-text">Volumen Master</span>
                     </div>
-                    <span className="text-sm font-mono font-bold text-violet-500">{masterVolume}%</span>
+                    <span className="text-sm font-mono font-bold text-ds-accent-text">{masterVolume}%</span>
                 </div>
                 <input
                     type="range" min={0} max={100} value={masterVolume}
                     onChange={e => setMasterVolume(parseInt(e.target.value))}
-                    className="w-full accent-violet-500"
+                    className="w-full accent-ds-accent"
                 />
             </div>
 
             {/* General Sounds */}
             <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">Sonidos Generales</h3>
+                <h3 className="text-sm font-bold text-ds-soft uppercase tracking-wider">Sonidos Generales</h3>
                 {generalKeys.map(key => (
                     <SoundEventRow
                         key={key}
@@ -228,7 +228,7 @@ export const SoundsTab: React.FC = () => {
 
             {/* Reveal per Rarity */}
             <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">Sonido de Reveal por Rareza</h3>
+                <h3 className="text-sm font-bold text-ds-soft uppercase tracking-wider">Sonido de Reveal por Rareza</h3>
                 {revealKeys.map(key => {
                     const rarity = RARITY_FOR_REVEAL[key];
                     const rarityColor = rarity ? RARITY_CONFIG[rarity]?.color : undefined;
@@ -253,7 +253,7 @@ export const SoundsTab: React.FC = () => {
             {/* Save */}
             <button
                 onClick={handleSave} disabled={saving}
-                className="w-full px-4 py-3 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-400 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition-all flex items-center justify-center gap-2"
             >
                 <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Configuracion'}
             </button>
@@ -294,22 +294,22 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
 
     return (
         <div
-            className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] space-y-3 transition-all"
+            className="p-4 bg-ds-bg rounded-lg border border-ds-border space-y-3 transition-all"
             style={{ borderLeftWidth: 4, borderLeftColor: borderColor }}
         >
             {/* Top row: icon + label + toggle */}
             <div className="flex items-center gap-3">
                 <div style={{ color: accentColor || '#8b5cf6' }}>{icon}</div>
                 <div className="flex-1 min-w-0">
-                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{meta.label}</p>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{meta.description}</p>
+                    <p className="font-bold text-ds-text truncate">{meta.label}</p>
+                    <p className="text-xs text-ds-soft">{meta.description}</p>
                 </div>
                 <button
                     onClick={() => onUpdate({ enabled: !config.enabled })}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         config.enabled
-                            ? 'bg-violet-500 text-white'
-                            : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                            ? 'bg-ds-accent text-ds-on-accent'
+                            : 'bg-ds-raised text-ds-soft '
                     }`}
                 >
                     {config.enabled ? 'ON' : 'OFF'}
@@ -320,25 +320,25 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                 <>
                     {/* Volume slider */}
                     <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] w-14">Vol</span>
+                        <span className="text-xs font-bold text-ds-soft w-14">Vol</span>
                         <input
                             type="range" min={0} max={100} value={config.volume}
                             onChange={e => onUpdate({ volume: parseInt(e.target.value) })}
-                            className="flex-1 accent-violet-500"
+                            className="flex-1 accent-ds-accent"
                         />
-                        <span className="text-xs font-mono font-bold text-[#64748b] dark:text-[#94a3b8] w-10 text-right">{config.volume}%</span>
+                        <span className="text-xs font-mono font-bold text-ds-soft w-10 text-right">{config.volume}%</span>
                     </div>
 
                     {/* Source + actions */}
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* Default / Custom toggle */}
-                        <div className="flex rounded-lg overflow-hidden border border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="flex rounded-lg overflow-hidden border border-ds-border">
                             <button
                                 onClick={() => onUpdate({ useDefault: true })}
                                 className={`px-3 py-1.5 text-xs font-bold transition-all ${
                                     config.useDefault
-                                        ? 'bg-violet-500 text-white'
-                                        : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8]'
+                                        ? 'bg-ds-accent text-ds-on-accent'
+                                        : 'bg-ds-surface text-ds-soft '
                                 }`}
                             >
                                 Default
@@ -353,8 +353,8 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                                 }}
                                 className={`px-3 py-1.5 text-xs font-bold transition-all ${
                                     !config.useDefault
-                                        ? 'bg-violet-500 text-white'
-                                        : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8]'
+                                        ? 'bg-ds-accent text-ds-on-accent'
+                                        : 'bg-ds-surface text-ds-soft '
                                 }`}
                             >
                                 Custom
@@ -365,7 +365,7 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                         {!config.useDefault && (
                             <button
                                 onClick={onSelectCustom}
-                                className="px-3 py-1.5 text-xs font-bold bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg hover:border-violet-400 dark:hover:border-violet-600 transition-all truncate max-w-[200px]"
+                                className="px-3 py-1.5 text-xs font-bold bg-ds-surface border border-ds-border rounded-lg hover:border-ds-accent transition-all truncate max-w-[200px]"
                             >
                                 {config.url ? decodeURIComponent(config.url.split('/').pop() || 'Seleccionar') : 'Seleccionar archivo'}
                             </button>
@@ -378,8 +378,8 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                             onClick={onPreview}
                             className={`p-2 rounded-lg transition-all ${
                                 isPlaying
-                                    ? 'bg-red-500 text-white'
-                                    : 'bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-violet-400 dark:hover:border-violet-600'
+                                    ? 'bg-ds-danger-solid text-ds-on-accent'
+                                    : 'bg-ds-surface border border-ds-border text-ds-soft hover:border-ds-accent '
                             }`}
                             title={isPlaying ? 'Detener' : 'Preview'}
                         >
@@ -389,7 +389,7 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                         {/* Reset */}
                         <button
                             onClick={onReset}
-                            className="p-2 rounded-lg bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-orange-400 dark:hover:border-orange-600 transition-all"
+                            className="p-2 rounded-lg bg-ds-surface border border-ds-border text-ds-soft hover:border-ds-warn/40 transition-all"
                             title="Resetear a default"
                         >
                             <RotateCcw className="w-4 h-4" />

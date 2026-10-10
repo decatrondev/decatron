@@ -62,16 +62,16 @@ export const StatePanel: React.FC<StatePanelProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg overflow-hidden sticky top-6">
+        <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden sticky top-6">
             {/* Header */}
-            <div className="p-6 bg-slate-800 dark:bg-slate-900 border-b border-slate-700">
+            <div className="p-6 bg-ds-raised border-b border-ds-border">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-slate-700/50 backdrop-blur rounded-lg">
-                        <Sparkles className="w-6 h-6 text-slate-200" />
+                    <div className="p-2 bg-ds-raised/50 backdrop-blur rounded-lg">
+                        <Sparkles className="w-6 h-6 text-ds-text" />
                     </div>
-                    <h3 className="text-xl font-black text-white">Control de Giveaway</h3>
+                    <h3 className="text-xl font-black text-ds-text">Control de Giveaway</h3>
                 </div>
-                <p className="text-slate-300 text-sm">
+                <p className="text-ds-soft text-sm">
                     {isActive ? 'Giveaway en curso' : 'Listo para iniciar'}
                 </p>
             </div>
@@ -80,14 +80,14 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                 {/* Status */}
                 {!isActive ? (
                     <div className="text-center py-8">
-                        <Trophy className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                        <p className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                        <Trophy className="w-16 h-16 text-ds-soft mx-auto mb-4" />
+                        <p className="text-lg font-bold text-ds-text mb-2">
                             {currentConfig.name}
                         </p>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-1">
+                        <p className="text-sm text-ds-soft mb-1">
                             Premio: {currentConfig.prizeName}
                         </p>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-xs text-ds-soft">
                             {currentConfig.durationType === 'timed'
                                 ? `Duración: ${currentConfig.durationMinutes} min`
                                 : 'Duración: Manual'}
@@ -97,33 +97,33 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                     <div className="space-y-4">
                         {/* Active Stats */}
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="p-3 bg-ds-bg rounded-lg border border-ds-border">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Users className="w-4 h-4 text-blue-500" />
-                                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Participantes</p>
+                                    <Users className="w-4 h-4 text-ds-accent-text" />
+                                    <p className="text-xs font-bold text-ds-soft">Participantes</p>
                                 </div>
-                                <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                <p className="text-2xl font-black text-ds-text">
                                     {activeState?.totalParticipants || 0}
                                 </p>
                             </div>
 
-                            <div className="p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="p-3 bg-ds-bg rounded-lg border border-ds-border">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Trophy className="w-4 h-4 text-amber-500" />
-                                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Ganadores</p>
+                                    <Trophy className="w-4 h-4 text-ds-accent-text" />
+                                    <p className="text-xs font-bold text-ds-soft">Ganadores</p>
                                 </div>
-                                <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                <p className="text-2xl font-black text-ds-text">
                                     {activeState?.selectedWinners?.length || 0}/{currentConfig.numberOfWinners}
                                 </p>
                             </div>
                         </div>
 
                         {/* Status Badge */}
-                        <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
-                            <p className="text-lg font-black text-emerald-700 dark:text-emerald-300">
+                        <div className="text-center p-3 bg-ds-ok/10 border border-ds-ok/40 rounded-lg">
+                            <p className="text-lg font-black text-ds-ok">
                                 ✓ Giveaway Activo
                             </p>
-                            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                            <p className="text-xs text-ds-ok mt-1">
                                 {activeState?.config.name}
                             </p>
                         </div>
@@ -131,16 +131,16 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                         {/* Winners List (if any) */}
                         {activeState && activeState.selectedWinners && activeState.selectedWinners.length > 0 && (
                             <div>
-                                <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">
+                                <p className="text-sm font-bold text-ds-soft mb-2">
                                     Ganadores:
                                 </p>
                                 <div className="space-y-2">
                                     {activeState.selectedWinners.map((winner) => (
                                         <div
                                             key={winner.position}
-                                            className="p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
+                                            className="p-2 bg-ds-warn/10 border border-ds-warn/40 rounded-lg"
                                         >
-                                            <p className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                                            <p className="text-sm font-bold text-ds-warn">
                                                 #{winner.position} {winner.participant.displayName}
                                             </p>
                                         </div>
@@ -157,7 +157,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                         <button
                             onClick={handleStart}
                             disabled={actionLoading || loading}
-                            className="w-full px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-lg transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full px-6 py-4 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-black text-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Play className="w-6 h-6" />
                             {actionLoading ? 'Iniciando...' : 'Iniciar Giveaway'}
@@ -165,11 +165,11 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                     ) : activeState?.status === 'completed' || activeState?.status === 'cancelled' ? (
                         <div className="text-center py-4">
                             <p className={`text-lg font-bold ${
-                                activeState?.status === 'completed' ? 'text-emerald-600' : 'text-red-600'
+                                activeState?.status === 'completed' ? 'text-ds-ok' : 'text-ds-danger'
                             }`}>
                                 {activeState?.status === 'completed' ? '✅ Giveaway Completado' : '❌ Giveaway Cancelado'}
                             </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                            <p className="text-sm text-ds-soft mt-2">
                                 {activeState?.status === 'cancelled' ?
                                     'Razón: ' + ((activeState as any).cancelReason || 'No especificada') :
                                     'Puedes crear un nuevo giveaway'
@@ -182,7 +182,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 <button
                                     onClick={handleEnd}
                                     disabled={actionLoading || loading}
-                                    className="w-full px-6 py-4 bg-slate-600 hover:bg-slate-700 text-white rounded-xl font-black text-lg transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-6 py-4 bg-ds-faint hover:bg-ds-raised text-ds-text rounded-lg font-black text-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Square className="w-6 h-6" />
                                     {actionLoading ? 'Finalizando...' : 'Finalizar y Sortear'}
@@ -190,11 +190,11 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                             )}
 
                             {activeState?.status === 'selecting_winners' && (
-                                <div className="bg-amber-100 dark:bg-amber-900/20 border border-amber-500 rounded-xl p-4 text-center">
-                                    <p className="text-amber-700 dark:text-amber-300 font-bold">
+                                <div className="bg-ds-warn/10 border border-ds-warn/40 rounded-lg p-4 text-center">
+                                    <p className="text-ds-warn font-bold">
                                         ⏳ Esperando respuestas de ganadores...
                                     </p>
-                                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                    <p className="text-xs text-ds-warn mt-1">
                                         El giveaway se cerrará automáticamente cuando todos respondan o expiren
                                     </p>
                                 </div>
@@ -204,7 +204,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 <button
                                     onClick={handleReroll}
                                     disabled={actionLoading || loading}
-                                    className="w-full px-4 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-4 py-3 bg-ds-warn hover:bg-ds-warn text-ds-on-accent rounded-lg font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <RotateCcw className="w-5 h-5" />
                                     Re-Sortear Ganador
@@ -215,7 +215,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 <button
                                     onClick={() => setShowCancelModal(true)}
                                     disabled={actionLoading || loading}
-                                    className="w-full px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <X className="w-5 h-5" />
                                     Cancelar Giveaway
@@ -226,8 +226,8 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                 </div>
 
                 {/* Info Box */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-xl">
-                    <p className="text-xs text-slate-700 dark:text-slate-300">
+                <div className="p-4 bg-ds-surface border border-ds-border rounded-lg">
+                    <p className="text-xs text-ds-soft">
                         <strong>💡 Tip:</strong><br />
                         {!isActive
                             ? 'Configura todos los parámetros y presiona "Iniciar" para comenzar el sorteo.'
@@ -238,16 +238,16 @@ export const StatePanel: React.FC<StatePanelProps> = ({
 
             {/* Cancel Modal */}
             {showCancelModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 max-w-md w-full shadow-2xl">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
+                <div className="fixed inset-0 bg-ds-input/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6 max-w-md w-full">
+                        <h3 className="text-xl font-black text-ds-text mb-4">
                             Cancelar Giveaway
                         </h3>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
+                        <p className="text-sm text-ds-soft mb-4">
                             ¿Estás seguro de que quieres cancelar el giveaway? Esta acción no se puede deshacer.
                         </p>
                         <div className="mb-4">
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-bold text-ds-soft mb-2">
                                 Razón de cancelación (opcional)
                             </label>
                             <textarea
@@ -255,7 +255,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 onChange={(e) => setCancelReason(e.target.value)}
                                 placeholder="Ej: Problemas técnicos"
                                 rows={3}
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc] resize-none"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text resize-none"
                             />
                         </div>
                         <div className="flex gap-3">
@@ -264,14 +264,14 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                     setShowCancelModal(false);
                                     setCancelReason('');
                                 }}
-                                className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl font-bold transition-colors"
+                                className="flex-1 px-4 py-3 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg font-bold transition-colors"
                             >
                                 Volver
                             </button>
                             <button
                                 onClick={handleCancel}
                                 disabled={actionLoading}
-                                className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-3 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {actionLoading ? 'Cancelando...' : 'Confirmar'}
                             </button>

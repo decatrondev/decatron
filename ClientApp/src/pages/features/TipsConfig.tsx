@@ -341,7 +341,7 @@ export default function TipsConfig() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-black text-ds-text flex items-center gap-3">
-                        <DollarSign className="w-8 h-8 text-ds-ok" />
+                        <DollarSign className="w-8 h-8 text-ds-accent-text" />
                         {t('tipsConfig.title')}
                     </h1>
                     <p className="text-ds-soft mt-1">

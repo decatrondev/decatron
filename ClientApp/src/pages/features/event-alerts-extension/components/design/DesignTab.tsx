@@ -33,8 +33,8 @@ const SHADOWS = [
     { id: 'strong', css: '0 12px 40px rgba(0,0,0,0.75)' },
 ];
 
-const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`;
-const btnGray = 'px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors flex items-center gap-2 bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] disabled:opacity-40';
+const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`;
+const btnGray = 'px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors flex items-center gap-2 bg-ds-raised text-ds-soft hover:bg-ds-raised disabled:opacity-40';
 
 /** El diseño propio de un destino, o null si usa otro (el general o el del hype train). */
 export function ownDesign(design: EventAlertsDesign, target: DesignTarget): AlertDesign | null {
@@ -98,8 +98,8 @@ function StepEditor({ label, value, onChange }: { label: string; value: Animatio
     const set = (patch: Partial<AnimationStep>) => onChange({ ...value, ...patch });
     return (
         <div className="space-y-3">
-            <p className="text-xs 3xl:text-sm font-bold uppercase text-[#64748b] dark:text-[#94a3b8]">{label}</p>
-            <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+            <p className="text-xs 3xl:text-sm font-bold uppercase text-ds-soft">{label}</p>
+            <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                 {ANIM_TYPES.map(a => <button key={a} className={seg(value.type === a)} onClick={() => set({ type: a })}>{t(`eventAlertsView.design.anim.${a}`)}</button>)}
             </div>
             {value.type !== 'none' && value.type !== 'event' && (
@@ -116,7 +116,7 @@ function StepEditor({ label, value, onChange }: { label: string; value: Animatio
                     <Field label={t('eventAlertsView.design.anim.delay')}><Slider value={value.delayMs} min={0} max={3000} step={50} onChange={v => set({ delayMs: v })} suffix="ms" /></Field>
                 </div>
             )}
-            {value.type === 'event' && <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('eventAlertsView.design.anim.eventHint')}</p>}
+            {value.type === 'event' && <p className="text-xs 3xl:text-sm text-ds-soft">{t('eventAlertsView.design.anim.eventHint')}</p>}
         </div>
     );
 }
@@ -129,12 +129,12 @@ function AnimationEditor({ value, onChange, collapsible }: { value: ElementAnima
             <StepEditor label={t('eventAlertsView.design.anim.exit')} value={value.exit} onChange={exit => onChange({ ...value, exit })} />
         </div>
     );
-    if (!collapsible) return <div className="border-t border-[#e2e8f0] dark:border-[#374151]">{body}</div>;
+    if (!collapsible) return <div className="border-t border-ds-border">{body}</div>;
     // En el panel del elemento va plegada: casi siempre se usa la del evento
     return (
-        <details className="border-t border-[#e2e8f0] dark:border-[#374151] pt-3 group">
-            <summary className="cursor-pointer text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] select-none">
-                ✨ {t('eventAlertsView.design.elementAnim')} <span className="font-normal text-xs 3xl:text-sm text-[#94a3b8]">({t(`eventAlertsView.design.anim.${value.enter.type}`)})</span>
+        <details className="border-t border-ds-border pt-3 group">
+            <summary className="cursor-pointer text-sm 3xl:text-base font-bold text-ds-text select-none">
+                ✨ {t('eventAlertsView.design.elementAnim')} <span className="font-normal text-xs 3xl:text-sm text-ds-soft">({t(`eventAlertsView.design.anim.${value.enter.type}`)})</span>
             </summary>
             {body}
         </details>
@@ -150,7 +150,7 @@ function CardProps({ d, set }: { d: AlertDesign; set: (patch: Partial<AlertDesig
     const shadowId = SHADOWS.find(s => s.css === c.shadow)?.id ?? 'custom';
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+            <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                 {(['color', 'gradient', 'image', 'transparent'] as const).map(ty => (
                     <button key={ty} className={seg(bg.type === ty)} onClick={() => set({ background: { ...bg, type: ty } })}>{t(`eventAlertsView.design.bg.${ty}`)}</button>
                 ))}
@@ -223,17 +223,17 @@ function TextProps({ text, set, onRemove }: { text: TextElement; set: (patch: Pa
             <div className="flex flex-wrap gap-1.5">
                 {TEXT_VARIABLES.map(v => (
                     <button key={v} onMouseDown={e => e.preventDefault()} onClick={() => insert(v)} title={t(`eventAlertsView.design.vars.${v}`)}
-                        className="px-2 py-1 rounded-lg font-mono text-xs 3xl:text-sm bg-[#f1f5f9] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]">{`{${v}}`}</button>
+                        className="px-2 py-1 rounded-lg font-mono text-xs 3xl:text-sm bg-ds-raised text-ds-text hover:bg-ds-raised">{`{${v}}`}</button>
                 ))}
             </div>
             <div className="space-y-2">
                 {text.lines.map((l, i) => (
-                    <div key={i} className="p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] space-y-2">
+                    <div key={i} className="p-3 rounded-lg border border-ds-border bg-ds-bg space-y-2">
                         <div className="flex items-center gap-1">
                             <input className={inputClass} value={l.template} maxLength={300} onFocus={() => { focused.current = i; }} onChange={e => setLine(i, { template: e.target.value })} placeholder={t('eventAlertsView.design.linePlaceholder')} />
-                            <button onClick={() => move(i, -1)} disabled={i === 0} className="p-1 text-[#64748b] disabled:opacity-30" title={t('eventAlertsView.design.moveUp')}><ChevronUp className="w-4 h-4" /></button>
-                            <button onClick={() => move(i, 1)} disabled={i === text.lines.length - 1} className="p-1 text-[#64748b] disabled:opacity-30" title={t('eventAlertsView.design.moveDown')}><ChevronDown className="w-4 h-4" /></button>
-                            <button onClick={() => set({ lines: text.lines.filter((_, j) => j !== i) })} disabled={text.lines.length <= 1} className="p-1 text-[#94a3b8] hover:text-red-600 disabled:opacity-30" title={t('eventAlertsView.design.removeLine')}><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => move(i, -1)} disabled={i === 0} className="p-1 text-ds-soft disabled:opacity-30" title={t('eventAlertsView.design.moveUp')}><ChevronUp className="w-4 h-4" /></button>
+                            <button onClick={() => move(i, 1)} disabled={i === text.lines.length - 1} className="p-1 text-ds-soft disabled:opacity-30" title={t('eventAlertsView.design.moveDown')}><ChevronDown className="w-4 h-4" /></button>
+                            <button onClick={() => set({ lines: text.lines.filter((_, j) => j !== i) })} disabled={text.lines.length <= 1} className="p-1 text-ds-soft hover:text-ds-danger disabled:opacity-30" title={t('eventAlertsView.design.removeLine')}><Trash2 className="w-4 h-4" /></button>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <Field label={t('eventAlertsView.design.size')}><NumberInput value={l.fontSize} min={8} max={200} onChange={v => setLine(i, { fontSize: v })} /></Field>
@@ -258,12 +258,12 @@ function TextProps({ text, set, onRemove }: { text: TextElement; set: (patch: Pa
                 </Field>
                 <ColorField label={t('eventAlertsView.design.textColor')} value={text.color} onChange={v => set({ color: v })} />
                 <Field label={t('eventAlertsView.design.align')}>
-                    <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                    <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                         {(['left', 'center', 'right'] as const).map(a => <button key={a} className={seg(text.align === a)} onClick={() => set({ align: a })}>{t(`eventAlertsView.design.aligns.${a}`)}</button>)}
                     </div>
                 </Field>
                 <Field label={t('eventAlertsView.design.vAlign')}>
-                    <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                    <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                         {(['top', 'center', 'bottom'] as const).map(a => <button key={a} className={seg(text.verticalAlign === a)} onClick={() => set({ verticalAlign: a })}>{t(`eventAlertsView.design.vAligns.${a}`)}</button>)}
                     </div>
                 </Field>
@@ -274,7 +274,7 @@ function TextProps({ text, set, onRemove }: { text: TextElement; set: (patch: Pa
                 <Field label={t('eventAlertsView.design.padding')}><Slider value={text.padding} min={0} max={80} onChange={v => set({ padding: v })} suffix="px" /></Field>
                 <Field label={t('eventAlertsView.design.radius')}><Slider value={text.radius} min={0} max={80} onChange={v => set({ radius: v })} suffix="px" /></Field>
             </div>
-            <button className={`${btnGray} !text-red-600`} onClick={onRemove}><Trash2 className="w-4 h-4" /> {t('eventAlertsView.design.removeText')}</button>
+            <button className={`${btnGray} !text-ds-danger`} onClick={onRemove}><Trash2 className="w-4 h-4" /> {t('eventAlertsView.design.removeText')}</button>
         </div>
     );
 }
@@ -397,17 +397,17 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
     return (
         <div className="space-y-4">
             {/* Qué se edita y sus acciones, en una sola barra */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg space-y-3">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-3">
                 <div className="flex flex-col lg:flex-row lg:items-end gap-3">
                     <label className="flex-1 min-w-0">
-                        <span className="block text-xs 3xl:text-sm font-bold uppercase text-[#64748b] dark:text-[#94a3b8] mb-1">{t('eventAlertsView.design.targetTitle')}</span>
+                        <span className="block text-xs 3xl:text-sm font-bold uppercase text-ds-soft mb-1">{t('eventAlertsView.design.targetTitle')}</span>
                         <select className={inputClass} value={isHypeLevel ? 'hypeTrain' : target} onChange={e => onTargetChange(e.target.value as DesignTarget)}>
                             {(['general', ...EVENT_TYPES] as DesignTarget[]).map(tg => <option key={tg} value={tg}>{t(`eventAlertsView.events.${tg}`)}{status(tg)}</option>)}
                         </select>
                     </label>
                     {trainTarget && design.events.hypeTrain && (
                         <label className="lg:w-56">
-                            <span className="block text-xs 3xl:text-sm font-bold uppercase text-[#64748b] dark:text-[#94a3b8] mb-1">{t('eventAlertsView.design.hypeLevels')}</span>
+                            <span className="block text-xs 3xl:text-sm font-bold uppercase text-ds-soft mb-1">{t('eventAlertsView.design.hypeLevels')}</span>
                             <select className={inputClass} value={target} onChange={e => onTargetChange(e.target.value as DesignTarget)}>
                                 <option value="hypeTrain">{t('eventAlertsView.design.allLevels')}</option>
                                 {HYPE_LEVELS.map(l => <option key={l} value={`hype-${l}`}>{l === 'completed' ? t('eventAlertsView.design.completed') : t('eventAlertsView.design.level', { n: l })}{status(`hype-${l}` as DesignTarget)}</option>)}
@@ -416,7 +416,7 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                     )}
                     <div className="flex flex-wrap items-center gap-2">
                         {inherits ? (
-                            <button className="px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white" onClick={createOwn}>{t('eventAlertsView.design.createOwn')}</button>
+                            <button className="px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent" onClick={createOwn}>{t('eventAlertsView.design.createOwn')}</button>
                         ) : (
                             <>
                                 {target !== 'general' && (
@@ -436,12 +436,12 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                     </div>
                 </div>
                 {inherits && (
-                    <p className="text-sm 3xl:text-base text-[#1e3a8a] dark:text-[#bfdbfe] bg-[#eff6ff] dark:bg-[#1e3a8a]/20 rounded-lg px-3 py-2">
+                    <p className="text-sm 3xl:text-base text-ds-accent-text bg-ds-accent/10 rounded-lg px-3 py-2">
                         {isHypeLevel ? t('eventAlertsView.design.inheritsTrain') : t('eventAlertsView.design.inheritsGeneral', { event: t(`eventAlertsView.events.${target}`) })}
                     </p>
                 )}
                 {!inherits && (
-                    <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                    <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                         {subTabs.map(st => <button key={st.id} className={seg(section === st.id)} onClick={() => setSection(st.id)}>{st.icon} {t(`eventAlertsView.design.sections.${st.id}`)}</button>)}
                     </div>
                 )}
@@ -454,7 +454,7 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                             const preview = buildLayoutPreset(id, { ...shown, canvas }, anchor);
                             const b = contentBox(preview);
                             return (
-                                <button key={id} className="p-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left"
+                                <button key={id} className="p-2 rounded-lg border border-ds-border hover:border-ds-accent transition-all text-left"
                                     onClick={() => { if (window.confirm(t('eventAlertsView.design.presetConfirm'))) { update(d => buildLayoutPreset(id, { ...d, canvas }, anchor)); setSection('editor'); } }}>
                                     {/* Encuadrada en la alerta (en la escena entera se vería diminuta) */}
                                     <div className="rounded-lg overflow-hidden pointer-events-none" style={{ background: CHECKER_BG }}>
@@ -464,8 +464,8 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                                             </div>
                                         </ScaledCanvas>
                                     </div>
-                                    <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mt-2">{t(`eventAlertsView.design.presets.${id}`)}</p>
-                                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(`eventAlertsView.design.presetsHint.${id}`)}</p>
+                                    <p className="text-sm 3xl:text-base font-bold text-ds-text mt-2">{t(`eventAlertsView.design.presets.${id}`)}</p>
+                                    <p className="text-xs 3xl:text-sm text-ds-soft">{t(`eventAlertsView.design.presetsHint.${id}`)}</p>
                                 </button>
                             );
                         })}
@@ -477,22 +477,22 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                 <Card title={t('eventAlertsView.design.themesTitle')} description={t('eventAlertsView.design.themesDescription')}>
                     <div className="grid grid-cols-2 sm:grid-cols-4 2xl:grid-cols-7 gap-3">
                         {COLOR_THEMES.map(c => (
-                            <button key={c.id} onClick={() => update(d => applyColorTheme(d, c))} className="text-left p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all">
-                                <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-black/10">
+                            <button key={c.id} onClick={() => update(d => applyColorTheme(d, c))} className="text-left p-3 rounded-lg border border-ds-border hover:border-ds-accent transition-all">
+                                <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-ds-border/10">
                                     {c.swatch.map((sw, i) => <span key={i} className="flex-1" style={{ background: sw === '#00000000' ? 'repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50% / 10px 10px' : sw }} />)}
                                 </div>
-                                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{t(`eventAlertsView.design.themes.${c.id}`)}</p>
+                                <p className="text-sm 3xl:text-base font-bold text-ds-text">{t(`eventAlertsView.design.themes.${c.id}`)}</p>
                             </button>
                         ))}
                     </div>
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('eventAlertsView.design.themesHint')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-soft mt-3">{t('eventAlertsView.design.themesHint')}</p>
                 </Card>
             )}
 
             {!inherits && section === 'animation' && (
                 <Card title={t('eventAlertsView.design.alertAnimTitle')} description={t('eventAlertsView.design.alertAnimDescription')}>
                     <AnimationEditor value={shown.animation} onChange={a => update(d => ({ ...d, animation: a }))} />
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('eventAlertsView.design.elementAnimHint')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-soft mt-3">{t('eventAlertsView.design.elementAnimHint')}</p>
                 </Card>
             )}
 

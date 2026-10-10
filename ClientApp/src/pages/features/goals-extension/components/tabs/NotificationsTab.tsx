@@ -43,16 +43,16 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#f59e0b] to-[#d97706] rounded-xl flex items-center justify-center">
-                        <Bell className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 bg-ds-accent rounded-lg flex items-center justify-center">
+                        <Bell className="w-5 h-5 text-ds-text" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                        <h2 className="text-xl font-bold text-ds-text">
                             Notificaciones
                         </h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm text-ds-soft">
                             Configura alertas visuales y sonoras para eventos de metas
                         </p>
                     </div>
@@ -60,11 +60,11 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
             </div>
 
             {/* On Progress Notifications */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <Sparkles className="w-5 h-5 text-[#667eea]" />
-                        <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                        <Sparkles className="w-5 h-5 text-ds-accent-text" />
+                        <h3 className="text-lg font-semibold text-ds-text">
                             Al Avanzar
                         </h3>
                     </div>
@@ -75,14 +75,14 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                             onChange={(e) => updateOnProgress({ enabled: e.target.checked })}
                             className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-[#e2e8f0] dark:bg-[#374151] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#667eea]"></div>
+                        <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-accent"></div>
                     </label>
                 </div>
 
                 {notifications.onProgress.enabled && (
-                    <div className="space-y-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="space-y-4 pt-4 border-t border-ds-border">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Notificar cada (%)
                             </label>
                             <div className="flex items-center gap-4">
@@ -93,19 +93,19 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                                     step={5}
                                     value={notifications.onProgress.minProgressPercent}
                                     onChange={(e) => updateOnProgress({ minProgressPercent: Number(e.target.value) })}
-                                    className="flex-1 h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-lg appearance-none cursor-pointer accent-[#667eea]"
+                                    className="flex-1 h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent"
                                 />
-                                <span className="w-12 text-center font-mono text-[#1e293b] dark:text-[#f8fafc]">
+                                <span className="w-12 text-center font-mono text-ds-text">
                                     {notifications.onProgress.minProgressPercent}%
                                 </span>
                             </div>
-                            <p className="text-xs text-[#94a3b8] mt-1">
+                            <p className="text-xs text-ds-soft mt-1">
                                 Se mostrará notificación cada vez que se alcance este porcentaje
                             </p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Mensaje
                             </label>
                             <input
@@ -113,9 +113,9 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                                 value={notifications.onProgress.message}
                                 onChange={(e) => updateOnProgress({ message: e.target.value })}
                                 placeholder="{goalName} avanzó a {percentage}%"
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8]"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft"
                             />
-                            <p className="text-xs text-[#94a3b8] mt-1">
+                            <p className="text-xs text-ds-soft mt-1">
                                 Variables: {'{goalName}'}, {'{percentage}'}, {'{current}'}, {'{target}'}
                             </p>
                         </div>
@@ -132,13 +132,13 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
             </div>
 
             {/* On Milestone Notifications */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#22c55e] rounded-lg flex items-center justify-center">
-                            <span className="text-white text-lg">🏁</span>
+                        <div className="w-8 h-8 bg-ds-ok rounded-lg flex items-center justify-center">
+                            <span className="text-ds-text text-lg">🏁</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                        <h3 className="text-lg font-semibold text-ds-text">
                             Al Alcanzar Milestone
                         </h3>
                     </div>
@@ -149,14 +149,14 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                             onChange={(e) => updateOnMilestone({ enabled: e.target.checked })}
                             className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-[#e2e8f0] dark:bg-[#374151] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#22c55e]"></div>
+                        <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-ok"></div>
                     </label>
                 </div>
 
                 {notifications.onMilestone.enabled && (
-                    <div className="space-y-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="space-y-4 pt-4 border-t border-ds-border">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Mensaje
                             </label>
                             <input
@@ -164,9 +164,9 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                                 value={notifications.onMilestone.message}
                                 onChange={(e) => updateOnMilestone({ message: e.target.value })}
                                 placeholder="🎯 ¡Milestone alcanzado: {milestoneName}!"
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8]"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft"
                             />
-                            <p className="text-xs text-[#94a3b8] mt-1">
+                            <p className="text-xs text-ds-soft mt-1">
                                 Variables: {'{goalName}'}, {'{milestoneName}'}, {'{percentage}'}
                             </p>
                         </div>
@@ -191,13 +191,13 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
             </div>
 
             {/* On Complete Notifications */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-[#f59e0b] to-[#ef4444] rounded-lg flex items-center justify-center">
-                            <span className="text-white text-lg">🏆</span>
+                        <div className="w-8 h-8 bg-ds-accent rounded-lg flex items-center justify-center">
+                            <span className="text-ds-text text-lg">🏆</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                        <h3 className="text-lg font-semibold text-ds-text">
                             Al Completar Meta
                         </h3>
                     </div>
@@ -208,14 +208,14 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                             onChange={(e) => updateOnComplete({ enabled: e.target.checked })}
                             className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-[#e2e8f0] dark:bg-[#374151] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#f59e0b]"></div>
+                        <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-warn"></div>
                     </label>
                 </div>
 
                 {notifications.onComplete.enabled && (
-                    <div className="space-y-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="space-y-4 pt-4 border-t border-ds-border">
                         <div>
-                            <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                            <label className="block text-sm font-medium text-ds-soft mb-2">
                                 Mensaje
                             </label>
                             <input
@@ -223,9 +223,9 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                                 value={notifications.onComplete.message}
                                 onChange={(e) => updateOnComplete({ message: e.target.value })}
                                 placeholder="🏆 ¡META COMPLETADA: {goalName}!"
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8]"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft"
                             />
-                            <p className="text-xs text-[#94a3b8] mt-1">
+                            <p className="text-xs text-ds-soft mt-1">
                                 Variables: {'{goalName}'}, {'{target}'}, {'{totalTime}'}
                             </p>
                         </div>
@@ -250,11 +250,11 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
             </div>
 
             {/* Chat Announcements */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <MessageSquare className="w-5 h-5 text-[#667eea]" />
-                        <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                        <MessageSquare className="w-5 h-5 text-ds-accent-text" />
+                        <h3 className="text-lg font-semibold text-ds-text">
                             Anuncios en Chat
                         </h3>
                     </div>
@@ -265,39 +265,39 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                             onChange={(e) => updateChatAnnouncements({ enabled: e.target.checked })}
                             className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-[#e2e8f0] dark:bg-[#374151] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#667eea]"></div>
+                        <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-accent"></div>
                     </label>
                 </div>
 
                 {notifications.chatAnnouncements.enabled && (
-                    <div className="space-y-3 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="space-y-3 pt-4 border-t border-ds-border">
+                        <p className="text-sm text-ds-soft">
                             El bot anunciará en el chat cuando:
                         </p>
 
-                        <label className="flex items-center gap-3 p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg cursor-pointer hover:bg-[#f1f5f9] dark:hover:bg-[#333333] transition-colors">
+                        <label className="flex items-center gap-3 p-3 bg-ds-bg rounded-lg cursor-pointer hover:bg-ds-raised transition-colors">
                             <input
                                 type="checkbox"
                                 checked={notifications.chatAnnouncements.onMilestone}
                                 onChange={(e) => updateChatAnnouncements({ onMilestone: e.target.checked })}
-                                className="w-4 h-4 rounded border-[#e2e8f0] text-[#667eea] focus:ring-[#667eea]"
+                                className="w-4 h-4 rounded border-ds-border text-ds-accent-text focus:ring-ds-accent"
                             />
                             <div>
-                                <span className="text-[#1e293b] dark:text-[#f8fafc] font-medium">
+                                <span className="text-ds-text font-medium">
                                     🏁 Se alcanza un milestone
                                 </span>
                             </div>
                         </label>
 
-                        <label className="flex items-center gap-3 p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg cursor-pointer hover:bg-[#f1f5f9] dark:hover:bg-[#333333] transition-colors">
+                        <label className="flex items-center gap-3 p-3 bg-ds-bg rounded-lg cursor-pointer hover:bg-ds-raised transition-colors">
                             <input
                                 type="checkbox"
                                 checked={notifications.chatAnnouncements.onComplete}
                                 onChange={(e) => updateChatAnnouncements({ onComplete: e.target.checked })}
-                                className="w-4 h-4 rounded border-[#e2e8f0] text-[#667eea] focus:ring-[#667eea]"
+                                className="w-4 h-4 rounded border-ds-border text-ds-accent-text focus:ring-ds-accent"
                             />
                             <div>
-                                <span className="text-[#1e293b] dark:text-[#f8fafc] font-medium">
+                                <span className="text-ds-text font-medium">
                                     🏆 Se completa una meta
                                 </span>
                             </div>
@@ -307,48 +307,48 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
             </div>
 
             {/* Info Card - Variables */}
-            <div className="bg-gradient-to-r from-[#667eea]/10 to-[#764ba2]/10 rounded-2xl border border-[#667eea]/20 p-6">
-                <h4 className="font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                    <Info className="w-4 h-4 text-[#667eea]" />
+            <div className="bg-ds-accent/10 rounded-lg border border-ds-accent/20 p-6">
+                <h4 className="font-semibold text-ds-text mb-3 flex items-center gap-2">
+                    <Info className="w-4 h-4 text-ds-accent-text" />
                     Variables disponibles
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                    <div className="bg-white/50 dark:bg-[#262626]/50 rounded-lg p-2">
-                        <code className="text-[#667eea]">{'{goalName}'}</code>
-                        <span className="text-[#64748b] block text-xs">Nombre de la meta</span>
+                    <div className="bg-ds-surface/50 rounded-lg p-2">
+                        <code className="text-ds-accent-text">{'{goalName}'}</code>
+                        <span className="text-ds-soft block text-xs">Nombre de la meta</span>
                     </div>
-                    <div className="bg-white/50 dark:bg-[#262626]/50 rounded-lg p-2">
-                        <code className="text-[#667eea]">{'{milestoneName}'}</code>
-                        <span className="text-[#64748b] block text-xs">Nombre del milestone</span>
+                    <div className="bg-ds-surface/50 rounded-lg p-2">
+                        <code className="text-ds-accent-text">{'{milestoneName}'}</code>
+                        <span className="text-ds-soft block text-xs">Nombre del milestone</span>
                     </div>
-                    <div className="bg-white/50 dark:bg-[#262626]/50 rounded-lg p-2">
-                        <code className="text-[#667eea]">{'{percentage}'}</code>
-                        <span className="text-[#64748b] block text-xs">Porcentaje completado</span>
+                    <div className="bg-ds-surface/50 rounded-lg p-2">
+                        <code className="text-ds-accent-text">{'{percentage}'}</code>
+                        <span className="text-ds-soft block text-xs">Porcentaje completado</span>
                     </div>
-                    <div className="bg-white/50 dark:bg-[#262626]/50 rounded-lg p-2">
-                        <code className="text-[#667eea]">{'{current}'}</code>
-                        <span className="text-[#64748b] block text-xs">Valor actual</span>
+                    <div className="bg-ds-surface/50 rounded-lg p-2">
+                        <code className="text-ds-accent-text">{'{current}'}</code>
+                        <span className="text-ds-soft block text-xs">Valor actual</span>
                     </div>
-                    <div className="bg-white/50 dark:bg-[#262626]/50 rounded-lg p-2">
-                        <code className="text-[#667eea]">{'{target}'}</code>
-                        <span className="text-[#64748b] block text-xs">Valor objetivo</span>
+                    <div className="bg-ds-surface/50 rounded-lg p-2">
+                        <code className="text-ds-accent-text">{'{target}'}</code>
+                        <span className="text-ds-soft block text-xs">Valor objetivo</span>
                     </div>
-                    <div className="bg-white/50 dark:bg-[#262626]/50 rounded-lg p-2">
-                        <code className="text-[#667eea]">{'{totalTime}'}</code>
-                        <span className="text-[#64748b] block text-xs">Tiempo total</span>
+                    <div className="bg-ds-surface/50 rounded-lg p-2">
+                        <code className="text-ds-accent-text">{'{totalTime}'}</code>
+                        <span className="text-ds-soft block text-xs">Tiempo total</span>
                     </div>
                 </div>
             </div>
 
             {/* Audio Tip */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4">
+            <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                    <Volume2 className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <Volume2 className="w-5 h-5 text-ds-accent-text mt-0.5" />
                     <div>
-                        <h4 className="font-semibold text-blue-700 dark:text-blue-400 mb-1">
+                        <h4 className="font-semibold text-ds-accent-text mb-1">
                             Gestión de Sonidos
                         </h4>
-                        <p className="text-sm text-blue-600 dark:text-blue-300">
+                        <p className="text-sm text-ds-accent-text">
                             Usa la pestaña "📁 Media" para subir y organizar tus archivos de audio.
                             Luego podrás seleccionarlos desde la galería en cada notificación.
                         </p>

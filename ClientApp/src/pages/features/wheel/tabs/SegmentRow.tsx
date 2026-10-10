@@ -7,7 +7,7 @@ import { defaultPrizeParams, PARAM_FIELD, PrizeParams, prizeSummary } from './Pr
 const ICON_SUGGESTIONS = ['🎁', '⭐', '💰', '🔥', '🎉', '🎲', '🔊', '💀'];
 
 const SWATCH =
-    'rounded-full bg-transparent cursor-pointer border border-[#374151] p-0 appearance-none ' +
+    'rounded-full bg-transparent cursor-pointer border border-ds-border p-0 appearance-none ' +
     '[&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full ' +
     '[&::-moz-color-swatch]:border-0 [&::-moz-color-swatch]:rounded-full';
 
@@ -48,8 +48,8 @@ export function SegmentRow({
     const premio = prizeSummary(segment.prize, soundAlerts, wheels, t);
     const conStock = segment.stockTotal != null;
 
-    const accion = 'px-3 py-1.5 rounded-lg text-sm font-medium border border-[#374151] bg-[#262626] hover:bg-[#2f2f2f] ' +
-        'text-[#cbd5e1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5';
+    const accion = 'px-3 py-1.5 rounded-lg text-sm font-medium border border-ds-border bg-ds-bg hover:bg-ds-raised ' +
+        'text-ds-text disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5';
 
     return (
         <div className={segment.isEnabled ? '' : 'opacity-60'}>
@@ -69,7 +69,7 @@ export function SegmentRow({
                     aria-hidden
                     className={`shrink-0 -mr-1 ${drag.disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
                 >
-                    <GripVertical className="w-4 h-4 text-[#64748b]" />
+                    <GripVertical className="w-4 h-4 text-ds-soft" />
                 </span>
 
                 <input
@@ -87,7 +87,7 @@ export function SegmentRow({
                         value={segment.label}
                         onChange={e => onChange({ label: e.target.value })}
                         placeholder={t('wheel.segments.labelPlaceholder')}
-                        className="w-full min-w-0 px-2 py-1.5 bg-transparent border border-transparent hover:border-[#374151] focus:border-blue-500 focus:bg-[#262626] rounded-lg text-[#f8fafc] font-semibold focus:outline-none transition-colors"
+                        className="w-full min-w-0 px-2 py-1.5 bg-transparent border border-transparent hover:border-ds-border focus:border-ds-accent focus:bg-ds-bg rounded-lg text-ds-text font-semibold focus:outline-none transition-colors"
                     />
                 </div>
 
@@ -98,14 +98,14 @@ export function SegmentRow({
                     <button
                         onClick={onToggle}
                         title={premio.text}
-                        className={`flex-1 min-w-0 text-left px-2 py-1.5 rounded-lg hover:bg-[#262626] text-sm truncate transition-colors ${
-                            premio.incomplete ? 'text-amber-300' : 'text-[#cbd5e1]'
+                        className={`flex-1 min-w-0 text-left px-2 py-1.5 rounded-lg hover:bg-ds-bg text-sm truncate transition-colors ${
+                            premio.incomplete ? 'text-ds-warn' : 'text-ds-text'
                         }`}
                     >
                         {premio.text}
                     </button>
                     {conStock && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium border border-amber-500/40 bg-amber-500/10 text-amber-300 whitespace-nowrap shrink-0">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium border border-ds-warn/40 bg-ds-warn/10 text-ds-warn whitespace-nowrap shrink-0">
                             {segment.stockRemaining != null
                                 ? t('wheel.stock.remaining', { n: segment.stockRemaining })
                                 : t('wheel.stock.on')}
@@ -119,47 +119,47 @@ export function SegmentRow({
                     step={0.5}
                     value={segment.weight}
                     onChange={e => onChange({ weight: Number(e.target.value) })}
-                    className="w-14 px-2 py-1.5 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] text-sm focus:outline-none focus:border-blue-500"
+                    className="w-14 px-2 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-sm focus:outline-none focus:border-ds-accent"
                     aria-label={t('wheel.segments.weight')}
                     title={t('wheel.segments.weight')}
                 />
 
                 <div className="flex items-center gap-2 w-24 shrink-0" title={t('wheel.segments.percent')}>
-                    <div className="flex-1 h-1.5 rounded-full bg-[#374151] overflow-hidden">
+                    <div className="flex-1 h-1.5 rounded-full bg-ds-raised overflow-hidden">
                         <div className="h-full rounded-full" style={{ width: `${Math.min(100, percentage)}%`, background: color }} />
                     </div>
-                    <span className="w-[3.25rem] text-right text-sm font-bold tabular-nums text-[#E8B455]">{percentage.toFixed(1)}%</span>
+                    <span className="w-[3.25rem] text-right text-sm font-bold tabular-nums text-ds-accent-text">{percentage.toFixed(1)}%</span>
                 </div>
 
                 <div className="flex items-center gap-0.5 ml-auto">
                     <button
                         onClick={() => onChange({ isEnabled: !segment.isEnabled })}
-                        className="p-2 hover:bg-[#262626] rounded-lg transition-colors"
+                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
                         aria-label={segment.isEnabled ? t('wheel.segments.disable') : t('wheel.segments.enable')}
                     >
                         {segment.isEnabled
-                            ? <Eye className="w-4 h-4 text-[#94a3b8]" />
-                            : <EyeOff className="w-4 h-4 text-[#64748b]" />}
+                            ? <Eye className="w-4 h-4 text-ds-soft" />
+                            : <EyeOff className="w-4 h-4 text-ds-soft" />}
                     </button>
                     <button
                         onClick={onToggle}
-                        className="p-2 hover:bg-[#262626] rounded-lg transition-colors"
+                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
                         aria-expanded={open}
                         aria-label={open ? t('wheel.segments.collapse') : t('wheel.segments.expand')}
                     >
-                        <ChevronDown className={`w-4 h-4 text-[#94a3b8] transition-transform ${open ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-4 h-4 text-ds-soft transition-transform ${open ? 'rotate-180' : ''}`} />
                     </button>
                 </div>
             </div>
 
             {/* ---------------------------------------------------------- el detalle */}
             {open && (
-                <div className="border-t border-[#374151] bg-[#161617] px-5 py-4 space-y-5">
+                <div className="border-t border-ds-border bg-ds-bg px-5 py-4 space-y-5">
                     <section className="space-y-3">
-                        <h3 className="text-sm font-bold text-[#f8fafc]">{t('wheel.segments.groupPrize')}</h3>
+                        <h3 className="text-sm font-bold text-ds-text">{t('wheel.segments.groupPrize')}</h3>
                         <div className="flex flex-wrap items-end gap-3">
                             <label className="flex flex-col gap-1">
-                                <span className="text-xs text-[#94a3b8]">{t('wheel.prizes.type')}</span>
+                                <span className="text-xs text-ds-soft">{t('wheel.prizes.type')}</span>
                                 <select
                                     value={segment.prize.type}
                                     onChange={e => onChange({ prize: { type: e.target.value as PrizeType, params: defaultPrizeParams(e.target.value as PrizeType) } })}
@@ -193,8 +193,8 @@ export function SegmentRow({
                             ilimitados: cuatro campos vacios en cada gajo harian ilegible el
                             detalle por una funcion que casi nadie usa. */}
                         <section className="space-y-3">
-                            <h3 className="text-sm font-bold text-[#f8fafc]">{t('wheel.segments.groupOdds')}</h3>
-                            <p className="text-sm text-[#cbd5e1]">
+                            <h3 className="text-sm font-bold text-ds-text">{t('wheel.segments.groupOdds')}</h3>
+                            <p className="text-sm text-ds-text">
                                 {t('wheel.segments.oddsLine', { weight: segment.weight, percent: percentage.toFixed(1) })}
                             </p>
 
@@ -205,8 +205,8 @@ export function SegmentRow({
                                 })}
                                 className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                                     conStock
-                                        ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                                        : 'bg-[#262626] border-[#374151] text-[#94a3b8] hover:text-[#cbd5e1]'
+                                        ? 'bg-ds-warn/10 border-ds-warn/40 text-ds-warn'
+                                        : 'bg-ds-bg border-ds-border text-ds-soft hover:text-ds-text'
                                 }`}
                             >
                                 {conStock ? t('wheel.stock.on') : t('wheel.stock.off')}
@@ -214,7 +214,7 @@ export function SegmentRow({
 
                             {conStock && (
                                 <div className="flex flex-wrap items-end gap-3">
-                                    <label className="flex flex-col gap-1 text-xs text-[#94a3b8]">
+                                    <label className="flex flex-col gap-1 text-xs text-ds-soft">
                                         {t('wheel.stock.total')}
                                         <input
                                             type="number" min={1}
@@ -223,7 +223,7 @@ export function SegmentRow({
                                             className={`${FIELD} w-24`}
                                         />
                                     </label>
-                                    <label className="flex flex-col gap-1 text-xs text-[#94a3b8]">
+                                    <label className="flex flex-col gap-1 text-xs text-ds-soft">
                                         {t('wheel.stock.perViewer')}
                                         <input
                                             type="number" min={1}
@@ -233,7 +233,7 @@ export function SegmentRow({
                                             className={`${FIELD} w-24`}
                                         />
                                     </label>
-                                    <label className="flex flex-col gap-1 text-xs text-[#94a3b8]">
+                                    <label className="flex flex-col gap-1 text-xs text-ds-soft">
                                         {t('wheel.stock.window')}
                                         <select
                                             value={segment.stockWindow}
@@ -246,7 +246,7 @@ export function SegmentRow({
                                         </select>
                                     </label>
                                     {segment.stockRemaining != null && (
-                                        <span className="pb-2 text-xs text-[#64748b]">
+                                        <span className="pb-2 text-xs text-ds-soft">
                                             {t('wheel.stock.remaining', { n: segment.stockRemaining })}
                                         </span>
                                     )}
@@ -255,9 +255,9 @@ export function SegmentRow({
                         </section>
 
                         <section className="space-y-3">
-                            <h3 className="text-sm font-bold text-[#f8fafc]">{t('wheel.segments.groupLook')}</h3>
+                            <h3 className="text-sm font-bold text-ds-text">{t('wheel.segments.groupLook')}</h3>
                             <div className="flex flex-wrap items-end gap-3">
-                                <label className="flex flex-col gap-1 text-xs text-[#94a3b8]">
+                                <label className="flex flex-col gap-1 text-xs text-ds-soft">
                                     {t('wheel.segments.color')}
                                     <input
                                         type="color"
@@ -266,7 +266,7 @@ export function SegmentRow({
                                         className={`w-14 h-9 rounded-lg ${SWATCH.replace('rounded-full', '')} [&::-webkit-color-swatch]:rounded-md`}
                                     />
                                 </label>
-                                <label className="flex flex-col gap-1 text-xs text-[#94a3b8]">
+                                <label className="flex flex-col gap-1 text-xs text-ds-soft">
                                     {t('wheel.segments.icon')}
                                     <input
                                         type="text"
@@ -284,7 +284,7 @@ export function SegmentRow({
                                         key={e}
                                         onClick={() => onChange({ icon: segment.icon === e ? null : e })}
                                         className={`w-8 h-8 rounded-lg text-base border transition-colors ${
-                                            segment.icon === e ? 'border-blue-500 bg-blue-500/10' : 'border-[#374151] bg-[#262626] hover:bg-[#2f2f2f]'
+                                            segment.icon === e ? 'border-ds-accent bg-ds-accent/10' : 'border-ds-border bg-ds-bg hover:bg-ds-raised'
                                         }`}
                                         aria-label={e}
                                     >
@@ -292,11 +292,11 @@ export function SegmentRow({
                                     </button>
                                 ))}
                             </div>
-                            <p className="text-xs text-[#64748b]">{t('wheel.segments.iconHelp')}</p>
+                            <p className="text-xs text-ds-soft">{t('wheel.segments.iconHelp')}</p>
                         </section>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-4 border-t border-[#374151]">
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-ds-border">
                         <button onClick={onMoveUp} disabled={!canMoveUp} className={accion}>
                             <ArrowUp className="w-4 h-4" />{t('wheel.segments.moveUp')}
                         </button>
@@ -308,7 +308,7 @@ export function SegmentRow({
                         </button>
                         <button
                             onClick={onRemove}
-                            className="px-3 py-1.5 rounded-lg text-sm font-medium border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-300 transition-colors flex items-center gap-1.5 ml-auto"
+                            className="px-3 py-1.5 rounded-lg text-sm font-medium border border-ds-danger/40 bg-ds-danger-solid/10 hover:bg-ds-danger-solid/20 text-ds-danger transition-colors flex items-center gap-1.5 ml-auto"
                         >
                             <Trash2 className="w-4 h-4" />{t('wheel.segments.remove')}
                         </button>

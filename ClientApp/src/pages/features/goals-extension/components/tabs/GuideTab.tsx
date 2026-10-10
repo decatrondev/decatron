@@ -77,20 +77,20 @@ export const GuideTab: React.FC<GuideTabProps> = ({ onNavigateToTab }) => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-2xl p-6 text-white">
+            <div className="bg-ds-accent rounded-lg p-6 text-ds-on-accent">
                 <div className="flex items-center gap-3 mb-3">
                     <BookOpen className="w-8 h-8" />
                     <h2 className="text-2xl font-bold">Sistema de Metas</h2>
                 </div>
-                <p className="text-white/90">
+                <p className="text-ds-text/90">
                     Crea metas interactivas para tu stream. Muestra el progreso hacia objetivos de subs, bits,
                     follows o combínalos todos. Tus viewers verán en tiempo real cómo contribuyen a la meta.
                 </p>
             </div>
 
             {/* Features Grid */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-lg font-bold text-ds-text mb-4">
                     ✨ Características
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -98,16 +98,16 @@ export const GuideTab: React.FC<GuideTabProps> = ({ onNavigateToTab }) => {
                         <button
                             key={index}
                             onClick={() => onNavigateToTab(feature.tab)}
-                            className="flex items-start gap-4 p-4 rounded-xl bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-all text-left group"
+                            className="flex items-start gap-4 p-4 rounded-lg bg-ds-bg hover:bg-ds-raised transition-all text-left group"
                         >
-                            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#667eea]/10 dark:bg-[#667eea]/20 flex items-center justify-center text-[#667eea] group-hover:scale-110 transition-transform">
+                            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-ds-accent/10 flex items-center justify-center text-ds-accent-text group-hover:scale-110 transition-transform">
                                 {feature.icon}
                             </div>
                             <div>
-                                <h4 className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                <h4 className="font-semibold text-ds-text">
                                     {feature.title}
                                 </h4>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-sm text-ds-soft">
                                     {feature.description}
                                 </p>
                             </div>
@@ -117,31 +117,31 @@ export const GuideTab: React.FC<GuideTabProps> = ({ onNavigateToTab }) => {
             </div>
 
             {/* Quick Start Steps */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-lg font-bold text-ds-text mb-4">
                     🚀 Inicio Rápido
                 </h3>
                 <div className="space-y-4">
                     {steps.map((step) => (
                         <div
                             key={step.number}
-                            className="flex items-start gap-4 p-4 rounded-xl bg-[#f8fafc] dark:bg-[#262626]"
+                            className="flex items-start gap-4 p-4 rounded-lg bg-ds-bg"
                         >
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#667eea] text-white flex items-center justify-center font-bold text-lg">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-ds-accent text-ds-on-accent flex items-center justify-center font-bold text-lg">
                                 {step.number}
                             </div>
                             <div className="flex-1">
-                                <h4 className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                <h4 className="font-semibold text-ds-text">
                                     {step.title}
                                 </h4>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                <p className="text-sm text-ds-soft mt-1">
                                     {step.description}
                                 </p>
                             </div>
                             {step.action && (
                                 <button
                                     onClick={step.action}
-                                    className="flex-shrink-0 px-4 py-2 bg-[#667eea] hover:bg-[#5a6fd6] text-white text-sm font-medium rounded-lg transition-colors"
+                                    className="flex-shrink-0 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-medium rounded-lg transition-colors"
                                 >
                                     Ir →
                                 </button>
@@ -152,14 +152,14 @@ export const GuideTab: React.FC<GuideTabProps> = ({ onNavigateToTab }) => {
             </div>
 
             {/* Differences from Twitch */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-6">
+                <h3 className="text-lg font-bold text-ds-text mb-4">
                     🆚 ¿Por qué usar esto en lugar de Twitch Goals?
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h4 className="font-semibold text-red-500 mb-2">❌ Twitch Goals</h4>
-                        <ul className="space-y-2 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <h4 className="font-semibold text-ds-danger mb-2">❌ Twitch Goals</h4>
+                        <ul className="space-y-2 text-sm text-ds-soft">
                             <li>• Solo UNA meta activa a la vez</li>
                             <li>• Solo un tipo por meta (subs O bits)</li>
                             <li>• Sin milestones intermedios</li>
@@ -168,8 +168,8 @@ export const GuideTab: React.FC<GuideTabProps> = ({ onNavigateToTab }) => {
                         </ul>
                     </div>
                     <div>
-                        <h4 className="font-semibold text-green-500 mb-2">✅ Sistema de Metas</h4>
-                        <ul className="space-y-2 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <h4 className="font-semibold text-ds-ok mb-2">✅ Sistema de Metas</h4>
+                        <ul className="space-y-2 text-sm text-ds-soft">
                             <li>• Múltiples metas simultáneas</li>
                             <li>• Metas combinadas (subs + bits + más)</li>
                             <li>• Milestones con bonus y notificaciones</li>
@@ -181,11 +181,11 @@ export const GuideTab: React.FC<GuideTabProps> = ({ onNavigateToTab }) => {
             </div>
 
             {/* Tips */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3">
+            <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-6">
+                <h3 className="text-lg font-bold text-ds-accent-text mb-3">
                     💡 Tips
                 </h3>
-                <ul className="space-y-2 text-sm text-blue-600 dark:text-blue-300">
+                <ul className="space-y-2 text-sm text-ds-accent-text">
                     <li>• Las metas se reinician automáticamente cuando termina el stream (configurable)</li>
                     <li>• Puedes tener varias metas activas, pero recomendamos máximo 3 para no saturar el overlay</li>
                     <li>• Los milestones son perfectos para dar recompensas intermedias y mantener la emoción</li>

@@ -114,18 +114,18 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
         finally { setStarting(false); }
     };
 
-    const btn = 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors disabled:opacity-50';
-    const primary = 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 shrink-0';
+    const btn = 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised transition-colors disabled:opacity-50';
+    const primary = 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent disabled:opacity-50 shrink-0';
 
-    if (!state) return <Card><Loader2 className="w-5 h-5 animate-spin text-[#94a3b8]" /></Card>;
+    if (!state) return <Card><Loader2 className="w-5 h-5 animate-spin text-ds-soft" /></Card>;
 
     // ── Sin app / app vieja ──
     if (!state.connected || !state.supported) {
         return (
             <Card title={t('songRequest.downloads.title')} description={t('songRequest.downloads.description')}>
-                <div className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
-                    <Monitor className="w-8 h-8 text-amber-600 dark:text-amber-400 shrink-0" />
-                    <div className="flex-1 space-y-3 text-sm 3xl:text-base text-amber-900 dark:text-amber-200">
+                <div className="flex flex-col sm:flex-row items-start gap-4 p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10">
+                    <Monitor className="w-8 h-8 text-ds-accent-text shrink-0" />
+                    <div className="flex-1 space-y-3 text-sm 3xl:text-base text-ds-warn">
                         <p className="font-bold">{state.connected ? t('songRequest.downloads.outdatedTitle') : t('songRequest.downloads.offlineTitle')}</p>
                         <p>{state.connected ? t('songRequest.downloads.outdatedBody', { version: state.appVersion ?? '?' }) : t('songRequest.downloads.offlineBody')}</p>
                         <div className="flex flex-wrap gap-2">
@@ -147,12 +147,12 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
             <Card>
                 <div className="flex flex-wrap items-center gap-3 justify-between">
                     <div className="flex items-center gap-3 min-w-0">
-                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${s.ready ? 'bg-green-500' : s.preparing ? 'bg-amber-500 animate-pulse' : 'bg-[#94a3b8]'}`} />
+                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${s.ready ? 'bg-ds-accent' : s.preparing ? 'bg-ds-warn animate-pulse' : 'bg-ds-faint'}`} />
                         <div className="min-w-0">
-                            <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <p className="text-sm 3xl:text-base font-bold text-ds-text">
                                 {t('songRequest.downloads.appConnected', { version: state.appVersion ?? '' })}
                             </p>
-                            <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">
+                            <p className="text-xs 3xl:text-sm text-ds-soft truncate">
                                 {s.preparing ? t(`songRequest.downloads.stages.${s.stage ?? 'other'}`, { percent: s.percent ?? 0, defaultValue: t('songRequest.downloads.stages.other') })
                                     : s.ready ? t('songRequest.downloads.toolsReady', { version: s.ytDlpVersion }) : t('songRequest.downloads.toolsLater')}
                                 {' · '}{s.folder}
@@ -161,10 +161,10 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                     </div>
                     <button className={btn} onClick={() => api.post('/song-request/downloads/open-folder', {})}><FolderOpen className="w-4 h-4" /> {t('songRequest.downloads.openFolder')}</button>
                 </div>
-                {s.error && <p className="text-sm 3xl:text-base text-red-600 dark:text-red-400 mt-3">{s.error}</p>}
+                {s.error && <p className="text-sm 3xl:text-base text-ds-danger mt-3">{s.error}</p>}
                 {s.preparing && s.percent != null && (
-                    <div className="h-1.5 rounded-full bg-[#e2e8f0] dark:bg-[#374151] overflow-hidden mt-3">
-                        <div className="h-full bg-[#2563eb] transition-[width]" style={{ width: `${s.percent}%` }} />
+                    <div className="h-1.5 rounded-full bg-ds-raised overflow-hidden mt-3">
+                        <div className="h-full bg-ds-accent transition-[width]" style={{ width: `${s.percent}%` }} />
                     </div>
                 )}
             </Card>
@@ -177,29 +177,29 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                         {probing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} {probing ? t('songRequest.downloads.analyzing') : t('songRequest.downloads.analyze')}
                     </button>
                 </form>
-                {probing && !s.ready && <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-2">{t('songRequest.downloads.firstTimeHint')}</p>}
-                {error && <p className="text-sm 3xl:text-base text-red-600 dark:text-red-400 mt-2">{error}</p>}
+                {probing && !s.ready && <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t('songRequest.downloads.firstTimeHint')}</p>}
+                {error && <p className="text-sm 3xl:text-base text-ds-danger mt-2">{error}</p>}
 
                 {probe && (
                     <div className="mt-5 space-y-5">
                         <div className="flex flex-col sm:flex-row gap-4">
                             {(probe.origin?.thumbnailUrl ?? probe.info.thumbnail) && (
-                                <img src={probe.origin?.thumbnailUrl ?? probe.info.thumbnail ?? ''} alt="" className="w-full sm:w-48 3xl:w-56 aspect-video object-cover rounded-xl bg-black" />
+                                <img src={probe.origin?.thumbnailUrl ?? probe.info.thumbnail ?? ''} alt="" className="w-full sm:w-48 3xl:w-56 aspect-video object-cover rounded-lg bg-ds-input" />
                             )}
                             <div className="min-w-0 space-y-1">
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-base 3xl:text-lg break-words">{probe.origin ? probe.origin.title : probe.info.title}</p>
-                                <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="font-bold text-ds-text text-base 3xl:text-lg break-words">{probe.origin ? probe.origin.title : probe.info.title}</p>
+                                <p className="text-sm 3xl:text-base text-ds-soft">
                                     {probe.origin ? probe.origin.artist : probe.info.uploader}
                                     {probe.info.duration ? ` · ${formatDuration(probe.info.duration)}` : ''}
                                     {` · ${probe.origin ? `${sourceName(probe.origin.source)} → YouTube` : probe.info.extractor}`}
                                 </p>
-                                <button className="text-xs 3xl:text-sm text-[#64748b] hover:text-red-600 flex items-center gap-1" onClick={() => setProbe(null)}><X className="w-3 h-3" /> {t('songRequest.downloads.discard')}</button>
+                                <button className="text-xs 3xl:text-sm text-ds-soft hover:text-ds-danger flex items-center gap-1" onClick={() => setProbe(null)}><X className="w-3 h-3" /> {t('songRequest.downloads.discard')}</button>
                             </div>
                         </div>
 
-                        <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                        <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                             {(['video', 'audio'] as const).filter(k => k === 'audio' || probe.info.hasVideo).map(k => (
-                                <button key={k} onClick={() => setKind(k)} className={`px-4 py-1.5 rounded-lg text-sm 3xl:text-base font-bold ${kind === k ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
+                                <button key={k} onClick={() => setKind(k)} className={`px-4 py-1.5 rounded-lg text-sm 3xl:text-base font-bold ${kind === k ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft '}`}>
                                     {t(`songRequest.downloads.kinds.${k}`)}
                                 </button>
                             ))}
@@ -238,11 +238,11 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                             <Toggle checked={thumbnail} onChange={setThumbnail} label={t('songRequest.downloads.thumbnail')} hint={t('songRequest.downloads.thumbnailHint')} />
                             {kind === 'video' && probe.info.subtitles.length > 0 && (
                                 <div>
-                                    <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">{t('songRequest.downloads.subtitles')}</p>
+                                    <p className="text-sm 3xl:text-base font-semibold text-ds-text mb-2">{t('songRequest.downloads.subtitles')}</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {probe.info.subtitles.map(l => (
                                             <button key={l} onClick={() => setSubs(v => v.includes(l) ? v.filter(x => x !== l) : v.length >= 5 ? v : [...v, l])}
-                                                className={`px-2.5 py-1 rounded-lg text-xs 3xl:text-sm font-mono font-bold ${subs.includes(l) ? 'bg-[#2563eb] text-white' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8]'}`}>
+                                                className={`px-2.5 py-1 rounded-lg text-xs 3xl:text-sm font-mono font-bold ${subs.includes(l) ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}>
                                                 {l}
                                             </button>
                                         ))}
@@ -266,21 +266,21 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                 ) : undefined}
             >
                 {state.jobs.length === 0 ? (
-                    <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.downloads.noJobs')}</p>
+                    <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.downloads.noJobs')}</p>
                 ) : (
-                    <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                    <div className="divide-y divide-ds-border">
                         {state.jobs.map(job => {
                             const active = ACTIVE.includes(job.state);
                             return (
                                 <div key={job.jobId} className="py-3 space-y-2">
                                     <div className="flex items-center gap-3">
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate">{job.title || job.fileName || job.jobId}</p>
-                                            <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">
+                                            <p className="text-sm 3xl:text-base font-semibold text-ds-text truncate">{job.title || job.fileName || job.jobId}</p>
+                                            <p className="text-xs 3xl:text-sm text-ds-soft truncate">
                                                 {[job.kind && t(`songRequest.downloads.kinds.${job.kind}`), job.format, job.fileName].filter(Boolean).join(' · ')}
                                             </p>
                                         </div>
-                                        <span className={`text-xs 3xl:text-sm font-bold shrink-0 ${job.state === 'done' ? 'text-green-600 dark:text-green-400' : job.state === 'error' ? 'text-red-600 dark:text-red-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
+                                        <span className={`text-xs 3xl:text-sm font-bold shrink-0 ${job.state === 'done' ? 'text-ds-ok ' : job.state === 'error' ? 'text-ds-danger ' : 'text-ds-soft '}`}>
                                             {job.state === 'error' ? errorText(job.error)
                                                 : job.state === 'downloading' ? `${(job.percent ?? 0).toFixed(1)}%${job.speed ? ` · ${job.speed}` : ''}${job.eta ? ` · ${job.eta}` : ''}`
                                                     : t(`songRequest.downloads.states.${job.state}`, { defaultValue: job.state })}
@@ -289,8 +289,8 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                                         {job.state === 'done' && <button className={btn} title={t('songRequest.downloads.showFile')} onClick={() => api.post('/song-request/downloads/open-folder', { jobId: job.jobId })}><FolderOpen className="w-4 h-4" /></button>}
                                     </div>
                                     {active && (
-                                        <div className="h-1.5 rounded-full bg-[#e2e8f0] dark:bg-[#374151] overflow-hidden">
-                                            <div className={`h-full bg-[#2563eb] ${job.state === 'downloading' ? 'transition-[width] duration-700' : 'animate-pulse w-full opacity-60'}`}
+                                        <div className="h-1.5 rounded-full bg-ds-raised overflow-hidden">
+                                            <div className={`h-full bg-ds-accent ${job.state === 'downloading' ? 'transition-[width] duration-700' : 'animate-pulse w-full opacity-60'}`}
                                                 style={job.state === 'downloading' ? { width: `${job.percent ?? 0}%` } : undefined} />
                                         </div>
                                     )}
@@ -299,7 +299,7 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                         })}
                     </div>
                 )}
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3 flex items-center gap-1.5"><RefreshCw className="w-3 h-3" /> {t('songRequest.downloads.liveNote')}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-3 flex items-center gap-1.5"><RefreshCw className="w-3 h-3" /> {t('songRequest.downloads.liveNote')}</p>
             </Card>
         </div>
     );

@@ -31,13 +31,13 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
   return (
     <div className="space-y-6">
       {/* Sistema Activado/Desactivado */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
+            <label className="text-sm font-bold text-ds-text flex items-center gap-2 3xl:text-base">
               🎉 Sistema de Event Alerts
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Activa o desactiva todas las alertas de eventos
             </p>
           </div>
@@ -48,8 +48,8 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               onChange={(e) => onConfigChange({ enabled: e.target.checked })}
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
-            <span className="ml-3 text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
+            <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
+            <span className="ml-3 text-sm font-bold text-ds-text 3xl:text-base">
               {config.enabled ? 'Activado' : 'Desactivado'}
             </span>
           </label>
@@ -64,12 +64,12 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
             type="text"
             value={overlayUrl || 'Cargando...'}
             readOnly
-            className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none 3xl:text-base"
+            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-mono text-sm focus:ring-2 focus:ring-ds-accent outline-none 3xl:text-base"
           />
           <button
             onClick={handleCopy}
             disabled={!overlayUrl}
-            className="px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all font-bold text-sm flex items-center gap-2 whitespace-nowrap 3xl:text-base"
+            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2 whitespace-nowrap 3xl:text-base"
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             {copied ? '¡Copiado!' : 'Copiar'}
@@ -83,7 +83,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Duración */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Duración de Alerta (segundos)
             </label>
             <input
@@ -94,13 +94,13 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               onChange={(e) =>
                 onConfigChange({ defaultDuration: parseInt(e.target.value) || 5 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
           </div>
 
           {/* Volumen */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Volumen (0-100)
             </label>
             <input
@@ -111,13 +111,13 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               onChange={(e) =>
                 onConfigChange({ defaultVolume: parseInt(e.target.value) || 50 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
           </div>
 
           {/* Tipo de animación */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Tipo de Animación
             </label>
             <select
@@ -125,7 +125,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               onChange={(e) =>
                 onConfigChange({ defaultAnimation: e.target.value as AnimationType })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             >
               {animationTypes.map((type) => (
                 <option key={type} value={type}>
@@ -137,7 +137,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
 
           {/* Dirección de animación */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Dirección de Animación
             </label>
             <select
@@ -147,7 +147,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   defaultAnimationDirection: e.target.value as AnimationDirection,
                 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             >
               {animationDirections.map((dir) => (
                 <option key={dir} value={dir}>
@@ -164,7 +164,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Posición X (%)
             </label>
             <input
@@ -180,11 +180,11 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Posición Y (%)
             </label>
             <input
@@ -200,26 +200,26 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
           </div>
         </div>
 
-        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <p className="text-xs text-[#1e293b] dark:text-blue-300 3xl:text-sm">
+        <div className="mt-4 p-4 bg-ds-accent/10 border border-ds-accent rounded-lg">
+          <p className="text-xs text-ds-text 3xl:text-sm">
             💡 <strong>Tip:</strong> 50% en X y Y centra la alerta en el canvas. Puedes personalizar cada tipo de evento individualmente.
           </p>
         </div>
       </EventSection>
 
       {/* Sistema de Cola */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
+            <label className="text-sm font-bold text-ds-text flex items-center gap-2 3xl:text-base">
               📋 Sistema de Cola
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Gestiona cómo se muestran múltiples alertas simultáneas
             </p>
           </div>
@@ -237,15 +237,15 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               }
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
+            <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
           </label>
         </div>
 
         {config.queueSettings.enabled && (
-          <div className="space-y-4 mt-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+          <div className="space-y-4 mt-4 pt-4 border-t border-ds-border">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                   Tamaño Máximo de Cola
                 </label>
                 <input
@@ -261,12 +261,12 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                       },
                     })
                   }
-                  className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                   Delay Entre Alertas (ms)
                 </label>
                 <input
@@ -283,7 +283,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                       },
                     })
                   }
-                  className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
                 />
               </div>
             </div>
@@ -300,9 +300,9 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                     },
                   })
                 }
-                className="w-5 h-5 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-5 h-5 text-ds-accent-text border-ds-border rounded focus:ring-2 focus:ring-ds-accent"
               />
-              <span className="ml-2 text-sm text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
+              <span className="ml-2 text-sm text-ds-text 3xl:text-base">
                 Mostrar contador de alertas en cola
               </span>
             </label>
@@ -315,7 +315,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Cooldown Global (segundos)
             </label>
             <input
@@ -331,15 +331,15 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Entre CUALQUIER alerta
             </p>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Cooldown Por Evento (segundos)
             </label>
             <input
@@ -355,9 +355,9 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Entre alertas del mismo tipo
             </p>
           </div>
@@ -369,7 +369,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Ancho (px)
             </label>
             <input
@@ -386,11 +386,11 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Alto (px)
             </label>
             <input
@@ -407,7 +407,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
             />
           </div>
         </div>

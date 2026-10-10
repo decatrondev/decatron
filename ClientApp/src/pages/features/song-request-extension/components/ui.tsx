@@ -8,7 +8,7 @@ export * from '../../../../components/overlay-editor/ui';
 export function PlanLimitNote({ text }: { text: string }) {
     const { t } = useTranslation('overlays');
     return (
-        <p className="flex flex-wrap items-center gap-2 text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">
+        <p className="flex flex-wrap items-center gap-2 text-xs 3xl:text-sm text-ds-warn">
             <Crown className="w-4 h-4 shrink-0" /> {text}
             <a href="/supporters" className="font-bold underline">{t('songRequest.limits.upgrade')}</a>
         </p>

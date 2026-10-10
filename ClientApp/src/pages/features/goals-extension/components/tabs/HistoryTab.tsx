@@ -88,13 +88,13 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
     // Get action info
     const getActionInfo = (action: GoalHistoryEntry['action']) => {
         const actionMap = {
-            created: { icon: '➕', label: 'Creada', color: 'text-[#64748b]' },
-            started: { icon: '▶️', label: 'Iniciada', color: 'text-[#22c55e]' },
-            progress: { icon: '📈', label: 'Progreso', color: 'text-[#667eea]' },
-            milestone: { icon: '🏁', label: 'Milestone', color: 'text-[#f59e0b]' },
-            completed: { icon: '🏆', label: 'Completada', color: 'text-[#22c55e]' },
-            reset: { icon: '🔄', label: 'Reiniciada', color: 'text-[#ef4444]' },
-            expired: { icon: '⏰', label: 'Expirada', color: 'text-[#94a3b8]' }
+            created: { icon: '➕', label: 'Creada', color: 'text-ds-soft' },
+            started: { icon: '▶️', label: 'Iniciada', color: 'text-ds-ok' },
+            progress: { icon: '📈', label: 'Progreso', color: 'text-ds-accent-text' },
+            milestone: { icon: '🏁', label: 'Milestone', color: 'text-ds-warn' },
+            completed: { icon: '🏆', label: 'Completada', color: 'text-ds-ok' },
+            reset: { icon: '🔄', label: 'Reiniciada', color: 'text-ds-danger' },
+            expired: { icon: '⏰', label: 'Expirada', color: 'text-ds-soft' }
         };
         return actionMap[action];
     };
@@ -107,17 +107,17 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#667eea] to-[#764ba2] rounded-xl flex items-center justify-center">
-                            <History className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-ds-accent rounded-lg flex items-center justify-center">
+                            <History className="w-5 h-5 text-ds-text" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <h2 className="text-xl font-bold text-ds-text">
                                 Historial
                             </h2>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-sm text-ds-soft">
                                 Registro de eventos y cambios en las metas
                             </p>
                         </div>
@@ -127,8 +127,8 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                             onClick={() => setShowSettings(!showSettings)}
                             className={`p-2 rounded-lg transition-colors ${
                                 showSettings
-                                    ? 'bg-[#667eea] text-white'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] hover:text-[#667eea]'
+                                    ? 'bg-ds-accent text-ds-on-accent'
+                                    : 'bg-ds-bg text-ds-soft hover:text-ds-accent-text'
                             }`}
                         >
                             <Settings className="w-5 h-5" />
@@ -139,21 +139,21 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
 
             {/* Settings Panel */}
             {showSettings && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                    <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                    <h3 className="text-lg font-semibold text-ds-text mb-4">
                         Configuración del Historial
                     </h3>
 
                     <div className="space-y-4">
                         {/* Enable History */}
-                        <label className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl cursor-pointer">
+                        <label className="flex items-center justify-between p-4 bg-ds-bg rounded-lg cursor-pointer">
                             <div className="flex items-center gap-3">
-                                <History className="w-5 h-5 text-[#667eea]" />
+                                <History className="w-5 h-5 text-ds-accent-text" />
                                 <div>
-                                    <span className="text-[#1e293b] dark:text-[#f8fafc] font-medium">
+                                    <span className="text-ds-text font-medium">
                                         Guardar historial
                                     </span>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-xs text-ds-soft">
                                         Registra todos los eventos de metas
                                     </p>
                                 </div>
@@ -165,15 +165,15 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                     onChange={(e) => onSetHistoryEnabled(e.target.checked)}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-[#e2e8f0] dark:bg-[#374151] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#667eea]"></div>
+                                <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-accent"></div>
                             </div>
                         </label>
 
                         {/* Retention Days */}
-                        <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl">
+                        <div className="p-4 bg-ds-bg rounded-lg">
                             <div className="flex items-center gap-3 mb-3">
-                                <Calendar className="w-5 h-5 text-[#667eea]" />
-                                <span className="text-[#1e293b] dark:text-[#f8fafc] font-medium">
+                                <Calendar className="w-5 h-5 text-ds-accent-text" />
+                                <span className="text-ds-text font-medium">
                                     Retención de datos
                                 </span>
                             </div>
@@ -184,26 +184,26 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                     max={90}
                                     value={historyRetentionDays}
                                     onChange={(e) => onSetHistoryRetentionDays(Number(e.target.value))}
-                                    className="flex-1 h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-lg appearance-none cursor-pointer accent-[#667eea]"
+                                    className="flex-1 h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent"
                                 />
-                                <span className="w-16 text-center font-mono text-[#1e293b] dark:text-[#f8fafc]">
+                                <span className="w-16 text-center font-mono text-ds-text">
                                     {historyRetentionDays} días
                                 </span>
                             </div>
-                            <p className="text-xs text-[#94a3b8] mt-2">
+                            <p className="text-xs text-ds-soft mt-2">
                                 Los registros más antiguos serán eliminados automáticamente
                             </p>
                         </div>
 
                         {/* Reset on Stream End */}
-                        <label className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl cursor-pointer">
+                        <label className="flex items-center justify-between p-4 bg-ds-bg rounded-lg cursor-pointer">
                             <div className="flex items-center gap-3">
-                                <RefreshCw className="w-5 h-5 text-[#f59e0b]" />
+                                <RefreshCw className="w-5 h-5 text-ds-accent-text" />
                                 <div>
-                                    <span className="text-[#1e293b] dark:text-[#f8fafc] font-medium">
+                                    <span className="text-ds-text font-medium">
                                         Reiniciar al terminar stream
                                     </span>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-xs text-ds-soft">
                                         El progreso de metas se reinicia cuando termina el stream
                                     </p>
                                 </div>
@@ -215,7 +215,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                     onChange={(e) => onSetResetOnStreamEnd(e.target.checked)}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-[#e2e8f0] dark:bg-[#374151] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#f59e0b]"></div>
+                                <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-ds-warn"></div>
                             </div>
                         </label>
                     </div>
@@ -223,10 +223,10 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             )}
 
             {/* Filters and Actions */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-[#64748b]" />
+                        <Filter className="w-4 h-4 text-ds-soft" />
                         <div className="flex gap-1">
                             {[
                                 { id: 'all', label: 'Todo' },
@@ -239,8 +239,8 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                     onClick={() => setFilter(f.id as typeof filter)}
                                     className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                                         filter === f.id
-                                            ? 'bg-[#667eea] text-white'
-                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                            ? 'bg-ds-accent text-ds-on-accent'
+                                            : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                                     }`}
                                 >
                                     {f.label}
@@ -249,11 +249,11 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <button className="flex items-center gap-2 px-3 py-1.5 bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] hover:text-[#667eea] rounded-lg text-sm transition-colors">
+                        <button className="flex items-center gap-2 px-3 py-1.5 bg-ds-bg text-ds-soft hover:text-ds-accent-text rounded-lg text-sm transition-colors">
                             <Download className="w-4 h-4" />
                             Exportar
                         </button>
-                        <button className="flex items-center gap-2 px-3 py-1.5 bg-[#ef4444]/10 text-[#ef4444] hover:bg-[#ef4444]/20 rounded-lg text-sm transition-colors">
+                        <button className="flex items-center gap-2 px-3 py-1.5 bg-ds-danger-solid/10 text-ds-danger hover:bg-ds-danger-solid/20 rounded-lg text-sm transition-colors">
                             <Trash2 className="w-4 h-4" />
                             Limpiar
                         </button>
@@ -262,19 +262,19 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             </div>
 
             {/* History List */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg overflow-hidden">
+            <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 {historyEnabled ? (
                     filteredHistory.length > 0 ? (
-                        <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <div className="divide-y divide-ds-border">
                             {filteredHistory.map((entry) => {
                                 const actionInfo = getActionInfo(entry.action);
                                 return (
                                     <div
                                         key={entry.id}
-                                        className="p-4 hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
+                                        className="p-4 hover:bg-ds-bg transition-colors"
                                     >
                                         <div className="flex items-start gap-4">
-                                            <div className="w-10 h-10 bg-[#f8fafc] dark:bg-[#262626] rounded-lg flex items-center justify-center text-xl">
+                                            <div className="w-10 h-10 bg-ds-bg rounded-lg flex items-center justify-center text-xl">
                                                 {actionInfo.icon}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -282,16 +282,16 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                                     <span className={`font-medium ${actionInfo.color}`}>
                                                         {actionInfo.label}
                                                     </span>
-                                                    <span className="text-[#1e293b] dark:text-[#f8fafc]">
+                                                    <span className="text-ds-text">
                                                         {entry.goalName}
                                                     </span>
                                                     {entry.milestoneName && (
-                                                        <span className="text-[#64748b] dark:text-[#94a3b8]">
+                                                        <span className="text-ds-soft">
                                                             - {entry.milestoneName}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                                <div className="flex items-center gap-3 text-sm text-ds-soft">
                                                     {entry.previousValue !== undefined && entry.newValue !== undefined && (
                                                         <span>
                                                             {entry.previousValue} → {entry.newValue}
@@ -301,13 +301,13 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                                         <span>por @{entry.triggeredBy}</span>
                                                     )}
                                                     {entry.source && (
-                                                        <span className="px-2 py-0.5 bg-[#667eea]/10 text-[#667eea] rounded text-xs">
+                                                        <span className="px-2 py-0.5 bg-ds-accent/10 text-ds-accent-text rounded text-xs">
                                                             {entry.source}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="text-sm text-[#94a3b8] whitespace-nowrap">
+                                            <div className="text-sm text-ds-soft whitespace-nowrap">
                                                 {formatTime(entry.timestamp)}
                                             </div>
                                         </div>
@@ -317,13 +317,13 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                         </div>
                     ) : (
                         <div className="p-8 text-center">
-                            <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#262626] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <History className="w-8 h-8 text-[#94a3b8]" />
+                            <div className="w-16 h-16 bg-ds-bg rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <History className="w-8 h-8 text-ds-soft" />
                             </div>
-                            <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                            <h3 className="text-lg font-semibold text-ds-text mb-2">
                                 Sin registros
                             </h3>
-                            <p className="text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-ds-soft">
                                 {filter !== 'all'
                                     ? 'No hay eventos de este tipo'
                                     : 'Los eventos aparecerán aquí cuando haya actividad en las metas'}
@@ -332,13 +332,13 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                     )
                 ) : (
                     <div className="p-8 text-center">
-                        <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#262626] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <History className="w-8 h-8 text-[#94a3b8]" />
+                        <div className="w-16 h-16 bg-ds-bg rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <History className="w-8 h-8 text-ds-soft" />
                         </div>
-                        <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                        <h3 className="text-lg font-semibold text-ds-text mb-2">
                             Historial desactivado
                         </h3>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
+                        <p className="text-ds-soft mb-4">
                             Activa el historial para ver los eventos de metas
                         </p>
                         <button
@@ -346,7 +346,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                 onSetHistoryEnabled(true);
                                 setShowSettings(true);
                             }}
-                            className="px-4 py-2 bg-[#667eea] hover:bg-[#5a6fd6] text-white rounded-lg transition-colors"
+                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-colors"
                         >
                             Activar historial
                         </button>
@@ -356,7 +356,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
 
             {/* Info Note */}
             {historyEnabled && (
-                <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 text-center text-sm text-[#64748b] dark:text-[#94a3b8]">
+                <div className="bg-ds-bg rounded-lg border border-ds-border p-4 text-center text-sm text-ds-soft">
                     Este es un preview del historial. Los datos reales se cargarán del servidor.
                 </div>
             )}

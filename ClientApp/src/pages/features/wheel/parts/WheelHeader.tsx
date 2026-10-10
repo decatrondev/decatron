@@ -30,17 +30,17 @@ export function WheelHeader({
             <div className="flex items-center gap-4">
                 <button
                     onClick={onBack}
-                    className="p-3 bg-[#1B1C1D] rounded-xl border border-[#374151] hover:bg-[#262626] transition-colors"
+                    className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
                     aria-label={t('wheel.back')}
                 >
-                    <ArrowLeft className="w-5 h-5 text-[#94a3b8]" />
+                    <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-                        <CircleDot className="w-6 h-6 text-[#E8B455]" />
+                    <h1 className="text-2xl font-bold text-ds-text flex items-center gap-2">
+                        <CircleDot className="w-6 h-6 text-ds-accent-text" />
                         {t('wheel.title')}
                     </h1>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">{t('wheel.subtitle')}</p>
+                    <p className="text-sm text-ds-soft mt-0.5">{t('wheel.subtitle')}</p>
                 </div>
             </div>
 
@@ -67,7 +67,7 @@ export function WheelHeader({
                         el: saber que te quedan 0 de 2 antes de intentarlo es la
                         diferencia entre un limite y una sorpresa. */}
                     {limits && (
-                        <span className="text-xs text-[#64748b] dark:text-[#94a3b8] tabular-nums">
+                        <span className="text-xs text-ds-soft tabular-nums">
                             {limits.maxWheels < 0
                                 ? t('wheel.quota.unlimited')
                                 : t('wheel.quota.count', { used: limits.wheels, max: limits.maxWheels })}
@@ -77,7 +77,7 @@ export function WheelHeader({
                     <button
                         onClick={() => onCreate('prizes')}
                         disabled={saving || cupoLleno}
-                        className="px-4 py-2.5 bg-[#1B1C1D] border border-[#374151] hover:bg-[#262626] disabled:opacity-40 text-[#f8fafc] rounded-xl transition-colors flex items-center gap-2 font-bold"
+                        className="px-4 py-2.5 bg-ds-surface border border-ds-border hover:bg-ds-bg disabled:opacity-40 text-ds-text rounded-lg transition-colors flex items-center gap-2 font-bold"
                         title={cupoLleno ? t('wheel.quota.reached', { max: limits!.maxWheels }) : t('wheel.newWheel')}
                     >
                         <Plus className="w-4 h-4" />
@@ -87,7 +87,7 @@ export function WheelHeader({
                     <button
                         onClick={() => onCreate('raffle')}
                         disabled={saving || cupoLleno}
-                        className="px-4 py-2.5 bg-[#1B1C1D] border border-[#374151] hover:bg-[#262626] disabled:opacity-40 text-[#f8fafc] rounded-xl transition-colors flex items-center gap-2 font-bold"
+                        className="px-4 py-2.5 bg-ds-surface border border-ds-border hover:bg-ds-bg disabled:opacity-40 text-ds-text rounded-lg transition-colors flex items-center gap-2 font-bold"
                         title={cupoLleno ? t('wheel.quota.reached', { max: limits!.maxWheels }) : t('wheel.empty.modeRaffleHelp')}
                     >
                         <Ticket className="w-4 h-4" />
@@ -100,7 +100,7 @@ export function WheelHeader({
                     {tab === 'segments' && (
                         <button
                             onClick={onTestSpin}
-                            className="px-5 py-2.5 bg-[#1B1C1D] border border-[#374151] hover:bg-[#262626] text-[#f8fafc] rounded-xl transition-colors flex items-center gap-2 font-bold"
+                            className="px-5 py-2.5 bg-ds-surface border border-ds-border hover:bg-ds-bg text-ds-text rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
                             <Play className="w-4 h-4" />
                             {t('wheel.testSpin')}
@@ -114,7 +114,7 @@ export function WheelHeader({
                         <button
                             onClick={onSave}
                             disabled={saving}
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl transition-colors flex items-center gap-2 font-bold"
+                            className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             {t('wheel.save')}

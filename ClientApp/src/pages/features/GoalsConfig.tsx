@@ -1,5 +1,6 @@
 // GoalsConfig - Main configuration page for Goals system
 
+import TabIcon from '../../components/dashboard/TabIcon';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -191,30 +192,30 @@ const GoalsConfig = () => {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">{t('goals.loadingConfig')}</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ds-accent mx-auto mb-4"></div>
+                    <p className="text-ds-soft">{t('goals.loadingConfig')}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8">
             <div className="max-w-[1920px] mx-auto">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => navigate('/overlays')}
-                            className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg"
+                            className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                            <ArrowLeft className="w-5 h-5 text-ds-soft" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                            <h1 className="text-3xl font-black text-ds-text">
                                 🎯 {t('goals.title')}
                             </h1>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
+                            <p className="text-sm text-ds-soft mt-1">
                                 {t('goals.subtitle')}
                             </p>
                         </div>
@@ -224,10 +225,10 @@ const GoalsConfig = () => {
                         <button
                             onClick={handleSave}
                             disabled={persistence.saving}
-                            className={`px-6 py-3 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg ${
+                            className={`px-6 py-3 rounded-lg transition-all flex items-center gap-2 font-bold ${
                                 persistence.saving
-                                    ? 'bg-gray-400 cursor-not-allowed text-gray-200'
-                                    : 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white'
+                                    ? 'bg-ds-faint cursor-not-allowed text-ds-text'
+                                    : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent'
                             }`}
                         >
                             <Save className="w-5 h-5" />
@@ -238,10 +239,10 @@ const GoalsConfig = () => {
 
                 {/* Save Message */}
                 {persistence.saveMessage && (
-                    <div className={`mb-6 p-4 rounded-xl border ${
+                    <div className={`mb-6 p-4 rounded-lg border ${
                         persistence.saveMessage.type === 'success'
-                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                            ? 'bg-ds-ok/10 border-ds-ok/40 text-ds-ok '
+                            : 'bg-ds-danger/10 border-ds-danger/40 text-ds-danger '
                     }`}>
                         {persistence.saveMessage.text}
                     </div>
@@ -252,7 +253,7 @@ const GoalsConfig = () => {
                     {/* Left Column: Tabs + Content (2/3 en XL+) */}
                     <div className="xl:col-span-2 space-y-6">
                         {/* Tabs Navigation - WRAPPING (No scroll) */}
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                             <div className="flex flex-wrap gap-2">
                                 {tabs.map((tab) => (
                                     <button
@@ -260,11 +261,11 @@ const GoalsConfig = () => {
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                                             activeTab === tab.id
-                                                ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg'
-                                                : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                                ? 'bg-ds-accent text-ds-on-accent'
+                                                : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                                         }`}
                                     >
-                                        {tab.icon} {tab.label}
+                                        <TabIcon emoji={tab.icon} />{tab.label}
                                     </button>
                                 ))}
                             </div>

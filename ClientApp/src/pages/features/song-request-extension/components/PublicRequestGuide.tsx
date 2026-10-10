@@ -28,10 +28,10 @@ interface Guide {
 const PRIMARY = ['sr', 'srNumber', 'pladd'];
 
 const MODE_TONE: Record<RequestMode, string> = {
-    open: 'bg-emerald-400',
-    playlists: 'bg-cyan-400',
-    review: 'bg-amber-300',
-    closed: 'bg-red-400',
+    open: 'bg-ds-ok',
+    playlists: 'bg-ds-accent',
+    review: 'bg-ds-warn',
+    closed: 'bg-ds-danger-solid',
 };
 
 function formatDuration(seconds: number): string {
@@ -93,19 +93,19 @@ export function PublicRequestGuide({ channel, mode, requestSource, activePlaylis
                         </span>
                     )}
                     {cmd.aliases && (
-                        <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#52525b]">{t('srGuide.aliases')} {cmd.aliases.join(' · ')}</span>
+                        <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft">{t('srGuide.aliases')} {cmd.aliases.join(' · ')}</span>
                     )}
                 </div>
-                <p className="mt-0.5 text-sm 3xl:text-base 4xl:text-lg text-[#a1a1aa]">
+                <p className="mt-0.5 text-sm 3xl:text-base 4xl:text-lg text-ds-soft">
                     {t(`srGuide.cmd.${cmd.id}.text`, { votes: guide?.skipVotesRequired ?? 1 })}
                     {cmd.id === 'srNumber' && guide?.numberedPlaylist && (
-                        <> <a href={`#playlist-${guide.numberedPlaylist.id}`} className="text-[#d4d4d8] underline decoration-pub-accent/40 hover:decoration-pub-accent">{t('srGuide.public.numbered', { playlist: guide.numberedPlaylist.name })}</a></>
+                        <> <a href={`#playlist-${guide.numberedPlaylist.id}`} className="text-ds-text underline decoration-pub-accent/40 hover:decoration-pub-accent">{t('srGuide.public.numbered', { playlist: guide.numberedPlaylist.name })}</a></>
                     )}
                 </p>
                 {cmd.examples.length > 0 && (cmd.id === 'sr' || cmd.id === 'pladd') && (
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {cmd.examples.map(ex => (
-                            <code key={ex} className="px-1.5 py-0.5 rounded bg-pub-raised font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] break-all">{ex}</code>
+                            <code key={ex} className="px-1.5 py-0.5 rounded bg-pub-raised font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft break-all">{ex}</code>
                         ))}
                     </div>
                 )}
@@ -114,19 +114,19 @@ export function PublicRequestGuide({ channel, mode, requestSource, activePlaylis
     };
 
     return (
-        <section className="mb-10 4xl:mb-14 rounded-xl border border-pub-border bg-pub-surface p-4 sm:p-5 4xl:p-7">
-            <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#a1a1aa] font-bold">
+        <section className="mb-10 4xl:mb-14 rounded-lg border border-pub-border bg-pub-surface p-4 sm:p-5 4xl:p-7">
+            <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-ds-soft font-bold">
                 <span className="text-pub-accent-hi">#</span>{t('srGuide.public.title')}
             </h2>
 
             {/* Modo actual */}
             <div className="space-y-1.5">
-                <p className="flex items-start gap-2.5 text-white font-semibold text-sm 3xl:text-base 4xl:text-xl">
+                <p className="flex items-start gap-2.5 text-ds-text font-semibold text-sm 3xl:text-base 4xl:text-xl">
                     <span className={`mt-1.5 4xl:mt-2.5 w-2 h-2 rounded-full shrink-0 ${MODE_TONE[mode]}`} />
                     {t(`srGuide.public.mode.${mode}`)}
                 </p>
                 {mode === 'review' && requestSource === 'playlists' && (
-                    <p className="flex items-start gap-2.5 text-white font-semibold text-sm 3xl:text-base 4xl:text-xl">
+                    <p className="flex items-start gap-2.5 text-ds-text font-semibold text-sm 3xl:text-base 4xl:text-xl">
                         <span className={`mt-1.5 4xl:mt-2.5 w-2 h-2 rounded-full shrink-0 ${MODE_TONE.playlists}`} />
                         {t('srGuide.public.mode.playlists')}
                     </p>
@@ -134,13 +134,13 @@ export function PublicRequestGuide({ channel, mode, requestSource, activePlaylis
             </div>
 
             {platforms.length > 0 && (
-                <p className="mt-2 text-xs 3xl:text-sm 4xl:text-base text-[#71717a]">
+                <p className="mt-2 text-xs 3xl:text-sm 4xl:text-base text-ds-soft">
                     {t('srGuide.public.chatOn')}{' '}
                     {platforms.map((p, i) => (
                         <span key={p}>
                             {i > 0 && ` ${t('srGuide.public.or')} `}
                             <PlatformIcon platform={p} className="w-3.5 h-3.5 3xl:w-4 3xl:h-4 4xl:w-5 4xl:h-5" />{' '}
-                            <span className="text-[#a1a1aa]">{p === 'kick' ? 'Kick' : 'Twitch'}</span>
+                            <span className="text-ds-soft">{p === 'kick' ? 'Kick' : 'Twitch'}</span>
                         </span>
                     ))}
                 </p>
@@ -149,10 +149,10 @@ export function PublicRequestGuide({ channel, mode, requestSource, activePlaylis
             {/* Reglas */}
             {rules.length > 0 && (
                 <div className="mt-4">
-                    <p className="font-mono text-[11px] 3xl:text-xs 4xl:text-sm uppercase tracking-widest text-[#52525b] mb-1.5">{t('srGuide.public.rulesTitle')}</p>
+                    <p className="font-mono text-[11px] 3xl:text-xs 4xl:text-sm uppercase tracking-widest text-ds-soft mb-1.5">{t('srGuide.public.rulesTitle')}</p>
                     <ul className="flex flex-wrap gap-1.5">
                         {rules.map(r => (
-                            <li key={r} className="px-2 py-1 rounded border border-pub-border bg-pub-bg text-xs 3xl:text-sm 4xl:text-base text-[#d4d4d8]">{r}</li>
+                            <li key={r} className="px-2 py-1 rounded border border-pub-border bg-pub-bg text-xs 3xl:text-sm 4xl:text-base text-ds-text">{r}</li>
                         ))}
                     </ul>
                 </div>
@@ -170,7 +170,7 @@ export function PublicRequestGuide({ channel, mode, requestSource, activePlaylis
                         {showAll ? t('srGuide.public.hide') : `${t('srGuide.public.show')} (${secondary.length})`} {showAll ? '▴' : '▾'}
                     </button>
                 ) : <span />}
-                <a href={`/commands/${channel.toLowerCase()}`} className="text-[#71717a] hover:text-[#d4d4d8]">
+                <a href={`/commands/${channel.toLowerCase()}`} className="text-ds-soft hover:text-ds-text">
                     {t('srGuide.public.allCommands')} →
                 </a>
             </div>

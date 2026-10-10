@@ -91,7 +91,7 @@ export const TimeUnitInput: React.FC<TimeUnitInputProps> = ({
     return (
         <div className={className}>
             {showLabel && (
-                <label className="flex items-center gap-2 text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-ds-soft mb-2">
                     <Clock className="w-4 h-4" />
                     {label}
                 </label>
@@ -103,19 +103,19 @@ export const TimeUnitInput: React.FC<TimeUnitInputProps> = ({
                     min={0}
                     value={getDisplayValue()}
                     onChange={(e) => handleValueChange(Number(e.target.value) || 0)}
-                    className="w-24 px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc] text-center"
+                    className="w-24 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-center"
                 />
 
                 {/* Unit Selector */}
-                <div className="flex rounded-lg overflow-hidden border border-[#e2e8f0] dark:border-[#374151]">
+                <div className="flex rounded-lg overflow-hidden border border-ds-border">
                     {units.map((unit) => (
                         <button
                             key={unit.id}
                             onClick={() => handleUnitChange(unit.id)}
                             className={`px-3 py-2 text-sm font-medium transition-colors ${
                                 displayUnit === unit.id
-                                    ? 'bg-[#667eea] text-white'
-                                    : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'
+                                    ? 'bg-ds-accent text-ds-on-accent'
+                                    : 'bg-ds-surface text-ds-soft hover:bg-ds-bg '
                             }`}
                             title={unit.label}
                         >
@@ -125,7 +125,7 @@ export const TimeUnitInput: React.FC<TimeUnitInputProps> = ({
                 </div>
 
                 {/* Preview */}
-                <span className="text-sm text-[#94a3b8] font-mono">
+                <span className="text-sm text-ds-soft font-mono">
                     = {formatTimePreview()}
                 </span>
             </div>

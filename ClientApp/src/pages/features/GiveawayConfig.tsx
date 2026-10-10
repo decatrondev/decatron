@@ -3,6 +3,7 @@
  * Sistema de sorteos/giveaways profesional 
  */
 
+import TabIcon from '../../components/dashboard/TabIcon';
 import { useEffect, useState } from 'react';
 import { Save, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -187,30 +188,30 @@ const GiveawayConfig = () => {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">{t('giveaway.loadingConfig')}</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ds-border mx-auto mb-4"></div>
+                    <p className="text-ds-soft">{t('giveaway.loadingConfig')}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8">
             <div className="max-w-[1920px] mx-auto">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => navigate('/features')}
-                            className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg"
+                            className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                            <ArrowLeft className="w-5 h-5 text-ds-soft" />
                         </button>
                         <div>
-                            <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                            <h1 className="text-3xl font-black text-ds-text">
                                 🎉 {t('giveaway.title')}
                             </h1>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
+                            <p className="text-sm text-ds-soft mt-1">
                                 {t('giveaway.subtitle')}
                             </p>
                         </div>
@@ -221,10 +222,10 @@ const GiveawayConfig = () => {
                             onClick={handleSave}
                             disabled={persistence.saving || giveawayState.isActive}
                             title={giveawayState.isActive ? t('giveaway.cannotSaveActive') : t('giveaway.saveConfig')}
-                            className={`px-6 py-3 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg ${
+                            className={`px-6 py-3 rounded-lg transition-all flex items-center gap-2 font-bold ${
                                 persistence.saving || giveawayState.isActive
-                                    ? 'bg-gray-400 cursor-not-allowed text-gray-200'
-                                    : 'bg-[#3b82f6] hover:bg-[#2563eb] text-white border border-[#2563eb]'
+                                    ? 'bg-ds-faint cursor-not-allowed text-ds-text'
+                                    : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent border border-ds-accent'
                             }`}
                         >
                             <Save className="w-5 h-5" />
@@ -235,10 +236,10 @@ const GiveawayConfig = () => {
 
                 {/* Save Message */}
                 {persistence.saveMessage && (
-                    <div className={`mb-6 p-4 rounded-xl border ${
+                    <div className={`mb-6 p-4 rounded-lg border ${
                         persistence.saveMessage.type === 'success'
-                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300'
+                            ? 'bg-ds-ok/10 border-ds-ok/40 text-ds-ok '
+                            : 'bg-ds-accent/10 border-ds-accent text-ds-accent-text '
                     }`}>
                         {persistence.saveMessage.text}
                     </div>
@@ -246,12 +247,12 @@ const GiveawayConfig = () => {
 
                 {/* Error Message from State */}
                 {giveawayState.error && (
-                    <div className="mb-6 p-4 rounded-xl border bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300">
+                    <div className="mb-6 p-4 rounded-lg border bg-ds-accent/10 border-ds-accent text-ds-accent-text">
                         <div className="flex items-center justify-between">
                             <span>{giveawayState.error}</span>
                             <button
                                 onClick={() => giveawayState.clearError()}
-                                className="text-rose-500 hover:text-rose-700 font-bold"
+                                className="text-ds-accent-text hover:text-ds-accent-text font-bold"
                             >
                                 ×
                             </button>
@@ -264,7 +265,7 @@ const GiveawayConfig = () => {
                     {/* Left Column: Tabs + Content (2/3 en XL+) */}
                     <div className="xl:col-span-2 space-y-6">
                         {/* Tabs Navigation */}
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                             <div className="flex flex-wrap gap-2">
                                 {tabs.map((tab) => (
                                     <button
@@ -272,11 +273,11 @@ const GiveawayConfig = () => {
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                                             activeTab === tab.id
-                                                ? 'bg-slate-800 text-white shadow-lg dark:bg-slate-700'
-                                                : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                                ? 'bg-ds-raised text-ds-text '
+                                                : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                                         }`}
                                     >
-                                        {tab.icon} {tab.label}
+                                        <TabIcon emoji={tab.icon} />{tab.label}
                                     </button>
                                 ))}
                             </div>

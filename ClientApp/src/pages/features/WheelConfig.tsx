@@ -454,7 +454,7 @@ export default function WheelConfig() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -477,10 +477,10 @@ export default function WheelConfig() {
             />
 
             {status && (
-                <div className={`px-4 py-3 rounded-xl border text-sm font-medium ${
+                <div className={`px-4 py-3 rounded-lg border text-sm font-medium ${
                     status.kind === 'ok'
-                        ? 'bg-green-500/10 border-green-500/40 text-green-300'
-                        : 'bg-red-500/10 border-red-500/40 text-red-300'
+                        ? 'bg-ds-accent/10 border-ds-ok/40 text-ds-ok'
+                        : 'bg-ds-danger-solid/10 border-ds-danger/40 text-ds-danger'
                 }`}>
                     {status.text}
                 </div>
@@ -588,9 +588,9 @@ export default function WheelConfig() {
 
                         {tab === 'media' && (
                             <section className={CARD}>
-                                <div className="px-5 py-4 border-b border-[#374151]">
-                                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.media.title')}</h2>
-                                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.media.help')}</p>
+                                <div className="px-5 py-4 border-b border-ds-border">
+                                    <h2 className="font-bold text-ds-text">{t('wheel.media.title')}</h2>
+                                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.media.help')}</p>
                                 </div>
                                 <div className="p-5">
                                     {/* La biblioteca de medios que ya existe, no una nueva.

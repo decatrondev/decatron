@@ -20,15 +20,15 @@ export function MessagesTab({ pack, lang, onChange, t }: {
     return (
         <div className="space-y-4">
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151] flex flex-wrap items-center justify-between gap-3">
+                <div className="px-5 py-4 border-b border-ds-border flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.messages.title')}</h2>
-                        <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.messages.help')}</p>
+                        <h2 className="font-bold text-ds-text">{t('wheel.messages.title')}</h2>
+                        <p className="text-xs text-ds-soft mt-0.5">{t('wheel.messages.help')}</p>
                     </div>
                     {/* Se dice en que idioma se esta editando, pero no se deja cambiar
                         aca: eso vive en Configuracion, que es el unico sitio donde el
                         idioma de la cuenta se decide. */}
-                    <p className="text-xs text-[#94a3b8]">
+                    <p className="text-xs text-ds-soft">
                         {t('wheel.messages.editingIn', { lang: lang.toUpperCase() })}
                     </p>
                 </div>
@@ -41,13 +41,13 @@ export function MessagesTab({ pack, lang, onChange, t }: {
                     const desconocidas = [...usadas].filter(v => !vars.includes(v));
 
                     return (
-                        <div key={key} className="px-5 py-4 border-b border-[#374151] last:border-0">
+                        <div key={key} className="px-5 py-4 border-b border-ds-border last:border-0">
                             <div className="flex items-center justify-between gap-3 mb-2">
-                                <p className="text-sm font-medium text-[#f8fafc]">{t(`wheel.messages.keys.${key}`)}</p>
+                                <p className="text-sm font-medium text-ds-text">{t(`wheel.messages.keys.${key}`)}</p>
                                 {propio && (
                                     <button
                                         onClick={() => onChange(key, lang, '')}
-                                        className="text-xs text-[#94a3b8] hover:text-[#f8fafc] flex items-center gap-1"
+                                        className="text-xs text-ds-soft hover:text-ds-text flex items-center gap-1"
                                     >
                                         <RotateCcw className="w-3 h-3" />
                                         {t('wheel.messages.reset')}
@@ -69,7 +69,7 @@ export function MessagesTab({ pack, lang, onChange, t }: {
                                         key={v}
                                         onClick={() => onChange(key, lang, `${propio || base}{${v}}`)}
                                         title={t('wheel.messages.insert')}
-                                        className="px-2 py-0.5 rounded bg-[#262626] border border-[#374151] text-xs font-mono text-[#94a3b8] hover:text-[#E8B455] hover:border-[#E8B455]/40 transition-colors"
+                                        className="px-2 py-0.5 rounded bg-ds-bg border border-ds-border text-xs font-mono text-ds-soft hover:text-ds-accent-text hover:border-ds-accent/40 transition-colors"
                                     >
                                         {'{' + v + '}'}
                                     </button>
@@ -77,7 +77,7 @@ export function MessagesTab({ pack, lang, onChange, t }: {
                             </div>
 
                             {desconocidas.length > 0 && (
-                                <p className="text-xs text-amber-300 mt-2">
+                                <p className="text-xs text-ds-warn mt-2">
                                     {t('wheel.messages.unknownVars', { vars: desconocidas.map(v => `{${v}}`).join(' ') })}
                                 </p>
                             )}

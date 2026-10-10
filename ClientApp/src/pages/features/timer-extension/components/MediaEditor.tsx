@@ -538,7 +538,7 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                 <div className="animate-fade-in border-t border-dashed border-ds-border pt-4">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <FileAudio className="w-4 h-4 text-ds-ok" />
+                            <FileAudio className="w-4 h-4 text-ds-accent-text" />
                             <h4 className="text-sm font-bold text-ds-text">
                                 {detectedType === 'image' ? 'Audio para la Imagen' : 'Audio de Reemplazo'}
                             </h4>

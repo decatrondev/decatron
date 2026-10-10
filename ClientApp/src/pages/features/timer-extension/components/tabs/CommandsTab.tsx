@@ -124,7 +124,7 @@ export const CommandsTab: React.FC<CommandsTabProps> = ({
                                         
                                         <div>
                                             <label className="text-[10px] font-bold text-ds-soft uppercase tracking-wider mb-2 flex items-center gap-1">
-                                                <Shield className="w-3 h-3 text-ds-ok" /> Lista Blanca (Permitir)
+                                                <Shield className="w-3 h-3 text-ds-accent-text" /> Lista Blanca (Permitir)
                                             </label>
                                             <input
                                                 type="text"

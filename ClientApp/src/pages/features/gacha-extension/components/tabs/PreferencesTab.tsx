@@ -4,9 +4,9 @@ import api from '../../../../../services/api';
 import type { GachaPreference, GachaItem, GachaParticipant } from '../../types';
 import { RARITY_CONFIG, getRarityStars } from '../../types';
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-const inputClass = 'w-full px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent';
-const labelClass = 'text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const inputClass = 'w-full px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
+const labelClass = 'text-sm font-bold text-ds-text ';
 
 type PrefScope = 'global' | 'individual';
 
@@ -109,52 +109,52 @@ export const PreferencesTab: React.FC = () => {
     };
 
     if (loading) {
-        return <div className={cardClass}><p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando preferencias...</p></div>;
+        return <div className={cardClass}><p className="text-center text-ds-soft py-8">Cargando preferencias...</p></div>;
     }
 
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
-                <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                <h2 className="text-xl font-black text-ds-text flex items-center gap-2">
                     <Sparkles className="w-5 h-5" /> Preferencias ({preferences.length})
                 </h2>
                 <div className="flex gap-2">
-                    <button onClick={() => openCreate('global')} disabled={items.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">
+                    <button onClick={() => openCreate('global')} disabled={items.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
                         <Globe className="w-4 h-4" /> Preferencia Global
                     </button>
-                    <button onClick={() => openCreate('individual')} disabled={items.length === 0 || participants.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">
+                    <button onClick={() => openCreate('individual')} disabled={items.length === 0 || participants.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
                         <User className="w-4 h-4" /> Preferencia Individual
                     </button>
                 </div>
             </div>
 
             {/* Help Banner */}
-            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+            <div className="rounded-lg border border-ds-border bg-ds-bg overflow-hidden">
                 <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
-                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan las preferencias</span>
-                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                    <HelpCircle className="w-5 h-5 text-ds-soft flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-ds-soft">Como funcionan las preferencias</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
                 </button>
                 {showHelp && (
-                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="px-4 pb-4 space-y-3 text-sm text-ds-soft">
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
-                            <span>Las preferencias permiten <strong className="text-[#1e293b] dark:text-[#f8fafc]">modificar la probabilidad</strong> de una carta especifica</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Las preferencias permiten <strong className="text-ds-text">modificar la probabilidad</strong> de una carta especifica</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Global</strong> — aplica a todos los viewers del canal</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span><strong className="text-ds-text">Global</strong> — aplica a todos los viewers del canal</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
-                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Individual</strong> — aplica solo a un viewer especifico (tiene prioridad sobre global)</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span><strong className="text-ds-text">Individual</strong> — aplica solo a un viewer especifico (tiene prioridad sobre global)</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
-                            <span>Solo aplican si el viewer cumple el <strong className="text-[#1e293b] dark:text-[#f8fafc]">minimo de donacion</strong> de la carta</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Solo aplican si el viewer cumple el <strong className="text-ds-text">minimo de donacion</strong> de la carta</span>
                         </div>
-                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
-                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Usa preferencias individuales para premiar a tus mejores donantes con mayor chance de cartas raras.
+                        <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
+                            <strong className="text-ds-text">Tip:</strong> Usa preferencias individuales para premiar a tus mejores donantes con mayor chance de cartas raras.
                         </div>
                     </div>
                 )}
@@ -162,7 +162,7 @@ export const PreferencesTab: React.FC = () => {
 
             {preferences.length === 0 ? (
                 <div className={cardClass}>
-                    <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-12">No hay preferencias configuradas.</p>
+                    <p className="text-center text-ds-soft py-12">No hay preferencias configuradas.</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -175,33 +175,33 @@ export const PreferencesTab: React.FC = () => {
                             <div key={p.id} className={`${cardClass} flex items-center gap-4`}>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{item?.name ?? `Item #${p.itemId}`}</span>
+                                        <span className="font-bold text-ds-text">{item?.name ?? `Item #${p.itemId}`}</span>
                                         {rc && (
                                             <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: rc.bg, color: rc.color }}>
                                                 {getRarityStars(item!.rarity)}
                                             </span>
                                         )}
                                         {isGlobal ? (
-                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 flex items-center gap-1">
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-ds-accent/10 text-ds-accent-text flex items-center gap-1">
                                                 <Globe className="w-3 h-3" /> Global
                                             </span>
                                         ) : (
-                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300 flex items-center gap-1">
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-ds-accent/10 text-ds-accent-text flex items-center gap-1">
                                                 <User className="w-3 h-3" /> {participant?.name ?? `#${p.participantId}`}
                                             </span>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-4 mt-1 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                    <div className="flex items-center gap-4 mt-1 text-sm text-ds-soft">
                                         <span>Donacion: <strong>{p.probabilityPercentage}%</strong></span>
                                         {p.coinProbabilityOverride != null && <span>Coins: <strong>{p.coinProbabilityOverride}%</strong></span>}
-                                        <span className={p.isActive ? 'text-green-500' : 'text-red-400'}>{p.isActive ? 'Activa' : 'Inactiva'}</span>
+                                        <span className={p.isActive ? 'text-ds-ok' : 'text-ds-danger'}>{p.isActive ? 'Activa' : 'Inactiva'}</span>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => openEdit(p)} className="p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors">
+                                    <button onClick={() => openEdit(p)} className="p-2 rounded-lg bg-ds-accent/10 text-ds-accent-text hover:bg-ds-accent/10 transition-colors">
                                         <Pencil className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
+                                    <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg bg-ds-danger/10 text-ds-danger hover:bg-ds-danger/10 transition-colors">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -213,25 +213,25 @@ export const PreferencesTab: React.FC = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-2xl w-full max-w-md p-6 space-y-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-ds-input/50 p-4">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border w-full max-w-md p-6 space-y-4">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">
+                            <h3 className="text-lg font-black text-ds-text">
                                 {editingId ? 'Editar Preferencia' : `Nueva Preferencia ${form.scope === 'global' ? 'Global' : 'Individual'}`}
                             </h3>
-                            <button onClick={() => setShowModal(false)} className="p-1 text-[#64748b] hover:text-red-500"><X className="w-5 h-5" /></button>
+                            <button onClick={() => setShowModal(false)} className="p-1 text-ds-soft hover:text-ds-danger"><X className="w-5 h-5" /></button>
                         </div>
                         <div className="space-y-3">
                             <div>
                                 <label className={labelClass}>Item</label>
-                                <select className={`${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`} value={form.itemId} onChange={e => setForm({ ...form, itemId: Number(e.target.value) })}>
+                                <select className={`${inputClass} [&>option]:bg-ds-surface `} value={form.itemId} onChange={e => setForm({ ...form, itemId: Number(e.target.value) })}>
                                     {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                                 </select>
                             </div>
                             {form.scope === 'individual' && (
                                 <div>
                                     <label className={labelClass}>Participante</label>
-                                    <select className={`${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`} value={form.participantId ?? ''} onChange={e => setForm({ ...form, participantId: Number(e.target.value) })}>
+                                    <select className={`${inputClass} [&>option]:bg-ds-surface `} value={form.participantId ?? ''} onChange={e => setForm({ ...form, participantId: Number(e.target.value) })}>
                                         {participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
@@ -246,14 +246,14 @@ export const PreferencesTab: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <label className={labelClass}>Activa</label>
-                                <button onClick={() => setForm({ ...form, isActive: !form.isActive })} className={`w-12 h-6 rounded-full transition-colors ${form.isActive ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                                    <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                <button onClick={() => setForm({ ...form, isActive: !form.isActive })} className={`w-12 h-6 rounded-full transition-colors ${form.isActive ? 'bg-ds-accent' : 'bg-ds-raised '}`}>
+                                    <div className={`w-5 h-5 bg-ds-surface rounded-full shadow transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                 </button>
                             </div>
                         </div>
                         <div className="flex gap-2 pt-2">
-                            <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-[#e2e8f0] dark:border-[#374151] rounded-xl font-bold text-[#64748b] hover:bg-gray-50 dark:hover:bg-[#374151]/50 transition-colors">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving || !form.itemId} className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-colors">
+                            <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-ds-border rounded-lg font-bold text-ds-soft hover:bg-ds-surface transition-colors">Cancelar</button>
+                            <button onClick={handleSave} disabled={saving || !form.itemId} className="flex-1 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>
                         </div>

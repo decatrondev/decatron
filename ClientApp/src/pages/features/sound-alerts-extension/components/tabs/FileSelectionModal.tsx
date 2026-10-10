@@ -172,7 +172,7 @@ export function FileSelectionModal({
                                                     <div className="flex items-center gap-2">
                                                         {file.type === 'sound' && <Music className="w-4 h-4 text-ds-accent-text" />}
                                                         {file.type === 'video' && <Video className="w-4 h-4 text-ds-accent-text" />}
-                                                        {file.type === 'image' && <ImageIcon className="w-4 h-4 text-ds-ok" />}
+                                                        {file.type === 'image' && <ImageIcon className="w-4 h-4 text-ds-accent-text" />}
                                                         <span className="text-sm font-semibold text-ds-text">
                                                             {file.name}
                                                         </span>
@@ -291,7 +291,7 @@ export function FileSelectionModal({
                                                 >
                                                     {selectedImageFile ? (
                                                         <>
-                                                            <ImageIcon className="w-8 h-8 text-ds-ok" />
+                                                            <ImageIcon className="w-8 h-8 text-ds-accent-text" />
                                                             <p className="text-sm font-medium text-ds-text">
                                                                 {selectedImageFile.name}
                                                             </p>

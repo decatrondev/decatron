@@ -96,12 +96,12 @@ export default function FollowAlertConfig() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-6">
+        <div className="min-h-screen bg-ds-bg p-6">
             {/* Header */}
             <div className="max-w-5xl mx-auto mb-6">
                 <button
                     onClick={() => navigate('/dashboard')}
-                    className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-[#3b82f6] mb-4 transition-colors"
+                    className="flex items-center gap-2 text-ds-soft hover:text-ds-accent-text mb-4 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     {t('followAlert.backToDashboard')}
@@ -109,10 +109,10 @@ export default function FollowAlertConfig() {
 
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                        <h1 className="text-3xl font-black text-ds-text">
                             {t('followAlert.title')}
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <p className="text-ds-soft mt-1">
                             {t('followAlert.subtitle')}
                         </p>
                     </div>
@@ -123,8 +123,8 @@ export default function FollowAlertConfig() {
             {saveMessage && (
                 <div className="max-w-5xl mx-auto mb-6">
                     <div className={`flex items-center gap-2 p-4 rounded-lg ${saveMessage.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                        : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+                        ? 'bg-ds-ok/10 text-ds-ok '
+                        : 'bg-ds-danger/10 text-ds-danger '}`}>
                         {saveMessage.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                         <span className="font-semibold">{saveMessage.text}</span>
                     </div>
@@ -133,63 +133,63 @@ export default function FollowAlertConfig() {
 
             {loading ? (
                 <div className="max-w-5xl mx-auto text-center py-12">
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.loadingConfig')}</p>
+                    <p className="text-ds-soft">{t('followAlert.loadingConfig')}</p>
                 </div>
             ) : (
                 <div className="max-w-5xl mx-auto space-y-6">
                     {/* Stats Row */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm">
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.followsToday')}</p>
-                                    <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">
+                                    <p className="text-sm text-ds-soft">{t('followAlert.followsToday')}</p>
+                                    <p className="text-2xl font-black text-ds-text mt-1">
                                         {stats.followsToday}
                                     </p>
                                 </div>
-                                <TrendingUp className="w-10 h-10 text-[#2563eb]" />
+                                <TrendingUp className="w-10 h-10 text-ds-accent-text" />
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm">
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.totalFollows')}</p>
-                                    <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">
+                                    <p className="text-sm text-ds-soft">{t('followAlert.totalFollows')}</p>
+                                    <p className="text-2xl font-black text-ds-text mt-1">
                                         {stats.totalFollows}
                                     </p>
                                 </div>
-                                <Users className="w-10 h-10 text-purple-500" />
+                                <Users className="w-10 h-10 text-ds-accent-text" />
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm">
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.messagesSent')}</p>
-                                    <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">
+                                    <p className="text-sm text-ds-soft">{t('followAlert.messagesSent')}</p>
+                                    <p className="text-2xl font-black text-ds-text mt-1">
                                         {stats.messagesSent}
                                     </p>
                                 </div>
-                                <Heart className="w-10 h-10 text-pink-500" />
+                                <Heart className="w-10 h-10 text-ds-accent-text" />
                             </div>
                         </div>
                     </div>
 
                     {/* Configuration Card */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                        <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                        <h2 className="text-xl font-black text-ds-text mb-6">
                             {t('followAlert.configuration')}
                         </h2>
 
                         <div className="space-y-6">
                             {/* Enable/Disable */}
-                            <div className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                                 <div>
-                                    <label className="block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <label className="block text-sm font-semibold text-ds-text">
                                         {t('followAlert.enableFollowAlerts')}
                                     </label>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                    <p className="text-xs text-ds-soft mt-1">
                                         {t('followAlert.enableDescription')}
                                     </p>
                                 </div>
@@ -200,13 +200,13 @@ export default function FollowAlertConfig() {
                                         onChange={(e) => setConfig({ ...config, enabled: e.target.checked })}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                    <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                                 </label>
                             </div>
 
                             {/* Message Template */}
                             <div>
-                                <label className="block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                <label className="block text-sm font-semibold text-ds-text mb-2">
                                     {t('followAlert.customMessage')}
                                 </label>
                                 <input
@@ -214,15 +214,15 @@ export default function FollowAlertConfig() {
                                     value={config.message}
                                     onChange={(e) => setConfig({ ...config, message: e.target.value })}
                                     placeholder="¡Gracias @{username} por el follow! ❤️"
-                                    className="w-full px-4 py-3 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text focus:ring-2 focus:ring-ds-accent"
                                 />
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
-                                    {t('followAlert.availableVars')} <code className="bg-[#f1f5f9] dark:bg-[#374151] px-2 py-1 rounded">{'{username}'}</code>
+                                <p className="text-xs text-ds-soft mt-2">
+                                    {t('followAlert.availableVars')} <code className="bg-ds-raised px-2 py-1 rounded">{'{username}'}</code>
                                 </p>
                                 {config.message && (
-                                    <div className="mt-3 p-3 bg-[#f1f5f9] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                                        <p className="text-xs font-semibold text-[#64748b] dark:text-[#94a3b8] mb-1">{t('followAlert.preview')}</p>
-                                        <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="mt-3 p-3 bg-ds-raised rounded-lg border border-ds-border">
+                                        <p className="text-xs font-semibold text-ds-soft mb-1">{t('followAlert.preview')}</p>
+                                        <p className="text-sm text-ds-text">
                                             {config.message.replace('{username}', 'Usuario123')}
                                         </p>
                                     </div>
@@ -231,7 +231,7 @@ export default function FollowAlertConfig() {
 
                             {/* Cooldown */}
                             <div>
-                                <label className="block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                <label className="block text-sm font-semibold text-ds-text mb-2">
                                     {t('followAlert.cooldownMinutes')}
                                 </label>
                                 <input
@@ -240,9 +240,9 @@ export default function FollowAlertConfig() {
                                     max="1440"
                                     value={config.cooldownMinutes}
                                     onChange={(e) => setConfig({ ...config, cooldownMinutes: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-4 py-3 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text focus:ring-2 focus:ring-ds-accent"
                                 />
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
+                                <p className="text-xs text-ds-soft mt-2">
                                     {t('followAlert.cooldownDescription')}
                                 </p>
                             </div>
@@ -251,7 +251,7 @@ export default function FollowAlertConfig() {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
+                                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent font-bold rounded-lg transition-all"
                             >
                                 <Save className="w-5 h-5" />
                                 {saving ? t('followAlert.saving') : t('followAlert.saveConfig')}
@@ -260,9 +260,9 @@ export default function FollowAlertConfig() {
                     </div>
 
                     {/* Info Card */}
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                            <strong>{t('followAlert.importantLabel')}</strong> {t('followAlert.importantNote')} <code className="bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded">channel.follow</code>.
+                    <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-4">
+                        <p className="text-sm text-ds-accent-text">
+                            <strong>{t('followAlert.importantLabel')}</strong> {t('followAlert.importantNote')} <code className="bg-ds-accent/10 px-2 py-1 rounded">channel.follow</code>.
                         </p>
                     </div>
                 </div>

@@ -37,8 +37,8 @@ export function WheelSidebar({
             {/* El nombre de la rueda. Hasta ahora se creaba con un nombre por
                 defecto y no habia forma de cambiarlo: con varias ruedas por
                 canal, el selector de arriba mostraba varias "Mi rueda". */}
-            <div className="bg-[#1B1C1D] rounded-xl border border-[#374151] p-4 space-y-2">
-                <h3 className="font-bold text-[#f8fafc] text-sm">{t('wheel.nameTitle')}</h3>
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-2">
+                <h3 className="font-bold text-ds-text text-sm">{t('wheel.nameTitle')}</h3>
                 <input
                     type="text"
                     maxLength={80}
@@ -54,34 +54,34 @@ export function WheelSidebar({
                 {/* El slug NO sigue al nombre a proposito: es la URL que el
                     streamer ya pego en su escena de OBS, y cambiarla sola le
                     romperia el overlay sin avisar. */}
-                <p className="text-xs text-[#64748b]">{t('wheel.nameHelp')}</p>
+                <p className="text-xs text-ds-soft">{t('wheel.nameHelp')}</p>
 
                 {/* Encendido/apagado. Es lo que consume el cupo del tier, asi
                     que sin este control el streamer no podria gestionar sus
                     ruedas: no tendria como apagar una para encender otra. */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#374151]">
+                <div className="flex items-center justify-between pt-2 border-t border-ds-border">
                     <div>
-                        <p className="text-sm font-medium text-[#f8fafc]">{t('wheel.enabled')}</p>
-                        <p className="text-xs text-[#64748b]">{t('wheel.enabledHelp')}</p>
+                        <p className="text-sm font-medium text-ds-text">{t('wheel.enabled')}</p>
+                        <p className="text-xs text-ds-soft">{t('wheel.enabledHelp')}</p>
                     </div>
                     <Toggle on={wheel.isEnabled} onChange={onToggleEnabled} />
                 </div>
 
-                <div className="pt-2 border-t border-[#374151]">
+                <div className="pt-2 border-t border-ds-border">
                     {confirmDelete ? (
                         <div className="space-y-2">
-                            <p className="text-xs text-red-300">{t('wheel.deleteConfirm', { name: wheel.name })}</p>
+                            <p className="text-xs text-ds-danger">{t('wheel.deleteConfirm', { name: wheel.name })}</p>
                             <div className="flex gap-2">
                                 <button
                                     onClick={onDelete}
                                     disabled={saving}
-                                    className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-bold transition-colors"
+                                    className="flex-1 px-3 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover disabled:opacity-60 text-ds-on-accent rounded-lg text-sm font-bold transition-colors"
                                 >
                                     {t('wheel.deleteYes')}
                                 </button>
                                 <button
                                     onClick={onCancelDelete}
-                                    className="flex-1 px-3 py-2 bg-[#262626] border border-[#374151] text-[#f8fafc] rounded-lg text-sm font-medium hover:bg-[#333] transition-colors"
+                                    className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border text-ds-text rounded-lg text-sm font-medium hover:bg-ds-raised transition-colors"
                                 >
                                     {t('wheel.deleteNo')}
                                 </button>
@@ -92,14 +92,14 @@ export function WheelSidebar({
                             <button
                                 onClick={onDuplicate}
                                 disabled={saving}
-                                className="w-full px-3 py-2 mb-1 text-sm bg-[#262626] hover:bg-[#333] disabled:opacity-50 border border-[#374151] text-[#f8fafc] rounded-lg transition-colors flex items-center justify-center gap-2"
+                                className="w-full px-3 py-2 mb-1 text-sm bg-ds-bg hover:bg-ds-raised disabled:opacity-50 border border-ds-border text-ds-text rounded-lg transition-colors flex items-center justify-center gap-2"
                             >
                                 <CopyPlus className="w-4 h-4" />
                                 {t('wheel.duplicate')}
                             </button>
                             <button
                                 onClick={onAskDelete}
-                                className="w-full px-3 py-2 text-sm text-[#64748b] hover:text-red-400 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                className="w-full px-3 py-2 text-sm text-ds-soft hover:text-ds-danger rounded-lg transition-colors flex items-center justify-center gap-2"
                             >
                                 <Trash2 className="w-4 h-4" />
                                 {t('wheel.delete')}
@@ -111,15 +111,15 @@ export function WheelSidebar({
 
             <WheelPreview segments={segments} visual={visual} celebNonce={celebNonce} t={t} />
 
-            <div className="bg-[#1B1C1D] rounded-xl border border-[#374151] p-4 space-y-2">
-                <h3 className="font-bold text-[#f8fafc] text-sm">{t('wheel.overlayUrl.title')}</h3>
-                <p className="text-xs text-[#94a3b8]">{t('wheel.overlayUrl.help')}</p>
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-2">
+                <h3 className="font-bold text-ds-text text-sm">{t('wheel.overlayUrl.title')}</h3>
+                <p className="text-xs text-ds-soft">{t('wheel.overlayUrl.help')}</p>
                 {/* El slug se edita ACA, junto a la URL que forma, y no en
                     el bloque del nombre: cambiarlo rompe la escena de OBS
                     que el streamer ya guardo, asi que tiene que ver la URL
                     mientras lo toca. */}
                 <div className="flex items-center gap-2 pb-1">
-                    <span className="text-xs text-[#64748b] shrink-0">{t('wheel.slugLabel')}</span>
+                    <span className="text-xs text-ds-soft shrink-0">{t('wheel.slugLabel')}</span>
                     <input
                         defaultValue={wheel.slug}
                         key={wheel.slug}
@@ -128,20 +128,20 @@ export function WheelSidebar({
                         className={`${FIELD} flex-1 text-xs`}
                     />
                 </div>
-                <p className="text-xs text-amber-300/80">{t('wheel.slugWarning')}</p>
+                <p className="text-xs text-ds-warn/80">{t('wheel.slugWarning')}</p>
 
                 <div className="flex items-center gap-2">
-                    <code className="flex-1 px-3 py-2 bg-[#262626] border border-[#374151] rounded-lg text-xs text-[#cbd5e1] truncate">
+                    <code className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-xs text-ds-text truncate">
                         {overlayUrl}
                     </code>
                     <button
                         onClick={onCopy}
-                        className="p-2 bg-[#262626] hover:bg-[#333] border border-[#374151] rounded-lg transition-colors"
+                        className="p-2 bg-ds-bg hover:bg-ds-raised border border-ds-border rounded-lg transition-colors"
                         aria-label={t('wheel.overlayUrl.copy')}
                     >
                         {copied
-                            ? <Check className="w-4 h-4 text-green-400" />
-                            : <Copy className="w-4 h-4 text-[#94a3b8]" />}
+                            ? <Check className="w-4 h-4 text-ds-ok" />
+                            : <Copy className="w-4 h-4 text-ds-soft" />}
                     </button>
                 </div>
 
@@ -150,7 +150,7 @@ export function WheelSidebar({
                     streamer que arregle algo que no pasa; con coordenadas fijas, es la
                     unica forma de que se entere antes de verlo corrido en un directo. */}
                 {visual.layout && (
-                    <p className="text-xs text-amber-300/80">
+                    <p className="text-xs text-ds-warn/80">
                         {t('wheel.canvas.obsSize', { width: CANVAS_WIDTH, height: CANVAS_HEIGHT })}
                     </p>
                 )}

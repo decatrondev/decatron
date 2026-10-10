@@ -92,13 +92,13 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
   return (
     <div className="space-y-6">
       {/* Sistema Activado/Desactivado */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
+            <label className="text-sm font-bold text-ds-text flex items-center gap-2 3xl:text-base">
               💎 Alertas de Bits
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Configura las alertas que aparecen cuando alguien dona bits
             </p>
           </div>
@@ -109,8 +109,8 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
               onChange={(e) => onConfigChange({ enabled: e.target.checked })}
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
-            <span className="ml-3 text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
+            <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
+            <span className="ml-3 text-sm font-bold text-ds-text 3xl:text-base">
               {config.enabled ? 'Activado' : 'Desactivado'}
             </span>
           </label>
@@ -118,13 +118,13 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
       </div>
 
       {/* Alerta Base */}
-      <div className="rounded-2xl border-2 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-6 shadow-lg">
+      <div className="rounded-lg border-2 border-ds-accent bg-ds-accent/10 p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
+            <label className="text-sm font-bold text-ds-text flex items-center gap-2 3xl:text-base">
               🔔 Alerta BASE (suena SIEMPRE)
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Esta alerta se reproduce para cualquier cantidad de bits. Los tiers pueden sobrescribirla.
             </p>
           </div>
@@ -142,25 +142,25 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
               }
               className="sr-only peer"
             />
-            <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
+            <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
           </label>
-          <button type="button" onClick={() => setBaseOpen(o => !o)} aria-expanded={baseOpen} className="ml-3 p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-blue-100 dark:hover:bg-blue-900/40" aria-label={baseOpen ? '−' : '+'}>
+          <button type="button" onClick={() => setBaseOpen(o => !o)} aria-expanded={baseOpen} className="ml-3 p-2 rounded-lg text-ds-soft hover:bg-ds-accent/10" aria-label={baseOpen ? '−' : '+'}>
             <ChevronDown className={`w-5 h-5 transition-transform ${baseOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
         {baseOpen && (
-        <div className="space-y-4 mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+        <div className="space-y-4 mt-4 pt-4 border-t border-ds-accent">
           {/* Mensaje Base */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
-                Mensaje · Variables: <code className="text-blue-500">{EVENT_VARIABLES.bits}</code>
+              <label className="text-xs font-bold text-ds-soft 3xl:text-sm">
+                Mensaje · Variables: <code className="text-ds-accent-text">{EVENT_VARIABLES.bits}</code>
               </label>
               {!config.baseAlert.message && (
                 <button
                   onClick={() => onConfigChange({ baseAlert: { ...config.baseAlert, message: MESSAGE_TEMPLATES.bits.base } })}
-                  className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold 3xl:text-sm"
+                  className="text-xs px-2 py-1 bg-ds-accent/10 text-ds-accent-text rounded-lg hover:bg-ds-accent/10 font-bold 3xl:text-sm"
                 >
                   ✨ Usar predefinido
                 </button>
@@ -178,15 +178,15 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                 })
               }
               placeholder={MESSAGE_TEMPLATES.bits.base}
-              className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm 3xl:text-base"
+              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-sm 3xl:text-base"
             />
             {!config.baseAlert.message && (
               <button
                 onClick={() => onConfigChange({ baseAlert: { ...config.baseAlert, message: MESSAGE_TEMPLATES.bits.base } })}
-                className="mt-2 w-full p-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-left group hover:border-blue-400 transition-all"
+                className="mt-2 w-full p-2 bg-ds-accent/10 rounded-lg border border-ds-accent text-left group hover:border-ds-accent transition-all"
               >
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">💡 <span className="font-bold text-blue-600 dark:text-blue-400">Sugerido:</span></p>
-                <p className="text-sm text-blue-700 dark:text-blue-300 font-mono mt-1 3xl:text-base">"{MESSAGE_TEMPLATES.bits.base}"</p>
+                <p className="text-xs text-ds-soft 3xl:text-sm">💡 <span className="font-bold text-ds-accent-text">Sugerido:</span></p>
+                <p className="text-sm text-ds-accent-text font-mono mt-1 3xl:text-base">"{MESSAGE_TEMPLATES.bits.base}"</p>
               </button>
             )}
           </div>
@@ -194,7 +194,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
           {/* Duración y Volumen */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+              <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                 Duración (seg)
               </label>
               <input
@@ -210,11 +210,11 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                     },
                   })
                 }
-                className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+              <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                 Volumen (0-100)
               </label>
               <input
@@ -230,14 +230,14 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                     },
                   })
                 }
-                className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
               />
             </div>
           </div>
 
           {/* Media */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Multimedia (Audio / Video / Imagen)
             </label>
             <MediaEditor
@@ -255,14 +255,14 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
 
           {/* Animación y efectos */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">Animación y efectos</label>
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">Animación y efectos</label>
             <AnimationEffectsSection animation={config.baseAlert.animation} effects={config.baseAlert.effects}
               onChange={patch => onConfigChange({ baseAlert: { ...config.baseAlert, ...patch } })} />
           </div>
 
           {/* TTS Base Alert */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Text-to-Speech
             </label>
             <TtsSection
@@ -277,7 +277,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
 
           {/* Chat Message Base Alert */}
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
               Mensaje del Bot en Chat
             </label>
             <ChatMessageSection
@@ -302,19 +302,19 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
       </div>
 
       {/* Tiers Específicos */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
+            <label className="text-sm font-bold text-ds-text flex items-center gap-2 3xl:text-base">
               🎯 Tiers Específicos
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
+            <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Define alertas diferentes según la cantidad de bits donados
             </p>
           </div>
           <button
             onClick={addTier}
-            className="px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white rounded-lg transition-all font-bold text-sm flex items-center gap-2 3xl:text-base"
+            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2 3xl:text-base"
           >
             <Plus className="w-4 h-4" />
             Agregar Tier
@@ -322,7 +322,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
         </div>
 
         {config.tiers.length === 0 ? (
-          <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">
+          <div className="text-center py-8 text-ds-soft">
             No hay tiers configurados. Agrega uno para empezar.
           </div>
         ) : (
@@ -330,11 +330,11 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
             {config.tiers.map((tier, index) => (
               <div
                 key={tier.id}
-                className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl overflow-hidden"
+                className="border border-ds-border rounded-lg overflow-hidden"
               >
                 {/* Tier Header */}
                 <div
-                  className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] cursor-pointer hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+                  className="flex items-center justify-between p-4 bg-ds-bg cursor-pointer hover:bg-ds-raised transition-colors"
                   onClick={() =>
                     setExpandedTier(expandedTier === tier.id ? null : tier.id)
                   }
@@ -344,10 +344,10 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                       {index === 0 ? '🥉' : index === 1 ? '🥈' : index === 2 ? '🥇' : '💎'}
                     </span>
                     <div>
-                      <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                      <div className="font-bold text-ds-text">
                         {tier.name}
                       </div>
-                      <div className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
+                      <div className="text-xs text-ds-soft 3xl:text-sm">
                         {tier.condition.type === 'range' &&
                           `${tier.condition.min} - ${tier.condition.max} bits`}
                         {tier.condition.type === 'minimum' &&
@@ -364,36 +364,36 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                         e.stopPropagation();
                         deleteTier(tier.id);
                       }}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      className="p-2 hover:bg-ds-danger/10 rounded-lg transition-colors"
                     >
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <Trash2 className="w-4 h-4 text-ds-danger" />
                     </button>
                     {expandedTier === tier.id ? (
-                      <ChevronUp className="w-5 h-5 text-[#64748b]" />
+                      <ChevronUp className="w-5 h-5 text-ds-soft" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-[#64748b]" />
+                      <ChevronDown className="w-5 h-5 text-ds-soft" />
                     )}
                   </div>
                 </div>
 
                 {/* Tier Content */}
                 {expandedTier === tier.id && (
-                  <div className="p-4 space-y-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                  <div className="p-4 space-y-4 border-t border-ds-border">
                     {/* Nombre y Estado */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                        <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                           Nombre del Tier
                         </label>
                         <input
                           type="text"
                           value={tier.name}
                           onChange={(e) => updateTier(tier.id, { name: e.target.value })}
-                          className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                        <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                           Estado
                         </label>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -405,8 +405,8 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
-                          <span className="ml-3 text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
+                          <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
+                          <span className="ml-3 text-sm font-bold text-ds-text 3xl:text-base">
                             {tier.enabled ? 'Activo' : 'Inactivo'}
                           </span>
                         </label>
@@ -415,7 +415,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
 
                     {/* Condición */}
                     <div>
-                      <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                      <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                         Condición de Activación
                       </label>
                       <div className="grid grid-cols-3 gap-3">
@@ -429,7 +429,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                               },
                             })
                           }
-                          className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base"
+                          className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
                         >
                           <option value="range">Rango</option>
                           <option value="minimum">Mínimo</option>
@@ -451,7 +451,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                                 })
                               }
                               placeholder="Mínimo"
-                              className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base"
+                              className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
                             />
                             <input
                               type="number"
@@ -466,7 +466,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                                 })
                               }
                               placeholder="Máximo"
-                              className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base"
+                              className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
                             />
                           </>
                         )}
@@ -485,7 +485,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                               })
                             }
                             placeholder="Cantidad mínima"
-                            className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base"
+                            className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
                           />
                         )}
 
@@ -503,7 +503,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                               })
                             }
                             placeholder="Cantidad exacta"
-                            className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base"
+                            className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
                           />
                         )}
                       </div>
@@ -512,8 +512,8 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                     {/* Mensaje */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
-                          Mensaje · <code className="text-blue-500">{EVENT_VARIABLES.bits}</code>
+                        <label className="text-xs font-bold text-ds-soft 3xl:text-sm">
+                          Mensaje · <code className="text-ds-accent-text">{EVENT_VARIABLES.bits}</code>
                         </label>
                         {!tier.message && (
                           <button
@@ -521,7 +521,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                               const tierKey = index === 0 ? 'tier1' : index === 1 ? 'tier2' : 'tier3';
                               updateTier(tier.id, { message: MESSAGE_TEMPLATES.bits[tierKey as keyof typeof MESSAGE_TEMPLATES.bits] });
                             }}
-                            className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold 3xl:text-sm"
+                            className="text-xs px-2 py-1 bg-ds-accent/10 text-ds-accent-text rounded-lg hover:bg-ds-accent/10 font-bold 3xl:text-sm"
                           >
                             ✨ Usar predefinido
                           </button>
@@ -532,14 +532,14 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                         value={tier.message}
                         onChange={(e) => updateTier(tier.id, { message: e.target.value })}
                         placeholder={index === 0 ? MESSAGE_TEMPLATES.bits.tier1 : index === 1 ? MESSAGE_TEMPLATES.bits.tier2 : MESSAGE_TEMPLATES.bits.tier3}
-                        className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm 3xl:text-base"
+                        className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-sm 3xl:text-base"
                       />
                     </div>
 
                     {/* Duración y Volumen */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                        <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                           Duración (seg)
                         </label>
                         <input
@@ -550,11 +550,11 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                           onChange={(e) =>
                             updateTier(tier.id, { duration: parseInt(e.target.value) || 5 })
                           }
-                          className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                        <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                           Volumen
                         </label>
                         <input
@@ -565,14 +565,14 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                           onChange={(e) =>
                             updateTier(tier.id, { volume: parseInt(e.target.value) || 50 })
                           }
-                          className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
                         />
                       </div>
                     </div>
 
                     {/* Media */}
                     <div>
-                      <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                      <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                         Multimedia (Audio / Video / Imagen)
                       </label>
                       <MediaEditor
@@ -588,13 +588,13 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
 
                     {/* Animación y efectos */}
                     <div>
-                      <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">Animación y efectos</label>
+                      <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">Animación y efectos</label>
                       <AnimationEffectsSection animation={tier.animation} effects={tier.effects} onChange={patch => updateTier(tier.id, patch)} />
                     </div>
 
                     {/* TTS */}
                     <div>
-                      <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                      <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                         Text-to-Speech
                       </label>
                       <TtsSection
@@ -609,7 +609,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
 
                     {/* Chat Message */}
                     <div>
-                      <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
+                      <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
                         Mensaje del Bot en Chat
                       </label>
                       <ChatMessageSection
@@ -646,7 +646,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
           max="60"
           value={config.cooldown}
           onChange={(e) => onConfigChange({ cooldown: parseInt(e.target.value) || 5 })}
-          className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
+          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
         />
       </EventSection>
     </div>

@@ -16,7 +16,7 @@ interface GoalTabProps {
 export const GoalTab: React.FC<GoalTabProps> = () => {
     const plannedFeatures = [
         {
-            icon: <Zap className="w-5 h-5 text-ds-warn" />,
+            icon: <Zap className="w-5 h-5 text-ds-accent-text" />,
             title: "Disparadores de Eventos",
             desc: "Ej: 'Si llegamos a 50 subs, activar Happy Hour automáticamente por 1 hora'."
         },
@@ -79,7 +79,7 @@ export const GoalTab: React.FC<GoalTabProps> = () => {
             {/* Feedback Call to Action */}
             <div className="bg-ds-accent/10 rounded-lg border border-ds-accent p-6 flex flex-col md:flex-row items-center gap-6">
                 <div className="p-4 bg-ds-surface rounded-full">
-                    <Lightbulb className="w-8 h-8 text-ds-warn" />
+                    <Lightbulb className="w-8 h-8 text-ds-accent-text" />
                 </div>
                 <div className="flex-1 text-center md:text-left">
                     <h3 className="text-lg font-bold text-ds-text mb-1">

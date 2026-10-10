@@ -201,7 +201,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-ds-ok" />
+                        <Clock className="w-5 h-5 text-ds-accent-text" />
                         <h3 className="text-lg font-bold text-ds-text">Uptime (EN VIVO)</h3>
                     </div>
                     <button
@@ -228,7 +228,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Flame className="w-5 h-5 text-ds-warn" />
+                        <Flame className="w-5 h-5 text-ds-accent-text" />
                         <h3 className="text-lg font-bold text-ds-text">Indicador Happy Hour</h3>
                     </div>
                     <button

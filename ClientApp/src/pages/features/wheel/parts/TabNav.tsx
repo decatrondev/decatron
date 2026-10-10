@@ -46,14 +46,14 @@ export function TabNav({ wheel, tab, pendingCount, onTab, t }: {
     const groupBadge = (id: GroupId) => (id === 'operation' && wheel.mode !== 'raffle' ? pendingCount : 0);
 
     return (
-        <nav className="bg-[#1B1C1D] border border-[#374151] rounded-xl p-2 space-y-2">
+        <nav className="bg-ds-surface border border-ds-border rounded-lg p-2 space-y-2">
             {/* Movil: selector de grupo */}
             <select
                 data-wheel-group-select
                 aria-label={t('wheel.groups.group')}
                 value={active?.id}
                 onChange={e => goGroup(e.target.value as GroupId)}
-                className="sm:hidden w-full px-3 py-2.5 rounded-lg bg-[#262626] border border-[#374151] text-sm font-bold text-[#f8fafc]"
+                className="sm:hidden w-full px-3 py-2.5 rounded-lg bg-ds-bg border border-ds-border text-sm font-bold text-ds-text"
             >
                 {groups.map(g => (
                     <option key={g.id} value={g.id}>
@@ -71,13 +71,13 @@ export function TabNav({ wheel, tab, pendingCount, onTab, t }: {
                             key={g.id}
                             onClick={() => goGroup(g.id)}
                             className={`px-4 py-2.5 rounded-lg text-sm 3xl:text-base font-black flex items-center gap-2 whitespace-nowrap transition-colors ${
-                                active?.id === g.id ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:bg-[#262626]'
+                                active?.id === g.id ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-bg'
                             }`}
                         >
                             <Icon className="w-4 h-4" />
                             {t(`wheel.groups.${g.id}`)}
                             {badge > 0 && (
-                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-black">{badge}</span>
+                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-ds-warn text-ds-on-accent">{badge}</span>
                             )}
                         </button>
                     );
@@ -85,7 +85,7 @@ export function TabNav({ wheel, tab, pendingCount, onTab, t }: {
             </div>
 
             {tabsOfActive.length > 1 && (
-                <div data-wheel-subtabs className="flex flex-wrap gap-1 pt-2 border-t border-[#374151]">
+                <div data-wheel-subtabs className="flex flex-wrap gap-1 pt-2 border-t border-ds-border">
                     {tabsOfActive.map(key => {
                         const Icon = TAB_ICONS[key];
                         return (
@@ -94,8 +94,8 @@ export function TabNav({ wheel, tab, pendingCount, onTab, t }: {
                                 onClick={() => onTab(key)}
                                 className={`px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold flex items-center gap-2 whitespace-nowrap transition-colors ${
                                     tab === key
-                                        ? 'bg-[#262626] text-blue-300 ring-1 ring-blue-500/60'
-                                        : 'text-[#94a3b8] hover:bg-[#262626]'
+                                        ? 'bg-ds-bg text-ds-accent-text ring-1 ring-ds-accent/60'
+                                        : 'text-ds-soft hover:bg-ds-bg'
                                 }`}
                             >
                                 <Icon className="w-4 h-4" />

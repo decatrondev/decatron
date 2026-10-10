@@ -161,7 +161,7 @@ export function RewardsTab({
                                                         }`}
                                                         title={file.enabled ? t('soundAlertsTabs.deactivate') : t('soundAlertsTabs.activate')}
                                                     >
-                                                        {file.enabled ? <Eye className="w-4 h-4 text-ds-ok" /> : <EyeOff className="w-4 h-4 text-ds-soft" />}
+                                                        {file.enabled ? <Eye className="w-4 h-4 text-ds-accent-text" /> : <EyeOff className="w-4 h-4 text-ds-soft" />}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteFile(file.rewardId)}

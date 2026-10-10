@@ -71,12 +71,12 @@ export function RaffleTab({
                 <div className="px-5 py-4 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[200px]">
                         <div className="flex items-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${config.acceptingEntries ? 'bg-green-400' : 'bg-[#4b5563]'}`} />
-                            <h2 className="font-bold text-[#f8fafc]">
+                            <span className={`w-2.5 h-2.5 rounded-full ${config.acceptingEntries ? 'bg-ds-ok' : 'bg-ds-raised'}`} />
+                            <h2 className="font-bold text-ds-text">
                                 {config.acceptingEntries ? t('wheel.raffle.open') : t('wheel.raffle.closed')}
                             </h2>
                         </div>
-                        <p className="text-xs text-[#94a3b8] mt-0.5">
+                        <p className="text-xs text-ds-soft mt-0.5">
                             {t('wheel.raffle.poolCount', { count: pool.length })}
                             {config.windowClosesAt && config.acceptingEntries && (
                                 <> · {t('wheel.raffle.closesAt', { time: new Date(config.windowClosesAt).toLocaleTimeString() })}</>
@@ -91,8 +91,8 @@ export function RaffleTab({
                             onClick={() => onWindow(!config.acceptingEntries)}
                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
                                 config.acceptingEntries
-                                    ? 'bg-[#262626] border border-[#374151] text-[#f8fafc] hover:bg-[#333]'
-                                    : 'bg-green-600 hover:bg-green-700 text-white'
+                                    ? 'bg-ds-bg border border-ds-border text-ds-text hover:bg-ds-raised'
+                                    : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent'
                             }`}
                         >
                             {config.acceptingEntries ? t('wheel.raffle.close') : t('wheel.raffle.openIt')}
@@ -102,7 +102,7 @@ export function RaffleTab({
                     <button
                         onClick={onDraw}
                         disabled={saving || pool.length < 2}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
+                        className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
                         title={pool.length < 2 ? t('wheel.raffle.needTwo') : undefined}
                     >
                         <Trophy className="w-4 h-4" />
@@ -111,7 +111,7 @@ export function RaffleTab({
 
                     <button
                         onClick={onReset}
-                        className="px-3 py-2 text-sm text-[#94a3b8] hover:text-[#f8fafc] transition-colors"
+                        className="px-3 py-2 text-sm text-ds-soft hover:text-ds-text transition-colors"
                     >
                         {t('wheel.raffle.reset')}
                     </button>
@@ -120,8 +120,8 @@ export function RaffleTab({
 
             {/* --- reglas --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.raffle.rulesTitle')}</h2>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.raffle.rulesTitle')}</h2>
                 </div>
 
                 <Row label={t('wheel.raffle.entryCommand')} help={t('wheel.raffle.entryCommandHelp')}>
@@ -177,9 +177,9 @@ export function RaffleTab({
 
             {/* --- requisitos --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.raffle.reqTitle')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.raffle.reqHelp')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.raffle.reqTitle')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.raffle.reqHelp')}</p>
                 </div>
 
                 <Row label={t('wheel.raffle.subsOnly')}>
@@ -202,9 +202,9 @@ export function RaffleTab({
 
             {/* --- pesos --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.raffle.weightTitle')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.raffle.weightHelp')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.raffle.weightTitle')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.raffle.weightHelp')}</p>
                 </div>
 
                 <Row label={t('wheel.raffle.wWatchtime')} help={t('wheel.raffle.wWatchtimeHelp')}>
@@ -218,8 +218,8 @@ export function RaffleTab({
                                 className={`${FIELD} w-24 ml-3`}
                                 aria-label={t('wheel.raffle.wMinutes')}
                             />
-                            <span className="text-xs text-[#94a3b8] ml-2">{t('wheel.raffle.wMinutes')}</span>
-                            <span className="text-xs text-[#94a3b8] ml-3">{t('wheel.raffle.wMax')}</span>
+                            <span className="text-xs text-ds-soft ml-2">{t('wheel.raffle.wMinutes')}</span>
+                            <span className="text-xs text-ds-soft ml-3">{t('wheel.raffle.wMax')}</span>
                             <input
                                 type="number" min={1} step={0.5}
                                 value={Number(fuentes.watchtime?.max ?? 5)}
@@ -235,7 +235,7 @@ export function RaffleTab({
                     <Toggle on={!!fuentes.subscriber?.enabled} onChange={v => setFuente('subscriber', { enabled: v })} />
                     {fuentes.subscriber?.enabled && (
                         <>
-                            <span className="text-xs text-[#94a3b8] ml-3">x</span>
+                            <span className="text-xs text-ds-soft ml-3">x</span>
                             <input
                                 type="number" min={1} step={0.5}
                                 value={Number(fuentes.subscriber?.multiplier ?? 2)}
@@ -251,7 +251,7 @@ export function RaffleTab({
                     {fuentes.supporterTier?.enabled && (
                         <div className="flex items-center gap-2 ml-3 flex-wrap">
                             {(['supporter', 'premium', 'fundador'] as const).map(tier => (
-                                <label key={tier} className="flex items-center gap-1.5 text-xs text-[#94a3b8]">
+                                <label key={tier} className="flex items-center gap-1.5 text-xs text-ds-soft">
                                     {tier}
                                     <input
                                         type="number" min={1} step={0.5}
@@ -276,8 +276,8 @@ export function RaffleTab({
                                 className={`${FIELD} w-28 ml-3`}
                                 aria-label={t('wheel.raffle.wCoinsPer')}
                             />
-                            <span className="text-xs text-[#94a3b8] ml-2">{t('wheel.raffle.wCoinsPer')}</span>
-                            <span className="text-xs text-[#94a3b8] ml-3">{t('wheel.raffle.wMax')}</span>
+                            <span className="text-xs text-ds-soft ml-2">{t('wheel.raffle.wCoinsPer')}</span>
+                            <span className="text-xs text-ds-soft ml-3">{t('wheel.raffle.wMax')}</span>
                             <input
                                 type="number" min={1} step={0.5}
                                 value={Number(fuentes.coins?.max ?? 5)}
@@ -292,8 +292,8 @@ export function RaffleTab({
 
             {/* --- como se sortea --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.raffle.drawTitle')}</h2>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.raffle.drawTitle')}</h2>
                 </div>
 
                 <Row label={t('wheel.raffle.drawMode')} help={t('wheel.raffle.drawModeHelp')}>
@@ -334,10 +334,10 @@ export function RaffleTab({
 
             {/* --- el pool --- */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151] flex flex-wrap items-center justify-between gap-3">
+                <div className="px-5 py-4 border-b border-ds-border flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.raffle.poolTitle')}</h2>
-                        <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.raffle.poolHelp')}</p>
+                        <h2 className="font-bold text-ds-text">{t('wheel.raffle.poolTitle')}</h2>
+                        <p className="text-xs text-ds-soft mt-0.5">{t('wheel.raffle.poolHelp')}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                         <ImportButton open={importando} onClick={() => { setImportando(v => !v); setResultado(null); }} t={t} />
@@ -352,7 +352,7 @@ export function RaffleTab({
                         />
                         <button
                             onClick={() => { onAdd(nuevo); setNuevo(''); }}
-                            className="px-3 py-2 bg-[#262626] hover:bg-[#333] border border-[#374151] text-[#f8fafc] rounded-lg text-sm font-medium transition-colors"
+                            className="px-3 py-2 bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg text-sm font-medium transition-colors"
                         >
                             <Plus className="w-4 h-4" />
                         </button>
@@ -374,29 +374,29 @@ export function RaffleTab({
                         t={t}
                     />
                 )}
-                {resultado && <p role="status" className="px-5 py-3 text-sm text-green-300 border-b border-[#374151]">{resultado}</p>}
+                {resultado && <p role="status" className="px-5 py-3 text-sm text-ds-ok border-b border-ds-border">{resultado}</p>}
 
                 {pool.length === 0 ? (
-                    <p className="px-5 py-8 text-sm text-[#94a3b8] text-center">{t('wheel.raffle.poolEmpty')}</p>
+                    <p className="px-5 py-8 text-sm text-ds-soft text-center">{t('wheel.raffle.poolEmpty')}</p>
                 ) : (
-                    <div className="divide-y divide-[#374151]">
+                    <div className="divide-y divide-ds-border">
                         {pool.map(e => {
                             // La probabilidad real, que es lo unico que el espectador
                             // percibe. Sin esto el peso es un numero sin significado.
                             const prob = pesoTotal > 0 ? (Number(e.weight) / pesoTotal) * 100 : 0;
                             return (
                                 <div key={e.id} className="px-5 py-3 flex flex-wrap items-center gap-3">
-                                    <span className="font-medium text-[#f8fafc] flex-1 min-w-[120px]">@{e.viewer}</span>
+                                    <span className="font-medium text-ds-text flex-1 min-w-[120px]">@{e.viewer}</span>
 
-                                    <span className="text-xs text-[#94a3b8]">
+                                    <span className="text-xs text-ds-soft">
                                         {t('wheel.raffle.tickets', { count: e.entries })}
                                     </span>
 
-                                    <span className="text-sm font-bold tabular-nums text-[#E8B455] w-16 text-right">
+                                    <span className="text-sm font-bold tabular-nums text-ds-accent-text w-16 text-right">
                                         {prob.toFixed(1)}%
                                     </span>
 
-                                    <label className="flex items-center gap-1.5 text-xs text-[#94a3b8]">
+                                    <label className="flex items-center gap-1.5 text-xs text-ds-soft">
                                         x
                                         <input
                                             type="number" min={0.1} step={0.5}
@@ -412,7 +412,7 @@ export function RaffleTab({
 
                                     <button
                                         onClick={() => onRemove(e.viewer)}
-                                        className="p-2 text-[#64748b] hover:text-red-400 transition-colors"
+                                        className="p-2 text-ds-soft hover:text-ds-danger transition-colors"
                                         aria-label={t('wheel.raffle.removeEntry')}
                                     >
                                         <Trash2 className="w-4 h-4" />
@@ -424,11 +424,11 @@ export function RaffleTab({
                 )}
 
                 {ganadores.length > 0 && (
-                    <div className="px-5 py-4 border-t border-[#374151]">
-                        <p className="text-xs font-bold text-[#94a3b8] mb-2">{t('wheel.raffle.winnersTitle')}</p>
+                    <div className="px-5 py-4 border-t border-ds-border">
+                        <p className="text-xs font-bold text-ds-soft mb-2">{t('wheel.raffle.winnersTitle')}</p>
                         <div className="flex flex-wrap gap-2">
                             {ganadores.map(g => (
-                                <span key={g.id} className="px-2.5 py-1 bg-green-500/10 border border-green-500/40 text-green-300 rounded-lg text-xs font-medium">
+                                <span key={g.id} className="px-2.5 py-1 bg-ds-accent/10 border border-ds-ok/40 text-ds-ok rounded-lg text-xs font-medium">
                                     @{g.viewer}
                                 </span>
                             ))}

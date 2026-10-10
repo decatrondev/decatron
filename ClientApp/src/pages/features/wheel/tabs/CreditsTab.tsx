@@ -24,7 +24,7 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
     return (
         <div className="space-y-4">
             <section className={CARD}>
-                <h2 className="px-5 py-4 border-b border-[#374151] font-bold text-[#f8fafc]">{t('wheel.credits.title')}</h2>
+                <h2 className="px-5 py-4 border-b border-ds-border font-bold text-ds-text">{t('wheel.credits.title')}</h2>
 
                 <Row label={t('wheel.credits.label')} help={t('wheel.credits.labelHelp')}>
                     <input
@@ -91,18 +91,18 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
             </section>
 
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.sources.title')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.sources.help')}</p>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.sources.title')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.sources.help')}</p>
                 </div>
 
                 {sources.map((src, i) => src.source === 'channel_points' ? null : (
-                    <div key={src.source} className={`px-5 py-4 border-b border-[#374151] ${src.isEnabled ? '' : 'opacity-60'}`}>
+                    <div key={src.source} className={`px-5 py-4 border-b border-ds-border ${src.isEnabled ? '' : 'opacity-60'}`}>
                         <div className="flex flex-wrap items-center gap-3">
                             <Toggle on={src.isEnabled} onChange={v => onSource(src.source, { isEnabled: v })} />
-                            <span className="font-medium text-[#f8fafc] w-36">{t(`wheel.sources.${src.source}`)}</span>
+                            <span className="font-medium text-ds-text w-36">{t(`wheel.sources.${src.source}`)}</span>
 
-                            <span className="text-xs text-[#94a3b8]">{t('wheel.sources.forEvery')}</span>
+                            <span className="text-xs text-ds-soft">{t('wheel.sources.forEvery')}</span>
                             <input
                                 type="number" min={1}
                                 value={src.rateDenominator}
@@ -110,8 +110,8 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                                 className={`${FIELD} w-20`}
                                 aria-label={t('wheel.sources.perUnits')}
                             />
-                            <span className="text-xs text-[#94a3b8]">{t(`wheel.sources.unit_${src.source}`)}</span>
-                            <ArrowRight className="w-4 h-4 text-[#64748b]" />
+                            <span className="text-xs text-ds-soft">{t(`wheel.sources.unit_${src.source}`)}</span>
+                            <ArrowRight className="w-4 h-4 text-ds-soft" />
                             <input
                                 type="number" min={1}
                                 value={src.rateNumerator}
@@ -119,9 +119,9 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                                 className={`${FIELD} w-24`}
                                 aria-label={t('wheel.sources.credits')}
                             />
-                            <span className="text-xs text-[#94a3b8]">{wheel.creditLabel}</span>
+                            <span className="text-xs text-ds-soft">{wheel.creditLabel}</span>
 
-                            <label className="flex items-center gap-2 text-xs text-[#94a3b8] ml-auto">
+                            <label className="flex items-center gap-2 text-xs text-ds-soft ml-auto">
                                 {t('wheel.sources.cap')}
                                 <input
                                     type="number" min={1}
@@ -138,8 +138,8 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                             sub trae los meses, no el tier. */}
                         {src.source === 'gift_sub' && (
                             <div className="px-5 pb-4 flex flex-wrap items-center gap-3">
-                                <span className="text-xs text-[#94a3b8]">{t('wheel.sources.tierMultiplier')}</span>
-                                <label className="flex items-center gap-1.5 text-xs text-[#94a3b8]">
+                                <span className="text-xs text-ds-soft">{t('wheel.sources.tierMultiplier')}</span>
+                                <label className="flex items-center gap-1.5 text-xs text-ds-soft">
                                     {t('wheel.sources.tier2')}
                                     <input
                                         type="number" min={1} max={10} step={0.25}
@@ -148,7 +148,7 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                                         className={`${FIELD} w-20`}
                                     />
                                 </label>
-                                <label className="flex items-center gap-1.5 text-xs text-[#94a3b8]">
+                                <label className="flex items-center gap-1.5 text-xs text-ds-soft">
                                     {t('wheel.sources.tier3')}
                                     <input
                                         type="number" min={1} max={10} step={0.25}
@@ -157,7 +157,7 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                                         className={`${FIELD} w-20`}
                                     />
                                 </label>
-                                <span className="text-xs text-[#64748b]">{t('wheel.sources.tierHelp')}</span>
+                                <span className="text-xs text-ds-soft">{t('wheel.sources.tierHelp')}</span>
                             </div>
                         )}
                     </div>
@@ -168,14 +168,14 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                 recompensas, y cada una da lo suyo. Un canje es un evento, no una
                 cantidad, asi que "por cada N" no significa nada aca. */}
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151] flex items-center justify-between gap-4">
+                <div className="px-5 py-4 border-b border-ds-border flex items-center justify-between gap-4">
                     <div>
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.rewards.title')}</h2>
-                        <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.rewards.help')}</p>
+                        <h2 className="font-bold text-ds-text">{t('wheel.rewards.title')}</h2>
+                        <p className="text-xs text-ds-soft mt-0.5">{t('wheel.rewards.help')}</p>
                     </div>
                     <button
                         onClick={onAddReward}
-                        className="px-3 py-1.5 text-sm bg-[#262626] hover:bg-[#333] border border-[#374151] text-[#f8fafc] rounded-lg flex items-center gap-1.5 font-medium transition-colors flex-shrink-0"
+                        className="px-3 py-1.5 text-sm bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg flex items-center gap-1.5 font-medium transition-colors flex-shrink-0"
                     >
                         <Plus className="w-4 h-4" />
                         {t('wheel.rewards.add')}
@@ -183,13 +183,13 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                 </div>
 
                 {rewardsError && (
-                    <p className="px-5 py-4 text-sm text-amber-300 bg-amber-500/10">{t('wheel.rewards.loadFailed')}</p>
+                    <p className="px-5 py-4 text-sm text-ds-warn bg-ds-warn/10">{t('wheel.rewards.loadFailed')}</p>
                 )}
 
                 {sources.filter(s2 => s2.source === 'channel_points').length === 0 ? (
-                    <p className="px-5 py-6 text-sm text-[#94a3b8]">{t('wheel.rewards.empty')}</p>
+                    <p className="px-5 py-6 text-sm text-ds-soft">{t('wheel.rewards.empty')}</p>
                 ) : sources.map((src, i) => src.source !== 'channel_points' ? null : (
-                    <div key={`cp-${i}`} className={`px-5 py-4 border-b border-[#374151] last:border-0 flex flex-wrap items-center gap-3 ${src.isEnabled ? '' : 'opacity-60'}`}>
+                    <div key={`cp-${i}`} className={`px-5 py-4 border-b border-ds-border last:border-0 flex flex-wrap items-center gap-3 ${src.isEnabled ? '' : 'opacity-60'}`}>
                         <Toggle on={src.isEnabled} onChange={v => onSourceAt(i, { isEnabled: v })} />
 
                         <select
@@ -216,7 +216,7 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                             )}
                         </select>
 
-                        <ArrowRight className="w-4 h-4 text-[#64748b]" />
+                        <ArrowRight className="w-4 h-4 text-ds-soft" />
                         <input
                             type="number" min={1}
                             value={src.rateNumerator}
@@ -224,14 +224,14 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                             className={`${FIELD} w-28`}
                             aria-label={t('wheel.sources.credits')}
                         />
-                        <span className="text-xs text-[#94a3b8]">{wheel.creditLabel}</span>
+                        <span className="text-xs text-ds-soft">{wheel.creditLabel}</span>
 
                         <button
                             onClick={() => onRemoveAt(i)}
-                            className="p-2 hover:bg-red-500/10 rounded-lg transition-colors ml-auto"
+                            className="p-2 hover:bg-ds-danger-solid/10 rounded-lg transition-colors ml-auto"
                             aria-label={t('wheel.rewards.remove')}
                         >
-                            <Trash2 className="w-4 h-4 text-red-400" />
+                            <Trash2 className="w-4 h-4 text-ds-danger" />
                         </button>
                     </div>
                 ))}

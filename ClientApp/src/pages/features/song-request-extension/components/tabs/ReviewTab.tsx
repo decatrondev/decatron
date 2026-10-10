@@ -31,8 +31,8 @@ interface TrustedUser { id: number; platform: string; login: string; displayName
 type Decision = 'approve' | 'reject' | 'reject_silent' | 'ban' | 'trust';
 
 const iconBtn = 'p-2 rounded-lg transition-colors disabled:opacity-40';
-const smallBtn = 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors disabled:opacity-50';
-const primaryBtn = 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 shrink-0';
+const smallBtn = 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised transition-colors disabled:opacity-50';
+const primaryBtn = 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent disabled:opacity-50 shrink-0';
 
 export default function ReviewTab({ cfg, snapshot }: { cfg: SongRequestConfigState; snapshot: QueueSnapshot | null }) {
     const { t } = useTranslation('overlays');
@@ -81,35 +81,35 @@ export default function ReviewTab({ cfg, snapshot }: { cfg: SongRequestConfigSta
                         label={t('songRequest.review.requestReview')}
                         hint={t('songRequest.review.requestReviewHint', { role: t(`songRequest.roles.${cfg.settings.permissions.review}`) })}
                     />
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.review.playlistsNote')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.review.playlistsNote')}</p>
                 </div>
             </Card>
 
             <Card title={t('songRequest.review.inboxTitle', { count: items?.length ?? 0 })} description={t('songRequest.review.inboxDescription')}>
-                {message && <p className={`text-sm 3xl:text-base mb-3 ${message.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{message.text}</p>}
-                {items === null ? <Loader2 className="w-5 h-5 animate-spin text-[#94a3b8]" />
-                    : items.length === 0 ? <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.review.empty')}</p>
+                {message && <p className={`text-sm 3xl:text-base mb-3 ${message.ok ? 'text-ds-ok ' : 'text-ds-danger '}`}>{message.text}</p>}
+                {items === null ? <Loader2 className="w-5 h-5 animate-spin text-ds-soft" />
+                    : items.length === 0 ? <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.review.empty')}</p>
                         : (
-                            <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                            <div className="divide-y divide-ds-border">
                                 {items.map(item => (
                                     <div key={item.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 py-3">
-                                        <span className="w-6 text-right font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0">{item.number}</span>
+                                        <span className="w-6 text-right font-mono text-xs 3xl:text-sm text-ds-soft shrink-0">{item.number}</span>
                                         {item.thumbnailUrl
                                             ? <img src={item.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] object-cover rounded shrink-0" />
-                                            : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] rounded bg-[#e2e8f0] dark:bg-[#262626] shrink-0" />}
+                                            : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] rounded bg-ds-raised shrink-0" />}
                                         <div className="flex-1 min-w-0">
-                                            <a href={item.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate hover:underline">{item.title}</a>
-                                            <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">
+                                            <a href={item.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block text-sm 3xl:text-base font-semibold text-ds-text truncate hover:underline">{item.title}</a>
+                                            <p className="text-xs 3xl:text-sm text-ds-soft truncate">
                                                 {item.artist} · {formatDuration(item.durationSeconds)} · <PlatformIcon platform={item.platform} /> {item.requestedBy}
                                             </p>
-                                            <p className="text-[11px] 3xl:text-xs font-bold text-[#2563eb] dark:text-[#60a5fa] truncate">
+                                            <p className="text-[11px] 3xl:text-xs font-bold text-ds-accent-text truncate">
                                                 {item.playlistName ? t('songRequest.review.toPlaylist', { name: item.playlistName }) : t('songRequest.review.toQueue')}
-                                                <span className="font-normal text-[#94a3b8]"> · {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                <span className="font-normal text-ds-soft"> · {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-1 shrink-0 ml-auto">
                                             <button
-                                                className={`${iconBtn} bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50`}
+                                                className={`${iconBtn} bg-ds-ok/10 text-ds-ok hover:bg-ds-ok/10 `}
                                                 title={t('songRequest.review.approve')}
                                                 disabled={busyId === item.id}
                                                 onClick={() => decide(item, 'approve')}
@@ -119,7 +119,7 @@ export default function ReviewTab({ cfg, snapshot }: { cfg: SongRequestConfigSta
                                             <RejectMenu disabled={busyId === item.id} onPick={action => decide(item, action)} />
                                             {!item.trusted && (
                                                 <button
-                                                    className={`${iconBtn} text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626] hover:text-[#2563eb]`}
+                                                    className={`${iconBtn} text-ds-soft hover:bg-ds-raised hover:text-ds-accent-text`}
                                                     title={t('songRequest.review.trust', { user: item.requestedBy })}
                                                     disabled={busyId === item.id}
                                                     onClick={() => decide(item, 'trust')}
@@ -128,7 +128,7 @@ export default function ReviewTab({ cfg, snapshot }: { cfg: SongRequestConfigSta
                                                 </button>
                                             )}
                                             <button
-                                                className={`${iconBtn} text-[#64748b] dark:text-[#94a3b8] hover:bg-[#fef2f2] dark:hover:bg-red-900/20 hover:text-red-600`}
+                                                className={`${iconBtn} text-ds-soft hover:bg-ds-danger/10 hover:text-ds-danger`}
                                                 title={t('songRequest.review.ban', { user: item.requestedBy })}
                                                 disabled={busyId === item.id}
                                                 onClick={() => decide(item, 'ban')}
@@ -153,7 +153,7 @@ function RejectMenu({ disabled, onPick }: { disabled: boolean; onPick: (action: 
     return (
         <div className="relative">
             <button
-                className={`${iconBtn} flex items-center bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40`}
+                className={`${iconBtn} flex items-center bg-ds-danger/10 text-ds-danger hover:bg-ds-danger/10 `}
                 title={t('songRequest.review.reject')}
                 disabled={disabled}
                 onClick={() => setOpen(o => !o)}
@@ -161,9 +161,9 @@ function RejectMenu({ disabled, onPick }: { disabled: boolean; onPick: (action: 
                 <X className="w-4 h-4" /><ChevronDown className="w-3 h-3" />
             </button>
             {open && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-64 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-xl p-1" onMouseLeave={() => setOpen(false)}>
+                <div className="absolute right-0 top-full mt-1 z-20 w-64 rounded-lg border border-ds-border bg-ds-surface p-1" onMouseLeave={() => setOpen(false)}>
                     {(['reject', 'reject_silent'] as const).map(action => (
-                        <button key={action} onClick={() => { setOpen(false); onPick(action); }} className="w-full text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#fef2f2] dark:hover:bg-red-900/20">
+                        <button key={action} onClick={() => { setOpen(false); onPick(action); }} className="w-full text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-ds-text hover:bg-ds-danger/10">
                             {t(`songRequest.review.rejectOptions.${action}`)}
                         </button>
                     ))}
@@ -204,16 +204,16 @@ function TrustedCard({ trusted, platforms, onChanged }: { trusted: TrustedUser[]
                     {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} {t('songRequest.review.trustedAdd')}
                 </button>
             </form>
-            {error && <p className="text-sm 3xl:text-base mt-2 text-red-600 dark:text-red-400">{error}</p>}
+            {error && <p className="text-sm 3xl:text-base mt-2 text-ds-danger">{error}</p>}
             {trusted.length === 0 ? (
-                <p className="text-sm 3xl:text-base text-[#94a3b8] mt-3">{t('songRequest.review.trustedEmpty')}</p>
+                <p className="text-sm 3xl:text-base text-ds-soft mt-3">{t('songRequest.review.trustedEmpty')}</p>
             ) : (
-                <div className="mt-4 divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                <div className="mt-4 divide-y divide-ds-border">
                     {trusted.map(u => (
                         <div key={u.id} className="flex items-center gap-3 py-2">
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate"><PlatformIcon platform={u.platform} /> {u.displayName}</p>
-                                {u.createdBy && <p className="text-xs 3xl:text-sm text-[#94a3b8] truncate">{t('songRequest.blacklist.by', { user: u.createdBy })} · {new Date(u.createdAt).toLocaleDateString()}</p>}
+                                <p className="text-sm 3xl:text-base font-semibold text-ds-text truncate"><PlatformIcon platform={u.platform} /> {u.displayName}</p>
+                                {u.createdBy && <p className="text-xs 3xl:text-sm text-ds-soft truncate">{t('songRequest.blacklist.by', { user: u.createdBy })} · {new Date(u.createdAt).toLocaleDateString()}</p>}
                             </div>
                             <button className={smallBtn} onClick={async () => { await api.delete(`/song-request/trusted/${u.id}`); onChanged(); }}>
                                 <Trash2 className="w-4 h-4" /> {t('songRequest.review.trustedRemove')}

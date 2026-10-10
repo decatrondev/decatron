@@ -20,14 +20,14 @@ export function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t
 
     return (
         <section className={CARD}>
-            <div className="px-5 py-4 border-b border-[#374151]">
-                <h2 className="font-bold text-[#f8fafc]">{t('wheel.wallets.title')}</h2>
-                <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.wallets.help')}</p>
+            <div className="px-5 py-4 border-b border-ds-border">
+                <h2 className="font-bold text-ds-text">{t('wheel.wallets.title')}</h2>
+                <p className="text-xs text-ds-soft mt-0.5">{t('wheel.wallets.help')}</p>
             </div>
 
-            <div className="px-5 py-4 border-b border-[#374151] flex items-center gap-2">
+            <div className="px-5 py-4 border-b border-ds-border flex items-center gap-2">
                 <div className="relative flex-1 max-w-xs">
-                    <Search className="w-4 h-4 text-[#64748b] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-4 h-4 text-ds-soft absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                         value={search}
                         onChange={e => onSearch(e.target.value)}
@@ -36,18 +36,18 @@ export function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t
                         className={`${FIELD} w-full pl-9`}
                     />
                 </div>
-                <button onClick={onApply} className="px-3 py-2 bg-[#262626] hover:bg-[#333] border border-[#374151] text-[#f8fafc] rounded-lg text-sm font-medium transition-colors">
+                <button onClick={onApply} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg text-sm font-medium transition-colors">
                     {t('wheel.wallets.search')}
                 </button>
             </div>
 
             {wallets.length === 0 ? (
-                <p className="px-5 py-8 text-sm text-[#64748b] text-center">{t('wheel.wallets.empty')}</p>
+                <p className="px-5 py-8 text-sm text-ds-soft text-center">{t('wheel.wallets.empty')}</p>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="text-left text-xs text-[#94a3b8] border-b border-[#374151]">
+                            <tr className="text-left text-xs text-ds-soft border-b border-ds-border">
                                 <th className="px-5 py-2 font-medium">{t('wheel.wallets.colViewer')}</th>
                                 <th className="px-3 py-2 font-medium text-right">{t('wheel.wallets.colCredits')}</th>
                                 <th className="px-3 py-2 font-medium text-right">{t('wheel.wallets.colLifetime')}</th>
@@ -57,8 +57,8 @@ export function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t
                         </thead>
                         <tbody>
                             {wallets.map(w => (
-                                <tr key={w.viewer} className="border-b border-[#262626] last:border-0">
-                                    <td className="px-5 py-2 text-[#f8fafc]">@{w.viewer}</td>
+                                <tr key={w.viewer} className="border-b border-ds-border last:border-0">
+                                    <td className="px-5 py-2 text-ds-text">@{w.viewer}</td>
                                     <td className="px-3 py-2 text-right">
                                         {editando === w.viewer ? (
                                             <input
@@ -72,11 +72,11 @@ export function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t
                                                 className={`${FIELD} w-24 text-right`}
                                             />
                                         ) : (
-                                            <span className="text-[#f8fafc] font-medium tabular-nums">{w.credits}</span>
+                                            <span className="text-ds-text font-medium tabular-nums">{w.credits}</span>
                                         )}
                                     </td>
-                                    <td className="px-3 py-2 text-right text-[#94a3b8] tabular-nums">{w.lifetimeCredits}</td>
-                                    <td className="px-3 py-2 text-[#94a3b8] whitespace-nowrap">
+                                    <td className="px-3 py-2 text-right text-ds-soft tabular-nums">{w.lifetimeCredits}</td>
+                                    <td className="px-3 py-2 text-ds-soft whitespace-nowrap">
                                         {new Date(w.lastActivityAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-5 py-2 text-right">
@@ -84,18 +84,18 @@ export function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t
                                             <div className="flex gap-2 justify-end">
                                                 <button
                                                     onClick={() => { onSetCredits(w.viewer, Math.max(0, Number(valor) || 0)); setEditando(null); }}
-                                                    className="text-xs text-green-400 hover:text-green-300"
+                                                    className="text-xs text-ds-ok hover:text-ds-ok"
                                                 >
                                                     {t('wheel.wallets.save')}
                                                 </button>
-                                                <button onClick={() => setEditando(null)} className="text-xs text-[#64748b] hover:text-[#94a3b8]">
+                                                <button onClick={() => setEditando(null)} className="text-xs text-ds-soft hover:text-ds-soft">
                                                     {t('wheel.wallets.cancel')}
                                                 </button>
                                             </div>
                                         ) : (
                                             <button
                                                 onClick={() => { setEditando(w.viewer); setValor(String(w.credits)); }}
-                                                className="text-xs text-[#94a3b8] hover:text-[#f8fafc]"
+                                                className="text-xs text-ds-soft hover:text-ds-text"
                                             >
                                                 {t('wheel.wallets.edit')}
                                             </button>
@@ -108,7 +108,7 @@ export function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t
                 </div>
             )}
 
-            <p className="px-5 py-3 border-t border-[#374151] text-xs text-[#64748b]">
+            <p className="px-5 py-3 border-t border-ds-border text-xs text-ds-soft">
                 {t('wheel.wallets.lifetimeNote')}
             </p>
         </section>

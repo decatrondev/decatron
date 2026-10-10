@@ -38,10 +38,10 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
     const urls = overlayUrls(s.channel, s.playerKey);
     const step = (n: number, title: string, body: React.ReactNode) => (
         <div className="flex gap-4">
-            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-[#2563eb] text-white font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
+            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-ds-accent text-ds-on-accent font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
             <div className="flex-1 min-w-0 space-y-2">
-                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm 3xl:text-base">{title}</h4>
-                <div className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] space-y-2">{body}</div>
+                <h4 className="font-bold text-ds-text text-sm 3xl:text-base">{title}</h4>
+                <div className="text-sm 3xl:text-base text-ds-soft space-y-2">{body}</div>
             </div>
         </div>
     );
@@ -49,7 +49,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
     return (
         <div className="space-y-6">
             {!cfg.enabled && (
-                <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm 3xl:text-base">
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-ds-warn text-sm 3xl:text-base">
                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>
                         {t('songRequest.guide.disabledWarning')}{' '}
@@ -151,7 +151,7 @@ export function BasicTab({ cfg }: TabProps) {
                     <UrlRow label={t('songRequest.urls.public')} url={s.publicUrl} />
                     <button
                         onClick={() => { if (window.confirm(t('songRequest.basic.regenerateConfirm'))) cfg.regenerateKey(); }}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
                     >
                         <RefreshCw className="w-4 h-4" /> {t('songRequest.basic.regenerate')}
                     </button>
@@ -189,7 +189,7 @@ export function CommandsTab({ cfg }: TabProps) {
                         <Select value={set.permissions.playlist} onChange={v => setPerm({ playlist: v })} options={roleOptions} />
                     </Field>
                 </div>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('songRequest.commands.controlTotalNote')}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-3">{t('songRequest.commands.controlTotalNote')}</p>
             </Card>
 
             <Card title={t('songRequest.commands.webRequestsTitle')}>
@@ -236,31 +236,31 @@ export function MessagesTab({ cfg }: TabProps) {
         <div className="space-y-6">
             <Card title={t('songRequest.messages.title')} description={t('songRequest.messages.description')}>
                 <div className="flex flex-wrap gap-1.5">
-                    {VARIABLES.map(v => <code key={v} className="px-2 py-0.5 rounded bg-[#f1f5f9] dark:bg-[#262626] text-xs 3xl:text-sm font-mono text-[#2563eb] dark:text-[#60a5fa]">{v}</code>)}
+                    {VARIABLES.map(v => <code key={v} className="px-2 py-0.5 rounded bg-ds-raised text-xs 3xl:text-sm font-mono text-ds-accent-text">{v}</code>)}
                 </div>
             </Card>
             <Card>
-                <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                <div className="divide-y divide-ds-border">
                     {Object.keys(defaults).map(key => {
                         const isCustom = key in custom;
                         const muted = isCustom && custom[key] === '';
                         return (
                             <div key={key} className="py-3 space-y-2">
                                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                                    <span className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{t(`songRequest.messageKeys.${key}`, { defaultValue: key })}</span>
+                                    <span className="text-sm 3xl:text-base font-bold text-ds-text">{t(`songRequest.messageKeys.${key}`, { defaultValue: key })}</span>
                                     <div className="flex gap-3 text-xs 3xl:text-sm">
-                                        <button className="text-[#64748b] hover:text-[#1e293b] dark:hover:text-white underline" onClick={() => setMessage(key, muted ? null : '')}>
+                                        <button className="text-ds-soft hover:text-ds-text underline" onClick={() => setMessage(key, muted ? null : '')}>
                                             {muted ? t('songRequest.messages.unmute') : t('songRequest.messages.mute')}
                                         </button>
                                         {isCustom && !muted && (
-                                            <button className="text-[#64748b] hover:text-[#1e293b] dark:hover:text-white underline" onClick={() => setMessage(key, null)}>
+                                            <button className="text-ds-soft hover:text-ds-text underline" onClick={() => setMessage(key, null)}>
                                                 {t('songRequest.messages.reset')}
                                             </button>
                                         )}
                                     </div>
                                 </div>
                                 {muted ? (
-                                    <p className="text-xs 3xl:text-sm italic text-[#94a3b8]">{t('songRequest.messages.muted')}</p>
+                                    <p className="text-xs 3xl:text-sm italic text-ds-soft">{t('songRequest.messages.muted')}</p>
                                 ) : (
                                     <textarea
                                         rows={2}

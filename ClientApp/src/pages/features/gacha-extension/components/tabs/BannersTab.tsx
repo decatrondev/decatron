@@ -64,94 +64,94 @@ export const BannersTab: React.FC = () => {
     const isVideo = (url: string) => /\.(mp4|webm|ogg)(\?|$)/i.test(url);
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-6">
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
+            <div className="flex items-center justify-between pb-4 border-b border-ds-border">
                 <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl">
-                        <Image className="w-6 h-6 text-white" />
+                    <div className="p-3 bg-ds-accent rounded-lg">
+                        <Image className="w-6 h-6 text-ds-text" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Banners</h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Imagenes y videos para el overlay del gacha</p>
+                        <h2 className="text-2xl font-black text-ds-text">Banners</h2>
+                        <p className="text-sm text-ds-soft">Imagenes y videos para el overlay del gacha</p>
                     </div>
                 </div>
-                <button onClick={() => setShowModal(true)} disabled={banners.length >= 5} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all">
+                <button onClick={() => setShowModal(true)} disabled={banners.length >= 5} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint disabled:cursor-not-allowed text-ds-on-accent rounded-lg font-bold transition-all">
                     <Plus className="w-4 h-4" /> Agregar Banner
                 </button>
             </div>
 
             {/* Help Banner */}
-            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+            <div className="rounded-lg border border-ds-border bg-ds-bg overflow-hidden">
                 <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
-                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan los banners</span>
-                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                    <HelpCircle className="w-5 h-5 text-ds-soft flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-ds-soft">Como funcionan los banners</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
                 </button>
                 {showHelp && (
-                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="px-4 pb-4 space-y-3 text-sm text-ds-soft">
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
-                            <span>Los banners son <strong className="text-[#1e293b] dark:text-[#f8fafc]">imagenes decorativas</strong> que se muestran en la pagina publica de coleccion</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Los banners son <strong className="text-ds-text">imagenes decorativas</strong> que se muestran en la pagina publica de coleccion</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
-                            <span>Sube hasta <strong className="text-[#1e293b] dark:text-[#f8fafc]">5 banners</strong> y activa uno a la vez</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span>Sube hasta <strong className="text-ds-text">5 banners</strong> y activa uno a la vez</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
                             <span>Se muestra en la parte superior de la coleccion cuando un viewer visita su pagina</span>
                         </div>
-                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
-                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Usa imagenes horizontales (16:9) de buena calidad. Ideal para mostrar las cartas mas raras de tu gacha.
+                        <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
+                            <strong className="text-ds-text">Tip:</strong> Usa imagenes horizontales (16:9) de buena calidad. Ideal para mostrar las cartas mas raras de tu gacha.
                         </div>
                     </div>
                 )}
             </div>
 
             {/* Max notice */}
-            <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-                <p className="text-sm text-amber-700 dark:text-amber-300">Maximo 5 banners. Actualmente: {banners.length}/5</p>
+            <div className="flex items-center gap-2 p-3 bg-ds-warn/10 border border-ds-warn/40 rounded-lg">
+                <AlertCircle className="w-4 h-4 text-ds-warn flex-shrink-0" />
+                <p className="text-sm text-ds-warn">Maximo 5 banners. Actualmente: {banners.length}/5</p>
             </div>
 
             {/* Grid */}
             {loading ? (
-                <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando...</p>
+                <p className="text-center text-ds-soft py-8">Cargando...</p>
             ) : banners.length === 0 ? (
-                <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">No hay banners configurados</p>
+                <p className="text-center text-ds-soft py-8">No hay banners configurados</p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {banners.map((b) => (
-                        <div key={b.id} className={`rounded-2xl border-2 overflow-hidden transition-all ${b.isActive ? 'border-green-500 shadow-lg shadow-green-500/20' : 'border-[#e2e8f0] dark:border-[#374151]'}`}>
+                        <div key={b.id} className={`rounded-lg border-2 overflow-hidden transition-all ${b.isActive ? 'border-ds-ok/40 shadow-green-500/20' : 'border-ds-border '}`}>
                             {/* Preview */}
-                            <div className="aspect-video bg-[#f8fafc] dark:bg-[#262626] relative">
+                            <div className="aspect-video bg-ds-bg relative">
                                 {isVideo(b.bannerUrl) ? (
                                     <video src={b.bannerUrl} className="w-full h-full object-cover" muted loop autoPlay />
                                 ) : b.bannerUrl ? (
                                     <img src={b.bannerUrl} alt="Banner" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[#64748b] dark:text-[#94a3b8]">
+                                    <div className="w-full h-full flex items-center justify-center text-ds-soft">
                                         <span className="text-sm">Sin preview</span>
                                     </div>
                                 )}
                                 {/* Active badge */}
-                                <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-bold ${b.isActive ? 'bg-green-500 text-white' : 'bg-gray-500/80 text-white'}`}>
+                                <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-bold ${b.isActive ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-faint/80 text-ds-on-accent'}`}>
                                     {b.isActive ? 'Activo' : 'Inactivo'}
                                 </div>
                             </div>
                             {/* Actions */}
-                            <div className="p-3 bg-white dark:bg-[#1B1C1D] flex items-center justify-between gap-2">
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] truncate flex-1" title={b.bannerUrl}>
+                            <div className="p-3 bg-ds-surface flex items-center justify-between gap-2">
+                                <p className="text-xs text-ds-soft truncate flex-1" title={b.bannerUrl}>
                                     {b.bannerUrl}
                                 </p>
                                 <div className="flex items-center gap-1">
                                     {!b.isActive && (
-                                        <button onClick={() => handleActivate(b.id)} className="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-all" title="Activar">
+                                        <button onClick={() => handleActivate(b.id)} className="p-2 text-ds-ok hover:bg-ds-ok/10 rounded-lg transition-all" title="Activar">
                                             <CheckCircle className="w-4 h-4" />
                                         </button>
                                     )}
-                                    <button onClick={() => handleDelete(b.id)} disabled={b.isActive} className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" title={b.isActive ? 'No se puede eliminar el banner activo' : 'Eliminar'}>
+                                    <button onClick={() => handleDelete(b.id)} disabled={b.isActive} className="p-2 text-ds-danger hover:bg-ds-danger/10 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed" title={b.isActive ? 'No se puede eliminar el banner activo' : 'Eliminar'}>
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -163,36 +163,36 @@ export const BannersTab: React.FC = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-2xl w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-ds-input/50 flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Nuevo Banner</h3>
-                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"><X className="w-5 h-5 text-[#64748b]" /></button>
+                            <h3 className="text-xl font-black text-ds-text">Nuevo Banner</h3>
+                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-ds-bg rounded-lg"><X className="w-5 h-5 text-ds-soft" /></button>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">Seleccionar imagen o video</label>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">Seleccionar imagen o video</label>
                             <button
                                 type="button"
                                 onClick={() => setShowMediaSelector(true)}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-dashed border-[#94a3b8] dark:border-[#374151] rounded-xl text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:border-blue-400 transition"
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-ds-bg border border-dashed border-ds-faint rounded-lg text-sm font-bold text-ds-soft hover:border-ds-accent transition"
                             >
                                 <ImagePlus className="w-5 h-5" />
                                 {bannerUrl ? 'Cambiar media' : 'Seleccionar de galeria'}
                             </button>
                         </div>
                         {bannerUrl && (
-                            <div className="aspect-video bg-[#f8fafc] dark:bg-[#262626] rounded-xl overflow-hidden relative">
+                            <div className="aspect-video bg-ds-bg rounded-lg overflow-hidden relative">
                                 {isVideo(bannerUrl) ? (
                                     <video src={bannerUrl} className="w-full h-full object-cover" muted loop autoPlay />
                                 ) : (
                                     <img src={bannerUrl} alt="Preview" className="w-full h-full object-cover" />
                                 )}
-                                <button onClick={() => setBannerUrl('')} className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center">
+                                <button onClick={() => setBannerUrl('')} className="absolute top-2 right-2 w-6 h-6 bg-ds-danger-solid text-ds-on-accent rounded-full flex items-center justify-center">
                                     <X className="w-3 h-3" />
                                 </button>
                             </div>
                         )}
-                        <button onClick={handleCreate} disabled={!bannerUrl.trim() || submitting} className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl font-bold transition-all">
+                        <button onClick={handleCreate} disabled={!bannerUrl.trim() || submitting} className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition-all">
                             {submitting ? 'Guardando...' : 'Crear Banner'}
                         </button>
                     </div>

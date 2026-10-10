@@ -248,8 +248,8 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                 onMouseDown={(e) => handleMouseDown(goal.id, e)}
                 className={`absolute cursor-move transition-shadow ${
                     isSelected || isDragging || isResizing
-                        ? 'ring-2 ring-[#667eea] ring-offset-2 ring-offset-black z-20'
-                        : 'hover:ring-2 hover:ring-[#667eea]/50 z-10'
+                        ? 'ring-2 ring-ds-accent ring-offset-2 ring-offset-ds-border z-20'
+                        : 'hover:ring-2 hover:ring-ds-accent/50 z-10'
                 }`}
                 style={{
                     left: `${(pos.x / canvasWidth) * 100}%`,
@@ -261,7 +261,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                 }}
             >
                 {/* Label */}
-                <div className="absolute -top-5 left-0 text-xs font-bold px-2 py-0.5 rounded-t bg-[#667eea] text-white whitespace-nowrap z-30">
+                <div className="absolute -top-5 left-0 text-xs font-bold px-2 py-0.5 rounded-t bg-ds-accent text-ds-on-accent whitespace-nowrap z-30">
                     {goal.name} ({pos.x}, {pos.y})
                 </div>
 
@@ -278,10 +278,10 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                 >
                     {/* Goal Name */}
                     <div className="flex items-center justify-between mb-1">
-                        <span className="text-white font-semibold text-sm truncate">
+                        <span className="text-ds-text font-semibold text-sm truncate">
                             {goal.icon} {goal.name}
                         </span>
-                        <span className="text-white/70 text-xs">
+                        <span className="text-ds-text/70 text-xs">
                             {Math.round(percentage)}%
                         </span>
                     </div>
@@ -307,7 +307,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                     </div>
 
                     {/* Values */}
-                    <div className="text-center text-white/60 text-xs mt-1">
+                    <div className="text-center text-ds-text/60 text-xs mt-1">
                         {goal.currentValue} / {goal.targetValue}
                     </div>
                 </div>
@@ -319,7 +319,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                             <div
                                 key={handle}
                                 onMouseDown={(e) => handleResizeMouseDown(goal.id, handle as ResizeHandle, e)}
-                                className="absolute w-3 h-3 bg-white border-2 border-[#667eea] rounded-full cursor-nwse-resize hover:scale-125 transition-transform z-40"
+                                className="absolute w-3 h-3 bg-ds-surface border-2 border-ds-accent rounded-full cursor-nwse-resize hover:scale-125 transition-transform z-40"
                                 style={{
                                     top: handle.includes('n') ? '-6px' : 'auto',
                                     bottom: handle.includes('s') ? '-6px' : 'auto',
@@ -337,15 +337,15 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
     return (
         <div className="space-y-4">
             {/* Canvas Editor */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-4">
                         <div>
-                            <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <h3 className="text-lg font-bold text-ds-text">
                                 Editor de Overlay
                             </h3>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-xs text-ds-soft">
                                 Arrastra y redimensiona cada meta independientemente
                             </p>
                         </div>
@@ -353,22 +353,22 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
 
                     {/* Canvas Size Controls */}
                     <div className="flex items-center gap-2">
-                        <label className="text-xs font-bold text-[#64748b]">Ancho:</label>
+                        <label className="text-xs font-bold text-ds-soft">Ancho:</label>
                         <input
                             type="number"
                             value={canvasWidth}
                             onChange={(e) => onSetCanvasWidth(Number(e.target.value) || 1000)}
-                            className="w-20 px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-sm text-center"
+                            className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm text-center"
                             min="400"
                             max="3840"
                         />
-                        <span className="text-[#64748b]">x</span>
-                        <label className="text-xs font-bold text-[#64748b]">Alto:</label>
+                        <span className="text-ds-soft">x</span>
+                        <label className="text-xs font-bold text-ds-soft">Alto:</label>
                         <input
                             type="number"
                             value={canvasHeight}
                             onChange={(e) => onSetCanvasHeight(Number(e.target.value) || 300)}
-                            className="w-20 px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-sm text-center"
+                            className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm text-center"
                             min="200"
                             max="2160"
                         />
@@ -380,8 +380,8 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                             onClick={() => setSnapToGrid(!snapToGrid)}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                                 snapToGrid
-                                    ? 'bg-[#667eea] text-white'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] border border-[#e2e8f0] dark:border-[#374151]'
+                                    ? 'bg-ds-accent text-ds-on-accent'
+                                    : 'bg-ds-bg text-ds-soft border border-ds-border '
                             }`}
                         >
                             <Grid3x3 className="w-4 h-4" />
@@ -389,7 +389,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                         </button>
                         <button
                             onClick={resetAllPositions}
-                            className="flex items-center gap-2 px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#1e293b] dark:text-[#f8fafc] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-xs font-semibold transition-colors"
+                            className="flex items-center gap-2 px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text border border-ds-border rounded-lg text-xs font-semibold transition-colors"
                         >
                             <RotateCcw className="w-4 h-4" />
                             Reset
@@ -398,17 +398,17 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                 </div>
 
                 {/* Canvas */}
-                <div className="bg-[#1e293b] rounded-2xl border border-[#334155] overflow-hidden shadow-2xl">
+                <div className="bg-ds-raised rounded-lg border border-ds-border overflow-hidden">
                     {/* Canvas Header */}
-                    <div className="bg-[#0f172a] border-b border-[#334155] px-4 py-3 flex items-center justify-between">
+                    <div className="bg-ds-bg border-b border-ds-border px-4 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                            <span className="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full bg-ds-accent"></div>
+                            <span className="text-xs font-bold text-ds-soft uppercase tracking-wider flex items-center gap-2">
                                 <Monitor className="w-3 h-3" />
                                 Editor Visual
                             </span>
                         </div>
-                        <span className="text-[10px] text-gray-500 font-mono bg-[#1e293b] px-2 py-0.5 rounded">
+                        <span className="text-[10px] text-ds-soft font-mono bg-ds-raised px-2 py-0.5 rounded">
                             {canvasWidth}x{canvasHeight} • {(scale * 100).toFixed(1)}%
                         </span>
                     </div>
@@ -445,7 +445,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                             {activeGoals.length > 0 ? (
                                 activeGoals.map(goal => renderGoalElement(goal))
                             ) : (
-                                <div className="absolute inset-0 flex items-center justify-center text-white/50">
+                                <div className="absolute inset-0 flex items-center justify-center text-ds-text/50">
                                     <div className="text-center">
                                         <div className="text-4xl mb-2">🎯</div>
                                         <p className="text-sm">No hay metas activas</p>
@@ -459,12 +459,12 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
             </div>
 
             {/* Position Controls */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg overflow-hidden">
+            <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 <button
                     onClick={() => setControlsCollapsed(!controlsCollapsed)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
+                    className="w-full flex items-center justify-between p-4 hover:bg-ds-bg transition-colors"
                 >
-                    <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                    <span className="text-sm font-bold text-ds-text">
                         Controles de Posición y Tamaño
                     </span>
                     {controlsCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
@@ -479,14 +479,14 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                             return (
                                 <div
                                     key={goal.id}
-                                    className={`p-4 rounded-xl border-2 transition-all ${
+                                    className={`p-4 rounded-lg border-2 transition-all ${
                                         isSelected
-                                            ? 'border-[#667eea] bg-[#667eea]/5'
-                                            : 'border-[#e2e8f0] dark:border-[#374151]'
+                                            ? 'border-ds-accent bg-ds-accent/5'
+                                            : 'border-ds-border '
                                     }`}
                                     onClick={() => setSelectedGoal(goal.id)}
                                 >
-                                    <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
+                                    <h4 className="text-sm font-bold text-ds-text mb-3 flex items-center gap-2">
                                         <span>{goal.icon}</span>
                                         {goal.name}
                                     </h4>
@@ -494,57 +494,57 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                                     <div className="grid grid-cols-2 gap-3">
                                         {/* Position X */}
                                         <div>
-                                            <label className="text-xs text-[#64748b] flex items-center gap-1">
+                                            <label className="text-xs text-ds-soft flex items-center gap-1">
                                                 <Move className="w-3 h-3" /> X
                                             </label>
                                             <input
                                                 type="number"
                                                 value={pos.x}
                                                 onChange={(e) => updateGoalPosition(goal.id, { x: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-sm"
+                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
                                             />
                                         </div>
 
                                         {/* Position Y */}
                                         <div>
-                                            <label className="text-xs text-[#64748b] flex items-center gap-1">
+                                            <label className="text-xs text-ds-soft flex items-center gap-1">
                                                 <Move className="w-3 h-3" /> Y
                                             </label>
                                             <input
                                                 type="number"
                                                 value={pos.y}
                                                 onChange={(e) => updateGoalPosition(goal.id, { y: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-sm"
+                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
                                             />
                                         </div>
 
                                         {/* Width */}
                                         <div>
-                                            <label className="text-xs text-[#64748b]">Ancho</label>
+                                            <label className="text-xs text-ds-soft">Ancho</label>
                                             <input
                                                 type="number"
                                                 value={pos.width}
                                                 onChange={(e) => updateGoalPosition(goal.id, { width: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-sm"
+                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
                                                 min="100"
                                             />
                                         </div>
 
                                         {/* Height */}
                                         <div>
-                                            <label className="text-xs text-[#64748b]">Alto</label>
+                                            <label className="text-xs text-ds-soft">Alto</label>
                                             <input
                                                 type="number"
                                                 value={pos.height}
                                                 onChange={(e) => updateGoalPosition(goal.id, { height: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-sm"
+                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
                                                 min="40"
                                             />
                                         </div>
 
                                         {/* Rotation */}
                                         <div className="col-span-2">
-                                            <label className="text-xs text-[#64748b] flex items-center gap-1">
+                                            <label className="text-xs text-ds-soft flex items-center gap-1">
                                                 <RotateCw className="w-3 h-3" /> Rotación: {pos.rotation}°
                                             </label>
                                             <input
@@ -553,7 +553,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                                                 max="180"
                                                 value={pos.rotation}
                                                 onChange={(e) => updateGoalPosition(goal.id, { rotation: Number(e.target.value) })}
-                                                className="w-full h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-lg appearance-none cursor-pointer accent-[#667eea]"
+                                                className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent"
                                             />
                                         </div>
                                     </div>
@@ -562,7 +562,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                         })}
 
                         {activeGoals.length === 0 && (
-                            <div className="col-span-full text-center py-8 text-[#64748b]">
+                            <div className="col-span-full text-center py-8 text-ds-soft">
                                 No hay metas activas para configurar
                             </div>
                         )}

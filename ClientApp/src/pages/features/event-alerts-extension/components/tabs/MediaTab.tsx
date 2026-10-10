@@ -18,7 +18,7 @@ export const MediaTab: React.FC = () => {
       </EventSection>
 
       {/* Gallery */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <MediaGallery />
       </div>
     </div>

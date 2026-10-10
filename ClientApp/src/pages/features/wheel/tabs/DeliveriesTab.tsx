@@ -12,19 +12,19 @@ export function DeliveriesTab({ deliveries, filter, onFilter, onResolve, t }: {
     t: any;
 }) {
     return (
-        <section className="bg-[#1B1C1D] rounded-xl border border-[#374151] overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#374151] flex items-center justify-between gap-4">
+        <section className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
+            <div className="px-5 py-4 border-b border-ds-border flex items-center justify-between gap-4">
                 <div>
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.deliveries.title')}</h2>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.deliveries.help')}</p>
+                    <h2 className="font-bold text-ds-text">{t('wheel.deliveries.title')}</h2>
+                    <p className="text-xs text-ds-soft mt-0.5">{t('wheel.deliveries.help')}</p>
                 </div>
-                <div className="flex gap-1 bg-[#262626] rounded-lg p-1 flex-shrink-0">
+                <div className="flex gap-1 bg-ds-bg rounded-lg p-1 flex-shrink-0">
                     {(['pending', 'all'] as const).map(f => (
                         <button
                             key={f}
                             onClick={() => onFilter(f)}
                             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
-                                filter === f ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:text-[#f8fafc]'
+                                filter === f ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:text-ds-text'
                             }`}
                         >
                             {t(`wheel.deliveries.filter_${f}`)}
@@ -34,25 +34,25 @@ export function DeliveriesTab({ deliveries, filter, onFilter, onResolve, t }: {
             </div>
 
             {deliveries.length === 0 ? (
-                <p className="px-5 py-8 text-sm text-[#94a3b8] text-center">{t('wheel.deliveries.empty')}</p>
+                <p className="px-5 py-8 text-sm text-ds-soft text-center">{t('wheel.deliveries.empty')}</p>
             ) : (
-                <div className="divide-y divide-[#374151]">
+                <div className="divide-y divide-ds-border">
                     {deliveries.map(d => (
                         <div key={d.id} className="px-5 py-4 flex flex-wrap items-center gap-3">
                             <div className="flex-1 min-w-[200px]">
-                                <p className="text-sm text-[#f8fafc]">
+                                <p className="text-sm text-ds-text">
                                     <span className="font-bold">@{d.viewer}</span>
-                                    <span className="text-[#64748b]"> · {d.wheelName}</span>
+                                    <span className="text-ds-soft"> · {d.wheelName}</span>
                                 </p>
-                                <p className="text-xs text-[#94a3b8] mt-0.5">
+                                <p className="text-xs text-ds-soft mt-0.5">
                                     {describePrize(d.prize, t)}
                                 </p>
                                 {d.reason && (
-                                    <p className="text-xs text-amber-300/80 mt-0.5">{d.reason}</p>
+                                    <p className="text-xs text-ds-warn/80 mt-0.5">{d.reason}</p>
                                 )}
                             </div>
 
-                            <span className="text-xs text-[#64748b] tabular-nums">
+                            <span className="text-xs text-ds-soft tabular-nums">
                                 {new Date(d.createdAt).toLocaleString()}
                             </span>
 
@@ -60,14 +60,14 @@ export function DeliveriesTab({ deliveries, filter, onFilter, onResolve, t }: {
                                 <div className="flex gap-2 flex-shrink-0">
                                     <button
                                         onClick={() => onResolve(d.id, 'done')}
-                                        className="px-3 py-1.5 text-xs font-bold bg-green-600/20 text-green-300 border border-green-600/40 rounded-lg hover:bg-green-600/30 transition-colors flex items-center gap-1.5"
+                                        className="px-3 py-1.5 text-xs font-bold bg-ds-accent/20 text-ds-ok border border-ds-ok/40 rounded-lg hover:bg-ds-accent/30 transition-colors flex items-center gap-1.5"
                                     >
                                         <Check className="w-3.5 h-3.5" />
                                         {t('wheel.deliveries.markDone')}
                                     </button>
                                     <button
                                         onClick={() => onResolve(d.id, 'cancelled')}
-                                        className="px-3 py-1.5 text-xs font-bold bg-[#262626] text-[#94a3b8] border border-[#374151] rounded-lg hover:text-[#f8fafc] transition-colors flex items-center gap-1.5"
+                                        className="px-3 py-1.5 text-xs font-bold bg-ds-bg text-ds-soft border border-ds-border rounded-lg hover:text-ds-text transition-colors flex items-center gap-1.5"
                                     >
                                         <X className="w-3.5 h-3.5" />
                                         {t('wheel.deliveries.cancel')}
@@ -76,7 +76,7 @@ export function DeliveriesTab({ deliveries, filter, onFilter, onResolve, t }: {
                             ) : (
                                 <button
                                     onClick={() => onResolve(d.id, 'pending')}
-                                    className="px-3 py-1.5 text-xs font-medium text-[#64748b] hover:text-[#f8fafc] transition-colors flex-shrink-0"
+                                    className="px-3 py-1.5 text-xs font-medium text-ds-soft hover:text-ds-text transition-colors flex-shrink-0"
                                     title={t('wheel.deliveries.reopenHelp')}
                                 >
                                     {t(`wheel.deliveries.status_${d.status}`)} · {t('wheel.deliveries.reopen')}

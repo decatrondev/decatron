@@ -164,7 +164,7 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
             {/* Presets Rápidos */}
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-ds-warn" />
+                    <Zap className="w-4 h-4 text-ds-accent-text" />
                     Temas Completos (Fondo + Texto + Barra)
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">

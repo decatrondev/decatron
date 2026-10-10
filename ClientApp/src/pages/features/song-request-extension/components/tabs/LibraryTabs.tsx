@@ -23,9 +23,9 @@ interface TrackDto {
     thumbnailUrl: string | null;
 }
 
-const smallBtn = 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors disabled:opacity-50';
-const primaryBtn = 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 shrink-0';
-const iconBtn = 'p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626] hover:text-[#1e293b] dark:hover:text-white transition-colors';
+const smallBtn = 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised transition-colors disabled:opacity-50';
+const primaryBtn = 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent disabled:opacity-50 shrink-0';
+const iconBtn = 'p-2 rounded-lg text-ds-soft hover:bg-ds-raised hover:text-ds-text transition-colors';
 
 function TrackRow({ track, children, leading }: { track: TrackDto; children?: React.ReactNode; leading?: React.ReactNode }) {
     return (
@@ -33,12 +33,12 @@ function TrackRow({ track, children, leading }: { track: TrackDto; children?: Re
             {leading}
             {track.thumbnailUrl
                 ? <img src={track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] object-cover rounded shrink-0" />
-                : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] rounded bg-[#e2e8f0] dark:bg-[#262626] shrink-0" />}
+                : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] rounded bg-ds-raised shrink-0" />}
             <div className="flex-1 min-w-0">
-                <a href={track.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate hover:underline">{track.title}</a>
-                <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">{track.artist}</p>
+                <a href={track.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block text-sm 3xl:text-base font-semibold text-ds-text truncate hover:underline">{track.title}</a>
+                <p className="text-xs 3xl:text-sm text-ds-soft truncate">{track.artist}</p>
             </div>
-            <span className="font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0 hidden sm:inline">{formatDuration(track.durationSeconds)}</span>
+            <span className="font-mono text-xs 3xl:text-sm text-ds-soft shrink-0 hidden sm:inline">{formatDuration(track.durationSeconds)}</span>
             {children}
         </div>
     );
@@ -46,7 +46,7 @@ function TrackRow({ track, children, leading }: { track: TrackDto; children?: Re
 
 function Feedback({ result }: { result: { ok: boolean; text: string } | null }) {
     if (!result) return null;
-    return <p className={`text-sm 3xl:text-base mt-2 ${result.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{result.text}</p>;
+    return <p className={`text-sm 3xl:text-base mt-2 ${result.ok ? 'text-ds-ok ' : 'text-ds-danger '}`}>{result.text}</p>;
 }
 
 function useErrorText() {
@@ -63,7 +63,7 @@ export function FiltersTab({ cfg }: TabProps) {
 
     return (
         <div className="space-y-6">
-            <div className="p-4 rounded-xl border border-[#bfdbfe] dark:border-[#1e3a8a] bg-[#eff6ff] dark:bg-[#1e3a8a]/20 text-[#1e40af] dark:text-[#93c5fd] text-sm 3xl:text-base">
+            <div className="p-4 rounded-lg border border-ds-accent bg-ds-accent/10 text-ds-accent-text text-sm 3xl:text-base">
                 {t('songRequest.filters.exempt')}
             </div>
 
@@ -78,7 +78,7 @@ export function FiltersTab({ cfg }: TabProps) {
                         ]}
                     />
                 </Field>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-2">{t(`songRequest.filters.sourceHint_${s.requestSource}`)}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t(`songRequest.filters.sourceHint_${s.requestSource}`)}</p>
             </Card>
 
             <Card title={t('songRequest.filters.durationTitle')}>
@@ -108,7 +108,7 @@ export function FiltersTab({ cfg }: TabProps) {
                         <NumberInput value={s.noRepeatMinutes} min={0} max={10080} onChange={v => cfg.updateSettings({ noRepeatMinutes: Math.round(v) })} />
                     </Field>
                 </div>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('songRequest.filters.alwaysBlocked')}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-3">{t('songRequest.filters.alwaysBlocked')}</p>
             </Card>
         </div>
     );
@@ -145,7 +145,7 @@ export function BlacklistTab({ platforms }: { platforms: string[] }) {
     return (
         <div className="space-y-6">
             <Card title={t('songRequest.blacklist.title')} description={t('songRequest.blacklist.description')}>
-                {bans === null ? <Loader2 className="w-5 h-5 animate-spin text-[#94a3b8]" /> : null}
+                {bans === null ? <Loader2 className="w-5 h-5 animate-spin text-ds-soft" /> : null}
             </Card>
             {bans !== null && (['track', 'author', 'user'] as const).map(section)}
         </div>
@@ -178,7 +178,7 @@ function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban
         <Card title={t(`songRequest.blacklist.${type}.title`, { count: bans.length })} description={t(`songRequest.blacklist.${type}.description`)}>
             <form className="flex gap-2" onSubmit={e => { e.preventDefault(); add(); }}>
                 {type === 'user' && platforms.length > 1 && (
-                    <div className="flex shrink-0 rounded-lg border border-[#e2e8f0] dark:border-[#374151] overflow-hidden" role="radiogroup" aria-label={t('songRequest.blacklist.user.platform')}>
+                    <div className="flex shrink-0 rounded-lg border border-ds-border overflow-hidden" role="radiogroup" aria-label={t('songRequest.blacklist.user.platform')}>
                         {platforms.map(p => (
                             <button
                                 key={p}
@@ -187,7 +187,7 @@ function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban
                                 aria-checked={platform === p}
                                 title={p === 'kick' ? 'Kick' : 'Twitch'}
                                 onClick={() => setPlatform(p)}
-                                className={`px-3 flex items-center transition-colors ${platform === p ? 'bg-[#eff6ff] dark:bg-[#1e3a8a]/40' : 'opacity-50 hover:opacity-100'}`}
+                                className={`px-3 flex items-center transition-colors ${platform === p ? 'bg-ds-accent/10 ' : 'opacity-50 hover:opacity-100'}`}
                             >
                                 <PlatformIcon platform={p} className="w-4 h-4 3xl:w-5 3xl:h-5" />
                             </button>
@@ -201,12 +201,12 @@ function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban
             </form>
             <Feedback result={result} />
             {bans.length > 0 ? (
-                <div className="mt-4 divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                <div className="mt-4 divide-y divide-ds-border">
                     {bans.map(b => (
                         <div key={b.id} className="flex items-center gap-3 py-2">
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate">{type === 'user' ? <><PlatformIcon platform={banPlatform(b.value)} /> @{b.label}</> : b.label || b.value}</p>
-                                <p className="text-xs 3xl:text-sm text-[#94a3b8] truncate">
+                                <p className="text-sm 3xl:text-base font-semibold text-ds-text truncate">{type === 'user' ? <><PlatformIcon platform={banPlatform(b.value)} /> @{b.label}</> : b.label || b.value}</p>
+                                <p className="text-xs 3xl:text-sm text-ds-soft truncate">
                                     {b.createdBy ? t('songRequest.blacklist.by', { user: b.createdBy }) : ''} · {new Date(b.createdAt).toLocaleDateString()}
                                 </p>
                             </div>
@@ -217,7 +217,7 @@ function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban
                     ))}
                 </div>
             ) : (
-                <p className="text-sm 3xl:text-base text-[#94a3b8] mt-3">{t('songRequest.blacklist.empty')}</p>
+                <p className="text-sm 3xl:text-base text-ds-soft mt-3">{t('songRequest.blacklist.empty')}</p>
             )}
         </Card>
     );
@@ -289,7 +289,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
         await reload();
     };
 
-    if (playlists === null) return <Loader2 className="w-5 h-5 animate-spin text-[#94a3b8]" />;
+    if (playlists === null) return <Loader2 className="w-5 h-5 animate-spin text-ds-soft" />;
 
     return (
         <div className="space-y-6">
@@ -302,9 +302,9 @@ export function PlaylistsTab({ cfg }: TabProps) {
                         </select>
                     </Field>
                     {background
-                        ? background.count === 0 && <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.background.emptyWarning')}</p>
-                        : <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.background.noneNote')}</p>}
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.playlists.instantNote')}</p>
+                        ? background.count === 0 && <p className="text-xs 3xl:text-sm text-ds-warn">{t('songRequest.background.emptyWarning')}</p>
+                        : <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.background.noneNote')}</p>}
+                    <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.playlists.instantNote')}</p>
                 </div>
             </Card>
 
@@ -318,14 +318,14 @@ export function PlaylistsTab({ cfg }: TabProps) {
                             <button
                                 key={p.id}
                                 onClick={() => setSelectedId(p.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm 3xl:text-base font-semibold transition-colors ${selected?.id === p.id
-                                    ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#1d4ed8] dark:text-[#93c5fd]'
-                                    : 'border-[#e2e8f0] dark:border-[#374151] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'}`}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm 3xl:text-base font-semibold transition-colors ${selected?.id === p.id
+                                    ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text '
+                                    : 'border-ds-border text-ds-soft hover:bg-ds-bg '}`}
                             >
                                 {p.visibility === 'public' ? <Globe className="w-4 h-4 shrink-0" /> : p.visibility === 'unlisted' ? <Link2 className="w-4 h-4 shrink-0" /> : <Lock className="w-4 h-4 shrink-0" />}
                                 <span className="truncate max-w-[12rem] 3xl:max-w-[16rem]">{p.name}</span>
-                                <span className="text-xs 3xl:text-sm text-[#94a3b8]">{p.count}</span>
-                                {p.isActive && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">♪ {t('songRequest.playlists.playingBadge')}</span>}
+                                <span className="text-xs 3xl:text-sm text-ds-soft">{p.count}</span>
+                                {p.isActive && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-ds-warn/10 text-ds-warn">♪ {t('songRequest.playlists.playingBadge')}</span>}
                             </button>
                         ))}
                     </div>
@@ -509,8 +509,8 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                             </button>
                         )}
                     </div>
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(playlist.isActive ? 'songRequest.playlists.playingHint' : 'songRequest.playlists.playHint')}</p>
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.playlists.instantNote')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-soft">{t(playlist.isActive ? 'songRequest.playlists.playingHint' : 'songRequest.playlists.playHint')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.playlists.instantNote')}</p>
                 </div>
             </Card>
 
@@ -532,14 +532,14 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                         </button>
                     </form>
                     {desktopReady === false ? (
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
-                            <p className="flex-1 text-xs 3xl:text-sm text-amber-900 dark:text-amber-200">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border border-ds-warn/40 bg-ds-warn/10">
+                            <p className="flex-1 text-xs 3xl:text-sm text-ds-warn">
                                 {t(desktopOutdated ? 'songRequest.importExt.outdated' : 'songRequest.importExt.noDesktop')}
                             </p>
                             <a href={desktop.url} target="_blank" rel="noreferrer" className={primaryBtn}><Download className="w-4 h-4" /> {desktop.label}</a>
                         </div>
                     ) : (
-                        <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.importExt.hint')}</p>
+                        <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.importExt.hint')}</p>
                     )}
                     <Feedback result={result} />
                     {importJob && <ImportJobCard job={importJob} onAction={importAction} />}
@@ -554,27 +554,27 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                     </button>
                 ) : undefined}
             >
-                {items === null ? <Loader2 className="w-5 h-5 animate-spin text-[#94a3b8]" />
-                    : items.length === 0 ? <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.fallback.empty')}</p>
+                {items === null ? <Loader2 className="w-5 h-5 animate-spin text-ds-soft" />
+                    : items.length === 0 ? <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.fallback.empty')}</p>
                         : (
-                            <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                            <div className="divide-y divide-ds-border">
                                 {items.map(item => (
                                     // Con "más votadas primero" el orden lo dan los votos: no se arrastra
                                     <div key={item.id} draggable={!playlist.sortByVotes} onDragStart={() => setDragId(item.id)} onDragOver={e => e.preventDefault()} onDrop={() => drop(item.id)} className={dragId === item.id ? 'opacity-40' : ''}>
                                         <TrackRow
                                             track={item.track}
                                             leading={<>
-                                                {!playlist.sortByVotes && <GripVertical className="w-4 h-4 text-[#cbd5e1] dark:text-[#4b5563] cursor-grab shrink-0" />}
-                                                <span className="w-9 text-right font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0">#{item.number}</span>
+                                                {!playlist.sortByVotes && <GripVertical className="w-4 h-4 text-ds-text cursor-grab shrink-0" />}
+                                                <span className="w-9 text-right font-mono text-xs 3xl:text-sm text-ds-soft shrink-0">#{item.number}</span>
                                             </>}
                                         >
                                             {playlist.votingEnabled && (
-                                                <span className="inline-flex items-center gap-1 text-xs 3xl:text-sm font-bold text-[#64748b] dark:text-[#94a3b8] shrink-0" title={t('songRequest.playlists.votes', { count: item.votes })}>
+                                                <span className="inline-flex items-center gap-1 text-xs 3xl:text-sm font-bold text-ds-soft shrink-0" title={t('songRequest.playlists.votes', { count: item.votes })}>
                                                     <ThumbsUp className="w-3.5 h-3.5" /> {item.votes}
                                                 </span>
                                             )}
                                             {item.addedBy && (
-                                                <span className="hidden md:inline-flex items-center gap-1 text-xs 3xl:text-sm text-[#94a3b8] max-w-[10rem] 3xl:max-w-[14rem] truncate shrink-0" title={t('songRequest.playlists.addedBy', { user: item.addedBy })}>
+                                                <span className="hidden md:inline-flex items-center gap-1 text-xs 3xl:text-sm text-ds-soft max-w-[10rem] 3xl:max-w-[14rem] truncate shrink-0" title={t('songRequest.playlists.addedBy', { user: item.addedBy })}>
                                                     <PlatformIcon platform={item.addedByPlatform ?? 'twitch'} /> {item.addedBy}
                                                 </span>
                                             )}
@@ -615,9 +615,9 @@ function ImportJobCard({ job, onAction }: { job: ImportJob; onAction: (a: 'cance
     const percent = job.total ? Math.round((done / job.total) * 100) : 0;
     const service = t(`songRequest.importExt.services.${job.service}`);
     return (
-        <div className="mt-2 p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#111] space-y-3">
+        <div className="mt-2 p-4 rounded-lg border border-ds-border bg-ds-bg space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                <p className="text-sm 3xl:text-base font-bold text-ds-text">
                     {t(`songRequest.importExt.state.${job.state}`, { service, name: job.sourceName ?? '' })}
                 </p>
                 {(job.state === 'matching' || job.state === 'listing') && <button className={smallBtn} onClick={() => onAction('cancel')}>{t('songRequest.importExt.cancel')}</button>}
@@ -625,25 +625,25 @@ function ImportJobCard({ job, onAction }: { job: ImportJob; onAction: (a: 'cance
                     <button className={primaryBtn} onClick={() => onAction('resume')}>{job.total === 0 ? t('songRequest.importExt.retry') : t('songRequest.importExt.resume', { count: job.pending })}</button>
                 )}
             </div>
-            <div className="h-2 rounded-full bg-[#e2e8f0] dark:bg-[#262626] overflow-hidden">
-                <div className="h-full bg-[#2563eb] transition-all" style={{ width: `${percent}%` }} />
+            <div className="h-2 rounded-full bg-ds-raised overflow-hidden">
+                <div className="h-full bg-ds-accent transition-all" style={{ width: `${percent}%` }} />
             </div>
-            <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <p className="text-xs 3xl:text-sm text-ds-soft">
                 {t('songRequest.importExt.counts', { done, total: job.total, added: job.added, duplicates: job.duplicates, notFound: job.notFound, rejected: job.rejected })}
             </p>
-            {job.state === 'desktop_lost' && <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.importExt.lostHint')}</p>}
-            {job.error && <p className="text-xs 3xl:text-sm text-red-600 dark:text-red-400">{t(`songRequest.importExt.listErrors.${job.error}`, { defaultValue: t('songRequest.importExt.listErrors.list_failed') })}</p>}
+            {job.state === 'desktop_lost' && <p className="text-xs 3xl:text-sm text-ds-warn">{t('songRequest.importExt.lostHint')}</p>}
+            {job.error && <p className="text-xs 3xl:text-sm text-ds-danger">{t(`songRequest.importExt.listErrors.${job.error}`, { defaultValue: t('songRequest.importExt.listErrors.list_failed') })}</p>}
             {job.problems.length > 0 && (
                 <div>
-                    <button className="text-xs 3xl:text-sm font-bold text-[#2563eb] dark:text-[#60a5fa] underline" onClick={() => setShowProblems(v => !v)}>
+                    <button className="text-xs 3xl:text-sm font-bold text-ds-accent-text underline" onClick={() => setShowProblems(v => !v)}>
                         {t('songRequest.importExt.problems', { count: job.problems.length })}
                     </button>
                     {showProblems && (
-                        <ul className="mt-2 max-h-64 overflow-y-auto divide-y divide-[#e2e8f0] dark:divide-[#374151] text-xs 3xl:text-sm">
+                        <ul className="mt-2 max-h-64 overflow-y-auto divide-y divide-ds-border text-xs 3xl:text-sm">
                             {job.problems.map((p, i) => (
                                 <li key={i} className="flex items-center justify-between gap-3 py-1.5">
-                                    <a href={p.url ?? undefined} target="_blank" rel="noopener noreferrer" className="truncate text-[#1e293b] dark:text-[#f8fafc] hover:underline">{p.artist} — {p.title}</a>
-                                    <span className="shrink-0 text-[#94a3b8]">{t(`songRequest.importExt.reasons.${p.reason ?? 'no_match'}`, { defaultValue: t('songRequest.importExt.reasons.no_match') })}</span>
+                                    <a href={p.url ?? undefined} target="_blank" rel="noopener noreferrer" className="truncate text-ds-text hover:underline">{p.artist} — {p.title}</a>
+                                    <span className="shrink-0 text-ds-soft">{t(`songRequest.importExt.reasons.${p.reason ?? 'no_match'}`, { defaultValue: t('songRequest.importExt.reasons.no_match') })}</span>
                                 </li>
                             ))}
                         </ul>
@@ -673,7 +673,7 @@ function ShareLink({ playlist, channel, onChanged }: { playlist: Playlist; chann
 
     return (
         <div className="space-y-2">
-            <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc]">{t('songRequest.playlists.shareLink')}</p>
+            <p className="text-sm 3xl:text-base font-semibold text-ds-text">{t('songRequest.playlists.shareLink')}</p>
             <div className="flex flex-wrap gap-2">
                 <input readOnly value={url} onFocus={e => e.target.select()} className={`${inputClass} flex-1 min-w-[14rem] font-mono`} />
                 <button className={smallBtn} onClick={copy}>
@@ -683,7 +683,7 @@ function ShareLink({ playlist, channel, onChanged }: { playlist: Playlist; chann
                     {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />} {t('songRequest.playlists.regenerate')}
                 </button>
             </div>
-            <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.playlists.regenerateHint')}</p>
+            <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.playlists.regenerateHint')}</p>
         </div>
     );
 }
@@ -710,14 +710,14 @@ function ContributionCard({ playlist, onUpdate }: { playlist: Playlist; onUpdate
                         ]}
                     />
                 </Field>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(`songRequest.contrib.${playlist.contribution}Hint`, { name: playlist.name })}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft">{t(`songRequest.contrib.${playlist.contribution}Hint`, { name: playlist.name })}</p>
                 {open && playlist.visibility === 'private' && (
-                    <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.contrib.privateNote')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-warn">{t('songRequest.contrib.privateNote')}</p>
                 )}
 
                 {open && (
-                    <div className="space-y-4 pt-2 border-t border-[#e2e8f0] dark:border-[#374151]">
-                        <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] pt-2">{t('songRequest.contrib.requirements')}</p>
+                    <div className="space-y-4 pt-2 border-t border-ds-border">
+                        <p className="text-sm 3xl:text-base font-bold text-ds-text pt-2">{t('songRequest.contrib.requirements')}</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                             <Field label={t('songRequest.contrib.minRole')} hint={t('songRequest.contrib.minRoleHint')}>
                                 <Select value={draft.minRole} onChange={v => set({ minRole: v })} options={roleOptions} />
@@ -738,7 +738,7 @@ function ContributionCard({ playlist, onUpdate }: { playlist: Playlist; onUpdate
                                 <NumberInput value={draft.cooldownMinutes} min={0} max={10080} onChange={v => set({ cooldownMinutes: v })} />
                             </Field>
                         </div>
-                        <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.contrib.alwaysApply')}</p>
+                        <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.contrib.alwaysApply')}</p>
                         <div className="flex flex-wrap gap-2">
                             <button className={primaryBtn} disabled={!dirty} onClick={() => onUpdate({ requirements: draft })}>
                                 {t('songRequest.contrib.save')}
@@ -764,13 +764,13 @@ function AddToPlaylistMenu({ playlists, onPick }: { playlists: Playlist[]; onPic
                 <ListPlus className="w-4 h-4" />
             </button>
             {open && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-60 max-h-72 overflow-y-auto rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-xl p-1" onMouseLeave={() => setOpen(false)}>
+                <div className="absolute right-0 top-full mt-1 z-20 w-60 max-h-72 overflow-y-auto rounded-lg border border-ds-border bg-ds-surface p-1" onMouseLeave={() => setOpen(false)}>
                     {playlists.length === 0
-                        ? <p className="px-3 py-2 text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.playlists.none')}</p>
+                        ? <p className="px-3 py-2 text-sm 3xl:text-base text-ds-soft">{t('songRequest.playlists.none')}</p>
                         : playlists.map(p => (
-                            <button key={p.id} onClick={() => { setOpen(false); onPick(p); }} className="w-full flex items-center justify-between gap-2 text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]">
+                            <button key={p.id} onClick={() => { setOpen(false); onPick(p); }} className="w-full flex items-center justify-between gap-2 text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-ds-text hover:bg-ds-raised">
                                 <span className="truncate">{p.name}</span>
-                                <span className="text-xs 3xl:text-sm text-[#94a3b8] shrink-0">{p.count}</span>
+                                <span className="text-xs 3xl:text-sm text-ds-soft shrink-0">{p.count}</span>
                             </button>
                         ))}
                 </div>
@@ -823,9 +823,9 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
     };
 
     const reasonTone: Record<string, string> = {
-        finished: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-        skipped: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-        error: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+        finished: 'bg-ds-ok/10 text-ds-ok ',
+        skipped: 'bg-ds-warn/10 text-ds-warn ',
+        error: 'bg-ds-danger/10 text-ds-danger ',
     };
 
     return (
@@ -839,9 +839,9 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
                     </button>
                 }
             >
-                <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit mb-3">
+                <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit mb-3">
                     {[false, true].map(f => (
-                        <button key={String(f)} onClick={() => setFavorites(f)} className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold ${favorites === f ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
+                        <button key={String(f)} onClick={() => setFavorites(f)} className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold ${favorites === f ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft '}`}>
                             {f ? t('songRequest.history.favorites') : t('songRequest.history.all')}
                         </button>
                     ))}
@@ -849,19 +849,19 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
                 {historyDays !== null && !favorites && <div className="mb-3"><PlanLimitNote text={t('songRequest.limits.history', { days: historyDays })} /></div>}
                 <Feedback result={result} />
                 {items.length === 0 && !loading ? (
-                    <p className="text-sm 3xl:text-base text-[#94a3b8]">{favorites ? t('songRequest.history.noFavorites') : t('songRequest.history.empty')}</p>
+                    <p className="text-sm 3xl:text-base text-ds-soft">{favorites ? t('songRequest.history.noFavorites') : t('songRequest.history.empty')}</p>
                 ) : (
-                    <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                    <div className="divide-y divide-ds-border">
                         {items.map(item => (
                             <TrackRow key={item.id} track={item.track}>
                                 <div className="hidden md:flex flex-col items-end shrink-0 w-56 3xl:w-64">
                                     <span className={`px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold ${reasonTone[item.endReason] ?? reasonTone.finished}`}>{t(`songRequest.history.reasons.${item.endReason}`, { defaultValue: item.endReason })}</span>
-                                    <span className="text-[11px] 3xl:text-xs text-[#94a3b8] mt-0.5 truncate max-w-full">
+                                    <span className="text-[11px] 3xl:text-xs text-ds-soft mt-0.5 truncate max-w-full">
                                         {item.platform === 'fallback' ? t('songRequest.overlayLabels.fallback') : <><PlatformIcon platform={item.platform} /> {item.requestedBy}</>} · {new Date(item.playedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                     </span>
                                 </div>
                                 <button className={iconBtn} title={item.isFavorite ? t('songRequest.history.unfavorite') : t('songRequest.history.favorite')} onClick={() => toggleFavorite(item)}>
-                                    <Star className={`w-4 h-4 ${item.isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
+                                    <Star className={`w-4 h-4 ${item.isFavorite ? 'fill-ds-warn text-ds-warn' : ''}`} />
                                 </button>
                                 <button className={iconBtn} title={t('songRequest.history.requeue')} onClick={() => act(() => api.post(`/song-request/history/${item.id}/requeue`), t('songRequest.history.requeued'))}>
                                     <RotateCcw className="w-4 h-4" />

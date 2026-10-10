@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Terminal, Plus, Trash2, Save, RotateCcw, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../../../../services/api';
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-const inputClass = 'w-full px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const inputClass = 'w-full px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
 
 const PERMISSIONS = [
     { value: 'everyone', label: 'Todos' },
@@ -137,38 +137,38 @@ export const CommandsTab: React.FC = () => {
     };
 
     if (loading) {
-        return <div className={cardClass}><p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando comandos...</p></div>;
+        return <div className={cardClass}><p className="text-center text-ds-soft py-8">Cargando comandos...</p></div>;
     }
 
     return (
         <div className="space-y-6">
             {/* Help Banner */}
-            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+            <div className="rounded-lg border border-ds-border bg-ds-bg overflow-hidden">
                 <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
-                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan los comandos</span>
-                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                    <HelpCircle className="w-5 h-5 text-ds-soft flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-ds-soft">Como funcionan los comandos</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-ds-soft" /> : <ChevronDown className="w-4 h-4 text-ds-soft" />}
                 </button>
                 {showHelp && (
-                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="px-4 pb-4 space-y-3 text-sm text-ds-soft">
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
-                            <span>Cada comando del gacha tiene <strong className="text-[#1e293b] dark:text-[#f8fafc]">permisos</strong> (todos, sub, vip, mod, broadcaster)</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Cada comando del gacha tiene <strong className="text-ds-text">permisos</strong> (todos, sub, vip, mod, broadcaster)</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
-                            <span>Configura <strong className="text-[#1e293b] dark:text-[#f8fafc]">cooldowns</strong> globales y por usuario para evitar spam</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span>Configura <strong className="text-ds-text">cooldowns</strong> globales y por usuario para evitar spam</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
-                            <span>Crea <strong className="text-[#1e293b] dark:text-[#f8fafc]">aliases</strong> personalizados (ej: !go → !gcpull)</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span>Crea <strong className="text-ds-text">aliases</strong> personalizados (ej: !go → !gcpull)</span>
                         </div>
                         <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
-                            <span>Configura el <strong className="text-[#1e293b] dark:text-[#f8fafc]">multi-pull</strong> (max tiros y delay entre cada uno)</span>
+                            <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Configura el <strong className="text-ds-text">multi-pull</strong> (max tiros y delay entre cada uno)</span>
                         </div>
-                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
-                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Los aliases se resuelven a nivel global del bot. Si creas !go como alias de pull, funcionara en todo el chat.
+                        <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
+                            <strong className="text-ds-text">Tip:</strong> Los aliases se resuelven a nivel global del bot. Si creas !go como alias de pull, funcionara en todo el chat.
                         </div>
                     </div>
                 )}
@@ -176,58 +176,58 @@ export const CommandsTab: React.FC = () => {
 
             {/* Commands List */}
             <div className={cardClass}>
-                <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
+                <h2 className="text-xl font-black text-ds-text flex items-center gap-2 mb-4">
                     <Terminal className="w-5 h-5" /> Comandos ({configs.length})
                 </h2>
                 <div className="space-y-3">
                     {configs.map(cfg => {
                         const info = CMD_DESCRIPTIONS[cfg.command] || { label: cfg.command, desc: '', aliases: '' };
                         return (
-                            <div key={cfg.command} className={`p-4 rounded-xl border transition-all ${cfg.enabled ? 'bg-[#f8fafc] dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151]' : 'bg-gray-100 dark:bg-[#1a1a1a] border-gray-200 dark:border-[#2a2a2a] opacity-60'}`}>
+                            <div key={cfg.command} className={`p-4 rounded-lg border transition-all ${cfg.enabled ? 'bg-ds-bg border-ds-border ' : 'bg-ds-bg border-ds-border opacity-60'}`}>
                                 <div className="flex items-center justify-between mb-3">
                                     <div>
-                                        <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{info.label}</span>
-                                        <span className="text-xs text-[#64748b] dark:text-[#94a3b8] ml-2">{info.desc}</span>
-                                        <p className="text-[10px] text-[#94a3b8] mt-0.5">{info.aliases}</p>
+                                        <span className="font-bold text-ds-text">{info.label}</span>
+                                        <span className="text-xs text-ds-soft ml-2">{info.desc}</span>
+                                        <p className="text-[10px] text-ds-soft mt-0.5">{info.aliases}</p>
                                     </div>
                                     <button
                                         onClick={() => updateConfig(cfg.command, { enabled: !cfg.enabled })}
-                                        className={`w-12 h-6 rounded-full transition-colors ${cfg.enabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                        className={`w-12 h-6 rounded-full transition-colors ${cfg.enabled ? 'bg-ds-accent' : 'bg-ds-raised '}`}
                                     >
-                                        <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${cfg.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                        <div className={`w-5 h-5 bg-ds-surface rounded-full shadow transition-transform ${cfg.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
                                     </button>
                                 </div>
                                 {cfg.enabled && (
                                     <div className="flex items-center gap-3 flex-wrap">
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Permiso:</span>
+                                            <span className="text-xs text-ds-soft">Permiso:</span>
                                             <select
                                                 value={cfg.permission}
                                                 onChange={e => updateConfig(cfg.command, { permission: e.target.value })}
-                                                className="px-2 py-1 text-xs bg-white dark:bg-[#374151] border border-[#e2e8f0] dark:border-[#4b5563] rounded-lg text-[#1e293b] dark:text-white"
+                                                className="px-2 py-1 text-xs bg-ds-surface border border-ds-border rounded-lg text-ds-text"
                                             >
                                                 {PERMISSIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                                             </select>
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">CD Global:</span>
+                                            <span className="text-xs text-ds-soft">CD Global:</span>
                                             <input
                                                 type="number" min={0} max={300}
                                                 value={cfg.cooldownGlobal}
                                                 onChange={e => updateConfig(cfg.command, { cooldownGlobal: Math.max(0, parseInt(e.target.value) || 0) })}
-                                                className="w-16 px-2 py-1 text-xs text-center bg-white dark:bg-[#374151] border border-[#e2e8f0] dark:border-[#4b5563] rounded-lg text-[#1e293b] dark:text-white"
+                                                className="w-16 px-2 py-1 text-xs text-center bg-ds-surface border border-ds-border rounded-lg text-ds-text"
                                             />
-                                            <span className="text-[10px] text-[#94a3b8]">s</span>
+                                            <span className="text-[10px] text-ds-soft">s</span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">CD Usuario:</span>
+                                            <span className="text-xs text-ds-soft">CD Usuario:</span>
                                             <input
                                                 type="number" min={0} max={300}
                                                 value={cfg.cooldownUser}
                                                 onChange={e => updateConfig(cfg.command, { cooldownUser: Math.max(0, parseInt(e.target.value) || 0) })}
-                                                className="w-16 px-2 py-1 text-xs text-center bg-white dark:bg-[#374151] border border-[#e2e8f0] dark:border-[#4b5563] rounded-lg text-[#1e293b] dark:text-white"
+                                                className="w-16 px-2 py-1 text-xs text-center bg-ds-surface border border-ds-border rounded-lg text-ds-text"
                                             />
-                                            <span className="text-[10px] text-[#94a3b8]">s</span>
+                                            <span className="text-[10px] text-ds-soft">s</span>
                                         </div>
                                     </div>
                                 )}
@@ -239,19 +239,19 @@ export const CommandsTab: React.FC = () => {
 
             {/* Aliases */}
             <div className={cardClass}>
-                <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Aliases Personalizados</h2>
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3">Los aliases base (!gc*, !gacha *) siempre funcionan. Agrega tus propios atajos.</p>
+                <h2 className="text-lg font-black text-ds-text mb-4">Aliases Personalizados</h2>
+                <p className="text-xs text-ds-soft mb-3">Los aliases base (!gc*, !gacha *) siempre funcionan. Agrega tus propios atajos.</p>
 
                 {aliases.length > 0 && (
                     <div className="space-y-2 mb-4">
                         {aliases.map(a => (
-                            <div key={a.id} className="flex items-center justify-between px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                            <div key={a.id} className="flex items-center justify-between px-3 py-2 bg-ds-bg rounded-lg border border-ds-border">
                                 <div>
-                                    <span className="font-bold text-blue-600 dark:text-blue-400">!{a.alias}</span>
-                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8] mx-2">→</span>
-                                    <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">{CMD_DESCRIPTIONS[a.targetCommand]?.label || a.targetCommand}</span>
+                                    <span className="font-bold text-ds-accent-text">!{a.alias}</span>
+                                    <span className="text-xs text-ds-soft mx-2">→</span>
+                                    <span className="text-sm text-ds-text">{CMD_DESCRIPTIONS[a.targetCommand]?.label || a.targetCommand}</span>
                                 </div>
-                                <button onClick={() => deleteAlias(a.alias)} className="p-1.5 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg">
+                                <button onClick={() => deleteAlias(a.alias)} className="p-1.5 text-ds-danger hover:bg-ds-danger/10 rounded-lg">
                                     <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -260,7 +260,7 @@ export const CommandsTab: React.FC = () => {
                 )}
 
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-[#64748b]">!</span>
+                    <span className="text-sm text-ds-soft">!</span>
                     <input
                         type="text"
                         value={newAlias}
@@ -268,22 +268,22 @@ export const CommandsTab: React.FC = () => {
                         placeholder="micomando"
                         className={`${inputClass} w-40`}
                     />
-                    <span className="text-xs text-[#64748b]">→</span>
+                    <span className="text-xs text-ds-soft">→</span>
                     <select value={newAliasTarget} onChange={e => setNewAliasTarget(e.target.value)} className={`${inputClass} w-40`}>
                         {COMMANDS.map(c => <option key={c} value={c}>{CMD_DESCRIPTIONS[c]?.label || c}</option>)}
                     </select>
-                    <button onClick={addAlias} disabled={!newAlias.trim()} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm flex items-center gap-1">
+                    <button onClick={addAlias} disabled={!newAlias.trim()} className="px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg text-sm flex items-center gap-1">
                         <Plus className="w-4 h-4" /> Agregar
                     </button>
                 </div>
-                {aliasMsg && <p className="text-xs text-red-500 mt-2">{aliasMsg}</p>}
+                {aliasMsg && <p className="text-xs text-ds-danger mt-2">{aliasMsg}</p>}
             </div>
 
             {/* Multi-Pull Config */}
             <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Multi-Pull</h2>
-                    <button onClick={saveMultiPull} disabled={multiSaving} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm">
+                    <h2 className="text-lg font-black text-ds-text">Multi-Pull</h2>
+                    <button onClick={saveMultiPull} disabled={multiSaving} className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg text-sm">
                         <Save className="w-4 h-4" /> {multiSaving ? 'Guardando...' : 'Guardar'}
                     </button>
                 </div>
@@ -291,19 +291,19 @@ export const CommandsTab: React.FC = () => {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Habilitado</span>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Permite !gcpull 5 (multiples tiros)</p>
+                            <span className="font-bold text-ds-text">Habilitado</span>
+                            <p className="text-xs text-ds-soft">Permite !gcpull 5 (multiples tiros)</p>
                         </div>
-                        <button onClick={() => setMultiPull(p => ({ ...p, enabled: !p.enabled }))} className={`w-12 h-6 rounded-full transition-colors ${multiPull.enabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                            <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${multiPull.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                        <button onClick={() => setMultiPull(p => ({ ...p, enabled: !p.enabled }))} className={`w-12 h-6 rounded-full transition-colors ${multiPull.enabled ? 'bg-ds-accent' : 'bg-ds-raised '}`}>
+                            <div className={`w-5 h-5 bg-ds-surface rounded-full shadow transition-transform ${multiPull.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
                         </button>
                     </div>
                     {multiPull.enabled && (
                         <>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Max pulls por sesion</span>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">1 a 50 tiros por comando</p>
+                                    <span className="font-bold text-ds-text">Max pulls por sesion</span>
+                                    <p className="text-xs text-ds-soft">1 a 50 tiros por comando</p>
                                 </div>
                                 <input
                                     type="number" min={1} max={50}
@@ -314,8 +314,8 @@ export const CommandsTab: React.FC = () => {
                             </div>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Delay entre pulls</span>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Segundos entre cada tiro (5-30)</p>
+                                    <span className="font-bold text-ds-text">Delay entre pulls</span>
+                                    <p className="text-xs text-ds-soft">Segundos entre cada tiro (5-30)</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -324,7 +324,7 @@ export const CommandsTab: React.FC = () => {
                                         onChange={e => setMultiPull(p => ({ ...p, delay: Math.max(5, Math.min(30, parseInt(e.target.value) || 10)) }))}
                                         className={`${inputClass} w-20 text-center`}
                                     />
-                                    <span className="text-xs text-[#94a3b8]">s</span>
+                                    <span className="text-xs text-ds-soft">s</span>
                                 </div>
                             </div>
                         </>

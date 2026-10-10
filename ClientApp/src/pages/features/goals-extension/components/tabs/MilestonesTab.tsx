@@ -36,12 +36,12 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
 
     if (goals.length === 0) {
         return (
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-8 text-center">
-                <Flag className="w-16 h-16 mx-auto text-[#64748b] dark:text-[#94a3b8] mb-4" />
-                <h3 className="text-lg font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-8 text-center">
+                <Flag className="w-16 h-16 mx-auto text-ds-soft mb-4" />
+                <h3 className="text-lg font-semibold text-ds-text mb-2">
                     No hay metas creadas
                 </h3>
-                <p className="text-[#64748b] dark:text-[#94a3b8]">
+                <p className="text-ds-soft">
                     Primero crea una meta en la pestaña "Metas" para poder agregar milestones.
                 </p>
             </div>
@@ -51,8 +51,8 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
     return (
         <div className="space-y-6">
             {/* Info Card */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
+                <p className="text-sm text-ds-soft">
                     🏁 Los milestones son hitos intermedios dentro de una meta. Puedes configurar notificaciones
                     y bonus de tiempo cuando se alcanzan. Por ejemplo: al llegar al 50% de la meta, mostrar una alerta.
                 </p>
@@ -66,38 +66,38 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                     return (
                         <div
                             key={goal.id}
-                            className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden"
+                            className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden"
                         >
                             {/* Goal Header */}
                             <button
                                 onClick={() => setExpandedGoalId(isExpanded ? null : goal.id)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
+                                className="w-full flex items-center justify-between p-4 hover:bg-ds-bg transition-colors"
                             >
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{goal.icon}</span>
                                     <div className="text-left">
-                                        <h3 className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                        <h3 className="font-semibold text-ds-text">
                                             {goal.name}
                                         </h3>
-                                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                        <p className="text-sm text-ds-soft">
                                             {goal.milestones.length} milestone{goal.milestones.length !== 1 ? 's' : ''}
                                         </p>
                                     </div>
                                 </div>
                                 {isExpanded ? (
-                                    <ChevronUp className="w-5 h-5 text-[#64748b]" />
+                                    <ChevronUp className="w-5 h-5 text-ds-soft" />
                                 ) : (
-                                    <ChevronDown className="w-5 h-5 text-[#64748b]" />
+                                    <ChevronDown className="w-5 h-5 text-ds-soft" />
                                 )}
                             </button>
 
                             {/* Expanded Content */}
                             {isExpanded && (
-                                <div className="border-t border-[#e2e8f0] dark:border-[#374151] p-4 space-y-4">
+                                <div className="border-t border-ds-border p-4 space-y-4">
                                     {/* Add Milestone Button */}
                                     <button
                                         onClick={() => handleAddMilestone(goal.id)}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#64748b] rounded-xl transition-colors border-2 border-dashed border-[#e2e8f0] dark:border-[#374151]"
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-ds-bg hover:bg-ds-raised text-ds-soft rounded-lg transition-colors border-2 border-dashed border-ds-border"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Agregar Milestone
@@ -105,7 +105,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
 
                                     {/* Milestones List */}
                                     {goal.milestones.length === 0 ? (
-                                        <p className="text-center text-sm text-[#94a3b8] py-4">
+                                        <p className="text-center text-sm text-ds-soft py-4">
                                             No hay milestones. Agrega uno para configurar hitos intermedios.
                                         </p>
                                     ) : (
@@ -118,10 +118,10 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                     return (
                                                         <div
                                                             key={milestone.id}
-                                                            className={`rounded-xl border-2 transition-all ${
+                                                            className={`rounded-lg border-2 transition-all ${
                                                                 milestone.completed
-                                                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                                                    : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626]'
+                                                                    ? 'border-ds-ok/40 bg-ds-ok/10 '
+                                                                    : 'border-ds-border bg-ds-surface '
                                                             }`}
                                                         >
                                                             {/* Milestone Header */}
@@ -129,8 +129,8 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                 <div className="flex items-center gap-3">
                                                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                                                                         milestone.completed
-                                                                            ? 'bg-green-500 text-white'
-                                                                            : 'bg-[#667eea]/10 text-[#667eea]'
+                                                                            ? 'bg-ds-accent text-ds-on-accent'
+                                                                            : 'bg-ds-accent/10 text-ds-accent-text'
                                                                     }`}>
                                                                         <Flag className="w-4 h-4" />
                                                                     </div>
@@ -139,10 +139,10 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                             type="text"
                                                                             value={milestone.name}
                                                                             onChange={(e) => onUpdateMilestone(goal.id, milestone.id, { name: e.target.value })}
-                                                                            className="font-medium text-[#1e293b] dark:text-[#f8fafc] bg-transparent border-none focus:outline-none focus:ring-0 p-0"
+                                                                            className="font-medium text-ds-text bg-transparent border-none focus:outline-none focus:ring-0 p-0"
                                                                             placeholder="Nombre del milestone"
                                                                         />
-                                                                        <p className="text-xs text-[#64748b]">
+                                                                        <p className="text-xs text-ds-soft">
                                                                             {milestone.isPercentage ? `${milestone.targetValue}%` : milestone.targetValue} del objetivo
                                                                         </p>
                                                                     </div>
@@ -150,7 +150,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                 <div className="flex items-center gap-2">
                                                                     <button
                                                                         onClick={() => setExpandedMilestoneId(isMilestoneExpanded ? null : milestone.id)}
-                                                                        className="p-1.5 text-[#64748b] hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-lg"
+                                                                        className="p-1.5 text-ds-soft hover:bg-ds-bg rounded-lg"
                                                                     >
                                                                         {isMilestoneExpanded ? (
                                                                             <ChevronUp className="w-4 h-4" />
@@ -160,7 +160,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleDeleteMilestone(goal.id, milestone.id)}
-                                                                        className="p-1.5 text-[#64748b] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                                                        className="p-1.5 text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10 rounded-lg"
                                                                     >
                                                                         <Trash2 className="w-4 h-4" />
                                                                     </button>
@@ -169,10 +169,10 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
 
                                                             {/* Milestone Expanded Content */}
                                                             {isMilestoneExpanded && (
-                                                                <div className="border-t border-[#e2e8f0] dark:border-[#374151] p-4 space-y-4">
+                                                                <div className="border-t border-ds-border p-4 space-y-4">
                                                                     {/* Target Value */}
                                                                     <div>
-                                                                        <label className="block text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-2">
+                                                                        <label className="block text-sm font-medium text-ds-soft mb-2">
                                                                             Valor objetivo
                                                                         </label>
                                                                         <div className="flex items-center gap-2">
@@ -182,15 +182,15 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                 max={milestone.isPercentage ? 100 : goal.targetValue}
                                                                                 value={milestone.targetValue}
                                                                                 onChange={(e) => onUpdateMilestone(goal.id, milestone.id, { targetValue: parseInt(e.target.value) || 1 })}
-                                                                                className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-center"
+                                                                                className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center"
                                                                             />
-                                                                            <div className="flex rounded-lg overflow-hidden border border-[#e2e8f0] dark:border-[#374151]">
+                                                                            <div className="flex rounded-lg overflow-hidden border border-ds-border">
                                                                                 <button
                                                                                     onClick={() => onUpdateMilestone(goal.id, milestone.id, { isPercentage: true })}
                                                                                     className={`px-3 py-2 flex items-center gap-1 text-sm ${
                                                                                         milestone.isPercentage
-                                                                                            ? 'bg-[#667eea] text-white'
-                                                                                            : 'bg-white dark:bg-[#1B1C1D] text-[#64748b]'
+                                                                                            ? 'bg-ds-accent text-ds-on-accent'
+                                                                                            : 'bg-ds-surface text-ds-soft'
                                                                                     }`}
                                                                                 >
                                                                                     <Percent className="w-3 h-3" />
@@ -199,14 +199,14 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                     onClick={() => onUpdateMilestone(goal.id, milestone.id, { isPercentage: false })}
                                                                                     className={`px-3 py-2 flex items-center gap-1 text-sm ${
                                                                                         !milestone.isPercentage
-                                                                                            ? 'bg-[#667eea] text-white'
-                                                                                            : 'bg-white dark:bg-[#1B1C1D] text-[#64748b]'
+                                                                                            ? 'bg-ds-accent text-ds-on-accent'
+                                                                                            : 'bg-ds-surface text-ds-soft'
                                                                                     }`}
                                                                                 >
                                                                                     <Hash className="w-3 h-3" />
                                                                                 </button>
                                                                             </div>
-                                                                            <span className="text-sm text-[#64748b]">
+                                                                            <span className="text-sm text-ds-soft">
                                                                                 {milestone.isPercentage ? 'del total' : 'unidades'}
                                                                             </span>
                                                                         </div>
@@ -215,7 +215,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                     {/* Notification */}
                                                                     <div>
                                                                         <div className="flex items-center justify-between mb-2">
-                                                                            <label className="flex items-center gap-2 text-sm font-medium text-[#64748b] dark:text-[#94a3b8]">
+                                                                            <label className="flex items-center gap-2 text-sm font-medium text-ds-soft">
                                                                                 <Bell className="w-4 h-4" />
                                                                                 Notificación
                                                                             </label>
@@ -228,7 +228,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                     })}
                                                                                     className="sr-only peer"
                                                                                 />
-                                                                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-[#667eea]"></div>
+                                                                                <div className="w-9 h-5 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                                                                             </label>
                                                                         </div>
                                                                         {milestone.notification.enabled && (
@@ -239,7 +239,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                     notification: { ...milestone.notification, message: e.target.value }
                                                                                 })}
                                                                                 placeholder="Mensaje de notificación"
-                                                                                className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                                                             />
                                                                         )}
                                                                     </div>
@@ -247,7 +247,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                     {/* Timer Bonus */}
                                                                     <div>
                                                                         <div className="flex items-center justify-between mb-2">
-                                                                            <label className="flex items-center gap-2 text-sm font-medium text-[#64748b] dark:text-[#94a3b8]">
+                                                                            <label className="flex items-center gap-2 text-sm font-medium text-ds-soft">
                                                                                 <Timer className="w-4 h-4" />
                                                                                 Bonus de tiempo
                                                                             </label>
@@ -263,7 +263,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                     })}
                                                                                     className="sr-only peer"
                                                                                 />
-                                                                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-[#667eea]"></div>
+                                                                                <div className="w-9 h-5 bg-ds-raised peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                                                                             </label>
                                                                         </div>
                                                                         {milestone.timerBonus?.enabled && (
@@ -278,9 +278,9 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                             seconds: parseInt(e.target.value) || 60
                                                                                         }
                                                                                     })}
-                                                                                    className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-center"
+                                                                                    className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center"
                                                                                 />
-                                                                                <span className="text-sm text-[#64748b]">segundos al timer</span>
+                                                                                <span className="text-sm text-ds-soft">segundos al timer</span>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -294,12 +294,12 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
 
                                     {/* Visual Timeline */}
                                     {goal.milestones.length > 0 && (
-                                        <div className="mt-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                            <p className="text-xs text-[#94a3b8] mb-2">Vista previa de milestones:</p>
-                                            <div className="relative h-8 bg-[#f8fafc] dark:bg-[#262626] rounded-lg overflow-hidden">
+                                        <div className="mt-4 pt-4 border-t border-ds-border">
+                                            <p className="text-xs text-ds-soft mb-2">Vista previa de milestones:</p>
+                                            <div className="relative h-8 bg-ds-bg rounded-lg overflow-hidden">
                                                 {/* Progress bar background */}
                                                 <div
-                                                    className="absolute h-full bg-[#667eea]/20"
+                                                    className="absolute h-full bg-ds-accent/20"
                                                     style={{ width: `${(goal.currentValue / goal.targetValue) * 100}%` }}
                                                 />
                                                 {/* Milestone markers */}
@@ -311,13 +311,13 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                         <div
                                                             key={m.id}
                                                             className={`absolute top-0 bottom-0 w-0.5 ${
-                                                                m.completed ? 'bg-green-500' : 'bg-[#667eea]'
+                                                                m.completed ? 'bg-ds-accent' : 'bg-ds-accent'
                                                             }`}
                                                             style={{ left: `${position}%` }}
                                                             title={`${m.name} (${position}%)`}
                                                         >
                                                             <div className={`absolute -top-1 -left-1.5 w-3 h-3 rounded-full ${
-                                                                m.completed ? 'bg-green-500' : 'bg-[#667eea]'
+                                                                m.completed ? 'bg-ds-accent' : 'bg-ds-accent'
                                                             }`} />
                                                         </div>
                                                     );

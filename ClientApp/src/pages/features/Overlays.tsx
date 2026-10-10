@@ -47,7 +47,7 @@ export default function Overlays() {
         return (
             <div className="flex flex-col items-center justify-center py-16">
                 <div className="bg-ds-danger/10 border border-ds-danger/30 rounded-lg p-8 max-w-md text-center">
-                    <Lock className="w-16 h-16 text-ds-danger mx-auto mb-4" />
+                    <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
                     <h2 className="text-2xl font-black text-ds-danger mb-2">{t('overlays:accessDenied.title')}</h2>
                     <p className="text-ds-soft mb-6">
                         {t('overlays:accessDenied.message')}
@@ -331,7 +331,7 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
                 {isActive ? (
                     <button
                         onClick={onConfigure}
-                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-white rounded-lg transition-all font-semibold text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
                     >
                         <Settings className="w-4 h-4" />
                         {t('overlays:configureButton')}

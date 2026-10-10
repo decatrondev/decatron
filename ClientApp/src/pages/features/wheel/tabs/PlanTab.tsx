@@ -21,9 +21,9 @@ function Bar({ used, max }: { used: number; max: number }) {
     if (max < 0) return null;
     const pct = max === 0 ? 100 : Math.min(100, Math.round((used / max) * 100));
     return (
-        <div className="h-2 rounded-full bg-[#374151] overflow-hidden" role="progressbar" aria-valuenow={used} aria-valuemax={max}>
+        <div className="h-2 rounded-full bg-ds-raised overflow-hidden" role="progressbar" aria-valuenow={used} aria-valuemax={max}>
             <div
-                className={`h-full rounded-full ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-400' : 'bg-blue-500'}`}
+                className={`h-full rounded-full ${pct >= 100 ? 'bg-ds-danger-solid' : pct >= 80 ? 'bg-ds-warn' : 'bg-ds-accent'}`}
                 style={{ width: `${pct}%` }}
             />
         </div>
@@ -64,7 +64,7 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
         n < 0 ? t('wheel.plan.unlimited') : t(`wheel.plan.units.${unit}`, { n });
 
     if (!limits) {
-        return <section className={`${CARD} p-5 text-sm text-[#94a3b8]`}>{t('wheel.plan.noData')}</section>;
+        return <section className={`${CARD} p-5 text-sm text-ds-soft`}>{t('wheel.plan.noData')}</section>;
     }
 
     const current = limits.tier;
@@ -87,17 +87,17 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
     const usage = (label: string, used: number, max: number, unit: 'wheels' | 'segments', note?: string) => (
         <div className="space-y-1.5">
             <div className="flex items-baseline justify-between gap-3">
-                <span className="text-sm 3xl:text-base font-medium text-[#f8fafc]">{label}</span>
-                <span className="text-sm 3xl:text-base tabular-nums text-[#cbd5e1]">
+                <span className="text-sm 3xl:text-base font-medium text-ds-text">{label}</span>
+                <span className="text-sm 3xl:text-base tabular-nums text-ds-text">
                     {max < 0
                         ? t('wheel.plan.usedUnlimited', { used })
                         : t('wheel.plan.usedOf', { used, max })}
                 </span>
             </div>
             <Bar used={used} max={max} />
-            {note && <p className="text-xs 3xl:text-sm text-[#94a3b8]">{note}</p>}
+            {note && <p className="text-xs 3xl:text-sm text-ds-soft">{note}</p>}
             {max >= 0 && used >= max && (
-                <p className="text-xs 3xl:text-sm text-amber-300/90">{t(`wheel.plan.full.${unit}`)}</p>
+                <p className="text-xs 3xl:text-sm text-ds-warn/90">{t(`wheel.plan.full.${unit}`)}</p>
             )}
         </div>
     );
@@ -105,12 +105,12 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
     return (
         <div className="space-y-4">
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151] flex flex-wrap items-center justify-between gap-3">
+                <div className="px-5 py-4 border-b border-ds-border flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.plan.title')}</h2>
-                        <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-0.5">{t('wheel.plan.help')}</p>
+                        <h2 className="font-bold text-ds-text">{t('wheel.plan.title')}</h2>
+                        <p className="text-xs 3xl:text-sm text-ds-soft mt-0.5">{t('wheel.plan.help')}</p>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-blue-600/20 text-blue-300 text-sm 3xl:text-base font-black">
+                    <span className="px-3 py-1 rounded-full bg-ds-accent/20 text-ds-accent-text text-sm 3xl:text-base font-black">
                         {t('wheel.plan.yourPlan', { plan: tierName(current) })}
                     </span>
                 </div>
@@ -121,12 +121,12 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
                     {showSegments && usage(t('wheel.plan.segmentsThis'), segmentCount, limits.maxSegments, 'segments')}
 
                     <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-sm 3xl:text-base font-medium text-[#f8fafc]">{t('wheel.plan.history')}</span>
-                        <span className="text-sm 3xl:text-base text-[#cbd5e1]">{fmt(limits.historyDays, 'days')}</span>
+                        <span className="text-sm 3xl:text-base font-medium text-ds-text">{t('wheel.plan.history')}</span>
+                        <span className="text-sm 3xl:text-base text-ds-text">{fmt(limits.historyDays, 'days')}</span>
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-sm 3xl:text-base font-medium text-[#f8fafc]">{t('wheel.plan.watermark')}</span>
-                        <span className="text-sm 3xl:text-base text-[#cbd5e1]">
+                        <span className="text-sm 3xl:text-base font-medium text-ds-text">{t('wheel.plan.watermark')}</span>
+                        <span className="text-sm 3xl:text-base text-ds-text">
                             {limits.canHideWatermark ? t('wheel.plan.canHide') : t('wheel.plan.alwaysShown')}
                         </span>
                     </div>
@@ -134,12 +134,12 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
             </section>
 
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151]">
-                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.plan.nextTitle')}</h2>
+                <div className="px-5 py-4 border-b border-ds-border">
+                    <h2 className="font-bold text-ds-text">{t('wheel.plan.nextTitle')}</h2>
                 </div>
-                <div className="p-5 text-sm 3xl:text-base text-[#cbd5e1]">
-                    {!plans && !failed && <p className="text-[#94a3b8]">{t('wheel.plan.loading')}</p>}
-                    {failed && <p className="text-[#94a3b8]">{t('wheel.plan.loadFailed')}</p>}
+                <div className="p-5 text-sm 3xl:text-base text-ds-text">
+                    {!plans && !failed && <p className="text-ds-soft">{t('wheel.plan.loading')}</p>}
+                    {failed && <p className="text-ds-soft">{t('wheel.plan.loadFailed')}</p>}
                     {plans && !next && <p>{t('wheel.plan.topPlan')}</p>}
                     {plans && next && (
                         <div className="space-y-3">
@@ -147,13 +147,13 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
                             <ul className="space-y-1.5">
                                 {gains.map(g => (
                                     <li key={g.key} className="flex flex-wrap items-center gap-x-2">
-                                        <span className="font-medium text-[#f8fafc]">{t(`wheel.plan.gain.${g.key}`)}:</span>
-                                        <span className="text-[#94a3b8]">{g.from}</span>
-                                        <span className="text-[#94a3b8]">→</span>
-                                        <span className="font-bold text-green-300">{g.to}</span>
+                                        <span className="font-medium text-ds-text">{t(`wheel.plan.gain.${g.key}`)}:</span>
+                                        <span className="text-ds-soft">{g.from}</span>
+                                        <span className="text-ds-soft">→</span>
+                                        <span className="font-bold text-ds-ok">{g.to}</span>
                                     </li>
                                 ))}
-                                {gains.length === 0 && <li className="text-[#94a3b8]">{t('wheel.plan.noGain')}</li>}
+                                {gains.length === 0 && <li className="text-ds-soft">{t('wheel.plan.noGain')}</li>}
                             </ul>
 
                             {/* La compra vive en /supporters. Los datos de facturacion los pide
@@ -162,13 +162,13 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
                             <div className="pt-1 space-y-2">
                                 <button
                                     onClick={() => navigate('/supporters')}
-                                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm 3xl:text-base font-bold transition-colors"
+                                    className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm 3xl:text-base font-bold transition-colors"
                                 >
                                     {t('wheel.plan.seePlans')}
                                 </button>
-                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">
+                                <p className="text-xs 3xl:text-sm text-ds-soft">
                                     {t('wheel.plan.billingNote')}{' '}
-                                    <button className="underline font-bold text-blue-400" onClick={() => navigate('/me/billing')}>
+                                    <button className="underline font-bold text-ds-accent-text" onClick={() => navigate('/me/billing')}>
                                         {t('wheel.plan.billingLink')}
                                     </button>
                                 </p>
@@ -180,21 +180,21 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
 
             {plans && (
                 <section className={CARD}>
-                    <div className="px-5 py-4 border-b border-[#374151]">
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.plan.compareTitle')}</h2>
+                    <div className="px-5 py-4 border-b border-ds-border">
+                        <h2 className="font-bold text-ds-text">{t('wheel.plan.compareTitle')}</h2>
                     </div>
                     <div className="p-5 grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
                         {plans.map(p => (
                             <div
                                 key={p.tier}
-                                className={`rounded-xl border p-4 space-y-2 ${
-                                    p.tier === current ? 'border-blue-500 bg-blue-500/5' : 'border-[#374151] bg-[#262626]'
+                                className={`rounded-lg border p-4 space-y-2 ${
+                                    p.tier === current ? 'border-ds-accent bg-ds-accent/5' : 'border-ds-border bg-ds-bg'
                                 }`}
                             >
                                 <div className="flex items-center justify-between gap-2">
-                                    <h3 className="font-black text-[#f8fafc]">{tierName(p.tier)}</h3>
+                                    <h3 className="font-black text-ds-text">{tierName(p.tier)}</h3>
                                     {p.tier === current && (
-                                        <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase">{t('wheel.plan.current')}</span>
+                                        <span className="px-2 py-0.5 rounded-full bg-ds-accent text-ds-on-accent text-[10px] font-black uppercase">{t('wheel.plan.current')}</span>
                                     )}
                                 </div>
                                 <dl className="text-sm 3xl:text-base space-y-1.5">
@@ -204,23 +204,23 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
                                         ['history', fmt(p.historyDays, 'days')],
                                     ] as const).map(([k, v]) => (
                                         <div key={k} className="flex items-baseline justify-between gap-2">
-                                            <dt className="text-[#94a3b8]">{t(`wheel.plan.gain.${k}`)}</dt>
-                                            <dd className="font-medium text-[#f8fafc] text-right">{v}</dd>
+                                            <dt className="text-ds-soft">{t(`wheel.plan.gain.${k}`)}</dt>
+                                            <dd className="font-medium text-ds-text text-right">{v}</dd>
                                         </div>
                                     ))}
                                     <div className="flex items-center justify-between gap-2">
-                                        <dt className="text-[#94a3b8]">{t('wheel.plan.gain.watermark')}</dt>
+                                        <dt className="text-ds-soft">{t('wheel.plan.gain.watermark')}</dt>
                                         <dd>
                                             {p.canHideWatermark
-                                                ? <Check className="w-4 h-4 text-green-400" aria-label={t('wheel.plan.yes')} />
-                                                : <X className="w-4 h-4 text-[#64748b]" aria-label={t('wheel.plan.no')} />}
+                                                ? <Check className="w-4 h-4 text-ds-ok" aria-label={t('wheel.plan.yes')} />
+                                                : <X className="w-4 h-4 text-ds-soft" aria-label={t('wheel.plan.no')} />}
                                         </dd>
                                     </div>
                                 </dl>
                             </div>
                         ))}
                     </div>
-                    <p className="px-5 pb-5 text-xs 3xl:text-sm text-[#94a3b8]">{t('wheel.plan.onlyQuantities')}</p>
+                    <p className="px-5 pb-5 text-xs 3xl:text-sm text-ds-soft">{t('wheel.plan.onlyQuantities')}</p>
                 </section>
             )}
         </div>

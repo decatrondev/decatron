@@ -27,7 +27,7 @@ function formatListened(seconds: number): string {
     return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} min`;
 }
 
-const cardBorder = 'border border-[#e2e8f0] dark:border-[#374151]';
+const cardBorder = 'border border-ds-border ';
 
 export function StatsTab() {
     const { t, i18n } = useTranslation('overlays');
@@ -51,9 +51,9 @@ export function StatsTab() {
         return () => window.clearInterval(id);
     }, [load]);
 
-    if (error && !stats) return <p className="text-sm 3xl:text-base text-red-500">{t('songRequest.stats.error')}</p>;
-    if (!stats) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#94a3b8]" /></div>;
-    if (!stats.found) return <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.stats.notFound')}</p>;
+    if (error && !stats) return <p className="text-sm 3xl:text-base text-ds-danger">{t('songRequest.stats.error')}</p>;
+    if (!stats) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-ds-soft" /></div>;
+    if (!stats.found) return <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.stats.notFound')}</p>;
 
     const value = (d: Stats['series'][number]) => (metric === 'listens' ? d.listens : metric === 'listeners' ? d.listeners : Math.round(d.seconds / 60));
     const max = Math.max(1, ...stats.series.map(value));
@@ -61,13 +61,13 @@ export function StatsTab() {
     const dayLabel = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
     const tile = (label: string, value: string | number, hint?: string, live = false) => (
-        <div className={`rounded-xl ${cardBorder} bg-white dark:bg-[#171717] p-4 3xl:p-5`}>
-            <p className="text-xs 3xl:text-sm font-semibold uppercase tracking-wide text-[#64748b] dark:text-[#94a3b8] flex items-center gap-1.5">
-                {live && <span className={`w-2 h-2 rounded-full ${stats.listeningNow > 0 ? 'bg-green-500 animate-pulse' : 'bg-[#94a3b8]'}`} />}
+        <div className={`rounded-lg ${cardBorder} bg-ds-surface p-4 3xl:p-5`}>
+            <p className="text-xs 3xl:text-sm font-semibold uppercase tracking-wide text-ds-soft flex items-center gap-1.5">
+                {live && <span className={`w-2 h-2 rounded-full ${stats.listeningNow > 0 ? 'bg-ds-accent animate-pulse' : 'bg-ds-faint'}`} />}
                 {label}
             </p>
-            <p className="mt-1 text-2xl 3xl:text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{value}</p>
-            {hint && <p className="mt-0.5 text-xs 3xl:text-sm text-[#94a3b8]">{hint}</p>}
+            <p className="mt-1 text-2xl 3xl:text-3xl font-black text-ds-text">{value}</p>
+            {hint && <p className="mt-0.5 text-xs 3xl:text-sm text-ds-soft">{hint}</p>}
         </div>
     );
 
@@ -96,7 +96,7 @@ export function StatsTab() {
                 {tile(t('songRequest.stats.webRequests'), stats.totals.webRequests, t('songRequest.stats.webRequestsHint'))}
             </div>
 
-            {empty && <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.stats.empty')}</p>}
+            {empty && <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.stats.empty')}</p>}
 
             <Card
                 title={t('songRequest.stats.perDay')}
@@ -106,7 +106,7 @@ export function StatsTab() {
                             <button
                                 key={m}
                                 onClick={() => setMetric(m)}
-                                className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${metric === m ? 'bg-[#2563eb] text-white' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'}`}
+                                className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${metric === m ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft hover:bg-ds-raised '}`}
                             >
                                 {t(`songRequest.stats.metric.${m}`)}
                             </button>
@@ -120,14 +120,14 @@ export function StatsTab() {
                         return (
                             <div key={d.day} className="flex-1 min-w-0 h-full flex items-end group relative" title={`${dayLabel(d.day)}: ${v}`}>
                                 <div
-                                    className={`w-full rounded-t ${v > 0 ? 'bg-[#2563eb] group-hover:bg-[#1d4ed8]' : 'bg-[#e2e8f0] dark:bg-[#262626]'}`}
+                                    className={`w-full rounded-t ${v > 0 ? 'bg-ds-accent group-hover:bg-ds-accent-hover' : 'bg-ds-raised '}`}
                                     style={{ height: v > 0 ? `${Math.max(4, (v / max) * 100)}%` : '2px' }}
                                 />
                             </div>
                         );
                     })}
                 </div>
-                <div className="mt-2 flex justify-between text-xs 3xl:text-sm text-[#94a3b8]">
+                <div className="mt-2 flex justify-between text-xs 3xl:text-sm text-ds-soft">
                     <span>{dayLabel(stats.series[0].day)}</span>
                     <span>{t('songRequest.stats.utcNote')}</span>
                     <span>{dayLabel(stats.series[stats.series.length - 1].day)}</span>
@@ -139,7 +139,7 @@ export function StatsTab() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm 3xl:text-base">
                             <thead>
-                                <tr className="text-left text-xs 3xl:text-sm uppercase tracking-wide text-[#64748b] dark:text-[#94a3b8]">
+                                <tr className="text-left text-xs 3xl:text-sm uppercase tracking-wide text-ds-soft">
                                     <th className="py-2 pr-4">{t('songRequest.stats.playlist')}</th>
                                     <th className="py-2 pr-4 text-right">{t('songRequest.stats.now')}</th>
                                     <th className="py-2 pr-4 text-right">{t('songRequest.stats.listeners')}</th>
@@ -148,7 +148,7 @@ export function StatsTab() {
                                     <th className="py-2 text-right">{t('songRequest.stats.webRequests')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151] text-[#1e293b] dark:text-[#f8fafc]">
+                            <tbody className="divide-y divide-ds-border text-ds-text">
                                 {stats.playlists.map(p => (
                                     <tr key={p.id}>
                                         <td className="py-2 pr-4 font-semibold">{p.name}</td>
@@ -167,22 +167,22 @@ export function StatsTab() {
 
             <Card title={t('songRequest.stats.topTracks')} description={t('songRequest.stats.topTracksHint')}>
                 {stats.topTracks.length === 0 ? (
-                    <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.stats.noTracks')}</p>
+                    <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.stats.noTracks')}</p>
                 ) : (
-                    <ol className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                    <ol className="divide-y divide-ds-border">
                         {stats.topTracks.map((row, i) => (
                             <li key={row.track.trackId} className="flex items-center gap-3 py-2.5">
-                                <span className="w-6 text-right text-sm 3xl:text-base font-bold text-[#94a3b8]">{i + 1}</span>
+                                <span className="w-6 text-right text-sm 3xl:text-base font-bold text-ds-soft">{i + 1}</span>
                                 {row.track.thumbnailUrl
-                                    ? <img src={row.track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] object-cover rounded bg-[#f1f5f9] dark:bg-[#262626] shrink-0" />
-                                    : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] rounded bg-[#f1f5f9] dark:bg-[#262626] shrink-0" />}
+                                    ? <img src={row.track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] object-cover rounded bg-ds-raised shrink-0" />
+                                    : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] rounded bg-ds-raised shrink-0" />}
                                 <div className="min-w-0 flex-1">
-                                    <p className="font-semibold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] truncate">{row.track.title}</p>
-                                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">{row.track.artist}</p>
+                                    <p className="font-semibold text-sm 3xl:text-base text-ds-text truncate">{row.track.title}</p>
+                                    <p className="text-xs 3xl:text-sm text-ds-soft truncate">{row.track.artist}</p>
                                 </div>
                                 <div className="text-right shrink-0 text-xs 3xl:text-sm">
-                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('songRequest.stats.listensCount', { count: row.listens })}</p>
-                                    <p className="text-[#94a3b8]">{t('songRequest.stats.streamPlays', { count: row.streamPlays })}</p>
+                                    <p className="font-bold text-ds-text">{t('songRequest.stats.listensCount', { count: row.listens })}</p>
+                                    <p className="text-ds-soft">{t('songRequest.stats.streamPlays', { count: row.streamPlays })}</p>
                                 </div>
                             </li>
                         ))}
@@ -192,18 +192,18 @@ export function StatsTab() {
 
             <Card title={t('songRequest.stats.unplayable')} description={t('songRequest.stats.unplayableHint')}>
                 {stats.unplayable.length === 0 ? (
-                    <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.stats.noUnplayable')}</p>
+                    <p className="text-sm 3xl:text-base text-ds-soft">{t('songRequest.stats.noUnplayable')}</p>
                 ) : (
-                    <ul className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                    <ul className="divide-y divide-ds-border">
                         {stats.unplayable.map(row => (
                             <li key={`${row.playlistId}-${row.track.trackId}`} className="flex items-center gap-3 py-2.5">
                                 <div className="min-w-0 flex-1">
-                                    <p className="font-semibold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] truncate">{row.track.title}</p>
-                                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">{row.track.artist} · {row.playlistName}</p>
+                                    <p className="font-semibold text-sm 3xl:text-base text-ds-text truncate">{row.track.title}</p>
+                                    <p className="text-xs 3xl:text-sm text-ds-soft truncate">{row.track.artist} · {row.playlistName}</p>
                                 </div>
-                                <span className="shrink-0 text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.stats.reports', { count: row.reports })}</span>
+                                <span className="shrink-0 text-xs 3xl:text-sm text-ds-soft">{t('songRequest.stats.reports', { count: row.reports })}</span>
                                 {row.track.url && (
-                                    <a href={row.track.url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-2 rounded-lg text-[#475569] dark:text-[#cbd5e1] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]" title={t('songRequest.stats.openOnYoutube')}>
+                                    <a href={row.track.url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-2 rounded-lg text-ds-soft hover:bg-ds-raised" title={t('songRequest.stats.openOnYoutube')}>
                                         <ExternalLink className="w-4 h-4" />
                                     </a>
                                 )}
@@ -213,7 +213,7 @@ export function StatsTab() {
                 )}
             </Card>
 
-            <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.stats.privacy')}</p>
+            <p className="text-xs 3xl:text-sm text-ds-soft">{t('songRequest.stats.privacy')}</p>
         </div>
     );
 }

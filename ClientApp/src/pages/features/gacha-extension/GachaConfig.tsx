@@ -34,8 +34,8 @@ export default function GachaConfig() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Gacha System</h1>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
+                <h1 className="text-3xl font-black text-ds-text">Gacha System</h1>
+                <p className="text-ds-soft mt-1">
                     Configura items, probabilidades, restricciones y overlay del sistema gacha
                 </p>
             </div>
@@ -46,10 +46,10 @@ export default function GachaConfig() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                             activeTab === tab.id
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                                : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151] hover:border-blue-300 dark:hover:border-blue-700'
+                                ? 'bg-ds-accent text-ds-on-accent shadow-blue-600/25'
+                                : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent '
                         }`}
                     >
                         {tab.icon}

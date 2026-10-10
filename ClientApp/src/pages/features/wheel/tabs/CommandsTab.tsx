@@ -30,24 +30,24 @@ function CommandRow({ syntax, onName, who, off, offLabel, text, examples, aliase
                         className={`${FIELD} ${nameWidth ?? 'w-40'} font-mono font-bold`}
                     />
                 ) : (
-                    <code className="font-mono text-sm 3xl:text-base font-bold text-blue-400 break-all">{syntax}</code>
+                    <code className="font-mono text-sm 3xl:text-base font-bold text-ds-accent-text break-all">{syntax}</code>
                 )}
                 <span className={`px-2 py-0.5 rounded-full text-[10px] 3xl:text-xs font-black uppercase tracking-wide ${
-                    off ? 'bg-[#374151] text-[#94a3b8]'
-                        : who === 'mods' ? 'bg-amber-500/15 text-amber-300' : 'bg-green-500/15 text-green-300'
+                    off ? 'bg-ds-raised text-ds-soft'
+                        : who === 'mods' ? 'bg-ds-warn/15 text-ds-warn' : 'bg-ds-accent/15 text-ds-ok'
                 }`}>
                     {off ? offLabel : whoLabel}
                 </span>
             </div>
             <div className="min-w-0 space-y-1.5">
-                <p className="text-sm 3xl:text-base text-[#cbd5e1]">{text}</p>
+                <p className="text-sm 3xl:text-base text-ds-text">{text}</p>
                 {extra}
                 <div className="flex flex-wrap items-center gap-1.5">
                     {examples.map(ex => (
-                        <code key={ex} className="px-1.5 py-0.5 rounded bg-[#262626] font-mono text-xs 3xl:text-sm text-[#e2e8f0] break-all">{ex}</code>
+                        <code key={ex} className="px-1.5 py-0.5 rounded bg-ds-bg font-mono text-xs 3xl:text-sm text-ds-text break-all">{ex}</code>
                     ))}
                     {aliases && aliases.length > 0 && (
-                        <span className="text-xs 3xl:text-sm text-[#94a3b8]">
+                        <span className="text-xs 3xl:text-sm text-ds-soft">
                             {aliasLabel} <span className="font-mono">{aliases.join(' · ')}</span>
                         </span>
                     )}
@@ -85,11 +85,11 @@ export function CommandsTab({ wheel, onWheel, sources, raffle, onRaffle, onNavig
         return (
             <div className="space-y-4">
                 <section className={CARD}>
-                    <div className="px-5 py-4 border-b border-[#374151]">
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.commands.title')}</h2>
-                        <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-0.5">{t('wheel.commands.raffleHelp')}</p>
+                    <div className="px-5 py-4 border-b border-ds-border">
+                        <h2 className="font-bold text-ds-text">{t('wheel.commands.title')}</h2>
+                        <p className="text-xs 3xl:text-sm text-ds-soft mt-0.5">{t('wheel.commands.raffleHelp')}</p>
                     </div>
-                    <div className="divide-y divide-[#374151]">
+                    <div className="divide-y divide-ds-border">
                         <CommandRow
                             syntax={join} onName={raffle ? v => onRaffle({ entryCommand: v }) : undefined}
                             who="everyone" whoLabel={whoLabel('everyone')}
@@ -106,7 +106,7 @@ export function CommandsTab({ wheel, onWheel, sources, raffle, onRaffle, onNavig
                             />
                         ))}
                     </div>
-                    <p className="px-5 py-3 border-t border-[#374151] text-xs 3xl:text-sm text-[#94a3b8]">{t('wheel.commands.modNote')}</p>
+                    <p className="px-5 py-3 border-t border-ds-border text-xs 3xl:text-sm text-ds-soft">{t('wheel.commands.modNote')}</p>
                 </section>
             </div>
         );
@@ -118,32 +118,32 @@ export function CommandsTab({ wheel, onWheel, sources, raffle, onRaffle, onNavig
     const buy = wheel.buyCommand ?? '!dcomprar';
     const buyOn = !!sources.find(s => s.source === 'deca_coins')?.isEnabled;
     const link = (tab: Tab, label: string) => (
-        <button className="underline font-bold text-blue-400" onClick={() => onNavigate(tab)}>{label}</button>
+        <button className="underline font-bold text-ds-accent-text" onClick={() => onNavigate(tab)}>{label}</button>
     );
 
     return (
         <div className="space-y-4">
             <section className={CARD}>
-                <div className="px-5 py-4 border-b border-[#374151] flex flex-wrap items-center justify-between gap-4">
+                <div className="px-5 py-4 border-b border-ds-border flex flex-wrap items-center justify-between gap-4">
                     <div className="min-w-0">
-                        <h2 className="font-bold text-[#f8fafc]">{t('wheel.commands.title')}</h2>
-                        <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-0.5 max-w-xl">{t('wheel.commands.prizesHelp')}</p>
+                        <h2 className="font-bold text-ds-text">{t('wheel.commands.title')}</h2>
+                        <p className="text-xs 3xl:text-sm text-ds-soft mt-0.5 max-w-xl">{t('wheel.commands.prizesHelp')}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-[#f8fafc]">{t('wheel.triggers.commands')}</span>
+                        <span className="text-sm font-medium text-ds-text">{t('wheel.triggers.commands')}</span>
                         <Toggle on={enabled} onChange={v => onWheel({ commandEnabled: v })} />
                     </div>
                 </div>
 
-                <div className="divide-y divide-[#374151]">
+                <div className="divide-y divide-ds-border">
                     <CommandRow
                         syntax={spin} onName={v => onWheel({ spinCommand: v })}
                         who="everyone" whoLabel={whoLabel('everyone')} off={!enabled} offLabel={t('wheel.commands.off')}
                         text={t('wheel.commands.spin')}
                         examples={wheel.allowMultiSpin ? [spin, `${spin} 5`] : [spin]}
                         extra={wheel.allowMultiSpin
-                            ? <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('wheel.commands.spinMulti', { command: spin, max: wheel.maxMultiSpin ?? 1 })}</p>
-                            : <p className="text-sm 3xl:text-base text-[#94a3b8]">
+                            ? <p className="text-sm 3xl:text-base text-ds-soft">{t('wheel.commands.spinMulti', { command: spin, max: wheel.maxMultiSpin ?? 1 })}</p>
+                            : <p className="text-sm 3xl:text-base text-ds-soft">
                                 {t('wheel.commands.spinMultiOff')} {link('limits', t('wheel.tabs.limits'))}
                             </p>}
                     />
@@ -160,7 +160,7 @@ export function CommandsTab({ wheel, onWheel, sources, raffle, onRaffle, onNavig
                         text={t('wheel.commands.buy')}
                         examples={[`${buy} 100`]}
                         extra={!buyOn && (
-                            <p className="text-sm 3xl:text-base text-amber-300/90">
+                            <p className="text-sm 3xl:text-base text-ds-warn/90">
                                 {t('wheel.commands.buyNeedsSource')} {link('credits', t('wheel.tabs.credits'))}
                             </p>
                         )}
