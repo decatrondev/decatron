@@ -75,10 +75,10 @@ export default function Dashboard() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1B1C1D]">
+            <div className="min-h-screen flex items-center justify-center bg-ds-surface">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb] mx-auto mb-4"></div>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">{t('dashboard:loading')}</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ds-accent mx-auto mb-4"></div>
+                    <p className="text-ds-soft">{t('dashboard:loading')}</p>
                 </div>
             </div>
         );
@@ -87,26 +87,26 @@ export default function Dashboard() {
     // Discord-only dashboard
     if (isDiscordOnly) {
         return (
-            <div className="min-h-screen bg-white dark:bg-[#1B1C1D] p-8">
+            <div className="panel-scale">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-8">
-                        <h1 className="text-4xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                        <h1 className="text-4xl font-black text-ds-text mb-2">
                             Bienvenido, {displayName}
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Tu panel de Decatron
                         </p>
                     </div>
 
                     {/* CTA Vincular Twitch */}
-                    <div className="mb-6 bg-gradient-to-r from-[#9146ff]/10 to-[#772ce8]/10 dark:from-[#9146ff]/20 dark:to-[#772ce8]/20 border-2 border-[#9146ff]/30 rounded-2xl p-6">
+                    <div className="mb-6 bg-ds-surface border border-ds-border rounded-lg p-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-gradient-to-br from-[#9146ff] to-[#772ce8] rounded-xl flex-shrink-0">
-                                <Link2 className="w-6 h-6 text-white" />
+                            <div className="p-3 bg-ds-bg border border-ds-border rounded-lg flex-shrink-0">
+                                <Link2 className="w-6 h-6 text-[#9146ff]" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">Vincula tu cuenta de Twitch</h3>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Desbloquea el bot, comandos, overlays y todas las funciones de streamer</p>
+                                <h3 className="text-lg font-black text-ds-text mb-1">Vincula tu cuenta de Twitch</h3>
+                                <p className="text-sm text-ds-soft">Desbloquea el bot, comandos, overlays y todas las funciones de streamer</p>
                             </div>
                             <button
                                 onClick={async () => {
@@ -115,7 +115,7 @@ export default function Dashboard() {
                                         if (res.data.url) window.location.href = res.data.url;
                                     } catch { /* error */ }
                                 }}
-                                className="px-6 py-3 bg-gradient-to-r from-[#9146ff] to-[#772ce8] text-white font-bold rounded-lg hover:-translate-y-0.5 transition-all flex-shrink-0"
+                                className="ds-btn ds-btn--primary ds-btn--lg flex-shrink-0"
                             >
                                 Vincular Twitch
                             </button>
@@ -124,48 +124,48 @@ export default function Dashboard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Mi Perfil */}
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                                <Trophy className="w-6 h-6 text-[#f59e0b]" />
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                            <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                                <Trophy className="w-6 h-6 text-ds-accent-text" />
                                 Mi Perfil
                             </h3>
                             <div className="space-y-3">
-                                <button onClick={() => navigate('/me')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
-                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Overview</p>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Tu nivel, stats y rank card</p>
+                                <button onClick={() => navigate('/me')} className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left">
+                                    <p className="font-bold text-ds-text text-sm">Overview</p>
+                                    <p className="text-xs text-ds-soft mt-1">Tu nivel, stats y rank card</p>
                                 </button>
-                                <button onClick={() => navigate('/me/account')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
-                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Mi Cuenta</p>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Vincular cuentas y preferencias</p>
+                                <button onClick={() => navigate('/me/account')} className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left">
+                                    <p className="font-bold text-ds-text text-sm">Mi Cuenta</p>
+                                    <p className="text-xs text-ds-soft mt-1">Vincular cuentas y preferencias</p>
                                 </button>
                             </div>
                         </div>
 
                         {/* Servidores */}
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                                <Server className="w-6 h-6 text-[#2563eb]" />
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                            <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                                <Server className="w-6 h-6 text-ds-accent-text" />
                                 Mis Servidores
                             </h3>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Proximamente</p>
+                            <p className="text-sm text-ds-soft py-8 text-center">Proximamente</p>
                         </div>
 
                         {/* DecaCoins */}
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                                <Coins className="w-6 h-6 text-[#eab308]" />
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                            <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                                <Coins className="w-6 h-6 text-ds-accent-text" />
                                 DecaCoins
                             </h3>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Proximamente</p>
+                            <p className="text-sm text-ds-soft py-8 text-center">Proximamente</p>
                         </div>
 
                         {/* Marketplace */}
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                                <Palette className="w-6 h-6 text-[#a855f7]" />
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                            <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                                <Palette className="w-6 h-6 text-ds-accent-text" />
                                 Marketplace
                             </h3>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Proximamente</p>
+                            <p className="text-sm text-ds-soft py-8 text-center">Proximamente</p>
                         </div>
                     </div>
                 </div>
@@ -178,53 +178,53 @@ export default function Dashboard() {
     // Kick. Mensaje honesto en vez de un dashboard de Twitch roto a medias.
     if (isKickOnly) {
         return (
-            <div className="min-h-screen bg-white dark:bg-[#1B1C1D] p-8">
+            <div className="panel-scale">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-8">
-                        <h1 className="text-4xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                        <h1 className="text-4xl font-black text-ds-text mb-2">
                             Bienvenido, {displayName}
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Tu panel de Decatron
                         </p>
                     </div>
 
-                    <div className="mb-6 bg-gradient-to-r from-[#53fc18]/10 to-[#3ecc0a]/10 dark:from-[#53fc18]/20 dark:to-[#3ecc0a]/20 border-2 border-[#53fc18]/30 rounded-2xl p-6">
+                    <div className="mb-6 bg-ds-surface border border-ds-border rounded-lg p-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#53fc18] rounded-xl flex-shrink-0">
-                                <Bot className="w-6 h-6 text-black" />
+                            <div className="p-3 bg-ds-bg border border-ds-border rounded-lg flex-shrink-0">
+                                <Bot className="w-6 h-6 text-[#53fc18]" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">Tu cuenta de Kick ya está lista</h3>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">El bot para Kick todavía está en desarrollo — comandos, moderación y overlays llegan pronto a este panel.</p>
+                                <h3 className="text-lg font-black text-ds-text mb-1">Tu cuenta de Kick ya está lista</h3>
+                                <p className="text-sm text-ds-soft">El bot para Kick todavía está en desarrollo — comandos, moderación y overlays llegan pronto a este panel.</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                                <Trophy className="w-6 h-6 text-[#f59e0b]" />
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                            <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                                <Trophy className="w-6 h-6 text-ds-accent-text" />
                                 Mi Perfil
                             </h3>
                             <div className="space-y-3">
-                                <button onClick={() => navigate('/me')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
-                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Overview</p>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Tu nivel, stats y rank card</p>
+                                <button onClick={() => navigate('/me')} className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left">
+                                    <p className="font-bold text-ds-text text-sm">Overview</p>
+                                    <p className="text-xs text-ds-soft mt-1">Tu nivel, stats y rank card</p>
                                 </button>
-                                <button onClick={() => navigate('/me/account')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
-                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Mi Cuenta</p>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Preferencias de tu cuenta</p>
+                                <button onClick={() => navigate('/me/account')} className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left">
+                                    <p className="font-bold text-ds-text text-sm">Mi Cuenta</p>
+                                    <p className="text-xs text-ds-soft mt-1">Preferencias de tu cuenta</p>
                                 </button>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                                <Coins className="w-6 h-6 text-[#eab308]" />
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                            <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                                <Coins className="w-6 h-6 text-ds-accent-text" />
                                 DecaCoins
                             </h3>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Próximamente</p>
+                            <p className="text-sm text-ds-soft py-8 text-center">Próximamente</p>
                         </div>
                     </div>
                 </div>
@@ -233,35 +233,35 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#1B1C1D] p-8">
+        <div className="panel-scale">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                    <h1 className="text-4xl font-black text-ds-text mb-2">
                         {t('dashboard:header.title')}
                     </h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">
+                    <p className="text-ds-soft">
                         {t('dashboard:header.subtitle')}
                     </p>
                 </div>
 
                 {/* Alerta Importante: Dar Mod al Bot */}
                 {botStatus?.botUsername && (
-                    <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-2xl p-6">
+                    <div className="mb-6 bg-ds-warn/5 border border-ds-warn/30 rounded-lg p-6">
                         <div className="flex items-start gap-4">
-                            <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex-shrink-0">
-                                <Bot className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                            <div className="p-3 bg-ds-warn/10 rounded-lg flex-shrink-0">
+                                <Bot className="w-6 h-6 text-ds-warn" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-lg font-black text-amber-900 dark:text-amber-100 mb-2">
+                                <h3 className="text-lg font-black text-ds-text mb-2">
                                     {t('dashboard:botModAlert.title')}
                                 </h3>
-                                <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">
+                                <p className="text-sm text-ds-soft mb-3">
                                     {t('dashboard:botModAlert.description', { botUsername: botStatus.botUsername })}
                                 </p>
-                                <div className="bg-white dark:bg-[#1B1C1D] rounded-lg p-3 border border-amber-200 dark:border-amber-700">
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-2">{t('dashboard:botModAlert.instructions')}</p>
-                                    <code className="block bg-[#f8fafc] dark:bg-[#0f1011] px-3 py-2 rounded text-sm font-mono text-[#2563eb] dark:text-[#60a5fa] border border-[#e2e8f0] dark:border-[#374151]">
+                                <div className="bg-ds-surface rounded-lg p-3 border border-ds-border">
+                                    <p className="text-xs text-ds-soft mb-2">{t('dashboard:botModAlert.instructions')}</p>
+                                    <code className="block bg-ds-bg px-3 py-2 rounded text-sm font-mono text-ds-accent-text border border-ds-border">
                                         /mod {botStatus.botUsername}
                                     </code>
                                 </div>
@@ -272,32 +272,32 @@ export default function Dashboard() {
 
                 {/* Estado del Bot Card */}
                 <div className="mb-8">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                         <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                                <Radio className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            <div className="p-3 bg-ds-bg border border-ds-border rounded-lg">
+                                <Radio className="w-6 h-6 text-ds-accent-text" />
                             </div>
                             {(botStatus?.botConnected && botStatus?.botEnabledForUser) ? (
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                    <span className="text-xs font-semibold text-green-600 dark:text-green-400">{t('dashboard:botStatus.active')}</span>
+                                    <div className="w-2 h-2 bg-ds-ok rounded-full animate-pulse"></div>
+                                    <span className="text-xs font-semibold text-ds-ok">{t('dashboard:botStatus.active')}</span>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                    <span className="text-xs font-semibold text-gray-500">{t('dashboard:botStatus.inactive')}</span>
+                                    <div className="w-2 h-2 bg-ds-faint rounded-full"></div>
+                                    <span className="text-xs font-semibold text-ds-soft">{t('dashboard:botStatus.inactive')}</span>
                                 </div>
                             )}
                         </div>
-                        <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                        <h3 className="text-lg font-black text-ds-text mb-2">
                             {t('dashboard:botStatus.title')}
                         </h3>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
+                        <p className="text-sm text-ds-soft mb-4">
                             {t('dashboard:botStatus.connectedChannels', { count: botStatus?.connectedChannels || 0 })}
                         </p>
                         <button
                             onClick={() => navigate('/settings')}
-                            className="w-full px-4 py-2 bg-[#f1f5f9] dark:bg-[#262626] hover:bg-[#e2e8f0] dark:hover:bg-[#333] text-[#1e293b] dark:text-[#f8fafc] font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                            className="ds-btn ds-btn--secondary ds-btn--block"
                         >
                             <Settings className="w-4 h-4" />
                             {t('dashboard:botStatus.configureButton')}
@@ -308,154 +308,154 @@ export default function Dashboard() {
                 {/* Main Grid - 4 Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Card 1: Botones Rápido */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                            <Zap className="w-6 h-6 text-[#2563eb]" />
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                        <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                            <Zap className="w-6 h-6 text-ds-accent-text" />
                             {t('dashboard:quickButtons.title')}
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={() => navigate('/settings')}
-                                className="p-4 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left group"
+                                className="p-4 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left group"
                             >
-                                <Settings className="w-5 h-5 text-[#2563eb] mb-2 group-hover:scale-110 transition-transform" />
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:quickButtons.settings.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:quickButtons.settings.description')}</p>
+                                <Settings className="w-5 h-5 text-ds-accent-text mb-2 group-hover:scale-110 transition-transform" />
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:quickButtons.settings.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:quickButtons.settings.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => window.open('https://twitch.tv', '_blank')}
-                                className="p-4 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left group"
+                                className="p-4 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left group"
                             >
-                                <MessageSquare className="w-5 h-5 text-green-600 mb-2 group-hover:scale-110 transition-transform" />
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:quickButtons.twitch.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:quickButtons.twitch.description')}</p>
+                                <MessageSquare className="w-5 h-5 text-ds-accent-text mb-2 group-hover:scale-110 transition-transform" />
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:quickButtons.twitch.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:quickButtons.twitch.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => window.open('https://dashboard.twitch.tv', '_blank')}
-                                className="p-4 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left group"
+                                className="p-4 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left group"
                             >
-                                <TrendingUp className="w-5 h-5 text-orange-600 mb-2 group-hover:scale-110 transition-transform" />
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:quickButtons.analytics.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:quickButtons.analytics.description')}</p>
+                                <TrendingUp className="w-5 h-5 text-ds-accent-text mb-2 group-hover:scale-110 transition-transform" />
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:quickButtons.analytics.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:quickButtons.analytics.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => window.open(`/overlay/shoutout?channel=${botStatus?.channels?.[0] || ''}`, '_blank')}
-                                className="p-4 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left group"
+                                className="p-4 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left group"
                                 disabled={!botStatus?.channels?.[0]}
                             >
-                                <ExternalLink className="w-5 h-5 text-purple-600 mb-2 group-hover:scale-110 transition-transform" />
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:quickButtons.overlay.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:quickButtons.overlay.description')}</p>
+                                <ExternalLink className="w-5 h-5 text-ds-accent-text mb-2 group-hover:scale-110 transition-transform" />
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:quickButtons.overlay.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:quickButtons.overlay.description')}</p>
                             </button>
                         </div>
                     </div>
 
                     {/* Card 2: Comandos */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                            <MessageSquare className="w-6 h-6 text-green-600" />
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                        <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                            <MessageSquare className="w-6 h-6 text-ds-accent-text" />
                             {t('dashboard:commands.title')}
                         </h3>
                         <div className="space-y-3">
                             <button
                                 onClick={() => navigate('/commands/default')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:commands.default.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:commands.default.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:commands.default.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.default.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => navigate('/commands/microcommands')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:commands.microcommands.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:commands.microcommands.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:commands.microcommands.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.microcommands.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => navigate('/commands/custom')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:commands.custom.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:commands.custom.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:commands.custom.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.custom.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => navigate('/commands/scripting')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:commands.scripting.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:commands.scripting.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:commands.scripting.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.scripting.description')}</p>
                             </button>
                         </div>
                     </div>
 
                     {/* Card 3: Overlays */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                            <Activity className="w-6 h-6 text-purple-600" />
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                        <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                            <Activity className="w-6 h-6 text-ds-accent-text" />
                             {t('dashboard:overlays.title')}
                         </h3>
                         <div className="space-y-3">
                             <button
                                 onClick={() => navigate('/overlays')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:overlays.viewAll.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:overlays.viewAll.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:overlays.viewAll.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:overlays.viewAll.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => navigate('/overlays/shoutout')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:overlays.shoutout.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:overlays.shoutout.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:overlays.shoutout.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:overlays.shoutout.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => navigate('/overlays/sound-alerts')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:overlays.soundAlerts.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:overlays.soundAlerts.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:overlays.soundAlerts.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:overlays.soundAlerts.description')}</p>
                             </button>
                         </div>
                     </div>
 
                     {/* Card 4: Funciones */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                            <Bot className="w-6 h-6 text-orange-600" />
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                        <h3 className="text-xl font-black text-ds-text mb-4 flex items-center gap-2">
+                            <Bot className="w-6 h-6 text-ds-accent-text" />
                             {t('dashboard:features.title')}
                         </h3>
                         <div className="space-y-3">
                             <button
                                 onClick={() => navigate('/features/giveaways')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:features.giveaways.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:features.giveaways.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:features.giveaways.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:features.giveaways.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => navigate('/followers')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:features.followers.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:features.followers.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:features.followers.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:features.followers.description')}</p>
                             </button>
 
                             <button
                                 onClick={() => navigate('/features/moderation/banned-words')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
+                                className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
                             >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:features.bannedWords.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:features.bannedWords.description')}</p>
+                                <p className="font-bold text-ds-text text-sm">{t('dashboard:features.bannedWords.title')}</p>
+                                <p className="text-xs text-ds-soft mt-1">{t('dashboard:features.bannedWords.description')}</p>
                             </button>
                         </div>
                     </div>
