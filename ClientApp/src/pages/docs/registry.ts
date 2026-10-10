@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -97,6 +97,8 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'translation-overview', scopes: pub, group: 'modules', path: 'translation', icon: Languages, color: 'blue' },
 
+    { id: 'discord-overview', scopes: pub, group: 'modules', path: 'discord', icon: MessageSquareText, color: 'purple' },
+
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
@@ -130,6 +132,14 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'translation-credits', scopes: priv, group: 'translation', path: 'translation/credits', icon: Coins, color: 'blue' },
     { id: 'translation-desktop', scopes: priv, group: 'translation', path: 'translation/desktop', icon: Download, color: 'blue' },
     { id: 'translation-extension', scopes: priv, group: 'translation', path: 'translation/extension', icon: Monitor, color: 'blue' },
+
+    // — Discord: manual con cuenta —
+    { id: 'discord-setup', scopes: priv, group: 'discord', path: 'discord/setup', icon: PlayCircle, color: 'purple' },
+    { id: 'discord-alerts', scopes: priv, group: 'discord', path: 'discord/alerts', icon: Bell, color: 'purple' },
+    { id: 'discord-welcome', scopes: priv, group: 'discord', path: 'discord/welcome', icon: Users, color: 'purple' },
+    { id: 'discord-levels', scopes: priv, group: 'discord', path: 'discord/levels', icon: Zap, color: 'purple' },
+    { id: 'discord-rewards', scopes: priv, group: 'discord', path: 'discord/rewards', icon: Gift, color: 'purple' },
+    { id: 'discord-commands', scopes: priv, group: 'discord', path: 'discord/commands', icon: Terminal, color: 'purple' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

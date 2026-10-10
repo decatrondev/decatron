@@ -60,7 +60,8 @@
     "wheel": "Wheel and Raffle",
     "tournament": "Tournaments",
     "moderation": "Moderation",
-    "translation": "Live translation"
+    "translation": "Live translation",
+    "discord": "Discord"
   },
   "layout": {
     "documentation": "Documentation",
@@ -400,6 +401,34 @@
     "translation-extension": {
       "title": "Viewer extension",
       "description": "How viewers hear and see the translation"
+    },
+    "discord-overview": {
+      "title": "Discord",
+      "description": "Alerts, welcome, levels and commands"
+    },
+    "discord-setup": {
+      "title": "Getting started",
+      "description": "Link your server and permissions"
+    },
+    "discord-alerts": {
+      "title": "Live alerts",
+      "description": "Notice when you go live"
+    },
+    "discord-welcome": {
+      "title": "Welcome and goodbye",
+      "description": "Messages with an image on join or leave"
+    },
+    "discord-levels": {
+      "title": "XP and levels",
+      "description": "How XP is earned and levels work"
+    },
+    "discord-rewards": {
+      "title": "Store, achievements and card",
+      "description": "What to do with XP and the card design"
+    },
+    "discord-commands": {
+      "title": "Slash commands",
+      "description": "What each member can use"
     }
   },
   "microCommands": {

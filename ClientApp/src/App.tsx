@@ -140,6 +140,7 @@ import TipsDoc from './pages/docs/private/features/TipsDoc';
 import ShoutoutDoc from './pages/docs/private/features/ShoutoutDoc';
 import { ModerationDoc } from './pages/docs/private/features/ModerationDoc';
 import { TranslationDoc } from './pages/docs/private/features/TranslationDoc';
+import { DiscordDoc } from './pages/docs/private/features/DiscordDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
@@ -294,6 +295,7 @@ function App() {
                     <Route path="tournaments" element={<TournamentDoc page="overview" scope="public" />} />
                     <Route path="moderation" element={<ModerationDoc page="overview" scope="public" />} />
                     <Route path="translation" element={<TranslationDoc page="overview" scope="public" />} />
+                    <Route path="discord" element={<DiscordDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -481,6 +483,12 @@ function App() {
                         <Route path="translation/credits" element={<TranslationDoc page="credits" scope="private" />} />
                         <Route path="translation/desktop" element={<TranslationDoc page="desktop" scope="private" />} />
                         <Route path="translation/extension" element={<TranslationDoc page="extension" scope="private" />} />
+                        <Route path="discord/setup" element={<DiscordDoc page="setup" scope="private" />} />
+                        <Route path="discord/alerts" element={<DiscordDoc page="alerts" scope="private" />} />
+                        <Route path="discord/welcome" element={<DiscordDoc page="welcome" scope="private" />} />
+                        <Route path="discord/levels" element={<DiscordDoc page="levels" scope="private" />} />
+                        <Route path="discord/rewards" element={<DiscordDoc page="rewards" scope="private" />} />
+                        <Route path="discord/commands" element={<DiscordDoc page="commands" scope="private" />} />
                         <Route path="features/analytics" element={<AnalyticsDoc />} />
                         <Route path="features/followers" element={<FollowersDoc />} />
                         <Route path="features/ai" element={<AIDoc />} />

@@ -80,7 +80,7 @@ Overlays are added to OBS as Browser Sources and update in real time through Sig
 |-------------|-------------|
 | Twitch | Login, Helix API, IRC chat and EventSub (conduit with WebSocket shards, webhook as fallback) |
 | Kick | Login, webhooks, API access and chat sending |
-| Discord | Slash commands (`/decatron`, `/torneo`), XP levels and rank cards, welcome images and live alerts |
+| Discord | Slash commands (`/live`, `/level`, `/top`, `/shop`, `/torneo` and more), XP levels and rank cards, welcome images and live alerts |
 | Spotify and Last.fm | Now playing |
 | PayPal and Culqi | Donations and tier purchases (PayPal); credit packages (Culqi) |
 | Amazon Polly, Deepgram, FishAudio | Text-to-speech and speech-to-text |

@@ -136,7 +136,7 @@ Decatron/
 |                                       #   Spirits, Raffle, comandos de la rueda, ...
 +-- Decatron.Custom/                    # Controlador de comandos personalizados y !crear
 +-- Decatron.Scripting/                 # ScriptsController, ScriptingService
-+-- Decatron.Discord/                   # Bot de Discord: comandos slash (/decatron, /torneo), niveles (XP),
++-- Decatron.Discord/                   # Bot de Discord: comandos slash (/live, /level, /top, /shop, /torneo, ...), niveles (XP),
 |                                       #   imágenes de bienvenida, alertas de directo, vínculo OAuth,
 |                                       #   vencimiento de la tienda
 +-- Decatron.Services/                  # Servicios de aplicación
@@ -340,6 +340,16 @@ La traducción en vivo convierte el micrófono del streamer en voz doblada por i
 5. **Entrega.** La extensión del espectador entra a `/hubs/translation` con `Join(login, lang)` y recibe `Status`, `SegmentStart`, `SegmentChunk` y `SegmentEnd` (además de `SegmentDropped` y `EngineFallback`). `GET /api/live-translation/public/{login}` le da los idiomas, el volumen de fondo sugerido y los valores de `ClientTuning`.
 
 Los créditos se cobran en tres puntos: los segundos de audio (`SttCreditsPerSecond` convertido con la tarifa `live_stt`), cada llamada de traducción (por `AiCreditGate`) y los caracteres sintetizados. Piper usa la cuota estándar aparte; un motor premium sin créditos cae a Piper, y una sesión sin ningún crédito termina con el motivo `no_credits`. Las tarifas están en `credit_rates` y se editan desde Finanzas. Una sesión termina con uno de estos motivos: `stopped_by_user`, `disconnected`, `no_credits`, `timeout` (sin audio durante `IngestTimeoutSeconds`), `error`, `admin`, `replaced`, `restarted` o `server`, guardado en `live_translation_sessions`.
+
+### Bot de Discord
+
+`Decatron.Discord` ejecuta una conexión del bot (`DiscordBotService`, DSharpPlus) y los controladores REST del panel (`/api/discord/*`, casi todos detrás de `settings` con `control_total`).
+
+- **Vinculación.** `GET /api/discord/auth` arma la invitación OAuth2 (`identify guilds bot applications.commands`, permiso `8`). El callback guarda una fila de `discord_guild_configs` por canal de Twitch y servidor; la primera vinculación de un servidor es su canal predeterminado para los comandos.
+- **Comandos de barra.** Son comandos de primer nivel (`/live`, `/timer`, `/stats`, `/followage`, `/song`, `/level`, `/top`, `/achievements`, `/shop`, `/spirits`, `/spirit`, `/xp`, `/torneo`), registrados por servidor con un `PUT` masivo cuando el bot entra a un servidor y en cada arranque. `/xp` pide el permiso Gestionar servidor.
+- **Alertas de directo.** El manejador EventSub de `stream.online` llama a `LiveAlertHandler`, que publica el mensaje (modos `instant`, `wait`, `instant_update`) y lo registra; `DiscordAlertPollingService` (cada minuto, cada alerta con su propio intervalo de al menos 10 minutos) lo edita y aplica la acción de fin de directo (`summary`, `none`, `delete`). Hay un enfriamiento de 5 minutos por canal.
+- **Bienvenida.** `WelcomeHandler` escucha la entrada y salida de miembros y envía una imagen (la exportada del editor, luego `WelcomeImageGenerator`, luego un embed simple); también puede dar un rol y enviar un mensaje privado.
+- **XP.** `MessageXpHandler` y `XpService` otorgan XP por mensaje (cooldown, tope por hora, boosts, bonus en vivo), llevan un nivel por servidor (`100 x nivel^2 x dificultad` de XP por nivel) y un nivel global, y alimentan a `AchievementService`, `SeasonalService` (ranking mensual), `XpRoleService` (roles acumulativos por nivel) y la tienda (`StoreExpirationService` retira cada 2 minutos los roles y accesos con vencimiento).
 
 La mayor parte del tráfico de overlays pasa por el hub de overlays:
 

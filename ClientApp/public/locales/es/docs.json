@@ -60,7 +60,8 @@
     "wheel": "Rueda y Sorteo",
     "tournament": "Torneos",
     "moderation": "Moderación",
-    "translation": "Traducción en vivo"
+    "translation": "Traducción en vivo",
+    "discord": "Discord"
   },
   "layout": {
     "documentation": "Documentación",
@@ -400,6 +401,34 @@
     "translation-extension": {
       "title": "Extensión para espectadores",
       "description": "Cómo escuchan y ven la traducción"
+    },
+    "discord-overview": {
+      "title": "Discord",
+      "description": "Alertas, bienvenida, niveles y comandos"
+    },
+    "discord-setup": {
+      "title": "Puesta en marcha",
+      "description": "Vincular tu servidor y permisos"
+    },
+    "discord-alerts": {
+      "title": "Alertas de directo",
+      "description": "Aviso cuando empiezas a transmitir"
+    },
+    "discord-welcome": {
+      "title": "Bienvenida y despedida",
+      "description": "Mensajes con imagen al entrar o salir"
+    },
+    "discord-levels": {
+      "title": "XP y niveles",
+      "description": "Cómo se gana XP y se sube de nivel"
+    },
+    "discord-rewards": {
+      "title": "Tienda, logros y tarjeta",
+      "description": "Qué hacer con el XP y el diseño de la tarjeta"
+    },
+    "discord-commands": {
+      "title": "Comandos de barra",
+      "description": "Qué puede usar cada miembro"
     }
   },
   "microCommands": {

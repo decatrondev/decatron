@@ -134,7 +134,7 @@ Decatron/
 |                                       #   Spirits, Raffle, Wheel commands, ...
 +-- Decatron.Custom/                    # Custom commands controller and !crear
 +-- Decatron.Scripting/                 # ScriptsController, ScriptingService
-+-- Decatron.Discord/                   # Discord bot: slash commands (/decatron, /torneo), levels (XP),
++-- Decatron.Discord/                   # Discord bot: slash commands (/live, /level, /top, /shop, /torneo, ...), levels (XP),
 |                                       #   welcome images, live alerts, OAuth link, store expiration
 +-- Decatron.Services/                  # Application services
 |   +-- Auth, OAuth, Permission, TwitchBot, TwitchApi, EventSub (conduit/WebSocket; webhook transport switched off)
@@ -338,6 +338,16 @@ Live translation turns the streamer's microphone into dubbed speech per viewer l
 5. **Delivery.** The viewer extension joins `/hubs/translation` with `Join(login, lang)` and receives `Status`, `SegmentStart`, `SegmentChunk` and `SegmentEnd` (plus `SegmentDropped` and `EngineFallback`). `GET /api/live-translation/public/{login}` gives it the languages, the suggested background volume and the `ClientTuning` values.
 
 Credits are charged in three places: audio seconds (`SttCreditsPerSecond` converted by the `live_stt` rate), each translation call (through `AiCreditGate`) and the synthesized characters. Piper draws from the separate standard quota; a premium engine without credits falls back to Piper, and a session without any credits ends with the reason `no_credits`. Rates live in `credit_rates` and are edited from Finance. A session ends with one of the reasons `stopped_by_user`, `disconnected`, `no_credits`, `timeout` (no audio for `IngestTimeoutSeconds`), `error`, `admin`, `replaced`, `restarted` or `server`, stored in `live_translation_sessions`.
+
+### Discord bot
+
+`Decatron.Discord` runs one bot connection (`DiscordBotService`, DSharpPlus) and the REST controllers of the dashboard (`/api/discord/*`, nearly all behind `settings` at `control_total`).
+
+- **Linking.** `GET /api/discord/auth` builds the OAuth2 invite (`identify guilds bot applications.commands`, permission `8`). The callback stores a `discord_guild_configs` row per Twitch channel and guild; the first link of a guild is its default channel for the commands.
+- **Slash commands.** They are top-level commands (`/live`, `/timer`, `/stats`, `/followage`, `/song`, `/level`, `/top`, `/achievements`, `/shop`, `/spirits`, `/spirit`, `/xp`, `/torneo`), registered per guild with a bulk `PUT` when the bot joins a guild and on every start. `/xp` requires the Manage Server permission.
+- **Live alerts.** The `stream.online` EventSub handler calls `LiveAlertHandler`, which posts the message (modes `instant`, `wait`, `instant_update`), tracks it, and `DiscordAlertPollingService` (every minute, each alert at its own interval of at least 10 minutes) edits it and applies the end-of-stream action (`summary`, `none`, `delete`). A 5-minute cooldown applies per channel.
+- **Welcome.** `WelcomeHandler` listens to member join and leave and sends an image (editor export, then `WelcomeImageGenerator`, then a plain embed); it can also assign a role and send a DM.
+- **XP.** `MessageXpHandler` and `XpService` award message XP (cooldown, hourly cap, boosts, live bonus), keep a per-server level (`100 x level^2 x difficulty` XP per level) and a global level, and feed `AchievementService`, `SeasonalService` (monthly ranking), `XpRoleService` (cumulative level roles) and the store (`StoreExpirationService` revokes timed roles and channel access every 2 minutes).
 
 Most overlay traffic goes through the overlay hub:
 

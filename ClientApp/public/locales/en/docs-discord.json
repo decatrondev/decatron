@@ -1,0 +1,857 @@
+{
+  "overview": {
+    "title": "Discord",
+    "subtitle": "Live alerts, welcome messages, levels and commands for your Discord server",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Decatron Discord bot connects your server with your Twitch channel. It announces when you go live, welcomes new members, rewards activity with levels and answers slash commands (`/`)."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Each feature is turned on separately from the dashboard. The bot only does what you configure."
+          }
+        ]
+      },
+      {
+        "id": "funciones",
+        "title": "What is included",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Feature",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Live alerts",
+                "Posts a message in the Discord channel you choose when a streamer goes live, updates it while it lasts and can close it with a summary."
+              ],
+              [
+                "Welcome and goodbye",
+                "Messages with an image when someone joins or leaves, with a visual editor, automatic role and direct message."
+              ],
+              [
+                "XP and levels",
+                "Members earn XP by writing, level up and receive roles. It includes a store, achievements, a monthly ranking and a rank card."
+              ],
+              [
+                "Slash commands",
+                "Stream status, ranking, level, store and more, for any member."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "miembros",
+        "title": "For members",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "They do not need to set anything up. Typing `/` in the server shows the bot commands, such as `/live`, `/level`, `/top` or `/shop`. The full list is in the manual with an account."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the step-by-step setup is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "discord-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Discord: getting started",
+    "subtitle": "Link your server, permissions and how to order roles",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Before you start",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Full control access in the dashboard: the whole Discord section (linking, alerts, welcome and levels) needs that level. Without it you will see “Acceso denegado”.",
+              "On Discord, being able to add bots to the server (the Manage Server permission or being the owner)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "Link a server",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "In the dashboard open Discord (`/discord`) and press “Vincular servidor”.",
+              "Discord asks you to choose the server and authorize the bot. It requests permission to identify you, see your servers, add the bot and register the commands.",
+              "When you return to the dashboard, “Servidor vinculado exitosamente” appears and the server joins the list on the left."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The bot is invited with the Administrator permission. Slash commands register on their own when it joins a server and again every time the bot restarts."
+          }
+        ]
+      },
+      {
+        "id": "panel",
+        "title": "The Discord panel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When you choose a server you see one card per feature: Live Alerts (with how many alerts you have), Bienvenida (active or inactive) and XP & Niveles, plus the list of commands. You can link several servers and switch between them."
+          },
+          {
+            "t": "p",
+            "x": "The unlink icon on the server card removes it from the dashboard. The bot stays in the server until you remove it from Discord."
+          }
+        ]
+      },
+      {
+        "id": "jerarquia",
+        "title": "The bot role and hierarchy",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "To give roles by level, the “Decatron” role must be above every role you want it to manage. In Discord go to Server Settings → Roles and drag “Decatron” as high as possible, below your owner role. The same applies to store roles."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "What to set up next",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "I want…",
+              "Go to"
+            ],
+            "rows": [
+              [
+                "Announce when my stream starts",
+                "Live alerts"
+              ],
+              [
+                "Welcome members",
+                "Welcome and goodbye"
+              ],
+              [
+                "Reward activity",
+                "XP and levels"
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "discord-alerts"
+          }
+        ]
+      }
+    ]
+  },
+  "alerts": {
+    "title": "Discord: live alerts",
+    "subtitle": "A Discord message when a streamer goes live",
+    "sections": [
+      {
+        "id": "como",
+        "title": "How it works",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When Twitch reports that a channel went live, Decatron posts a message with the title, game, viewers and a “Ver Stream” button in the Discord channel you choose. While the stream lasts, the message is edited with fresh data; when it ends you can leave it, delete it or turn it into a summary."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Alerts are triggered by Twitch's stream-start notice, which Decatron receives from channels that have it active. That is why they only work for channels that use Decatron with the bot turned on."
+          },
+          {
+            "t": "p",
+            "x": "At least 5 minutes pass between two alerts of the same channel, so a stream reconnection does not repeat the message."
+          }
+        ]
+      },
+      {
+        "id": "agregar",
+        "title": "Add an alert",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "In Discord → Live Alerts press “Agregar”.",
+              "Search for the Twitch channel: you will see whether it is live, its game and its viewers.",
+              "Choose the Discord channel where it will be posted.",
+              "Adjust the options and check the message preview. Press “Agregar”."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "There can be only one alert per Twitch channel on each server. Your channel appears first with the “Tu canal” tag, and you can also add other streamers. Each alert can be edited, turned on or off and deleted."
+          }
+        ]
+      },
+      {
+        "id": "opciones",
+        "title": "Options",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Thumbnail",
+                "Live: preview of the stream. Static: an image of yours. None: no image.",
+                "Live"
+              ],
+              [
+                "Message",
+                "Text that goes with the embed. If left empty it says “{name} esta en vivo!”.",
+                "Empty"
+              ],
+              [
+                "Embed color",
+                "The color of the message stripe.",
+                "Red"
+              ],
+              [
+                "Footer",
+                "Text at the bottom of the message.",
+                "Decatron Bot"
+              ],
+              [
+                "Send mode",
+                "Instant: posts immediately. Wait for thumbnail: waits a few minutes so Twitch has the preview. Instant + update: posts immediately and edits it after that time.",
+                "Wait for thumbnail"
+              ],
+              [
+                "Wait time",
+                "1, 2, 3 or 5 minutes, for the modes that wait.",
+                "2 minutes"
+              ],
+              [
+                "Update every",
+                "10, 15, 20 or 30 minutes: the message is edited with fresh viewers and preview. Never less than 10.",
+                "10 minutes"
+              ],
+              [
+                "When the stream ends",
+                "Show summary (duration, peak and average viewers, last game), leave the message or delete it.",
+                "Show summary"
+              ],
+              [
+                "Mention @everyone",
+                "Notifies the whole server.",
+                "Yes"
+              ],
+              [
+                "“Ver Stream” button",
+                "Adds a button linking to Twitch.",
+                "Yes"
+              ],
+              [
+                "Show start time",
+                "Adds “Inicio” with the elapsed time.",
+                "Yes"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "“Mencionar @everyone” starts on. If you do not want to notify the whole server on every stream, turn it off when creating the alert."
+          }
+        ]
+      },
+      {
+        "id": "estado",
+        "title": "Channel status",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The alert list shows whether each channel is live, with its game, viewers and preview. The “EN VIVO” tag appears while it streams."
+          }
+        ]
+      }
+    ]
+  },
+  "welcome": {
+    "title": "Discord: welcome and goodbye",
+    "subtitle": "Messages with an image when someone joins or leaves the server",
+    "sections": [
+      {
+        "id": "como",
+        "title": "How it works",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When a member joins, the bot posts the welcome message in the channel you choose. When they leave, it posts the goodbye one. Each is turned on separately and starts off."
+          },
+          {
+            "t": "p",
+            "x": "In Discord → Bienvenida there are four tabs: Bienvenida, Despedida, Editor de imagen and Pruebas."
+          }
+        ]
+      },
+      {
+        "id": "variables",
+        "title": "Message variables",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Replaced by"
+            ],
+            "rows": [
+              [
+                "`{user}`",
+                "The member's name on the server."
+              ],
+              [
+                "`{username}`",
+                "Their Discord username."
+              ],
+              [
+                "`{server}`",
+                "The server name."
+              ],
+              [
+                "`{memberCount}`",
+                "The total number of members."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Default welcome message: “Bienvenido {user} a {server}! Eres el miembro #{memberCount}”. Goodbye: “{user} se fue del servidor. Eramos {memberCount}.”."
+          }
+        ]
+      },
+      {
+        "id": "bienvenida",
+        "title": "Welcome tab",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Turn on and choose the Discord channel.",
+              "Message, embed color and image mode: the member's avatar, a custom image (URL or gallery) or none.",
+              "“Mencionar al usuario” and “Mostrar avatar como thumbnail” (both on by default).",
+              "Automatic role: a role given on joining. The bot must be above that role in the hierarchy.",
+              "Direct message: a private message to the member. If the member has direct messages closed, it is not sent."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "despedida",
+        "title": "Goodbye tab",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It has the same channel, message, color and image options, without role or direct message. By default it uses no image."
+          }
+        ]
+      },
+      {
+        "id": "editor",
+        "title": "Image editor",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The editor draws the image that gets posted, so what you see is what appears on Discord. You choose the resolution (1024×500, 1200×600 or 1920×1080) and move and adjust five elements: background, avatar, text, subtext and footer. You can upload your own background (up to 10 MB) and reset the design."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If the editor image is unavailable, the bot generates an image with the message and, as a last resort, posts a text embed."
+          }
+        ]
+      },
+      {
+        "id": "pruebas",
+        "title": "Tests",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Pruebas tab sends a sample welcome or goodbye to the channel, marked “[PRUEBA]”, using the bot itself as the member. It requires the configuration to be saved with its channel."
+          }
+        ]
+      }
+    ]
+  },
+  "levels": {
+    "title": "Discord: XP and levels",
+    "subtitle": "How XP is earned, how levels work and how to tune the system",
+    "sections": [
+      {
+        "id": "como",
+        "title": "How it works",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each message members write can give them XP. When they gather enough XP they level up: the bot posts a card with their new level and gives the matching roles. The bot ignores other bots and messages outside a server."
+          },
+          {
+            "t": "p",
+            "x": "In Discord → XP & Niveles there are nine tabs: General, Niveles, Roles, Achievements, Store, Seasonal, Rank Card, Moderación and Pruebas. This page covers configuration and roles; the store, achievements and card are on the next one."
+          }
+        ]
+      },
+      {
+        "id": "general",
+        "title": "General tab",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Setting",
+              "What it does",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Turn on levels",
+                "Turns the whole system on or off on this server.",
+                "On"
+              ],
+              [
+                "Difficulty",
+                "Easy, Normal, Hard or Hardcore: changes how much XP each level demands.",
+                "Normal"
+              ],
+              [
+                "Minimum and maximum XP",
+                "Each message gives a random value between the two.",
+                "15 and 25"
+              ],
+              [
+                "Cooldown",
+                "Seconds that must pass between two XP-giving messages from the same member.",
+                "60"
+              ],
+              [
+                "Max XP per hour",
+                "Cap on message XP a member earns each hour.",
+                "500"
+              ],
+              [
+                "Minimum message length",
+                "Shorter messages give no XP.",
+                "5 characters"
+              ],
+              [
+                "Level-up channel",
+                "Where the level card is posted. With no channel, it is posted in the same channel where the member wrote.",
+                "No channel"
+              ],
+              [
+                "Achievements channel",
+                "Where achievements are announced. If you choose none, the level-up channel is used.",
+                "The level-up one"
+              ],
+              [
+                "Excluded channels",
+                "In those channels messages give no XP.",
+                "None"
+              ],
+              [
+                "Live bonus",
+                "Multiplies XP while your Twitch channel is live (from 1 to 10).",
+                "Off, ×1.5"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "An active boost and the live bonus multiply with each other. Changes apply on saving."
+          }
+        ]
+      },
+      {
+        "id": "niveles",
+        "title": "How much XP each level asks for",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "To reach level N you need 100 × N² XP, multiplied by the difficulty: Easy ×0.7, Normal ×1, Hard ×1.5 and Hardcore ×2. When leveling up, the leftover XP starts the next level. At Normal difficulty: level 1 asks for 100 XP, level 2 asks for 400, level 5 asks for 2,500 and level 10 asks for 10,000."
+          },
+          {
+            "t": "p",
+            "x": "The Niveles tab has a simulator and a table with each level's XP, the accumulated XP, the estimated time and the messages needed, to choose the difficulty with data."
+          }
+        ]
+      },
+      {
+        "id": "roles",
+        "title": "Roles by level",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each role is given on reaching a level and kept: a member has all the roles of the levels already reached. “Crear Roles Base” generates 12 roles with name and color: Newcomer (level 1), Chatter (5), Regular (10), Active (15), Dedicated (20), Veteran (30), Elite (40), Legend (50), Champion (65), Master (80), Grandmaster (90) and Mythic (100). On Discord they are created with the “✦” prefix."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Button",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Crear Roles Base",
+                "Creates the 12 default roles (shown when there are no roles)."
+              ],
+              [
+                "Sincronizar con Discord",
+                "Creates on Discord the roles that do not exist there yet."
+              ],
+              [
+                "Sync Usuarios",
+                "Gives every member the roles they are due by their current level."
+              ],
+              [
+                "Cleanup",
+                "Removes from Discord the “✦” roles that are no longer on your list."
+              ],
+              [
+                "Nuevo Rol",
+                "Creates a role of your own with name, required level and color; you can also edit or delete existing ones."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Remember to put the “Decatron” role above these roles on Discord; otherwise the bot cannot assign them."
+          }
+        ]
+      },
+      {
+        "id": "moderacion",
+        "title": "Boosts and member management",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Moderación tab has three parts: the XP boost, user management and the boost history."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Boost: multiplies everyone's XP by 1.5, 2, 3 or 5 for 30 minutes, 1, 2, 4, 8 or 24 hours. Starting a new one replaces the active one.",
+              "User management: search for a member and give +100 or +500 XP, reset their XP, reset only their achievements, or do a full reset (XP, achievements, monthly ranking and roles).",
+              "Boost history: multiplier, who started it, start and status."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pruebas",
+        "title": "Tests",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "“Test Level Up” posts a sample level-up card in the level-up channel. It needs that channel to be configured. The tab also summarizes the system configuration."
+          }
+        ]
+      }
+    ]
+  },
+  "rewards": {
+    "title": "Discord: store, achievements and card",
+    "subtitle": "What to do with XP, achievements, the monthly ranking and the rank card design",
+    "sections": [
+      {
+        "id": "store",
+        "title": "Store",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The store lets members exchange XP for prizes you define. It is managed in the Store tab and members buy with `/shop`."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Type",
+              "What happens on purchase"
+            ],
+            "rows": [
+              [
+                "Temporary role",
+                "The bot gives the chosen role and removes it when the duration ends (checked every 2 minutes)."
+              ],
+              [
+                "Channel access",
+                "The bot gives access to the chosen channel and withdraws it when the duration ends."
+              ],
+              [
+                "Shoutout",
+                "Changes nothing on Discord: it only posts the purchase announcement."
+              ],
+              [
+                "Custom",
+                "Stays as “Pendiente” until the streamer delivers it by hand from “Canjes Pendientes”."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Each prize has an icon, name, description, XP cost, duration (minutes to months), stock (0 is unlimited), custom message and announcement channel. The message accepts `{user}`, `{mention}` and `{item}`.",
+              "The cost is taken from the XP on the current level bar and does not lower the level. If the XP on the current level is not enough, the purchase is rejected even if the member earned more on earlier levels.",
+              "The tab lists recent purchases and lets you reset a member's purchases."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "logros",
+        "title": "Achievements",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Achievements unlock on their own when a condition is met. When the server is set up, 10 system achievements are created:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Achievement",
+              "Condition"
+            ],
+            "rows": [
+              [
+                "First Message",
+                "1 message"
+              ],
+              [
+                "Chatterbox",
+                "1,000 messages"
+              ],
+              [
+                "Marathon",
+                "10,000 messages"
+              ],
+              [
+                "Rising Star, Dedicated, Legend",
+                "Level 10, 25 and 50"
+              ],
+              [
+                "Week Warrior, Streak Master",
+                "Active 7 and 30 days in a row"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Connected and OG Member (the other two system ones) start off and the bot does not grant them automatically. Only message, level and streak conditions are checked."
+          },
+          {
+            "t": "p",
+            "x": "You can create your own achievements with an icon, name, description and a condition of messages, level or streak of days, and also turn off the system ones or reset every member's achievements. The streak counts consecutive days with activity. When one unlocks, the bot announces it in the achievements channel."
+          }
+        ]
+      },
+      {
+        "id": "mensual",
+        "title": "Seasonal: monthly ranking",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Besides the level, the bot counts each member's XP and messages month by month (by UTC month). The Seasonal tab shows the ranking for the chosen month (with a month selector), with total users, total XP and the top member. Members see it with `/top` and the “Mensual” type."
+          }
+        ]
+      },
+      {
+        "id": "tarjeta",
+        "title": "Rank Card",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The card is the image shown by `/level` and on level-up. In the Rank Card tab you design it on a canvas: choose a template (Clásico, Neón, Minimal or Gaming), move and resize the elements (avatar, name, level, rank, XP and progress bar) and change colors, fonts and avatar shapes (circle, square or hexagon)."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Background: included templates (Gaming, Anime, Minimal, Gradient, Nature), your own URL or your gallery.",
+              "Texts accept `{username}`, `{level}`, `{rank}`, `{total_users}`, `{current_xp}`, `{required_xp}`, `{total_xp}`, `{progress}` and `{remaining_xp}`.",
+              "You can have a different design per role range, so the card changes as members level up."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Discord: slash commands",
+    "subtitle": "What any member can use and what needs permissions",
+    "sections": [
+      {
+        "id": "general",
+        "title": "How they are used",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The commands appear when you type `/` in any channel of the server. Those that show Twitch data use the channel linked to the server; if several channels are linked, the first one linked is the default. Those with a `canal` option let you choose another with autocomplete."
+          }
+        ]
+      },
+      {
+        "id": "twitch",
+        "title": "Twitch",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it shows"
+            ],
+            "rows": [
+              [
+                "`/live`",
+                "Whether the channel is live: title, game, viewers and live time; otherwise that it is offline."
+              ],
+              [
+                "`/timer`",
+                "The channel timer status: state, current time, total time and progress."
+              ],
+              [
+                "`/stats`",
+                "Channel statistics: status, viewers, game and timer."
+              ],
+              [
+                "`/followage`",
+                "Since when the member has been on the server and since when they follow the channel on Twitch. If you do not give the Twitch account, it tries to detect it from the Discord name; if it cannot, use `/followage twitch:your_name`."
+              ],
+              [
+                "`/song`",
+                "The song playing now on the stream."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "niveles",
+        "title": "Levels",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it shows"
+            ],
+            "rows": [
+              [
+                "`/level`",
+                "Your rank card, or another member's with `user`. Whoever has no XP yet gets a notice."
+              ],
+              [
+                "`/top`",
+                "Ranking 10 at a time with `pagina`: Server (level and XP), Global (level, adding up all servers with Decatron) or Monthly (XP and messages of the month)."
+              ],
+              [
+                "`/achievements`",
+                "Your unlocked achievements and those still missing."
+              ],
+              [
+                "`/shop`",
+                "Without parameters it lists the store prizes. With `buy` and the name (part of it is enough) it buys the prize with your XP."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "otros",
+        "title": "Spirits and tournaments",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it is for"
+            ],
+            "rows": [
+              [
+                "`/spirits`, `/spirit`",
+                "Fortnite Spirits collection: view it, see the ranking, see missing ones and mark or unmark one."
+              ],
+              [
+                "`/torneo`",
+                "Register, see your status and see the rules of the channel's active tournament."
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "tournament-discord"
+          }
+        ]
+      },
+      {
+        "id": "admin",
+        "title": "XP administration",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`/xp` only works for members with the Manage Server permission on Discord. Everyone else receives “Sin permisos”."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Subcommand",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`/xp give`",
+                "Gives XP to a member; if they level up, they receive their roles."
+              ],
+              [
+                "`/xp remove`",
+                "Removes XP."
+              ],
+              [
+                "`/xp set`",
+                "Sets the exact XP."
+              ],
+              [
+                "`/xp reset`",
+                "Resets the member's XP."
+              ],
+              [
+                "`/xp boost`",
+                "Starts a boost of 1.5×, 2×, 3× or 5× for 30 minutes, 1, 2, 4, 8 or 24 hours."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
