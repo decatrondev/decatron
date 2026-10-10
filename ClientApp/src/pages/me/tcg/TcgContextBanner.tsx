@@ -20,13 +20,13 @@ export default function TcgContextBanner() {
     if (!ctx || ctx.isOwn) return null;
 
     return (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 rounded-lg border border-ds-warn/40 bg-ds-warn/10 px-4 py-3">
+            <AlertTriangle className="w-5 h-5 text-ds-warn shrink-0 mt-0.5" />
             <div className="text-sm">
-                <p className="font-bold text-amber-300">
+                <p className="font-bold text-ds-warn">
                     Estás viendo el TCG de {ctx.login}, no el tuyo.
                 </p>
-                <p className="text-amber-200/70 mt-0.5">
+                <p className="text-ds-warn/70 mt-0.5">
                     Lo que compres o mandes a gradear sale de sus DecaCoins y afecta sus cartas.
                     Nada de esto se puede deshacer.
                 </p>

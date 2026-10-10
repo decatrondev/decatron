@@ -181,11 +181,11 @@ export default function MySpiritCollection() {
         Rare: '#60A5FA', Special: '#34D399', Epic: '#C084FC', Legendary: '#F59E0B', Mythic: '#F43F5E',
     };
 
-    const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-    const field = 'px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]';
-    const muted = 'text-[#64748b] dark:text-[#94a3b8]';
-    const activeBtn = 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg';
-    const idleBtn = 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]';
+    const card = 'bg-ds-surface rounded-lg border border-ds-border ';
+    const field = 'px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm 3xl:text-base text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent';
+    const muted = 'text-ds-soft ';
+    const activeBtn = 'bg-ds-accent text-ds-on-accent';
+    const idleBtn = 'bg-ds-bg text-ds-soft hover:bg-ds-raised ';
 
     const Toggle = ({ on, disabled, onChange, label }: { on: boolean; disabled?: boolean; onChange: (v: boolean) => void; label: React.ReactNode }) => (
         <button
@@ -196,16 +196,16 @@ export default function MySpiritCollection() {
             onClick={() => onChange(!on)}
             className={`w-full flex items-center justify-between gap-3 py-2 text-left ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
-            <span className="text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc]">{label}</span>
-            <span className={`relative w-10 h-6 rounded-full flex-shrink-0 transition-colors ${on ? 'bg-[#2563eb]' : 'bg-[#cbd5e1] dark:bg-[#374151]'}`}>
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-4' : ''}`} />
+            <span className="text-sm 3xl:text-base text-ds-text">{label}</span>
+            <span className={`relative w-10 h-6 rounded-full flex-shrink-0 transition-colors ${on ? 'bg-ds-accent' : 'bg-ds-border '}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-ds-surface shadow transition-transform ${on ? 'translate-x-4' : ''}`} />
             </span>
         </button>
     );
 
     if (loading) return (
         <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#3b82f6]" />
+            <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
         </div>
     );
 
@@ -219,17 +219,17 @@ export default function MySpiritCollection() {
 
             {/* Gestionando canal ajeno (control_total delegado) */}
             {managingChannel && (
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-sm 3xl:text-base font-bold text-amber-700 dark:text-amber-300">
+                <div className="bg-ds-warn/10 border border-ds-warn/40 rounded-lg px-4 py-3 text-sm 3xl:text-base font-bold text-ds-warn">
                     {t('my.managing', { channel: managingChannel })}
                 </div>
             )}
 
             {/* Toast */}
             {toast && (
-                <div role="status" className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl text-sm font-bold ${
+                <div role="status" className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-bold ${
                     toast.type === 'ok'
-                        ? 'bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-                        : 'bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                        ? 'bg-ds-ok/10 border border-ds-ok/40 text-ds-ok '
+                        : 'bg-ds-danger/10 border border-ds-danger/40 text-ds-danger '
                 }`}>
                     {toast.type === 'ok' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                     {toast.msg}
@@ -239,22 +239,22 @@ export default function MySpiritCollection() {
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl 3xl:text-4xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('my.title')}</h1>
+                    <h1 className="text-3xl 3xl:text-4xl font-black text-ds-text">{t('my.title')}</h1>
                     <p className={`text-sm 3xl:text-base mt-1 ${muted}`}>{t('my.subtitle')}</p>
                 </div>
                 <div className="flex gap-3">
                     {username && (
                         <button
                             onClick={copyLink}
-                            className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg text-sm 3xl:text-base font-bold text-[#64748b] dark:text-[#94a3b8]"
+                            className="flex items-center gap-2 px-4 py-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors text-sm 3xl:text-base font-bold text-ds-soft"
                         >
-                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+                            {copied ? <Check className="w-4 h-4 text-ds-ok" /> : <Share2 className="w-4 h-4" />}
                             {copied ? t('my.copied') : t('my.share')}
                         </button>
                     )}
                     <Link
                         to="/sprites"
-                        className="px-6 py-3 rounded-xl font-bold shadow-lg text-sm 3xl:text-base bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white transition-all"
+                        className="px-6 py-3 rounded-lg font-bold text-sm 3xl:text-base bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent transition-all"
                     >
                         {t('my.see_gallery')}
                     </Link>
@@ -263,18 +263,18 @@ export default function MySpiritCollection() {
 
             {/* Spirits nuevos desde la última visita */}
             {showNewBanner && newSprites.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-[#2563eb] dark:text-[#60a5fa] flex-shrink-0 mt-0.5" />
+                <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-4 flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-ds-accent-text flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc]">
+                        <p className="font-bold text-sm 3xl:text-base text-ds-text">
                             {newSprites.length === 1 ? t('my.new_one') : t('my.new_many', { count: newSprites.length })}
                         </p>
-                        <p className="text-xs 3xl:text-sm mt-0.5 text-blue-700 dark:text-blue-300 truncate">
+                        <p className="text-xs 3xl:text-sm mt-0.5 text-ds-accent-text truncate">
                             {newSprites.slice(0, 8).map(s => s.name).join(', ')}
                             {newSprites.length > 8 ? ` ${t('my.new_more', { count: newSprites.length - 8 })}` : ''}
                         </p>
                     </div>
-                    <button onClick={() => setShowNewBanner(false)} aria-label={t('my.dismiss')} className={`${muted} hover:text-[#1e293b] dark:hover:text-white transition-colors flex-shrink-0`}>
+                    <button onClick={() => setShowNewBanner(false)} aria-label={t('my.dismiss')} className={`${muted} hover:text-ds-text transition-colors flex-shrink-0`}>
                         <X className="w-4 h-4" />
                     </button>
                 </div>
@@ -299,20 +299,20 @@ export default function MySpiritCollection() {
                             <button
                                 onClick={() => setShowUnreleased(v => !v)}
                                 aria-pressed={showUnreleased}
-                                className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${showUnreleased ? 'bg-amber-400 text-black shadow-lg' : idleBtn}`}
+                                className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${showUnreleased ?'bg-ds-warn text-ds-on-accent' : idleBtn}`}
                             >
                                 {t('filters.unreleased')}
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#3b82f6]">
+                        <div className="flex items-center gap-2 bg-ds-bg border border-ds-border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-ds-accent">
                             <Search className={`w-4 h-4 flex-shrink-0 ${muted}`} />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder={t('filters.search_placeholder')}
-                                className="flex-1 bg-transparent text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] focus:outline-none"
+                                className="flex-1 bg-transparent text-sm 3xl:text-base text-ds-text placeholder-ds-soft focus:outline-none"
                             />
                         </div>
 
@@ -340,7 +340,7 @@ export default function MySpiritCollection() {
                         <div className="flex items-center justify-between text-xs 3xl:text-sm">
                             <span className={`font-bold ${muted}`}>{t('filters.count', { count: filtered.length })}</span>
                             {hasFilters && (
-                                <button onClick={clearFilters} className="font-bold text-[#2563eb] dark:text-[#60a5fa] hover:underline">
+                                <button onClick={clearFilters} className="font-bold text-ds-accent-text hover:underline">
                                     {t('filters.clear')}
                                 </button>
                             )}
@@ -356,8 +356,8 @@ export default function MySpiritCollection() {
                             {filtered.map(item => (
                                 <div key={item.sprite.id} className="relative">
                                     {pendingKey === item.sprite.spriteKey && (
-                                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-2xl">
-                                            <Loader className="w-5 h-5 animate-spin text-white" />
+                                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-ds-input/40 rounded-lg">
+                                            <Loader className="w-5 h-5 animate-spin text-ds-text" />
                                         </div>
                                     )}
                                     <SpiritCard item={item} interactive variant="panel" onClick={() => handleToggle(item)} />
@@ -372,33 +372,33 @@ export default function MySpiritCollection() {
 
                     <div className={`${card} p-5 space-y-4`}>
                         <div className="flex items-center gap-2">
-                            <Trophy className="w-5 h-5 text-[#2563eb] dark:text-[#60a5fa]" />
-                            <h2 className="text-base 3xl:text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{t('my.progress_title')}</h2>
+                            <Trophy className="w-5 h-5 text-ds-accent-text" />
+                            <h2 className="text-base 3xl:text-lg font-black text-ds-text">{t('my.progress_title')}</h2>
                         </div>
                         <div className="flex items-end justify-between">
-                            <span className="text-4xl 3xl:text-5xl font-black text-[#1e293b] dark:text-[#f8fafc] tabular-nums">
+                            <span className="text-4xl 3xl:text-5xl font-black text-ds-text tabular-nums">
                                 {obtained}<span className={`text-xl 3xl:text-2xl font-bold ${muted}`}> / {total}</span>
                             </span>
-                            <span className="text-2xl 3xl:text-3xl font-black text-[#2563eb] dark:text-[#60a5fa] tabular-nums">{percentage}%</span>
+                            <span className="text-2xl 3xl:text-3xl font-black text-ds-accent-text tabular-nums">{percentage}%</span>
                         </div>
-                        <div className="h-2.5 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden" role="progressbar" aria-valuenow={percentage} aria-valuemin={0} aria-valuemax={100}>
-                            <div className="h-full rounded-full bg-gradient-to-r from-[#2563eb] to-[#3b82f6] transition-all duration-700" style={{ width: `${percentage}%` }} />
+                        <div className="h-2.5 bg-ds-raised rounded-full overflow-hidden" role="progressbar" aria-valuenow={percentage} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="h-full rounded-full bg-ds-accent transition-all duration-700" style={{ width: `${percentage}%` }} />
                         </div>
                         <div className={`flex gap-4 text-xs 3xl:text-sm ${muted}`}>
-                            <span><span className="text-green-600 dark:text-green-400 font-bold">{obtained}</span> {t('progress.obtained')}</span>
-                            <span><span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{total - obtained}</span> {t('progress.missing')}</span>
+                            <span><span className="text-ds-ok font-bold">{obtained}</span> {t('progress.obtained')}</span>
+                            <span><span className="font-bold text-ds-text">{total - obtained}</span> {t('progress.missing')}</span>
                         </div>
 
                         {byRarity.length > 0 && (
-                            <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-2.5">
+                            <div className="pt-4 border-t border-ds-border space-y-2.5">
                                 <h3 className={`text-xs 3xl:text-sm font-bold ${muted}`}>{t('my.by_rarity')}</h3>
                                 {byRarity.map(r => (
                                     <div key={r.rarity} className="space-y-1">
                                         <div className="flex items-center justify-between text-xs 3xl:text-sm">
-                                            <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{r.rarity}</span>
+                                            <span className="font-bold text-ds-text">{r.rarity}</span>
                                             <span className={`tabular-nums ${muted}`}>{r.have} / {r.total}</span>
                                         </div>
-                                        <div className="h-1.5 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                                        <div className="h-1.5 bg-ds-raised rounded-full overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${r.total ? (r.have / r.total) * 100 : 0}%`, background: RARITY_COLOR[r.rarity] }} />
                                         </div>
                                     </div>
@@ -409,8 +409,8 @@ export default function MySpiritCollection() {
 
                     {prefsLoaded && (
                         <div className={`${card} p-5`}>
-                            <h2 className="text-base 3xl:text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">{t('my.notify_title')}</h2>
-                            <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                            <h2 className="text-base 3xl:text-lg font-black text-ds-text mb-1">{t('my.notify_title')}</h2>
+                            <div className="divide-y divide-ds-border">
                                 <Toggle
                                     on={notifyTwitchChat}
                                     disabled={savingPrefs}
@@ -425,7 +425,7 @@ export default function MySpiritCollection() {
                                         label={<span className="inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-[#5865F2]" />{t('my.notify_discord')}</span>}
                                     />
                                     {!hasDiscordLinked && (
-                                        <Link to="/settings" className="inline-block pb-1 text-xs 3xl:text-sm font-bold text-[#2563eb] dark:text-[#60a5fa] hover:underline">
+                                        <Link to="/settings" className="inline-block pb-1 text-xs 3xl:text-sm font-bold text-ds-accent-text hover:underline">
                                             {t('my.link_discord')}
                                         </Link>
                                     )}

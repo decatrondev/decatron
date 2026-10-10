@@ -14,12 +14,12 @@ import TcgPageHeader from './TcgPageHeader';
 // piso de rareza garantizado.
 
 const RARITY_STYLES: Record<string, string> = {
-    N: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
-    R: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-    SR: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-    SSR: 'bg-pink-500/20 text-pink-300 border-pink-500/40',
-    UR: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-    LR: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
+    N: 'bg-ds-faint/20 text-ds-soft border-ds-border/40',
+    R: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/40',
+    SR: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/40',
+    SSR: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/40',
+    UR: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40',
+    LR: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40',
     MR: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40',
 };
 
@@ -167,7 +167,7 @@ export default function TcgShop() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -175,7 +175,7 @@ export default function TcgShop() {
     return (
         <div className="space-y-6">
             {toast && (
-                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-xl shadow-xl border font-semibold ${toast.type === 'success' ? 'bg-green-500/20 border-green-500/40 text-green-300' : 'bg-red-500/20 border-red-500/40 text-red-300'}`}>
+                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-lg border font-semibold ${toast.type === 'success' ? 'bg-ds-accent/20 border-ds-ok/40 text-ds-ok' : 'bg-ds-danger-solid/20 border-ds-danger/40 text-ds-danger'}`}>
                     {toast.type === 'success' ? <Check className="w-5 h-5 shrink-0" /> : <X className="w-5 h-5 shrink-0" />}
                     <p>{toast.text}</p>
                 </div>
@@ -189,7 +189,7 @@ export default function TcgShop() {
                     unopenedTotal > 0 ? (
                         <button
                             onClick={() => navigate('/me/tcg/open')}
-                            className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold px-4 py-2 rounded-xl transition-colors"
+                            className="flex items-center gap-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold px-4 py-2 rounded-lg transition-colors"
                         >
                             <PackageOpen className="w-4 h-4" />
                             Abrir ({unopenedTotal})
@@ -201,11 +201,11 @@ export default function TcgShop() {
             {freePacks.length > 0 && (
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                            <Gift className="w-5 h-5 text-green-400" />
+                        <h2 className="text-lg font-bold text-ds-text flex items-center gap-2">
+                            <Gift className="w-5 h-5 text-ds-accent-text" />
                             Sobres gratis
                         </h2>
-                        <p className="text-xs text-[#94a3b8]">
+                        <p className="text-xs text-ds-soft">
                             Uno de cada tipo por ventana. Sin piso de rareza garantizado, y sus cartas
                             valen 1 de catálogo aunque las gradees.
                         </p>
@@ -215,9 +215,9 @@ export default function TcgShop() {
                         {freePacks.map((p) => (
                             <div
                                 key={p.sobreTierId}
-                                className={`relative bg-[#1a1b1e] border rounded-2xl p-4 flex flex-col gap-3 text-center transition-colors ${p.available ? 'border-green-500/50' : 'border-[#374151]'}`}
+                                className={`relative bg-ds-bg border rounded-lg p-4 flex flex-col gap-3 text-center transition-colors ${p.available ? 'border-ds-ok/40' : 'border-ds-border'}`}
                             >
-                                <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/40 text-green-300 text-[10px] font-bold tracking-wide">
+                                <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-ds-accent/20 border border-ds-ok/40 text-ds-ok text-[10px] font-bold tracking-wide">
                                     GRATIS
                                 </span>
                                 <img
@@ -226,8 +226,8 @@ export default function TcgShop() {
                                     className={`w-full aspect-square object-contain ${p.available ? '' : 'opacity-40 grayscale'}`}
                                 />
                                 <div>
-                                    <div className="font-bold text-white">{p.name}</div>
-                                    <div className="text-xs text-[#94a3b8]">
+                                    <div className="font-bold text-ds-text">{p.name}</div>
+                                    <div className="text-xs text-ds-soft">
                                         {p.cardCount} cartas · {formatCadence(p.cooldownHours)}
                                     </div>
                                 </div>
@@ -236,13 +236,13 @@ export default function TcgShop() {
                                     <button
                                         onClick={() => handleClaimFree(p)}
                                         disabled={claiming != null}
-                                        className="mt-auto bg-green-600 hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                        className="mt-auto bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-ds-on-accent font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                                     >
                                         {claiming === p.sobreTierId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
                                         Reclamar
                                     </button>
                                 ) : (
-                                    <div className="mt-auto bg-black/30 text-[#94a3b8] font-bold py-2 rounded-xl flex items-center justify-center gap-2 tabular-nums">
+                                    <div className="mt-auto bg-ds-input/30 text-ds-soft font-bold py-2 rounded-lg flex items-center justify-center gap-2 tabular-nums">
                                         <Clock className="w-4 h-4" />
                                         {p.availableAt ? formatCountdown(p.availableAt) : '—'}
                                     </div>
@@ -254,14 +254,14 @@ export default function TcgShop() {
             )}
 
             {freePacks.length > 0 && sobres.length > 0 && (
-                <h2 className="text-lg font-bold text-white flex items-center gap-2 pt-2">
+                <h2 className="text-lg font-bold text-ds-text flex items-center gap-2 pt-2">
                     <Coins className="w-5 h-5 text-[#eab308]" />
                     Comprar sobres
                 </h2>
             )}
 
             {sobres.length === 0 ? (
-                <p className="text-[#64748b] dark:text-[#94a3b8]">No hay sobres disponibles ahora mismo.</p>
+                <p className="text-ds-soft">No hay sobres disponibles ahora mismo.</p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                     {sobres.map((s) => {
@@ -269,15 +269,15 @@ export default function TcgShop() {
                         const total = s.priceCoins * quantity;
                         const canAfford = balance == null || balance >= total;
                         return (
-                            <div key={s.id} className="bg-[#1a1b1e] border border-[#374151] rounded-2xl p-4 flex flex-col gap-3 text-center">
+                            <div key={s.id} className="bg-ds-bg border border-ds-border rounded-lg p-4 flex flex-col gap-3 text-center">
                                 <img
                                     src={`/tcg-packs/${tierKeyFromName(s.name)}_closed.webp`}
                                     alt={s.name}
                                     className="w-full aspect-square object-contain"
                                 />
                                 <div>
-                                    <div className="font-bold text-white">{s.name}</div>
-                                    <div className="text-xs text-[#94a3b8]">{s.cardCount} cartas</div>
+                                    <div className="font-bold text-ds-text">{s.name}</div>
+                                    <div className="text-xs text-ds-soft">{s.cardCount} cartas</div>
                                 </div>
                                 <div className={`inline-block w-fit mx-auto text-xs font-bold px-2 py-1 rounded-full border ${RARITY_STYLES[s.guaranteedFloorRarity] || ''}`}>
                                     Piso: {s.guaranteedFloorRarity}+
@@ -287,16 +287,16 @@ export default function TcgShop() {
                                     <button
                                         onClick={() => setQuantity(s.id, quantity - 1)}
                                         disabled={quantity <= 1}
-                                        className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 disabled:opacity-30 text-white transition-colors"
+                                        className="p-1.5 rounded-lg bg-ds-input/30 hover:bg-ds-input/50 disabled:opacity-30 text-ds-text transition-colors"
                                         aria-label="Menos"
                                     >
                                         <Minus className="w-3.5 h-3.5" />
                                     </button>
-                                    <span className="w-8 text-center font-bold text-white tabular-nums">{quantity}</span>
+                                    <span className="w-8 text-center font-bold text-ds-text tabular-nums">{quantity}</span>
                                     <button
                                         onClick={() => setQuantity(s.id, quantity + 1)}
                                         disabled={quantity >= MAX_QUANTITY}
-                                        className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 disabled:opacity-30 text-white transition-colors"
+                                        className="p-1.5 rounded-lg bg-ds-input/30 hover:bg-ds-input/50 disabled:opacity-30 text-ds-text transition-colors"
                                         aria-label="Más"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
@@ -311,7 +311,7 @@ export default function TcgShop() {
                                     onClick={() => handleBuy(s)}
                                     disabled={buying != null || !canAfford}
                                     title={canAfford ? undefined : 'No te alcanzan los DecaCoins'}
-                                    className="bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                    className="bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-ds-on-accent font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                                 >
                                     {buying === s.id ? <Loader2 className="w-4 h-4 animate-spin" /> : canAfford ? 'Comprar' : 'Sin fondos'}
                                 </button>

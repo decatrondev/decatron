@@ -40,17 +40,17 @@ export default function CardSlab({ level, name, rarity, imageUrl, compact }: Pro
             alt={name || 'carta'}
             draggable={false}
             loading="lazy"
-            className="w-full aspect-[3/4] object-cover select-none bg-black/30"
+            className="w-full aspect-[3/4] object-cover select-none bg-ds-input/30"
         />
     ) : (
-        <div className="w-full aspect-[3/4] bg-black/30 flex items-center justify-center text-[10px] text-[#64748b]">
+        <div className="w-full aspect-[3/4] bg-ds-input/30 flex items-center justify-center text-[10px] text-ds-soft">
             sin arte
         </div>
     );
 
     // Nivel 0: la carta todavía no fue gradeada, va suelta y sin cápsula.
     if (level <= 0) {
-        return <div className="rounded-xl overflow-hidden">{arte}</div>;
+        return <div className="rounded-lg overflow-hidden">{arte}</div>;
     }
 
     return (

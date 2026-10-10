@@ -177,54 +177,54 @@ export default function MeGacha() {
         setCollections(prev => prev.map(c => ({ ...c, isPrivate: !newVal })));
     };
 
-    if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-blue-500" /></div>;
+    if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-ds-accent-text" /></div>;
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
                 {jwt?.profileImage ? (
-                    <img src={jwt.profileImage} alt="" className="w-14 h-14 rounded-2xl border-2 border-blue-600 shadow-lg" />
+                    <img src={jwt.profileImage} alt="" className="w-14 h-14 rounded-lg border-2 border-ds-accent" />
                 ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-white text-xl font-black shadow-lg">
+                    <div className="w-14 h-14 rounded-lg bg-ds-accent flex items-center justify-center text-ds-on-accent text-xl font-black">
                         {jwt?.username?.charAt(0).toUpperCase() || '?'}
                     </div>
                 )}
                 <div className="flex-1">
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Dices className="w-7 h-7 text-blue-500" /> Mi Gacha</h1>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{jwt?.username} — Gestiona tus colecciones</p>
+                    <h1 className="text-3xl font-black text-ds-text flex items-center gap-2"><Dices className="w-7 h-7 text-ds-accent-text" /> Mi Gacha</h1>
+                    <p className="text-sm text-ds-soft">{jwt?.username} — Gestiona tus colecciones</p>
                 </div>
-                <Link to="/me" className="px-4 py-2 text-sm font-bold text-[#64748b] bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl">Volver</Link>
+                <Link to="/me" className="px-4 py-2 text-sm font-bold text-ds-soft bg-ds-surface border border-ds-border rounded-lg">Volver</Link>
             </div>
 
             {/* Terms */}
             {termsAccepted === false && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-600 to-violet-600 p-5">
-                        <h2 className="text-xl font-black text-white flex items-center gap-2"><Shield className="w-6 h-6" /> Terminos del Gacha</h2>
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
+                    <div className="bg-ds-accent p-5">
+                        <h2 className="text-xl font-black text-ds-text flex items-center gap-2"><Shield className="w-6 h-6" /> Terminos del Gacha</h2>
                     </div>
                     <div className="p-6 space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {[
-                                { icon: <Eye className="w-5 h-5 text-blue-500" />, title: 'Lectura de mensajes', desc: 'El bot lee mensajes en canales donde participas para procesar comandos' },
-                                { icon: <Globe className="w-5 h-5 text-green-500" />, title: 'Colecciones publicas', desc: 'Por defecto son publicas. Puedes hacerlas privadas cuando quieras' },
-                                { icon: <Shield className="w-5 h-5 text-orange-500" />, title: 'Control total', desc: 'Puedes desactivar todo o eliminar tu cuenta en cualquier momento' },
+                                { icon: <Eye className="w-5 h-5 text-ds-accent-text" />, title: 'Lectura de mensajes', desc: 'El bot lee mensajes en canales donde participas para procesar comandos' },
+                                { icon: <Globe className="w-5 h-5 text-ds-accent-text" />, title: 'Colecciones publicas', desc: 'Por defecto son publicas. Puedes hacerlas privadas cuando quieras' },
+                                { icon: <Shield className="w-5 h-5 text-ds-accent-text" />, title: 'Control total', desc: 'Puedes desactivar todo o eliminar tu cuenta en cualquier momento' },
                             ].map((t, i) => (
-                                <div key={i} className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1B1C1D] flex items-center justify-center mb-3">{t.icon}</div>
-                                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1">{t.title}</h3>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{t.desc}</p>
+                                <div key={i} className="p-4 bg-ds-bg rounded-lg border border-ds-border">
+                                    <div className="w-10 h-10 rounded-lg bg-ds-surface flex items-center justify-center mb-3">{t.icon}</div>
+                                    <h3 className="text-sm font-bold text-ds-text mb-1">{t.title}</h3>
+                                    <p className="text-xs text-ds-soft">{t.desc}</p>
                                 </div>
                             ))}
                         </div>
-                        <div className="flex items-center justify-between pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="flex items-center justify-between pt-4 border-t border-ds-border">
                             <label className="flex items-center gap-3 cursor-pointer" onClick={() => setTermsChecked(!termsChecked)}>
-                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${termsChecked ? 'bg-blue-600 border-blue-600' : 'border-gray-400'}`}>
-                                    {termsChecked && <Check className="w-4 h-4 text-white" />}
+                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${termsChecked ? 'bg-ds-accent border-ds-accent' : 'border-ds-border'}`}>
+                                    {termsChecked && <Check className="w-4 h-4 text-ds-text" />}
                                 </div>
-                                <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Acepto los terminos</span>
+                                <span className="text-sm font-bold text-ds-text">Acepto los terminos</span>
                             </label>
-                            <button onClick={acceptTerms} disabled={!termsChecked} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold rounded-xl">Aceptar y Continuar</button>
+                            <button onClick={acceptTerms} disabled={!termsChecked} className="px-8 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 text-ds-on-accent font-bold rounded-lg">Aceptar y Continuar</button>
                         </div>
                     </div>
                 </div>
@@ -234,21 +234,21 @@ export default function MeGacha() {
             {termsAccepted && (
                 <>
                     {/* Global Privacy */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 flex items-center justify-between">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            {globalPublic ? <Globe className="w-5 h-5 text-green-500" /> : <Lock className="w-5 h-5 text-red-400" />}
+                            {globalPublic ? <Globe className="w-5 h-5 text-ds-accent-text" /> : <Lock className="w-5 h-5 text-ds-accent-text" />}
                             <div>
-                                <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{globalPublic ? 'Colecciones publicas' : 'Colecciones privadas'}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{globalPublic ? 'Cualquiera puede ver' : 'Solo tu puedes ver'}</p>
+                                <p className="text-sm font-bold text-ds-text">{globalPublic ? 'Colecciones publicas' : 'Colecciones privadas'}</p>
+                                <p className="text-xs text-ds-soft">{globalPublic ? 'Cualquiera puede ver' : 'Solo tu puedes ver'}</p>
                             </div>
                         </div>
-                        <button onClick={toggleGlobalPrivacy} className={`w-12 h-7 rounded-full transition ${globalPublic ? 'bg-green-500' : 'bg-gray-400'}`}>
-                            <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${globalPublic ? 'translate-x-6' : 'translate-x-1'}`} />
+                        <button onClick={toggleGlobalPrivacy} className={`w-12 h-7 rounded-full transition ${globalPublic ? 'bg-ds-accent' : 'bg-ds-faint'}`}>
+                            <div className={`w-5 h-5 bg-ds-surface rounded-full shadow transition-transform ${globalPublic ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                     </div>
 
                     {collections.length === 0 ? (
-                        <div className="text-center py-16 text-[#64748b]">
+                        <div className="text-center py-16 text-ds-soft">
                             <Dices className="w-12 h-12 mx-auto mb-3 opacity-20" />
                             <p className="font-bold">No tienes colecciones aun</p>
                             <p className="text-sm mt-1">Participa en canales con Gacha para empezar</p>
@@ -260,75 +260,75 @@ export default function MeGacha() {
                                 const completion = col.totalAvailable > 0 ? Math.round((col.uniqueCards / col.totalAvailable) * 100) : 0;
 
                                 return (
-                                    <div key={col.channelName} className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden shadow-sm">
+                                    <div key={col.channelName} className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                                         {/* Channel Header (clickable) */}
-                                        <div className="flex items-center gap-4 p-4 cursor-pointer hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition" onClick={() => toggleExpand(col.channelName, col.participantId)}>
+                                        <div className="flex items-center gap-4 p-4 cursor-pointer hover:bg-ds-bg transition" onClick={() => toggleExpand(col.channelName, col.participantId)}>
                                             {/* Banner thumbnail */}
-                                            <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-[#e2e8f0] dark:border-[#374151]">
-                                                {col.banner ? <img src={col.banner} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-violet-600 to-blue-600" />}
+                                            <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-ds-border">
+                                                {col.banner ? <img src={col.banner} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-ds-accent" />}
                                             </div>
                                             {/* Info */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">{col.channelName}</h3>
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${col.isPrivate ? 'bg-red-100 dark:bg-red-900/20 text-red-600' : 'bg-green-100 dark:bg-green-900/20 text-green-600'}`}>
+                                                    <h3 className="text-lg font-bold text-ds-text">{col.channelName}</h3>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${col.isPrivate ? 'bg-ds-danger/10 text-ds-danger' : 'bg-ds-ok/10 text-ds-ok'}`}>
                                                         {col.isPrivate ? 'Privada' : 'Publica'}
                                                     </span>
                                                 </div>
-                                                <div className="flex gap-4 mt-1 text-xs text-[#64748b] dark:text-[#94a3b8]">
-                                                    <span><strong className="text-blue-500">{col.uniqueCards}</strong>/{col.totalAvailable} unicas</span>
-                                                    <span><strong className="text-purple-500">{col.totalCards}</strong> total</span>
-                                                    <span><strong className="text-green-500">{col.pullsUsed}</strong> tiros</span>
-                                                    <span>Donacion: <strong className="text-blue-500">{col.pullsAvailable}</strong></span>
-                                                    <span>Coins: <strong className="text-purple-500">{col.coinPullsAvailable ?? 0}</strong></span>
-                                                    <span>Bonus: <strong className="text-amber-500">{col.bonusPullsAvailable ?? 0}</strong></span>
+                                                <div className="flex gap-4 mt-1 text-xs text-ds-soft">
+                                                    <span><strong className="text-ds-accent-text">{col.uniqueCards}</strong>/{col.totalAvailable} unicas</span>
+                                                    <span><strong className="text-ds-accent-text">{col.totalCards}</strong> total</span>
+                                                    <span><strong className="text-ds-ok">{col.pullsUsed}</strong> tiros</span>
+                                                    <span>Donacion: <strong className="text-ds-accent-text">{col.pullsAvailable}</strong></span>
+                                                    <span>Coins: <strong className="text-ds-accent-text">{col.coinPullsAvailable ?? 0}</strong></span>
+                                                    <span>Bonus: <strong className="text-ds-warn">{col.bonusPullsAvailable ?? 0}</strong></span>
                                                     <span>{completion}% completado</span>
                                                 </div>
                                             </div>
-                                            <ChevronDown className={`w-5 h-5 text-[#64748b] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                            <ChevronDown className={`w-5 h-5 text-ds-soft transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                                         </div>
 
                                         {/* Expanded Content */}
                                         {isExpanded && (
-                                            <div className="border-t border-[#e2e8f0] dark:border-[#374151] p-5 space-y-5 bg-[#f8fafc] dark:bg-[#262626]">
+                                            <div className="border-t border-ds-border p-5 space-y-5 bg-ds-bg">
                                                 {detailLoading ? (
-                                                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+                                                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" /></div>
                                                 ) : (
                                                     <>
                                                         {/* Actions */}
                                                         <div className="flex items-center justify-between">
-                                                            <button onClick={() => togglePrivacy(col.channelName, col.isPrivate)} className="flex items-center gap-2 text-xs font-bold text-[#64748b] hover:text-blue-500 transition">
+                                                            <button onClick={() => togglePrivacy(col.channelName, col.isPrivate)} className="flex items-center gap-2 text-xs font-bold text-ds-soft hover:text-ds-accent-text transition">
                                                                 {col.isPrivate ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                                                 {col.isPrivate ? 'Hacer publica' : 'Hacer privada'}
                                                             </button>
-                                                            <Link to={`/gacha/collection?channel=${col.channelName}&user=${jwt?.username}`} className="flex items-center gap-1 text-xs font-bold text-blue-500 hover:text-blue-400">
+                                                            <Link to={`/gacha/collection?channel=${col.channelName}&user=${jwt?.username}`} className="flex items-center gap-1 text-xs font-bold text-ds-accent-text hover:text-ds-accent-text">
                                                                 Ver coleccion <ChevronRight className="w-3.5 h-3.5" />
                                                             </Link>
                                                         </div>
 
                                                         {/* Comprar Tiros con DecaCoins */}
                                                         {coinPrice?.enabled && (
-                                                            <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151] space-y-3">
-                                                                <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Coins className="w-4 h-4 text-amber-500" /> Comprar Tiros con DecaCoins</h4>
-                                                                <div className="flex flex-wrap gap-4 text-xs text-[#64748b] dark:text-[#94a3b8]">
-                                                                    <span>Tu balance: <strong className="text-amber-500">{coinPrice.balance.toLocaleString()}</strong> coins</span>
-                                                                    <span>Precio: <strong className="text-blue-500">{coinPrice.price.toLocaleString()}</strong> coins/tiro</span>
-                                                                    {coinPrice.dailyLimit > 0 && <span>Limite diario: <strong className="text-purple-500">{coinPrice.usedToday}/{coinPrice.dailyLimit}</strong> tiros</span>}
+                                                            <div className="bg-ds-surface rounded-lg p-4 border border-ds-border space-y-3">
+                                                                <h4 className="text-sm font-bold text-ds-text flex items-center gap-2"><Coins className="w-4 h-4 text-ds-accent-text" /> Comprar Tiros con DecaCoins</h4>
+                                                                <div className="flex flex-wrap gap-4 text-xs text-ds-soft">
+                                                                    <span>Tu balance: <strong className="text-ds-warn">{coinPrice.balance.toLocaleString()}</strong> coins</span>
+                                                                    <span>Precio: <strong className="text-ds-accent-text">{coinPrice.price.toLocaleString()}</strong> coins/tiro</span>
+                                                                    {coinPrice.dailyLimit > 0 && <span>Limite diario: <strong className="text-ds-accent-text">{coinPrice.usedToday}/{coinPrice.dailyLimit}</strong> tiros</span>}
                                                                 </div>
                                                                 <div className="flex items-center gap-3 flex-wrap">
-                                                                    <span className="text-xs text-[#64748b]">Cantidad:</span>
-                                                                    <input type="number" min={1} max={100} value={coinQty} onChange={e => setCoinQty(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))} className="w-20 px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-center text-[#1e293b] dark:text-[#f8fafc]" />
-                                                                    <span className="text-xs text-[#64748b]">{coinQty} x {coinPrice.price.toLocaleString()} = <strong className="text-amber-500">{(coinQty * coinPrice.price).toLocaleString()}</strong> coins</span>
+                                                                    <span className="text-xs text-ds-soft">Cantidad:</span>
+                                                                    <input type="number" min={1} max={100} value={coinQty} onChange={e => setCoinQty(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))} className="w-20 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-center text-ds-text" />
+                                                                    <span className="text-xs text-ds-soft">{coinQty} x {coinPrice.price.toLocaleString()} = <strong className="text-ds-warn">{(coinQty * coinPrice.price).toLocaleString()}</strong> coins</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-3">
-                                                                    <button onClick={() => buyPulls(col.channelName)} disabled={coinBuying || coinQty * coinPrice.price > coinPrice.balance} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition flex items-center gap-2">
+                                                                    <button onClick={() => buyPulls(col.channelName)} disabled={coinBuying || coinQty * coinPrice.price > coinPrice.balance} className="px-4 py-2 bg-ds-warn hover:bg-ds-warn disabled:opacity-40 text-ds-on-accent text-xs font-bold rounded-lg transition flex items-center gap-2">
                                                                         {coinBuying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Coins className="w-3 h-3" />}
                                                                         {coinBuying ? 'Comprando...' : 'Comprar'}
                                                                     </button>
-                                                                    {coinQty * coinPrice.price > coinPrice.balance && <span className="text-xs text-red-400 font-bold">Balance insuficiente</span>}
+                                                                    {coinQty * coinPrice.price > coinPrice.balance && <span className="text-xs text-ds-danger font-bold">Balance insuficiente</span>}
                                                                 </div>
                                                                 {coinMsg && (
-                                                                    <div className={`text-xs font-bold px-3 py-2 rounded-lg ${coinMsg.ok ? 'bg-green-50 dark:bg-green-900/10 text-green-600 border border-green-200 dark:border-green-800/30' : 'bg-red-50 dark:bg-red-900/10 text-red-500 border border-red-200 dark:border-red-800/30'}`}>
+                                                                    <div className={`text-xs font-bold px-3 py-2 rounded-lg ${coinMsg.ok ? 'bg-ds-ok/10 text-ds-ok border border-ds-ok/40 ' : 'bg-ds-danger/10 text-ds-danger border border-ds-danger/40 '}`}>
                                                                         {coinMsg.text}
                                                                     </div>
                                                                 )}
@@ -336,17 +336,17 @@ export default function MeGacha() {
                                                         )}
 
                                                         {/* Vitrina */}
-                                                        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+                                                        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
                                                             <div className="flex items-center justify-between mb-3">
-                                                                <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400" /> Vitrina</h4>
-                                                                <button onClick={() => editingShowcase ? setEditingShowcase(false) : openShowcaseEditor(col.participantId)} className="text-xs font-bold text-blue-500 hover:text-blue-400">
+                                                                <h4 className="text-sm font-bold text-ds-text flex items-center gap-2"><Star className="w-4 h-4 text-ds-accent-text" /> Vitrina</h4>
+                                                                <button onClick={() => editingShowcase ? setEditingShowcase(false) : openShowcaseEditor(col.participantId)} className="text-xs font-bold text-ds-accent-text hover:text-ds-accent-text">
                                                                     {editingShowcase ? 'Cancelar' : 'Editar'}
                                                                 </button>
                                                             </div>
 
                                                             {editingShowcase ? (
                                                                 <div className="space-y-3">
-                                                                    <p className="text-xs text-[#64748b]">Selecciona hasta 5 cartas ({selectedShowcase.length}/5)</p>
+                                                                    <p className="text-xs text-ds-soft">Selecciona hasta 5 cartas ({selectedShowcase.length}/5)</p>
                                                                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                                                                         {inventory.map(item => {
                                                                             const rc = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
@@ -355,23 +355,23 @@ export default function MeGacha() {
                                                                                 <div key={item.itemId} onClick={() => {
                                                                                     if (selected) setSelectedShowcase(prev => prev.filter(id => id !== item.itemId));
                                                                                     else if (selectedShowcase.length < 5) setSelectedShowcase(prev => [...prev, item.itemId]);
-                                                                                }} className={`rounded-xl overflow-hidden border-2 cursor-pointer transition ${selected ? 'ring-2 ring-blue-500 opacity-100 scale-[1.03]' : 'opacity-60 hover:opacity-100'}`} style={{ borderColor: selected ? '#3b82f6' : rc.border }}>
+                                                                                }} className={`rounded-lg overflow-hidden border-2 cursor-pointer transition ${selected ? 'ring-2 ring-ds-accent opacity-100 scale-[1.03]' : 'opacity-60 hover:opacity-100'}`} style={{ borderColor: selected ? '#3b82f6' : rc.border }}>
                                                                                     <div className="aspect-[3/4] relative" style={{ backgroundColor: rc.bg }}>
                                                                                         {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Package className="w-6 h-6" style={{ color: rc.color, opacity: 0.2 }} /></div>}
-                                                                                        {selected && <div className="absolute top-1 right-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
+                                                                                        {selected && <div className="absolute top-1 right-1 w-5 h-5 bg-ds-accent rounded-full flex items-center justify-center"><Check className="w-3 h-3 text-ds-on-accent" /></div>}
                                                                                     </div>
-                                                                                    <div className="p-1.5 bg-white dark:bg-[#1B1C1D] text-center">
-                                                                                        <p className="text-[9px] font-bold truncate text-[#1e293b] dark:text-[#f8fafc]">{item.name}</p>
+                                                                                    <div className="p-1.5 bg-ds-surface text-center">
+                                                                                        <p className="text-[9px] font-bold truncate text-ds-text">{item.name}</p>
                                                                                         <p className="text-[8px]" style={{ color: rc.color }}>{rc.stars}</p>
                                                                                     </div>
                                                                                 </div>
                                                                             );
                                                                         })}
                                                                     </div>
-                                                                    <button onClick={() => saveShowcase(col.participantId)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg">Guardar Vitrina</button>
+                                                                    <button onClick={() => saveShowcase(col.participantId)} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-xs font-bold rounded-lg">Guardar Vitrina</button>
                                                                 </div>
                                                             ) : showcase.length === 0 ? (
-                                                                <p className="text-xs text-[#64748b] text-center py-3">Sin cartas en vitrina</p>
+                                                                <p className="text-xs text-ds-soft text-center py-3">Sin cartas en vitrina</p>
                                                             ) : (
                                                                 <div className="flex gap-2 overflow-x-auto pb-1">
                                                                     {showcase.map(card => {
@@ -390,10 +390,10 @@ export default function MeGacha() {
                                                         </div>
 
                                                         {/* Wishlist */}
-                                                        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+                                                        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
                                                             <div className="flex items-center justify-between mb-3">
-                                                                <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Heart className="w-4 h-4 text-red-400" /> Lista de Deseos</h4>
-                                                                <button onClick={() => addingWishlist ? setAddingWishlist(false) : openWishlistAdder(col.participantId)} className="text-xs font-bold text-blue-500 hover:text-blue-400">
+                                                                <h4 className="text-sm font-bold text-ds-text flex items-center gap-2"><Heart className="w-4 h-4 text-ds-accent-text" /> Lista de Deseos</h4>
+                                                                <button onClick={() => addingWishlist ? setAddingWishlist(false) : openWishlistAdder(col.participantId)} className="text-xs font-bold text-ds-accent-text hover:text-ds-accent-text">
                                                                     {addingWishlist ? 'Cerrar' : 'Agregar'}
                                                                 </button>
                                                             </div>
@@ -407,7 +407,7 @@ export default function MeGacha() {
                                                                             <div key={w.itemId} className="flex items-center gap-2 px-2 py-1 rounded-lg border text-xs" style={{ borderColor: rc.border, backgroundColor: rc.bg }}>
                                                                                 {w.image && <img src={w.image} alt="" className="w-5 h-5 rounded object-cover" />}
                                                                                 <span className="font-bold" style={{ color: rc.color }}>{w.name}</span>
-                                                                                <button onClick={() => removeWishlist(col.participantId, w.itemId)} className="text-red-400 hover:text-red-600"><X className="w-3 h-3" /></button>
+                                                                                <button onClick={() => removeWishlist(col.participantId, w.itemId)} className="text-ds-danger hover:text-ds-danger"><X className="w-3 h-3" /></button>
                                                                             </div>
                                                                         );
                                                                     })}
@@ -415,15 +415,15 @@ export default function MeGacha() {
                                                             )}
 
                                                             {wishlist.length === 0 && !addingWishlist && (
-                                                                <p className="text-xs text-[#64748b] text-center py-3">Sin items en tu lista de deseos</p>
+                                                                <p className="text-xs text-ds-soft text-center py-3">Sin items en tu lista de deseos</p>
                                                             )}
 
                                                             {/* Available to add */}
                                                             {addingWishlist && (
-                                                                <div className="space-y-2 pt-2 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                                                    <p className="text-xs text-[#64748b]">Cartas que no tienes — click para agregar</p>
+                                                                <div className="space-y-2 pt-2 border-t border-ds-border">
+                                                                    <p className="text-xs text-ds-soft">Cartas que no tienes — click para agregar</p>
                                                                     {available.length === 0 ? (
-                                                                        <p className="text-xs text-[#64748b] text-center py-2">No hay cartas disponibles (ya tienes todas o estan en tu wishlist)</p>
+                                                                        <p className="text-xs text-ds-soft text-center py-2">No hay cartas disponibles (ya tienes todas o estan en tu wishlist)</p>
                                                                     ) : (
                                                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                                                             {available.map(item => {
@@ -431,13 +431,13 @@ export default function MeGacha() {
                                                                                 const name = item.name || (item as any).Name || `Item #${id}`;
                                                                                 const rc = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
                                                                                 return (
-                                                                                    <div key={id} onClick={() => addWishlist(col.participantId, id)} className="rounded-xl overflow-hidden border-2 cursor-pointer opacity-70 hover:opacity-100 hover:scale-[1.03] transition" style={{ borderColor: rc.border }}>
+                                                                                    <div key={id} onClick={() => addWishlist(col.participantId, id)} className="rounded-lg overflow-hidden border-2 cursor-pointer opacity-70 hover:opacity-100 hover:scale-[1.03] transition" style={{ borderColor: rc.border }}>
                                                                                         <div className="aspect-[3/4] relative" style={{ backgroundColor: rc.bg }}>
                                                                                             {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Package className="w-8 h-8" style={{ color: rc.color, opacity: 0.2 }} /></div>}
                                                                                             <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-bold" style={{ backgroundColor: rc.color, color: '#fff' }}>{rc.stars}</div>
                                                                                         </div>
-                                                                                        <div className="p-2 bg-white dark:bg-[#1B1C1D] text-center">
-                                                                                            <p className="text-[10px] font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{name}</p>
+                                                                                        <div className="p-2 bg-ds-surface text-center">
+                                                                                            <p className="text-[10px] font-bold text-ds-text truncate">{name}</p>
                                                                                             <p className="text-[9px]" style={{ color: rc.color }}>{rc.label}</p>
                                                                                         </div>
                                                                                     </div>

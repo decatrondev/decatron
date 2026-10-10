@@ -69,7 +69,7 @@ export default function TcgClaim() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -77,7 +77,7 @@ export default function TcgClaim() {
     return (
         <div className="space-y-6">
             {toast && (
-                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-xl shadow-xl border font-semibold ${toast.type === 'success' ? 'bg-green-500/20 border-green-500/40 text-green-300' : 'bg-red-500/20 border-red-500/40 text-red-300'}`}>
+                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-lg border font-semibold ${toast.type === 'success' ? 'bg-ds-accent/20 border-ds-ok/40 text-ds-ok' : 'bg-ds-danger-solid/20 border-ds-danger/40 text-ds-danger'}`}>
                     {toast.type === 'success' ? <Check className="w-5 h-5 shrink-0" /> : <X className="w-5 h-5 shrink-0" />}
                     <p>{toast.text}</p>
                 </div>
@@ -85,19 +85,19 @@ export default function TcgClaim() {
 
             <TcgPageHeader title="Carta gratis" subtitle="Una carta por día, sin gastar DecaCoins." />
 
-            <div className="bg-[#1a1b1e] border border-[#374151] rounded-2xl p-8 flex flex-col items-center gap-6 max-w-md mx-auto">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-8 flex flex-col items-center gap-6 max-w-md mx-auto">
                 <div className={`w-44 ${available ? 'tcg-pack-float' : 'opacity-40 grayscale'}`}>
                     <CardBack />
                 </div>
 
                 {available ? (
                     <>
-                        <p className="text-[#94a3b8] text-center text-sm">
+                        <p className="text-ds-soft text-center text-sm">
                             Tu carta del día está lista.
                         </p>
                         <button
                             onClick={() => setClaiming(true)}
-                            className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold px-8 py-3 rounded-xl transition-colors"
+                            className="flex items-center gap-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold px-8 py-3 rounded-lg transition-colors"
                         >
                             <Gift className="w-5 h-5" />
                             Reclamar
@@ -105,17 +105,17 @@ export default function TcgClaim() {
                     </>
                 ) : (
                     <>
-                        <p className="text-[#94a3b8] text-center text-sm">Ya reclamaste la de hoy.</p>
+                        <p className="text-ds-soft text-center text-sm">Ya reclamaste la de hoy.</p>
                         <div className="text-center">
-                            <div className="text-3xl font-black text-white tabular-nums">
+                            <div className="text-3xl font-black text-ds-text tabular-nums">
                                 {availableAt ? formatCountdown(availableAt) : '—'}
                             </div>
-                            <div className="text-xs text-[#64748b] mt-1">para la próxima</div>
+                            <div className="text-xs text-ds-soft mt-1">para la próxima</div>
                         </div>
                     </>
                 )}
 
-                <p className="text-xs text-[#64748b] text-center border-t border-[#374151] pt-4">
+                <p className="text-xs text-ds-soft text-center border-t border-ds-border pt-4">
                     Las cartas gratis valen 1 de catálogo para siempre. Sirven para jugar y para
                     pelear, pero las buenas salen de los sobres.
                 </p>

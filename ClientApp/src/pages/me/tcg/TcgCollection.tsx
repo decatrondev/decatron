@@ -6,12 +6,12 @@ import TcgPageHeader from './TcgPageHeader';
 import CardSlab from './CardSlab';
 
 const RARITY_STYLES: Record<string, string> = {
-    N: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
-    R: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-    SR: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-    SSR: 'bg-pink-500/20 text-pink-300 border-pink-500/40',
-    UR: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-    LR: 'bg-orange-500/20 text-orange-300 border-orange-500/40',
+    N: 'bg-ds-faint/20 text-ds-soft border-ds-border/40',
+    R: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/40',
+    SR: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/40',
+    SSR: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/40',
+    UR: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40',
+    LR: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40',
     MR: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40',
 };
 
@@ -109,21 +109,21 @@ export default function TcgCollection() {
             <div className="flex flex-wrap gap-3 items-center">
                 <form
                     onSubmit={(e) => { e.preventDefault(); updateParams({ search: searchInput }); }}
-                    className="flex items-center gap-2 bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2"
+                    className="flex items-center gap-2 bg-ds-bg border border-ds-border rounded-lg px-3 py-2"
                 >
-                    <Search className="w-4 h-4 text-[#64748b]" />
+                    <Search className="w-4 h-4 text-ds-soft" />
                     <input
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         placeholder="Buscar por nombre..."
-                        className="bg-transparent text-sm text-white placeholder-[#64748b] outline-none w-40"
+                        className="bg-transparent text-sm text-ds-text placeholder-ds-soft outline-none w-40"
                     />
                 </form>
 
                 <select
                     value={rarity}
                     onChange={(e) => updateParams({ rarity: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Toda rareza</option>
                     {RARITIES.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -132,7 +132,7 @@ export default function TcgCollection() {
                 <select
                     value={grade}
                     onChange={(e) => updateParams({ grade: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Todo grado</option>
                     <option value="0">Sin gradear</option>
@@ -144,7 +144,7 @@ export default function TcgCollection() {
                 <select
                     value={element}
                     onChange={(e) => updateParams({ element: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Todo elemento</option>
                     {elements.map((el) => <option key={el} value={el}>{el}</option>)}
@@ -153,7 +153,7 @@ export default function TcgCollection() {
                 <select
                     value={cardClass}
                     onChange={(e) => updateParams({ cardClass: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Toda clase</option>
                     {classes.map((cl) => <option key={cl} value={cl}>{cl}</option>)}
@@ -162,7 +162,7 @@ export default function TcgCollection() {
                 <select
                     value={origin}
                     onChange={(e) => updateParams({ origin: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Todo origen</option>
                     <option value="pulled">De sobre pago</option>
@@ -173,7 +173,7 @@ export default function TcgCollection() {
                 <select
                     value={status}
                     onChange={(e) => updateParams({ status: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Todo estado</option>
                     {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -182,7 +182,7 @@ export default function TcgCollection() {
                 <select
                     value={animated}
                     onChange={(e) => updateParams({ animated: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Animadas y no</option>
                     <option value="true">Solo animadas</option>
@@ -192,7 +192,7 @@ export default function TcgCollection() {
                 <select
                     value={sort}
                     onChange={(e) => updateParams({ sort: e.target.value })}
-                    className="bg-[#1a1b1e] border border-[#374151] rounded-xl px-3 py-2 text-sm text-white"
+                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
                 >
                     <option value="">Más recientes</option>
                     <option value="oldest">Más antiguas</option>
@@ -206,7 +206,7 @@ export default function TcgCollection() {
                 {hayFiltros && (
                     <button
                         onClick={() => { setSearchInput(''); setSearchParams({}); }}
-                        className="text-sm text-[#94a3b8] hover:text-white underline"
+                        className="text-sm text-ds-soft hover:text-ds-text underline"
                     >
                         Limpiar filtros
                     </button>
@@ -215,10 +215,10 @@ export default function TcgCollection() {
 
             {loading ? (
                 <div className="flex items-center justify-center min-h-[300px]">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                    <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
                 </div>
             ) : items.length === 0 ? (
-                <p className="text-[#64748b] dark:text-[#94a3b8]">
+                <p className="text-ds-soft">
                     {totalCount === 0 && !rarity && !status && !search
                         ? 'Todavía no tenés cartas. Andá a la tienda y abrí un sobre.'
                         : 'Ninguna carta coincide con estos filtros.'}
@@ -230,18 +230,18 @@ export default function TcgCollection() {
                             <button
                                 key={c.instanceId}
                                 onClick={() => navigate(`/me/tcg/collection/${c.instanceId}`)}
-                                className={`text-left rounded-xl border p-3 flex flex-col gap-1 hover:brightness-110 transition-all ${RARITY_STYLES[c.rarity || 'N']}`}
+                                className={`text-left rounded-lg border p-3 flex flex-col gap-1 hover:brightness-110 transition-all ${RARITY_STYLES[c.rarity || 'N']}`}
                             >
                                 <div className="mb-1">
                                     <CardSlab level={c.level} name={c.name} rarity={c.rarity} imageUrl={c.imageUrl} compact />
                                 </div>
                                 <div className="text-xs font-bold uppercase tracking-wide">{c.rarity}</div>
-                                <div className="font-semibold text-white truncate">{c.name || '???'}</div>
-                                <div className="text-xs text-[#94a3b8]">
+                                <div className="font-semibold text-ds-text truncate">{c.name || '???'}</div>
+                                <div className="text-xs text-ds-soft">
                                     {c.level > 0 ? `Gradeada ${c.level}` : 'Sin gradear'}
                                 </div>
                                 {c.status !== 'active' && (
-                                    <div className="text-[10px] font-bold text-blue-300">{STATUS_LABELS[c.status] || c.status}</div>
+                                    <div className="text-[10px] font-bold text-ds-accent-text">{STATUS_LABELS[c.status] || c.status}</div>
                                 )}
                             </button>
                         ))}
@@ -252,15 +252,15 @@ export default function TcgCollection() {
                             <button
                                 onClick={() => updateParams({ page: String(page - 1) })}
                                 disabled={page <= 1}
-                                className="p-2 rounded-lg bg-[#1a1b1e] border border-[#374151] disabled:opacity-30 text-white"
+                                className="p-2 rounded-lg bg-ds-bg border border-ds-border disabled:opacity-30 text-ds-text"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
-                            <span className="text-sm text-[#94a3b8]">Página {page} de {totalPages}</span>
+                            <span className="text-sm text-ds-soft">Página {page} de {totalPages}</span>
                             <button
                                 onClick={() => updateParams({ page: String(page + 1) })}
                                 disabled={page >= totalPages}
-                                className="p-2 rounded-lg bg-[#1a1b1e] border border-[#374151] disabled:opacity-30 text-white"
+                                className="p-2 rounded-lg bg-ds-bg border border-ds-border disabled:opacity-30 text-ds-text"
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </button>
