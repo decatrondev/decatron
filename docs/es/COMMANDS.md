@@ -509,6 +509,8 @@ Por defecto todo se refiere a la temporada actual; `all` muestra todas las tempo
 | `!spirits missing [@usuario] [all\|temporada]` | Los primeros spirits que faltan |
 | `!spirit <nombre>` | Marcar un spirit como obtenido |
 | `!spirit remove <nombre>` | Desmarcar un spirit |
+| `!spirit check <nombre>` | Decir si ya tienes un spirit |
+| `!spirits help` | Resumen de las variantes en una línea |
 
 ---
 

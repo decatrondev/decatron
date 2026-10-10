@@ -141,6 +141,7 @@ import ShoutoutDoc from './pages/docs/private/features/ShoutoutDoc';
 import { ModerationDoc } from './pages/docs/private/features/ModerationDoc';
 import { TranslationDoc } from './pages/docs/private/features/TranslationDoc';
 import { DiscordDoc } from './pages/docs/private/features/DiscordDoc';
+import { SpiritsDoc } from './pages/docs/private/features/SpiritsDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
@@ -296,6 +297,7 @@ function App() {
                     <Route path="moderation" element={<ModerationDoc page="overview" scope="public" />} />
                     <Route path="translation" element={<TranslationDoc page="overview" scope="public" />} />
                     <Route path="discord" element={<DiscordDoc page="overview" scope="public" />} />
+                    <Route path="spirits" element={<SpiritsDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -489,6 +491,9 @@ function App() {
                         <Route path="discord/levels" element={<DiscordDoc page="levels" scope="private" />} />
                         <Route path="discord/rewards" element={<DiscordDoc page="rewards" scope="private" />} />
                         <Route path="discord/commands" element={<DiscordDoc page="commands" scope="private" />} />
+                        <Route path="spirits/collection" element={<SpiritsDoc page="collection" scope="private" />} />
+                        <Route path="spirits/commands" element={<SpiritsDoc page="commands" scope="private" />} />
+                        <Route path="spirits/notices" element={<SpiritsDoc page="notices" scope="private" />} />
                         <Route path="features/analytics" element={<AnalyticsDoc />} />
                         <Route path="features/followers" element={<FollowersDoc />} />
                         <Route path="features/ai" element={<AIDoc />} />

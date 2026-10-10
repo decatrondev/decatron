@@ -1,0 +1,316 @@
+{
+  "overview": {
+    "title": "Fortnite Spirits",
+    "subtitle": "Keep track of your Spirits collection, share it and compete in the ranking",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron's Fortnite Spirits tracker lets you mark the Spirits you already own, see your progress by rarity and compare yourself with other players. It is used from the web, from Twitch chat and from Discord."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "It is free for everyone. A Decatron account is needed to save your collection."
+          }
+        ]
+      },
+      {
+        "id": "donde",
+        "title": "Where it is used",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Place",
+              "What you can do"
+            ],
+            "rows": [
+              [
+                "Gallery (`/sprites`)",
+                "See all Spirits with filters. Without an account you can mark as a trial, but nothing is saved."
+              ],
+              [
+                "My collection (`/me/spirits`)",
+                "Mark and unmark, see your progress and choose your notices."
+              ],
+              [
+                "Public collection (`/sprites/user`)",
+                "See any user's collection and progress."
+              ],
+              [
+                "Twitch chat",
+                "`!spirits`, `!spirit` and variants."
+              ],
+              [
+                "Discord",
+                "`/spirits` and `/spirit`."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "reglas",
+        "title": "How the collection counts",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "It belongs to the person, not the channel: if you have Twitch and Kick linked, it is a single collection.",
+              "Spirits that have not been released in the game yet cannot be marked and do not count toward progress.",
+              "Progress can be viewed for the current season or for all of them."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the manual with all the details is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "spirits-collection"
+          }
+        ]
+      }
+    ]
+  },
+  "collection": {
+    "title": "Spirits: my collection",
+    "subtitle": "Mark Spirits, filter, share your collection and manage a channel's collection",
+    "sections": [
+      {
+        "id": "marcar",
+        "title": "Mark and unmark",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Open `/me/spirits` and click a Spirit to mark it as obtained; click again to unmark it. Changes are saved instantly and a notice with the name appears. The side panel shows your total progress and progress by rarity (Rare, Special, Epic, Legendary and Mythic)."
+          },
+          {
+            "t": "p",
+            "x": "You can also mark from the `/sprites` gallery if you are signed in. Without a session, marks are only a trial and are lost when you leave; the page invites you to sign up with Twitch or Discord to save them."
+          }
+        ]
+      },
+      {
+        "id": "filtros",
+        "title": "Filters",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Status: all, obtained or missing.",
+              "Search by name and filters by character, rarity, theme and season. The current season is shown by default.",
+              "Unreleased Spirits are hidden; you can show them with the “Unreleased” filter. They appear with the “Pronto” tag and cannot be marked.",
+              "“Limpiar filtros” returns to the initial view."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "compartir",
+        "title": "Share your collection",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The “Compartir” button copies the public link to your collection (`/sprites/your_user`), which anyone can see without an account: it shows what you have, what is missing and your progress by rarity. The chat commands also show that link."
+          }
+        ]
+      },
+      {
+        "id": "canal",
+        "title": "Manage a channel's collection",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you are an editor of another channel with Full control in the Spirits section, when you switch to that channel `/me/spirits` shows and edits its collection. A notice appears at the top: “Estás gestionando los spirits de @canal (control total delegado)”; switch channels to go back to yours."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Without that level the server rejects the action and nothing is changed."
+          }
+        ]
+      },
+      {
+        "id": "novedades",
+        "title": "New Spirits since your last visit",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On entering `/me/spirits`, a notice says how many new Spirits were released since the last time you opened the page (“2 spirits nuevos desde tu última visita”) and names them. You can close it. The first time it does not announce the whole catalog: it only marks that moment as the starting point."
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Spirits: commands",
+    "subtitle": "Check and mark your collection from Twitch chat and from Discord",
+    "sections": [
+      {
+        "id": "twitch",
+        "title": "Twitch chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Any viewer with a Decatron account can use them. By default everything refers to the current season; `all` shows every season and a season name filters that season."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`!spirits [@user] [all|season]`",
+                "Your progress or another user's: obtained out of the total, the percentage, how many are missing and the link to the public collection."
+              ],
+              [
+                "`!spirits top [all|season]`",
+                "The 5 most complete collections, with medals."
+              ],
+              [
+                "`!spirits missing [@user] [all|season]`",
+                "The first 5 missing Spirits in alphabetical order and how many more there are. If none is missing, it congratulates on the complete collection."
+              ],
+              [
+                "`!spirit <name>`",
+                "Marks a Spirit as obtained. It looks for the exact name first and then by part of the name or the character."
+              ],
+              [
+                "`!spirit remove <name>`",
+                "Unmarks it from your collection."
+              ],
+              [
+                "`!spirit check <name>`",
+                "Says whether you already have it, with its rarity and the link to `/me/spirits`."
+              ],
+              [
+                "`!spirits help`",
+                "Summarizes all variants in one line."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "A Spirit that has not been released in the game yet cannot be marked, and if you already have it the bot tells you instead of repeating it. If the writer has no Decatron account, the bot tells them to sign up."
+          }
+        ]
+      },
+      {
+        "id": "discord",
+        "title": "Discord",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`/spirits`",
+                "Your collection. With `usuario` you see another Decatron user's; with `top` the global ranking; with `missing` the ones you lack."
+              ],
+              [
+                "`/spirit nombre`",
+                "Marks a Spirit with name autocomplete; with `remove` it unmarks it."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Discord slash commands are covered in the Discord manual."
+          },
+          {
+            "t": "link",
+            "to": "discord-commands"
+          }
+        ]
+      }
+    ]
+  },
+  "notices": {
+    "title": "Spirits: notices and ranking",
+    "subtitle": "Find out when a new Spirit is released, and how the public ranking works",
+    "sections": [
+      {
+        "id": "avisos",
+        "title": "New Spirit notices",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On `/me/spirits`, the “Avisos de spirits nuevos” box has two switches, both off by default:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Notice",
+              "How it arrives"
+            ],
+            "rows": [
+              [
+                "In Twitch chat when the stream starts",
+                "The bot writes in your own chat when your stream starts. If you were already live when the Spirit was released, a sweep every 15 minutes announces it while you keep streaming."
+              ],
+              [
+                "By Discord direct message",
+                "A private message from the bot, sent in the 15-minute sweep. It requires having Discord linked (the panel offers “Vincular cuenta”)."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The message looks like “🎃 ¡2 spirits nuevos en Fortnite! Name1, Name2 · twitch.decatron.net/sprites” and lists up to 5 names. When you turn a notice on for the first time, only what is released from then on is announced, not everything before, and each Spirit is announced only once per notice channel."
+          }
+        ]
+      },
+      {
+        "id": "galeria",
+        "title": "Public gallery",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`/sprites` shows the catalog with status tabs, filters and a progress bar with the breakdown by rarity. If you are signed in, you see and edit your marks right there. Each Spirit shows its rarity and released ones are told apart from those not yet out (“Sin lanzar”)."
+          }
+        ]
+      },
+      {
+        "id": "ranking",
+        "title": "Ranking",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "It sorts by number of distinct Spirits obtained; it can be viewed by season or all-time.",
+              "It counts only released Spirits and groups by person: someone with Twitch and Kick linked appears once, with the combined total and their Twitch name.",
+              "In chat it is seen with `!spirits top` and on Discord with `/spirits top`: the top 5."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "catalogo",
+        "title": "Where the catalog comes from",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Spirits catalog (name, character, theme, rarity, season and release date) is maintained by the platform. When a new one comes out it just appears in the gallery; you do not have to do anything."
+          }
+        ]
+      }
+    ]
+  }
+}

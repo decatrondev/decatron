@@ -309,7 +309,7 @@ namespace Decatron.Controllers
 
             var canAccess = await _permissionService.CanAccessAsync(userId.Value, channelOwnerId, "spirits");
             if (!canAccess)
-                return (null, null, StatusCode(403, new { success = false, message = "No tenés control total sobre este canal para gestionar sus spirits." }));
+                return (null, null, StatusCode(403, new { success = false, message = "No tienes control total sobre este canal para gestionar sus spirits." }));
 
             var channelLogin = await _context.Users
                 .Where(u => u.Id == channelOwnerId)

@@ -61,7 +61,8 @@
     "tournament": "Torneos",
     "moderation": "Moderación",
     "translation": "Traducción en vivo",
-    "discord": "Discord"
+    "discord": "Discord",
+    "spirits": "Fortnite Spirits"
   },
   "layout": {
     "documentation": "Documentación",
@@ -429,6 +430,22 @@
     "discord-commands": {
       "title": "Comandos de barra",
       "description": "Qué puede usar cada miembro"
+    },
+    "spirits-overview": {
+      "title": "Fortnite Spirits",
+      "description": "Tu colección, compartida y en el ranking"
+    },
+    "spirits-collection": {
+      "title": "Mi colección",
+      "description": "Marcar, filtrar y compartir"
+    },
+    "spirits-commands": {
+      "title": "Comandos",
+      "description": "Chat de Twitch y Discord"
+    },
+    "spirits-notices": {
+      "title": "Avisos y ranking",
+      "description": "Spirits nuevos y ranking público"
     }
   },
   "microCommands": {

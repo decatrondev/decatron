@@ -509,6 +509,8 @@ By default everything refers to the current season; `all` shows every season, an
 | `!spirits missing [@user] [all\|season]` | The first missing spirits |
 | `!spirit <name>` | Mark a spirit as obtained |
 | `!spirit remove <name>` | Unmark a spirit |
+| `!spirit check <name>` | Say whether you already have a spirit |
+| `!spirits help` | One-line summary of the variants |
 
 ---
 

@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -99,6 +99,8 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'discord-overview', scopes: pub, group: 'modules', path: 'discord', icon: MessageSquareText, color: 'purple' },
 
+    { id: 'spirits-overview', scopes: pub, group: 'modules', path: 'spirits', icon: Sparkles, color: 'orange' },
+
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
@@ -140,6 +142,11 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'discord-levels', scopes: priv, group: 'discord', path: 'discord/levels', icon: Zap, color: 'purple' },
     { id: 'discord-rewards', scopes: priv, group: 'discord', path: 'discord/rewards', icon: Gift, color: 'purple' },
     { id: 'discord-commands', scopes: priv, group: 'discord', path: 'discord/commands', icon: Terminal, color: 'purple' },
+
+    // — Fortnite Spirits: manual con cuenta —
+    { id: 'spirits-collection', scopes: priv, group: 'spirits', path: 'spirits/collection', icon: Sparkles, color: 'orange' },
+    { id: 'spirits-commands', scopes: priv, group: 'spirits', path: 'spirits/commands', icon: Terminal, color: 'orange' },
+    { id: 'spirits-notices', scopes: priv, group: 'spirits', path: 'spirits/notices', icon: Bell, color: 'orange' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },
