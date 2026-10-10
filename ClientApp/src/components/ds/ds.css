@@ -164,3 +164,10 @@ select.ds-input { appearance: none; padding-right: 36px; background-image: url("
 
 /* Los componentes que se usan fuera de .ds-root (modal, toast, tabla, vacío, aviso) toman texto y tipografía de las variables. */
 .ds-modal, .ds-toast, .ds-table, .ds-empty, .ds-alert { color: var(--ds-text); font-family: var(--ds-font-ui); }
+
+/* Deslizador: riel con el tramo recorrido en azul de la marca (el porcentaje lo pone el componente en --ds-range-pct). */
+.ds-range { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; outline: none; cursor: pointer;
+    background: linear-gradient(to right, var(--ds-accent) var(--ds-range-pct, 0%), var(--ds-border) var(--ds-range-pct, 0%)); }
+.ds-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--ds-accent); border: 3px solid var(--ds-surface); box-shadow: 0 0 0 1px var(--ds-accent); }
+.ds-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--ds-accent); border: 3px solid var(--ds-surface); box-shadow: 0 0 0 1px var(--ds-accent); }
+.ds-range:focus-visible { outline: 2px solid color-mix(in srgb, var(--ds-accent) 70%, transparent); outline-offset: 4px; }

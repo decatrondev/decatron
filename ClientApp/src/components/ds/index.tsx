@@ -45,7 +45,7 @@ export function IconButton({ label, icon, variant = 'ghost', size = 'md', ...res
 }
 
 // ── Campos ─────────────────────────────────────────────────
-export function Field({ label, hint, error, children }: { label?: string; hint?: string; error?: string; children: ReactNode }) {
+export function Field({ label, hint, error, children }: { label?: string; hint?: ReactNode; error?: ReactNode; children: ReactNode }) {
     return (
         <label className="ds-field">
             {label && <span className="ds-label">{label}</span>}
