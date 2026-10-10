@@ -94,7 +94,7 @@ Los overlays se agregan a OBS como fuentes de navegador y se actualizan en tiemp
 | Gestor de seguidores | Sincronización con Twitch, detección de unfollows, acciones masivas e historial |
 | Supporters y créditos | Niveles de suscripción, créditos unificados para funciones de pago, comprobantes y perfiles de facturación |
 | Cambio de canal | Administrar otro canal como moderador o editor |
-| Permisos | Tres niveles (`commands` < `moderation` < `control_total`) sobre 13 secciones del panel |
+| Permisos | Tres niveles (`commands` < `moderation` < `control_total`) sobre 14 secciones del panel |
 | API pública OAuth2 | Flujo Authorization Code con PKCE, 25 scopes, gestión de aplicaciones y revocación de tokens |
 | Compañero de escritorio | [decatron-desktop](https://github.com/decatrondev/decatron-desktop), conectado mediante un único WebSocket |
 | Extensión de navegador | [decatron-extension](https://github.com/decatrondev/decatron-extension), subtítulos de traducción en vivo para espectadores |

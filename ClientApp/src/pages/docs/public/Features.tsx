@@ -105,10 +105,9 @@ export default function Features() {
                 <FeatureCard
                     icon={<Shield className="w-6 h-6" />}
                     title="Moderacion"
-                    description="Filtros de palabras prohibidas, sistema de strikes, niveles de severidad y acciones automaticas."
-                    link="/dashboard/docs/features/moderation"
+                    description="Palabras prohibidas, enlaces, spam, modo panico y strikes en Twitch y Kick, con comandos para tus mods e historial con deshacer."
+                    link="/docs/moderation"
                     color="red"
-                    requiresAuth
                 />
                 <FeatureCard
                     icon={<Sparkles className="w-6 h-6" />}

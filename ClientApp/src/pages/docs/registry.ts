@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -75,7 +75,6 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'sound-alerts', scopes: priv, group: 'features', path: 'features/sound-alerts', icon: Volume2, color: 'orange' },
     { id: 'tips', scopes: priv, group: 'features', path: 'features/tips', icon: DollarSign, color: 'green' },
     { id: 'shoutout', scopes: priv, group: 'features', path: 'features/shoutout', icon: MessageSquare, color: 'purple' },
-    { id: 'moderation', scopes: priv, group: 'features', path: 'features/moderation', icon: Shield, color: 'red' },
     { id: 'ai', scopes: priv, group: 'features', path: 'features/ai', icon: Sparkles, color: 'purple' },
     { id: 'now-playing', scopes: priv, group: 'features', path: 'features/now-playing', icon: Music, color: 'green' },
     { id: 'game-overlays', scopes: priv, group: 'features', path: 'features/game-overlays', icon: Gamepad2, color: 'blue' },
@@ -94,6 +93,8 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'tournament-overview', scopes: pub, group: 'modules', path: 'tournaments', icon: Trophy, color: 'blue' },
 
+    { id: 'moderation-overview', scopes: pub, group: 'modules', path: 'moderation', icon: Shield, color: 'red' },
+
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
@@ -111,6 +112,15 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'tournament-prizes', scopes: priv, group: 'tournament', path: 'tournaments/prizes', icon: Gift, color: 'blue' },
     { id: 'tournament-look', scopes: priv, group: 'tournament', path: 'tournaments/look', icon: Palette, color: 'blue' },
     { id: 'tournament-discord', scopes: priv, group: 'tournament', path: 'tournaments/discord', icon: MessageSquareText, color: 'blue' },
+
+    // — Moderación: manual con cuenta —
+    { id: 'moderation-setup', scopes: priv, group: 'moderation', path: 'moderation/setup', icon: PlayCircle, color: 'red' },
+    { id: 'moderation-words', scopes: priv, group: 'moderation', path: 'moderation/words', icon: MessageSquare, color: 'red' },
+    { id: 'moderation-links', scopes: priv, group: 'moderation', path: 'moderation/links', icon: Plug, color: 'red' },
+    { id: 'moderation-spam', scopes: priv, group: 'moderation', path: 'moderation/spam', icon: Zap, color: 'red' },
+    { id: 'moderation-raids', scopes: priv, group: 'moderation', path: 'moderation/raids', icon: Radio, color: 'red' },
+    { id: 'moderation-commands', scopes: priv, group: 'moderation', path: 'moderation/commands', icon: Terminal, color: 'red' },
+    { id: 'moderation-bots', scopes: priv, group: 'moderation', path: 'moderation/bots', icon: Users, color: 'red' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

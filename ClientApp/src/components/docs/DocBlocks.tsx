@@ -31,6 +31,18 @@ export function asArray<T>(v: unknown): T[] {
     return Array.isArray(v) ? (v as T[]) : [];
 }
 
+/** Texto con `código` entre comillas invertidas dibujado como <code>; el resto queda tal cual. */
+function Inline({ text }: { text: string }) {
+    const parts = String(text).split(/`([^`]+)`/g);
+    return (
+        <>
+            {parts.map((part, i) => i % 2 === 1
+                ? <code key={i} className="px-1.5 py-0.5 rounded bg-ds-raised text-ds-text text-[0.9em] font-mono">{part}</code>
+                : <span key={i}>{part}</span>)}
+        </>
+    );
+}
+
 export function DocBlocks({ blocks, scope }: { blocks: DocBlock[]; scope: DocScope }) {
     return <>{blocks.map((b, i) => <Block key={i} b={b} scope={scope} />)}</>;
 }
@@ -39,15 +51,15 @@ function Block({ b, scope }: { b: DocBlock; scope: DocScope }) {
     const { t } = useTranslation('docs');
     switch (b.t) {
         case 'p':
-            return <p>{b.x}</p>;
+            return <p><Inline text={b.x} /></p>;
         case 'h3':
             return <h3 className="text-lg font-bold text-ds-text pt-2">{b.x}</h3>;
         case 'ul':
-            return <ul className="list-disc pl-6 space-y-2">{asArray<string>(b.items).map(x => <li key={x}>{x}</li>)}</ul>;
+            return <ul className="list-disc pl-6 space-y-2">{asArray<string>(b.items).map(x => <li key={x}><Inline text={x} /></li>)}</ul>;
         case 'ol':
-            return <ol className="list-decimal pl-6 space-y-2">{asArray<string>(b.items).map(x => <li key={x}>{x}</li>)}</ol>;
+            return <ol className="list-decimal pl-6 space-y-2">{asArray<string>(b.items).map(x => <li key={x}><Inline text={x} /></li>)}</ol>;
         case 'note':
-            return <DocAlert type={b.kind ?? 'info'} title={b.title}>{b.x}</DocAlert>;
+            return <DocAlert type={b.kind ?? 'info'} title={b.title}><Inline text={b.x} /></DocAlert>;
         case 'code':
             return <CodeBlock code={b.x} />;
         case 'table':
@@ -57,7 +69,7 @@ function Block({ b, scope }: { b: DocBlock; scope: DocScope }) {
                         {b.head && (
                             <thead>
                                 <tr className="border-b border-ds-border text-left text-ds-text">
-                                    {b.head.map(h => <th key={h} className="px-4 py-2 font-bold">{h}</th>)}
+                                    {b.head.map(h => <th key={h} className="px-4 py-2 font-bold"><Inline text={h} /></th>)}
                                 </tr>
                             </thead>
                         )}
@@ -65,7 +77,7 @@ function Block({ b, scope }: { b: DocBlock; scope: DocScope }) {
                             {asArray<string[]>(b.rows).map((row, ri) => (
                                 <tr key={ri} className="align-top">
                                     {row.map((cell, ci) => (
-                                        <td key={ci} className={`px-4 py-2 ${ci === 0 ? 'font-medium text-ds-text' : ''}`}>{cell}</td>
+                                        <td key={ci} className={`px-4 py-2 ${ci === 0 ? 'font-medium text-ds-text' : ''}`}><Inline text={cell} /></td>
                                     ))}
                                 </tr>
                             ))}

@@ -58,7 +58,8 @@
     "modules": "Modules",
     "song-request": "Song Request",
     "wheel": "Wheel and Raffle",
-    "tournament": "Tournaments"
+    "tournament": "Tournaments",
+    "moderation": "Moderation"
   },
   "layout": {
     "documentation": "Documentation",
@@ -194,10 +195,6 @@
     "shoutout": {
       "title": "Shoutouts",
       "description": "Channel promotions"
-    },
-    "moderation": {
-      "title": "Moderation",
-      "description": "Filters and automatic actions"
     },
     "ai": {
       "title": "Decatron AI",
@@ -346,6 +343,38 @@
     "tournament-discord": {
       "title": "Discord",
       "description": "The /torneo commands"
+    },
+    "moderation-overview": {
+      "title": "Moderation",
+      "description": "Protect your Twitch and Kick chat"
+    },
+    "moderation-setup": {
+      "title": "Getting started",
+      "description": "The moderation hub, who is immune and how sanctions work"
+    },
+    "moderation-words": {
+      "title": "Banned words and strikes",
+      "description": "Your list, the sanction scale and the messages"
+    },
+    "moderation-links": {
+      "title": "Links and !permit",
+      "description": "Block links and let through the ones you choose"
+    },
+    "moderation-spam": {
+      "title": "Spam filters",
+      "description": "Eight filters with their thresholds"
+    },
+    "moderation-raids": {
+      "title": "Raids and bots",
+      "description": "Panic mode, new accounts and bot phrases"
+    },
+    "moderation-commands": {
+      "title": "Commands and history",
+      "description": "Who uses each command and how to undo"
+    },
+    "moderation-bots": {
+      "title": "Bot list",
+      "description": "What Decatron does with other bots' messages"
     }
   },
   "microCommands": {

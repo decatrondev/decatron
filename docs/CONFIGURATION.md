@@ -415,7 +415,7 @@ Defined in `PermissionService`:
 | Section | Required Level |
 |---------|---------------|
 | `commands`, `microcommands`, `title`, `game` | `commands` (1) |
-| `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters` | `moderation` (2) |
+| `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters`, `moderation` | `moderation` (2) |
 | `user_management`, `settings`, `spirits` | `control_total` (3) |
 
 A section name that is not in the table is denied to everyone except the channel owner, who always passes. Admin endpoints use `[RequireSystemOwner]` instead of this hierarchy.

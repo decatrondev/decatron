@@ -1,0 +1,769 @@
+{
+  "overview": {
+    "title": "Moderación",
+    "subtitle": "Protege tu chat de Twitch y Kick con filtros, comandos y un historial",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La moderación de Decatron revisa cada mensaje del chat con los filtros que actives, sanciona con una escala de strikes y te deja deshacer lo que no debía pasar. Decatron modera por su cuenta: no depende del AutoMod de Twitch ni de sus términos bloqueados, y no los toca."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Cada filtro se activa por separado y viene apagado. Tú decides qué se vigila."
+          }
+        ]
+      },
+      {
+        "id": "herramientas",
+        "title": "Qué incluye",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Herramienta",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Palabras prohibidas",
+                "Palabras y frases que no se pueden usar, cada una con su severidad y comodines."
+              ],
+              [
+                "Enlaces",
+                "Bloquea los enlaces, también los disfrazados, salvo los dominios que permitas o quien tenga un `!permit`."
+              ],
+              [
+                "Spam",
+                "Mayúsculas, símbolos, emotes, mensajes largos o repetidos, copypasta, texto zalgo y menciones."
+              ],
+              [
+                "Raids y bots",
+                "Modo pánico, cuentas nuevas y frases de bots que venden viewers."
+              ],
+              [
+                "Comandos de mods",
+                "`!permit`, `!strikes`, `!nuke`, `!panico` y más, con el rol mínimo que elijas."
+              ],
+              [
+                "Historial",
+                "Quién fue sancionado, por qué y quién lo hizo, con deshacer."
+              ],
+              [
+                "Lista de bots",
+                "Nightbot, StreamElements y otros bots no cuentan como personas."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "quien",
+        "title": "A quién no se sanciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El streamer, los Lead Moderators, los moderadores, la lista blanca y quien tenga control total del canal en el panel no reciben sanciones. A los VIP y a los suscriptores los eliges tú: pueden entrar en la escala como cualquiera o tener inmunidad total."
+          }
+        ]
+      },
+      {
+        "id": "plataformas",
+        "title": "Twitch y Kick",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Función",
+              "Twitch",
+              "Kick"
+            ],
+            "rows": [
+              [
+                "Filtros, comandos de mods e historial",
+                "Sí",
+                "Sí"
+              ],
+              [
+                "Modo pánico y filtro de cuentas nuevas",
+                "Sí",
+                "No: la API de Kick no cambia los modos del chat ni informa la antigüedad de las cuentas"
+              ],
+              [
+                "Lead Moderator",
+                "Sí (rol nativo de Twitch)",
+                "No existe: manda el dueño o quien tenga control total"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, el manual completo está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "moderation-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Moderación: puesta en marcha",
+    "subtitle": "El centro de moderación, quién queda inmune y cómo se sanciona",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Dónde está",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En el panel entra a Moderación (`/moderation`). Verás una tarjeta por herramienta, cada una con su interruptor y, en las que agrupan varios filtros, cuántos hay activos (por ejemplo «2 de 8 activos»). Si el canal es de Kick, arriba aparece un aviso con lo que no está disponible."
+          },
+          {
+            "t": "p",
+            "x": "Pueden usar el panel de moderación el dueño del canal y quien tenga un nivel Moderación o superior en el panel (incluido Control total)."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "En Twitch, el bot necesita ser moderador de tu canal para borrar mensajes y sancionar. En Kick se sanciona con el token del streamer, así que no hace falta."
+          }
+        ]
+      },
+      {
+        "id": "activar",
+        "title": "Todo viene apagado",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Cada filtro tiene su interruptor y empieza apagado. Actívalo desde su tarjeta o desde su propia página.",
+              "Los canales que ya tenían palabras prohibidas cargadas quedaron con ese filtro encendido para no romperles nada.",
+              "Un filtro apagado no sanciona nada, aunque tenga datos cargados."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "inmunes",
+        "title": "Quién queda inmune",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Quién",
+              "Inmunidad"
+            ],
+            "rows": [
+              [
+                "Streamer, Lead Moderators y moderadores",
+                "Siempre, en todos los filtros."
+              ],
+              [
+                "Quien tiene control total del canal en el panel",
+                "Siempre, aunque en el chat sea un viewer."
+              ],
+              [
+                "Lista blanca",
+                "Siempre: usuarios que agregas a mano."
+              ],
+              [
+                "VIP y suscriptores",
+                "Tú eliges por separado: «Inmunidad total» o «Entra en escalamiento» (por defecto, escalamiento)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sancion",
+        "title": "Cómo se sanciona",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "El mensaje pasa por los filtros que tienes activos.",
+              "Si un filtro lo detecta, se suma un strike al usuario y se aplica la acción del escalón en que está (advertencia, borrar, timeout o ban).",
+              "El bot escribe en el chat el mensaje que configuraste para esa acción, con las variables `$(user)`, `$(strike)` y `$(word)`.",
+              "La sanción queda en el historial."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Todos los filtros comparten la misma escala de strikes, su caducidad y la lista blanca. Se configuran en «Palabras prohibidas»."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Si la acción es borrar, timeout o ban, el comando que traía el mensaje no se ejecuta. Con una advertencia el mensaje queda en el chat y el comando sí se ejecuta."
+          }
+        ]
+      },
+      {
+        "id": "roles",
+        "title": "Roles en los comandos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los comandos de moderación usan estos niveles, de menor a mayor: moderador, Lead Moderator y streamer. Quien tenga control total en el panel cuenta como el streamer. Lead Moderator es un rol propio de Twitch: en Kick no existe, así que allí los comandos de «Lead Mods y superiores» solo los usa el dueño o quien tenga control total, a menos que bajes el rol."
+          },
+          {
+            "t": "link",
+            "to": "moderation-commands"
+          }
+        ]
+      }
+    ]
+  },
+  "words": {
+    "title": "Moderación: palabras prohibidas y strikes",
+    "subtitle": "Tu lista de palabras, la escala de sanciones y los mensajes del bot",
+    "sections": [
+      {
+        "id": "activar",
+        "title": "Activar el filtro",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En `/features/moderation/banned-words` activa «Activar el filtro de palabras prohibidas». Con el filtro apagado el bot no sanciona ninguna palabra de la lista. La página muestra cuántas palabras tienes, las detecciones de hoy y los usuarios sancionados."
+          }
+        ]
+      },
+      {
+        "id": "lista",
+        "title": "La lista de palabras",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Puedes tener hasta 500 palabras o frases por canal.",
+              "Comodines con `*`: `*spam*` detecta «spam», «spammer» y «antispam».",
+              "Cada palabra lleva una severidad (abajo).",
+              "Se pueden importar palabras desde un archivo JSON.",
+              "Desde el chat, `!addword` y `!delword` las agregan o quitan (ver comandos)."
+            ]
+          },
+          {
+            "t": "table",
+            "head": [
+              "Severidad",
+              "Qué pasa"
+            ],
+            "rows": [
+              [
+                "Leve",
+                "Escalamiento normal de strikes."
+              ],
+              [
+                "Media",
+                "Suma un strike y aplica como mínimo un timeout de 10 minutos."
+              ],
+              [
+                "Severa",
+                "Ban directo, sin pasar por los strikes."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "«Probar detección de mensajes» te dice, para un texto de ejemplo, qué palabra detecta y qué acción recibiría un viewer (y un VIP o suscriptor con escalamiento). Usa lo que tienes guardado: si cambiaste algo, guarda antes de probar."
+          }
+        ]
+      },
+      {
+        "id": "strikes",
+        "title": "La escala de strikes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada infracción sube un escalón. Para cada strike (1 a 5) eliges la acción: advertencia, borrar mensaje, timeout de 30 segundos, 1, 5, 10 o 30 minutos o 1 hora, o ban permanente. Por defecto:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Strike",
+              "Acción por defecto"
+            ],
+            "rows": [
+              [
+                "1",
+                "Advertencia"
+              ],
+              [
+                "2",
+                "Timeout de 1 minuto"
+              ],
+              [
+                "3",
+                "Timeout de 5 minutos"
+              ],
+              [
+                "4",
+                "Timeout de 10 minutos"
+              ],
+              [
+                "5",
+                "Ban"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Caducidad: los strikes bajan un nivel tras el tiempo que elijas sin infracciones (5, 10, 15 o 30 minutos, 1 hora o nunca). Por defecto, 15 minutos."
+          }
+        ]
+      },
+      {
+        "id": "inmunidad",
+        "title": "Inmunidad y lista blanca",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Streamer, Lead Moderators, moderadores y quien tenga control total siempre tienen inmunidad total.",
+              "Para VIP y suscriptores eliges «Inmunidad total» o «Entra en escalamiento».",
+              "La lista blanca («Whitelist manual») tiene inmunidad total: escribe el nombre de usuario y agrégalo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Mensajes del bot",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada acción tiene su mensaje en el chat: advertencia, borrar mensaje, timeout, ban por strikes y ban directo por palabra severa. Variables disponibles: `$(user)`, `$(strike)` y `$(word)`."
+          }
+        ]
+      }
+    ]
+  },
+  "links": {
+    "title": "Moderación: enlaces y !permit",
+    "subtitle": "Bloquea los enlaces del chat y deja pasar solo los que tú elijas",
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con el filtro activo no pasa ningún enlace, ni siquiera los clips de Twitch: no hay dominios preinstalados. Solo pasa lo que agregues a la lista de dominios permitidos o lo que autorices con `!permit`. La página es `/features/moderation/links`."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Un enlace bloqueado siempre se borra, aunque al strike le toque solo una advertencia."
+          }
+        ]
+      },
+      {
+        "id": "dominios",
+        "title": "Dominios permitidos",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "La lista empieza vacía: con el filtro activo y sin dominios, se bloquean todos los enlaces.",
+              "Incluye los subdominios: permitir `youtube.com` también deja pasar `m.youtube.com`.",
+              "Escribe solo el dominio (por ejemplo `youtube.com`).",
+              "Desde el chat, `!addlink` y `!dellink` lo agregan o quitan."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "quien",
+        "title": "Quién puede enviar enlaces",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Siempre pueden el streamer, los Lead Moderators, los moderadores, la lista blanca y quien tenga control total. Además puedes permitirlo a los suscriptores y a los VIP."
+          }
+        ]
+      },
+      {
+        "id": "disfrazados",
+        "title": "Enlaces disfrazados",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los spammers escriben el enlace separado para que no lo detecten. Activa la opción para detectar `pagina . com`, `pagina(dot)com`, `pagina[.]com` y `pagina punto com`."
+          }
+        ]
+      },
+      {
+        "id": "permit",
+        "title": "El comando !permit",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`!permit @usuario` deja pasar los enlaces de esa persona. Lo pueden usar los moderadores, los Lead Moderators, el streamer y quien tenga control total (el rol mínimo se cambia en «Comandos de mods»). En la página de enlaces eliges:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "La duración: 30 segundos, 1, 2, 5 o 10 minutos.",
+              "Qué permite: todos los enlaces durante ese tiempo, o un solo mensaje con enlace."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sancion",
+        "title": "Sanción y prueba",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "La escala de strikes, su caducidad y la lista blanca son las mismas de «Palabras prohibidas».",
+              "El mensaje del bot puede dejarse vacío (usa el de por defecto) y admite `$(user)`, `$(strike)` y `$(word)`, que aquí es el dominio.",
+              "El cuadro de prueba analiza un mensaje con lo que tienes guardado y te dice si pasaría o qué acción recibiría."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "spam": {
+    "title": "Moderación: filtros de spam",
+    "subtitle": "Ocho filtros independientes, cada uno con su interruptor y sus umbrales",
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funcionan",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En `/features/moderation/spam` hay ocho filtros. Cada uno empieza apagado y se activa por separado. Todos usan la misma escala de strikes y la misma lista blanca que «Palabras prohibidas», y cada uno tiene su severidad y su mensaje (vacío = el de ejemplo; variables `$(user)`, `$(strike)` y `$(word)`)."
+          },
+          {
+            "t": "p",
+            "x": "Los interruptores se guardan al instante; los umbrales y mensajes, al pulsar «Guardar umbrales y mensajes»."
+          }
+        ]
+      },
+      {
+        "id": "filtros",
+        "title": "Los ocho filtros",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Filtro",
+              "Qué detecta",
+              "Valores por defecto"
+            ],
+            "rows": [
+              [
+                "Mayúsculas",
+                "Mensajes escritos casi todo en mayúsculas.",
+                "Solo mensajes de al menos 15 letras; límite del 70 %"
+              ],
+              [
+                "Símbolos",
+                "Mensajes llenos de signos o arte ASCII.",
+                "Mínimo 10 caracteres; límite del 50 %"
+              ],
+              [
+                "Emotes",
+                "Demasiados emotes en un solo mensaje.",
+                "Máximo 10"
+              ],
+              [
+                "Mensaje largo",
+                "Mensajes más largos que cierto tamaño.",
+                "300 caracteres"
+              ],
+              [
+                "Repetición",
+                "La misma persona enviando el mismo mensaje varias veces.",
+                "Se sanciona a la 3.ª repetición en 30 segundos"
+              ],
+              [
+                "Copypasta",
+                "Muchos usuarios distintos pegando el mismo texto.",
+                "5 usuarios en 60 segundos, textos de al menos 20 caracteres"
+              ],
+              [
+                "Zalgo",
+                "Texto con marcas encima y debajo de las letras que tapan el chat. Siempre se borra.",
+                "2 marcas; opción de bloquear también letras decorativas"
+              ],
+              [
+                "Menciones",
+                "Demasiadas menciones `@` a usuarios distintos en un mensaje.",
+                "Máximo 5"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Mayúsculas: los emotes de Twitch no cuentan como mayúsculas, pero los de 7TV, BTTV y FFZ sí, porque llegan como texto. Emotes: solo se cuentan los de Twitch; los de 7TV, BTTV y FFZ no se pueden contar."
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Copypasta: la sanción empieza en quien llega al número; los anteriores no se sancionan."
+          }
+        ]
+      }
+    ]
+  },
+  "raids": {
+    "title": "Moderación: raids y bots",
+    "subtitle": "Modo pánico, cuentas nuevas y frases de bots que venden viewers",
+    "sections": [
+      {
+        "id": "panico",
+        "title": "Modo pánico",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Bloquea el chat en segundos cuando entra una oleada. Se activa desde el botón de `/features/moderation/raids` o con el comando `!panico` (también `!pánico` y `!panic`) y se apaga solo a los 10 minutos (configurable de 1 a 120) o a mano con `!panico off` o desde la web. Al apagarse, el chat vuelve exactamente a como estaba."
+          },
+          {
+            "t": "h3",
+            "x": "Qué aplica mientras dura"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Solo seguidores (por defecto, con 10 minutos de seguimiento; puedes pedir otro tiempo o cualquier seguidor).",
+              "Solo emotes, solo suscriptores y modo lento (de 3 a 120 segundos).",
+              "Shield Mode de Twitch: aplica lo que configuraste en las herramientas de moderación de Twitch. Es excluyente con los modos del chat: con Shield el bot no toca los modos.",
+              "Avisar en el chat al activarse y al apagarse (activado por defecto)."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Activación automática (apagada por defecto)"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Oleada de follows: por defecto 20 follows en 60 segundos.",
+              "Cuentas nuevas escribiendo a la vez (raid de odio): por defecto 5 cuentas distintas con menos de 7 días en 60 segundos."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "No disponible en Kick: la API de Kick no permite cambiar los modos del chat."
+          }
+        ]
+      },
+      {
+        "id": "cuentas",
+        "title": "Filtro de cuentas nuevas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Sanciona a las cuentas recién creadas que escriben (por defecto, las de menos de 7 días). Su mensaje siempre se borra. Puedes limitarlo a «Solo mientras el modo pánico está activo». No disponible en Kick."
+          }
+        ]
+      },
+      {
+        "id": "bots",
+        "title": "Frases de bots",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Detecta el spam de bots que venden viewers y seguidores, aunque lo escriban separado o con signos (`b e s t viewers` o `best-viewers`). Viene con una lista base que puedes editar y restablecer con «Volver a la lista base». Es el único filtro de esta página que funciona también en Kick."
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Moderación: comandos e historial",
+    "subtitle": "Quién puede usar cada comando y cómo deshacer una sanción",
+    "sections": [
+      {
+        "id": "comandos",
+        "title": "Comandos de moderación",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En `/features/moderation/commands` activas o desactivas cada comando y eliges quién puede usarlo: «Moderadores y superiores», «Lead Moderators y superiores» o «Solo el streamer». Quien tenga control total del canal cuenta como el streamer. Al resto el bot lo ignora en silencio."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Qué hace",
+              "Quién, por defecto"
+            ],
+            "rows": [
+              [
+                "`!permit @usuario`",
+                "Deja pasar los enlaces de un usuario; la duración se configura en el filtro de enlaces.",
+                "Moderadores y superiores"
+              ],
+              [
+                "`!strikes @usuario`",
+                "Muestra en qué strike está un usuario y cuándo baja el próximo.",
+                "Moderadores y superiores"
+              ],
+              [
+                "`!nuke frase`",
+                "Sanciona a todos los que escribieron esa frase en los últimos segundos. No toca al streamer, los mods ni la lista blanca.",
+                "Moderadores y superiores"
+              ],
+              [
+                "`!resetstrikes @usuario`",
+                "Deja en 0 los strikes de un usuario.",
+                "Lead Moderators y superiores"
+              ],
+              [
+                "`!addword`, `!delword`",
+                "Agrega o quita palabras prohibidas. Sin severidad, se agrega como leve (`!addword frase leve|medio|severo`).",
+                "Lead Moderators y superiores"
+              ],
+              [
+                "`!addlink`, `!dellink`",
+                "Agrega o quita dominios permitidos del filtro de enlaces.",
+                "Lead Moderators y superiores"
+              ],
+              [
+                "`!panico`, `!pánico`, `!panic`",
+                "Activa el modo pánico (o lo extiende si ya estaba) y `off` lo apaga. No disponible en Kick.",
+                "Lead Moderators y superiores"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Para `!nuke` también eliges hacia atrás cuántos segundos mira (60 por defecto, hasta 300) y la sanción: timeout (600 segundos por defecto) o ban."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Lead Moderator es un rol de Twitch. En Kick no existe: los comandos de «Lead Moderators y superiores» solo los usan el dueño o quien tenga control total, salvo que bajes su rol a moderador."
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "Historial",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En `/features/moderation/history` ves quién fue sancionado, por qué y quién lo hizo (el bot con un filtro, o un moderador con un comando). Se puede buscar por usuario o mod, filtrar por tipo (palabra prohibida, enlace, mayúsculas, símbolos, emotes, mensaje largo, repetido, copypasta, zalgo, menciones, cuenta nueva, frase de bot, nuke, strikes, modo pánico), por motivo y por fechas, con páginas. Al abrir una fila ves el mensaje original, si se guardó."
+          },
+          {
+            "t": "p",
+            "x": "También registra las acciones de los moderadores: agregar o quitar una palabra o un dominio, poner strikes a 0 y activar o apagar el pánico."
+          }
+        ]
+      },
+      {
+        "id": "deshacer",
+        "title": "Deshacer una sanción",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "«Deshacer» quita el timeout o el ban y devuelve el strike (o solo uno de los dos, según la sanción).",
+              "Un mensaje borrado no se puede recuperar: en ese caso solo se devuelve el strike.",
+              "Si la sanción ya había vencido, solo se devuelve el strike (en Kick el historial no distingue ese caso).",
+              "Puede deshacer quien tenga acceso al panel de moderación."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "bots": {
+    "title": "Moderación: lista de bots",
+    "subtitle": "Decide qué hace Decatron con los mensajes de Nightbot, StreamElements y otros bots",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los bots de otros servicios escriben en tu chat como si fueran personas. En `/features/bots` decides qué hace Decatron con sus mensajes. Hay un catálogo global de bots conocidos, mantenido por la plataforma, y cada canal puede apagar un bot o ajustar sus efectos."
+          },
+          {
+            "t": "p",
+            "x": "Todos los del catálogo vienen activos. Los bots de competencia y moderación se ocultan del todo; los de música, alertas y utilidad siguen visibles en el overlay de chat pero no cuentan ni ejecutan comandos."
+          }
+        ]
+      },
+      {
+        "id": "categorias",
+        "title": "Categorías",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Competencia, Moderación, Música, Alertas, Utilidad y Decatron. Puedes apagar o activar una categoría entera."
+          }
+        ]
+      },
+      {
+        "id": "efectos",
+        "title": "Efectos sobre sus mensajes",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Efecto",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Ocultar del overlay de chat",
+                "Sus mensajes no salen en el overlay de chat."
+              ],
+              [
+                "No contar",
+                "No suma a timers, tiempo de visualización, actividad ni rankings."
+              ],
+              [
+                "No ejecutar comandos",
+                "Sus mensajes no activan comandos de Decatron (evita bucles)."
+              ],
+              [
+                "No sancionar",
+                "Los filtros de moderación no lo sancionan."
+              ],
+              [
+                "No traducir ni leer en voz alta",
+                "No se traduce ni se lee en el chat por voz."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cada bot se puede volver a los efectos por defecto."
+          }
+        ]
+      },
+      {
+        "id": "propios",
+        "title": "Agregar tus propios bots",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Puedes agregar un bot de Twitch o de Kick escribiendo su usuario (y un nombre opcional) para que se trate como bot en tu canal. Los cambios que haces al catálogo global los hace la plataforma y aplican a todos los canales."
+          }
+        ]
+      }
+    ]
+  }
+}

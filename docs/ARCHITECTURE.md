@@ -201,7 +201,7 @@ graph LR
 **Key pipeline details:**
 - **Dual authentication**: JWT Bearer for dashboard sessions; custom `OAuthBearerHandler` for public API tokens
 - **Active channel**: when a user manages another streamer's channel, `ChannelSwitchController` stores the active channel in the session (`ActiveChannelId`). Controllers resolve it themselves. `ChannelAccessMiddleware` (which would inject a `ChannelOwnerId` claim from that session value) exists in `Decatron.Middleware/` but is **not registered** in `Program.cs`; `RequirePermission` falls back to the authenticated user's own channel when the claim is absent
-- **RequirePermission**: Three-level hierarchy -- `commands` (1) < `moderation` (2) < `control_total` (3) -- mapped to 13 sections (see 5.3)
+- **RequirePermission**: Three-level hierarchy -- `commands` (1) < `moderation` (2) < `control_total` (3) -- mapped to 14 sections (see 5.3)
 - **RequireSystemOwner**: restricts the admin endpoints to system owners (platform admins)
 - **RequireScope / RequireAnyScope**: Validates OAuth2 scopes (25 scopes across read/write/action categories)
 - **Rate limiting**: named fixed-window policies for public endpoints (`tcg-images`, `tournament-register`, `tournament-embed`, `live-translation-public`, `live-translation-claim`)
@@ -463,12 +463,12 @@ sequenceDiagram
 
 ### 5.3 Permission Hierarchy
 
-The channel owner always has `control_total`. Other users receive a level per channel (`user_channel_permissions`). `PermissionService` maps 13 sections to the minimum level required:
+The channel owner always has `control_total`. Other users receive a level per channel (`user_channel_permissions`). `PermissionService` maps 14 sections to the minimum level required:
 
 ```mermaid
 graph BT
     CMD["commands (1)<br/>sections: commands, microcommands,<br/>title, game"]
-    MOD["moderation (2)<br/>sections: overlays, timers, raffles,<br/>giveaways, loyalty, chatfilters"]
+    MOD["moderation (2)<br/>sections: overlays, timers, raffles,<br/>giveaways, loyalty, chatfilters, moderation"]
     CTL["control_total (3)<br/>sections: user_management,<br/>settings, spirits"]
 
     CMD --> MOD --> CTL

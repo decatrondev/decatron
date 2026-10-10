@@ -94,7 +94,7 @@ Overlays are added to OBS as Browser Sources and update in real time through Sig
 | Followers manager | Sync from Twitch, unfollow detection, bulk actions and history |
 | Supporters and credits | Subscription tiers, unified credits for paid features, invoices and billing profiles |
 | Channel switching | Manage another channel as a moderator or editor |
-| Permissions | Three levels (`commands` < `moderation` < `control_total`) over 13 dashboard sections |
+| Permissions | Three levels (`commands` < `moderation` < `control_total`) over 14 dashboard sections |
 | Public OAuth2 API | Authorization Code flow with PKCE, 25 scopes, app management and token revocation |
 | Desktop companion | [decatron-desktop](https://github.com/decatrondev/decatron-desktop), connected through a single WebSocket |
 | Browser extension | [decatron-extension](https://github.com/decatrondev/decatron-extension), live translation subtitles for viewers |

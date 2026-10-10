@@ -138,7 +138,7 @@ import GiveawayDoc from './pages/docs/private/features/GiveawayDoc';
 import SoundAlertsDoc from './pages/docs/private/features/SoundAlertsDoc';
 import TipsDoc from './pages/docs/private/features/TipsDoc';
 import ShoutoutDoc from './pages/docs/private/features/ShoutoutDoc';
-import ModerationDoc from './pages/docs/private/features/ModerationDoc';
+import { ModerationDoc } from './pages/docs/private/features/ModerationDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
@@ -291,6 +291,7 @@ function App() {
                     <Route path="song-request" element={<SongRequestDoc page="overview" scope="public" />} />
                     <Route path="wheel" element={<WheelDoc page="overview" scope="public" />} />
                     <Route path="tournaments" element={<TournamentDoc page="overview" scope="public" />} />
+                    <Route path="moderation" element={<ModerationDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -466,7 +467,13 @@ function App() {
                         <Route path="features/sound-alerts" element={<SoundAlertsDoc />} />
                         <Route path="features/tips" element={<TipsDoc />} />
                         <Route path="features/shoutout" element={<ShoutoutDoc />} />
-                        <Route path="features/moderation" element={<ModerationDoc />} />
+                        <Route path="moderation/setup" element={<ModerationDoc page="setup" scope="private" />} />
+                        <Route path="moderation/words" element={<ModerationDoc page="words" scope="private" />} />
+                        <Route path="moderation/links" element={<ModerationDoc page="links" scope="private" />} />
+                        <Route path="moderation/spam" element={<ModerationDoc page="spam" scope="private" />} />
+                        <Route path="moderation/raids" element={<ModerationDoc page="raids" scope="private" />} />
+                        <Route path="moderation/commands" element={<ModerationDoc page="commands" scope="private" />} />
+                        <Route path="moderation/bots" element={<ModerationDoc page="bots" scope="private" />} />
                         <Route path="features/analytics" element={<AnalyticsDoc />} />
                         <Route path="features/followers" element={<FollowersDoc />} />
                         <Route path="features/ai" element={<AIDoc />} />

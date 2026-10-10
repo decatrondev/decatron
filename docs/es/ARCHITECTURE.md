@@ -204,7 +204,7 @@ graph LR
 **Detalles clave del pipeline:**
 - **Autenticación dual**: JWT Bearer para las sesiones del panel; `OAuthBearerHandler` propio para los tokens de la API pública
 - **Canal activo**: cuando un usuario administra el canal de otro streamer, `ChannelSwitchController` guarda el canal activo en la sesión (`ActiveChannelId`). Los controladores lo resuelven por su cuenta. `ChannelAccessMiddleware` (que inyectaría un claim `ChannelOwnerId` a partir de ese valor de sesión) existe en `Decatron.Middleware/` pero **no está registrado** en `Program.cs`; `RequirePermission` usa el canal propio del usuario autenticado cuando falta el claim
-- **RequirePermission**: jerarquía de tres niveles -- `commands` (1) < `moderation` (2) < `control_total` (3) -- asignada a 13 secciones (ver 5.3)
+- **RequirePermission**: jerarquía de tres niveles -- `commands` (1) < `moderation` (2) < `control_total` (3) -- asignada a 14 secciones (ver 5.3)
 - **RequireSystemOwner**: restringe los endpoints de administración a los dueños del sistema (administradores de la plataforma)
 - **RequireScope / RequireAnyScope**: valida los scopes de OAuth2 (25 scopes en las categorías de lectura, escritura y acción)
 - **Límite de solicitudes**: políticas nombradas de ventana fija para endpoints públicos (`tcg-images`, `tournament-register`, `tournament-embed`, `live-translation-public`, `live-translation-claim`)
@@ -465,12 +465,12 @@ sequenceDiagram
 
 ### 5.3 Jerarquía de permisos
 
-El dueño del canal siempre tiene `control_total`. Los demás usuarios reciben un nivel por canal (`user_channel_permissions`). `PermissionService` asigna 13 secciones al nivel mínimo requerido:
+El dueño del canal siempre tiene `control_total`. Los demás usuarios reciben un nivel por canal (`user_channel_permissions`). `PermissionService` asigna 14 secciones al nivel mínimo requerido:
 
 ```mermaid
 graph BT
     CMD["commands (1)<br/>secciones: commands, microcommands,<br/>title, game"]
-    MOD["moderation (2)<br/>secciones: overlays, timers, raffles,<br/>giveaways, loyalty, chatfilters"]
+    MOD["moderation (2)<br/>secciones: overlays, timers, raffles,<br/>giveaways, loyalty, chatfilters, moderation"]
     CTL["control_total (3)<br/>secciones: user_management,<br/>settings, spirits"]
 
     CMD --> MOD --> CTL

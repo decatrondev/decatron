@@ -422,7 +422,7 @@ Chat moderation works on Twitch and Kick. **Every filter is turned on separately
 
 ### Commands
 
-The minimum role of each command is chosen in the dashboard (Moderation > Commands); the order is moderator < Lead Moderator < streamer, and users who do not reach it are ignored silently.
+The minimum role of each command is chosen in the dashboard (Moderation > Commands); the order is moderator < Lead Moderator < streamer (full control counts as streamer), and users who do not reach it are ignored silently. By default `!permit`, `!strikes` and `!nuke` need a moderator; `!resetstrikes`, `!addword`/`!delword`, `!addlink`/`!dellink` and `!panico` need a Lead Moderator. Lead Moderator is a Twitch role: on Kick it does not exist, so those commands are only usable by the owner or anyone with full control unless you lower the role. `!nuke` looks back 60 seconds by default (up to 300) and gives a 10-minute timeout, or a ban.
 
 | Command | Description |
 |---------|-------------|
@@ -527,7 +527,7 @@ Sections (as defined in `PermissionService`):
 | Level | Sections |
 |-------|----------|
 | `commands` | `commands`, `microcommands`, `title`, `game` |
-| `moderation` | `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters` |
+| `moderation` | `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters`, `moderation` |
 | `control_total` | `user_management`, `settings`, `spirits` |
 
 The channel owner always has `control_total` on their own channel. Chat commands have their own checks (streamer, Lead Moderator, moderator, VIP, subscriber), described in each section above.

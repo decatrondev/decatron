@@ -416,7 +416,7 @@ Definida en `PermissionService`:
 | Sección | Nivel requerido |
 |---------|-----------------|
 | `commands`, `microcommands`, `title`, `game` | `commands` (1) |
-| `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters` | `moderation` (2) |
+| `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters`, `moderation` | `moderation` (2) |
 | `user_management`, `settings`, `spirits` | `control_total` (3) |
 
 Un nombre de sección que no está en la tabla se deniega a todos excepto al dueño del canal, que siempre pasa. Los endpoints de administración usan `[RequireSystemOwner]` en lugar de esta jerarquía.

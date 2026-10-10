@@ -58,7 +58,8 @@
     "modules": "Módulos",
     "song-request": "Song Request",
     "wheel": "Rueda y Sorteo",
-    "tournament": "Torneos"
+    "tournament": "Torneos",
+    "moderation": "Moderación"
   },
   "layout": {
     "documentation": "Documentación",
@@ -194,10 +195,6 @@
     "shoutout": {
       "title": "Shoutouts",
       "description": "Promociones de canales"
-    },
-    "moderation": {
-      "title": "Moderación",
-      "description": "Filtros y acciones automáticas"
     },
     "ai": {
       "title": "Decatron IA",
@@ -346,6 +343,38 @@
     "tournament-discord": {
       "title": "Discord",
       "description": "Comandos /torneo"
+    },
+    "moderation-overview": {
+      "title": "Moderación",
+      "description": "Protege tu chat de Twitch y Kick"
+    },
+    "moderation-setup": {
+      "title": "Puesta en marcha",
+      "description": "El centro de moderación, quién queda inmune y cómo se sanciona"
+    },
+    "moderation-words": {
+      "title": "Palabras prohibidas y strikes",
+      "description": "Tu lista, la escala de sanciones y los mensajes"
+    },
+    "moderation-links": {
+      "title": "Enlaces y !permit",
+      "description": "Bloquea enlaces y deja pasar los que elijas"
+    },
+    "moderation-spam": {
+      "title": "Filtros de spam",
+      "description": "Ocho filtros con sus umbrales"
+    },
+    "moderation-raids": {
+      "title": "Raids y bots",
+      "description": "Modo pánico, cuentas nuevas y frases de bots"
+    },
+    "moderation-commands": {
+      "title": "Comandos e historial",
+      "description": "Quién usa cada comando y cómo deshacer"
+    },
+    "moderation-bots": {
+      "title": "Lista de bots",
+      "description": "Qué hace Decatron con los mensajes de otros bots"
     }
   },
   "microCommands": {

@@ -422,7 +422,7 @@ La moderación del chat funciona en Twitch y Kick. **Cada filtro se activa por s
 
 ### Comandos
 
-El rol mínimo de cada comando se elige en el panel (Moderación > Comandos); el orden es moderador < Lead Moderator < streamer, y a quien no le alcanza el rol se lo ignora en silencio.
+El rol mínimo de cada comando se elige en el panel (Moderación > Comandos); el orden es moderador < Lead Moderator < streamer (el control total cuenta como streamer), y a quien no le alcanza el rol se lo ignora en silencio. Por defecto `!permit`, `!strikes` y `!nuke` los usa un moderador; `!resetstrikes`, `!addword`/`!delword`, `!addlink`/`!dellink` y `!panico` requieren un Lead Moderator. Lead Moderator es un rol de Twitch: en Kick no existe, así que esos comandos solo los usa el dueño o quien tenga control total, a menos que bajes el rol. `!nuke` mira 60 segundos hacia atrás por defecto (hasta 300) y da un timeout de 10 minutos, o un ban.
 
 | Comando | Descripción |
 |---------|-------------|
@@ -527,7 +527,7 @@ Secciones (según `PermissionService`):
 | Nivel | Secciones |
 |-------|-----------|
 | `commands` | `commands`, `microcommands`, `title`, `game` |
-| `moderation` | `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters` |
+| `moderation` | `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters`, `moderation` |
 | `control_total` | `user_management`, `settings`, `spirits` |
 
 El dueño del canal siempre tiene `control_total` en su propio canal. Los comandos de chat tienen sus propias comprobaciones (streamer, Lead Moderator, moderador, VIP, suscriptor), descritas en cada sección de arriba.
