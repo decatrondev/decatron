@@ -1336,7 +1336,7 @@
     "saveError": "No se pudo guardar.",
     "save": "Guardar",
     "title": "Traducción en vivo",
-    "subtitle": "Tu voz se transcribe, se traduce y se dobla en tiempo real. Cada viewer elige su idioma desde la extensión de Chrome; solo él lo oye.",
+    "subtitle": "Tu voz se transcribe, se traduce y se dobla en tiempo real. Cada viewer elige su idioma desde la extensión de Decatron; solo él lo oye.",
     "notConfigured": "El servidor no tiene configurados los servicios de voz; la función no puede arrancar todavía.",
     "confirmStop": "¿Cortar la sesión en curso? La app dejará de mandar audio hasta que vuelvas a pulsar Iniciar.",
     "live": {

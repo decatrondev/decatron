@@ -1,0 +1,692 @@
+{
+  "overview": {
+    "title": "Live translation",
+    "subtitle": "Your stream, dubbed in real time into each viewer's language",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Live translation transcribes what you say, translates it and turns it into speech while you stream. Each viewer chooses the language to hear you in from the Decatron extension and only that viewer hears it: your broadcast does not change and the rest of the audience is unaffected."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "The feature is optional and you turn it on. While nobody listens to a language, that language is neither translated nor voiced."
+          }
+        ]
+      },
+      {
+        "id": "piezas",
+        "title": "The three parts",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Part",
+              "Who uses it",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Decatron dashboard",
+                "The streamer",
+                "Turns the feature on, chooses languages and voices, and shows the live session."
+              ],
+              [
+                "Decatron Desktop",
+                "The streamer",
+                "Desktop app that captures your microphone and sends it to the server."
+              ],
+              [
+                "Decatron extension",
+                "The viewer",
+                "Adds the Decatron button to the Twitch player: viewers choose a language and hear the translation with captions."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "idiomas",
+        "title": "Languages",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "You can speak and translate between these languages: Spanish, English, Portuguese (Brazilian), French, German, Italian, Japanese, Korean and Russian. Each channel offers up to 4 target languages."
+          }
+        ]
+      },
+      {
+        "id": "espectador",
+        "title": "For viewers",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "They do not need an account. They open a channel that offers translation and the extension shows the available languages. They can lower the volume of your original voice while the translation plays, see captions only and replay the latest phrases."
+          },
+          {
+            "t": "p",
+            "x": "The extension page is at `/translate`."
+          }
+        ]
+      },
+      {
+        "id": "costo",
+        "title": "Cost",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It uses the streamer's credits: transcription, translation and voice are taken from their balance. Viewers pay nothing. The detail is in the manual with an account."
+          },
+          {
+            "t": "link",
+            "to": "translation-credits"
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the step-by-step setup is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "translation-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Live translation: getting started",
+    "subtitle": "Turn the feature on, install the app, link it and start the first session",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Before you start",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "An account with a credit balance above zero (or an unlimited account). Without balance the session does not start.",
+              "A Windows PC with a microphone: audio capture in Decatron Desktop is only implemented for Windows. On macOS and Linux the app installs and links, but warns that the microphone is not supported yet.",
+              "Dashboard permissions: viewing the configuration needs access to Settings; changing it, generating the link code, unlinking PCs and stopping a session need Full control."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "activar",
+        "title": "1 · Turn on and configure",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the dashboard open Funciones → Traducción en vivo (`/features/live-translation`). Turn on “Activar traducción en vivo”, choose the language you speak and the languages you offer, and save. The details of each option are on the configuration page."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If the panel shows “El servidor no tiene configurados los servicios de voz”, the feature cannot start yet on this installation."
+          },
+          {
+            "t": "link",
+            "to": "translation-config"
+          }
+        ]
+      },
+      {
+        "id": "instalar",
+        "title": "2 · Install Decatron Desktop",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the same panel, the “Decatron Desktop en tu PC” card has the “Descargar la app” button. It is also in Ajustes → Integraciones. The app downloads updates on its own."
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "3 · Link the app",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "In Ajustes → Integraciones press “Vincular app”: an 8-character code appears.",
+              "Type it in the app. It is valid for 10 minutes and can be used once.",
+              "The PC appears under “PCs vinculadas” with its last connection. From there you can also unlink it: the app stops connecting until you link it again."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "iniciar",
+        "title": "4 · Start the session",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Decatron Desktop open the “Traducción en vivo” module, choose the microphone and press “Iniciar”. In the dashboard you will see “Traduciendo ahora” with the time spoken, phrases, listeners and credits used. To stop, use “Detener” in the app or in the dashboard."
+          },
+          {
+            "t": "p",
+            "x": "On start, the bot announces in chat that the stream can be heard in other languages (you can turn that message off or change it)."
+          }
+        ]
+      },
+      {
+        "id": "problemas",
+        "title": "If something does not start",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Message",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "Activa la traducción en vivo desde el dashboard",
+                "The feature is off or you have not saved it yet."
+              ],
+              [
+                "Sin créditos. Compra un paquete en el dashboard para traducir en vivo",
+                "The balance is zero: the session does not start."
+              ],
+              [
+                "No hay idiomas destino configurados",
+                "Choose at least one language to offer."
+              ],
+              [
+                "No se pudo abrir el micrófono",
+                "Windows did not allow the chosen device to open; try another or press ↻ to reload the list."
+              ],
+              [
+                "El servidor está al máximo de canales traduciendo",
+                "There is a limit of channels translating at the same time on the server; try again later."
+              ],
+              [
+                "Conexión perdida; la sesión se cortó",
+                "The app lost its connection to the server while translating. Press “Iniciar” again once it reconnects."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If you start the translation from another linked PC while a session is running, the session moves to the new one and the previous one shows as “relevada” in the history."
+          }
+        ]
+      }
+    ]
+  },
+  "config": {
+    "title": "Live translation: configuration",
+    "subtitle": "Languages, voices, chat message and the volume of your original voice",
+    "sections": [
+      {
+        "id": "idiomas",
+        "title": "Languages",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "“Idioma en que hablas”: the one the server transcribes.",
+              "“Idiomas que ofreces”: up to 4, none of them the same as the one you speak. Valid languages are Spanish, English, Portuguese, French, German, Italian, Japanese, Korean and Russian."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "A language is only translated while someone listens to it. If a language has no listeners for 60 seconds, its process shuts down; it starts again when someone chooses it. With no listeners no voice is used, but transcription keeps running while the session is active."
+          }
+        ]
+      },
+      {
+        "id": "voces",
+        "title": "Voice engine and voices",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Engine",
+              "How it sounds",
+              "Cost"
+            ],
+            "rows": [
+              [
+                "Standard voice (Piper)",
+                "Runs on our server; takes a little longer to start speaking.",
+                "Taken from your standard voice quota, not from your credits."
+              ],
+              [
+                "Deepgram Aura",
+                "Premium: sounds better and responds sooner.",
+                "Credits, per character."
+              ],
+              [
+                "Fish Audio",
+                "Premium.",
+                "Credits, per character."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "You choose one voice per language, because voice catalogs are per language (an English voice does not speak Portuguese). With the standard voice you choose among the Piper voices installed on the server. If you leave a voice empty, the engine default is used."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "An account without an active plan can only use the standard voice: when saving, the panel sets the voice to Piper. Premium voices require a plan."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "If you choose a premium voice and run out of credits mid-stream, the session is not cut: the voice switches to standard on its own and the panel says so. Buy credits to return to the premium voice."
+          }
+        ]
+      },
+      {
+        "id": "anuncio",
+        "title": "Chat announcement",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "With “Anunciar en el chat al iniciar” the bot writes a message when the session starts. The default is: “🌐 Este stream se puede escuchar en EN, PT con la extensión Decatron Translate: https://decatron.net/translate”. You can write your own (up to 400 characters) and use `{languages}` (or `{idiomas}`) to insert the list of languages in capitals."
+          }
+        ]
+      },
+      {
+        "id": "fondo",
+        "title": "Original voice in the background",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It is the suggested volume of your voice while the translation plays, from 0 to 100 (15 by default). The extension uses it as the starting value and each viewer can change it."
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "Previous sessions",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "At the bottom of the panel is the list of your recent sessions with start, duration, time spoken, phrases, characters per language, peak listeners, credits and end. When a session ends, the reason is one of these:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Reason",
+              "Meaning"
+            ],
+            "rows": [
+              [
+                "detenida",
+                "You stopped it, from the app or the panel."
+              ],
+              [
+                "app desconectada",
+                "The app lost its connection."
+              ],
+              [
+                "sin créditos",
+                "The balance ran out."
+              ],
+              [
+                "sin audio",
+                "The server received no audio for 90 seconds."
+              ],
+              [
+                "relevada",
+                "Another linked PC started the translation."
+              ],
+              [
+                "reiniciada, servidor, error, admin",
+                "Cuts caused by a service restart, a technical failure or an administrator."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "apagar",
+        "title": "If you turn the feature off",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you turn translation off in the panel with the app connected, the session is cut. The app learns of activation and language changes without reconnecting."
+          }
+        ]
+      }
+    ]
+  },
+  "credits": {
+    "title": "Live translation: credits",
+    "subtitle": "What is charged, where it comes from and what happens when it runs out",
+    "sections": [
+      {
+        "id": "tres",
+        "title": "What is charged",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A session consumes three things. All of them come out of the same credit balance used by Speak Chat, alerts, tips and timers, except the standard voice."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Item",
+              "How it is measured",
+              "Where it comes from"
+            ],
+            "rows": [
+              [
+                "Transcription",
+                "Per second of audio sent while the session is active, whether you speak or not.",
+                "Credits"
+              ],
+              [
+                "Translation",
+                "Per translated phrase, by the actual AI cost with the platform margin.",
+                "Credits"
+              ],
+              [
+                "Voice",
+                "Per character of translated text, only in the languages someone listens to.",
+                "Standard: standard voice quota. Premium: credits."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The exact rates are set by the platform and may change. The current ones appear in the “cómo se gastan” table on the credits page (`/credits`)."
+          }
+        ]
+      },
+      {
+        "id": "bolsas",
+        "title": "Credit pools",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Monthly credits: granted by your plan each month and spent first.",
+              "Purchased credits: spent when the monthly ones run out and they do not expire with the month.",
+              "Standard voice: a separate quota per plan, in characters. It is not sold and does not use your credits. Today it is 1,000,000 characters per month on the free plan, 3,000,000 on Supporter, 6,000,000 on Premium and 10,000,000 on Fundador."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Unlimited accounts are not charged: the usage is recorded in the history with a value of 0."
+          }
+        ]
+      },
+      {
+        "id": "agotar",
+        "title": "When it runs out",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Situation",
+              "What happens"
+            ],
+            "rows": [
+              [
+                "No balance when starting",
+                "The session does not start and the app shows the reason."
+              ],
+              [
+                "Credits run out with a premium voice",
+                "The voice switches to standard and the session continues, with a notice in the panel."
+              ],
+              [
+                "Credits for transcription run out, or the standard voice quota",
+                "The session stops with the reason “sin créditos”."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Buy a package from the credits page to continue. There you also see usage by feature."
+          }
+        ]
+      },
+      {
+        "id": "ahorrar",
+        "title": "How to spend less",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Offer only the languages people actually ask for: without listeners there is no voice or translation.",
+              "Use the standard voice when you do not need the best quality.",
+              "Stop the session when you will not speak for a long time: transcription is charged while the session is active."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "desktop": {
+    "title": "Decatron Desktop",
+    "subtitle": "The desktop app that accompanies the bot: installation, linking and modules",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron Desktop is the bot's local companion for what can only be done on your PC. You link it once to your channel and it loads modules. It talks to the server over a single secure connection shared by all modules."
+          }
+        ]
+      },
+      {
+        "id": "modulos",
+        "title": "Modules",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Module",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Live translation",
+                "Captures your microphone and sends it to the server to transcribe, translate and dub it."
+              ],
+              [
+                "LoL Coach",
+                "Reads the League of Legends client in read-only mode and feeds the Live match and the coach."
+              ],
+              [
+                "Downloads",
+                "Downloads video or audio requested from Song Request → Descargas, using the streamer's IP."
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "live-overlay"
+          }
+        ]
+      },
+      {
+        "id": "instalar",
+        "title": "Install and update",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Download it from the dashboard (Live translation or Ajustes → Integraciones) or from the project releases page on GitHub.",
+              "On Windows it has its own installer, without the generic wizard.",
+              "It updates itself: it checks on start and every 6 hours, downloads in the background and applies the new version on close."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "Link and unlink",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The code is generated in Ajustes → Integraciones and typed into the app (valid for 10 minutes, single use). The app exchanges it for its own low-privilege token, which only works to open that connection; on Windows it is stored encrypted. You can have several PCs linked and unlink any of them from the dashboard."
+          },
+          {
+            "t": "link",
+            "to": "translation-setup"
+          }
+        ]
+      },
+      {
+        "id": "traduccion",
+        "title": "The translation module",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Element",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Microphone",
+                "Choose the device; ↻ reloads the list. Capture is shared, so it does not take the microphone away from OBS."
+              ],
+              [
+                "Voice indicator",
+                "Shows whether the app detects voice or silence. Audio is sent continuously while the session is active, so the server can close each phrase properly."
+              ],
+              [
+                "Iniciar / Detener",
+                "Starts or stops the session."
+              ],
+              [
+                "Iniciar solo al abrir la app",
+                "If translation is on in the dashboard, the session starts when the app opens and connects."
+              ],
+              [
+                "Sesión actual",
+                "Time spoken, phrases, listeners per language, credits used, balance and the last transcribed phrase."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "conexion",
+        "title": "Connection",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The app reconnects on its own if the network drops, waiting a little longer each time (1 to 30 seconds). If the connection is lost during a session, the session is cut and you must press “Iniciar” again."
+          }
+        ]
+      }
+    ]
+  },
+  "extension": {
+    "title": "Viewer extension",
+    "subtitle": "What your viewers see and hear, and how to install the extension",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Decatron extension adds a button next to the gear of the Twitch player. It opens a panel with one tab per module and a switch to turn each on or off. It is free, needs no account and only acts on `twitch.tv`."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Module",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Translation",
+                "Dubs the stream into the chosen language, with captions and the original voice in the background."
+              ],
+              [
+                "Emotes",
+                "Draws 7TV, BetterTTV, FrankerFaceZ and Decatron's own emotes in chat."
+              ],
+              [
+                "Channel points",
+                "Coming soon."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "instalar",
+        "title": "Installation",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The `/translate` page offers the Chrome and Firefox store buttons. Each button turns on when the store publishes the extension; while it says “próximamente”, it cannot be installed from that store yet."
+          },
+          {
+            "t": "p",
+            "x": "To try it earlier, it can be loaded in developer mode from the project's open source code (the `src/` folder): in `chrome://extensions` turn on “Modo de desarrollador” and use “Cargar descomprimida”."
+          }
+        ]
+      },
+      {
+        "id": "traduccion",
+        "title": "Listening to the translation",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Open a channel that has translation turned on.",
+              "Press the Decatron button and choose your language in the translation tab.",
+              "When the streamer is speaking, the translated voice plays over the original one and captions appear word by word."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "If the streamer is not speaking, the extension shows “esperando a que hable” after a few seconds of silence."
+          }
+        ]
+      },
+      {
+        "id": "opciones",
+        "title": "Viewer options",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Background volume: how loud the original voice is while the translation plays. The streamer suggests the starting value.",
+              "Catch-up mode: if the translation falls behind, the voice speeds up in steps without raising the pitch. Only if the delay keeps growing are the oldest phrases skipped; a notice shows over the video and they are marked in the history.",
+              "Captions only: nothing plays and the text appears at reading pace.",
+              "History: the latest phrases, with a button to replay those that still have their audio."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "privacidad",
+        "title": "Privacy",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The extension has no accounts, ads or tracking. For translation it sends decatron.net the name of the channel you are watching and the chosen language. Your chat text is only read in your browser, to draw emotes, and is never sent. The full policy is at `/translate#privacy`."
+          }
+        ]
+      }
+    ]
+  }
+}

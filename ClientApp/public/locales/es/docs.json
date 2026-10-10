@@ -59,7 +59,8 @@
     "song-request": "Song Request",
     "wheel": "Rueda y Sorteo",
     "tournament": "Torneos",
-    "moderation": "Moderación"
+    "moderation": "Moderación",
+    "translation": "Traducción en vivo"
   },
   "layout": {
     "documentation": "Documentación",
@@ -375,6 +376,30 @@
     "moderation-bots": {
       "title": "Lista de bots",
       "description": "Qué hace Decatron con los mensajes de otros bots"
+    },
+    "translation-overview": {
+      "title": "Traducción en vivo",
+      "description": "Tu stream doblado al idioma de cada espectador"
+    },
+    "translation-setup": {
+      "title": "Puesta en marcha",
+      "description": "Activar, instalar la app y vincularla"
+    },
+    "translation-config": {
+      "title": "Configuración",
+      "description": "Idiomas, voces y mensaje en el chat"
+    },
+    "translation-credits": {
+      "title": "Créditos",
+      "description": "Qué se cobra y qué pasa si se acaba"
+    },
+    "translation-desktop": {
+      "title": "Decatron Desktop",
+      "description": "La app de escritorio y sus módulos"
+    },
+    "translation-extension": {
+      "title": "Extensión para espectadores",
+      "description": "Cómo escuchan y ven la traducción"
     }
   },
   "microCommands": {

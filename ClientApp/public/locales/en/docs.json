@@ -59,7 +59,8 @@
     "song-request": "Song Request",
     "wheel": "Wheel and Raffle",
     "tournament": "Tournaments",
-    "moderation": "Moderation"
+    "moderation": "Moderation",
+    "translation": "Live translation"
   },
   "layout": {
     "documentation": "Documentation",
@@ -375,6 +376,30 @@
     "moderation-bots": {
       "title": "Bot list",
       "description": "What Decatron does with other bots' messages"
+    },
+    "translation-overview": {
+      "title": "Live translation",
+      "description": "Your stream dubbed into each viewer's language"
+    },
+    "translation-setup": {
+      "title": "Getting started",
+      "description": "Turn on, install the app and link it"
+    },
+    "translation-config": {
+      "title": "Configuration",
+      "description": "Languages, voices and chat message"
+    },
+    "translation-credits": {
+      "title": "Credits",
+      "description": "What is charged and what happens when it runs out"
+    },
+    "translation-desktop": {
+      "title": "Decatron Desktop",
+      "description": "The desktop app and its modules"
+    },
+    "translation-extension": {
+      "title": "Viewer extension",
+      "description": "How viewers hear and see the translation"
     }
   },
   "microCommands": {

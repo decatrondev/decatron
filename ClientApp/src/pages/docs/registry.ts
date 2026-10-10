@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
     Clock, Bell, Gift, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
-    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair,
+    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download,
 } from 'lucide-react';
 
 // REGISTRO ÚNICO de las páginas de documentación. De aquí salen el menú lateral, las tarjetas de
@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -95,6 +95,8 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'moderation-overview', scopes: pub, group: 'modules', path: 'moderation', icon: Shield, color: 'red' },
 
+    { id: 'translation-overview', scopes: pub, group: 'modules', path: 'translation', icon: Languages, color: 'blue' },
+
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
@@ -121,6 +123,13 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'moderation-raids', scopes: priv, group: 'moderation', path: 'moderation/raids', icon: Radio, color: 'red' },
     { id: 'moderation-commands', scopes: priv, group: 'moderation', path: 'moderation/commands', icon: Terminal, color: 'red' },
     { id: 'moderation-bots', scopes: priv, group: 'moderation', path: 'moderation/bots', icon: Users, color: 'red' },
+
+    // — Traducción en vivo, Desktop y extensión: manual con cuenta —
+    { id: 'translation-setup', scopes: priv, group: 'translation', path: 'translation/setup', icon: PlayCircle, color: 'blue' },
+    { id: 'translation-config', scopes: priv, group: 'translation', path: 'translation/config', icon: SlidersHorizontal, color: 'blue' },
+    { id: 'translation-credits', scopes: priv, group: 'translation', path: 'translation/credits', icon: Coins, color: 'blue' },
+    { id: 'translation-desktop', scopes: priv, group: 'translation', path: 'translation/desktop', icon: Download, color: 'blue' },
+    { id: 'translation-extension', scopes: priv, group: 'translation', path: 'translation/extension', icon: Monitor, color: 'blue' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

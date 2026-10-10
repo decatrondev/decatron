@@ -139,6 +139,7 @@ import SoundAlertsDoc from './pages/docs/private/features/SoundAlertsDoc';
 import TipsDoc from './pages/docs/private/features/TipsDoc';
 import ShoutoutDoc from './pages/docs/private/features/ShoutoutDoc';
 import { ModerationDoc } from './pages/docs/private/features/ModerationDoc';
+import { TranslationDoc } from './pages/docs/private/features/TranslationDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
@@ -292,6 +293,7 @@ function App() {
                     <Route path="wheel" element={<WheelDoc page="overview" scope="public" />} />
                     <Route path="tournaments" element={<TournamentDoc page="overview" scope="public" />} />
                     <Route path="moderation" element={<ModerationDoc page="overview" scope="public" />} />
+                    <Route path="translation" element={<TranslationDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -474,6 +476,11 @@ function App() {
                         <Route path="moderation/raids" element={<ModerationDoc page="raids" scope="private" />} />
                         <Route path="moderation/commands" element={<ModerationDoc page="commands" scope="private" />} />
                         <Route path="moderation/bots" element={<ModerationDoc page="bots" scope="private" />} />
+                        <Route path="translation/setup" element={<TranslationDoc page="setup" scope="private" />} />
+                        <Route path="translation/config" element={<TranslationDoc page="config" scope="private" />} />
+                        <Route path="translation/credits" element={<TranslationDoc page="credits" scope="private" />} />
+                        <Route path="translation/desktop" element={<TranslationDoc page="desktop" scope="private" />} />
+                        <Route path="translation/extension" element={<TranslationDoc page="extension" scope="private" />} />
                         <Route path="features/analytics" element={<AnalyticsDoc />} />
                         <Route path="features/followers" element={<FollowersDoc />} />
                         <Route path="features/ai" element={<AIDoc />} />

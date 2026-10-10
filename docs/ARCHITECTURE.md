@@ -327,6 +327,18 @@ Real-time communication uses three SignalR hubs plus one raw WebSocket:
 | `/hubs/songrequest` | `SongRequestHub` | Song Request player, overlays, dashboard and public queue | `Watch(channel)`, `RegisterPlayer(channel, key)`, plus player reports (`PlayerIdle`, `PlayerEnded`, `PlayerError`, `PlayerProgress`) |
 | `/api/desktop/ws` | `DesktopWsMiddleware` (raw WebSocket) | Decatron Desktop companion app, one connection multiplexed by channel (`IDesktopChannel` per module) | Linked with a code from the dashboard |
 
+### Live translation pipeline
+
+Live translation turns the streamer's microphone into dubbed speech per viewer language. The path of one session:
+
+1. **Capture.** Decatron Desktop sends 16 kHz mono PCM over the `translation` channel of `/api/desktop/ws` (`TranslationDesktopChannel`). `LiveTranslationSessionManager` holds one `ChannelSession` per channel; a new app replaces the previous session (end reason `replaced`).
+2. **Speech to text.** The session streams the audio to Deepgram (`SttModel`, `nova-3` by default) in the streamer's source language.
+3. **Translation.** Each finished phrase is translated by `LiveTranslator` through OpenRouter, falling back to Gemini when OpenRouter fails. A phrase that waited longer than `MaxStaleSeconds` is dropped instead of translated.
+4. **Text to speech.** One pipeline per target language is created only while viewers listen to it and shut down after `IdleLanguageStopSeconds` without listeners. Engines: Piper (standard, local), Deepgram Aura and Fish Audio (premium).
+5. **Delivery.** The viewer extension joins `/hubs/translation` with `Join(login, lang)` and receives `Status`, `SegmentStart`, `SegmentChunk` and `SegmentEnd` (plus `SegmentDropped` and `EngineFallback`). `GET /api/live-translation/public/{login}` gives it the languages, the suggested background volume and the `ClientTuning` values.
+
+Credits are charged in three places: audio seconds (`SttCreditsPerSecond` converted by the `live_stt` rate), each translation call (through `AiCreditGate`) and the synthesized characters. Piper draws from the separate standard quota; a premium engine without credits falls back to Piper, and a session without any credits ends with the reason `no_credits`. Rates live in `credit_rates` and are edited from Finance. A session ends with one of the reasons `stopped_by_user`, `disconnected`, `no_credits`, `timeout` (no audio for `IngestTimeoutSeconds`), `error`, `admin`, `replaced`, `restarted` or `server`, stored in `live_translation_sessions`.
+
 Most overlay traffic goes through the overlay hub:
 
 ```mermaid

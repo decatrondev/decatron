@@ -1336,7 +1336,7 @@
     "saveError": "Couldn't save.",
     "save": "Save",
     "title": "Live translation",
-    "subtitle": "Your voice is transcribed, translated and dubbed in real time. Each viewer picks their language from the Chrome extension; only they hear it.",
+    "subtitle": "Your voice is transcribed, translated and dubbed in real time. Each viewer picks their language from the Decatron extension; only they hear it.",
     "notConfigured": "The server has no voice services configured; the feature can't start yet.",
     "confirmStop": "Stop the current session? The app will stop sending audio until you press Start again.",
     "live": {

@@ -329,6 +329,18 @@ La comunicación en tiempo real usa tres hubs de SignalR y un WebSocket directo:
 | `/hubs/songrequest` | `SongRequestHub` | Reproductor, overlays, panel y cola pública de Song Request | `Watch(channel)`, `RegisterPlayer(channel, key)`, además de los reportes del reproductor (`PlayerIdle`, `PlayerEnded`, `PlayerError`, `PlayerProgress`) |
 | `/api/desktop/ws` | `DesktopWsMiddleware` (WebSocket directo) | App de escritorio Decatron Desktop, una conexión multiplexada por canal (un `IDesktopChannel` por módulo) | Vinculada con un código desde el panel |
 
+### Pipeline de traducción en vivo
+
+La traducción en vivo convierte el micrófono del streamer en voz doblada por idioma de espectador. El recorrido de una sesión:
+
+1. **Captura.** Decatron Desktop envía PCM mono de 16 kHz por el canal `translation` de `/api/desktop/ws` (`TranslationDesktopChannel`). `LiveTranslationSessionManager` guarda una `ChannelSession` por canal; una app nueva releva a la sesión anterior (motivo de fin `replaced`).
+2. **Voz a texto.** La sesión transmite el audio a Deepgram (`SttModel`, `nova-3` por defecto) en el idioma de origen del streamer.
+3. **Traducción.** Cada frase terminada la traduce `LiveTranslator` mediante OpenRouter, con Gemini de respaldo si OpenRouter falla. Una frase que esperó más de `MaxStaleSeconds` se descarta en lugar de traducirse.
+4. **Texto a voz.** Se crea un pipeline por idioma destino solo mientras hay espectadores escuchándolo y se apaga tras `IdleLanguageStopSeconds` sin oyentes. Motores: Piper (estándar, local), Deepgram Aura y Fish Audio (premium).
+5. **Entrega.** La extensión del espectador entra a `/hubs/translation` con `Join(login, lang)` y recibe `Status`, `SegmentStart`, `SegmentChunk` y `SegmentEnd` (además de `SegmentDropped` y `EngineFallback`). `GET /api/live-translation/public/{login}` le da los idiomas, el volumen de fondo sugerido y los valores de `ClientTuning`.
+
+Los créditos se cobran en tres puntos: los segundos de audio (`SttCreditsPerSecond` convertido con la tarifa `live_stt`), cada llamada de traducción (por `AiCreditGate`) y los caracteres sintetizados. Piper usa la cuota estándar aparte; un motor premium sin créditos cae a Piper, y una sesión sin ningún crédito termina con el motivo `no_credits`. Las tarifas están en `credit_rates` y se editan desde Finanzas. Una sesión termina con uno de estos motivos: `stopped_by_user`, `disconnected`, `no_credits`, `timeout` (sin audio durante `IngestTimeoutSeconds`), `error`, `admin`, `replaced`, `restarted` o `server`, guardado en `live_translation_sessions`.
+
 La mayor parte del tráfico de overlays pasa por el hub de overlays:
 
 ```mermaid
