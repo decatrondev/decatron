@@ -90,3 +90,13 @@ export function isValidJwtStructure(token: string): boolean {
     const parts = token.split('.');
     return parts.length === 3;
 }
+
+/** Claims del token como texto, sin lanzar nunca (token ausente o dañado = objeto vacío). Para pantallas que solo leen quién eres. */
+export function parseJwtClaims(token: string | null): Record<string, string> {
+    if (!token) return {};
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(window.atob(base64));
+    } catch { return {}; }
+}

@@ -131,6 +131,13 @@ select.ds-input { appearance: none; padding-right: 36px; background-image: url("
 
 /* ── Modal, aviso emergente, vacío ────────────────────── */
 .ds-modal { width: 100%; max-width: 440px; background: var(--ds-surface); border: var(--ds-border-w) solid var(--ds-border); border-radius: var(--ds-radius-lg); padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); }
+.ds-modal { position: relative; max-height: calc(100vh - 32px); overflow-y: auto; }
+.ds-modal-close { position: absolute; top: 14px; right: 14px; display: inline-flex; padding: 6px; border: 0; border-radius: var(--ds-radius); background: none; color: var(--ds-soft); cursor: pointer; }
+.ds-modal-close:hover { background: var(--ds-raised); color: var(--ds-text); }
+.ds-modal-close svg { width: 18px; height: 18px; }
+.ds-modal-title { padding-right: 32px; }
+.ds-modal--lg { max-width: 640px; }
+.ds-modal--xl { max-width: 860px; }
 .ds-modal-title { font-size: 18px; font-weight: 800; margin: 0 0 6px; }
 .ds-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 .ds-toast { display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--ds-surface); border: var(--ds-border-w) solid var(--ds-border); border-radius: var(--ds-radius); font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
@@ -154,3 +161,6 @@ select.ds-input { appearance: none; padding-right: 36px; background-image: url("
 
 /* Editor de valores (/admin/estilo): controles a la izquierda, vista previa a la derecha; en pantallas angostas se apilan. */
 @media (max-width: 1000px) { .design-editor-grid { grid-template-columns: minmax(0, 1fr) !important; } .design-editor-grid > div:last-child { position: static !important; } }
+
+/* Los componentes que se usan fuera de .ds-root (modal, toast, tabla, vacío, aviso) toman texto y tipografía de las variables. */
+.ds-modal, .ds-toast, .ds-table, .ds-empty, .ds-alert { color: var(--ds-text); font-family: var(--ds-font-ui); }

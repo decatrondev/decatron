@@ -1,5 +1,5 @@
 import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
-import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, X, XCircle } from 'lucide-react';
 import { dsVars, type DsTheme, type ResolvedDesign } from './tokens';
 import { getActiveDesign } from '../../design/runtime';
 import './ds.css';
@@ -108,22 +108,24 @@ export function Progress({ value }: { value: number }) {
 }
 export function Spinner() { return <span className="ds-spinner" role="status" aria-label="Cargando" />; }
 export function Eyebrow({ children }: { children: ReactNode }) { return <p className="ds-eyebrow">{children}</p>; }
-export function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
+export function Table({ head, rows, align }: { head: ReactNode[]; rows: ReactNode[][]; align?: ('left' | 'right' | 'center')[] }) {
+    const a = (j: number) => align?.[j] ? { textAlign: align[j] } as const : undefined;
     return (
         <div className="ds-table-wrap">
             <table className="ds-table">
-                <thead><tr>{head.map(h => <th key={h} scope="col">{h}</th>)}</tr></thead>
-                <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j}>{c}</td>)}</tr>)}</tbody>
+                <thead><tr>{head.map((h, j) => <th key={j} scope="col" style={a(j)}>{h}</th>)}</tr></thead>
+                <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} style={a(j)}>{c}</td>)}</tr>)}</tbody>
             </table>
         </div>
     );
 }
-export function Modal({ title, children, actions }: { title: string; children: ReactNode; actions: ReactNode }) {
-    return <div className="ds-modal" role="dialog" aria-label={title}><h3 className="ds-modal-title">{title}</h3><div className="ds-card-text">{children}</div><div className="ds-modal-actions">{actions}</div></div>;
+export function Modal({ title, children, actions, size = 'md', onClose }: { title: string; children: ReactNode; actions?: ReactNode; size?: 'md' | 'lg' | 'xl'; onClose?: () => void }) {
+    return <div className={cx('ds-modal', size !== 'md' && `ds-modal--${size}`)} role="dialog" aria-modal="true" aria-label={title}>{onClose && <button type="button" className="ds-modal-close" aria-label="Cerrar" onClick={onClose}><X aria-hidden /></button>}<h3 className="ds-modal-title">{title}</h3><div className="ds-card-text">{children}</div>{actions && <div className="ds-modal-actions">{actions}</div>}</div>;
 }
-export function Toast({ tone = 'ok', children }: { tone?: 'ok' | 'danger'; children: ReactNode }) {
-    const Icon = tone === 'ok' ? CheckCircle2 : XCircle;
-    return <div role="status" className="ds-toast"><Icon style={{ color: tone === 'ok' ? 'var(--ds-ok)' : 'var(--ds-danger)' }} aria-hidden />{children}</div>;
+export function Toast({ tone = 'ok', children }: { tone?: 'ok' | 'danger' | 'info'; children: ReactNode }) {
+    const Icon = tone === 'ok' ? CheckCircle2 : tone === 'danger' ? XCircle : Info;
+    const color = tone === 'ok' ? 'var(--ds-ok)' : tone === 'danger' ? 'var(--ds-danger)' : 'var(--ds-accent-text)';
+    return <div role="status" className="ds-toast"><Icon style={{ color }} aria-hidden />{children}</div>;
 }
 export function Empty({ icon, title, children, action }: { icon: ReactNode; title: string; children?: ReactNode; action?: ReactNode }) {
     return <div className="ds-empty">{icon}<p className="ds-card-title">{title}</p>{children && <p className="ds-card-text">{children}</p>}{action && <div style={{ marginTop: 16 }}>{action}</div>}</div>;
