@@ -1,8 +1,9 @@
 # Decatron v2 -- Technical Architecture
 
-> **Version:** 2.0
-> **Stack:** ASP.NET Core 8 / React 18 / PostgreSQL / SignalR / TwitchLib
-> **Last updated:** 2026-03-27
+> Español: [es/ARCHITECTURE.md](es/ARCHITECTURE.md)
+>
+> **Stack:** ASP.NET Core 8 / React 19 / PostgreSQL / SignalR / TwitchLib
+> **Last reviewed against the code:** 2026-10-10
 
 ---
 
@@ -22,7 +23,7 @@
 
 ## 1. System Overview
 
-Decatron is a multi-tenant Twitch bot and streaming toolkit. It provides chat commands, overlay widgets for OBS, event-driven alerts, a donation/tipping system, AI chat, moderation tools, and a full OAuth2 API for third-party developers. The platform serves three audiences: **streamers** (dashboard + bot), **viewers** (chat commands + donation pages), and **developers** (public OAuth2 API).
+Decatron is a multi-tenant bot and streaming toolkit for Twitch, with Kick support for chat and several modules. It provides chat commands, overlay widgets for OBS, event-driven alerts, a donation/tipping system, AI chat, moderation tools, song requests, wheels and raffles, tournaments, live chat translation, a Discord bot, and a full OAuth2 API for third-party developers. The platform serves three audiences: **streamers** (dashboard + bot + desktop companion), **viewers** (chat commands, public pages, browser extension), and **developers** (public OAuth2 API).
 
 ```mermaid
 graph TD
@@ -36,26 +37,33 @@ graph TD
 
     subgraph Backend ["ASP.NET Core 8 Backend"]
         API["REST API Controllers"]
-        SignalR["SignalR Hub<br/>(/hubs/overlay)"]
+        SignalR["SignalR Hubs<br/>(/hubs/overlay, /hubs/translation,<br/>/hubs/songrequest)"]
         Bot["Twitch Bot Service<br/>(TwitchLib IRC)"]
-        BGServices["Background Services<br/>(9 hosted services)"]
+        KickConn["Kick Connector<br/>(webhooks + API)"]
+        DiscordBot["Discord Bot<br/>(slash commands, levels)"]
+        BGServices["Background Services<br/>(25+ hosted services)"]
         CommandEngine["Command Engine<br/>(Built-in + Custom + Scripting)"]
     end
 
     subgraph Data ["Data Layer"]
-        PG["PostgreSQL<br/>(78 tables, 296 indexes)"]
+        PG["PostgreSQL<br/>(240+ tables)"]
         FileSystem["Local File System<br/>(uploads, clips, TTS cache)"]
     end
 
     subgraph External ["External Services"]
         TwitchAPI["Twitch Helix API"]
-        TwitchEventSub["Twitch EventSub<br/>(Webhooks)"]
+        TwitchEventSub["Twitch EventSub<br/>(conduit + WebSocket shards)"]
         PayPal["PayPal Orders API"]
         Spotify["Spotify Web API"]
         LastFM["Last.fm Scrobble API"]
         AWSPolly["AWS Polly (TTS)"]
         Gemini["Google Gemini API"]
         OpenRouter["OpenRouter API"]
+        KickAPI["Kick API"]
+        DiscordAPI["Discord API"]
+        Culqi["Culqi (card payments)"]
+        Riot["Riot / Epic APIs"]
+        Deepgram["Deepgram / FishAudio"]
     end
 
     Dashboard -->|HTTPS + JWT| API
@@ -72,7 +80,7 @@ graph TD
     BGServices --> TwitchAPI
     SignalR --> OBS
 
-    TwitchEventSub -->|POST /api/twitch/webhook| API
+    TwitchEventSub -->|WebSocket shards| BGServices
     API --> TwitchAPI
     API --> PayPal
     API --> Spotify
@@ -80,6 +88,11 @@ graph TD
     API --> AWSPolly
     API --> Gemini
     API --> OpenRouter
+    KickConn --> KickAPI
+    DiscordBot --> DiscordAPI
+    API --> Culqi
+    API --> Riot
+    API --> Deepgram
 ```
 
 ---
@@ -92,99 +105,49 @@ The backend follows a layered architecture split across multiple .NET projects w
 
 ```
 Decatron/
-+-- Program.cs                          # Composition root (431 lines)
-+-- Decatron.Core/                      # Domain layer (zero external deps)
-|   +-- Interfaces/                     # 13 service contracts (IAuthService, IBotService, etc.)
-|   +-- Models/                         # 70+ EF Core entities
-|   +-- Models/OAuth/                   # OAuth2 entities (App, Code, Token, Refresh)
-|   +-- Settings/                       # POCOs: JwtSettings, TwitchSettings, GachaSettings, AwsPollySettings
-|   +-- Services/                       # Domain services (ModerationService, FollowersService)
++-- Program.cs                          # Composition root (DI, auth, rate limits, pipeline, hubs)
++-- Decatron.Core/                      # Domain layer
+|   +-- Interfaces/                     # Service contracts (IAuthService, IBotService, ...)
+|   +-- Models/                         # EF Core entities
+|   +-- OAuth/                          # OAuthBearerHandler, RequireScopeAttribute, DecatronScopes
+|   +-- Hubs/                           # OverlayHub, TranslationHub
+|   +-- Settings/                       # POCOs: Jwt, Twitch, Kick, Gacha, AwsPolly, Email, WheelOfLuck
+|   +-- Services/                       # ModerationService, FollowersService, Moderation/
 |   +-- Scripting/                      # ScriptParser, ScriptValidator, ScriptExecutor, AST models
-|   +-- Functions/                      # BuiltinFunctions (roll, pick, count)
-|   +-- Resolvers/                      # VariableResolver (template variables)
-|   +-- Converters/                     # JsonStringConverter for JSONB columns
-|   +-- Helpers/                        # Utils, GameUtils, UtilsCrear
-|   +-- Exceptions/                     # ScriptParseException, ScriptExecutionException
+|   +-- Functions/, Resolvers/          # Script functions and template variables
+|   +-- Converters/, Helpers/, Exceptions/
 +-- Decatron.Data/                      # Persistence layer
-|   +-- DecatronDbContext.cs            # 1389 lines, 78 DbSets, Fluent API config
-|   +-- BotTokenRepository.cs           # IBotTokenRepository implementation
-|   +-- UserRepository.cs               # IUserRepository implementation
-+-- Decatron.Controllers/               # Primary API controllers
-|   +-- AuthController.cs               # Twitch OAuth login + JWT issuance
-|   +-- OAuthController.cs              # Public OAuth2 flows (authorize, token, revoke)
-|   +-- DeveloperController.cs          # OAuth app CRUD
-|   +-- TwitchWebhookController.cs      # EventSub webhook receiver (1663 lines)
-|   +-- TimerExtensionController.cs     # Timer extension CRUD + control (1617 lines)
-|   +-- EventAlertsController.cs        # Event alerts config + test (1323 lines)
-|   +-- TipsController.cs               # Donation system + PayPal integration
-|   +-- GoalsController.cs              # Stream goals
-|   +-- ModerationController.cs         # Banned words + strikes
-|   +-- SettingsController.cs           # Bot settings + user management
-|   +-- AnalyticsController.cs          # Analytics dashboard data
-|   +-- SupportersController.cs         # Subscription tiers + PayPal
-|   +-- GiveawayController.cs           # Giveaway sessions
-|   +-- RaffleController.cs             # Raffle system
-|   +-- NowPlayingController.cs         # Now Playing / Last.fm
-|   +-- SpotifyController.cs            # Spotify OAuth + status
-|   +-- ChannelSwitchController.cs      # Multi-channel context switching
-|   +-- GachaAuthController.cs          # GachaVerse account linking
-|   +-- LanguageController.cs           # i18n preferences
-|   +-- TtsController.cs                # TTS generation endpoint
-|   +-- UserPermissionsController.cs    # User permission queries
-|   +-- TimerBackupController.cs        # Timer backup/restore
-|   +-- TimersController.cs             # Message timers (auto-post)
-+-- Decatron.Default/                   # Default module (built-in commands + controllers)
-|   +-- Controllers/
-|   |   +-- ChatController.cs           # AI chat conversations
-|   |   +-- ChatAdminController.cs      # AI chat admin panel
-|   |   +-- FollowersController.cs      # Follower sync + management
-|   |   +-- ShoutoutController.cs       # Shoutout config + overlay
-|   |   +-- SoundAlertsController.cs    # Sound alerts config + upload
-|   |   +-- FollowAlertController.cs    # Legacy follow alerts
-|   |   +-- DecatronAIController.cs     # AI config per channel
-|   |   +-- DecatronAIAdminController.cs # AI global admin
-|   |   +-- TimerMediaController.cs     # Timer media upload
-|   |   +-- MicroCommandsController.cs  # Micro commands (game shortcuts)
-|   |   +-- GameController.cs           # Game/category management
-|   +-- Commands/                       # Built-in chat commands
-|       +-- HolaCommand, TitleCommand, TCommand, GameCommand, GCommand
-|       +-- ShoutoutCommand, DecatronAICommand, FollowageCommand
-|       +-- DStartCommand, DPauseCommand, DPlayCommand, DResetCommand,
-|           DStopCommand, DTimerCommand, DtiempoCommand, DcuandoCommand,
-|           DstatsCommand, DrecordCommand, DtopCommand
-+-- Decatron.Custom/                    # Custom module
-|   +-- Controllers/CustomCommandsController.cs
-|   +-- Commands/CreateCommand.cs       # !crear command
-+-- Decatron.Scripting/
-|   +-- Controllers/ScriptsController.cs
-|   +-- Services/ScriptingService.cs
-+-- Decatron.Services/                  # Application services (50+ classes)
-|   +-- AuthService.cs, OAuthService.cs, PermissionService.cs
-|   +-- TwitchBotService.cs, TwitchApiService.cs, EventSubService.cs
-|   +-- CommandService.cs, CommandMessagesService.cs, CommandTranslationService.cs
-|   +-- MessageSenderService.cs
-|   +-- TimerEventService.cs, TimerService.cs, TimerAutoEventService.cs
-|   +-- EventAlertsService.cs, TipsService.cs, GoalsService.cs
-|   +-- GiveawayService.cs, RaffleService.cs
-|   +-- NowPlayingService.cs, StreamStatusService.cs
-|   +-- SupportersService.cs
-|   +-- ClipDownloadService.cs, GameSearchService.cs
-|   +-- GeminiService.cs, OpenRouterService.cs, AIProviderService.cs
-|   +-- OverlayNotificationService.cs
-|   +-- TtsService.cs, LanguageService.cs, SettingsService.cs
-|   +-- ChatActivityService.cs, WatchTimeTrackingService.cs
-|   +-- *BackgroundService.cs (9 background services)
-+-- Decatron.OAuth/
-|   +-- Handlers/OAuthBearerHandler.cs  # Custom auth handler
-|   +-- Attributes/RequireScopeAttribute.cs
-|   +-- Scopes/DecatronScopes.cs        # 20 OAuth2 scopes
-+-- Decatron.Attributes/
-|   +-- RequirePermissionAttribute.cs   # Channel permission filter
-+-- Decatron.Middleware/
-|   +-- ChannelAccessMiddleware.cs      # Injects ChannelOwnerId claim
-+-- Hubs/
-|   +-- OverlayHub.cs                   # SignalR hub for overlays
-+-- Migrations/                         # Manual SQL migration scripts
+|   +-- DecatronDbContext.cs            # Fluent API configuration for all entities
+|   +-- BotTokenRepository.cs, UserRepository.cs
+|   +-- Encryption/                     # Encryption of stored tokens
+|   +-- Migrations/                     # Manual SQL migration scripts (Add_*.sql)
++-- Decatron.Controllers/               # Primary API controllers (auth, OAuth, timers, event alerts,
+|                                       #   tips, moderation, settings, analytics, supporters,
+|                                       #   giveaway/raffle, now playing, Spotify, TTS, Kick, Epic,
+|                                       #   Fortnite, game overlays, live translation, song request,
+|                                       #   tournaments (Tournament*Controller), wheel (partial
+|                                       #   classes), emotes, chat overlay, desktop, brand, design,
+|                                       #   admin controllers, public API)
++-- Decatron.Default/                   # Default module: controllers (chat, followers, shoutout, sound
+|   |                                   #   alerts, AI config, micro commands, game) and built-in commands
+|   +-- Commands/                       # Title, Game, Shoutout, Followage, !ia, Timer (D*), Gacha,
+|                                       #   Spirits, Raffle, Wheel commands, ...
++-- Decatron.Custom/                    # Custom commands controller and !crear
++-- Decatron.Scripting/                 # ScriptsController, ScriptingService
++-- Decatron.Discord/                   # Discord bot: slash commands (/decatron, /torneo), levels (XP),
+|                                       #   welcome images, live alerts, OAuth link, store expiration
++-- Decatron.Services/                  # Application services
+|   +-- Auth, OAuth, Permission, TwitchBot, TwitchApi, EventSub (conduit/WebSocket; webhook transport switched off)
+|   +-- Command, CommandMessages, CommandTranslation, MessageSender (+ Platforms/MessageSenderRouter)
+|   +-- Timer*, EventAlerts, Tips, Giveaway, Raffle, NowPlaying, StreamStatus, Supporters
+|   +-- SongRequest/, Tournament/, LiveTranslation/, Moderation/, AI/, Emotes/, ChatOverlay/,
+|   |   Pets/, GameData/ (Riot, LoL live), Platforms/Kick/, Desktop/, Finance/, Brand/, Design/,
+|   |   BotList/, Accounts/
+|   +-- Wheel*, Ruleta, SpeakChat, Tts*, Piper, Polly voices, Coin*, Billing, Invoices, Email
+|   +-- *BackgroundService / hosted services (see section 9)
++-- Decatron.Attributes/                # RequirePermission, RequireSystemOwner, TcgAccessExceptionFilter
++-- Decatron.Middleware/                # GlobalExceptionMiddleware, ChannelAccessMiddleware (not registered)
++-- Decatron.Business/                  # Placeholder project (no source files)
 +-- ClientApp/                          # React SPA (see Frontend section)
 ```
 
@@ -198,8 +161,8 @@ graph LR
         Infra["Infrastructure<br/>PostgreSQL (Npgsql/EF Core),<br/>Serilog, CORS, Sessions,<br/>SignalR, Swagger, Static Files"]
         Auth["Authentication<br/>JWT Bearer + OAuth2 Bearer<br/>(dual scheme)"]
         Repos["Repositories<br/>IUserRepository, IBotTokenRepository"]
-        Services["Application Services<br/>IAuthService, IBotService,<br/>ISettingsService, IOAuthService,<br/>IPermissionService, ILanguageService,<br/>IEventAlertsService, ITtsService,<br/>+ 40 more concrete services"]
-        BG["Background Services (9)<br/>BotTokenRefresh, UserTokenRefresh,<br/>EventSub, TimerBG, TimerRestore,<br/>GameCache, Giveaway, WatchTime,<br/>NowPlaying"]
+        Services["Application Services<br/>IAuthService, IBotService,<br/>ISettingsService, IOAuthService,<br/>IPermissionService, ILanguageService,<br/>IEventAlertsService, ITtsService,<br/>+ many more concrete services"]
+        BG["Background Services (25+)<br/>Token refresh, EventSub, Timers,<br/>Giveaway, WatchTime, NowPlaying,<br/>Tournaments, Spirits, Discord, ..."]
     end
 
     Config --> Auth
@@ -217,7 +180,10 @@ graph LR
     CORS["CORS Middleware"]
     Session["Session Middleware"]
     Auth["JWT / OAuth2<br/>Authentication"]
-    Channel["ChannelAccess<br/>Middleware"]
+    Err["GlobalException<br/>Middleware"]
+    Authz["Authorization"]
+    Rate["Rate Limiter<br/>(named policies)"]
+    WS["WebSockets +<br/>Desktop WS middleware"]
     Routing["Endpoint Routing"]
     Perm["RequirePermission<br/>Attribute Filter"]
     Scope["RequireScope<br/>Attribute Filter"]
@@ -226,7 +192,7 @@ graph LR
     Data["DecatronDbContext /<br/>Repository"]
     PG["PostgreSQL"]
 
-    Request --> CORS --> Session --> Auth --> Channel --> Routing
+    Request --> CORS --> Session --> Auth --> Err --> Authz --> Rate --> WS --> Routing
     Routing --> Perm --> Controller
     Routing --> Scope --> Controller
     Controller --> Service --> Data --> PG
@@ -234,9 +200,12 @@ graph LR
 
 **Key pipeline details:**
 - **Dual authentication**: JWT Bearer for dashboard sessions; custom `OAuthBearerHandler` for public API tokens
-- **ChannelAccessMiddleware**: Injects `ChannelOwnerId` claim from session or defaults to the authenticated user's own channel
-- **RequirePermission**: Three-level hierarchy -- `commands` (1) < `moderation` (2) < `control_total` (3) -- with 12 mapped sections
-- **RequireScope / RequireAnyScope**: Validates OAuth2 scopes (20 scopes across read/write/action categories)
+- **Active channel**: when a user manages another streamer's channel, `ChannelSwitchController` stores the active channel in the session (`ActiveChannelId`). Controllers resolve it themselves. `ChannelAccessMiddleware` (which would inject a `ChannelOwnerId` claim from that session value) exists in `Decatron.Middleware/` but is **not registered** in `Program.cs`; `RequirePermission` falls back to the authenticated user's own channel when the claim is absent
+- **RequirePermission**: Three-level hierarchy -- `commands` (1) < `moderation` (2) < `control_total` (3) -- mapped to 13 sections (see 5.3)
+- **RequireSystemOwner**: restricts the admin endpoints to system owners (platform admins)
+- **RequireScope / RequireAnyScope**: Validates OAuth2 scopes (25 scopes across read/write/action categories)
+- **Rate limiting**: named fixed-window policies for public endpoints (`tcg-images`, `tournament-register`, `tournament-embed`, `live-translation-public`, `live-translation-claim`)
+- **Desktop WebSocket**: `DesktopWsMiddleware` serves a single multiplexed WebSocket (`/api/desktop/ws`) for the Decatron Desktop companion app
 
 ---
 
@@ -246,14 +215,14 @@ graph LR
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | React 18 with TypeScript |
-| Routing | react-router-dom v6 (BrowserRouter) |
-| State Management | React Context (Permissions, Language, Toast) -- no Redux/Zustand |
+| Framework | React 19 with TypeScript, built with Vite 7 |
+| Routing | react-router-dom v7 (BrowserRouter) |
+| State Management | React Context (Brand, Toast, Permissions, Language) -- no Redux/Zustand |
 | HTTP Client | Axios with JWT interceptors (`services/api.ts`) |
 | Real-time | @microsoft/signalr |
 | Styling | Tailwind CSS |
 | Icons | lucide-react |
-| i18n | react-i18next + backend persistence |
+| i18n | i18next + react-i18next + http-backend (JSON per namespace in `public/locales/{es,en}`), language persisted in the backend |
 | UI Components | @headlessui/react |
 
 ### 3.2 Component Hierarchy
@@ -261,12 +230,13 @@ graph LR
 ```mermaid
 graph TD
     App["App.tsx<br/>(BrowserRouter)"]
+    Brand["BrandProvider"]
     Toast["ToastProvider"]
     Perm["PermissionsProvider"]
     Lang["LanguageProvider"]
     Routes["Routes"]
 
-    App --> Toast --> Perm --> Lang --> Routes
+    App --> Brand --> Toast --> Perm --> Lang --> Routes
 
     Routes --> Public["Public Routes<br/>(no auth)"]
     Routes --> Overlay["Overlay Routes<br/>(no Layout, for OBS)"]
@@ -279,15 +249,17 @@ graph TD
     Public --> Docs["/docs/* -- Public Docs"]
     Public --> OAuthPage["/oauth/authorize"]
     Public --> Gacha["/gacha/*"]
+    Public --> SRPub["/sr/:channel, /torneos/..., /emotes/..., /sprites"]
+    Public --> Translate["/translate"]
 
     Overlay --> ShoutoutOV["/overlay/shoutout"]
     Overlay --> SoundOV["/overlay/soundalerts"]
     Overlay --> TimerOV["/overlay/timer"]
     Overlay --> GiveawayOV["/overlay/giveaway"]
-    Overlay --> GoalsOV["/overlay/goals"]
     Overlay --> EventsOV["/overlay/event-alerts"]
     Overlay --> TipsOV["/overlay/tips"]
     Overlay --> NowPlayOV["/overlay/now-playing"]
+    Overlay --> MoreOV["/overlay/chat, songrequest, rueda,<br/>games, live, pets, speak-chat, gacha, torneo/:token"]
 
     Protected --> Layout["Layout.tsx<br/>(Sidebar + Nav)"]
     Layout --> Dashboard["/dashboard"]
@@ -303,49 +275,20 @@ graph TD
 
 ### 3.3 Routing Structure
 
-All routes defined in `App.tsx`:
+All routes are declared in `App.tsx` (about 200 `<Route>` entries). Access control is enforced by the backend (`RequirePermission`, `RequireSystemOwner`); the SPA additionally hides sections the user cannot use through `PermissionsContext`. Routes are grouped as follows:
 
-| Route | Component | Auth | Permission |
-|-------|-----------|------|-----------|
-| `/` | Index | No | -- |
-| `/login` | Login | No | -- |
-| `/supporters` | SupportersPublic | No | -- |
-| `/tip/:channelName` | TipsDonate | No | -- |
-| `/donate/:channelName` | TipsDonate | No | -- |
-| `/gacha/login` | GachaLogin | No | -- |
-| `/oauth/authorize` | OAuthAuthorizePage | No | -- |
-| `/docs/*` | DocsLayout | No | -- |
-| `/overlay/shoutout` | ShoutoutOverlay | No | -- |
-| `/overlay/soundalerts` | SoundAlertsOverlay | No | -- |
-| `/overlay/timer` | TimerOverlay | No | -- |
-| `/overlay/giveaway` | GiveawayOverlay | No | -- |
-| `/overlay/goals` | GoalsOverlay | No | -- |
-| `/overlay/event-alerts` | EventAlertsOverlay | No | -- |
-| `/overlay/tips` | TipsOverlay | No | -- |
-| `/overlay/now-playing` | NowPlayingOverlay | No | -- |
-| `/dashboard` | Dashboard | JWT | any |
-| `/commands/custom` | CustomCommands | JWT | commands |
-| `/commands/default` | DefaultCommands | JWT | commands |
-| `/commands/scripting` | ScriptingList | JWT | commands |
-| `/commands/scripting/edit/:id` | ScriptingEditor | JWT | commands |
-| `/commands/microcommands` | MicroCommands | JWT | commands |
-| `/followers` | Followers | JWT | commands |
-| `/features/moderation` | BannedWords | JWT | moderation |
-| `/features/giveaway` | GiveawayConfig | JWT | moderation |
-| `/features/tips` | TipsConfig | JWT | moderation |
-| `/features/decatron-ai` | DecatronAIConfig | JWT | control_total |
-| `/overlays/shoutout` | ShoutoutConfig | JWT | moderation |
-| `/overlays/soundalerts` | SoundAlerts | JWT | moderation |
-| `/overlays/timer` | TimerConfig | JWT | moderation |
-| `/overlays/event-alerts` | EventAlertsConfig | JWT | moderation |
-| `/overlays/goals` | GoalsConfig | JWT | moderation |
-| `/overlays/now-playing` | NowPlayingConfig | JWT | moderation |
-| `/analytics` | Analytics | JWT | moderation |
-| `/settings` | Settings | JWT | control_total |
-| `/admin/decatron-ai` | DecatronAIAdmin | JWT | system owner |
-| `/admin/supporters` | SupportersConfig | JWT | system owner |
-| `/admin/chat` | ChatAdminController | JWT | system owner |
-| `/developer/*` | DeveloperPortal | JWT | any |
+| Group | Routes | Auth |
+|-------|--------|------|
+| Landing and legal | `/`, `/login`, `/supporters`, `/terminos`, `/privacidad`, `/devoluciones`, `/libro-reclamaciones`, `/tip/privacy`, `/tip/terms` | No |
+| Public docs | `/docs/*` (about, getting started, features, FAQ, API, variables, default/custom/micro/scripting commands, overlays, Song Request, Wheel) | No |
+| Public viewer pages | `/tip/:channelName`, `/donate/:channelName`, `/commands/:channelName`, `/sr/:channelName`, `/sr/:channelName/p/:code`, `/torneos/:channelName/:editionSlug` (+ `/mi-panel`), `/embed/torneo/:channelName/:editionSlug/ranking`, `/emotes/global`, `/emotes/:channelName`, `/sprites`, `/sprites/:username`, `/gacha/*`, `/translate` | No |
+| OBS overlays (no layout) | `/overlay/{chat, shoutout, soundalerts, timer, giveaway, event-alerts, pets, tips, now-playing, songrequest, speak-chat, gacha, rueda, games, live}`, `/overlay/torneo/:token`, `/demo/game-overlay` | No (the overlay URL carries its own key/token) |
+| OAuth consent | `/oauth/authorize` | Session |
+| Dashboard | `/dashboard`, `/commands/*`, `/followers`, `/features/*` (timers, giveaways, sound alerts, AI, live translation, LoL coach, Decatron chat, tips, speak chat, moderation hub and its pages, emotes, bot list, torneos), `/overlays/*`, `/credits`, `/analytics`, `/settings`, `/discord/*` | JWT |
+| Personal area | `/me`, `/me/account`, `/me/coins`, `/me/billing`, `/me/invoices`, `/me/gacha`, `/me/spirits`, `/me/tcg/*` | JWT |
+| Private docs | `/dashboard/docs/*` (module manuals: Song Request, Wheel, commands, variables, overlays, ...) | JWT |
+| Developer portal | `/developer`, `/developer/apps/new`, `/developer/apps/:id/edit`, `/developer/docs` | JWT |
+| Admin | `/admin/*` (AI, chat, donations, supporters, channels, mods, economy, TCG, email, dev docs, TTS lab and credits, design guide `/admin/estilo`, finance, live translation, AI costs, project analysis, Fortnite, logos, global emotes, brand, game overlay promos) | JWT + system owner |
 
 ### 3.4 State Management Approach
 
@@ -363,7 +306,7 @@ graph TD
     end
 
     subgraph "Feature State (local useState / useReducer)"
-        Hooks["Custom Hooks per module<br/>useTimerConfig, useTimerPersistence,<br/>useGiveawayConfig, useGiveawayState,<br/>useEventAlertsConfig, useGoalsConfig,<br/>useAnalytics, etc."]
+        Hooks["Custom Hooks per module<br/>useTimerConfig, useTimerPersistence,<br/>useGiveawayConfig, useGiveawayState,<br/>useEventAlertsConfig,<br/>useAnalytics, etc."]
     end
 
     PermCtx --> Hooks
@@ -375,7 +318,16 @@ graph TD
 
 ## 4. Real-time Communication
 
-All real-time communication flows through a single SignalR hub at `/hubs/overlay`.
+Real-time communication uses three SignalR hubs plus one raw WebSocket:
+
+| Endpoint | Class | Clients | Join method(s) |
+|----------|-------|---------|----------------|
+| `/hubs/overlay` | `OverlayHub` (`Decatron.Core/Hubs`) | OBS browser sources and dashboard previews | `JoinChannel(channel)` (group `overlay_{channel}`), `RegisterOverlay`, `SetOverlayVariant`, `LeaveChannel` |
+| `/hubs/translation` | `TranslationHub` | Browser extension used by viewers for live translation | `Join(login, lang)`, `Leave()` (one group per channel and language) |
+| `/hubs/songrequest` | `SongRequestHub` | Song Request player, overlays, dashboard and public queue | `Watch(channel)`, `RegisterPlayer(channel, key)`, plus player reports (`PlayerIdle`, `PlayerEnded`, `PlayerError`, `PlayerProgress`) |
+| `/api/desktop/ws` | `DesktopWsMiddleware` (raw WebSocket) | Decatron Desktop companion app, one connection multiplexed by channel (`IDesktopChannel` per module) | Linked with a code from the dashboard |
+
+Most overlay traffic goes through the overlay hub:
 
 ```mermaid
 graph TD
@@ -384,11 +336,11 @@ graph TD
         TimerEvent["TimerEventService<br/>(bits, subs, raids, ...)"]
         EventAlerts["EventAlertsService"]
         NowPlaying["NowPlayingBGService<br/>(poll every 3s)"]
-        Goals["GoalsService"]
         Giveaway["GiveawayService"]
         Tips["TipsService"]
         Shoutout["ShoutoutCommand"]
-        SoundAlerts["TwitchWebhookController"]
+        SoundAlerts["SoundAlertTriggerService"]
+        Others["Wheel, Pets, Game overlays,<br/>Gacha, Chat overlay, ..."]
     end
 
     ONS["OverlayNotificationService<br/>(IHubContext)"]
@@ -398,37 +350,19 @@ graph TD
         Groups["Channel Groups<br/>overlay_{channel}"]
     end
 
-    subgraph "OBS Browser Sources"
-        TimerOV["Timer Overlay"]
-        EventOV["Event Alerts Overlay"]
-        NowPlayOV["Now Playing Overlay"]
-        GoalsOV["Goals Overlay"]
-        GiveawayOV["Giveaway Overlay"]
-        TipsOV["Tips Overlay"]
-        ShoutoutOV["Shoutout Overlay"]
-        SoundOV["Sound Alerts Overlay"]
-    end
+    OBS["OBS Browser Sources<br/>(one page per overlay)"]
 
     TimerBG --> ONS
     TimerEvent --> ONS
     EventAlerts --> ONS
     NowPlaying --> ONS
-    Goals --> ONS
     Giveaway --> ONS
     Tips --> ONS
     Shoutout --> ONS
     SoundAlerts --> ONS
+    Others --> ONS
 
-    ONS --> Hub --> Groups
-
-    Groups -->|TimerTick, StartTimer, PauseTimer,<br/>AddTime, TimerEventAlert| TimerOV
-    Groups -->|ShowEventAlert,<br/>EventAlertsConfigChanged| EventOV
-    Groups -->|NowPlayingUpdate,<br/>NowPlayingStop| NowPlayOV
-    Groups -->|GoalProgress, GoalCompleted,<br/>GoalMilestone| GoalsOV
-    Groups -->|GiveawayParticipantJoined| GiveawayOV
-    Groups -->|ShowTipAlert| TipsOV
-    Groups -->|ShowShoutout| ShoutoutOV
-    Groups -->|ShowSoundAlert| SoundOV
+    ONS --> Hub --> Groups --> OBS
 ```
 
 **SignalR Events (Server to Client):**
@@ -442,12 +376,17 @@ graph TD
 | `ShowEventAlert` | EventAlertsService | event type, tier, media, TTS URLs |
 | `EventAlertsConfigChanged` | EventAlertsController | -- |
 | `ShowShoutout` | ShoutoutCommand | user data, clip URL, config |
-| `ShowSoundAlert` | TwitchWebhookController | reward data, media file, config |
+| `ShowSoundAlert` | SoundAlertTriggerService | reward data, media file, config |
 | `ShowTipAlert` | TipsService | donor, amount, message, media |
-| `NowPlayingUpdate` / `NowPlayingStop` | NowPlayingBGService | track info, album art, progress |
-| `GoalProgress` / `GoalCompleted` / `GoalMilestone` | GoalsService | goal ID, current value |
+| `NowPlayingUpdate` / `NowPlayingStopped` | NowPlayingBackgroundService | track info, album art, progress |
 | `GiveawayParticipantJoined` | GiveawayService | participant info |
-| `ConfigurationChanged` | multiple controllers | -- |
+| `TimerStateUpdate`, `TimerCommandExecuted`, `HappyHourStarted` / `HappyHourEnded` | OverlayNotificationService, `HappyHourWatcherService` | timer state, command, happy hour window |
+| `WheelSpin`, `WheelRaffleJoin`, `WheelConfigChanged` | OverlayNotificationService | spin result, participant, config |
+| `GachaPull` | OverlayNotificationService | pull result |
+| `PetEvent`, `PetConfigChanged` | PetService | pet event, config |
+| `GameOverlayState`, `GameOverlayConfigChanged`, `LiveMatchState`, `LiveOverlayConfigChanged` | GameDataPollingService, GameOverlayConfigService, LiveOverlayService, LiveOverlaysController | match state, config |
+| `ChatMessage` | ChatOverlayService | chat line with badges and emotes |
+| `RefreshOverlay`, `ConfigurationChanged` | multiple controllers | -- |
 
 ---
 
@@ -464,7 +403,7 @@ sequenceDiagram
 
     User->>Frontend: Click "Login with Twitch"
     Frontend->>Backend: GET /api/auth/login?redirect=/dashboard
-    Backend->>Backend: Generate state (GUID + redirect)
+    Backend->>Backend: Generate signed state (HMAC, carries the redirect)
     Backend-->>Twitch: Redirect to authorize URL<br/>(client_id, scopes, state)
     Twitch-->>User: Twitch login page
     User->>Twitch: Approve scopes
@@ -472,10 +411,13 @@ sequenceDiagram
     Backend->>Twitch: POST /oauth2/token<br/>(exchange code for tokens)
     Twitch-->>Backend: access_token + refresh_token
     Backend->>Backend: Upsert user in PostgreSQL
-    Backend->>Backend: Generate JWT (HS256)<br/>Claims: UserId, TwitchId, Login,<br/>DisplayName, Email, ProfileImage
-    Backend->>Backend: Register 8 EventSub subscriptions<br/>(chat, follows, bits, subs, gift_subs,<br/>raids, hype_train, channel_points)
+    Backend->>Backend: Generate JWT (HS256)<br/>Claims: NameIdentifier, Name, GivenName,<br/>AuthProvider, TwitchId, KickId, DiscordId,<br/>ProfileImage, Email
+    Backend->>Backend: Ensure EventSub subscriptions in parallel<br/>(chat, channel points, follows, bits, subs, gift subs,<br/>raids, hype train, channel update)<br/>through the conduit (webhook transport is switched off)
     Backend->>Backend: Connect bot to channel (IRC)
-    Backend-->>Frontend: Redirect to /?token=JWT
+    Backend->>Backend: Keep the JWT in memory for 60 s behind a one-time code
+    Backend-->>Frontend: Redirect to /login?code=ONE_TIME_CODE
+    Frontend->>Backend: POST /api/auth/exchange (code)
+    Backend-->>Frontend: { token: JWT }
     Frontend->>Frontend: Store JWT in localStorage
     Frontend->>Backend: All subsequent requests with<br/>Authorization: Bearer JWT
 ```
@@ -509,329 +451,434 @@ sequenceDiagram
     Backend-->>App: User profile data
 ```
 
-**OAuth2 Scopes (20 total in 3 categories):**
+**OAuth2 Scopes (25 total in 3 categories, defined in `DecatronScopes.cs`):**
 
 | Category | Scopes |
 |----------|--------|
-| Read | `read:profile`, `read:commands`, `read:timers`, `read:followers`, `read:moderation`, `read:overlays`, `read:settings` |
-| Write | `write:commands`, `write:timers`, `write:moderation`, `write:overlays`, `write:settings` |
-| Action | `action:bot`, `action:shoutout`, `action:timer`, `action:giveaway`, `action:tts` |
+| Read (10) | `read:profile`, `read:timer`, `read:commands`, `read:alerts`, `read:giveaways`, `read:goals`, `read:analytics`, `read:sounds`, `read:games`, `read:stream` |
+| Write (6) | `write:timer`, `write:commands`, `write:alerts`, `write:giveaways`, `write:goals`, `write:sounds` |
+| Action (9) | `action:timer`, `action:alerts`, `action:chat`, `action:giveaway`, `action:goals`, `action:sounds`, `action:category`, `action:title`, `action:marker` |
+
+`action:chat` (sending messages to the chat) is the only scope flagged as requiring app verification (`VerificationRequiredScopes`).
 
 ### 5.3 Permission Hierarchy
 
+The channel owner always has `control_total`. Other users receive a level per channel (`user_channel_permissions`). `PermissionService` maps 13 sections to the minimum level required:
+
 ```mermaid
 graph BT
-    CMD["commands (1)<br/>Custom commands, default commands,<br/>micro commands, scripting, followers"]
-    MOD["moderation (2)<br/>Banned words, sound alerts, shoutout,<br/>event alerts, timer, tips, giveaway,<br/>goals, now playing, analytics"]
-    CTL["control_total (3)<br/>Settings, user management,<br/>Decatron AI config, bot control"]
+    CMD["commands (1)<br/>sections: commands, microcommands,<br/>title, game"]
+    MOD["moderation (2)<br/>sections: overlays, timers, raffles,<br/>giveaways, loyalty, chatfilters"]
+    CTL["control_total (3)<br/>sections: user_management,<br/>settings, spirits"]
 
     CMD --> MOD --> CTL
 ```
+
+Chat moderation (banned words, links, spam, raids, panic mode) has its own rules for who counts as streamer, moderator or Lead Moderator in `ModerationPermissions`; a user with `control_total` on the channel counts as the streamer there. Admin endpoints use `RequireSystemOwner`.
 
 ---
 
 ## 6. Database Schema
 
-PostgreSQL with 78 tables, 296 indexes, and 43 foreign keys. Below is a simplified ER diagram showing the core domain relationships.
+PostgreSQL with more than 240 tables (EF Core entities plus tables created by the SQL scripts in `Decatron.Data/Migrations/`). Below is an ER diagram of the core tables, generated from the production schema (primary keys, foreign keys and up to eight columns per table; the real tables have more columns).
 
 ```mermaid
 erDiagram
     users {
         bigint id PK
-        string twitch_id UK
+        bigint account_id FK
+        string twitch_id
         string login
         string display_name
         string email
-        string access_token
-        string refresh_token
         string profile_image_url
+        string offline_image_url
     }
 
     bot_tokens {
-        bigint id PK
-        string username UK
+        int Id PK
+        string bot_username
+        string bot_twitch_id
         string access_token
         string refresh_token
         string chat_token
-        datetime expires_at
+        datetime token_expiration
+        datetime created_at
     }
 
     system_admins {
         bigint id PK
         bigint user_id FK
+        string username
         string role
+        datetime created_at
     }
 
     system_settings {
         bigint id PK
-        bigint user_id FK
+        bigint user_id
         bool bot_enabled
-        string language
+        bool commands_enabled
+        int command_cooldown
+        bool timers_enabled
+        int timer_min_messages
+        bool auto_moderation_enabled
     }
 
     user_channel_permissions {
-        bigint id PK
-        bigint user_id FK
+        bigint Id PK
         bigint channel_owner_id FK
-        string permission_level
+        bigint granted_user_id FK
+        bigint granted_by FK
+        string access_level
+        bool is_active
+        datetime created_at
+        datetime updated_at
     }
 
     custom_commands {
-        bigint id PK
+        int Id PK
+        bigint user_id FK
         string channel_name
         string command_name
-        string response
-        string access_level
-    }
-
-    scripted_commands {
-        bigint id PK
-        string channel_name
-        string command_name
-        string script_content
+        text response
+        string restriction
+        bool is_active
+        string created_by
     }
 
     timer_configs {
-        bigint id PK
+        int id PK
         bigint user_id FK
-        text events_config
-        text display_config
-        text alerts_config
+        string channel_name
+        int default_duration
+        bool auto_start
+        jsonb display_config
+        jsonb progressbar_config
+        jsonb style_config
     }
 
     timer_states {
-        bigint id PK
+        int id PK
+        bigint user_id FK
         string channel_name
         string status
-        bigint remaining_seconds
+        int time_remaining
+        int total_time
         datetime started_at
+        datetime paused_at
     }
 
     timer_sessions {
-        bigint id PK
+        int id PK
+        bigint user_id FK
         string channel_name
         datetime started_at
         datetime ended_at
-        bigint total_time_added
+        int initial_duration
+        int total_added_time
+        datetime created_at
     }
 
     timer_event_logs {
-        bigint id PK
-        bigint session_id FK
+        int id PK
+        int timer_session_id FK
+        string channel_name
         string event_type
         string username
-        int amount
-        int seconds_added
+        string user_id
+        int time_added
+        string details
     }
 
     event_alerts_configs {
-        bigint id PK
+        int id PK
         bigint user_id FK
         string channel_name
-        text config_json
+        jsonb config_json
+        bool is_enabled
+        datetime created_at
+        datetime updated_at
     }
 
     sound_alert_configs {
         bigint id PK
+        bigint user_id FK
         string username
-        text config_json
+        int global_volume
+        bool global_enabled
+        int duration
+        jsonb text_lines
+        jsonb styles
     }
 
     sound_alert_files {
         bigint id PK
+        bigint user_id FK
         string username
         string reward_id
+        string reward_title
+        string file_type
         string file_path
+        string file_name
     }
 
     shoutout_configs {
         bigint id PK
+        bigint user_id FK
         string username
-        text text_lines
-        text styles
+        int duration
+        int cooldown
+        bool show_debug_timer
+        string shoutout_text
+        jsonb text_lines
     }
 
     tips_configs {
-        bigint id PK
+        int id PK
         bigint user_id FK
+        string channel_name
+        bool is_enabled
         string paypal_email
+        bool paypal_connected
         string currency
-        text alert_config
+        decimal min_amount
     }
 
     tips_history {
-        bigint id PK
+        int id PK
+        bigint user_id FK
         string channel_name
         string donor_name
+        string donor_email
         decimal amount
+        string currency
         string message
     }
 
-    goals_configs {
-        bigint id PK
-        bigint user_id FK
-        text goals
-        text overlay_config
-    }
-
     now_playing_configs {
-        bigint id PK
+        int id PK
         bigint user_id FK
+        string channel_name
+        bool is_enabled
         string provider
         string lastfm_username
-        string spotify_access_token
-        string spotify_refresh_token
+        text spotify_access_token
+        text spotify_refresh_token
     }
 
     giveaway_configs {
-        bigint id PK
-        string twitch_id
-        text weights_config
-        text requirements_config
+        int id PK
+        string channel_id
+        string name
+        string prize_name
+        text prize_description
+        string duration_type
+        int duration_minutes
+        int max_participants
     }
 
     giveaway_sessions {
-        bigint id PK
-        bigint config_id FK
+        int id PK
+        int config_id FK
+        string channel_id
+        string name
+        string prize_name
+        text prize_description
+        jsonb config_snapshot
         string status
-        datetime started_at
     }
 
     giveaway_participants {
-        bigint id PK
-        bigint session_id FK
+        int id PK
+        int session_id FK
+        string user_id
         string username
-        decimal weight
-        string ip_hash
+        string display_name
+        bool is_follower
+        bool is_subscriber
+        smallint subscription_tier
     }
 
     giveaway_winners {
-        bigint id PK
-        bigint session_id FK
-        bigint participant_id FK
-        string status
+        int id PK
+        int session_id FK
+        int participant_id FK
+        int position
+        bool is_backup
+        datetime selected_at
+        bool has_responded
+        datetime responded_at
     }
 
     raffles {
-        bigint id PK
+        int id PK
         bigint created_by FK
+        bigint user_id FK
+        string channel_name
         string name
+        string description
+        int winners_count
         string status
     }
 
     moderation_configs {
         bigint id PK
         bigint user_id
-        text immunity_config
-        text strike_config
+        string channel_name
+        string vip_immunity
+        string sub_immunity
+        jsonb whitelist_users
+        string warning_message
+        string strike_expiration
     }
 
     banned_words {
         bigint id PK
         bigint user_id
+        string channel_name
         string word
         string severity
+        int detections
+        datetime created_at
+        datetime updated_at
     }
 
     oauth_applications {
-        bigint id PK
-        bigint user_id FK
-        string client_id UK
-        string client_secret_hash
+        uuid id PK
+        bigint owner_id FK
         string name
-        text redirect_uris
+        text description
+        string client_id
+        string client_secret_hash
+        ARRAY redirect_uris
+        ARRAY scopes
     }
 
     oauth_access_tokens {
-        bigint id PK
+        uuid id PK
+        uuid application_id FK
         bigint user_id FK
-        bigint application_id FK
-        string token_hash
+        string token
+        ARRAY scopes
         datetime expires_at
+        bool revoked
+        string revoked_reason
     }
 
     decatron_ai_global_config {
         bigint id PK
         bool enabled
-        string provider
         string model
+        int max_tokens
         text system_prompt
+        string response_prefix
+        int global_cooldown_seconds
+        int min_channel_cooldown_seconds
     }
 
     decatron_ai_channel_permissions {
         bigint id PK
+        bigint user_id FK
         string channel_name
         bool enabled
         bool can_configure
+        text notes
+        datetime created_at
+        datetime updated_at
     }
 
     channel_followers {
         bigint id PK
-        string channel_id
-        string follower_id
-        int is_following
+        string broadcaster_id
+        string broadcaster_name
+        string user_id
+        string user_name
+        string user_login
         datetime followed_at
+        datetime account_created_at
     }
 
-    users ||--o{ system_admins : "has"
-    users ||--o{ system_settings : "has"
-    users ||--o{ user_channel_permissions : "grants"
-    users ||--o{ timer_configs : "owns"
-    users ||--o{ event_alerts_configs : "owns"
-    users ||--o{ tips_configs : "owns"
-    users ||--o{ goals_configs : "owns"
-    users ||--o{ now_playing_configs : "owns"
-    users ||--o{ oauth_applications : "creates"
-    users ||--o{ oauth_access_tokens : "has"
-    users ||--o{ raffles : "creates"
-    oauth_applications ||--o{ oauth_access_tokens : "issues"
-    giveaway_configs ||--o{ giveaway_sessions : "runs"
-    giveaway_sessions ||--o{ giveaway_participants : "has"
-    giveaway_sessions ||--o{ giveaway_winners : "selects"
-    giveaway_participants ||--o{ giveaway_winners : "becomes"
-    timer_sessions ||--o{ timer_event_logs : "records"
+    giveaway_configs ||--o{ giveaway_sessions : "config_id"
+    giveaway_participants ||--o{ giveaway_winners : "participant_id"
+    giveaway_sessions ||--o{ giveaway_participants : "session_id"
+    giveaway_sessions ||--o{ giveaway_winners : "session_id"
+    oauth_applications ||--o{ oauth_access_tokens : "application_id"
+    timer_sessions ||--o{ timer_event_logs : "timer_session_id"
+    users ||--o{ custom_commands : "user_id"
+    users ||--o{ decatron_ai_channel_permissions : "user_id"
+    users ||--o{ event_alerts_configs : "user_id"
+    users ||--o{ now_playing_configs : "user_id"
+    users ||--o{ oauth_access_tokens : "user_id"
+    users ||--o{ oauth_applications : "owner_id"
+    users ||--o{ raffles : "created_by"
+    users ||--o{ raffles : "user_id"
+    users ||--o{ shoutout_configs : "user_id"
+    users ||--o{ sound_alert_configs : "user_id"
+    users ||--o{ sound_alert_files : "user_id"
+    users ||--o{ system_admins : "user_id"
+    users ||--o{ timer_configs : "user_id"
+    users ||--o{ timer_sessions : "user_id"
+    users ||--o{ timer_states : "user_id"
+    users ||--o{ tips_configs : "user_id"
+    users ||--o{ tips_history : "user_id"
+    users ||--o{ user_channel_permissions : "channel_owner_id"
+    users ||--o{ user_channel_permissions : "granted_by"
+    users ||--o{ user_channel_permissions : "granted_user_id"
 ```
 
 **Notable schema characteristics:**
 - Configuration tables store complex settings as JSONB blobs (`config_json`, `events_config`, `display_config`)
-- Some tables use `username` (string) as the relation key instead of `user_id` (FK) -- notably `shoutout_configs`, `sound_alert_configs`, `sound_alert_files`
-- 5 tables exist in the database but are not mapped in EF Core (`supporter_payments`, `supporters_page_config`, `tier_features`, `tier_history`, `user_subscription_tiers`) -- managed via raw Npgsql
-- Manual SQL migrations (not EF Core Migrations)
+- Some older tables identify the channel by `username` (string) as well as by `user_id` -- for example `shoutout_configs`, `sound_alert_configs` and `sound_alert_files`
+- A few tables are accessed with raw Npgsql instead of EF Core entities (for example `supporters_page_config` and `user_subscription_tiers`)
+- Manual SQL migrations (not EF Core Migrations): scripts in `Decatron.Data/Migrations/`, applied by hand before the backend is restarted
 - snake_case column naming convention via Fluent API
 
 ---
 
 ## 7. Module Map
 
-All 21 modules identified in the codebase audit (Song Request, #22, and Wheel, #23, were added later):
+Modules 01-21 come from the original codebase audit; later modules are appended below it. Line counts were removed because they go stale quickly. The Key Backend / Frontend Files columns list entry points, not every file.
 
-| # | Module | Description | Key Backend Files | Key Frontend Files | Approx. Lines |
-|---|--------|-------------|-------------------|-------------------|---------------|
-| 01 | **Core / Configuration** | Application entry point, DI composition, settings POCOs, 13 interfaces, 70+ EF entity models, middleware | `Program.cs`, `Decatron.Core/*`, `ChannelAccessMiddleware.cs` | -- | ~4,700 |
-| 02 | **Authentication & OAuth** | Twitch OAuth login, JWT issuance, public OAuth2 API (PKCE), Gacha auth, permissions | `AuthController`, `OAuthController`, `DeveloperController`, `GachaAuthController`, `AuthService`, `OAuthService`, `PermissionService` | `Login.tsx`, `OAuthAuthorizePage.tsx`, `DeveloperPortal.tsx` | ~3,700 |
-| 03 | **Bot / Chat** | Twitch IRC bot, command engine (built-in + custom + scripted), AI chat conversations, moderation integration | `TwitchBotService`, `CommandService`, `MessageSenderService`, `ChatController`, `ChatAdminController`, `CustomCommandsController` | -- | ~4,260 |
-| 04 | **Twitch API / EventSub** | Helix API wrapper, EventSub webhook receiver, token refresh services, channel switching | `TwitchWebhookController` (1663 lines), `EventSubService` (1206), `TwitchApiService` (858), `*TokenRefresh*` | -- | ~4,710 |
-| 05 | **Timer Extension** | Extensible stream timer (subathon-style), message timers, events, schedules, happy hours, backups, templates, media, overlay | `TimerExtensionController` (1617), `TimerEventService` (1639), `TimerBackgroundService`, `TimerService` | `TimerOverlay.tsx` (985), `TimerConfig.tsx`, 23+ tab/hook files | ~16,500 |
-| 06 | **Event Alerts** | Visual/audio alerts for Twitch events (follow, bits, sub, raid, hype train), tier system, variants, TTS, overlay editor | `EventAlertsController` (1323), `EventAlertsService` (1115), `FollowAlertController` | `EventAlertsOverlay.tsx` (914), `EventAlertsConfig.tsx` (1165), 20+ extension files | ~11,900 |
-| 07 | **Sound Alerts** | Channel Points reward alerts with media upload, visual editor, overlay | `SoundAlertsController` (1271) | `SoundAlerts.tsx` (1988), `SoundAlertsOverlay.tsx` (848) | ~4,100 |
-| 08 | **Tips / Donations** | PayPal integration, donation page, tip alerts (basic/timer mode), overlay, statistics | `TipsController` (876), `TipsService` (834) | `TipsConfig.tsx` (1254), `TipsDonate.tsx`, `TipsOverlay.tsx` (932), `TipsOverlayEditor.tsx` (1083) | ~6,300 |
-| 09 | **Supporters** | Subscription tiers (Supporter/Premium/Founder), PayPal checkout, discount codes, admin panel | `SupportersController` (928), `SupportersService` (540) | `SupportersConfig.tsx` (1851), `SupportersPublic.tsx` (1046) | ~4,400 |
-| 10 | **Giveaway / Raffle** | Weighted giveaways with anti-cheat, timer integration, raffle system, background monitoring | `GiveawayController` (803), `GiveawayService` (1303), `GiveawayBackgroundService`, `RaffleController` (764), `RaffleService` (601) | 14 frontend files (types, hooks, tabs) | ~7,400 |
-| 11 | **Goals** | Stream goals (subs, bits, follows, combined), milestones, timer integration, overlay | `GoalsController` (276), `GoalsService` (515) | `GoalsConfig.tsx` tabs, `GoalsPreview.tsx`, `GoalsOverlay.tsx` (557) | ~6,400 |
-| 12 | **Shoutout** | Visual shoutout overlay with clip download (yt-dlp), config, blacklist/whitelist | `ShoutoutController` (521), `ClipDownloadService` (266) | `ShoutoutConfig.tsx` (1815), `ShoutoutOverlay.tsx` (632) | ~3,200 |
-| 13 | **Now Playing** | Spotify and Last.fm integration, background polling, tier-gated features, cupo system | `NowPlayingController` (461), `SpotifyController` (233), `NowPlayingService` (715), `NowPlayingBackgroundService` (417), `StreamStatusService` (153) | `NowPlayingConfig.tsx` (2495), `NowPlayingOverlay.tsx` (958) | ~5,400 |
-| 14 | **Moderation** | Banned words with wildcards, strike escalation, immunity system, import/export | `ModerationController` (607), `ModerationService` (561) | `BannedWords.tsx` (889) | ~2,100 |
-| 15 | **Followers / Analytics** | Follower sync from Twitch API, unfollow detection, analytics dashboard (6 tabs), watch time tracking, chat activity | `FollowersController` (556), `FollowersService` (457), `AnalyticsController` (672), `WatchTimeTrackingService`, `ChatActivityService` | `Followers.tsx` (1116), `Analytics.tsx` + 6 tabs | ~4,900 |
-| 16 | **Scripting** | Custom DSL (set/when/send), parser, validator, executor, micro commands, game search/cache | `ScriptsController` (524), `ScriptingService` (376), `ScriptParser` (429), `ScriptExecutor` (397), `MicroCommandsController` (542), `GameSearchService`, `GameCacheUpdateService` | `ScriptingEditor.tsx`, `ScriptingList.tsx`, `MicroCommands.tsx`, `CustomCommands.tsx`, `DefaultCommands.tsx` | ~6,700 |
-| 17 | **Decatron AI** | AI chat via Google Gemini / OpenRouter with fallback, `!ia` command, per-channel config, admin panel | `DecatronAIController` (336), `DecatronAIAdminController` (414), `GeminiService` (179), `OpenRouterService` (176), `AIProviderService` (111), `DecatronAICommand` (417) | `DecatronAIConfig.tsx` (493), `DecatronAIAdmin.tsx` (752), `AIDoc.tsx` (287) | ~3,300 |
-| 18 | **Settings** | Bot settings, user management, language preferences, TTS generation (AWS Polly), user permissions | `SettingsController` (432), `SettingsService` (433), `LanguageController` (126), `TtsController` (78), `TtsService` (157) | -- | ~1,600 |
-| 19 | **SignalR / Overlays** | Real-time hub, overlay notification service (consumed by 32 files) | `OverlayHub.cs` (132), `OverlayNotificationService.cs` (379) | -- | ~510 |
-| 20 | **Database** | EF Core DbContext (78 DbSets), repositories, manual SQL migrations | `DecatronDbContext.cs` (1389), `BotTokenRepository.cs`, `UserRepository.cs`, 7 migration scripts | -- | ~2,100 |
-| 21 | **Frontend Shared** | Router, API service, contexts, hooks, Layout, overlays, docs, developer portal, Gacha pages | `App.tsx`, `api.ts`, `PermissionsContext.tsx`, `Layout.tsx`, 20+ shared components, 8 overlay pages | All shared frontend | ~8,500 |
-| 22 | **Song Request** | Chat-driven song queue on Twitch and Kick: link/search resolvers (YouTube, SoundCloud; Spotify, Apple Music and Deezer links are matched on YouTube), request modes, filters, blacklists, review inbox, collaborative playlists with voting, listening stats, per-tier limits, public queue and playlist pages, OBS player overlay | `SongRequestController`, `Decatron.Services/SongRequest/*` (`SongResolverService`, `SongRequestChatHandler`, `SongRequestService`, `SongRequestLibraryService`, `SongRequestHub`, `SongRequestTierLimits`), Decatron Desktop channels `SongImportDesktopChannel` and `DownloadsDesktopChannel` | `SongRequestConfig.tsx`, `song-request-extension/`, `SongRequestOverlay.tsx`, `SongRequestPublicPage.tsx`, `SongRequestPlaylistPage.tsx` | -- |
-| 23 | **Wheel and Raffle** | Prize wheels and raffle wheels: weighted segments with stock, prize delivery (free spins, gacha pulls, timer time, timeout, sound alerts, manual messages) with a pending-deliveries queue, credit wallets per channel fed by bits, gifted subs, donations, channel points and deca coins, anti-farming caps and spin rules, raffles with tickets, requirements and weights, spin history and statistics, per-tier limits, public overlay. Includes the separate `!ruleta` timeout mini-game | `WheelController` (partial classes: Segments, Spins, Deliveries, History, Messages, Overlay, Raffle, Credits), `WheelService` (+ Delivery, Rules, Spins), `WheelWalletService`, `WheelRaffleService`, `Decatron.Default/Commands/WheelCommands.cs`, `RuletaCommand`, `RuletaController`, `RuletaBackgroundService` | `WheelConfig.tsx`, `features/wheel/`, `WheelOverlay.tsx`, `commands/RuletaConfig.tsx` | -- |
-
-**Estimated total codebase:** ~120,000+ lines across backend and frontend.
+| # | Module | Description | Key Backend Files | Key Frontend Files |
+|---|--------|-------------|-------------------|-------------------|
+| 01 | **Core / Configuration** | Application entry point, DI composition, settings POCOs, service interfaces, EF entity models, middleware | `Program.cs`, `Decatron.Core/*`, `GlobalExceptionMiddleware.cs` | -- |
+| 02 | **Authentication & OAuth** | Twitch, Kick and Discord login, JWT issuance, public OAuth2 API (PKCE), Gacha auth, permissions | `AuthController`, `OAuthController`, `DeveloperController`, `GachaAuthController`, `AuthService`, `OAuthService`, `PermissionService` | `Login.tsx`, `OAuthAuthorizePage.tsx`, `DeveloperPortal.tsx` |
+| 03 | **Bot / Chat** | Twitch IRC bot, command engine (built-in + custom + scripted), AI chat conversations, moderation integration | `TwitchBotService`, `CommandService`, `MessageSenderService`, `ChatController`, `ChatAdminController`, `CustomCommandsController` | -- |
+| 04 | **Twitch API / EventSub** | Helix API wrapper, EventSub (conduit with WebSocket shards; the old webhook endpoint answers 200 and processes nothing), token refresh services, channel switching | `TwitchWebhookController`, `EventSubService`, `TwitchApiService`, `*TokenRefresh*` | -- |
+| 05 | **Timer Extension** | Extensible stream timer (subathon-style), message timers, events, schedules, happy hours, backups, templates, media, overlay | `TimerExtensionController`, `TimerEventService`, `TimerBackgroundService`, `TimerService` | `TimerOverlay.tsx`, `TimerConfig.tsx`, 23+ tab/hook files |
+| 06 | **Event Alerts** | Visual/audio alerts for Twitch events (follow, bits, sub, raid, hype train), tier system, variants, TTS, overlay editor | `EventAlertsController`, `EventAlertsService`, `FollowAlertController` | `EventAlertsOverlay.tsx`, `EventAlertsConfig.tsx`, 20+ extension files |
+| 07 | **Sound Alerts** | Channel Points reward alerts with media upload, visual editor, overlay | `SoundAlertsController` | `SoundAlerts.tsx`, `SoundAlertsOverlay.tsx` |
+| 08 | **Tips / Donations** | PayPal integration, donation page, tip alerts (basic/timer mode), overlay, statistics | `TipsController`, `TipsService` | `TipsConfig.tsx`, `TipsDonate.tsx`, `TipsOverlay.tsx`, `TipsOverlayEditor.tsx` |
+| 09 | **Supporters** | Subscription tiers (Supporter/Premium/Founder), PayPal checkout, discount codes, admin panel | `SupportersController`, `SupportersService` | `SupportersConfig.tsx`, `SupportersPublic.tsx` |
+| 10 | **Giveaway / Raffle** | Weighted giveaways with anti-cheat, timer integration, raffle system, background monitoring | `GiveawayController`, `GiveawayService`, `GiveawayBackgroundService`, `RaffleController`, `RaffleService` | 14 frontend files (types, hooks, tabs) |
+| 12 | **Shoutout** | Visual shoutout overlay with clip download (yt-dlp), automatic shoutouts, permissions | `ShoutoutController`, `ClipDownloadService` | `ShoutoutConfig.tsx`, `ShoutoutOverlay.tsx` |
+| 13 | **Now Playing** | Spotify and Last.fm integration, background polling every 3 seconds, Spotify slot system (the plan only orders the waiting list), overlay editor | `NowPlayingController`, `SpotifyController`, `NowPlayingService`, `NowPlayingBackgroundService`, `StreamStatusService` | `NowPlayingConfig.tsx`, `now-playing-extension/`, `NowPlayingOverlay.tsx` |
+| 15 | **Followers / Analytics** | Follower sync from Twitch API, unfollow detection, analytics dashboard (6 tabs), watch time tracking, chat activity | `FollowersController`, `FollowersService`, `AnalyticsController`, `WatchTimeTrackingService`, `ChatActivityService` | `Followers.tsx`, `Analytics.tsx` + 6 tabs |
+| 16 | **Scripting** | Custom DSL (set/when/send), parser, validator, executor, micro commands, game search/cache | `ScriptsController`, `ScriptingService`, `ScriptParser`, `ScriptExecutor`, `MicroCommandsController`, `GameSearchService`, `GameCacheUpdateService` | `ScriptingEditor.tsx`, `ScriptingList.tsx`, `MicroCommands.tsx`, `CustomCommands.tsx`, `DefaultCommands.tsx` |
+| 17 | **Decatron AI** | AI chat via Google Gemini / OpenRouter with fallback, `!ia` command, per-channel config, admin panel | `DecatronAIController`, `DecatronAIAdminController`, `GeminiService`, `OpenRouterService`, `AIProviderService`, `DecatronAICommand` | `DecatronAIConfig.tsx`, `DecatronAIAdmin.tsx`, `AIDoc.tsx` |
+| 18 | **Settings** | Bot settings, user management, language preferences, TTS generation (AWS Polly), user permissions | `SettingsController`, `SettingsService`, `LanguageController`, `TtsController`, `TtsService` | -- |
+| 19 | **SignalR / Overlays** | Real-time hubs (overlay, translation, song request), overlay notification service | `OverlayHub.cs`, `TranslationHub.cs`, `SongRequestHub.cs`, `OverlayNotificationService.cs` | -- |
+| 20 | **Database** | EF Core DbContext (200+ DbSets), repositories, token encryption, manual SQL migrations | `DecatronDbContext.cs`, `BotTokenRepository.cs`, `UserRepository.cs`, `Encryption/`, `Migrations/*.sql` | -- |
+| 21 | **Frontend Shared** | Router, API service, contexts, hooks, Layout, overlays, docs, developer portal, Gacha pages | `App.tsx`, `api.ts`, `PermissionsContext.tsx`, `Layout.tsx`, shared components, overlay pages | All shared frontend |
+| 22 | **Song Request** | Chat-driven song queue on Twitch and Kick: link/search resolvers (YouTube, SoundCloud; Spotify, Apple Music and Deezer links are matched on YouTube), request modes, filters, blacklists, review inbox, collaborative playlists with voting, listening stats, per-tier limits, public queue and playlist pages, OBS player overlay | `SongRequestController`, `Decatron.Services/SongRequest/*` (`SongResolverService`, `SongRequestChatHandler`, `SongRequestService`, `SongRequestLibraryService`, `SongRequestHub`, `SongRequestTierLimits`), Decatron Desktop channels `SongImportDesktopChannel` and `DownloadsDesktopChannel` | `SongRequestConfig.tsx`, `song-request-extension/`, `SongRequestOverlay.tsx`, `SongRequestPublicPage.tsx`, `SongRequestPlaylistPage.tsx` |
+| 23 | **Wheel and Raffle** | Prize wheels and raffle wheels: weighted segments with stock, prize delivery (free spins, gacha pulls, timer time, timeout, sound alerts, manual messages) with a pending-deliveries queue, credit wallets per channel fed by bits, gifted subs, donations, channel points and deca coins, anti-farming caps and spin rules, raffles with tickets, requirements and weights, spin history and statistics, per-tier limits, public overlay. Includes the separate `!ruleta` timeout mini-game | `WheelController` (partial classes: Segments, Spins, Deliveries, History, Messages, Overlay, Raffle, Credits), `WheelService` (+ Delivery, Rules, Spins), `WheelWalletService`, `WheelRaffleService`, `Decatron.Default/Commands/WheelCommands.cs`, `RuletaCommand`, `RuletaController`, `RuletaBackgroundService` | `WheelConfig.tsx`, `features/wheel/`, `WheelOverlay.tsx`, `commands/RuletaConfig.tsx` |
+| 24 | **Tournaments** | Tournament editions with brackets, registration, teams, prizes, sponsors, rules, win conditions, Riot-based and Fortnite-based formats, public pages, embeddable ranking, overlay | `Tournament*Controller` (admin, public, embed, me, overlay, Fortnite, BlueShell...), `Decatron.Services/Tournament/*`, `TournamentRiotPollingService`, Discord `TournamentSlashCommands` | `features/tournament-extension/`, `tournament-public/`, `TournamentPublicPage.tsx`, `TournamentOverlayPage.tsx`, `TournamentEmbedRankingPage.tsx` |
+| 25 | **Live Translation** | Real-time speech-to-text, translation and text-to-speech of a stream for viewers, driven by the Desktop app and consumed by a browser extension | `LiveTranslationController`, `Decatron.Services/LiveTranslation/*`, `TranslationHub`, `TranslationDesktopChannel` | `LiveTranslationConfig.tsx`, `TranslatePublic.tsx`, `admin/LiveTranslationAdmin.tsx` |
+| 26 | **Decatron Desktop** | Single multiplexed WebSocket for the desktop companion app; device linking by code | `DesktopController`, `DesktopWsMiddleware`, `DesktopDeviceService`, `DesktopConnectionRegistry`, `IDesktopChannel` implementations (translation, song import, downloads) | `settings/DesktopAppSettings.tsx` |
+| 27 | **Kick platform** | Kick login, webhooks, API access and chat sending, so several modules work on both platforms | `KickAuthController`, `KickWebhookController`, `Decatron.Services/Platforms/Kick/*`, `MessageSenderRouter`, `KickTokenRefreshService` | -- |
+| 28 | **Discord bot** | Slash commands, XP levels and rank cards, welcome images, live-stream alerts, account linking | `Decatron.Discord/*` (`DiscordBotService`, `DecatronSlashCommands`, `Discord*Controller`, `Services/Xp*`) | `pages/discord/`, `settings/DiscordIntegration.tsx` |
+| 29 | **Moderation (chat)** | Banned words, links, spam and raid filters, strikes, permits, panic mode, action history, Twitch and Kick | `ModerationController`, `Decatron.Services/Moderation/*` (`ChatModerator`, `PanicModeService`), `Decatron.Services/Commands/*` (nuke, permit, panic, strikes) | `features/moderation/`, `ModerationHub.tsx` |
+| 30 | **Fortnite / Spirits** | Fortnite account linking through Epic, spirit collection and notifications, public gallery | `FortniteController`, `EpicAuthController`, `FortniteService`, `SpiritNotifySweepBackgroundService`, `SpiritsCommand` | `me/MySpiritCollection.tsx`, `SpiritCollection.tsx`, `SpritesGallery.tsx`, `settings/EpicAccountsSettings.tsx` |
+| 31 | **Chat overlay and emotes** | Chat overlay for OBS with badges and emotes, channel emotes and platform-wide global emotes, public emote pages | `ChatOverlayController`, `ChannelEmotesController`, `GlobalEmotesController`, `PublicEmotesController`, `Decatron.Services/ChatOverlay/*`, `Decatron.Services/Emotes/*` | `ChatOverlay.tsx`, `features/ChatOverlayConfig.tsx`, `features/ChannelEmotes.tsx`, `ChannelEmotesPublic.tsx`, `GlobalEmotesPublic.tsx` |
+| 32 | **Speak Chat / TTS** | Chat messages and channel point redemptions read aloud (filters, voice generation, overlay delivery), TTS voices and credits | `SpeakChatController`, `SpeakChatService`, `TtsVoicesController`, `TtsCredits*Controller`, `TtsCreditService`, `PiperTtsService`, `PollyVoiceCatalogService` | `features/SpeakChat.tsx`, `SpeakChatOverlay.tsx` |
+| 33 | **Credits and payments** | Unified credit balance for paid features (AI, TTS), credit packages, card payments (Culqi), invoices, billing profiles, DeCa coins | `CreditPurchaseController`, `CoinController`, `AiCreditGate`, `CoinService`, `BillingProfileService`, `SupporterInvoiceService` | `Credits.tsx`, `me/MeCoins.tsx`, `me/MeBilling.tsx`, `me/MeInvoices.tsx` |
+| 34 | **Game overlays and Riot** | In-game data overlays (match state, live match), game accounts, promos, LoL coach | `GameOverlaysController`, `LiveOverlaysController`, `RiotAccountController`, `GameAccountsController`, `LolCoachController`, `Decatron.Services/GameData/*` | `features/game-overlays/`, `features/live-overlay/`, `GameOverlay.tsx`, `LiveOverlay.tsx`, `features/LolCoachConfig.tsx` |
+| 35 | **Pets** | Pet shown on the channel overlay; channel events (alerts, chat, commands) trigger its reactions | `PetsController`, `Decatron.Services/Pets/*` | `features/pets/`, `PetsOverlay.tsx` |
+| 36 | **Gacha / TCG** | Gacha pulls and collections for viewers, and trading cards (TCG) | `GachaController`, `GachaPublicController`, `GachaViewerController`, `TcgController`, `GachaService`, `TcgCardsService` | `gacha/`, `me/tcg/`, `GachaOverlay.tsx` |
+| 37 | **Bot list** | Global catalog of known bots (kept by the platform owner) with per-channel changes, used to recognise bots in chat | `BotListController`, `BotListService` | `features/BotList.tsx` |
+| 38 | **Brand and design system** | Logo management and the live-editable design tokens used by the dashboard and public site | `BrandController`, `DesignController`, `BrandService`, `DesignService` | `src/brand/`, `src/design/`, `components/ds/` |
+| 39 | **Platform administration** | Admin-only controllers and pages (users, mods, AI costs, finance, e-mail, dev docs, project analysis). Documented here at architecture level only | `Admin*Controller`, `FinanceAdminController`, `EmailAdminController`, `DevDocsController`, `ProjectAnalysisController`, all protected by `RequireSystemOwner` | `pages/admin/*` |
 
 ---
 
@@ -851,12 +898,17 @@ graph LR
         AI["AI Provider Service"]
         TTS["TTS Service"]
         Clip["Clip Download Service"]
+        KickSvc["Kick Services"]
+        Disc["Discord Bot"]
+        Culq["Credit Purchase"]
+        LT["Live Translation"]
+        Games["Game Data / Tournaments"]
     end
 
     subgraph "Twitch Platform"
         TwitchOAuth["Twitch OAuth2<br/>id.twitch.tv/oauth2"]
         TwitchHelix["Twitch Helix API<br/>api.twitch.tv/helix"]
-        TwitchESub["Twitch EventSub<br/>(webhook callbacks)"]
+        TwitchESub["Twitch EventSub<br/>(conduit WebSocket shards)"]
         TwitchIRC["Twitch IRC<br/>(via TwitchLib)"]
     end
 
@@ -881,6 +933,16 @@ graph LR
         Polly["AWS Polly<br/>(Text-to-Speech)"]
     end
 
+    subgraph "Other platforms and services"
+        KickAPI["Kick API"]
+        DiscordAPI["Discord API"]
+        CulqiAPI["Culqi"]
+        Deepgram["Deepgram<br/>(speech-to-text, TTS)"]
+        FishAudio["FishAudio (TTS)"]
+        Riot["Riot API"]
+        Epic["Epic Games OAuth"]
+    end
+
     subgraph "System Tools"
         YtDlp["yt-dlp<br/>(video download)"]
     end
@@ -888,7 +950,7 @@ graph LR
     Auth -->|OAuth2 code exchange| TwitchOAuth
     Bot -->|IRC join/message| TwitchIRC
     EventSub -->|Register subscriptions| TwitchHelix
-    TwitchESub -->|POST /api/twitch/webhook| EventSub
+    TwitchESub -->|WebSocket shards| EventSub
     Timer -->|Get stream status| TwitchHelix
     EA -->|Triggered by EventSub| TwitchESub
 
@@ -908,6 +970,13 @@ graph LR
     TTS -->|SynthesizeSpeech| Polly
 
     Clip -->|Download clips| YtDlp
+    KickSvc -->|OAuth, webhooks, chat| KickAPI
+    Disc -->|Gateway, slash commands| DiscordAPI
+    Culq -->|Card payments| CulqiAPI
+    LT -->|Streaming STT / TTS| Deepgram
+    LT -->|TTS| FishAudio
+    Games -->|Match data| Riot
+    Games -->|Account linking| Epic
 ```
 
 ### Integration Details
@@ -916,56 +985,96 @@ graph LR
 |-------------|-----------|-----------|-----------------|
 | **Twitch OAuth** | OAuth2 Authorization Code | Login, token exchange, refresh every 30 min | -- |
 | **Twitch Helix API** | Bearer (user/app token) | User info, streams, clips, channel points, followers, chatters | On-demand |
-| **Twitch EventSub** | HMAC-SHA256 webhook verification | 10 event types per user (chat, follow, bits, sub, gift, raid, hype, points, online, offline) | Push-based |
+| **Twitch EventSub** | App access token; conduit fed by WebSocket shards (`EventSubSettings:ShardCount`). The webhook transport (HMAC-SHA256) has been switched off since 2026-08-06: `POST /api/twitch/webhook` answers 200 and does nothing | Per user: chat, channel points, follow, bits, sub, resub message, gift sub, raid, hype train stages, channel update, stream online/offline; plus one `conduit.shard.disabled` subscription per client. Subscriptions are created on the conduit | Push-based |
 | **Twitch IRC** | OAuth token via TwitchLib | Chat messages (send/receive), command processing | Persistent connection |
 | **PayPal** | OAuth2 Client Credentials | Order creation, capture, webhook notifications | On-demand + webhook |
 | **Spotify** | OAuth2 Authorization Code | Current track, playback state | Every 3 seconds (background) |
 | **Last.fm** | API Key (query param) | Recent tracks, track info | Every 3 seconds (background) |
-| **Google Gemini** | API Key (query param) | Content generation for `!ia` command | On-demand |
+| **Google Gemini** | API Key (`GeminiSettings:ApiKey`) | Content generation for `!ia` command | On-demand |
 | **OpenRouter** | Bearer token (header) | Chat completions (fallback provider) | On-demand |
 | **AWS Polly** | AWS credentials (IAM) | Text-to-Speech audio generation with file cache | On-demand, cached |
-| **yt-dlp** | None (system binary) | Twitch clip download for shoutout overlay | On-demand |
+| **yt-dlp** | None (system binary) | Twitch clip download for shoutout overlay; media resolution for Song Request (`SongRequest:YtDlpPath`) | On-demand |
+| **Kick** | OAuth2 (`KickSettings`) | Login, webhooks, API calls and chat messages | Push-based + on-demand |
+| **Discord** | Bot token + OAuth2 (`DiscordSettings`) | Slash commands, XP, welcome images, live alerts | Gateway + `DiscordAlertPollingService` |
+| **Culqi** | API keys (`CulqiSettings`, `CulqiSettingsTest`) | Card payments for credit packages and tiers | On-demand |
+| **Deepgram / FishAudio** | API keys | Live translation speech-to-text and text-to-speech | Streaming |
+| **Riot API** | API keys (`RiotApi`) | Account data and match polling for tournaments and game overlays | `TournamentRiotPollingService`, `GameDataPollingService` |
+| **Epic Games** | OAuth2 (`EpicSettings`) | Fortnite account linking | On-demand |
 
 ---
 
 ## 9. Background Services
 
-Nine `BackgroundService` instances registered in `Program.cs` run continuously alongside the web server:
+More than 25 hosted services are registered in `Program.cs` and run continuously alongside the web server. They are grouped below; intervals are the ones coded in each class.
 
 ```mermaid
 graph TD
-    subgraph "Background Services (IHostedService)"
-        BotRefresh["BotTokenRefreshBackgroundService<br/>Every 30 minutes<br/>Refreshes bot OAuth tokens<br/>expiring within 7 days"]
-        UserRefresh["UserTokenRefreshBackgroundService<br/>Every 30 minutes<br/>Refreshes user OAuth tokens<br/>expiring within 7 days"]
-        EventSubBG["EventSubBackgroundService<br/>On startup (10s delay)<br/>Registers 10 EventSub subscriptions<br/>for all active users"]
-        TimerBG["TimerBackgroundService<br/>Every 1 second<br/>Timer ticks via SignalR,<br/>schedule auto-pause,<br/>auto-save backups,<br/>message timer execution"]
-        TimerRestore["TimerStateRestorationService<br/>On startup<br/>Restores active timers<br/>after server restart"]
-        GameCache["GameCacheUpdateService<br/>Periodic<br/>Updates local Twitch<br/>game/category cache"]
-        GiveawayBG["GiveawayBackgroundService<br/>Every 5 seconds<br/>Auto-end timed giveaways,<br/>process winner timeouts,<br/>promote backup winners"]
-        WatchTimeBG["WatchTimeBackgroundService<br/>Every 60 seconds<br/>Updates viewer watch times,<br/>marks inactive users"]
-        NowPlayingBG["NowPlayingBackgroundService<br/>Every 3 seconds<br/>Polls Spotify/Last.fm<br/>for all active channels"]
+    subgraph "Tokens and Twitch"
+        BotRefresh["BotTokenRefreshBackgroundService<br/>every 30 min"]
+        UserRefresh["UserTokenRefreshBackgroundService<br/>every 30 min"]
+        EventSubBG["EventSubBackgroundService<br/>on startup: ensures subscriptions<br/>for active users"]
+        EventSubWS["EventSubWebSocketService<br/>conduit shards"]
+        Hydrate["StreamStatusHydrationService<br/>on startup"]
+        Username["UsernameCheckBackgroundService<br/>every 12 h"]
+        GameCache["GameCacheUpdateService<br/>every 24 h"]
     end
 
-    subgraph "Also runs at startup"
-        Startup["Program.cs startup sequence:<br/>1. Seed database<br/>2. Refresh all bot tokens<br/>3. Verify yt-dlp installed<br/>4. Start TwitchBotService (Task.Run)"]
+    subgraph "Stream features"
+        TimerBG["TimerBackgroundService<br/>every 1 s"]
+        TimerRestore["TimerStateRestorationService<br/>on startup"]
+        HappyHour["HappyHourWatcherService<br/>every 10 s"]
+        GiveawayBG["GiveawayBackgroundService<br/>every 5 s"]
+        NowPlayingBG["NowPlayingBackgroundService<br/>every 3 s"]
+        WatchTimeBG["WatchTimeBackgroundService<br/>every 60 s"]
+        Lurker["WatchtimeLurkerTrackingService<br/>every 90 s"]
+        Ruleta["RuletaBackgroundService<br/>every 10 s"]
+        Panic["PanicModeBackgroundService<br/>every 15 s"]
+        SRStats["SongListenStatsCleanupService"]
+    end
+
+    subgraph "Games, tournaments and spirits"
+        GameData["GameDataPollingService"]
+        RiotPoll["TournamentRiotPollingService<br/>every 3 min"]
+        Spirits["SpiritNotifySweepBackgroundService<br/>every 15 min"]
+    end
+
+    subgraph "Billing and Discord"
+        Invoices["SupporterInvoiceBackgroundService"]
+        DiscordBot["DiscordBotService"]
+        DiscordAlerts["DiscordAlertPollingService<br/>every 1 min"]
+        Store["StoreExpirationService<br/>every 2 min"]
     end
 ```
 
 | Service | Interval | Responsibility |
 |---------|----------|---------------|
 | `BotTokenRefreshBackgroundService` | 30 min | Proactively refreshes Twitch bot tokens before they expire |
-| `UserTokenRefreshBackgroundService` | 30 min | Proactively refreshes user Twitch tokens before they expire |
-| `EventSubBackgroundService` | Startup only | Iterates all active users with bot enabled and registers 10 EventSub webhook subscriptions per user |
-| `TimerBackgroundService` | 1 second | Sends `TimerTick` via SignalR, evaluates schedule-based auto-pause, auto-saves timer backups every 5 min, executes message timers |
-| `TimerStateRestorationService` | Startup only | Scans for timers that were active when the server last stopped, recalculates elapsed time, and restores them |
-| `GameCacheUpdateService` | Periodic | Fetches the Twitch game/category directory and updates local cache table for game search autocomplete |
-| `GiveawayBackgroundService` | 5 seconds | Monitors active giveaways: auto-ends timed sessions, processes winner response timeouts, promotes backup winners |
-| `WatchTimeBackgroundService` | 60 seconds | Updates `stream_watch_times` for all active viewers, marks users inactive after 5 min without chat activity |
-| `NowPlayingBackgroundService` | 3 seconds | Polls Spotify API or Last.fm API for each active channel and sends `NowPlayingUpdate` via SignalR when the track changes |
+| `UserTokenRefreshBackgroundService` | 30 min | Proactively refreshes user Twitch tokens (and Kick tokens, through `IKickTokenRefreshService`) before they expire |
+| `EventSubBackgroundService` | Startup | Iterates all active users with the bot enabled and ensures their EventSub subscriptions on the conduit |
+| `EventSubWebSocketService` | Persistent | Creates or reuses the EventSub conduit and runs its WebSocket shards (`EventSubSettings:ShardCount`) |
+| `StreamStatusHydrationService` | Startup | Rebuilds the in-memory live/offline state, since `IStreamStatusService` keeps it only in memory |
+| `UsernameCheckBackgroundService` | 12 h | Detects Twitch username changes |
+| `GameCacheUpdateService` | 24 h | Updates the local Twitch game/category cache used by game search |
+| `TimerBackgroundService` | 1 s | Sends `TimerTick` via SignalR, evaluates schedule-based auto-pause, auto-saves backups, executes message timers |
+| `TimerStateRestorationService` | Startup | Restores timers that were active when the server last stopped |
+| `HappyHourWatcherService` | 10 s | Tells the overlay when a Happy Hour starts or ends |
+| `GiveawayBackgroundService` | 5 s | Auto-ends timed giveaways, processes winner response timeouts, promotes backup winners |
+| `NowPlayingBackgroundService` | 3 s | Polls Spotify or Last.fm for each active channel and notifies the overlay |
+| `WatchTimeBackgroundService` | 60 s | Updates viewer watch times |
+| `WatchtimeLurkerTrackingService` | 90 s | Tracks lurkers by polling the chatters list |
+| `RuletaBackgroundService` | 10 s | Restores the moderator when a `!ruleta` timeout against a moderator expires |
+| `PanicModeBackgroundService` | 15 s | Ends expired panic modes and reloads active ones on startup |
+| `SongListenStatsCleanupService` | Periodic | Cleans Song Request listening statistics |
+| `GameDataPollingService` | Per plan limits | Polls game data for the game and live overlays |
+| `TournamentRiotPollingService` | 3 min | Polls the Riot API for Riot-based tournament modes |
+| `SpiritNotifySweepBackgroundService` | 15 min | Sends Fortnite Spirits notices (Twitch chat and Discord DM) |
+| `SupporterInvoiceBackgroundService` | 2 min | Issues receipts for tier and DeCa coin purchases |
+| `DiscordBotService` | Persistent | Runs the Discord bot connection and slash commands |
+| `DiscordAlertPollingService` | 1 min | Checks live streams for Discord live alerts |
+| `StoreExpirationService` | 2 min | Expires Discord store items |
 
-**Additional long-running process:**
-- `TwitchBotService` is started via `Task.Run()` at application startup (not as a formal `BackgroundService`). It maintains the persistent IRC connection to Twitch and handles reconnection with exponential backoff.
+**Startup sequence in `Program.cs`** (after the app is built): seed the game cache and aliases, refresh all bot tokens, check that yt-dlp is installed (a warning is logged if not), and start `TwitchBotService` through `Task.Run()` (it is not a `BackgroundService`). The bot maintains the persistent IRC connection to Twitch and retries the connection a limited number of times (3) after a disconnect.
 
 ---
 
-*This document was generated from a comprehensive audit of all 21 Decatron modules (120,000+ lines of code across backend and frontend).*
+*Figures such as table counts and service counts are rounded on purpose; the code is the source of truth. Last reviewed against the code on 2026-10-10.*

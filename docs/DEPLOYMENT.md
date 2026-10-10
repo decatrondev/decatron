@@ -1,44 +1,48 @@
-# Guia de Despliegue / Deployment Guide
+# Deployment Guide
 
-Guia paso a paso para desplegar Decatron en un servidor Ubuntu con nginx, PostgreSQL y SSL.
+> Español: [es/DEPLOYMENT.md](es/DEPLOYMENT.md)
 
----
-
-## Tabla de Contenidos
-
-1. [Prerrequisitos / Prerequisites](#prerrequisitos--prerequisites)
-2. [Clonar repositorio / Clone Repository](#clonar-repositorio--clone-repository)
-3. [Instalar dependencias / Install Dependencies](#instalar-dependencias--install-dependencies)
-4. [Configurar la aplicacion / Configure Application](#configurar-la-aplicacion--configure-application)
-5. [Base de datos / Database Setup](#base-de-datos--database-setup)
-6. [Configurar nginx / Nginx Configuration](#configurar-nginx--nginx-configuration)
-7. [SSL con Certbot / SSL with Certbot](#ssl-con-certbot--ssl-with-certbot)
-8. [Ejecutar con screen / Running with screen](#ejecutar-con-screen--running-with-screen)
-9. [Actualizar y redesplegar / Updating & Redeploying](#actualizar-y-redesplegar--updating--redeploying)
-10. [Procedimiento de rollback / Rollback Procedure](#procedimiento-de-rollback--rollback-procedure)
+Step-by-step guide to deploy Decatron on an Ubuntu server with nginx, PostgreSQL and SSL. The backend runs as a .NET process and the frontend is built once and served by nginx as static files.
 
 ---
 
-## Prerrequisitos / Prerequisites
+## Table of Contents
 
-El servidor debe tener instalado:
+1. [Prerequisites](#prerequisites)
+2. [Clone the Repository](#clone-the-repository)
+3. [Install Dependencies and Build](#install-dependencies-and-build)
+4. [Configure the Application](#configure-the-application)
+5. [Database Setup](#database-setup)
+6. [Nginx Configuration](#nginx-configuration)
+7. [SSL with Certbot](#ssl-with-certbot)
+8. [Running the Backend](#running-the-backend)
+9. [Updating and Redeploying](#updating-and-redeploying)
+10. [Rollback Procedure](#rollback-procedure)
+11. [Additional Notes](#additional-notes)
 
-| Componente | Version minima | Comando de verificacion |
-|------------|---------------|------------------------|
+---
+
+## Prerequisites
+
+The server needs:
+
+| Component | Minimum version | Check command |
+|-----------|----------------|---------------|
 | Ubuntu | 22.04 LTS | `lsb_release -a` |
 | .NET SDK | 8.0 | `dotnet --version` |
-| Node.js | 18.x+ | `node --version` |
-| npm | 9.x+ | `npm --version` |
+| Node.js | 20.19+ or 22.12+ (required by Vite 7) | `node --version` |
+| npm | 10+ | `npm --version` |
 | PostgreSQL | 14+ | `psql --version` |
 | nginx | 1.18+ | `nginx -v` |
 | certbot | 1.x+ | `certbot --version` |
-| screen | cualquiera | `screen --version` |
+| screen (or any process manager) | any | `screen --version` |
 | git | 2.x+ | `git --version` |
+| yt-dlp | latest | `yt-dlp --version` |
 
-### Instalar prerrequisitos en Ubuntu / Install Prerequisites on Ubuntu
+### Install the prerequisites on Ubuntu
 
 ```bash
-# Actualizar sistema
+# Update the system
 sudo apt update && sudo apt upgrade -y
 
 # .NET 8 SDK
@@ -47,8 +51,8 @@ sudo dpkg -i packages-microsoft-prod.deb
 sudo apt update
 sudo apt install -y dotnet-sdk-8.0
 
-# Node.js 18+ (via NodeSource)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+# Node.js 22 (via NodeSource)
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # PostgreSQL
@@ -57,43 +61,45 @@ sudo apt install -y postgresql postgresql-contrib
 # nginx
 sudo apt install -y nginx
 
-# certbot para SSL
+# certbot for SSL
 sudo apt install -y certbot python3-certbot-nginx
 
 # screen
 sudo apt install -y screen
 
-# yt-dlp (necesario para clips de Twitch)
+# yt-dlp (needed for Twitch clips and Song Request)
 sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
 sudo chmod a+rx /usr/local/bin/yt-dlp
 ```
 
 ---
 
-## Clonar repositorio / Clone Repository
+## Clone the Repository
 
 ```bash
-# Crear directorio base
+# Create the base directory
 sudo mkdir -p /var/www/html/decatron
 cd /var/www/html/decatron
 
-# Clonar el repositorio
+# Clone the repository
 git clone https://github.com/decatrondev/decatron.git Decatron
 
-# Navegar al proyecto
+# Go to the project
 cd Decatron/decatron
 ```
 
+The rest of this guide uses `/var/www/html/decatron/Decatron/decatron` as the project folder. Use another path if you prefer and adjust the commands and the nginx file.
+
 ---
 
-## Instalar dependencias / Install Dependencies
+## Install Dependencies and Build
 
 ### Backend (.NET)
 
 ```bash
 cd /var/www/html/decatron/Decatron/decatron
 
-# Restaurar paquetes NuGet
+# Restore NuGet packages
 dotnet restore
 ```
 
@@ -102,14 +108,19 @@ dotnet restore
 ```bash
 cd /var/www/html/decatron/Decatron/decatron/ClientApp
 
-# Instalar dependencias de Node
+# Install Node dependencies
 npm install
+
+# Build the static site into ClientApp/dist
+npm run build
 ```
 
-### Directorios necesarios / Required Directories
+nginx serves `ClientApp/dist`; there is no frontend process to keep running in production. The Vite dev server (`npm run dev`, port 5173) is only for development.
+
+### Required directories
 
 ```bash
-# Crear directorios de datos que la aplicacion necesita
+# Create the data folders the application needs
 mkdir -p /var/www/html/decatron/Decatron/decatron/ClientApp/public/downloads
 mkdir -p /var/www/html/decatron/Decatron/decatron/ClientApp/public/uploads/soundalerts
 mkdir -p /var/www/html/decatron/Decatron/decatron/ClientApp/public/timerextensible
@@ -117,17 +128,19 @@ mkdir -p /var/www/html/decatron/Decatron/decatron/ClientApp/public/system-files
 mkdir -p /var/www/html/decatron/tts-cache
 mkdir -p /var/www/html/decatron/Decatron/decatron/logs
 
-# Permisos
+# Permissions (adjust the user to the one that runs the backend)
 sudo chown -R www-data:www-data /var/www/html/decatron/tts-cache
 ```
 
+Modules such as brand logos, emotes, trading cards and tournaments use further folders; their paths and defaults are in [ENV_VARIABLES.md](ENV_VARIABLES.md#physical-paths).
+
 ---
 
-## Configurar la aplicacion / Configure Application
+## Configure the Application
 
-### Crear archivo de secretos / Create Secrets File
+### Create the secrets file
 
-Copiar el archivo de ejemplo y editarlo con tus valores reales:
+Copy the example file and edit it with your real values:
 
 ```bash
 cd /var/www/html/decatron/Decatron/decatron
@@ -135,105 +148,110 @@ cp appsettings.Secrets.json.example appsettings.Secrets.json
 nano appsettings.Secrets.json
 ```
 
-Ver [ENV_VARIABLES.md](ENV_VARIABLES.md) para la documentacion completa de cada variable.
+See [ENV_VARIABLES.md](ENV_VARIABLES.md) for the complete reference of every setting.
 
-### Archivo minimo requerido / Minimum Required Configuration
+### Minimum required configuration
 
 ```json
 {
     "ConnectionStrings": {
-        "DefaultConnection": "Host=localhost;Port=5432;Database=decatron_prod;Username=decatron_user;Password=TU_PASSWORD_AQUI"
+        "DefaultConnection": "Host=localhost;Port=5432;Database=decatron_prod;Username=decatron_user;Password=YOUR_PASSWORD"
     },
     "TwitchSettings": {
-        "ClientId": "TU_TWITCH_CLIENT_ID",
-        "ClientSecret": "TU_TWITCH_CLIENT_SECRET",
-        "BotUsername": "nombre_de_tu_bot",
-        "ChannelId": "TU_CHANNEL_ID",
-        "RedirectUri": "https://TU_DOMINIO/api/auth/callback",
-        "FrontendUrl": "https://TU_DOMINIO"
+        "ClientId": "YOUR_TWITCH_CLIENT_ID",
+        "ClientSecret": "YOUR_TWITCH_CLIENT_SECRET",
+        "BotUsername": "your_bot_name",
+        "ChannelId": "YOUR_CHANNEL_ID",
+        "RedirectUri": "https://YOUR_DOMAIN/api/auth/callback",
+        "FrontendUrl": "https://YOUR_DOMAIN"
     },
     "JwtSettings": {
-        "SecretKey": "CLAVE_MINIMO_32_CARACTERES_ALEATORIA_SEGURA",
+        "SecretKey": "RANDOM_SECURE_KEY_OF_AT_LEAST_32_CHARACTERS",
         "ExpiryMinutes": 60,
         "RefreshTokenExpiryDays": 7
     }
 }
 ```
 
-### Configurar CORS (si usas un dominio diferente) / Configure CORS
+### Configure CORS (if you use a different domain)
 
-Los origenes CORS estan hardcodeados en `Program.cs` (lineas 93-97). Si tu dominio es diferente a `decatron.net`, debes editarlo:
+The CORS origins are written in `Program.cs` (policy `AllowReact`). If your domain is not `decatron.net`, edit it:
 
 ```csharp
-// Program.cs - buscar la seccion "AddCors"
+// Program.cs - look for the "AddCors" section
 policy.WithOrigins(
     "http://localhost:5173",
-    "https://tu-dominio.com",
-    "https://www.tu-dominio.com"
+    "https://your-domain.com",
+    "https://www.your-domain.com"
 )
 ```
 
+Other defaults in the code point to `decatron.net` and should be set for your own domain through settings: `SongRequest:PublicBaseUrl`, `Emotes:PublicBase`, `EpicSettings:RedirectUri` and `DiscordSettings:FrontendUrl` (see [ENV_VARIABLES.md](ENV_VARIABLES.md)).
+
 ---
 
-## Base de datos / Database Setup
+## Database Setup
 
-### Crear usuario y base de datos / Create User and Database
+### Create the user and the database
 
 ```bash
-# Acceder a PostgreSQL como superusuario
+# Open PostgreSQL as superuser
 sudo -u postgres psql
 
-# Crear usuario
-CREATE USER decatron_user WITH PASSWORD 'TU_PASSWORD_SEGURO';
+# Create the user
+CREATE USER decatron_user WITH PASSWORD 'YOUR_SECURE_PASSWORD';
 
-# Crear base de datos
+# Create the database
 CREATE DATABASE decatron_prod OWNER decatron_user;
 
-# Dar permisos
+# Grant permissions
 GRANT ALL PRIVILEGES ON DATABASE decatron_prod TO decatron_user;
 
-# Salir
+# Exit
 \q
 ```
 
-### Ejecutar migraciones / Run Migrations
+### Create the schema
 
-EF Core crea todas las tablas automaticamente en la primera ejecucion. No se necesitan migraciones manuales.
+The backend does **not** create or migrate tables at startup (there is no `EnsureCreated` or `Migrate` in `Program.cs`). The schema is built from SQL scripts that you apply by hand with `psql` before restarting the backend. For an empty database, load the baseline schema first (structure only, generated from production with `pg_dump --schema-only` on 2026-10-10); the incremental scripts (`Add_*`, `Fix_*`, ...) are applied only for changes made after that date.
 
 ```bash
 cd /var/www/html/decatron/Decatron/decatron
 
-# Iniciar la aplicacion — EF Core creara todas las tablas automaticamente
-dotnet run
+# Load the baseline schema into an empty database
+psql -U decatron_user -d decatron_prod -f Decatron.Data/Schema/baseline.sql
+
+# Then apply the scripts added after 2026-10-10 (example)
+psql -U decatron_user -d decatron_prod -f Decatron.Data/Migrations/SCRIPT_NAME.sql
 ```
 
-### Verificar la base de datos / Verify Database
+### Verify the database
 
 ```bash
 sudo -u postgres psql -d decatron_prod -c "\dt"
 ```
 
-Deberias ver aproximadamente 78 tablas. Las principales son: `users`, `bot_tokens`, `custom_commands`, `timer_configs`, `tips_configs`, `sound_alert_configs`, etc.
+Production has more than 240 tables. Some of the main ones are `users`, `bot_tokens`, `custom_commands`, `timer_configs`, `tips_configs` and `sound_alert_configs`.
 
 ---
 
-## Configurar nginx / Nginx Configuration
+## Nginx Configuration
 
-### Crear el archivo de configuracion / Create Configuration File
+### Create the configuration file
 
 ```bash
-sudo nano /etc/nginx/sites-available/tu-dominio.conf
+sudo nano /etc/nginx/sites-available/your-domain.conf
 ```
 
-Pegar la siguiente configuracion (reemplazar `TU_DOMINIO` con tu dominio real):
+Paste the following configuration (replace `YOUR_DOMAIN` with your real domain). It proxies the API, the SignalR hubs and the folders the backend serves, and serves the built frontend from `ClientApp/dist`:
 
 ```nginx
 server {
-    server_name TU_DOMINIO;
+    server_name YOUR_DOMAIN;
 
     client_max_body_size 60M;
 
-    # SignalR - WebSocket para overlays en tiempo real
+    # SignalR - WebSocket for real-time overlays and Song Request
     location /hubs/ {
         proxy_pass http://localhost:7264;
         proxy_http_version 1.1;
@@ -247,8 +265,8 @@ server {
         proxy_read_timeout 86400;
     }
 
-    # Archivos estaticos servidos por el backend .NET
-    location /downloads {
+    # Static files served by the .NET backend (one block per prefix)
+    location ~ ^/(downloads|uploads|timerextensible|system-files|tts-audio|tcg-packs) {
         proxy_pass http://localhost:7264;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
@@ -257,43 +275,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    location /uploads {
-        proxy_pass http://localhost:7264;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /timerextensible {
-        proxy_pass http://localhost:7264;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /system-files {
-        proxy_pass http://localhost:7264;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /tts-audio {
-        proxy_pass http://localhost:7264;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # API backend (.NET en puerto 7264)
+    # API backend (.NET on port 7264). The upgrade headers allow the
+    # Decatron Desktop WebSocket (/api/desktop/ws).
     location /api {
         proxy_pass http://localhost:7264;
         proxy_http_version 1.1;
@@ -304,70 +287,97 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_read_timeout 86400;
+        proxy_buffering off;
         client_max_body_size 60M;
     }
 
-    # Frontend React/Vite (puerto 5173)
-    location / {
-        proxy_pass http://localhost:5173;
+    # Built assets (hashed file names: cache for a year)
+    location /assets/ {
+        alias /var/www/html/decatron/Decatron/decatron/ClientApp/dist/assets/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Translation files: never cache them
+    location /locales/ {
+        alias /var/www/html/decatron/Decatron/decatron/ClientApp/dist/locales/;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    # Song Request public pages go through the backend, which returns the same
+    # index.html with the page's meta tags (link previews in Discord, X, WhatsApp).
+    # If the backend fails, the static index.html is served and the page still loads.
+    location ~ ^/sr/[^/]+(?:/p/[^/]+)?/?$ {
+        proxy_pass http://localhost:7264;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_connect_timeout 3s;
+        proxy_read_timeout 10s;
+        proxy_intercept_errors on;
+        error_page 500 502 503 504 = @sr_spa;
+    }
+
+    location @sr_spa {
+        root /var/www/html/decatron/Decatron/decatron/ClientApp/dist;
+        rewrite ^ /index.html break;
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    }
+
+    # Frontend (single-page app)
+    location / {
+        root /var/www/html/decatron/Decatron/decatron/ClientApp/dist;
+        try_files $uri /index.html;
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
     }
 
     listen 80;
 }
 ```
 
-### Habilitar el sitio / Enable the Site
+### Enable the site
 
 ```bash
-# Crear symlink
-sudo ln -s /etc/nginx/sites-available/tu-dominio.conf /etc/nginx/sites-enabled/
+# Create the symlink
+sudo ln -s /etc/nginx/sites-available/your-domain.conf /etc/nginx/sites-enabled/
 
-# Verificar configuracion
+# Check the configuration
 sudo nginx -t
 
-# Recargar nginx
+# Reload nginx
 sudo systemctl reload nginx
 ```
 
-### Puertos importantes / Important Ports
+### Important ports
 
-| Puerto | Servicio | Descripcion |
-|--------|----------|-------------|
-| 7264 | Backend .NET | API REST, SignalR, archivos estaticos |
-| 5173 | Frontend Vite | React dev server (desarrollo) |
-| 80 | nginx | HTTP (redirige a 443) |
+| Port | Service | Description |
+|------|---------|-------------|
+| 7264 | .NET backend | REST API, SignalR hubs, static files |
+| 5173 | Vite dev server | Development only |
+| 80 | nginx | HTTP (redirects to 443) |
 | 443 | nginx | HTTPS (SSL) |
-| 5432 | PostgreSQL | Base de datos |
+| 5432 | PostgreSQL | Database |
 
 ---
 
-## SSL con Certbot / SSL with Certbot
+## SSL with Certbot
 
 ```bash
-# Obtener certificado SSL
-sudo certbot --nginx -d TU_DOMINIO
+# Get an SSL certificate
+sudo certbot --nginx -d YOUR_DOMAIN
 
-# Seguir las instrucciones interactivas:
-# - Ingresar email
-# - Aceptar terminos
-# - Elegir redirigir HTTP a HTTPS (opcion 2)
+# Follow the interactive prompts:
+# - Enter an e-mail
+# - Accept the terms
+# - Choose to redirect HTTP to HTTPS (option 2)
 
-# Verificar renovacion automatica
+# Check automatic renewal
 sudo certbot renew --dry-run
 ```
 
-Certbot modificara automaticamente tu archivo nginx para agregar las directivas SSL y la redireccion HTTP->HTTPS.
-
-### Renovacion automatica / Automatic Renewal
-
-Certbot instala un cron/timer automatico. Verificar:
+Certbot edits your nginx file to add the SSL directives and the HTTP to HTTPS redirect. It installs an automatic renewal timer; check it with:
 
 ```bash
 sudo systemctl status certbot.timer
@@ -375,117 +385,88 @@ sudo systemctl status certbot.timer
 
 ---
 
-## Ejecutar con screen / Running with screen
+## Running the Backend
 
-La aplicacion se ejecuta en sesiones de `screen` para mantenerla activa en background.
+The backend runs in a `screen` session so it stays alive in the background. You can use any process manager (systemd, for example) instead.
 
-### Iniciar el backend / Start Backend
+### Start the backend
 
 ```bash
-# Crear sesion screen para el backend
+# Create a screen session for the backend
 screen -S decatron-api
 
-# Dentro de la sesion:
+# Inside the session:
 cd /var/www/html/decatron/Decatron/decatron
 ASPNETCORE_ENVIRONMENT=Production dotnet run --urls "http://localhost:7264"
 
-# Separar la sesion: Ctrl+A, luego D
+# Detach the session: Ctrl+A, then D
 ```
 
-### Iniciar el frontend / Start Frontend
+### Managing screen sessions
 
 ```bash
-# Crear sesion screen para el frontend
-screen -S decatron-frontend
-
-# Dentro de la sesion:
-cd /var/www/html/decatron/Decatron/decatron/ClientApp
-npm run dev -- --host 0.0.0.0 --port 5173
-
-# Separar la sesion: Ctrl+A, luego D
-```
-
-### Gestionar sesiones de screen / Managing Screen Sessions
-
-```bash
-# Ver sesiones activas
+# List active sessions
 screen -ls
 
-# Reconectar a una sesion
+# Reattach to a session
 screen -r decatron-api
-screen -r decatron-frontend
 
-# Detener una sesion (desde dentro)
-# Ctrl+C para detener el proceso, luego escribir: exit
+# Stop a session (from inside)
+# Ctrl+C to stop the process, then type: exit
 ```
 
-### Verificar que todo funciona / Verify Everything Works
+### Verify that everything works
 
 ```bash
-# Verificar que el backend esta escuchando
-curl -s http://localhost:7264/api/auth/login | head -5
+# The backend is listening (public endpoint, returns the list of OAuth scopes)
+curl -s http://localhost:7264/api/oauth/scopes | head -c 200
 
-# Verificar que el frontend esta escuchando
-curl -s http://localhost:5173 | head -5
+# nginx and the frontend
+curl -s -o /dev/null -w "%{http_code}" https://YOUR_DOMAIN
 
-# Verificar nginx
-curl -s -o /dev/null -w "%{http_code}" https://TU_DOMINIO
-
-# Verificar logs del backend
+# Backend logs
 tail -f /var/www/html/decatron/Decatron/decatron/logs/decatron-*.txt
 ```
 
 ---
 
-## Actualizar y redesplegar / Updating & Redeploying
+## Updating and Redeploying
 
-### Procedimiento de actualizacion / Update Procedure
+### Update procedure
 
 ```bash
-# 1. Hacer backup de la base de datos
+# 1. Back up the database
 pg_dump -U decatron_user decatron_prod > ~/backups/decatron_$(date +%Y%m%d_%H%M%S).sql
 
-# 2. Reconectar y detener el backend
-screen -r decatron-api
-# Ctrl+C para detener
-# No cerrar la sesion screen
-
-# 3. Reconectar y detener el frontend
-screen -r decatron-frontend
-# Ctrl+C para detener
-# No cerrar la sesion screen
-
-# 4. Descargar cambios
+# 2. Pull the changes
 cd /var/www/html/decatron/Decatron/decatron
 git pull origin main
 
-# 5. Reinstalar dependencias del backend
+# 3. Restore backend dependencies
 dotnet restore
 
-# 6. Reinstalar dependencias del frontend
+# 4. Install dependencies and rebuild the frontend
 cd ClientApp
 npm install
+npm run build
 cd ..
 
-# 7. Ejecutar nuevas migraciones SQL (si las hay)
-# Revisar si hay nuevos archivos en Migrations/
-ls -la Migrations/
-# Ejecutar las nuevas migraciones en orden
+# 5. Apply new SQL scripts (if any)
+# Check for new files in Decatron.Data/Migrations/ and apply them in order
+ls -la Decatron.Data/Migrations/
 
-# 8. Reiniciar el backend
+# 6. Restart the backend
 screen -r decatron-api
+# Ctrl+C to stop it, then:
 ASPNETCORE_ENVIRONMENT=Production dotnet run --urls "http://localhost:7264"
-# Ctrl+A, D para separar
-
-# 9. Reiniciar el frontend
-screen -r decatron-frontend
-npm run dev -- --host 0.0.0.0 --port 5173
-# Ctrl+A, D para separar
+# Ctrl+A, D to detach
 ```
 
-### Script de despliegue rapido / Quick Deploy Script
+Apply the SQL scripts **before** restarting the backend, so the new code never runs against an old schema. The frontend needs no restart: nginx serves the new `dist` as soon as the build finishes.
 
-Puedes crear un script en `/var/www/html/decatron/deploy.sh`:
+### Quick deploy script
+
+You can create a script such as `/var/www/html/decatron/deploy.sh`:
 
 ```bash
 #!/bin/bash
@@ -495,108 +476,105 @@ echo "=== Decatron Deploy ==="
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR=~/backups
 
-# Backup de la base de datos
+# Database backup
 mkdir -p $BACKUP_DIR
-echo "[1/6] Creando backup de la base de datos..."
+echo "[1/5] Backing up the database..."
 pg_dump -U decatron_user decatron_prod > $BACKUP_DIR/decatron_$TIMESTAMP.sql
 
-# Pull de cambios
-echo "[2/6] Descargando cambios..."
+# Pull changes
+echo "[2/5] Pulling changes..."
 cd /var/www/html/decatron/Decatron/decatron
 git pull origin main
 
-# Restaurar dependencias .NET
-echo "[3/6] Restaurando dependencias .NET..."
+# Restore .NET dependencies
+echo "[3/5] Restoring .NET dependencies..."
 dotnet restore
 
-# Instalar dependencias del frontend
-echo "[4/6] Instalando dependencias del frontend..."
-cd ClientApp && npm install && cd ..
+# Build the frontend
+echo "[4/5] Building the frontend..."
+cd ClientApp && npm install && npm run build && cd ..
 
-echo "[5/6] Deploy completado."
-echo "[6/6] IMPORTANTE: Reiniciar manualmente las sesiones screen."
+echo "[5/5] Done. Now apply any new SQL scripts and restart the backend:"
 echo "  screen -r decatron-api"
-echo "  screen -r decatron-frontend"
 echo ""
-echo "Backup guardado en: $BACKUP_DIR/decatron_$TIMESTAMP.sql"
+echo "Backup saved at: $BACKUP_DIR/decatron_$TIMESTAMP.sql"
 ```
 
 ---
 
-## Procedimiento de rollback / Rollback Procedure
+## Rollback Procedure
 
-### Rollback de codigo / Code Rollback
+### Code rollback
 
 ```bash
-# 1. Detener los servicios (backend y frontend en screen)
+# 1. Stop the backend
 
-# 2. Ver los ultimos commits
+# 2. See the latest commits
 cd /var/www/html/decatron/Decatron/decatron
 git log --oneline -10
 
-# 3. Volver al commit anterior
+# 3. Go back to the previous commit
 git checkout <COMMIT_HASH>
 
-# 4. Restaurar dependencias
+# 4. Restore dependencies and rebuild the frontend
 dotnet restore
-cd ClientApp && npm install && cd ..
+cd ClientApp && npm install && npm run build && cd ..
 
-# 5. Reiniciar los servicios
+# 5. Restart the backend
 ```
 
-### Rollback de base de datos / Database Rollback
+### Database rollback
 
 ```bash
-# 1. Detener el backend
+# 1. Stop the backend
 
-# 2. Restaurar el backup
+# 2. Restore the backup
 sudo -u postgres psql -c "DROP DATABASE decatron_prod;"
 sudo -u postgres psql -c "CREATE DATABASE decatron_prod OWNER decatron_user;"
 sudo -u postgres psql -d decatron_prod < ~/backups/decatron_YYYYMMDD_HHMMSS.sql
 
-# 3. Reiniciar el backend
+# 3. Restart the backend
 ```
 
-**ADVERTENCIA:** El rollback de base de datos perdera todos los datos creados despues del backup (usuarios nuevos, tips, configuraciones, etc.). Solo usar como ultimo recurso.
+**WARNING:** a database rollback loses all data created after the backup (new users, tips, settings and so on). Use it only as a last resort.
 
-### Rollback parcial de una migracion SQL / Partial SQL Migration Rollback
+### Partial rollback of a SQL script
 
-Las migraciones SQL del proyecto no tienen scripts de rollback. Si una migracion falla a mitad de ejecucion:
+The project's SQL scripts have no rollback scripts. If a script fails halfway:
 
-1. Revisar que tablas/columnas se crearon parcialmente
-2. Eliminar manualmente lo que se creo
-3. Corregir el script SQL
-4. Ejecutarlo de nuevo
+1. Check which tables or columns were partially created
+2. Remove by hand what was created
+3. Fix the SQL script
+4. Run it again
 
-Se recomienda siempre ejecutar migraciones dentro de una transaccion:
+It is best to always run scripts inside a transaction:
 
 ```sql
 BEGIN;
--- contenido del script de migracion
+-- content of the migration script
 COMMIT;
 ```
 
 ---
 
-## Notas adicionales / Additional Notes
+## Additional Notes
 
-### Estructura de archivos de configuracion / Configuration File Structure
+### Configuration file structure
 
 ```
-appsettings.json                    <- Configuracion publica (logging, scopes)
-appsettings.Secrets.json            <- Secretos (NO en git, NUNCA commitear)
-appsettings.Secrets.json.example    <- Template de secretos (en git, sin valores reales)
-appsettings.Staging.json            <- Config especifica de staging
-appsettings.Secrets.Staging.json    <- Secretos de staging
+appsettings.json                      <- Public configuration (logging, scopes, module defaults)
+appsettings.Secrets.json              <- Secrets (NOT in git, never commit it)
+appsettings.Secrets.json.example      <- Secrets template (in git, no real values)
+appsettings.Secrets.{Environment}.json <- Secrets of one environment (for example Staging)
 ```
 
 ### Logs
 
-Los logs se escriben en `/var/www/html/decatron/Decatron/decatron/logs/` con rotacion diaria (maximo 7 archivos de 10MB cada uno). Ver [TROUBLESHOOTING.md](TROUBLESHOOTING.md) para mas detalles.
+Logs are written to `logs/` inside the project folder with daily rotation: files named `decatron-YYYYMMDD.txt`, at most 50 MB each, 14 files kept. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more details.
 
-### Base de datos en produccion
+### Production database
 
-- **78 tablas**, 296 indices, 43 foreign keys
-- Usuario principal: `decatron_user`
-- Las migraciones son manuales (scripts SQL), no se usa `dotnet ef migrations`
-- Hacer backups diarios con `pg_dump`
+- More than 240 tables and several hundred indexes
+- Main user: `decatron_user`
+- Migrations are manual SQL scripts; `dotnet ef migrations` is not used
+- Take daily backups with `pg_dump`

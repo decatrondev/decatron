@@ -1,6 +1,8 @@
 # Configuration Reference
 
-Complete reference for all Decatron v2 configuration options, environment variables, application settings, Twitch setup, and database configuration.
+> Español: [es/CONFIGURATION.md](es/CONFIGURATION.md)
+
+Guide to configuring Decatron v2: configuration files, Twitch setup, database, integrations, sessions, permissions and logging. The complete list of settings (names, types, defaults) is in [ENV_VARIABLES.md](ENV_VARIABLES.md).
 
 ---
 
@@ -8,15 +10,13 @@ Complete reference for all Decatron v2 configuration options, environment variab
 
 - [Overview](#overview)
 - [Configuration Files](#configuration-files)
-- [Environment Variables and Secrets](#environment-variables-and-secrets)
-- [appsettings.json Structure](#appsettingsjson-structure)
+- [Settings Reference](#settings-reference)
 - [Twitch Setup](#twitch-setup)
 - [Database Setup](#database-setup)
 - [AWS Polly (TTS)](#aws-polly-tts)
 - [PayPal Integration](#paypal-integration)
 - [Spotify Integration](#spotify-integration)
-- [CORS Configuration](#cors-configuration)
-- [Static File Paths](#static-file-paths)
+- [CORS and Static Files](#cors-and-static-files)
 - [Background Services](#background-services)
 - [Session and Authentication](#session-and-authentication)
 - [Permission System](#permission-system)
@@ -31,7 +31,7 @@ Decatron v2 is built on ASP.NET Core 8 and uses a layered configuration system:
 1. **`appsettings.json`** -- Public configuration (logging, allowed hosts, Twitch scopes)
 2. **`appsettings.Secrets.json`** -- Private credentials (not committed to source control)
 3. **`appsettings.Secrets.{Environment}.json`** -- Environment-specific overrides (staging, production)
-4. **Environment variables** -- Can override any setting using the standard ASP.NET Core pattern
+4. **Environment variables** -- Standard ASP.NET Core pattern (`Section__Key`). Note that the two `appsettings.Secrets*` files are added after the default sources, so they win over environment variables; see the load order in [ENV_VARIABLES.md](ENV_VARIABLES.md#configuration-files-and-load-order)
 
 Configuration is loaded at startup in `Program.cs` and bound to strongly-typed settings classes via `IOptions<T>`.
 
@@ -57,42 +57,24 @@ flowchart TD
 
 ### appsettings.json (committed to repo)
 
-This file contains non-sensitive settings that are safe to share:
+This file contains non-sensitive settings that are safe to share. These are the top-level sections it holds today (the file itself is the source of truth):
 
-```json
-{
-  "TwitchSettings": {
-    "Scopes": "user:read:email chat:edit chat:read channel:manage:broadcast channel:read:subscriptions bits:read channel:read:redemptions moderator:manage:banned_users moderator:manage:chat_messages moderator:read:followers channel:manage:raids user:write:chat"
-  },
-  "Serilog": {
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "Microsoft": "Warning",
-        "System": "Warning"
-      }
-    },
-    "WriteTo": [
-      { "Name": "Console" },
-      {
-        "Name": "File",
-        "Args": {
-          "path": "logs/decatron-.log",
-          "rollingInterval": "Day",
-          "retainedFileCountLimit": 30
-        }
-      }
-    ]
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
-```
+| Section | Keys | Purpose |
+|---------|------|---------|
+| `TwitchSettings` | `Scopes` | Space-separated Twitch scopes requested at login (see [Twitch Setup](#twitch-setup)) |
+| `Serilog` | `MinimumLevel`, `WriteTo`, `Enrich` | Console sink and rolling file sink `logs/decatron-.txt` (daily, 50 MB size limit, 14 files kept) |
+| `Logging` | `LogLevel` | ASP.NET Core log levels |
+| `AllowedHosts` | -- | Host filtering |
+| `ClipSettings` | `DownloadsPath` | Folder where shoutout clips are stored; served under `/downloads` |
+| `EventSubSettings` | `ShardCount` | Number of WebSocket shards of the EventSub conduit (default 1) |
+| `LiveTranslation` | `SttModel`, `GeminiFallbackModel`, `SttCreditsPerSecond`, `MaxConcurrentChannels`, `MaxLanguagesPerChannel`, `LinkCodeMinutes`, `SmartSegmentation`, ..., `ClientTuning` | Live translation pipeline limits and client timing (hot-reloaded) |
+| `WheelOfLuck` | `Enabled` | Master switch of the Wheel module |
+| `Fortnite` | `CurrentSeason` | Season used by the Fortnite modules |
+| `DecatronApi` | `BaseUrl`, `Enabled` | Optional link to the invoicing API |
+| `TtsCredits` | `TransitionEndsAt` | End date of the TTS credits transition |
+| `RiotApi` | (comments only) | Riot keys belong in the secrets file |
+
+Binders such as `IOptionsMonitor` reload some of these sections without a restart (for example `LiveTranslation`).
 
 ### appsettings.Secrets.json (NOT in source control)
 
@@ -100,140 +82,11 @@ This file must be created manually on each deployment. It contains all credentia
 
 ---
 
-## Environment Variables and Secrets
+## Settings Reference
 
-All secrets are configured in `appsettings.Secrets.json` or via environment variables. The table below shows every required and optional setting.
+[ENV_VARIABLES.md](ENV_VARIABLES.md) lists every setting the backend reads, grouped by purpose: database, Twitch, JWT, Kick, Discord, PayPal and Culqi, Spotify and Last.fm, AI providers, TTS and speech-to-text, live translation, games, Song Request, tournaments, trading cards, emotes, brand, e-mail and invoicing, CORS origins and physical paths.
 
-### Required Settings
-
-| Setting Path | Type | Description |
-|-------------|------|-------------|
-| `ConnectionStrings:DefaultConnection` | string | PostgreSQL connection string |
-| `JwtSettings:SecretKey` | string | Secret key for signing JWT tokens (minimum 32 characters recommended) |
-| `JwtSettings:ExpiryMinutes` | int | JWT token lifetime in minutes |
-| `JwtSettings:RefreshTokenExpiryDays` | int | Refresh token lifetime in days |
-| `TwitchSettings:ClientId` | string | Twitch application Client ID |
-| `TwitchSettings:ClientSecret` | string | Twitch application Client Secret |
-| `TwitchSettings:BotToken` | string | OAuth token for the bot's Twitch account |
-| `TwitchSettings:BotUsername` | string | Twitch username of the bot account |
-| `TwitchSettings:ChannelId` | string | Twitch ID of the primary channel |
-| `TwitchSettings:RedirectUri` | string | OAuth redirect URI (e.g., `https://yourdomain.com/api/auth/callback`) |
-
-### Optional Settings
-
-| Setting Path | Type | Default | Description |
-|-------------|------|---------|-------------|
-| `TwitchSettings:FrontendUrl` | string | `http://localhost:5173` | URL of the React frontend |
-| `TwitchSettings:WebhookSecret` | string | -- | Secret for verifying generic webhooks |
-| `TwitchSettings:EventSubWebhookSecret` | string | -- | Secret for HMAC verification of EventSub webhooks |
-| `TwitchSettings:EventSubWebhookUrl` | string | -- | Public URL where Twitch sends EventSub notifications |
-| `TwitchSettings:EventSubWebhookPort` | int | `7264` | Port for the EventSub webhook endpoint |
-| `AwsPolly:AccessKeyId` | string | -- | AWS access key for Amazon Polly TTS |
-| `AwsPolly:SecretAccessKey` | string | -- | AWS secret key for Amazon Polly TTS |
-| `AwsPolly:Region` | string | `us-east-1` | AWS region for Polly |
-| `AwsPolly:CachePath` | string | `/var/www/html/decatron/tts-cache` | Local disk path for TTS audio cache |
-| `GachaSettings:WebUrl` | string | `http://localhost:3000` | URL of the GachaVerse frontend |
-| `GachaSettings:BotUsername` | string | `decatronstreambot` | GachaVerse bot username |
-| `PayPal:ClientId` | string | -- | PayPal application Client ID |
-| `PayPal:ClientSecret` | string | -- | PayPal application Client Secret |
-| `PayPal:Mode` | string | -- | `sandbox` or `live` |
-| `Spotify:ClientId` | string | -- | Spotify application Client ID |
-| `Spotify:ClientSecret` | string | -- | Spotify application Client Secret |
-| `Spotify:RedirectUri` | string | -- | Spotify OAuth redirect URI |
-| `LastFm:ApiKey` | string | -- | Last.fm API key for Now Playing |
-
-### Example appsettings.Secrets.json
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=decatron;Username=decatron_user;Password=YOUR_PASSWORD"
-  },
-  "JwtSettings": {
-    "SecretKey": "your-secret-key-at-least-32-characters-long",
-    "ExpiryMinutes": 60,
-    "RefreshTokenExpiryDays": 30
-  },
-  "TwitchSettings": {
-    "ClientId": "your_twitch_client_id",
-    "ClientSecret": "your_twitch_client_secret",
-    "BotToken": "oauth:your_bot_token",
-    "BotUsername": "your_bot_username",
-    "ChannelId": "12345678",
-    "RedirectUri": "https://yourdomain.com/api/auth/callback",
-    "FrontendUrl": "https://yourdomain.com",
-    "EventSubWebhookSecret": "your_eventsub_secret",
-    "EventSubWebhookUrl": "https://yourdomain.com/api/twitch/webhook"
-  },
-  "AwsPolly": {
-    "AccessKeyId": "AKIAIOSFODNN7EXAMPLE",
-    "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-    "Region": "us-east-1",
-    "CachePath": "/var/www/html/decatron/tts-cache"
-  }
-}
-```
-
----
-
-## appsettings.json Structure
-
-### Settings Classes
-
-The configuration is bound to these strongly-typed C# classes:
-
-#### JwtSettings (`Decatron.Core/Settings/JwtSettings.cs`)
-
-```csharp
-public class JwtSettings
-{
-    public string SecretKey { get; set; }
-    public int ExpiryMinutes { get; set; }
-    public int RefreshTokenExpiryDays { get; set; }
-}
-```
-
-#### TwitchSettings (`Decatron.Core/Settings/TwitchSettings.cs`)
-
-```csharp
-public class TwitchSettings
-{
-    public string ClientId { get; set; }
-    public string ClientSecret { get; set; }
-    public string BotToken { get; set; }
-    public string BotUsername { get; set; }
-    public string ChannelId { get; set; }
-    public string RedirectUri { get; set; }
-    public string Scopes { get; set; }
-    public string FrontendUrl { get; set; }           // default: http://localhost:5173
-    public string WebhookSecret { get; set; }
-    public string EventSubWebhookSecret { get; set; }
-    public string EventSubWebhookUrl { get; set; }
-    public int EventSubWebhookPort { get; set; }       // default: 7264
-}
-```
-
-#### AwsPollySettings (`Decatron.Core/Settings/AwsPollySettings.cs`)
-
-```csharp
-public class AwsPollySettings
-{
-    public string AccessKeyId { get; set; }
-    public string SecretAccessKey { get; set; }
-    public string Region { get; set; }                 // default: us-east-1
-    public string CachePath { get; set; }              // default: /var/www/html/decatron/tts-cache
-}
-```
-
-#### GachaSettings (`Decatron.Core/Settings/GachaSettings.cs`)
-
-```csharp
-public class GachaSettings
-{
-    public string WebUrl { get; set; }                 // default: http://localhost:3000
-    public string BotUsername { get; set; }             // default: decatronstreambot
-}
-```
+Only three groups are needed to start the bot: the database connection string (`ConnectionStrings:DefaultConnection`), `JwtSettings` and `TwitchSettings`. That minimum is what `appsettings.Secrets.json.example` contains. Each module that uses an external service needs its own keys; without them the module is not usable but the application still starts.
 
 ---
 
@@ -253,42 +106,28 @@ public class GachaSettings
 ### Step 2: Create a Bot Account
 
 1. Create a separate Twitch account for the bot.
-2. Generate an OAuth token for the bot account with the required scopes (see below).
+2. The bot account's OAuth tokens are stored in the `bot_tokens` table and refreshed by `BotTokenRefreshBackgroundService`; the `TwitchSettings:BotToken` property exists but the code does not read it.
 3. Note the bot's **username** and **channel ID** (numeric Twitch user ID).
 
-### Step 3: Required Twitch Scopes
+### Step 3: Twitch Scopes
 
-The following scopes are required for full functionality:
+The scopes requested at login are defined in `appsettings.json` under `TwitchSettings:Scopes` (a single space-separated string). That value is the source of truth; at the time of writing it contains:
 
-| Scope | Used For |
-|-------|----------|
-| `user:read:email` | Reading user email during OAuth login |
-| `chat:edit` | Sending messages to chat |
-| `chat:read` | Reading chat messages |
-| `channel:manage:broadcast` | Changing stream title and category |
-| `channel:read:subscriptions` | Reading subscriber data |
-| `bits:read` | Reading bits/cheers events |
-| `channel:read:redemptions` | Reading Channel Points redemptions |
-| `moderator:manage:banned_users` | Banning/unbanning users |
-| `moderator:manage:chat_messages` | Deleting chat messages |
-| `moderator:read:followers` | Reading follower data |
-| `channel:manage:raids` | Managing raids |
-| `user:write:chat` | Sending chat messages via Helix API |
+`chat:read`, `chat:edit`, `clips:edit`, `channel:bot`, `channel:edit:commercial`, `channel:manage:broadcast`, `channel:manage:redemptions`, `channel:manage:moderators`, `channel:read:editors`, `channel:read:redemptions`, `channel:read:subscriptions`, `channel:read:vips`, `moderation:read`, `moderator:read:followers`, `user:read:email`, `user:edit:broadcast`, `channel_editor`, `user:manage:blocked_users`, `user:write:chat`, `bits:read`, `channel:read:hype_train`.
 
-### Step 4: EventSub Webhook Configuration
+If you add a feature that needs another Twitch scope, add it to that string; streamers must log in again to grant it.
 
-EventSub is used for real-time Twitch event notifications. The webhook endpoint must be publicly accessible.
+### Step 4: EventSub (conduit)
 
-1. Set `TwitchSettings:EventSubWebhookUrl` to your public webhook URL:
-   ```
-   https://yourdomain.com/api/twitch/webhook
-   ```
-2. Set `TwitchSettings:EventSubWebhookSecret` to a random secret string (used for HMAC-SHA256 verification).
-3. Ensure the endpoint is accessible from the internet (Twitch sends HTTP POST requests).
+EventSub delivers real-time Twitch events (chat, follows, bits, subs, raids, hype train, stream status) through a **conduit** whose WebSocket shards are run by `EventSubWebSocketService`. This needs only the Twitch application credentials: no public URL and no webhook secret.
+
+- `EventSubSettings:ShardCount` in `appsettings.json` sets the number of shards (default 1). If the existing conduit has a different shard count, the service scales it.
+- The old webhook transport was switched off on 2026-08-06. `POST /api/twitch/webhook` still answers 200 so Twitch does not get 404s, but it processes nothing. The code that verifies and dispatches webhook payloads is kept (marked obsolete) in case it has to be reverted.
+- `TwitchSettings:WebhookCallbackUrl` and `TwitchSettings:WebhookSecret` are read only when a subscription is created with the webhook transport, which happens only when no conduit exists.
 
 ### EventSub Subscriptions
 
-The following EventSub subscriptions are automatically registered per user at login:
+Subscriptions are ensured per user at login and again for all active users when the backend starts (`EventSubBackgroundService`). They use `transport.method = "conduit"`. The conduit is created or reused by `EventSubWebSocketService`, which runs `EventSubSettings:ShardCount` WebSocket shards and also subscribes once to `conduit.shard.disabled`. Notifications reach `EventSubNotificationHandler`.
 
 | Subscription Type | Event |
 |-------------------|-------|
@@ -300,30 +139,9 @@ The following EventSub subscriptions are automatically registered per user at lo
 | `channel.subscription.gift` | Gift subscriptions |
 | `channel.subscription.message` | Resub messages |
 | `channel.raid` | Incoming raids |
-| `channel.hype_train.begin` | Hype train start |
-| `stream.online` | Stream goes live |
-| `stream.offline` | Stream goes offline |
-
-### EventSub Webhook Verification
-
-Twitch verifies webhooks using HMAC-SHA256. The verification flow:
-
-```mermaid
-sequenceDiagram
-    participant Twitch
-    participant Decatron as TwitchWebhookController
-
-    Twitch->>Decatron: POST /api/twitch/webhook (challenge)
-    Decatron->>Decatron: Verify HMAC signature
-    Decatron-->>Twitch: 200 OK (challenge response)
-
-    Note over Twitch,Decatron: Subscription is now active
-
-    Twitch->>Decatron: POST /api/twitch/webhook (notification)
-    Decatron->>Decatron: Verify HMAC signature
-    Decatron->>Decatron: Dispatch to handler
-    Decatron-->>Twitch: 200 OK
-```
+| `channel.hype_train.begin` (and later stages) | Hype train |
+| `channel.update` | Title/category changes |
+| `stream.online` / `stream.offline` | Stream goes live / offline |
 
 ---
 
@@ -332,7 +150,7 @@ sequenceDiagram
 ### PostgreSQL Requirements
 
 - **Version:** PostgreSQL 14+
-- **Extensions:** None required (standard PostgreSQL)
+- **Extensions:** the baseline schema uses `pgcrypto` (created with `CREATE EXTENSION IF NOT EXISTS`)
 - **Character set:** UTF-8
 
 ### Connection String Format
@@ -351,37 +169,15 @@ CREATE DATABASE decatron OWNER decatron_user;
 GRANT ALL PRIVILEGES ON DATABASE decatron TO decatron_user;
 ```
 
-2. **Run the application.** EF Core auto-creates all tables on first startup (Code-First). No manual migrations are needed.
+2. **Create the schema.** The backend does **not** create or migrate tables on startup: `Program.cs` has no `EnsureCreated` or `Migrate` call, and the project does not use `dotnet ef migrations`. The schema is built from the SQL scripts in `Decatron.Data/Migrations/`, applied by hand with `psql` before the backend is restarted. For an empty database, load the baseline snapshot `Decatron.Data/Schema/baseline.sql` (structure only, generated from production with `pg_dump --schema-only`, 2026-10-10): `psql -U decatron_user -d decatron -f Decatron.Data/Schema/baseline.sql`. The incremental scripts in `Migrations/` (`Add_*`, `Fix_*`, ...) are then applied for any change made after the snapshot.
 
-3. **Seed data.** On first startup, `Program.cs` automatically seeds the database with initial data.
+3. **Seed data.** On startup, `Program.cs` runs `DatabaseSeeder.SeedGameCacheAndAliasesAsync()`, which seeds the game cache and game aliases.
 
 ### Database Schema Overview
 
-The database contains 78 tables organized into these categories:
+The production database contains more than 240 tables. The categories below list the core ones (names checked against the production schema); newer modules (Song Request, Wheel, Tournaments, Discord, Kick, live translation, credits, emotes, ...) add their own tables, each created by its own script in `Decatron.Data/Migrations/`:
 
-```mermaid
-erDiagram
-    users ||--o{ user_channel_permissions : has
-    users ||--o{ bot_tokens : manages
-    users ||--o{ timer_configs : configures
-    users ||--o{ event_alerts_configs : configures
-    users ||--o{ tips_configs : configures
-    users ||--o{ oauth_applications : creates
-    users ||--o{ giveaway_configs : creates
-
-    timer_configs ||--o{ timer_states : has
-    timer_configs ||--o{ timer_sessions : tracks
-    timer_sessions ||--o{ timer_event_logs : contains
-    timer_sessions ||--o{ timer_session_backups : backed_by
-
-    giveaway_configs ||--o{ giveaway_sessions : runs
-    giveaway_sessions ||--o{ giveaway_participants : has
-    giveaway_sessions ||--o{ giveaway_winners : selects
-
-    oauth_applications ||--o{ oauth_authorization_codes : issues
-    oauth_applications ||--o{ oauth_access_tokens : grants
-    oauth_access_tokens ||--o{ oauth_refresh_tokens : refreshed_by
-```
+The relationships of the core tables are in the ER diagram of [ARCHITECTURE.md](ARCHITECTURE.md#6-database-schema).
 
 ### Table Categories
 
@@ -392,35 +188,26 @@ erDiagram
 | **Commands** | `custom_commands`, `scripted_commands`, `micro_game_commands`, `command_settings`, `command_counters`, `command_uses` | Bot commands and scripting |
 | **Timer** | `timer_configs`, `timer_states`, `timer_sessions`, `timer_session_backups`, `timer_event_logs`, `timer_event_cooldowns`, `timer_schedules`, `timer_happyhour`, `timer_templates`, `timer_media_files`, `timers` | Timer Extension + message timers |
 | **Alerts** | `event_alerts_configs`, `sound_alert_configs`, `sound_alert_files`, `sound_alert_history`, `follow_alert_configs`, `follow_alert_history` | Event and sound alert systems |
-| **Overlays** | `shoutout_configs`, `shoutout_history`, `now_playing_configs`, `goals_configs`, `goals_progress_logs` | Overlay configurations |
+| **Overlays** | `shoutout_configs`, `shoutout_history`, `now_playing_configs` | Overlay configurations |
 | **Giveaways** | `giveaway_configs`, `giveaway_sessions`, `giveaway_participants`, `giveaway_winners`, `giveaway_winner_cooldowns`, `giveaway_blacklist`, `raffles`, `raffle_participants`, `raffle_winners` | Giveaway and raffle systems |
 | **Tips** | `tips_configs`, `tips_history` | Donation system |
 | **Moderation** | `banned_words`, `moderation_configs`, `moderation_logs`, `user_strikes` | Chat moderation |
 | **AI/Chat** | `decatron_ai_global_config`, `decatron_ai_channel_config`, `decatron_ai_channel_permissions`, `decatron_ai_usage`, `decatron_chat_config`, `decatron_chat_conversations`, `decatron_chat_messages`, `decatron_chat_permissions` | AI and private chat features |
 | **Streaming** | `game_cache`, `game_aliases`, `game_history`, `title_history`, `categories`, `stream_watch_times`, `stream_chat_activities`, `channel_followers`, `follower_history` | Stream data and tracking |
 | **Misc** | `tts_cache_entries`, `discount_codes`, `gacha_linked_accounts`, `chat_messages` | TTS cache, promo codes, integrations |
-| **Tiers** | `user_subscription_tiers`, `tier_features`, `tier_history`, `supporter_payments`, `supporters_page_config` | Subscription tier system (managed externally) |
+| **Tiers** | `user_subscription_tiers`, `tier_features`, `tier_history`, `supporter_payments`, `supporters_page_config` | Subscription tier system (some tables are accessed with raw Npgsql) |
 
 ### Database Naming Convention
 
 - All table names use **snake_case** (e.g., `timer_event_logs`)
 - All column names use **snake_case** (e.g., `channel_name`, `created_at`)
-- Primary keys are named `id` (bigint/serial)
-- Foreign keys follow the pattern `{referenced_table_singular}_id`
-- Timestamps use `created_at`, `updated_at` (UTC)
-- JSON/JSONB columns are used for flexible configuration storage (e.g., `event_alerts_configs.config`)
+- Most primary keys are `id`; some older tables use a PascalCase `Id` column (for example `bot_tokens` and `custom_commands`)
+- Timestamps use `created_at` and `updated_at`
+- JSON/JSONB columns are used for flexible configuration storage
 
-### Key Indexes
+### Indexes
 
-The database has 296 indexes. The most indexed tables:
-
-| Table | Index Count | Reason |
-|-------|-------------|--------|
-| `decatron_ai_usage` | 6 | Frequent queries by channel, user, date |
-| `channel_followers` | 6 | Lookups by channel + user, follower status |
-| `user_channel_permissions` | 6 | Permission checks on every authenticated request |
-| `oauth_access_tokens` | 6 | Token validation on every API request |
-| `timer_states` | 5 | Frequent state lookups during timer operation |
+The production schema has several hundred indexes, defined in `DecatronDbContext.cs` (Fluent API) and in the SQL scripts.
 
 ---
 
@@ -430,12 +217,7 @@ Amazon Polly is used for Text-to-Speech in event alerts, timer alerts, and tips 
 
 ### Configuration
 
-| Setting | Description |
-|---------|-------------|
-| `AwsPolly:AccessKeyId` | Your AWS IAM access key with Polly permissions |
-| `AwsPolly:SecretAccessKey` | Your AWS IAM secret key |
-| `AwsPolly:Region` | AWS region (default: `us-east-1`) |
-| `AwsPolly:CachePath` | Local directory for caching generated audio files |
+The settings (`AwsPolly:AccessKeyId`, `SecretAccessKey`, `Region`, `CachePath`) are described in [ENV_VARIABLES.md](ENV_VARIABLES.md#text-to-speech-and-speech-to-text).
 
 ### Required IAM Permissions
 
@@ -457,12 +239,12 @@ Amazon Polly is used for Text-to-Speech in event alerts, timer alerts, and tips 
 
 ### TTS Caching
 
-TTS audio is cached using a SHA-256 hash of the normalized text content:
-1. Generate hash from `text.Trim().ToLowerInvariant()`
-2. Check database (`tts_cache_entries`) for existing entry
-3. If cached and file exists on disk, return cached URL
-4. If not cached, call Polly API, save MP3 to disk, upsert cache entry
-5. Return public URL: `/tts-audio/{hash}.mp3`
+TTS audio is cached using a SHA-256 hash of the voice, engine, language and normalized text:
+1. Generate the hash from `voice:engine:language:text`, where the text is `text.Trim().ToLowerInvariant()`
+2. Check the database (`tts_cache_entries`) for an existing entry
+3. If cached and the file exists on disk, return the cached URL
+4. If not cached, call Polly, save the MP3 to disk and upsert the cache entry
+5. Return the public URL under `/tts-audio/`
 
 ### Fallback Behavior
 
@@ -476,11 +258,7 @@ PayPal is used for the Tips/Donations system. Payments go directly to the stream
 
 ### Configuration
 
-| Setting | Description |
-|---------|-------------|
-| `PayPal:ClientId` | PayPal REST API Client ID |
-| `PayPal:ClientSecret` | PayPal REST API Client Secret |
-| `PayPal:Mode` | `sandbox` for testing, `live` for production |
+The settings (`PayPalSettings` for tips, `SupportersPayPal` for tier purchases) are described in [ENV_VARIABLES.md](ENV_VARIABLES.md#payments-paypal-and-culqi).
 
 ### Setup Flow
 
@@ -497,11 +275,7 @@ Spotify is an optional provider for the Now Playing overlay.
 
 ### Configuration
 
-| Setting | Description |
-|---------|-------------|
-| `Spotify:ClientId` | Spotify Developer application Client ID |
-| `Spotify:ClientSecret` | Spotify Developer application Client Secret |
-| `Spotify:RedirectUri` | OAuth callback URL (e.g., `https://yourdomain.com/api/spotify/callback`) |
+The settings (`SpotifySettings:ClientId`, `ClientSecret`, `RedirectUri`) are described in [ENV_VARIABLES.md](ENV_VARIABLES.md#music-spotify-and-lastfm).
 
 ### Setup
 
@@ -511,73 +285,15 @@ Spotify is an optional provider for the Now Playing overlay.
 
 ---
 
-## CORS Configuration
+## CORS and Static Files
 
-CORS origins are configured in `Program.cs`. The following origins are allowed:
-
-| Origin | Environment |
-|--------|-------------|
-| `http://localhost:5173` | Development (Vite dev server) |
-| `https://twitch.decatron.net` | Production (Twitch subdomain) |
-| `https://decatron.net` | Production (main domain) |
-| `https://www.decatron.net` | Production (www subdomain) |
-
-CORS policy allows:
-- Any HTTP method
-- Any header
-- Credentials (cookies, authorization headers)
-
-To add custom origins, modify the CORS policy in `Program.cs`:
-
-```csharp
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReactApp", policy =>
-    {
-        policy.WithOrigins(
-            "http://localhost:5173",
-            "https://your-custom-domain.com"
-        )
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials();
-    });
-});
-```
-
----
-
-## Static File Paths
-
-Decatron serves static files from several directories. These paths are configured in `Program.cs`:
-
-| URL Path | Physical Path | Description |
-|----------|---------------|-------------|
-| `/downloads/*` | `ClientApp/public/downloads` | Downloaded Twitch clips (for shoutouts) |
-| `/uploads/soundalerts/*` | `ClientApp/public/uploads/soundalerts` | Uploaded sound alert media files |
-| `/timerextensible/*` | `ClientApp/public/timerextensible` | Timer extension media files |
-| `/tts-audio/*` | `{AwsPolly:CachePath}` (default: `/var/www/html/decatron/tts-cache`) | Generated TTS audio cache |
-| `/system-files/*` | `ClientApp/public/system-files` | Pre-loaded system media files |
-
-Ensure these directories exist and have appropriate write permissions for the application user.
+The CORS origins (hard-coded in `Program.cs`) and the folders served as static files are listed in [ENV_VARIABLES.md](ENV_VARIABLES.md#cors-origins) and [ENV_VARIABLES.md](ENV_VARIABLES.md#physical-paths).
 
 ---
 
 ## Background Services
 
-Decatron launches 9 background services at startup:
-
-| Service | Interval | Description |
-|---------|----------|-------------|
-| `BotTokenRefreshBackgroundService` | 30 minutes | Refreshes bot OAuth tokens expiring within 7 days |
-| `UserTokenRefreshBackgroundService` | 30 minutes | Refreshes user OAuth tokens expiring within 7 days |
-| `GameCacheUpdateService` | Periodic | Updates local game/category cache from Twitch API |
-| `TimerBackgroundService` | 1 second | Timer ticks, auto-pause schedules, auto-save backups, message timer execution |
-| `EventSubBackgroundService` | Startup + periodic | Registers EventSub subscriptions for all active users |
-| `TimerStateRestorationService` | Startup | Restores active timer states after server restart |
-| `GiveawayBackgroundService` | 5 seconds | Auto-finalize giveaways, process winner timeouts, promote backups |
-| `NowPlayingBackgroundService` | 3 seconds | Polls Last.fm/Spotify for all active Now Playing channels |
-| `StreamStatusService` | Periodic | Monitors stream online/offline status, auto-pause/resume timers |
+Decatron registers more than 25 hosted services at startup (token refresh, EventSub, timers, giveaways, now playing, watch time, panic mode, tournaments, Fortnite Spirits notices, invoicing and the Discord bot, among others). The full table, with the interval of each one, is in [ARCHITECTURE.md section 9](ARCHITECTURE.md#9-background-services).
 
 ### Startup Sequence
 
@@ -602,7 +318,7 @@ flowchart TD
 
 ### JWT Configuration
 
-Decatron uses JWT Bearer authentication for the API:
+Decatron uses JWT Bearer authentication for the API. The same token format is issued after a Twitch, Kick or Discord login (`AuthController`, `KickAuthController`, `DiscordAuthController`):
 
 | Parameter | Description |
 |-----------|-------------|
@@ -611,19 +327,24 @@ Decatron uses JWT Bearer authentication for the API:
 | Token location | `Authorization: Bearer {token}` header |
 | Issuer validation | Disabled (configurable) |
 | Audience validation | Disabled (configurable) |
-| Clock skew | Default (5 minutes) |
+| Clock skew | 5 minutes |
+| Lifetime validation | Enabled |
 
 ### JWT Claims
 
 | Claim | Description |
 |-------|-------------|
-| `sub` / `NameIdentifier` | User ID (numeric) |
-| `Name` | Twitch display name |
-| `Login` | Twitch login (lowercase) |
-| `TwitchId` | Twitch user ID |
-| `Email` | User email |
+| `NameIdentifier` | Internal user ID (numeric) |
+| `Name` | Login (for Kick users, the Kick username) |
+| `GivenName` | Display name |
+| `AuthProvider` | `twitch` (default), `kick` or `discord` |
+| `TwitchId` | Twitch user ID (empty if not linked) |
+| `KickId` | Kick user ID (empty if not linked) |
+| `DiscordId` | Discord user ID (empty if not linked) |
 | `ProfileImage` | Profile image URL |
-| `ChannelOwnerId` | Active channel ID (injected by middleware) |
+| `Email` | User email |
+
+The `ChannelOwnerId` claim is **not** part of the issued token. Controllers and `RequirePermission` read it if it exists and otherwise fall back to the user's own ID (see below).
 
 ### Session Storage
 
@@ -633,7 +354,9 @@ ASP.NET Core sessions are used to store the active channel context for multi-cha
 |-----|------|-------------|
 | `ActiveChannelId` | string | The ID of the channel the user is currently managing |
 
-Sessions use in-memory distributed cache (`AddDistributedMemoryCache`). Sessions are lost on server restart.
+Sessions use in-memory distributed cache (`AddDistributedMemoryCache`) with a 30-minute idle timeout and a `HttpOnly`, `SameSite=None`, `Secure` cookie. Sessions are lost on server restart.
+
+Other keys written by `ChannelSwitchController`: `ActiveChannelLogin` and `ActiveChannelAccessLevel`.
 
 ### Dual Authentication Scheme
 
@@ -668,10 +391,10 @@ Multiple controllers use a priority-based pattern to determine which channel the
 | Priority | Source | Description |
 |----------|--------|-------------|
 | 1 (highest) | `HttpContext.Session["ActiveChannelId"]` | Set when switching channels via the dashboard |
-| 2 | JWT claim `ChannelOwnerId` | Injected by `ChannelAccessMiddleware` |
-| 3 (fallback) | JWT claim `NameIdentifier` (user's own ID) | Default to the user's own channel |
+| 2 | JWT claim `ChannelOwnerId` | Only present if a middleware injects it (see note below) |
+| 3 (fallback) | Claim `NameIdentifier` (user's own ID) | Default to the user's own channel |
 
-The `ChannelAccessMiddleware` runs on every authenticated request and injects the `ChannelOwnerId` claim based on the session value or the user's own ID.
+`ChannelAccessMiddleware` (in `Decatron.Middleware/`) can inject the `ChannelOwnerId` claim from the session value, but it is **not registered** in the pipeline in `Program.cs`. In practice each controller reads the session value itself, and `RequirePermission` uses the claim if present or the user's own ID otherwise.
 
 ---
 
@@ -687,45 +410,43 @@ The `ChannelAccessMiddleware` runs on every authenticated request and injects th
 
 ### Section to Permission Mapping
 
+Defined in `PermissionService`:
+
 | Section | Required Level |
 |---------|---------------|
-| `commands` | `commands` (1) |
-| `custom_commands` | `commands` (1) |
-| `timers` | `moderation` (2) |
-| `moderation` | `moderation` (2) |
-| `sound_alerts` | `moderation` (2) |
-| `event_alerts` | `moderation` (2) |
-| `overlays` | `moderation` (2) |
-| `giveaways` | `moderation` (2) |
-| `raffles` | `moderation` (2) |
-| `settings` | `control_total` (3) |
-| `user_management` | `control_total` (3) |
-| `game` | `commands` (1) |
+| `commands`, `microcommands`, `title`, `game` | `commands` (1) |
+| `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters` | `moderation` (2) |
+| `user_management`, `settings`, `spirits` | `control_total` (3) |
+
+A section name that is not in the table is denied to everyone except the channel owner, who always passes. Admin endpoints use `[RequireSystemOwner]` instead of this hierarchy.
 
 ### Permission Enforcement
 
 Permissions are enforced via the `[RequirePermission]` attribute:
 
 ```csharp
-[RequirePermission("moderation")]  // Requires moderation level or higher
+[RequirePermission("overlays")]                    // section "overlays": needs the moderation level or higher
 public async Task<IActionResult> GetConfig()
+
+[RequirePermission("analytics", "moderation")]     // second argument: an explicit minimum level
+public async Task<IActionResult> GetAnalytics()
 ```
 
-The attribute:
-1. Reads `ChannelOwnerId` from JWT claims
-2. Falls back to user's own ID if not present
-3. Checks `user_channel_permissions` table for the user's access level on that channel
+The first argument is a section name from the table above; the optional second argument is a minimum level (`commands`, `moderation` or `control_total`) that is checked directly instead of looking the section up. The attribute:
+1. Reads the `ChannelOwnerId` claim, if any
+2. Falls back to the user's own ID if not present
+3. Checks the `user_channel_permissions` table for the user's access level on that channel
 4. Channel owners automatically have `control_total` on their own channel
 
 ### OAuth2 Scopes (Public API)
 
-For the public OAuth2 API, 20 scopes are available in 3 categories:
+For the public OAuth2 API, 25 scopes are available (defined in `DecatronScopes.cs`):
 
 | Category | Scopes |
 |----------|--------|
-| **Read** | `read:profile`, `read:channel`, `read:commands`, `read:timers`, `read:moderation`, `read:alerts`, `read:followers` |
-| **Write** | `write:channel`, `write:commands`, `write:timers`, `write:moderation`, `write:alerts` |
-| **Action** | `action:chat`, `action:shoutout`, `action:timer`, `action:moderation`, `action:giveaway`, `action:alerts`, `action:tts` |
+| **Read** | `read:profile`, `read:timer`, `read:commands`, `read:alerts`, `read:giveaways`, `read:goals`, `read:analytics`, `read:sounds`, `read:games`, `read:stream` |
+| **Write** | `write:timer`, `write:commands`, `write:alerts`, `write:giveaways`, `write:goals`, `write:sounds` |
+| **Action** | `action:timer`, `action:alerts`, `action:chat`, `action:giveaway`, `action:goals`, `action:sounds`, `action:category`, `action:title`, `action:marker` |
 
 ---
 
@@ -738,7 +459,7 @@ Decatron uses Serilog for structured logging with two sinks:
 | Sink | Configuration |
 |------|--------------|
 | **Console** | All log levels, useful for development |
-| **File** | Rolling daily files in `logs/decatron-{date}.log`, retains 30 files |
+| **File** | Rolling daily files `logs/decatron-{date}.txt`, 50 MB size limit per file (rolls over), retains 14 files |
 
 ### Log Levels
 
@@ -757,10 +478,6 @@ Decatron uses Serilog for structured logging with two sinks:
 | `Microsoft` | Warning | Suppress verbose ASP.NET Core framework logs |
 | `System` | Warning | Suppress verbose system logs |
 | `Microsoft.AspNetCore` | Warning | Suppress per-request middleware logs |
-
-### Webhook Logging
-
-The `TwitchWebhookController` maintains a separate log file at `logs/webhook_logs.txt` for debugging EventSub notifications. This file is downloadable via `GET /api/twitch/download-logs` (requires `control_total` permission).
 
 ### Swagger
 

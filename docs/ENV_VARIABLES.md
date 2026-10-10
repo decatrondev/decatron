@@ -1,53 +1,58 @@
-# Variables de Entorno y Configuracion / Environment Variables & Configuration
+# Environment Variables and Settings
 
-Documentacion completa de todas las variables de configuracion del proyecto Decatron.
+> Español: [es/ENV_VARIABLES.md](es/ENV_VARIABLES.md)
+
+Reference for every setting the Decatron backend reads. Settings are plain ASP.NET Core configuration keys: `Section:Key` in code and environment variables (`Section__Key`), or nested `"Section": { "Key": ... }` in the JSON files. For a task-oriented guide (Twitch setup, database, logging) see [CONFIGURATION.md](CONFIGURATION.md).
+
+This page lists names, types and defaults taken from the code. Real values never go in the repository.
 
 ---
 
-## Tabla de Contenidos
+## Contents
 
-1. [Archivos de configuracion / Configuration Files](#archivos-de-configuracion--configuration-files)
-2. [Variables de entorno del sistema / System Environment Variables](#variables-de-entorno-del-sistema--system-environment-variables)
-3. [Template completo de appsettings.Secrets.json](#template-completo-de-appsettingssecretsjson)
-4. [Base de datos / Database](#base-de-datos--database)
+1. [Configuration files and load order](#configuration-files-and-load-order)
+2. [System environment variables](#system-environment-variables)
+3. [Minimum secrets file](#minimum-secrets-file)
+4. [Database](#database)
 5. [Twitch](#twitch)
-6. [JWT (Autenticacion) / JWT (Authentication)](#jwt-autenticacion--jwt-authentication)
-7. [PayPal (Tips/Donaciones) / PayPal (Tips/Donations)](#paypal-tipsdonaciones--paypal-tipsdonations)
-8. [PayPal Supporters](#paypal-supporters)
-9. [Spotify (Now Playing)](#spotify-now-playing)
-10. [Last.fm (Now Playing)](#lastfm-now-playing)
-11. [Gemini (DecatronAI)](#gemini-decatronai)
-12. [OpenRouter (DecatronAI/Chat)](#openrouter-decatronaichat)
-13. [AWS Polly (TTS)](#aws-polly-tts)
-14. [GachaVerse (Integracion)](#gachaverse-integracion)
-15. [Configuracion publica (appsettings.json)](#configuracion-publica-appsettingsjson)
-16. [CORS Origins](#cors-origins)
-17. [Rutas fisicas / Physical Paths](#rutas-fisicas--physical-paths)
+6. [JWT](#jwt)
+7. [Kick](#kick)
+8. [Discord](#discord)
+9. [Payments: PayPal and Culqi](#payments-paypal-and-culqi)
+10. [Music: Spotify and Last.fm](#music-spotify-and-lastfm)
+11. [AI providers](#ai-providers)
+12. [Text-to-speech and speech-to-text](#text-to-speech-and-speech-to-text)
+13. [Live translation](#live-translation)
+14. [Games: Riot, Epic and Fortnite](#games-riot-epic-and-fortnite)
+15. [Song Request, tournaments, trading cards, emotes and brand](#song-request-tournaments-trading-cards-emotes-and-brand)
+16. [E-mail and invoicing](#e-mail-and-invoicing)
+17. [Public settings in appsettings.json](#public-settings-in-appsettingsjson)
+18. [CORS origins](#cors-origins)
+19. [Physical paths](#physical-paths)
+20. [External services summary](#external-services-summary)
 
 ---
 
-## Archivos de configuracion / Configuration Files
+## Configuration files and load order
 
-| Archivo | Proposito | En Git |
-|---------|-----------|--------|
-| `appsettings.json` | Config publica: logging, scopes de Twitch | Si |
-| `appsettings.Secrets.json` | **Todos los secretos y credenciales** | **NO** |
-| `appsettings.Secrets.json.example` | Template sin valores reales | Si |
-| `appsettings.Staging.json` | Overrides para entorno staging | Depende |
-| `appsettings.Secrets.Staging.json` | Secretos del entorno staging | **NO** |
+| File | Purpose | In Git |
+|------|---------|--------|
+| `appsettings.json` | Public settings: logging, Twitch scopes, module defaults | Yes |
+| `appsettings.{Environment}.json` | Standard ASP.NET Core per-environment overrides | Your choice |
+| `appsettings.Secrets.json` | **All secrets and credentials** | **No** |
+| `appsettings.Secrets.{Environment}.json` | Secrets for one environment (for example `appsettings.Secrets.Staging.json`) | **No** |
+| `appsettings.Secrets.json.example` | Template with the minimum keys and no real values | Yes |
 
-**Prioridad de carga:** `appsettings.json` -> `appsettings.{Environment}.json` -> `appsettings.Secrets.json` -> Variables de entorno
+`Program.cs` adds the two `appsettings.Secrets*` files (optional, reloaded on change) after the default configuration sources, so when the same key appears in several places the **later source wins**. From lowest to highest priority: `appsettings.json`, `appsettings.{Environment}.json`, user secrets (Development only), environment variables, command-line arguments, `appsettings.Secrets.json`, `appsettings.Secrets.{Environment}.json`.
 
 ---
 
-## Variables de entorno del sistema / System Environment Variables
+## System environment variables
 
-| Variable | Valor | Descripcion |
+| Variable | Value | Description |
 |----------|-------|-------------|
-| `ASPNETCORE_ENVIRONMENT` | `Production` / `Development` / `Staging` | Determina que archivos de config se cargan y si Swagger esta disponible. **Production** deshabilita Swagger y mensajes de error detallados. |
-| `ASPNETCORE_URLS` | `http://localhost:7264` | URL donde escucha Kestrel. Se puede pasar tambien con `--urls` al ejecutar. |
-
-Ejemplo de uso:
+| `ASPNETCORE_ENVIRONMENT` | `Production`, `Development`, `Staging` | Selects the per-environment files and enables Swagger (`/swagger`) only in `Development`. |
+| `ASPNETCORE_URLS` | for example `http://localhost:7264` | Address Kestrel listens on. `--urls` on the command line does the same. |
 
 ```bash
 ASPNETCORE_ENVIRONMENT=Production dotnet run --urls "http://localhost:7264"
@@ -55,399 +60,388 @@ ASPNETCORE_ENVIRONMENT=Production dotnet run --urls "http://localhost:7264"
 
 ---
 
-## Template completo de appsettings.Secrets.json
+## Minimum secrets file
 
-Este es el archivo completo con TODAS las claves posibles. Copiar como `appsettings.Secrets.json` y rellenar con valores reales:
+`appsettings.Secrets.json.example` contains only this minimum. Everything else is optional and depends on the modules you enable.
 
 ```json
 {
-    "ConnectionStrings": {
-        "DefaultConnection": "Host=localhost;Port=5432;Database=decatron_prod;Username=decatron_user;Password=TU_PASSWORD_DB",
-        "GachaConnection": "Server=localhost;Port=3306;Database=gachaverse_db;Uid=tu_usuario;Password=TU_PASSWORD_MYSQL"
-    },
-    "TwitchSettings": {
-        "ClientId": "tu_twitch_client_id",
-        "ClientSecret": "tu_twitch_client_secret",
-        "BotUsername": "nombre_de_tu_bot",
-        "ChannelId": "tu_channel_id_numerico",
-        "RedirectUri": "https://tu-dominio.com/api/auth/callback",
-        "WebhookCallbackUrl": "https://tu-dominio.com/api/twitch/webhook",
-        "WebhookSecret": "whsec_un_secreto_aleatorio_para_webhooks",
-        "EventSubWebhookSecret": "whsec_un_secreto_aleatorio_para_eventsub",
-        "FrontendUrl": "https://tu-dominio.com"
-    },
-    "JwtSettings": {
-        "SecretKey": "CLAVE_ALEATORIA_DE_MINIMO_32_CARACTERES",
-        "ExpiryMinutes": 60,
-        "RefreshTokenExpiryDays": 7
-    },
-    "PayPalSettings": {
-        "Mode": "live",
-        "ClientId": "tu_paypal_sandbox_client_id",
-        "ClientSecret": "tu_paypal_sandbox_client_secret",
-        "LiveClientId": "tu_paypal_live_client_id",
-        "LiveClientSecret": "tu_paypal_live_client_secret",
-        "RedirectUri": "https://tu-dominio.com/api/tips/paypal/callback"
-    },
-    "SupportersPayPal": {
-        "Mode": "live",
-        "ClientId": "tu_paypal_sandbox_client_id",
-        "ClientSecret": "tu_paypal_sandbox_client_secret",
-        "LiveClientId": "tu_paypal_live_client_id",
-        "LiveClientSecret": "tu_paypal_live_client_secret",
-        "ReturnUrl": "https://tu-dominio.com/supporters",
-        "CancelUrl": "https://tu-dominio.com/supporters"
-    },
-    "SpotifySettings": {
-        "ClientId": "tu_spotify_client_id",
-        "ClientSecret": "tu_spotify_client_secret",
-        "RedirectUri": "https://tu-dominio.com/api/spotify/callback"
-    },
-    "LastFmSettings": {
-        "ApiKey": "tu_lastfm_api_key",
-        "SharedSecret": "tu_lastfm_shared_secret"
-    },
-    "GeminiSettings": {
-        "ApiKey": "tu_google_gemini_api_key"
-    },
-    "OpenRouterSettings": {
-        "ApiKey": "tu_openrouter_api_key"
-    },
-    "GachaSettings": {
-        "WebUrl": "https://gacha.tu-dominio.com",
-        "BotUsername": "nombre_de_tu_bot"
-    },
-    "AwsPolly": {
-        "AccessKeyId": "tu_aws_access_key_id",
-        "SecretAccessKey": "tu_aws_secret_access_key",
-        "Region": "us-east-1",
-        "CachePath": "/var/www/html/decatron/tts-cache"
-    }
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=decatron;Username=decatron_user;Password=YOUR_PASSWORD"
+  },
+  "TwitchSettings": {
+    "ClientId": "your_twitch_client_id",
+    "ClientSecret": "your_twitch_client_secret",
+    "BotUsername": "your_bot_username",
+    "ChannelId": "your_numeric_channel_id",
+    "RedirectUri": "https://your-domain.com/api/auth/callback",
+    "FrontendUrl": "https://your-domain.com"
+  },
+  "JwtSettings": {
+    "SecretKey": "RANDOM_KEY_OF_AT_LEAST_32_CHARACTERS",
+    "ExpiryMinutes": 60,
+    "RefreshTokenExpiryDays": 7
+  }
 }
 ```
 
 ---
 
-## Base de datos / Database
+## Database
 
-### ConnectionStrings:DefaultConnection (PostgreSQL)
+### `ConnectionStrings:DefaultConnection` (PostgreSQL)
 
-| Parametro | Descripcion | Ejemplo |
+Required. Without it the database context is not registered and the application cannot work.
+
+```
+Host=localhost;Port=5432;Database=decatron;Username=decatron_user;Password=YOUR_PASSWORD
+```
+
+| Parameter | Description | Example |
 |-----------|-------------|---------|
-| `Host` | Servidor PostgreSQL | `localhost` |
-| `Port` | Puerto PostgreSQL | `5432` |
-| `Database` | Nombre de la base de datos | `decatron_prod` |
-| `Username` | Usuario de PostgreSQL | `decatron_user` |
-| `Password` | Contrasena del usuario | `tu_password_seguro` |
+| `Host` | PostgreSQL server | `localhost` |
+| `Port` | PostgreSQL port | `5432` |
+| `Database` | Database name | `decatron` |
+| `Username` | Database user | `decatron_user` |
+| `Password` | User password | |
 
-**Formato:** `Host=localhost;Port=5432;Database=decatron_prod;Username=decatron_user;Password=TU_PASSWORD`
+The schema is not created automatically. Load `Decatron.Data/Schema/baseline.sql` into an empty database and apply later scripts from `Decatron.Data/Migrations/` (see [CONFIGURATION.md](CONFIGURATION.md#database-setup)).
 
-**Requerido:** Si. Sin esta variable la aplicacion no arranca.
+### `ConnectionStrings:GachaConnection` (MySQL, optional)
 
-### ConnectionStrings:GachaConnection (MySQL - Opcional)
+Used only by the GachaVerse account-linking endpoints (`GachaAuthController`). Without it those endpoints log an error and the rest of the application is unaffected.
 
-Solo necesario si usas la integracion con GachaVerse.
-
-| Parametro | Descripcion | Ejemplo |
+| Parameter | Description | Example |
 |-----------|-------------|---------|
-| `Server` | Servidor MySQL | `localhost` |
-| `Port` | Puerto MySQL | `3306` |
-| `Database` | Base de datos GachaVerse | `gachaverse_db` |
-| `Uid` | Usuario MySQL | `decatronuser` |
-| `Password` | Contrasena MySQL | `tu_password` |
+| `Server` | MySQL server | `localhost` |
+| `Port` | MySQL port | `3306` |
+| `Database` | GachaVerse database | `gachaverse_db` |
+| `Uid` | MySQL user | |
+| `Password` | MySQL password | |
 
-**Requerido:** No. Solo si se activa la integracion GachaVerse.
+### `GachaSettings`
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `WebUrl` | string | `http://localhost:3000` | URL of the GachaVerse instance |
+| `BotUsername` | string | `decatronstreambot` | Bot username shown in GachaVerse |
 
 ---
 
 ## Twitch
 
-### TwitchSettings
-
-| Clave | Tipo | Requerido | Descripcion | Donde obtenerlo |
-|-------|------|-----------|-------------|-----------------|
-| `ClientId` | string | **Si** | Client ID de tu aplicacion en Twitch Developer Console | [dev.twitch.tv/console/apps](https://dev.twitch.tv/console/apps) |
-| `ClientSecret` | string | **Si** | Client Secret de la aplicacion | Twitch Developer Console |
-| `BotUsername` | string | **Si** | Nombre de usuario de la cuenta del bot en Twitch | La cuenta de Twitch que usaras como bot |
-| `ChannelId` | string | **Si** | ID numerico del canal principal del streamer | Usar la API de Twitch o [streamscharts.com](https://streamscharts.com) para obtenerlo |
-| `RedirectUri` | string | **Si** | URI de callback para OAuth de Twitch. Debe coincidir exactamente con la configurada en Twitch Dev Console | `https://tu-dominio.com/api/auth/callback` |
-| `WebhookCallbackUrl` | string | No | URL publica para recibir webhooks de Twitch | `https://tu-dominio.com/api/twitch/webhook` |
-| `WebhookSecret` | string | No | Secreto compartido para verificar firmas de webhooks. Usar un string aleatorio de 20+ caracteres | Generado por ti |
-| `EventSubWebhookSecret` | string | No | Secreto para verificar payloads de EventSub. Puede ser igual a WebhookSecret | Generado por ti |
-| `FrontendUrl` | string | No | URL base del frontend React. Usado para redirecciones post-login | `https://tu-dominio.com` (default: `http://localhost:5173`) |
-
-### Scopes de Twitch (en appsettings.json publico)
-
-Los scopes se configuran en `appsettings.json` (no en Secrets):
-
-```json
-{
-    "TwitchSettings": {
-        "Scopes": "chat:read chat:edit clips:edit channel:bot channel:edit:commercial channel:manage:broadcast channel:manage:redemptions channel:read:editors channel:read:redemptions channel:read:subscriptions channel:read:vips moderation:read moderator:read:followers user:read:email user:edit:broadcast channel_editor user:manage:blocked_users user:write:chat bits:read channel:read:hype_train"
-    }
-}
-```
-
-Estos scopes deben coincidir con los configurados en la aplicacion de Twitch Developer Console.
-
----
-
-## JWT (Autenticacion) / JWT (Authentication)
-
-### JwtSettings
-
-| Clave | Tipo | Requerido | Descripcion | Recomendacion |
-|-------|------|-----------|-------------|---------------|
-| `SecretKey` | string | **Si** | Clave secreta para firmar tokens JWT. **Minimo 32 caracteres.** | Generar con `openssl rand -base64 48` |
-| `ExpiryMinutes` | int | **Si** | Duracion del token JWT de acceso en minutos | `60` (1 hora) |
-| `RefreshTokenExpiryDays` | int | **Si** | Duracion del refresh token en dias | `7` (1 semana) |
-
-**Nota de seguridad:** La clave JWT no debe contener informacion predecible. Usar un generador criptografico:
-
-```bash
-openssl rand -base64 48
-```
-
-**Nota tecnica:** La validacion de JWT en produccion tiene `ValidateIssuer = false` y `ValidateAudience = false`. Esto significa que cualquier token firmado con la misma clave sera aceptado independientemente del emisor o audiencia.
-
----
-
-## PayPal (Tips/Donaciones) / PayPal (Tips/Donations)
-
-### PayPalSettings
-
-Configuracion para el sistema de tips/donaciones de los streamers. Los pagos van directamente al PayPal del streamer (no al tuyo).
-
-| Clave | Tipo | Requerido | Descripcion | Donde obtenerlo |
-|-------|------|-----------|-------------|-----------------|
-| `Mode` | string | **Si** | `sandbox` para pruebas, `live` para produccion | Segun tu entorno |
-| `ClientId` | string | **Si** | Client ID de PayPal **Sandbox** | [developer.paypal.com](https://developer.paypal.com/dashboard/applications/sandbox) |
-| `ClientSecret` | string | **Si** | Client Secret de PayPal **Sandbox** | PayPal Developer Dashboard |
-| `LiveClientId` | string | **Si** (prod) | Client ID de PayPal **Live** | [developer.paypal.com](https://developer.paypal.com/dashboard/applications/live) |
-| `LiveClientSecret` | string | **Si** (prod) | Client Secret de PayPal **Live** | PayPal Developer Dashboard |
-| `RedirectUri` | string | **Si** | Callback para OAuth de PayPal cuando el streamer conecta su cuenta | `https://tu-dominio.com/api/tips/paypal/callback` |
-
-**Como funciona:** Cuando un streamer conecta su PayPal, Decatron obtiene un OAuth token para crear ordenes de pago donde el `payee` es el email del streamer. El dinero va directo al streamer, no pasa por tu cuenta.
-
-### SupportersPayPal
-
-Configuracion separada para el sistema de supporters/suscripciones de la plataforma.
-
-| Clave | Tipo | Requerido | Descripcion |
-|-------|------|-----------|-------------|
-| `Mode` | string | No | `sandbox` o `live` |
-| `ClientId` | string | No | Client ID Sandbox |
-| `ClientSecret` | string | No | Client Secret Sandbox |
-| `LiveClientId` | string | No | Client ID Live |
-| `LiveClientSecret` | string | No | Client Secret Live |
-| `ReturnUrl` | string | No | URL a donde redirigir despues de un pago exitoso |
-| `CancelUrl` | string | No | URL a donde redirigir si el usuario cancela el pago |
-
----
-
-## Spotify (Now Playing)
-
-### SpotifySettings
-
-Para el overlay de "Now Playing" que muestra la cancion actual del streamer.
-
-| Clave | Tipo | Requerido | Descripcion | Donde obtenerlo |
-|-------|------|-----------|-------------|-----------------|
-| `ClientId` | string | No* | Client ID de tu app de Spotify | [developer.spotify.com](https://developer.spotify.com/dashboard) |
-| `ClientSecret` | string | No* | Client Secret de la app | Spotify Developer Dashboard |
-| `RedirectUri` | string | No* | Callback de OAuth de Spotify | `https://tu-dominio.com/api/spotify/callback` |
-
-*Requerido solo si se quiere usar la integracion con Spotify en el overlay Now Playing.
-
-**Configuracion en Spotify Developer Dashboard:**
-1. Crear una aplicacion en [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard)
-2. Agregar `https://tu-dominio.com/api/spotify/callback` como Redirect URI
-3. Copiar Client ID y Client Secret
-
-**Limitacion:** Spotify tiene un limite de 5 usuarios con cupos en modo gratuito, gestionado manualmente por el admin del sistema.
-
----
-
-## Last.fm (Now Playing)
-
-### LastFmSettings
-
-Alternativa a Spotify para el overlay Now Playing. Funciona con cualquier reproductor que haga scrobbling a Last.fm.
-
-| Clave | Tipo | Requerido | Descripcion | Donde obtenerlo |
-|-------|------|-----------|-------------|-----------------|
-| `ApiKey` | string | No* | API Key de Last.fm | [last.fm/api/account/create](https://www.last.fm/api/account/create) |
-| `SharedSecret` | string | No* | Shared Secret de la API | Se genera junto con la API Key |
-
-*Requerido solo si se quiere usar Last.fm como proveedor de Now Playing.
-
-**Nota:** Las llamadas a la API de Last.fm se hacen via HTTP (no HTTPS) en el codigo actual. La API key viaja en texto plano. Esto es una vulnerabilidad conocida documentada en la auditoria.
-
----
-
-## Gemini (DecatronAI)
-
-### GeminiSettings
-
-Proveedor primario de IA para el comando `!ia` en el chat de Twitch y para DecatronChat.
-
-| Clave | Tipo | Requerido | Descripcion | Donde obtenerlo |
-|-------|------|-----------|-------------|-----------------|
-| `ApiKey` | string | No* | API Key de Google Gemini (AI Studio) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
-
-*Requerido solo si se quiere usar DecatronAI. Gemini es el proveedor principal; OpenRouter es el fallback.
-
-**Modelo por defecto:** Se configura en la tabla `decatron_ai_global_config` de la base de datos (no en appsettings). El admin lo cambia desde el panel web `/admin/decatron-ai`.
-
----
-
-## OpenRouter (DecatronAI/Chat)
-
-### OpenRouterSettings
-
-Proveedor secundario/fallback de IA. Tambien usado por DecatronChat.
-
-| Clave | Tipo | Requerido | Descripcion | Donde obtenerlo |
-|-------|------|-----------|-------------|-----------------|
-| `ApiKey` | string | No* | API Key de OpenRouter | [openrouter.ai/keys](https://openrouter.ai/keys) |
-
-*Requerido solo si se quiere usar IA con fallback o DecatronChat.
-
-**Modelo por defecto para Chat:** `x-ai/grok-4.1-fast:free` (configurable en la base de datos).
-
----
-
-## AWS Polly (TTS)
-
-### AwsPolly
-
-Text-to-Speech para alertas de tips y sound alerts.
-
-| Clave | Tipo | Requerido | Descripcion | Donde obtenerlo |
-|-------|------|-----------|-------------|-----------------|
-| `AccessKeyId` | string | No* | AWS Access Key ID | [AWS IAM Console](https://console.aws.amazon.com/iam/) |
-| `SecretAccessKey` | string | No* | AWS Secret Access Key | AWS IAM Console |
-| `Region` | string | No | Region de AWS | Default: `us-east-1` |
-| `CachePath` | string | No | Ruta donde se guardan los audios TTS generados | Default: `/var/www/html/decatron/tts-cache` |
-
-*Requerido solo si se quiere usar TTS en alertas.
-
-**Permisos IAM necesarios:** El usuario IAM necesita la politica `AmazonPollyReadOnlyAccess` o un custom policy con `polly:SynthesizeSpeech`.
-
-**Nota:** Si las credenciales no estan configuradas, la aplicacion usa `AnonymousAWSCredentials` como fallback, lo cual fallara en runtime cuando se intente usar TTS.
-
----
-
-## GachaVerse (Integracion)
-
-### GachaSettings
-
-Integracion con la plataforma GachaVerse para vincular cuentas.
-
-| Clave | Tipo | Requerido | Descripcion |
-|-------|------|-----------|-------------|
-| `WebUrl` | string | No | URL de la instancia de GachaVerse. Default: `http://localhost:3000` |
-| `BotUsername` | string | No | Username del bot en GachaVerse. Default: `decatronstreambot` |
-
-**Nota:** La integracion GachaVerse tambien requiere `ConnectionStrings:GachaConnection` con acceso a MySQL.
-
----
-
-## Configuracion publica (appsettings.json)
-
-Estas variables estan en `appsettings.json` y no contienen secretos:
-
-### Serilog (Logging)
-
-```json
-{
-    "Serilog": {
-        "MinimumLevel": {
-            "Default": "Information",
-            "Override": {
-                "Microsoft": "Warning",
-                "System": "Warning",
-                "Microsoft.AspNetCore": "Warning"
-            }
-        },
-        "WriteTo": [
-            {
-                "Name": "Console",
-                "Args": {
-                    "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
-                }
-            },
-            {
-                "Name": "File",
-                "Args": {
-                    "path": "logs/decatron-.txt",
-                    "rollingInterval": "Day",
-                    "fileSizeLimitBytes": 10485760,
-                    "retainedFileCountLimit": 7
-                }
-            }
-        ]
-    }
-}
-```
-
-| Clave | Descripcion |
-|-------|-------------|
-| `Serilog:MinimumLevel:Default` | Nivel minimo de log: `Verbose`, `Debug`, `Information`, `Warning`, `Error`, `Fatal` |
-| `Serilog:WriteTo[1]:Args:path` | Ruta del archivo de log. El `-` al final es un placeholder para la fecha |
-| `Serilog:WriteTo[1]:Args:rollingInterval` | Rotacion de logs: `Day` = un archivo por dia |
-| `Serilog:WriteTo[1]:Args:fileSizeLimitBytes` | Tamano maximo por archivo: `10485760` = 10MB |
-| `Serilog:WriteTo[1]:Args:retainedFileCountLimit` | Cuantos archivos de log conservar: `7` = una semana |
-
-### Otros
-
-| Clave | Valor | Descripcion |
-|-------|-------|-------------|
-| `AllowedHosts` | `*` | Hosts permitidos. `*` acepta todos |
-| `Logging:LogLevel:Default` | `Information` | Nivel de log nativo de ASP.NET Core (Serilog lo sobreescribe) |
-
----
-
-## CORS Origins
-
-Los origenes CORS estan **hardcodeados** en `Program.cs` (no configurables via appsettings):
+### `TwitchSettings`
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `ClientId` | string | **Yes** | Client ID of your app in the [Twitch Developer Console](https://dev.twitch.tv/console/apps) |
+| `ClientSecret` | string | **Yes** | Client Secret of that app |
+| `BotUsername` | string | **Yes** | Username of the bot's Twitch account |
+| `ChannelId` | string | **Yes** | Numeric Twitch ID of the primary channel. The bot joins it by default |
+| `RedirectUri` | string | **Yes** | OAuth callback. Must match the console exactly, for example `https://your-domain.com/api/auth/callback` |
+| `FrontendUrl` | string | No | Base URL of the React app, used for post-login redirects. Default `http://localhost:5173` |
+| `Scopes` | string | **Yes** (in `appsettings.json`) | Space-separated Twitch scopes requested at login. Already set in `appsettings.json` |
+| `WebhookCallbackUrl` | string | No | Legacy: public URL for EventSub webhook callbacks. Read only when a subscription is created with the webhook transport, which is switched off |
+| `WebhookSecret` | string | No | Legacy: HMAC secret of the webhook transport. Same condition |
+
+Notes:
+
+- The bot account's OAuth tokens are stored in the `bot_tokens` table and refreshed in the background. `TwitchSettings` has `BotToken`, `EventSubWebhookSecret`, `EventSubWebhookUrl` and `EventSubWebhookPort` properties, but the code does not read them.
+- EventSub runs on a conduit with WebSocket shards (`EventSubSettings:ShardCount`); no public webhook URL is needed. See [CONFIGURATION.md](CONFIGURATION.md#step-4-eventsub-conduit).
+- `Twitch:ClientId` and `Twitch:ClientSecret` (without "Settings") are read by the script variables that call the Twitch API (`TwitchInfoVariables`). Set them to the same values if you use those variables.
+
+### Scopes
+
+Defined in `appsettings.json`:
 
 ```
-http://localhost:5173      <- Desarrollo local
-https://twitch.decatron.net <- Produccion
-https://decatron.net        <- Produccion
-https://www.decatron.net    <- Produccion
+chat:read chat:edit clips:edit channel:bot channel:edit:commercial channel:manage:broadcast channel:manage:redemptions channel:manage:moderators channel:read:editors channel:read:redemptions channel:read:subscriptions channel:read:vips moderation:read moderator:read:followers user:read:email user:edit:broadcast channel_editor user:manage:blocked_users user:write:chat bits:read channel:read:hype_train
 ```
 
-Para agregar un nuevo origen, editar `Program.cs` en la seccion `AddCors` (lineas 93-97).
+The scopes you request must be allowed for the app in the Twitch console, and streamers must log in again to grant any scope you add.
+
+### `EventSubSettings`
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `ShardCount` | int | `1` | Number of WebSocket shards of the EventSub conduit |
 
 ---
 
-## Rutas fisicas / Physical Paths
+## JWT
 
-Rutas de directorios usadas por la aplicacion (hardcodeadas o con default):
+### `JwtSettings`
 
-| Ruta | Proposito | Configurable |
-|------|-----------|--------------|
-| `ClientApp/public/downloads` | Clips de Twitch descargados | No |
-| `ClientApp/public/uploads/soundalerts` | Archivos de sound alerts subidos por usuarios | No |
-| `ClientApp/public/timerextensible` | Media del timer extensible (videos, imagenes) | No |
-| `ClientApp/public/system-files` | Archivos del sistema | No |
-| `/var/www/html/decatron/tts-cache` | Cache de audios TTS generados por AWS Polly | Si (`AwsPolly:CachePath`) |
-| `logs/` | Archivos de log de Serilog | Si (`Serilog:WriteTo[1]:Args:path`) |
+| Key | Type | Required | Description | Recommendation |
+|-----|------|----------|-------------|----------------|
+| `SecretKey` | string | **Yes** | Key that signs the JWTs. At least 32 characters. The backend refuses to start without it | `openssl rand -base64 48` |
+| `ExpiryMinutes` | int | **Yes** | Lifetime of the access token, in minutes | `60` |
+| `RefreshTokenExpiryDays` | int | **Yes** | Lifetime of the refresh token, in days | `7` |
+
+Token validation checks signature and lifetime (5 minutes of clock skew). Issuer and audience are **not** validated, so any token signed with the same key is accepted.
 
 ---
 
-## Resumen de dependencias externas / External Dependencies Summary
+## Kick
 
-| Servicio | Necesario para | Costo |
-|----------|---------------|-------|
-| PostgreSQL | Todo el sistema | Gratis |
-| Twitch Developer App | Login, bot, EventSub | Gratis |
-| PayPal Developer | Tips/donaciones | Gratis (PayPal cobra comision al streamer) |
-| Spotify Developer | Overlay Now Playing | Gratis |
-| Last.fm API | Overlay Now Playing (alternativa a Spotify) | Gratis |
-| Google Gemini AI | DecatronAI (`!ia`) | Gratis con limites / Pago |
-| OpenRouter | DecatronAI fallback + DecatronChat | Algunos modelos gratis / Pago |
-| AWS Polly | Text-to-Speech en alertas | Pago (free tier: 5M chars/mes por 12 meses) |
-| MySQL + GachaVerse | Integracion GachaVerse | Solo si usas GachaVerse |
+### `KickSettings`
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `ClientId` | string | Client ID of your Kick app |
+| `ClientSecret` | string | Client Secret |
+| `RedirectUri` | string | OAuth callback |
+| `WebhookUrl` | string | Public URL where Kick sends webhook events |
+| `Scopes` | string | Space-separated Kick scopes to request |
+
+Required only if you enable Kick login and Kick-based modules.
+
+---
+
+## Discord
+
+### `DiscordSettings`
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `BotToken` | string | Token of the Discord bot |
+| `AppId` | string | Application ID |
+| `ClientSecret` | string | OAuth client secret |
+| `RedirectUri` | string | Callback used to link a Discord account |
+| `LoginRedirectUri` | string | Callback used for Discord login |
+| `FrontendUrl` | string | Base URL of the frontend. Default `https://twitch.decatron.net` (set your own) |
+
+Required only if you run the Discord bot (slash commands, levels, welcome images, live alerts).
+
+---
+
+## Payments: PayPal and Culqi
+
+### `PayPalSettings` (tips and donations)
+
+Donations go directly to the streamer's PayPal account: Decatron creates the order with the streamer as `payee`.
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `Mode` | string | Yes | `sandbox` for tests, `live` for production |
+| `ClientId` | string | Yes | Sandbox client ID ([PayPal developer dashboard](https://developer.paypal.com/dashboard/applications/sandbox)) |
+| `ClientSecret` | string | Yes | Sandbox client secret |
+| `LiveClientId` | string | Yes (production) | Live client ID |
+| `LiveClientSecret` | string | Yes (production) | Live client secret |
+| `RedirectUri` | string | Yes | Callback when a streamer connects their PayPal, for example `https://your-domain.com/api/tips/paypal/callback` |
+
+### `SupportersPayPal` (tier purchases)
+
+Same keys as above, read by the Supporters controller, plus:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `ReturnUrl` | string | Where to send the user after a successful payment |
+| `CancelUrl` | string | Where to send the user if they cancel |
+
+### `CulqiSettings` and `CulqiSettingsTest` (card payments for credit packages)
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `PublicKey` | string | Culqi public key |
+| `SecretKey` | string | Culqi secret key |
+
+`CulqiSettings` holds the live keys and `CulqiSettingsTest` the test keys; which pair is used depends on the payment mode managed by `PaymentModeService`.
+
+---
+
+## Music: Spotify and Last.fm
+
+### `SpotifySettings` (Now Playing)
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `ClientId` | string | Only for Spotify | Client ID from the [Spotify dashboard](https://developer.spotify.com/dashboard) |
+| `ClientSecret` | string | Only for Spotify | Client Secret |
+| `RedirectUri` | string | Only for Spotify | OAuth callback, for example `https://your-domain.com/api/spotify/callback`. Add it to the app's Redirect URIs |
+
+The code limits non-premium Spotify slots to 5 (`MaxSpotifyUsers`), matching the user limit of the Spotify dashboard for apps in development mode, and keeps a waiting list for slots.
+
+### `LastFmSettings`
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `ApiKey` | string | Only for Last.fm | API key from [last.fm/api/account/create](https://www.last.fm/api/account/create) |
+
+Last.fm works with any player that scrobbles to Last.fm. The code calls the Last.fm API over plain HTTP (`http://ws.audioscrobbler.com`), and the API key is part of the query string.
+
+---
+
+## AI providers
+
+Which provider and model each feature uses is stored in the database (`decatron_ai_global_config`) and edited from the admin panel, not in the settings files. The files only hold the keys.
+
+| Section | Key | Description |
+|---------|-----|-------------|
+| `GeminiSettings` | `ApiKey` | Google Gemini API key ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)) |
+| `OpenRouterSettings` | `ApiKey` | OpenRouter API key ([openrouter.ai/keys](https://openrouter.ai/keys)) |
+
+Required only if you use `!ia`, the private AI chat or other AI features.
+
+---
+
+## Text-to-speech and speech-to-text
+
+### `AwsPolly`
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `AccessKeyId` | string | | AWS access key ID |
+| `SecretAccessKey` | string | | AWS secret key |
+| `Region` | string | `us-east-1` | AWS region |
+| `CachePath` | string | `/var/www/html/decatron/tts-cache` | Folder for generated audio; served under `/tts-audio` |
+
+The IAM user needs `polly:SynthesizeSpeech` (for example the `AmazonPollyReadOnlyAccess` policy). Without credentials the application starts with anonymous credentials and TTS calls fail at run time; features that use TTS skip it.
+
+### `TtsSettings`
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `CachePath` | string | `/var/www/html/decatron/tts-cache` | Cache path read at startup for the `/tts-audio` mapping |
+
+### `Deepgram` and `FishAudio`
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `Deepgram:ApiKey` | string | | Deepgram key (speech-to-text and Aura TTS) used by live translation |
+| `FishAudio:ApiKey` | string | | FishAudio key (TTS engine of live translation) |
+| `FishAudio:Model` | string | `s1` | FishAudio model |
+
+---
+
+## Live translation
+
+The `LiveTranslation` section of `appsettings.json` holds limits and client timing (`SttModel`, `GeminiFallbackModel`, `SttCreditsPerSecond`, `MaxConcurrentChannels`, `MaxLanguagesPerChannel`, `LinkCodeMinutes`, `SmartSegmentation`, `ClientTuning`, ...). The class that binds it is `LiveTranslationOptions`. The section is reloaded without restarting the backend. The desktop link uses `DesktopOptions`.
+
+---
+
+## Games: Riot, Epic and Fortnite
+
+| Section | Key | Default | Description |
+|---------|-----|---------|-------------|
+| `RiotApi` | `PlatformApiKey` | | Riot key for League of Legends |
+| `RiotApi` | `TftApiKey` | | Riot key for Teamfight Tactics |
+| `RiotApi` | `ValorantApiKey` | | Riot key for Valorant |
+| `EpicSettings` | `ClientId`, `ClientSecret` | | Epic Games OAuth app |
+| `EpicSettings` | `RedirectUri` | `https://decatron.net/api/auth/epic/callback` | Epic OAuth callback (set your own domain) |
+| `EpicSettings` | `Scopes` | `basic_profile friends_list country presence` | Epic scopes |
+| `Fortnite` | `CurrentSeason` | `Unknown` | Season label used by the Fortnite modules |
+
+A missing Riot key is treated as not configured for that game.
+
+---
+
+## Song Request, tournaments, trading cards, emotes and brand
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `SongRequest:YtDlpPath` | `yt-dlp` | Command or path of the yt-dlp binary used to resolve media |
+| `SongRequest:PublicBaseUrl` | `https://decatron.net` | Base URL used to build public queue links (`/sr/{channel}`); set your own domain |
+| `Tournament:FilesPath` | `/var/www/html/decatron/tournament-files` | Folder for tournament screenshots and files |
+| `Tournament:PublicAssetsPath` | `/var/www/html/decatron/tournament-public-assets` | Folder for public tournament assets (appearance) |
+| `TcgSettings:ImagesPath` | `/var/www/html/decatron/tcg-card-images` | Trading card images; pack images are served from `{ImagesPath}/packs` under `/tcg-packs` |
+| `TcgSettings:ImageSigningSecret` | | Secret that signs trading card image URLs |
+| `Emotes:AssetsPath` | `/var/www/html/decatron/emote-assets` | Emote images; served under `/uploads/emotes` |
+| `Emotes:PublicBase` | `https://decatron.net` | Base URL used to build public emote URLs; set your own domain |
+| `Brand:AssetsPath` | `/var/www/html/decatron/brand-assets` | Logos uploaded from the admin brand page; served under `/uploads/brand` |
+| `ClipSettings:DownloadsPath` | (see `appsettings.json`) | Downloaded shoutout clips; served under `/downloads` |
+| `WheelOfLuck:Enabled` | | Master switch of the Wheel module |
+
+Make sure the application user can write to every folder above.
+
+---
+
+## E-mail and invoicing
+
+### `EmailSettings`
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `ResendApiKey` | string | empty | API key of the Resend e-mail service |
+| `FromAddress` | string | `DecatronAPI <support@decatron.net>` | Sender; set your own |
+| `AdminEmail` | string | `support@decatron.net` | Administrator address for notices; set your own |
+
+### `DecatronApi` (optional invoicing link)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `BaseUrl` | string | `https://decatronapi.decatron.net` | Base URL of the invoicing service |
+| `ApiKey` | string | | Bearer key for that service; invoicing is skipped when empty |
+| `CompanyId` | int | | Issuing company ID |
+| `Enabled` | bool | `true` | Master switch for invoicing; invoicing also needs `ApiKey` |
+
+### `TtsCredits`
+
+| Key | Description |
+|-----|-------------|
+| `TransitionEndsAt` | End date of the TTS credits transition (set in `appsettings.json`) |
+
+---
+
+## Public settings in appsettings.json
+
+`appsettings.json` holds no secrets:
+
+| Key | Description |
+|-----|-------------|
+| `TwitchSettings:Scopes` | Twitch scopes (see above) |
+| `Serilog:MinimumLevel:Default` | Minimum log level: `Verbose`, `Debug`, `Information`, `Warning`, `Error`, `Fatal` |
+| `Serilog:WriteTo` | Console sink and a rolling file sink: path `logs/decatron-.txt`, one file per day, 50 MB size limit per file (`fileSizeLimitBytes`), 14 files kept (`retainedFileCountLimit`) |
+| `Logging:LogLevel` | Native ASP.NET Core log levels (Serilog overrides them) |
+| `AllowedHosts` | `*` accepts any host |
+| `ClipSettings`, `EventSubSettings`, `LiveTranslation`, `WheelOfLuck`, `Fortnite`, `DecatronApi`, `TtsCredits` | Module settings described above |
+
+---
+
+## CORS origins
+
+Origins are hard-coded in `Program.cs` (policy `AllowReact`), not configurable through settings:
+
+```
+http://localhost:5173
+https://twitch.decatron.net
+https://decatron.net
+https://www.decatron.net
+```
+
+To allow another origin, edit the `AddCors` block in `Program.cs`. A second policy, `TournamentEmbed`, allows any origin without credentials for the public tournament overlay and ranking widget.
+
+---
+
+## Physical paths
+
+| Path | Purpose | Configurable |
+|------|---------|--------------|
+| `{ClipSettings:DownloadsPath}` | Downloaded Twitch clips (`/downloads`) | Yes |
+| `ClientApp/public/uploads/soundalerts` | Sound alert media (`/uploads/soundalerts`) | No |
+| `ClientApp/public/timerextensible` | Timer media (`/timerextensible`) | No |
+| `ClientApp/public/system-files` | Pre-loaded system files (`/system-files`) | No |
+| `{AwsPolly:CachePath}` | TTS audio cache (`/tts-audio`) | Yes |
+| `{Brand:AssetsPath}`, `{Emotes:AssetsPath}`, `{TcgSettings:ImagesPath}`, `{Tournament:*}` | See the table above | Yes |
+| `logs/` | Serilog files | Yes (`Serilog:WriteTo`) |
+
+---
+
+## External services summary
+
+| Service | Needed for | Cost |
+|---------|-----------|------|
+| PostgreSQL | Everything | Free |
+| Twitch developer app | Login, bot, EventSub | Free |
+| Kick developer app | Kick login and modules | Free |
+| Discord application | Discord bot and login | Free |
+| PayPal developer | Tips and tier purchases | Free (PayPal charges fees on payments) |
+| Culqi | Card payments for credit packages | Per transaction |
+| Spotify developer | Now Playing | Free |
+| Last.fm API | Now Playing (alternative to Spotify) | Free |
+| Google Gemini, OpenRouter | AI features | Free tiers and paid models |
+| AWS Polly | Text-to-speech | Paid (free tier available) |
+| Deepgram, FishAudio | Live translation | Paid |
+| Riot API, Epic Games | Tournaments, game overlays, Fortnite | Free |
+| Resend | E-mail | Free tier and paid |
+| MySQL + GachaVerse | GachaVerse linking | Only if you use GachaVerse |

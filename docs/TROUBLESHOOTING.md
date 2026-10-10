@@ -1,637 +1,607 @@
-# Solucion de Problemas / Troubleshooting Guide
+# Troubleshooting Guide
 
-Guia practica para diagnosticar y resolver los problemas mas comunes en Decatron.
+> Español: [es/TROUBLESHOOTING.md](es/TROUBLESHOOTING.md)
 
----
-
-## Tabla de Contenidos
-
-1. [Como revisar logs / How to Check Logs](#como-revisar-logs--how-to-check-logs)
-2. [Como reiniciar servicios / How to Restart Services](#como-reiniciar-servicios--how-to-restart-services)
-3. [502 Bad Gateway (servicio no corriendo)](#502-bad-gateway--servicio-no-corriendo)
-4. [Bot no conecta al chat de Twitch](#bot-no-conecta-al-chat-de-twitch--bot-not-connecting-to-twitch-chat)
-5. [Overlays no se actualizan (SignalR)](#overlays-no-se-actualizan--overlays-not-updating-signalr)
-6. [Problemas de expiracion de tokens](#problemas-de-expiracion-de-tokens--token-expiration-issues)
-7. [Errores de conexion a la base de datos](#errores-de-conexion-a-la-base-de-datos--database-connection-errors)
-8. [Problemas con PayPal/Tips](#problemas-con-paypaltips--paypal--tips-issues)
-9. [Problemas con Spotify/Now Playing](#problemas-con-spotifynow-playing--spotify--now-playing-issues)
-10. [Problemas con DecatronAI](#problemas-con-decatronai--decatronai-issues)
-11. [Problemas con TTS (AWS Polly)](#problemas-con-tts-aws-polly--tts-issues)
-12. [Problemas de login/autenticacion](#problemas-de-loginautenticacion--login--authentication-issues)
-13. [Referencia rapida de comandos / Quick Command Reference](#referencia-rapida-de-comandos--quick-command-reference)
+Practical guide to diagnose and solve the most common problems in Decatron. Paths assume the project is in `/var/www/html/decatron/Decatron/decatron`; adjust them if yours is elsewhere.
 
 ---
 
-## Como revisar logs / How to Check Logs
+## Table of Contents
 
-### Ubicacion de los logs / Log Location
+1. [How to Check Logs](#how-to-check-logs)
+2. [How to Restart Services](#how-to-restart-services)
+3. [502 Bad Gateway](#502-bad-gateway)
+4. [Bot Not Connecting to Twitch Chat](#bot-not-connecting-to-twitch-chat)
+5. [No Twitch Events Arriving (EventSub)](#no-twitch-events-arriving-eventsub)
+6. [Overlays Not Updating (SignalR)](#overlays-not-updating-signalr)
+7. [Token Expiration Issues](#token-expiration-issues)
+8. [Database Connection Errors](#database-connection-errors)
+9. [PayPal and Tips Issues](#paypal-and-tips-issues)
+10. [Spotify and Now Playing Issues](#spotify-and-now-playing-issues)
+11. [AI Issues](#ai-issues)
+12. [TTS Issues](#tts-issues)
+13. [Login and Authentication Issues](#login-and-authentication-issues)
+14. [Quick Command Reference](#quick-command-reference)
 
-Los logs se guardan en: `/var/www/html/decatron/Decatron/decatron/logs/`
+---
+
+## How to Check Logs
+
+### Log location
+
+Logs are written to `/var/www/html/decatron/Decatron/decatron/logs/`:
 
 ```bash
-# Ver archivos de log disponibles
+# List the available log files
 ls -la /var/www/html/decatron/Decatron/decatron/logs/
 
-# Los archivos siguen el patron: decatron-YYYYMMDD.txt
-# Ejemplo: decatron-20260328.txt
+# Files are named decatron-YYYYMMDD.txt, for example decatron-20261010.txt
 ```
 
-### Ver logs en tiempo real / Watch Logs in Real Time
+### Watch logs in real time
 
 ```bash
-# Seguir el log actual
+# Follow the current log
 tail -f /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt
 
-# Filtrar solo errores
+# Only errors
 tail -f /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | grep -i "ERR\|error\|exception"
 
-# Filtrar por modulo especifico
+# A specific module
 tail -f /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | grep -i "twitch\|bot"
 ```
 
-### Ver logs del output de la consola / Console Output Logs
+### Console output
 
-Si el backend corre en una sesion screen, los logs tambien se ven en consola:
+If the backend runs in a screen session, the same logs appear on the console:
 
 ```bash
 screen -r decatron-api
-# Los logs aparecen en formato: [HH:mm:ss LEV] Mensaje
-# Ctrl+A, D para salir sin detener
+# Logs appear as: [HH:mm:ss LEV] Message
+# Ctrl+A, D to leave without stopping it
 ```
 
-### Configuracion de logs / Log Configuration
+### Log configuration
 
-Los logs se configuran en `appsettings.json`:
+Logging is configured in `appsettings.json`:
 
-- **Rotacion:** Un archivo por dia
-- **Tamano maximo:** 10MB por archivo
-- **Retencion:** 7 archivos (1 semana)
-- **Formato:** `[2026-03-28 14:30:00 INF] Mensaje`
+- **Rotation:** one file per day
+- **Maximum size:** 50 MB per file (a new file starts when it is reached)
+- **Retention:** 14 files
+- **Format:** `[2026-10-10 14:30:00 INF] Message`
 
-Para cambiar el nivel de detalle temporalmente:
+To get more detail temporarily:
 
 ```json
 {
     "Serilog": {
         "MinimumLevel": {
-            "Default": "Debug"  // Cambiar de "Information" a "Debug" para mas detalle
+            "Default": "Debug"
         }
     }
 }
 ```
 
-**Importante:** Reiniciar el backend despues de cambiar la configuracion de logging.
+Restart the backend after changing the logging configuration. Put the override in `appsettings.Secrets.json` (or an environment file) rather than editing the committed `appsettings.json`.
 
 ---
 
-## Como reiniciar servicios / How to Restart Services
+## How to Restart Services
 
-### Reiniciar el backend / Restart Backend
+### Restart the backend
 
 ```bash
-# 1. Reconectar a la sesion screen
+# 1. Reattach to the screen session
 screen -r decatron-api
 
-# 2. Detener el proceso actual
-# Presionar Ctrl+C
+# 2. Stop the current process: Ctrl+C
 
-# 3. Reiniciar
+# 3. Start it again
 ASPNETCORE_ENVIRONMENT=Production dotnet run --urls "http://localhost:7264"
 
-# 4. Separar sesion: Ctrl+A, luego D
+# 4. Detach: Ctrl+A, then D
 ```
 
-### Reiniciar el frontend / Restart Frontend
+### Frontend
+
+The frontend is a static build served by nginx: there is no process to restart. After changing it, rebuild:
 
 ```bash
-screen -r decatron-frontend
-# Ctrl+C para detener
-npm run dev -- --host 0.0.0.0 --port 5173
-# Ctrl+A, D para separar
+cd /var/www/html/decatron/Decatron/decatron/ClientApp
+npm run build
 ```
 
-### Reiniciar nginx
+### Restart nginx
 
 ```bash
-sudo systemctl reload nginx   # Recarga configuracion sin detener
-sudo systemctl restart nginx   # Reinicio completo
+sudo systemctl reload nginx    # reload the configuration without stopping
+sudo systemctl restart nginx   # full restart
 ```
 
-### Reiniciar PostgreSQL
+### Restart PostgreSQL
 
 ```bash
 sudo systemctl restart postgresql
 ```
 
-### Si la sesion screen se perdio / If Screen Session is Lost
+### If the screen session was lost
 
 ```bash
-# Verificar si hay sesiones existentes
+# Check for existing sessions
 screen -ls
 
-# Si no hay sesiones, crear nuevas:
+# If there are none, create a new one:
 screen -S decatron-api
-# Iniciar backend...
-# Ctrl+A, D
-
-screen -S decatron-frontend
-# Iniciar frontend...
+# Start the backend...
 # Ctrl+A, D
 ```
 
 ---
 
-## 502 Bad Gateway / Servicio no corriendo
+## 502 Bad Gateway
 
-### Sintomas / Symptoms
+### Symptoms
 
-- El navegador muestra "502 Bad Gateway" de nginx
-- La pagina no carga en absoluto
+- The browser shows nginx's "502 Bad Gateway"
+- The page does not load at all, or the page loads but the API does not answer
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. El backend .NET no esta corriendo**
+**1. The .NET backend is not running**
 
 ```bash
-# Verificar si el backend esta escuchando en el puerto 7264
+# Check whether the backend is listening on port 7264
 ss -tlnp | grep 7264
 
-# Si no hay nada escuchando, verificar la sesion screen
+# If nothing is listening, check the screen session
 screen -r decatron-api
 
-# Si la sesion no existe, reiniciar:
+# If the session does not exist, start it again:
 screen -S decatron-api
 cd /var/www/html/decatron/Decatron/decatron
 ASPNETCORE_ENVIRONMENT=Production dotnet run --urls "http://localhost:7264"
 ```
 
-**2. El frontend no esta corriendo (pagina en blanco pero API funciona)**
+**2. The frontend build is missing (blank page, 404 or 403 on `/`)**
 
 ```bash
-# Verificar si Vite esta escuchando en el puerto 5173
-ss -tlnp | grep 5173
+# nginx serves ClientApp/dist; check that it exists
+ls /var/www/html/decatron/Decatron/decatron/ClientApp/dist/index.html
 
-# Si no esta corriendo:
-screen -r decatron-frontend
+# If it does not:
 cd /var/www/html/decatron/Decatron/decatron/ClientApp
-npm run dev -- --host 0.0.0.0 --port 5173
+npm install && npm run build
 ```
 
-**3. nginx no esta corriendo o tiene error de configuracion**
+**3. nginx is not running or has a configuration error**
 
 ```bash
-# Verificar estado de nginx
 sudo systemctl status nginx
 
-# Si hay error de configuracion:
+# If there is a configuration error:
 sudo nginx -t
 
-# Corregir el error y recargar:
+# Fix it and reload:
 sudo systemctl reload nginx
 ```
 
-**4. El backend se cayo por una excepcion no controlada**
+**4. The backend crashed with an unhandled exception**
 
 ```bash
-# Revisar los ultimos logs
+# Look at the latest logs
 tail -50 /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt
 
-# Buscar errores fatales
+# Look for fatal errors
 grep -i "fatal\|unhandled\|crash" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt
 ```
 
 ---
 
-## Bot no conecta al chat de Twitch / Bot Not Connecting to Twitch Chat
+## Bot Not Connecting to Twitch Chat
 
-### Sintomas / Symptoms
+### Symptoms
 
-- El bot no responde a comandos en el chat
-- No hay mensajes del bot en el chat de Twitch
-- Error en logs: "Bot connection failed" o "Token validation failed"
+- The bot does not answer commands in chat
+- There are no bot messages in the Twitch chat
+- Errors in the logs such as "IRC disconnected" or token errors
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. Token del bot expirado o invalido**
+**1. Bot token expired or invalid**
 
 ```bash
-# Buscar errores de token en los logs
+# Look for token errors in the logs
 grep -i "token\|refresh\|auth" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -20
 ```
 
-Solucion: El sistema tiene un `BotTokenRefreshService` que refresca tokens automaticamente. Si falla:
+`BotTokenRefreshBackgroundService` refreshes the bot tokens automatically every 30 minutes. If it fails, check the database:
 
 ```bash
-# Verificar en la base de datos que los tokens del bot existen
-sudo -u postgres psql -d decatron_prod -c "SELECT username, expires_at FROM bot_tokens;"
+sudo -u postgres psql -d decatron_prod -c "SELECT bot_username, token_expiration, is_active FROM bot_tokens;"
 ```
 
-Si los tokens estan expirados y el refresh falla, el usuario debe re-autenticarse desde el dashboard web.
+If the tokens are expired and the refresh fails, the bot account must authorize again.
 
-**2. Credenciales de Twitch incorrectas**
+**2. Wrong Twitch credentials**
 
-Verificar en `appsettings.Secrets.json`:
-- `TwitchSettings:ClientId` coincide con tu app en [dev.twitch.tv](https://dev.twitch.tv)
-- `TwitchSettings:ClientSecret` es el correcto
-- `TwitchSettings:BotUsername` es exactamente el nombre de la cuenta del bot (case-sensitive en algunos casos)
-- `TwitchSettings:ChannelId` es el ID numerico correcto del canal
+Check `appsettings.Secrets.json`:
+- `TwitchSettings:ClientId` matches your app in the [Twitch Developer Console](https://dev.twitch.tv/console/apps)
+- `TwitchSettings:ClientSecret` is the right one
+- `TwitchSettings:BotUsername` is exactly the bot account name
+- `TwitchSettings:ChannelId` is the correct numeric channel ID
 
-**3. Scopes insuficientes**
+**3. Missing scopes**
 
-Si el bot se conecta pero no puede enviar mensajes:
+If the bot connects but cannot send messages, the scopes requested at login (`TwitchSettings:Scopes` in `appsettings.json`) must include at least `chat:read`, `chat:edit`, `channel:bot` and `user:write:chat`. After changing the scopes, the account must log in again.
 
-```bash
-# Los scopes necesarios estan en appsettings.json:
-# chat:read chat:edit channel:bot user:write:chat
-# Verificar que el token del bot tiene estos scopes
-```
+**4. TwitchLib disconnects silently**
 
-Solucion: El streamer debe re-hacer el login desde el dashboard para obtener tokens con los scopes correctos.
+The bot uses TwitchLib for IRC. After a disconnect it retries a limited number of times (3), and it can fail when:
+- Twitch is under maintenance
+- The IRC rate limit is exceeded
+- The server IP is temporarily banned by Twitch
 
-**4. TwitchLib se desconecta silenciosamente**
+Restart the backend. If it persists, wait 15-30 minutes and try again.
 
-El bot usa TwitchLib para IRC, que puede desconectarse sin error obvio. La reconexion automatica tiene backoff pero puede fallar si:
-- Twitch esta en mantenimiento
-- El rate limit de IRC se excedio (20 mensajes/30 segundos)
-- La IP del servidor esta temporalmente baneada por Twitch
+**5. The bot is started with `Task.Run` (no supervisor)**
 
-Solucion: Reiniciar el backend. Si persiste, esperar 15-30 minutos e intentar de nuevo.
-
-**5. El bot se inicio con Task.Run (sin supervision)**
-
-El bot de Twitch se lanza con `Task.Run()` en `Program.cs`, sin un `BackgroundService` supervisor. Si el bot falla, nadie lo reinicia automaticamente.
-
-Solucion: Reiniciar el backend completo.
+The Twitch bot is launched with `Task.Run()` in `Program.cs`, not as a `BackgroundService`. If it stops, nothing restarts it automatically: restart the whole backend.
 
 ---
 
-## Overlays no se actualizan / Overlays Not Updating (SignalR)
+## No Twitch Events Arriving (EventSub)
 
-### Sintomas / Symptoms
+### Symptoms
 
-- El overlay de OBS muestra datos desactualizados
-- El timer no se actualiza en el overlay
-- Los shoutouts no aparecen
-- Las alertas de tips/eventos no se muestran
+- Follows, subs, bits, raids, channel point redemptions or chat commands do not trigger anything
+- The bot is in the channel but alerts and timers do not react
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. Conexion WebSocket perdida**
+EventSub works through a conduit with WebSocket shards (see [CONFIGURATION.md](CONFIGURATION.md#step-4-eventsub-conduit)). The old webhook transport is switched off, so a webhook problem is not the cause.
 
 ```bash
-# Verificar que nginx tiene la configuracion correcta de WebSocket para /hubs/
-# Debe tener estas lineas:
-#   proxy_set_header Upgrade $http_upgrade;
-#   proxy_set_header Connection "upgrade";
-#   proxy_read_timeout 86400;
+# Is the conduit created and are the shards connected?
+grep -i "conduit" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -20
 ```
 
-Revisar el archivo nginx:
+**1. The conduit could not be created.** A log line says the conduit could not be obtained or created and that the WebSocket transport does not start. Check `TwitchSettings:ClientId` and `ClientSecret`, then restart the backend.
 
-```bash
-cat /etc/nginx/sites-enabled/tu-dominio.conf | grep -A5 "location /hubs"
-```
+**2. A shard is disconnected.** Lines such as "Shard N ... Desconectado" or "Reconectado por Twitch" show shard reconnections. Frequent disconnects usually mean network problems on the server.
 
-**2. El proxy_read_timeout es muy bajo**
+**3. The shard count does not match.** `EventSubSettings:ShardCount` is applied to the existing conduit when the backend starts; if the log says it could not scale the conduit, the previous number of shards stays in use.
 
-SignalR mantiene conexiones abiertas por tiempo indefinido. Si `proxy_read_timeout` es menor a 86400 (24 horas), nginx cerrara la conexion.
+**4. The channel has no subscriptions.** Subscriptions are created when the streamer logs in and for all active users when the backend starts. Ask the streamer to log in again, or restart the backend with the bot enabled for that channel.
+
+---
+
+## Overlays Not Updating (SignalR)
+
+### Symptoms
+
+- The OBS overlay shows stale data
+- The timer does not update in the overlay
+- Shoutouts, tip alerts or event alerts do not appear
+
+### Causes and solutions
+
+**1. WebSocket connection lost**
+
+nginx must forward WebSocket connections for `/hubs/`. The location needs these lines:
 
 ```nginx
-location /hubs/ {
-    proxy_read_timeout 86400;  # 24 horas
-    # ...
-}
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+proxy_read_timeout 86400;
 ```
 
-**3. El overlay no se unio al canal correcto**
+Check your file:
 
-Los clientes overlay deben llamar a `JoinChannel(channel)` para suscribirse al grupo `overlay_{channel}`. Si el canal es incorrecto, no recibiran actualizaciones.
+```bash
+grep -A12 "location /hubs" /etc/nginx/sites-enabled/your-domain.conf
+```
 
-Solucion: Verificar que la URL del overlay tiene el parametro `?channel=` correcto.
+**2. `proxy_read_timeout` is too low**
 
-**4. El backend se reinicio y las conexiones se perdieron**
+SignalR keeps connections open indefinitely. If `proxy_read_timeout` is below 86400 (24 hours), nginx closes the connection.
 
-Cuando el backend se reinicia, todas las conexiones SignalR se cierran. Los clientes overlay deberian reconectarse automaticamente (tienen retry logic), pero a veces no funciona.
+**3. The overlay did not join the right channel**
 
-Solucion: Recargar la pagina del overlay en OBS (clic derecho -> "Refresh").
+Overlay clients call `JoinChannel(channel)` to subscribe to the group `overlay_{channel}`. If the channel is wrong they receive no updates. Check that the overlay URL has the correct `?channel=` parameter (copy the URL from the module's page in the dashboard).
 
-**5. SignalR Hub sin autenticacion**
+**4. The backend restarted and the connections were lost**
 
-El OverlayHub no requiere autenticacion. Cualquier cliente puede conectarse y unirse a cualquier grupo. Esto es por diseno (los overlays de OBS no tienen sesion), pero puede causar problemas si hay muchas conexiones espurias.
+When the backend restarts, all SignalR connections close. Overlays reconnect automatically, but sometimes they do not: refresh the overlay source in OBS (right click, Refresh).
+
+**5. The hub needs no authentication**
+
+`OverlayHub` accepts any client, by design (OBS browser sources have no session). Many spurious connections can cause noise but not wrong data.
 
 ---
 
-## Problemas de expiracion de tokens / Token Expiration Issues
+## Token Expiration Issues
 
-### Sintomas / Symptoms
+### Symptoms
 
-- Los usuarios son deslogueados frecuentemente
-- Error "401 Unauthorized" en la consola del navegador
-- "Token expired" en los logs
+- Users are logged out frequently
+- "401 Unauthorized" in the browser console
+- "Token expired" in the logs
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. Token JWT del frontend expirado**
+**1. The dashboard JWT expired**
 
-El token JWT dura `ExpiryMinutes` minutos (default: 60). Si el frontend no refresca el token a tiempo:
+The JWT lasts `JwtSettings:ExpiryMinutes` minutes (60 in the example).
 
 ```bash
-# Verificar configuracion
 grep "ExpiryMinutes" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
 ```
 
-Solucion: Aumentar `ExpiryMinutes` si es necesario (por ejemplo, a 120 o 240).
+Increase `ExpiryMinutes` if needed (for example to 120 or 240) and restart the backend.
 
-**2. Tokens de Twitch expirados**
+**2. Twitch tokens expired**
 
-Los tokens de Twitch duran ~4 horas. El sistema tiene dos background services que los refrescan:
-- `UserTokenRefreshService` - Refresca tokens de usuarios
-- `BotTokenRefreshService` - Refresca tokens del bot
+Twitch access tokens last a few hours. Two background services refresh them: `UserTokenRefreshBackgroundService` (users, and Kick tokens too) and `BotTokenRefreshBackgroundService` (the bot), both every 30 minutes.
 
 ```bash
-# Verificar que los servicios de refresh estan corriendo
-grep -i "token refresh" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -10
+grep -i "token refresh\|TokenRefresh" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -10
 ```
 
-Si el refresh falla, el usuario debe re-hacer login desde el dashboard.
+If the refresh fails, the user must log in again from the dashboard.
 
-**3. Tokens de Spotify expirados**
-
-Los tokens de Spotify duran 1 hora. El `NowPlayingBackgroundService` los refresca automaticamente cuando detecta un 401.
+**3. Spotify tokens expired**
 
 ```bash
-# Verificar errores de Spotify
 grep -i "spotify" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | grep -i "error\|fail\|401"
 ```
 
-**4. Cambio de hora del servidor**
+If the refresh fails, reconnect Spotify from the Now Playing page.
 
-Si la hora del servidor esta desincronizada, los tokens pueden parecer expirados o no expirados incorrectamente.
+**4. Server clock out of sync**
+
+If the server time is wrong, tokens can look expired or not expired by mistake.
 
 ```bash
-# Verificar hora del servidor
 date
-
-# Sincronizar con NTP
 sudo timedatectl set-ntp true
 ```
 
 ---
 
-## Errores de conexion a la base de datos / Database Connection Errors
+## Database Connection Errors
 
-### Sintomas / Symptoms
+### Symptoms
 
-- Error 500 en cualquier endpoint
-- "Npgsql.NpgsqlException" o "connection refused" en los logs
-- La aplicacion no arranca
+- Error 500 on any endpoint
+- "Npgsql.NpgsqlException" or "connection refused" in the logs
+- The application does not work
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. PostgreSQL no esta corriendo**
+**1. PostgreSQL is not running**
 
 ```bash
 sudo systemctl status postgresql
-# Si esta detenido:
+# If stopped:
 sudo systemctl start postgresql
 ```
 
-**2. Connection string incorrecta**
+**2. Wrong connection string**
 
 ```bash
-# Verificar que la base de datos existe
+# Check that the database exists
 sudo -u postgres psql -l | grep decatron
 
-# Verificar que el usuario puede conectarse
+# Check that the user can connect
 psql -h localhost -U decatron_user -d decatron_prod -c "SELECT 1;"
 ```
 
-**3. Password incorrecto**
+**3. Wrong password**
+
+Check `ConnectionStrings:DefaultConnection` in `appsettings.Secrets.json`.
+
+**4. Connection limit reached**
 
 ```bash
-# Verificar el password en appsettings.Secrets.json
-grep "DefaultConnection" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
-```
-
-**4. Limite de conexiones alcanzado**
-
-```bash
-# Ver conexiones activas
 sudo -u postgres psql -c "SELECT count(*) FROM pg_stat_activity;"
-
-# Ver el limite
 sudo -u postgres psql -c "SHOW max_connections;"
 
-# Si hay muchas conexiones colgadas, reiniciar PostgreSQL:
+# If many connections are stuck, restart PostgreSQL:
 sudo systemctl restart postgresql
 ```
 
-**5. La base de datos esta corrupta o faltan tablas**
+**5. Tables are missing**
+
+The backend does not create tables. If a feature fails with "relation ... does not exist", the matching SQL script was not applied.
 
 ```bash
-# Contar tablas
 sudo -u postgres psql -d decatron_prod -c "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
-
-# Deberian ser ~78 tablas. Si faltan, verificar las migraciones.
 ```
 
-**6. Tablas con owner incorrecto**
+Production has more than 240 tables. Load `Decatron.Data/Schema/baseline.sql` into an empty database and apply the scripts of `Decatron.Data/Migrations/` added after it (see [DEPLOYMENT.md](DEPLOYMENT.md#create-the-schema)).
 
-Algunas tablas pueden haber sido creadas con el usuario `postgres` en vez de `decatron_user`:
+**6. Tables with the wrong owner**
+
+Some tables may have been created by the `postgres` user instead of `decatron_user`:
 
 ```bash
-# Ver tablas con owner diferente
 sudo -u postgres psql -d decatron_prod -c "SELECT tablename, tableowner FROM pg_tables WHERE schemaname = 'public' AND tableowner != 'decatron_user';"
 
-# Cambiar owner si es necesario
-sudo -u postgres psql -d decatron_prod -c "ALTER TABLE nombre_tabla OWNER TO decatron_user;"
+# Change the owner if needed
+sudo -u postgres psql -d decatron_prod -c "ALTER TABLE table_name OWNER TO decatron_user;"
 ```
 
 ---
 
-## Problemas con PayPal/Tips / PayPal & Tips Issues
+## PayPal and Tips Issues
 
-### Sintomas / Symptoms
+### Symptoms
 
-- Error al conectar PayPal del streamer
-- Los tips no se procesan
-- "PayPal order creation failed" en logs
-- El dinero no llega al streamer
+- Error when connecting the streamer's PayPal
+- Tips are not processed
+- "PayPal order creation failed" in the logs
+- The money does not reach the streamer
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. Modo sandbox vs live**
+**1. Sandbox vs live mode**
 
 ```bash
-# Verificar el modo actual
-grep -A2 "PayPalSettings" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json | grep Mode
+grep -A8 "PayPalSettings" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json | grep Mode
 ```
 
-Si `Mode` es `sandbox`, los pagos son de prueba y no son reales. Para produccion debe ser `live`.
+If `Mode` is `sandbox`, payments are tests and not real. For production it must be `live`.
 
-**2. Credenciales de PayPal invalidas**
+**2. Invalid PayPal credentials**
 
-- Verificar que `ClientId` / `ClientSecret` (sandbox) o `LiveClientId` / `LiveClientSecret` (live) son correctos en `appsettings.Secrets.json`
-- Las credenciales se obtienen de [developer.paypal.com](https://developer.paypal.com)
+Check `ClientId` / `ClientSecret` (sandbox) or `LiveClientId` / `LiveClientSecret` (live) in `appsettings.Secrets.json`. Credentials come from [developer.paypal.com](https://developer.paypal.com).
 
-**3. El callback de OAuth de PayPal falla**
+**3. The PayPal OAuth callback fails**
 
-```bash
-# Verificar que la RedirectUri esta bien configurada
-grep "RedirectUri" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json | grep -i paypal
-```
+`PayPalSettings:RedirectUri` must be exactly `https://your-domain.com/api/tips/paypal/callback` and match the one configured in the PayPal app.
 
-La URI debe ser exactamente `https://tu-dominio.com/api/tips/paypal/callback` y coincidir con la configurada en la app de PayPal.
+**4. About the PayPal webhook**
 
-**4. Webhook de PayPal no verificado**
+`POST /api/tips/paypal/webhook` answers 401 when the PayPal signature headers are missing, but it does not cryptographically verify them; it only acknowledges the event. The payment itself is completed by `POST /api/tips/paypal/capture-order`, so a failing webhook does not stop tips.
 
-El endpoint `/api/tips/paypal/webhook` actualmente no verifica la firma de PayPal (hay un TODO en el codigo). Los webhooks funcionan pero no son seguros.
+**5. The streamer has not connected PayPal**
 
-**5. El streamer no ha conectado su PayPal**
-
-Los pagos van directamente al email de PayPal del streamer. Si no ha conectado su cuenta, el endpoint `/api/tips/page/{channelName}` retornara error.
+Payments go to the streamer's PayPal e-mail. If the account is not connected, the donation page endpoint returns an error.
 
 ```bash
-# Verificar si el streamer tiene PayPal conectado
 sudo -u postgres psql -d decatron_prod -c "SELECT user_id, paypal_email, paypal_connected FROM tips_configs WHERE user_id = <USER_ID>;"
 ```
 
 ---
 
-## Problemas con Spotify/Now Playing / Spotify & Now Playing Issues
+## Spotify and Now Playing Issues
 
-### Sintomas / Symptoms
+### Symptoms
 
-- El overlay "Now Playing" no muestra la cancion
-- Error al conectar Spotify
-- "Spotify token refresh failed" en logs
+- The Now Playing overlay does not show the song
+- Error when connecting Spotify
+- "Spotify token refresh failed" in the logs
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. Token de Spotify expirado y no se refresca**
+**1. Spotify slot not assigned or token expired**
 
 ```bash
-# Verificar tokens en la base de datos
-sudo -u postgres psql -d decatron_prod -c "SELECT user_id, provider, spotify_connected FROM now_playing_configs WHERE spotify_connected = true;"
+sudo -u postgres psql -d decatron_prod -c "SELECT user_id, provider, spotify_slot_assigned, spotify_token_expires_at FROM now_playing_configs WHERE provider = 'spotify';"
 ```
 
-**2. Credenciales de Spotify incorrectas**
+**2. Wrong Spotify credentials**
 
-Verificar en `appsettings.Secrets.json`:
+Check in `appsettings.Secrets.json`:
 - `SpotifySettings:ClientId`
 - `SpotifySettings:ClientSecret`
-- `SpotifySettings:RedirectUri` debe ser `https://tu-dominio.com/api/spotify/callback`
+- `SpotifySettings:RedirectUri`, which must be `https://your-domain.com/api/spotify/callback` and registered exactly the same in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 
-La RedirectUri debe estar registrada exactamente igual en el [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+**3. Spotify slots exhausted**
 
-**3. Cupos de Spotify agotados**
-
-Spotify tiene un limite de 5 cupos para usuarios no-premium:
+Spotify is limited to 5 slots for non-premium users; the rest wait in a list.
 
 ```bash
-# Ver cupos asignados
-sudo -u postgres psql -d decatron_prod -c "SELECT user_id, spotify_cupo_status FROM now_playing_configs WHERE spotify_cupo_status IS NOT NULL;"
+sudo -u postgres psql -d decatron_prod -c "SELECT user_id, spotify_slot_requested, spotify_slot_assigned FROM now_playing_configs WHERE spotify_slot_requested = true;"
 ```
 
-**4. Last.fm no funciona (alternativa)**
+**4. Last.fm does not work (alternative provider)**
 
-Si se usa Last.fm en vez de Spotify:
-- Verificar que `LastFmSettings:ApiKey` esta configurado
-- Verificar que el username de Last.fm es correcto en la config del usuario
-- **Nota:** Las llamadas se hacen por HTTP (no HTTPS). Si hay un firewall bloqueando HTTP saliente, fallara.
+- Check that `LastFmSettings:ApiKey` is set
+- Check that the Last.fm username is correct in the user's configuration
+- The calls use plain HTTP (`http://ws.audioscrobbler.com`); a firewall that blocks outbound HTTP breaks them
 
-**5. El NowPlayingBackgroundService no esta corriendo**
+**5. The polling service is not running**
 
 ```bash
-# Verificar en logs
-grep -i "NowPlaying\|now_playing" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -10
+grep -i "NowPlaying" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -10
 ```
 
-El servicio hace polling cada 3 segundos. Si no hay logs recientes, puede haberse detenido.
+`NowPlayingBackgroundService` checks every 3 seconds. If there are no recent log lines, restart the backend.
 
 ---
 
-## Problemas con DecatronAI / DecatronAI Issues
+## AI Issues
 
-### Sintomas / Symptoms
+### Symptoms
 
-- El comando `!ia` no responde
-- Error "API Key no configurada"
-- Respuestas muy lentas o timeout
+- The `!ia` command does not answer
+- Missing API key errors
+- Very slow answers or timeouts
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. DecatronAI no esta habilitado globalmente**
+**1. AI is not enabled globally**
 
 ```bash
-sudo -u postgres psql -d decatron_prod -c "SELECT enabled, primary_provider, primary_model FROM decatron_ai_global_config LIMIT 1;"
+sudo -u postgres psql -d decatron_prod -c "SELECT enabled, ai_provider, model, fallback_enabled FROM decatron_ai_global_config LIMIT 1;"
 ```
 
-El admin debe habilitar DecatronAI desde `/admin/decatron-ai`.
+The platform administrator enables and configures it from the admin panel.
 
-**2. El canal no tiene permiso para usar IA**
+**2. The channel has no permission to use AI**
 
 ```bash
-sudo -u postgres psql -d decatron_prod -c "SELECT channel_id, is_enabled FROM decatron_ai_channel_permissions;"
+sudo -u postgres psql -d decatron_prod -c "SELECT user_id, channel_name, enabled FROM decatron_ai_channel_permissions;"
 ```
 
-**3. API Key de Gemini invalida o expirada**
+**3. Invalid or expired Gemini API key**
 
 ```bash
-# Verificar configuracion
-grep "GeminiSettings" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
-
-# Buscar errores en logs
+grep -c "GeminiSettings" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
 grep -i "gemini\|ai.*error" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -10
 ```
 
-**4. OpenRouter (fallback) tampoco funciona**
+**4. OpenRouter (fallback) does not work either**
 
-Si Gemini falla, el sistema intenta OpenRouter como fallback. Si ambos fallan:
+If the main provider fails and fallback is enabled, the system tries OpenRouter. If both fail:
 
 ```bash
-grep "OpenRouterSettings" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
+grep -c "OpenRouterSettings" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
 grep -i "openrouter" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -10
 ```
 
-**5. Cooldown activo**
+**5. Cooldown active**
 
-El comando `!ia` tiene cooldown por canal y por usuario. Si el usuario acaba de usar el comando, debe esperar el tiempo configurado.
+`!ia` has a cooldown per channel and per user. A user who just used it must wait.
+
+**6. Not enough credits**
+
+Paid AI features charge credits (`AiCreditGate`). If the account has none, requests are refused.
 
 ---
 
-## Problemas con TTS (AWS Polly) / TTS Issues
+## TTS Issues
 
-### Sintomas / Symptoms
+### Symptoms
 
-- Las alertas de tips no reproducen audio TTS
-- Error "Polly credentials not configured"
-- Los archivos TTS no se generan en el cache
+- Alerts do not play TTS audio
+- "Polly credentials not configured"
+- TTS files are not generated in the cache
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. Credenciales de AWS no configuradas**
+**1. AWS credentials not configured**
 
 ```bash
-grep -A4 "AwsPolly" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
+grep -c "AwsPolly" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
 ```
 
-Si no hay credenciales, el sistema usa `AnonymousAWSCredentials` que fallara en cada llamada a Polly.
+Without credentials the system uses anonymous AWS credentials, which fail on every Polly call; features that use TTS skip it.
 
-**2. Directorio de cache no existe o sin permisos**
+**2. Cache directory missing or without permissions**
 
 ```bash
-# Verificar directorio de cache
 ls -la /var/www/html/decatron/tts-cache/
 
-# Si no existe:
+# If it does not exist:
 mkdir -p /var/www/html/decatron/tts-cache
-chmod 777 /var/www/html/decatron/tts-cache
+chown www-data:www-data /var/www/html/decatron/tts-cache   # the user that runs the backend
 ```
 
-**3. Region de AWS incorrecta**
+**3. Wrong AWS region**
 
-El default es `us-east-1`. Si tu cuenta AWS tiene restricciones de region:
+The default is `us-east-1`. If your AWS account has region restrictions:
 
 ```json
 {
@@ -641,136 +611,130 @@ El default es `us-east-1`. Si tu cuenta AWS tiene restricciones de region:
 }
 ```
 
-**4. Permisos IAM insuficientes**
+**4. Insufficient IAM permissions**
 
-El usuario IAM necesita al menos `polly:SynthesizeSpeech`. Verificar en la [consola IAM de AWS](https://console.aws.amazon.com/iam/).
+The IAM user needs at least `polly:SynthesizeSpeech` (and `polly:DescribeVoices` for the voice catalog). Check the [AWS IAM console](https://console.aws.amazon.com/iam/).
 
 ---
 
-## Problemas de login/autenticacion / Login & Authentication Issues
+## Login and Authentication Issues
 
-### Sintomas / Symptoms
+### Symptoms
 
-- El boton "Login con Twitch" redirige pero no completa el login
-- Error "Invalid state" o "Callback failed"
-- El usuario queda en un loop de redireccion
+- The "Login with Twitch" button redirects but does not complete the login
+- "Invalid or expired login session" or "Callback failed"
+- The user ends in a redirect loop
 
-### Causas y soluciones / Causes & Solutions
+### Causes and solutions
 
-**1. RedirectUri no coincide**
+**1. `RedirectUri` does not match**
 
-La `RedirectUri` en `appsettings.Secrets.json` debe coincidir **exactamente** con la configurada en Twitch Developer Console:
+`TwitchSettings:RedirectUri` must match **exactly** the one in the Twitch Developer Console:
 
 ```
-https://tu-dominio.com/api/auth/callback
+https://your-domain.com/api/auth/callback
 ```
 
-**2. ClientId o ClientSecret incorrecto**
+**2. Wrong `ClientId` or `ClientSecret`**
 
-```bash
-grep -A3 "TwitchSettings" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json | head -5
-```
+Check them against [dev.twitch.tv/console/apps](https://dev.twitch.tv/console/apps).
 
-Verificar contra [dev.twitch.tv/console/apps](https://dev.twitch.tv/console/apps).
+**3. Wrong `FrontendUrl`**
 
-**3. FrontendUrl incorrecto (redireccion post-login falla)**
-
-Despues del login, el backend redirige a `FrontendUrl` con el JWT en el query string. Si esta URL es incorrecta, el usuario no recibe el token.
+After the login the backend redirects to `{FrontendUrl}/login?code=...`. If this URL is wrong, the browser never gets the code.
 
 ```bash
 grep "FrontendUrl" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
 ```
 
-**4. El JWT se pierde en la URL**
+**4. The one-time code expired**
 
-El JWT se pasa como `?token=JWT` en la redireccion post-login. Si el navegador tiene extensiones que limpian URLs o si hay un proxy intermedio que elimina query strings, el token se perdera.
+The backend keeps the JWT in memory for 60 seconds behind a one-time code; the frontend swaps it with `POST /api/auth/exchange`. If the browser is slow, blocked by an extension or the backend restarted in between, the exchange answers 401 ("Invalid or expired code"). Just log in again.
 
-**5. Clave JWT demasiado corta**
+**5. JWT key too short**
 
 ```bash
-# La clave debe tener al menos 32 caracteres
+# The key must have at least 32 characters
 grep "SecretKey" /var/www/html/decatron/Decatron/decatron/appsettings.Secrets.json
 ```
 
-Si la clave es demasiado corta, la generacion de tokens puede fallar silenciosamente.
+**6. Kick or Discord login**
+
+The Kick and Discord logins follow the same flow with their own settings (`KickSettings`, `DiscordSettings`): check the redirect URIs there too.
 
 ---
 
-## Referencia rapida de comandos / Quick Command Reference
+## Quick Command Reference
 
-### Diagnostico general / General Diagnostics
+### General diagnostics
 
 ```bash
-# Estado de todos los servicios
+# Status of the services
 sudo systemctl status nginx postgresql
 screen -ls
-ss -tlnp | grep "7264\|5173\|5432\|80\|443"
+ss -tlnp | grep "7264\|5432\|80\|443"
 
-# Ultimos errores en logs
+# Latest errors in the logs
 grep -i "ERR\|error\|exception\|fatal" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | tail -20
 
-# Uso de disco (los logs y cache pueden crecer)
+# Disk usage (logs and the TTS cache can grow)
 du -sh /var/www/html/decatron/Decatron/decatron/logs/
 du -sh /var/www/html/decatron/tts-cache/
 
-# Conexiones activas a la base de datos
+# Active database connections
 sudo -u postgres psql -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'decatron_prod';"
 ```
 
-### Reinicio completo (nuclear) / Full Restart (Nuclear Option)
+### Full restart
 
 ```bash
-# 1. Detener todo
+# 1. Stop the backend
 screen -S decatron-api -X quit 2>/dev/null
-screen -S decatron-frontend -X quit 2>/dev/null
 
-# 2. Reiniciar PostgreSQL
+# 2. Restart PostgreSQL
 sudo systemctl restart postgresql
 
-# 3. Reiniciar nginx
+# 3. Restart nginx
 sudo systemctl restart nginx
 
-# 4. Iniciar backend
+# 4. Start the backend
 screen -dmS decatron-api bash -c 'cd /var/www/html/decatron/Decatron/decatron && ASPNETCORE_ENVIRONMENT=Production dotnet run --urls "http://localhost:7264"'
 
-# 5. Iniciar frontend
-screen -dmS decatron-frontend bash -c 'cd /var/www/html/decatron/Decatron/decatron/ClientApp && npm run dev -- --host 0.0.0.0 --port 5173'
-
-# 6. Verificar
-sleep 5
+# 5. Verify
+sleep 10
 screen -ls
-curl -s -o /dev/null -w "%{http_code}" http://localhost:7264/api/auth/login
-curl -s -o /dev/null -w "%{http_code}" http://localhost:5173
+curl -s -o /dev/null -w "%{http_code}" http://localhost:7264/api/oauth/scopes
+curl -s -o /dev/null -w "%{http_code}" https://YOUR_DOMAIN
 ```
 
-### Verificar estado de la base de datos / Database Health Check
+### Database health check
 
 ```bash
-# Verificar conexion
+# Check the connection
 sudo -u postgres psql -d decatron_prod -c "SELECT 1;"
 
-# Contar tablas
+# Count tables
 sudo -u postgres psql -d decatron_prod -c "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
 
-# Ver tamano de la base de datos
+# Database size
 sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size('decatron_prod'));"
 
-# Ver las 5 tablas mas grandes
+# The 5 biggest tables
 sudo -u postgres psql -d decatron_prod -c "SELECT relname AS table, pg_size_pretty(pg_total_relation_size(relid)) AS size FROM pg_catalog.pg_statio_user_tables ORDER BY pg_total_relation_size(relid) DESC LIMIT 5;"
 
-# Verificar usuarios activos
+# Number of users
 sudo -u postgres psql -d decatron_prod -c "SELECT count(*) FROM users;"
 
-# Verificar tokens del bot
-sudo -u postgres psql -d decatron_prod -c "SELECT username, expires_at, created_at FROM bot_tokens ORDER BY created_at DESC LIMIT 5;"
+# Bot tokens
+sudo -u postgres psql -d decatron_prod -c "SELECT bot_username, token_expiration, created_at FROM bot_tokens ORDER BY created_at DESC LIMIT 5;"
 ```
 
-### Backup de emergencia / Emergency Backup
+### Emergency backup
 
 ```bash
-# Backup rapido
+# Quick backup
 pg_dump -U decatron_user -h localhost decatron_prod > ~/emergency_backup_$(date +%Y%m%d_%H%M%S).sql
 
-# Verificar que el backup se creo
+# Check that the backup was created
 ls -la ~/emergency_backup_*.sql
 ```

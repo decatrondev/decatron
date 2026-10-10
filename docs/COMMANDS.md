@@ -1,6 +1,8 @@
 # Commands Reference
 
-Complete reference for all Decatron v2 bot commands, the custom commands system, scripting engine, and micro commands.
+> Español: [es/COMMANDS.md](es/COMMANDS.md)
+
+Reference for the Decatron bot commands: the built-in commands, custom commands, the scripting language, micro commands and the commands of the main modules. Descriptions of the built-in commands come from `Resources/bot-metadata/{en,es}.json`, the same source the dashboard and the public docs read.
 
 ---
 
@@ -14,9 +16,9 @@ Complete reference for all Decatron v2 bot commands, the custom commands system,
 - [Song Request Commands](#song-request-commands)
 - [Wheel and Raffle Commands](#wheel-and-raffle-commands)
 - [Roulette Command](#roulette-command)
-- [Moderation System](#moderation-system)
+- [Moderation Commands and System](#moderation-commands-and-system)
 - [Giveaway Commands](#giveaway-commands)
-- [Goals Commands](#goals-commands)
+- [Gacha, Spirits and Other Commands](#gacha-spirits-and-other-commands)
 - [Permission Levels](#permission-levels)
 - [Architecture](#architecture)
 
@@ -24,87 +26,111 @@ Complete reference for all Decatron v2 bot commands, the custom commands system,
 
 ## Built-in Commands
 
-These commands are registered at startup by `CommandService` and are always available when the bot is enabled for a channel.
+Registered at startup by `CommandService`; they are available when the bot is enabled for a channel. The "Who can use it" column appears only where it was checked in the command's code.
 
-### General Commands
+### Stream info
 
-| Command | Aliases | Description | Permission | Example |
-|---------|---------|-------------|------------|---------|
-| `!hola` | -- | Interactive greeting from the bot | Everyone | `!hola` |
-| `!followage` | -- | Shows how long the user has been following the channel | Everyone | `!followage` |
-| `!ia [question]` | -- | Ask Decatron's AI a question (has per-channel and per-user cooldown) | Configurable per channel | `!ia What game should I play next?` |
+| Command | Aliases | Description | Who can use it | Example |
+|---------|---------|-------------|----------------|---------|
+| `!title` | `!t` | Change or check the stream title | Check: everyone. Change: streamer and moderators | `!title`, `!title New stream title` |
+| `!game` | `!g` | Change or check the stream category/game | Check: everyone. Change: streamer and moderators | `!game`, `!game Just Chatting` |
+| `!g` | | Category and micro command management (see below) | | `!g`, `!g Just Chatting` |
 
-### Stream Info Commands
+On Kick, `!title` and `!game` are marked "coming soon": Kick exposes the API needed, but the work is not done yet.
 
-| Command | Aliases | Description | Permission | Example |
-|---------|---------|-------------|------------|---------|
-| `!title` | `!t` | View current stream title (no args) or change it (with args) | View: Everyone / Change: Mod/Broadcaster | `!title` or `!title New Title Here` |
-| `!game` | -- | View current category (no args) or change it (with args) | View: Everyone / Change: Mod/Broadcaster | `!game` or `!game Fortnite` |
-| `!g` | -- | Advanced category management with micro command support | View: Everyone / Manage: Mod/Broadcaster | See below |
-
-#### `!g` Subcommands
+#### `!g` subcommands
 
 | Syntax | Description | Example |
 |--------|-------------|---------|
-| `!g` | View current stream category | `!g` |
-| `!g [name]` | Change stream category | `!g League of Legends` |
-| `!g set [!cmd] [category]` | Create a micro command shortcut | `!g set !lol League of Legends` |
+| `!g` | View the current category | `!g` |
+| `!g [name]` | Change the category | `!g League of Legends` |
+| `!g set [!cmd] [category]` | Create a micro command | `!g set !lol League of Legends` |
 | `!g remove [!cmd]` | Remove a micro command | `!g remove !lol` |
-| `!g list` | List all micro commands for this channel | `!g list` |
+| `!g list` | List this channel's micro commands | `!g list` |
 
-### Shoutout Command
+### Community
 
-| Command | Description | Permission | Example |
-|---------|-------------|------------|---------|
-| `!so @user` | Shoutout a user -- shows their latest clip and profile in the overlay | Mod/Broadcaster | `!so @streamer_name` |
+| Command | Description | Who can use it | Example |
+|---------|-------------|----------------|---------|
+| `!so` | Shoutout a user, showing their latest clip and profile in the overlay | Streamer and moderators | `!so @username` |
+| `!followage` | Shows how long you have been following the channel | Everyone | `!followage`, `!followage @user` |
+| `!ia` | Ask Decatron AI | Set by the channel's AI configuration (per-channel and per-user cooldown) | `!ia give me a fun fact` |
+| `!raffle` | Chat raffle: `join`, `create <name>`, `close`, `draw`, `status` | Create, close, draw: streamer and moderators. Join and status: everyone | `!raffle join` |
+| `!join` | Join the active giveaway | Set by the giveaway configuration | `!join` |
+| `!watchtime` | Shows how long you have been watching the current stream (resets when the stream ends) | | `!watchtime` |
+| `!commands` | Posts the link to the channel's public commands page (`/commands/{channel}`) | | `!commands` |
 
-### Command Creation
+On Kick, `!followage` and `!so` are not available: Kick's public API has no follower date or clips.
 
-| Command | Description | Permission | Example |
-|---------|-------------|------------|---------|
-| `!crear` | Create custom commands directly from chat | Everyone (internal validation) | `!crear !discord Join our Discord: https://...` |
+### Games and LoL Coach
+
+Commands of the Game Overlays and LoL Coach modules. They read the same state the overlay shows.
+
+| Command | Aliases | Description | Who can use it |
+|---------|---------|-------------|----------------|
+| `!rango` | `!rank` | The streamer's current rank in the game being played | |
+| `!lp` | `!puntos` | Points (LP/RR/ELO) won or lost during today's stream | |
+| `!sesion` | `!session` | Wins and losses of today's stream | |
+| `!ultimas` | `!recent` | The streamer's recent matches with KDA | |
+| `!cuentas` | `!accounts` | The streamer's accounts in the current game and their rank | |
+| `!juego` | | Force the overlay game, or go back to automatic (`!juego lol`, `!juego auto`) | Streamer and moderators |
+| `!setrango` | | Manually set the visible account's rank, for games without an API | Streamer and moderators |
+| `!rankup`, `!rankdown` | | Step the manual rank up or down one division | Streamer and moderators |
+| `!win`, `!loss` | | Add a win or a loss to today's session | Streamer and moderators |
+| `!matchup` | | Current lane matchup according to the LoL Coach (Decatron Desktop) | |
+| `!build` | `!runas` | Runes, spells and first items suggested by the LoL Coach | |
+| `!coach` | | The latest thing the LoL Coach said, or the post-game review | Everyone, 30 s between uses except moderators |
+| `!vs` | | The streamer's record against a champion (direct opponent, last 60 games) | |
+| `!duo` | | The streamer's record with the current lobby duo, someone specific, or the most frequent duos | |
+| `!pool` | | The streamer's champion pool with win rate | |
+| `!meta` | | Today's goal: view (everyone) or set (`!meta <text>`, `!meta off`) | View: everyone. Set: streamer and moderators |
+| `!pred` | | Predict whether the streamer wins or loses the current LoL game, with channel prediction points (`!pred win 200`) | |
+| `!predtop` | | Channel prediction points top 5 | |
+
+### Custom command management
+
+| Command | Description | Who can use it | Example |
+|---------|-------------|----------------|---------|
+| `!crear` | Create a custom command (plain or scripted) from chat | Streamer, moderators and platform admins | `!crear !discord Join our Discord` |
+| `!editcom` | Edit an existing custom command | Streamer, moderators and platform admins | `!editcom !discord New text` |
+| `!delcom` | Delete an existing custom command | Streamer, moderators and platform admins | `!delcom !discord` |
 
 ---
 
 ## Timer Commands
 
-These commands control the Timer Extension overlay (subathon-style visual timer). All timer commands use the `!d` prefix.
+These commands control the Timer Extension overlay. All use the `!d` prefix.
 
-### Timer Control Commands
+### Control (streamer and moderators)
 
-| Command | Description | Permission | Example |
-|---------|-------------|------------|---------|
-| `!dstart [duration]` | Start the timer with a duration (in seconds, or formatted) | Mod/Broadcaster | `!dstart 3600` |
-| `!dpause` | Pause the running timer | Mod/Broadcaster | `!dpause` |
-| `!dplay` | Resume a paused timer | Mod/Broadcaster | `!dplay` |
-| `!dreset` | Reset the timer to its initial duration | Mod/Broadcaster | `!dreset` |
-| `!dstop` | Stop and end the timer session | Mod/Broadcaster | `!dstop` |
-| `!dtimer` | Advanced timer management (add/remove time) | Mod/Broadcaster | `!dtimer +300` or `!dtimer -60` |
+| Command | Description | Example |
+|---------|-------------|---------|
+| `!dstart` | Start the timer with a specific duration | `!dstart 5m`, `!dstart 1h30m`, `!dstart 300` |
+| `!dpause` | Pause the current timer | `!dpause` |
+| `!dplay` | Resume or start the paused timer | `!dplay` |
+| `!dreset` | Reset the timer to the configured total time | `!dreset` |
+| `!dstop` | Stop the timer completely and hide it from the overlay | `!dstop` |
+| `!dtimer` | Manage the timer: start, add or remove time | `!dtimer 5m`, `!dtimer add 1h`, `!dtimer remove 30s` |
 
-### Timer Query Commands
+### Query
 
-| Command | Description | Permission | Example |
-|---------|-------------|------------|---------|
-| `!dtiempo` | Check how much time is left on the timer | Everyone | `!dtiempo` |
-| `!dcuando` | Check when the timer will end | Everyone | `!dcuando` |
-| `!dstats` | View timer statistics for the current session | Everyone | `!dstats` |
-| `!drecord` | View the timer record (longest session) | Everyone | `!drecord` |
-| `!dtop` | View the top timer times/contributors | Everyone | `!dtop` |
+| Command | Description |
+|---------|-------------|
+| `!dtiempo` | How much time is left on the timer |
+| `!dcuando` | When the timer will end |
+| `!dstats` | Statistics of the current session |
+| `!drecord` | The timer record |
+| `!dtop` | Top timer contributors |
 
 ---
 
 ## Custom Commands
 
-Custom commands let streamers create text-response commands with variable support, configurable via the web panel or through `!crear` in chat.
+Custom commands are text-response commands with variable support, created from the dashboard (Commands > Custom) or from chat with `!crear`.
 
-### Creating Custom Commands
+### Creating
 
-**From the web panel:**
-
-1. Navigate to **Dashboard > Commands > Custom Commands**.
-2. Click "Create Command".
-3. Fill in the command name (e.g., `!discord`), response text, and access level.
-4. Save.
+**From the dashboard:** Commands > Custom, create the command, give it a name (for example `!discord`), a response and an access level.
 
 **From chat:**
 
@@ -112,248 +138,162 @@ Custom commands let streamers create text-response commands with variable suppor
 !crear !commandname Response text here
 ```
 
-### Access Levels
+### Access levels
 
-| Level | Who Can Use |
-|-------|-------------|
-| `all` | Everyone in chat |
-| `mod` | Moderators and broadcaster only |
-| `vip` | VIPs, moderators, and broadcaster |
-| `sub` | Subscribers, moderators, and broadcaster |
+The `Restriction` of a command:
 
-### Template Variables
+| Level | Who can use it |
+|-------|----------------|
+| `all` | Everyone |
+| `mod` | Moderators and the streamer |
+| `vip` | VIPs, moderators and the streamer |
+| `sub` | Subscribers, moderators and the streamer |
 
-Custom command responses support template variables that are resolved at runtime by `VariableResolver`:
+### Variables
 
-| Variable | Description | Example Output |
-|----------|-------------|----------------|
-| `{user}` or `$(user)` | The username who triggered the command | `viewer123` |
-| `{channel}` or `$(channel)` | The channel name | `streamer_name` |
-| `{game}` or `$(game)` | Current stream category | `Fortnite` |
-| `{uptime}` or `$(uptime)` | Current stream uptime | `2h 34m` |
-| `{touser}` or `$(touser)` | The target user (first argument) | `target_user` |
-| `{count}` | Number of times the command has been used | `42` |
+Responses are resolved by `VariableResolver`. Variables use the `$(name)` form:
+
+| Variable | Description |
+|----------|-------------|
+| `$(user)` | The user who ran the command |
+| `$(touser)` | The user mentioned in the command; the sender if nobody is mentioned |
+| `$(ruser)` | A random user from the chat (uses the Twitch API) |
+| `$(channel)` | The channel name |
+| `$(game)` | The current category |
+| `$(uptime)` | How long the stream has been live |
+| `$(followage)` | How long the first argument (or the sender) has followed the channel |
+| `$(accountage)` | Age of the Twitch account of the first argument (or the sender) |
+| `$(count)` | Advanced counter. Everyone can view and increment it; only moderators can use set/reset |
+| `$(uses)` | Simple counter that increments each time the command is used |
+| `$(roll)` | Random number, 1-100 by default; `$(roll:min-max)` sets the range |
+| `$(flip)` | Coin flip |
+| `$(8ball)` | Magic 8-ball with 20 answers in Spanish |
+| `$(choice:a,b,c)` | Random choice among options separated by comma or `\|` |
+| `$(percent)` | Random percentage from 0 to 100 |
+| `$(time)`, `$(date)` | Current time or date; `$(time:format)` and `$(date:format)` set the format |
+
+The same variables are listed, with examples, in the public docs at `/docs/variables`.
 
 ### Custom Commands API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/CustomCommands` | List all custom commands for the active channel |
-| `GET` | `/api/CustomCommands/{id}` | Get a specific command by ID |
-| `POST` | `/api/CustomCommands` | Create a new custom command |
-| `PUT` | `/api/CustomCommands/{id}` | Update an existing custom command |
-| `DELETE` | `/api/CustomCommands/{id}` | Delete a custom command |
+| `GET` | `/api/CustomCommands` | List the active channel's custom commands |
+| `GET` | `/api/CustomCommands/{id}` | Get a command |
+| `POST` | `/api/CustomCommands` | Create a command |
+| `PUT` | `/api/CustomCommands/{id}` | Update a command |
+| `DELETE` | `/api/CustomCommands/{id}` | Delete a command |
 
-### Import/Export
-
-The web panel supports JSON import and export of custom commands, allowing backup and migration between channels.
+The dashboard also supports JSON import and export of custom commands.
 
 ---
 
 ## Scripting System
 
-Decatron includes a proprietary scripting language (DSL) for creating advanced bot commands with conditional logic, variables, and functions.
+Decatron includes a small scripting language for advanced commands, with conditional logic, variables and functions.
 
-### Overview
-
-The scripting engine pipeline:
+### Pipeline
 
 ```mermaid
 flowchart LR
-    A[Script Source] --> B[ScriptValidator]
+    A[Script source] --> B[ScriptValidator]
     B --> C[ScriptParser]
     C --> D[AST]
     D --> E[ScriptExecutor]
-    E --> F[Chat Response]
-
-    style A fill:#1a1a2e,stroke:#e94560,color:#eee
-    style B fill:#1a1a2e,stroke:#e94560,color:#eee
-    style C fill:#1a1a2e,stroke:#e94560,color:#eee
-    style D fill:#1a1a2e,stroke:#0f3460,color:#eee
-    style E fill:#1a1a2e,stroke:#e94560,color:#eee
-    style F fill:#1a1a2e,stroke:#16c79a,color:#eee
+    E --> F[Chat response]
 ```
 
-### Syntax Reference
+### Syntax
 
-The scripting language supports three statement types: `set`, `when...then...end`, and `send`.
-
-#### `set` -- Variable Assignment
+The language has three statements: `set`, `when...then...end` and `send`.
 
 ```
 set variable = value
-set resultado = roll(1, 6)
-set elegido = pick("piedra, papel, tijera")
-```
+set result = roll(1, 6)
+set choice = pick("rock, paper, scissors")
 
-#### `when...then...end` -- Conditional Logic
-
-```
-when $(resultado) >= 4 then
-    send "You rolled a $(resultado) -- you win!"
+when $(result) >= 4 then
+    send "You rolled a $(result): you win!"
 end
-when $(resultado) < 4 then
-    send "You rolled a $(resultado) -- you lose!"
+when $(result) < 4 then
+    send "You rolled a $(result): you lose!"
 end
-```
 
-Conditions support cascading `when` blocks (similar to if-else-if).
-
-#### `send` -- Output to Chat
-
-```
 send "Hello $(user), welcome to $(channel)!"
 ```
 
-### Complete Script Example
+`when` blocks are evaluated one after another; chain several to get if / else-if behavior.
 
-```
-set dice = roll(1, 6)
-set prize = pick("cookie, gold star, high five, nothing")
-
-when $(dice) >= 5 then
-    send "$(user) rolled a $(dice) and wins a $(prize)! Amazing!"
-end
-when $(dice) >= 3 then
-    send "$(user) rolled a $(dice) -- not bad! Here's a consolation $(prize)."
-end
-when $(dice) < 3 then
-    send "$(user) rolled a $(dice)... better luck next time!"
-end
-```
-
-### Built-in Variables
-
-| Variable | Description |
-|----------|-------------|
-| `$(user)` | Username of the person who triggered the command |
-| `$(channel)` | Channel name where the command was executed |
-| `$(game)` | Current stream category |
-| `$(uptime)` | Current stream uptime |
-| `$(ruser)` | A random user from chat |
-| `$(touser)` | The target user (first argument after the command) |
-
-### Built-in Functions
+### Functions
 
 | Function | Description | Example |
 |----------|-------------|---------|
-| `roll(min, max)` | Generate a random integer between min and max (inclusive) | `roll(1, 100)` |
-| `pick("a, b, c")` | Pick a random item from a comma-separated list | `pick("yes, no, maybe")` |
-| `count()` | Get the execution count for the current command (persistent counter) | `count()` |
+| `roll(min, max)` | Random integer between `min` and `max`. `min` must be lower than `max` | `roll(1, 100)` |
+| `pick("a, b, c")` | A random item from a comma-separated list | `pick("yes, no, maybe")` |
+| `count()` | Execution count of the current command (persistent counter) | `count()` |
 
-### Script Management
+### Operators
 
-**Web panel:** Navigate to **Dashboard > Commands > Scripting** to use the dedicated editor with:
-- Syntax highlighting (Prism.js with custom DecatronScript grammar)
-- Real-time validation
-- Preview with simulated data
-- Autocomplete support
-- Undo/redo
+`==`, `!=`, `>`, `<`, `>=`, `<=`, `+` and `-`.
 
-**API endpoints:**
+### Script management
+
+In the dashboard (Commands > Scripting) the editor offers syntax highlighting, live validation, a preview with simulated data, autocomplete and undo/redo.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/scripts` | List scripts for the active channel |
-| `GET` | `/api/scripts/{id}` | Get a specific script |
-| `POST` | `/api/scripts/validate` | Validate script syntax without saving |
-| `POST` | `/api/scripts/preview` | Run script with simulated data |
-| `POST` | `/api/scripts` | Create a new script |
-| `PUT` | `/api/scripts/{id}` | Update an existing script |
+| `GET` | `/api/scripts` | List the active channel's scripts |
+| `GET` | `/api/scripts/{id}` | Get a script |
+| `POST` | `/api/scripts/validate` | Validate syntax without saving |
+| `POST` | `/api/scripts/preview` | Run a script with simulated data |
+| `POST` | `/api/scripts` | Create a script |
+| `PUT` | `/api/scripts/{id}` | Update a script |
 | `DELETE` | `/api/scripts/{id}` | Delete a script |
 
-### AST Node Types
+### AST node types
 
-The parser generates an Abstract Syntax Tree with these node types:
-
-| Node | Description |
-|------|-------------|
-| `ScriptProgram` | Root node containing all statements |
-| `SetStatement` | Variable assignment (`set x = value`) |
-| `WhenStatement` | Conditional block (`when...then...end`) |
-| `SendStatement` | Chat output (`send "message"`) |
-| `BinaryExpression` | Comparison/arithmetic (`a >= b`) |
-| `FunctionCallExpression` | Function invocation (`roll(1, 6)`) |
-| `VariableExpression` | Variable reference (`$(user)`) |
-| `LiteralExpression` | String or number literal |
-
-### Supported Operators
-
-| Operator | Description |
-|----------|-------------|
-| `==` | Equal to |
-| `!=` | Not equal to |
-| `>` | Greater than |
-| `<` | Less than |
-| `>=` | Greater than or equal to |
-| `<=` | Less than or equal to |
+`ScriptProgram` (root), `SetStatement`, `WhenStatement`, `SendStatement`, `BinaryExpression`, `FunctionCallExpression`, `VariableExpression`, `LiteralExpression`.
 
 ---
 
 ## Micro Commands
 
-Micro commands are channel-specific shortcut commands that quickly change the stream category.
+Micro commands are channel-specific shortcuts that change the stream category.
 
-### How They Work
+1. A moderator or the streamer maps a `!command` to a game/category name.
+2. When someone with permission types it, the bot changes the category.
 
-1. A moderator or broadcaster creates a micro command mapping a `!command` to a game/category name.
-2. When anyone with the appropriate permission types the command in chat, the bot changes the stream category.
-
-### Creating Micro Commands
-
-**From chat:**
 ```
 !g set !lol League of Legends
 !g set !apex Apex Legends
 !g set !mc Minecraft
 ```
 
-**From the web panel:**
-Navigate to **Dashboard > Commands > Micro Commands** and use the autocomplete game search to select the correct category.
+| Action | Chat syntax | Dashboard |
+|--------|-------------|-----------|
+| Create | `!g set !cmd Category Name` | Create button with game autocomplete |
+| Remove | `!g remove !cmd` | Delete button |
+| List | `!g list` | Full list with search |
 
-### Managing Micro Commands
+### Reserved words
 
-| Action | Chat Syntax | Web Panel |
-|--------|------------|-----------|
-| Create | `!g set !cmd Category Name` | Create button + game autocomplete |
-| Remove | `!g remove !cmd` | Delete button on the list |
-| List all | `!g list` | Full list with search |
+These names cannot be used as micro commands: `!g`, `!game`, `!set`, `!remove`, `!delete`, `!list`, `!help`, `!title`, `!t`.
 
-### Reserved Words
+### Game search
 
-The following command names cannot be used as micro commands:
-
-`!g`, `!game`, `!set`, `!remove`, `!delete`, `!list`, `!help`, `!title`, `!t`
-
-### Game Search System
-
-The micro commands system uses a hybrid game search:
-
-```mermaid
-flowchart TD
-    A[User types game name] --> B{Check local aliases}
-    B -->|Found| C[Use alias mapping]
-    B -->|Not found| D{Check game_cache table}
-    D -->|Found| E[Use cached game]
-    D -->|Not found| F[Query Twitch API]
-    F --> G[Cache result locally]
-    G --> E
-
-    style A fill:#1a1a2e,stroke:#e94560,color:#eee
-    style F fill:#1a1a2e,stroke:#0f3460,color:#eee
-```
+Game names are resolved with a hybrid search: local aliases first, then the `game_cache` table, then the Twitch API (and the result is cached locally).
 
 ### Micro Commands API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/commands/microcommands` | List all micro commands |
+| `GET` | `/api/commands/microcommands` | List micro commands |
 | `POST` | `/api/commands/microcommands` | Create or update a micro command |
 | `PUT` | `/api/commands/microcommands/{id}` | Update a micro command |
 | `DELETE` | `/api/commands/microcommands/{id}` | Delete a micro command |
 | `GET` | `/api/commands/microcommands/search/{command}` | Search for a micro command |
-| `GET` | `/api/commands/microcommands/check-availability/{command}` | Check if a command name is available |
-| `GET` | `/api/commands/microcommands/search-games?q=&limit=` | Search games (autocomplete) |
+| `GET` | `/api/commands/microcommands/check-availability/{command}` | Check whether a name is available |
+| `GET` | `/api/commands/microcommands/search-games?q=&limit=` | Game autocomplete |
 
 ---
 
@@ -425,7 +365,6 @@ They work on whatever is playing: requests and the background playlist.
 | `!srban [@user]` | Lead Mods+ | With nothing, bans the song that's playing and skips it; with @user, bans that person. |
 | `!srunban @usuario` | Lead Mods+ | Lifts a user's ban so they can request again. Song and artist bans are lifted in the dashboard. |
 
-
 #### Request modes
 
 `!srmode <open | playlists | review | closed>` changes how `!sr` requests come in:
@@ -464,7 +403,7 @@ Credits come from bits, gifted subs, donations, channel point rewards or deca co
 
 ## Roulette Command
 
-`!ruleta` is a Russian-roulette style chat mini-game, separate from the Wheel. The sender aims at themselves (`!ruleta`) or at another user (`!ruleta @user`), and there is a configurable chance (17% by default) of a timeout. The timeout is applied through the Twitch API, so the bot must be a moderator of the channel.
+`!ruleta` is a Russian-roulette style chat mini-game, separate from the Wheel. The sender aims at themselves (`!ruleta`) or at another user (`!ruleta @user`), and there is a configurable chance (17% by default) of a timeout. The timeout is applied through the Twitch API, so the bot must be a moderator of the channel. Targeting a moderator requires the Twitch Lead Moderator role.
 
 | Setting | Description |
 |---------|-------------|
@@ -477,37 +416,50 @@ Credits come from bits, gifted subs, donations, channel point rewards or deca co
 
 ---
 
-## Moderation System
+## Moderation Commands and System
 
-The bot includes a real-time chat moderation system with banned words detection and an escalating strike system.
+Chat moderation works on Twitch and Kick. **Every filter is turned on separately and starts off.** The streamer, Lead Moderators, moderators, the whitelist and anyone with full control of the channel in the dashboard are never sanctioned.
 
-### Banned Words
+### Commands
 
-- Up to 500 banned words/phrases per channel
-- Three severity levels: **light**, **medium**, **severe**
-- Wildcard support with `*` (e.g., `bad*word` matches `bad_word`, `badXword`, etc.)
+The minimum role of each command is chosen in the dashboard (Moderation > Commands); the order is moderator < Lead Moderator < streamer, and users who do not reach it are ignored silently.
 
-### Strike Escalation
+| Command | Description |
+|---------|-------------|
+| `!permit @user` | Lets a user's links through, for a time or for one message, as configured in the links filter |
+| `!strikes @user` | Shows which strike a user is on and when the next one drops |
+| `!resetstrikes @user` | Resets a user's strikes to 0 |
+| `!addword <word or phrase> [leve\|medio\|severo]` | Adds a banned word (mild when no severity is given) |
+| `!delword <word>` | Removes a banned word |
+| `!addlink <domain>` | Allows a domain in the links filter |
+| `!dellink <domain>` | Removes an allowed domain |
+| `!nuke <phrase>` | Sanctions everyone who wrote that phrase in the last seconds. It does not touch the streamer, moderators, Lead Moderators or the whitelist |
+| `!panico`, `!pánico`, `!panic` | Turns panic mode on (or extends it); `!panico off` turns it off. Not available on Kick |
 
-| Strike Level | Default Action |
-|--------------|----------------|
-| 1 | Warning message |
-| 2 | Delete message |
-| 3 | Timeout (configurable duration) |
-| 4 | Longer timeout |
+### Filters
+
+| Filter | What it does |
+|--------|--------------|
+| Banned words | Words and phrases with wildcard `*` (`*spam*` matches `spammer`, `antispam`), up to 500 per channel, with three severities: mild (normal escalation), medium (strike plus a 10 minute timeout at least) and severe (direct ban) |
+| Links | Blocks links, including disguised ones (`site . com`, `site(dot)com`), except allowed domains (subdomains included) or someone with `!permit`. A blocked link is always deleted |
+| Spam | Caps, symbols, emotes, long messages, repetition, copypasta, zalgo text and mass mentions, each with its own thresholds |
+| Raids and bots | Panic mode, a new-accounts filter and bot phrases that sell viewers. On Kick only the bot-phrase filter works (the Kick API cannot change chat modes or report account age) |
+
+### Strikes
+
+Strikes escalate with the actions below by default; every step is configurable. Strikes drop one level after the configured time without infractions (default 15 minutes).
+
+| Strike | Default action |
+|--------|----------------|
+| 1 | Warning |
+| 2 | Timeout 1 minute |
+| 3 | Timeout 5 minutes |
+| 4 | Timeout 10 minutes |
 | 5 | Ban |
 
-Strikes have configurable expiration (5 minutes to never).
+VIPs and subscribers have **escalation** by default (they are sanctioned like anyone else) and can be set to full immunity. The history page lists every sanction with who applied it and lets you lift a timeout or ban and give the strike back.
 
-### Immunity Rules
-
-| Role | Default Immunity |
-|------|-----------------|
-| Broadcaster | Always immune |
-| Moderators | Always immune |
-| VIPs | Configurable (full immunity or escalation) |
-| Subscribers | Configurable (full immunity or escalation) |
-| Whitelisted users | Always immune |
+Messages sent by the bot for each action can be customized with `$(user)`, `$(strike)` and `$(word)`.
 
 ### Moderation API
 
@@ -519,103 +471,105 @@ Strikes have configurable expiration (5 minutes to never).
 | `POST` | `/api/moderation/banned-words/import` | Import words from JSON |
 | `GET` | `/api/moderation/config` | Get moderation config |
 | `POST` | `/api/moderation/config` | Update moderation config |
-| `POST` | `/api/moderation/test-message` | Test a message against banned words |
-| `GET` | `/api/moderation/stats` | Get daily moderation stats |
+| `POST` | `/api/moderation/test-message` | Test a message against the filters |
+| `GET` | `/api/moderation/stats` | Daily moderation stats |
 
 ---
 
 ## Giveaway Commands
 
-Giveaway participation is handled through chat commands.
-
 | Command | Description | Example |
 |---------|-------------|---------|
-| `!join` (default, configurable) | Join an active giveaway | `!join` |
+| `!join` (default, configurable) | Join the active giveaway | `!join` |
 
-The join command name is configurable per giveaway. Participation requirements (follower, subscriber, watch time, account age, etc.) are validated server-side.
+The join command name is configurable per giveaway. Entry requirements (follower, subscriber, watch time, account age and so on) are validated by the server.
 
 ---
 
-## Goals Commands
+## Gacha, Spirits and Other Commands
 
-| Command | Description | Permission | Example |
-|---------|-------------|------------|---------|
-| `!meta` | View current goal progress | Everyone | `!meta` |
-| `!meta reset` | Reset a goal to zero | Mod/Broadcaster | `!meta reset` |
-| `!meta add N` | Add N points to the active goal | Mod/Broadcaster | `!meta add 5` |
-| `!meta set N` | Set the goal progress to an absolute value | Mod/Broadcaster | `!meta set 50` |
+### Gacha (`!gacha`, short form `!gc`)
+
+| Syntax | Description |
+|--------|-------------|
+| `!gacha` | Shows help |
+| `!gacha pull [n]` (alias `!gcpull`) | Pull once or `n` times |
+| `!gacha pulls [user]` (alias `!gcpulls`) | See available pulls |
+| `!gacha col [user]` (alias `!gccol`) | See a collection |
+| `!gacha pause` / `!gacha resume` (aliases `!gcpause`, `!gcresume`) | Pause or resume a multi-pull |
+
+### Fortnite Spirits (`!spirits`, `!spirit`)
+
+By default everything refers to the current season; `all` shows every season, and a season name filters that season.
+
+| Syntax | Description |
+|--------|-------------|
+| `!spirits [@user] [all\|season]` | See progress |
+| `!spirits top [all\|season]` | Global leaderboard (top 5) |
+| `!spirits missing [@user] [all\|season]` | The first missing spirits |
+| `!spirit <name>` | Mark a spirit as obtained |
+| `!spirit remove <name>` | Unmark a spirit |
 
 ---
 
 ## Permission Levels
 
-Decatron uses a hierarchical permission system with three levels:
+Decatron uses a hierarchical permission system for the dashboard, with three levels:
 
-| Level | Numeric Value | Description |
-|-------|--------------|-------------|
+| Level | Value | Description |
+|-------|-------|-------------|
 | `commands` | 1 | Basic command access |
-| `moderation` | 2 | Moderation tools + all of commands |
-| `control_total` | 3 | Full control + all of moderation |
+| `moderation` | 2 | Moderation tools plus everything in `commands` |
+| `control_total` | 3 | Full control plus everything in `moderation` |
 
-### Section Permission Map
+Sections (as defined in `PermissionService`):
 
-| Dashboard Section | Minimum Permission Required |
-|-------------------|-----------------------------|
-| Commands | `commands` |
-| Custom Commands | `commands` |
-| Scripting | `commands` |
-| Micro Commands | `commands` |
-| Game Command | `commands` |
-| Moderation | `moderation` |
-| Sound Alerts | `moderation` |
-| Event Alerts | `moderation` |
-| Overlays | `moderation` |
-| Timers | `moderation` |
-| Giveaways | `moderation` |
-| Settings | `control_total` |
-| User Management | `control_total` |
+| Level | Sections |
+|-------|----------|
+| `commands` | `commands`, `microcommands`, `title`, `game` |
+| `moderation` | `overlays`, `timers`, `raffles`, `giveaways`, `loyalty`, `chatfilters` |
+| `control_total` | `user_management`, `settings`, `spirits` |
+
+The channel owner always has `control_total` on their own channel. Chat commands have their own checks (streamer, Lead Moderator, moderator, VIP, subscriber), described in each section above.
 
 ---
 
 ## Architecture
 
-### Command Processing Flow
+### Command processing
 
 ```mermaid
 sequenceDiagram
-    participant Twitch as Twitch Chat
-    participant Bot as TwitchBotService
+    participant Chat as Twitch / Kick chat
+    participant Bot as TwitchBotService / Kick connector
     participant Cmd as CommandService
-    participant Mod as ModerationService
-    participant Handler as Command Handler
+    participant Mod as ChatModerator
+    participant Handler as Command handler
 
-    Twitch->>Bot: IRC/EventSub message
-    Bot->>Cmd: ProcessMessage()
-    Cmd->>Mod: CheckMessageModerationAsync()
-    alt Message contains banned word
-        Mod-->>Cmd: Apply strike/action
+    Chat->>Bot: Message
+    Bot->>Cmd: Process message
+    Cmd->>Mod: Moderation check
+    alt Message is sanctioned
+        Mod-->>Cmd: Apply strike / action
     else Message is clean
-        Cmd->>Cmd: Parse command prefix (!)
+        Cmd->>Cmd: Parse the ! prefix
         alt Built-in command
-            Cmd->>Handler: Execute built-in
+            Cmd->>Handler: Execute it
         else Custom command
-            Cmd->>Handler: Resolve variables, send response
+            Cmd->>Handler: Resolve variables, send the response
         else Script command
-            Cmd->>Handler: Parse AST, execute, send result
+            Cmd->>Handler: Parse, execute, send the result
         else Micro command
-            Cmd->>Handler: Change category
+            Cmd->>Handler: Change the category
         end
     end
-    Handler-->>Twitch: Send response via Helix API
+    Handler-->>Chat: Reply
 ```
 
-### Message Sending
+### Message sending
 
-All bot messages are sent through `MessageSenderService`, which:
-- Uses the Twitch Helix API (`POST /helix/chat/messages`)
-- Implements a concurrent queue with rate limiting (100ms between messages)
-- Resolves broadcaster ID, bot Twitch ID, and access token per channel
+Bot messages go through `MessageSenderService` (Twitch) and `MessageSenderRouter` (platform routing). On Twitch they use the Helix API (`POST /helix/chat/messages`) through a queue with a 100 ms delay between messages.
 
 ### Internationalization
 
-Bot command responses support two languages (Spanish and English), managed by `CommandMessagesService` with a hardcoded dictionary and `string.Format` templates. The `CommandTranslationService` provides command metadata (name, description, aliases, usage examples) in both languages for the web panel UI.
+Command responses support Spanish and English through `CommandMessagesService`. `CommandTranslationService` provides the command metadata (description, aliases, usage examples) from `Resources/bot-metadata/{es,en}.json`, which the dashboard and the public docs also read.

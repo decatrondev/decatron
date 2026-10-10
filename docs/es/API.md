@@ -1,176 +1,176 @@
-# Decatron v2 API Reference
+# Referencia de la API de Decatron v2
 
-> Español: [es/API.md](es/API.md)
+> English: [../API.md](../API.md)
 
-Reference of the Decatron HTTP API. All endpoints are served from the base URL of your Decatron instance (for example `https://decatron.net`).
+Referencia de la API HTTP de Decatron. Todos los endpoints se sirven desde la URL base de tu instancia de Decatron (por ejemplo `https://decatron.net`).
 
-There are two kinds of endpoints:
+Hay dos tipos de endpoints:
 
-- **Public API** (`/api/v1`, plus the OAuth2 flow and the developer portal): meant for third-party apps. It uses OAuth2 access tokens and scopes, and is documented in detail below.
-- **Dashboard endpoints**: they serve the Decatron web app with the signed-in user's JWT. They are listed under [More Endpoints](#more-endpoints) by controller, with their access level. Their shapes can change without notice. The endpoints of each overlay module are described, with their purpose, in [OVERLAYS.md](OVERLAYS.md); the commands, scripting, micro command and moderation endpoints in [COMMANDS.md](COMMANDS.md).
-
----
-
-## Table of Contents
-
-- [Authentication](#authentication)
-- [Auth / Login](#auth--login)
-- [OAuth2 API (Public Developer API)](#oauth2-api-public-developer-api)
-- [Public API v1](#public-api-v1)
-- [Developer Portal](#developer-portal)
-- [More Endpoints](#more-endpoints)
-- [WebSocket / SignalR Hubs](#websocket--signalr-hubs)
-- [Static File Endpoints](#static-file-endpoints)
-- [Overlay URLs (Public Pages)](#overlay-urls-public-pages)
-- [Error Format](#error-format)
-- [Rate Limiting](#rate-limiting)
+- **API pública** (`/api/v1`, más el flujo OAuth2 y el portal de desarrolladores): pensada para aplicaciones de terceros. Usa tokens de acceso y scopes de OAuth2 y se documenta en detalle abajo.
+- **Endpoints del panel**: sirven a la aplicación web de Decatron con el JWT del usuario que inició sesión. Se listan en [Más endpoints](#más-endpoints) por controlador, con su nivel de acceso. Su forma puede cambiar sin aviso. Los endpoints de cada módulo de overlay se describen, con su propósito, en [OVERLAYS.md](OVERLAYS.md); los de comandos, scripting, microcomandos y moderación, en [COMMANDS.md](COMMANDS.md).
 
 ---
 
-## Authentication
+## Contenido
 
-Decatron uses two independent authentication systems:
+- [Autenticación](#autenticación)
+- [Auth / Inicio de sesión](#auth--inicio-de-sesión)
+- [API OAuth2 (API pública para desarrolladores)](#api-oauth2-api-pública-para-desarrolladores)
+- [API pública v1](#api-pública-v1)
+- [Portal de desarrolladores](#portal-de-desarrolladores)
+- [Más endpoints](#más-endpoints)
+- [WebSocket / Hubs de SignalR](#websocket--hubs-de-signalr)
+- [Endpoints de archivos estáticos](#endpoints-de-archivos-estáticos)
+- [URL de overlays (páginas públicas)](#url-de-overlays-páginas-públicas)
+- [Formato de errores](#formato-de-errores)
+- [Límite de solicitudes](#límite-de-solicitudes)
 
-### 1. JWT (User Sessions)
+---
 
-Used by the dashboard and all authenticated endpoints. Obtained through the Twitch, Kick or Discord login flow.
+## Autenticación
 
-**How to get a token:**
+Decatron usa dos sistemas de autenticación independientes:
 
-1. Redirect the user to `GET /api/auth/login` (Twitch), `GET /api/auth/kick/login` (Kick) or `GET /api/auth/discord/login` (Discord)
-2. The platform authenticates the user and redirects to the matching callback (`GET /api/auth/callback`, `/api/auth/kick/callback`, `/api/auth/discord/callback`)
-3. The backend generates a JWT, keeps it for 60 seconds behind a one-time code and redirects to the frontend at `/login?code=<code>`
-4. The frontend exchanges the code for the JWT with `POST /api/auth/exchange` (body `{ "code": "..." }`, response `{ "token": "..." }`); the code works once
+### 1. JWT (sesiones de usuario)
 
-**Header format:**
+Lo usan el panel y todos los endpoints autenticados. Se obtiene mediante el flujo de inicio de sesión de Twitch, Kick o Discord.
+
+**Cómo obtener un token:**
+
+1. Redirige al usuario a `GET /api/auth/login` (Twitch), `GET /api/auth/kick/login` (Kick) o `GET /api/auth/discord/login` (Discord)
+2. La plataforma autentica al usuario y lo redirige al callback correspondiente (`GET /api/auth/callback`, `/api/auth/kick/callback`, `/api/auth/discord/callback`)
+3. El backend genera un JWT, lo conserva 60 segundos detrás de un código de un solo uso y redirige al frontend a `/login?code=<código>`
+4. El frontend cambia el código por el JWT con `POST /api/auth/exchange` (cuerpo `{ "code": "..." }`, respuesta `{ "token": "..." }`); el código sirve una sola vez
+
+**Formato de la cabecera:**
 
 ```
 Authorization: Bearer <JWT_TOKEN>
 ```
 
-The JWT is issued after a Twitch, Kick or Discord login. It contains the claims `NameIdentifier` (internal user ID), `Name`, `GivenName`, `AuthProvider`, `TwitchId`, `KickId`, `DiscordId`, `ProfileImage` and `Email`. The active channel is not part of the token: it is kept in the session (`POST /api/channel/switch`).
+El JWT se emite tras iniciar sesión con Twitch, Kick o Discord. Contiene los claims `NameIdentifier` (ID interno del usuario), `Name`, `GivenName`, `AuthProvider`, `TwitchId`, `KickId`, `DiscordId`, `ProfileImage` y `Email`. El canal activo no forma parte del token: se guarda en la sesión (`POST /api/channel/switch`).
 
-### 2. OAuth2 (Public API for Third-Party Apps)
+### 2. OAuth2 (API pública para aplicaciones de terceros)
 
-Used by external applications that integrate with Decatron's API. Implements Authorization Code flow with PKCE support.
+Lo usan las aplicaciones externas que se integran con la API de Decatron. Implementa el flujo Authorization Code con soporte de PKCE.
 
-**How to get a token:**
+**Cómo obtener un token:**
 
-1. Register an application via `POST /api/developer/apps` to obtain `client_id` and `client_secret`
-2. Redirect the user to `GET /api/oauth/authorize` with required parameters
-3. User approves the request at `POST /api/oauth/authorize`
-4. Exchange the authorization code for tokens via `POST /api/oauth/token` (form-urlencoded)
+1. Registra una aplicación con `POST /api/developer/apps` para obtener `client_id` y `client_secret`
+2. Redirige al usuario a `GET /api/oauth/authorize` con los parámetros requeridos
+3. El usuario aprueba la solicitud en `POST /api/oauth/authorize`
+4. Intercambia el código de autorización por tokens con `POST /api/oauth/token` (form-urlencoded)
 
-**Header format:**
+**Formato de la cabecera:**
 
 ```
 Authorization: Bearer <OAUTH_ACCESS_TOKEN>
 ```
 
-**Available OAuth Scopes (25 scopes in 3 categories):**
+**Scopes de OAuth disponibles (25 scopes en 3 categorías):**
 
-| Category | Scopes |
-|----------|--------|
-| Read | `read:profile`, `read:timer`, `read:commands`, `read:alerts`, `read:giveaways`, `read:goals`, `read:analytics`, `read:sounds`, `read:games`, `read:stream` |
-| Write | `write:timer`, `write:commands`, `write:alerts`, `write:giveaways`, `write:goals`, `write:sounds` |
-| Action | `action:timer`, `action:alerts`, `action:chat`, `action:giveaway`, `action:goals`, `action:sounds`, `action:category`, `action:title`, `action:marker` |
+| Categoría | Scopes |
+|-----------|--------|
+| Lectura | `read:profile`, `read:timer`, `read:commands`, `read:alerts`, `read:giveaways`, `read:goals`, `read:analytics`, `read:sounds`, `read:games`, `read:stream` |
+| Escritura | `write:timer`, `write:commands`, `write:alerts`, `write:giveaways`, `write:goals`, `write:sounds` |
+| Acción | `action:timer`, `action:alerts`, `action:chat`, `action:giveaway`, `action:goals`, `action:sounds`, `action:category`, `action:title`, `action:marker` |
 
-`action:chat` requires app verification.
+`action:chat` requiere la verificación de la aplicación.
 
 ---
 
-## Auth / Login
+## Auth / Inicio de sesión
 
 ### AuthController (`/api/auth`)
 
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| GET | `/api/auth/login` | No | Redirects to Twitch OAuth login. Accepts optional `?redirect=` parameter |
-| GET | `/api/auth/callback` | No | Twitch OAuth callback. Exchanges code for tokens, creates/updates user, generates JWT, redirects to frontend |
-| GET | `/api/auth/validate-scopes/{twitchId}` | Yes (JWT) | Validates stored Twitch token scopes for a user |
-| GET | `/api/auth/account-tier` | Yes (JWT) | Returns the subscription tier of the authenticated user |
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | `/api/auth/login` | No | Redirige al inicio de sesión de Twitch. Acepta el parámetro opcional `?redirect=` |
+| GET | `/api/auth/callback` | No | Callback de OAuth de Twitch. Intercambia el código por tokens, crea o actualiza el usuario, genera el JWT y redirige al frontend |
+| GET | `/api/auth/validate-scopes/{twitchId}` | Sí (JWT) | Valida los scopes del token de Twitch guardado de un usuario |
+| GET | `/api/auth/account-tier` | Sí (JWT) | Devuelve el tier de suscripción del usuario autenticado |
 
 ---
 
-## OAuth2 API (Public Developer API)
+## API OAuth2 (API pública para desarrolladores)
 
 ### OAuthController (`/api/oauth`)
 
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| GET | `/api/oauth/authorize` | No | Initiates OAuth2 Authorization Code flow. Validates parameters, returns app info and scopes |
-| POST | `/api/oauth/authorize` | Yes (JWT) | Processes user decision (approve/deny). Generates authorization code |
-| POST | `/api/oauth/token` | No (client credentials in body) | Exchanges authorization code or refresh token for access token. Form-urlencoded |
-| POST | `/api/oauth/revoke` | No | Revokes a token (RFC 7009, always returns 200) |
-| GET | `/api/oauth/userinfo` | Yes (OAuth + `read:profile`) | Returns authenticated user info via OAuth |
-| GET | `/api/oauth/scopes` | No | Lists all available scopes grouped by category |
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | `/api/oauth/authorize` | No | Inicia el flujo Authorization Code de OAuth2. Valida los parámetros y devuelve la información de la aplicación y los scopes |
+| POST | `/api/oauth/authorize` | Sí (JWT) | Procesa la decisión del usuario (aprobar o denegar). Genera el código de autorización |
+| POST | `/api/oauth/token` | No (credenciales del cliente en el cuerpo) | Intercambia un código de autorización o un refresh token por un token de acceso. Form-urlencoded |
+| POST | `/api/oauth/revoke` | No | Revoca un token (RFC 7009, siempre responde 200) |
+| GET | `/api/oauth/userinfo` | Sí (OAuth + `read:profile`) | Devuelve la información del usuario autenticado mediante OAuth |
+| GET | `/api/oauth/scopes` | No | Lista todos los scopes disponibles agrupados por categoría |
 
 ---
 
-## Public API v1
+## API pública v1
 
-The endpoints under `/api/v1` are the public API for third-party apps. They need an OAuth2 access token (see [Authentication](#2-oauth2-public-api-for-third-party-apps)) with the scope shown for each one, and they always act on the channel of the user who authorized the token. Errors use the form `{ "error": "code" }`; successful actions return `{ "success": true, "message": "..." }`.
+Los endpoints bajo `/api/v1` son la API pública para aplicaciones de terceros. Necesitan un token de acceso OAuth2 con el scope indicado en cada uno y siempre actúan sobre el canal del usuario que autorizó el token. Los errores tienen la forma `{ "error": "codigo" }`; las acciones exitosas devuelven `{ "success": true, "message": "..." }`.
 
-| Method | Route | Scope | Body / query | Description |
-|--------|-------|-------|--------------|-------------|
-| GET | `/api/v1/timer` | `read:timer` | | Timer state: `status`, `currentTime`, `totalTime`, `isRunning`, `isPaused`, `isVisible`, `startedAt`, `pausedAt` |
-| POST | `/api/v1/timer/start` | `action:timer` | `duration` (seconds, optional; default 300) | Starts the timer |
-| POST | `/api/v1/timer/pause` | `action:timer` | | Pauses the timer (`timer_not_running` if it is not running) |
-| POST | `/api/v1/timer/resume` | `action:timer` | | Resumes the timer (`timer_not_paused` if it is not paused) |
-| POST | `/api/v1/timer/stop` | `action:timer` | | Stops the timer |
-| POST | `/api/v1/timer/add` | `action:timer` | `seconds` | Adds seconds; returns `newTotalTime` |
-| POST | `/api/v1/chat/send` | `action:chat` | `message` | Sends a message to the channel chat. The scope requires app verification |
-| GET | `/api/v1/twitch/games/search` | `read:games` | `query` | Searches Twitch categories; returns `id`, `name` and `box_art_url` |
-| POST | `/api/v1/twitch/category` | `action:category` | `gameId` or `gameName` | Changes the stream category |
-| POST | `/api/v1/twitch/title` | `action:title` | `title` | Changes the stream title |
-| POST | `/api/v1/twitch/marker` | `action:marker` | `description` (optional) | Creates a stream marker (`stream_not_live` if offline) |
+| Método | Ruta | Scope | Cuerpo / consulta | Descripción |
+|--------|------|-------|-------------------|-------------|
+| GET | `/api/v1/timer` | `read:timer` | | Estado del timer: `status`, `currentTime`, `totalTime`, `isRunning`, `isPaused`, `isVisible`, `startedAt`, `pausedAt` |
+| POST | `/api/v1/timer/start` | `action:timer` | `duration` (segundos, opcional; 300 por defecto) | Inicia el timer |
+| POST | `/api/v1/timer/pause` | `action:timer` | | Pausa el timer (`timer_not_running` si no está corriendo) |
+| POST | `/api/v1/timer/resume` | `action:timer` | | Reanuda el timer (`timer_not_paused` si no está pausado) |
+| POST | `/api/v1/timer/stop` | `action:timer` | | Detiene el timer |
+| POST | `/api/v1/timer/add` | `action:timer` | `seconds` | Suma segundos; devuelve `newTotalTime` |
+| POST | `/api/v1/chat/send` | `action:chat` | `message` | Envía un mensaje al chat del canal. El scope requiere la verificación de la aplicación |
+| GET | `/api/v1/twitch/games/search` | `read:games` | `query` | Busca categorías de Twitch; devuelve `id`, `name` y `box_art_url` |
+| POST | `/api/v1/twitch/category` | `action:category` | `gameId` o `gameName` | Cambia la categoría del stream |
+| POST | `/api/v1/twitch/title` | `action:title` | `title` | Cambia el título del stream |
+| POST | `/api/v1/twitch/marker` | `action:marker` | `description` (opcional) | Crea un marcador en el stream (`stream_not_live` si está sin transmitir) |
 | GET | `/api/v1/twitch/live-info` | `read:stream` | | `isLive`, `category`, `title`, `viewers`, `lastFollower` |
-| GET | `/api/v1/sounds` | `read:sounds` | | Lists the channel's configured sound alerts (`id`, `name`) |
-| POST | `/api/v1/sounds/play` | `action:sounds` | `soundId` | Triggers one of those sound alerts in the overlay |
-| POST | `/api/v1/alerts/trigger` | `action:alerts` | `eventType`; optional `username`, `message`, `amount` | Triggers an event alert in the overlay |
+| GET | `/api/v1/sounds` | `read:sounds` | | Lista las alertas de sonido configuradas del canal (`id`, `name`) |
+| POST | `/api/v1/sounds/play` | `action:sounds` | `soundId` | Dispara una de esas alertas de sonido en el overlay |
+| POST | `/api/v1/alerts/trigger` | `action:alerts` | `eventType`; opcionales `username`, `message`, `amount` | Dispara una alerta de evento en el overlay |
 
-Common error codes: `channel_not_found`, `message_required`, `title_required`, `game_id_or_game_name_required`, `category_not_found_or_update_failed`, `sound_id_required`, `sound_not_found`, `event_type_required`.
+Códigos de error comunes: `channel_not_found`, `message_required`, `title_required`, `game_id_or_game_name_required`, `category_not_found_or_update_failed`, `sound_id_required`, `sound_not_found`, `event_type_required`.
 
 ---
 
-## Developer Portal
+## Portal de desarrolladores
 
 ### DeveloperController (`/api/developer`)
 
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| GET | `/api/developer/apps` | Yes (JWT) | Lists all OAuth apps owned by the user |
-| GET | `/api/developer/apps/{id}` | Yes (JWT) | App detail with statistics (users, tokens) |
-| POST | `/api/developer/apps` | Yes (JWT) | Creates new OAuth app. Returns `client_secret` (shown only once) |
-| PUT | `/api/developer/apps/{id}` | Yes (JWT) | Updates app name, description, URIs, scopes |
-| POST | `/api/developer/apps/{id}/regenerate-secret` | Yes (JWT) | Regenerates `client_secret`. Revokes all existing tokens |
-| DELETE | `/api/developer/apps/{id}` | Yes (JWT) | Deletes app and all its tokens (cascade) |
-| GET | `/api/developer/scopes` | No | Lists available scopes with categories for UI |
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | `/api/developer/apps` | Sí (JWT) | Lista las aplicaciones OAuth del usuario |
+| GET | `/api/developer/apps/{id}` | Sí (JWT) | Detalle de una aplicación con estadísticas (usuarios, tokens) |
+| POST | `/api/developer/apps` | Sí (JWT) | Crea una aplicación OAuth. Devuelve el `client_secret` (se muestra una sola vez) |
+| PUT | `/api/developer/apps/{id}` | Sí (JWT) | Actualiza el nombre, la descripción, las URI y los scopes |
+| POST | `/api/developer/apps/{id}/regenerate-secret` | Sí (JWT) | Regenera el `client_secret`. Revoca todos los tokens existentes |
+| DELETE | `/api/developer/apps/{id}` | Sí (JWT) | Elimina la aplicación y todos sus tokens (en cascada) |
+| GET | `/api/developer/scopes` | No | Lista los scopes disponibles con sus categorías para la interfaz |
 
 ---
 
-## More Endpoints
+## Más endpoints
 
-The endpoints below are the rest of the routes of the backend, generated from the controllers (the list is regenerated when controllers change). They serve the Decatron web app: they use the signed-in user's JWT, and their request and response shapes can change without notice. They are not part of the public API.
+Los endpoints de abajo son el resto de las rutas del backend, generados a partir de los controladores (la lista se regenera cuando cambian los controladores). Sirven a la aplicación web de Decatron: usan el JWT del usuario que inició sesión y la forma de sus solicitudes y respuestas puede cambiar sin aviso. No forman parte de la API pública.
 
-**Access** reflects the attributes declared on each route: `Public` means no attribute restricts it, `JWT` an authenticated user, `JWT + section` an authenticated user with the permission level that section requires (see [CONFIGURATION.md](CONFIGURATION.md#permission-system)). Some endpoints make extra checks in code, for example owner-only actions. Routes restricted to platform administrators (`RequireSystemOwner`) are not listed.
+**Acceso** refleja los atributos declarados en cada ruta: `Público` significa que ningún atributo la restringe, `JWT` un usuario autenticado, `JWT + sección` un usuario autenticado con el nivel de permiso que requiere esa sección (consulta [CONFIGURATION.md](CONFIGURATION.md#sistema-de-permisos)). Algunos endpoints hacen comprobaciones adicionales en el código, por ejemplo acciones solo para el dueño. Las rutas restringidas a administradores de la plataforma (`RequireSystemOwner`) no se listan.
 
 <!-- BEGIN GENERATED ENDPOINTS -->
 ### Analytics
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/analytics` | JWT + `analytics` |
 | `GET` | `/api/analytics/export` | JWT + `analytics_export` |
 
 ### Auth
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/auth/account-channels` | JWT |
-| `POST` | `/api/auth/exchange` | Public |
+| `POST` | `/api/auth/exchange` | Público |
 | `POST` | `/api/auth/link-account-start` | JWT |
-| `GET` | `/api/auth/link-twitch` | Public |
+| `GET` | `/api/auth/link-twitch` | Público |
 | `POST` | `/api/auth/link-twitch-start` | JWT |
 | `POST` | `/api/auth/switch-channel` | JWT |
 | `POST` | `/api/auth/unlink-account` | JWT |
@@ -178,7 +178,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Bot List
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/botlist` | JWT + `moderation` |
 | `POST` | `/api/botlist/catalog` | JWT |
@@ -191,13 +191,13 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Brand
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/brand` | Public |
+| `GET` | `/api/brand` | Público |
 
 ### Channel Emotes
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/channel-emotes` | JWT + `moderation` |
 | `POST` | `/api/channel-emotes` | JWT + `moderation` |
@@ -215,7 +215,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Channel Switch
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/channel/available` | JWT |
 | `GET` | `/api/channel/context` | JWT |
@@ -223,15 +223,15 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Channels
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `PATCH` | `/api/Channels/admin/{id}/visibility` | JWT |
 | `GET` | `/api/Channels/admin/{platform}` | JWT |
-| `GET` | `/api/Channels/carousel` | Public |
+| `GET` | `/api/Channels/carousel` | Público |
 
 ### Chat Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/chat/audit` | JWT |
 | `GET` | `/api/admin/chat/audit/conversations` | JWT |
@@ -246,7 +246,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Chat
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/chat/check-access` | JWT |
 | `GET` | `/api/chat/conversations` | JWT |
@@ -258,7 +258,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Chat Overlay
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/chat-overlay/config` | JWT + `moderation` |
 | `PUT` | `/api/chat-overlay/config` | JWT + `moderation` |
@@ -271,7 +271,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Coin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/coins/balance` | JWT |
 | `POST` | `/api/coins/billing-preview` | JWT |
@@ -289,7 +289,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Commands
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/commands/default` | JWT |
 | `GET` | `/api/commands/{commandName}/status` | JWT |
@@ -297,7 +297,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Credit Purchase
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/tts-credits/billing-preview` | JWT |
 | `POST` | `/api/tts-credits/buy` | JWT |
@@ -307,7 +307,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Custom Commands
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/CustomCommands` | JWT |
 | `POST` | `/api/CustomCommands` | JWT |
@@ -317,7 +317,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Decatron AI
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/decatron-ai/check-access` | JWT |
 | `GET` | `/api/decatron-ai/config` | JWT |
@@ -326,34 +326,34 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Design
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/design/tokens` | Public |
+| `GET` | `/api/design/tokens` | Público |
 
 ### Desktop
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/desktop/devices` | JWT + `settings` |
-| `POST` | `/api/desktop/devices/claim` | Public |
+| `POST` | `/api/desktop/devices/claim` | Público |
 | `POST` | `/api/desktop/devices/link-code` | JWT + `settings` |
 | `DELETE` | `/api/desktop/devices/{id}` | JWT + `settings` |
-| `GET` | `/api/desktop/releases/latest` | Public |
+| `GET` | `/api/desktop/releases/latest` | Público |
 
 ### Discord Auth
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `POST` | `/api/auth/discord/exchange` | Public |
-| `GET` | `/api/auth/discord/link` | Public |
+| `POST` | `/api/auth/discord/exchange` | Público |
+| `GET` | `/api/auth/discord/link` | Público |
 | `POST` | `/api/auth/discord/link-start` | JWT |
-| `GET` | `/api/auth/discord/login` | Public |
+| `GET` | `/api/auth/discord/login` | Público |
 | `GET` | `/api/auth/discord/me` | JWT |
 | `POST` | `/api/auth/discord/unlink` | JWT |
 
 ### Discord Levels
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/discord/levels/rankcard/templates` | JWT + `settings` |
 | `GET` | `/api/discord/levels/{guildId}` | JWT + `settings` |
@@ -400,7 +400,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Discord Live Alerts
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/discord/alerts/search/{channelName}` | JWT + `settings` |
 | `DELETE` | `/api/discord/alerts/{alertId}` | JWT + `settings` |
@@ -411,10 +411,10 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Discord OAuth
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/discord/auth` | JWT + `settings` |
-| `GET` | `/api/discord/callback` | Public |
+| `GET` | `/api/discord/callback` | Público |
 | `GET` | `/api/discord/channels/{guildId}` | JWT + `settings` |
 | `PUT` | `/api/discord/config/{guildId}` | JWT + `settings` |
 | `GET` | `/api/discord/guilds` | JWT + `settings` |
@@ -425,7 +425,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Discord Welcome
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/discord/welcome/{guildId}` | JWT + `settings` |
 | `PUT` | `/api/discord/welcome/{guildId}` | JWT + `settings` |
@@ -435,15 +435,15 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Epic Auth
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/auth/epic/callback` | Public |
+| `GET` | `/api/auth/epic/callback` | Público |
 | `GET` | `/api/me/epic/login-url` | JWT |
 | `GET` | `/api/me/epic/status` | JWT |
 
 ### Event Alerts
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/EventAlerts/config` | JWT |
 | `POST` | `/api/EventAlerts/config` | JWT |
@@ -452,7 +452,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Followers
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Followers` | JWT |
 | `GET` | `/api/Followers/stats` | JWT |
@@ -463,32 +463,32 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Fortnite
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/fortnite/collection/{username}` | Public |
-| `GET` | `/api/fortnite/current-season` | Public |
-| `GET` | `/api/fortnite/leaderboard/global` | Public |
+| `GET` | `/api/fortnite/collection/{username}` | Público |
+| `GET` | `/api/fortnite/current-season` | Público |
+| `GET` | `/api/fortnite/leaderboard/global` | Público |
 | `GET` | `/api/fortnite/my-collection` | JWT |
 | `POST` | `/api/fortnite/my-collection/mark` | JWT |
 | `DELETE` | `/api/fortnite/my-collection/{spriteKey}` | JWT |
 | `GET` | `/api/fortnite/new-since-last-visit` | JWT |
 | `GET` | `/api/fortnite/notification-prefs` | JWT |
 | `PUT` | `/api/fortnite/notification-prefs` | JWT |
-| `GET` | `/api/fortnite/sprites` | Public |
+| `GET` | `/api/fortnite/sprites` | Público |
 
 ### Gacha Auth
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/gacha-auth/config` | Public |
+| `GET` | `/api/gacha-auth/config` | Público |
 | `POST` | `/api/gacha-auth/link` | JWT |
 | `GET` | `/api/gacha-auth/status` | JWT |
 | `POST` | `/api/gacha-auth/unlink` | JWT |
-| `POST` | `/api/gacha-auth/validate` | Public |
+| `POST` | `/api/gacha-auth/validate` | Público |
 
 ### Gacha
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/gacha/banners` | JWT + `raffles` |
 | `POST` | `/api/gacha/banners` | JWT + `raffles` |
@@ -538,15 +538,15 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Gacha Public
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/gacha/public/collection` | Public |
-| `GET` | `/api/gacha/public/ranking` | Public |
-| `GET` | `/api/gacha/public/sound-config/{channel}` | Public |
+| `GET` | `/api/gacha/public/collection` | Público |
+| `GET` | `/api/gacha/public/ranking` | Público |
+| `GET` | `/api/gacha/public/sound-config/{channel}` | Público |
 
 ### Gacha Viewer
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/gacha/viewer/accept-terms` | JWT |
 | `GET` | `/api/gacha/viewer/achievements/{participantId}` | JWT |
@@ -568,7 +568,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Game Accounts
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/me/game-accounts` | JWT |
 | `POST` | `/api/me/game-accounts` | JWT |
@@ -579,7 +579,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Game
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/commands/game/current` | JWT + `game` |
 | `GET` | `/api/commands/game/history` | JWT + `game` |
@@ -589,7 +589,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Game Overlays
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/game-overlays` | JWT + `overlays` |
 | `POST` | `/api/game-overlays` | JWT + `overlays` |
@@ -604,7 +604,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Giveaway
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Giveaway/active` | JWT + `giveaways` |
 | `POST` | `/api/Giveaway/cancel` | JWT + `giveaways` |
@@ -622,7 +622,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Global Emotes
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/global-emotes` | JWT |
 | `POST` | `/api/admin/global-emotes` | JWT |
@@ -637,11 +637,11 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `POST` | `/api/admin/global-emotes/{id}/restore` | JWT |
 | `GET` | `/api/global-emotes/me` | JWT |
 | `POST` | `/api/global-emotes/request` | JWT |
-| `GET` | `/api/public/global-emotes` | Public |
+| `GET` | `/api/public/global-emotes` | Público |
 
 ### Goals
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Goals/config` | JWT + `overlays` |
 | `POST` | `/api/Goals/config` | JWT + `overlays` |
@@ -653,22 +653,22 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Kick Auth
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/auth/kick/link-start` | JWT |
-| `GET` | `/api/auth/kick/login` | Public |
+| `GET` | `/api/auth/kick/login` | Público |
 | `POST` | `/api/auth/kick/subscribe-rewards` | JWT |
 | `POST` | `/api/auth/kick/unlink` | JWT |
 
 ### Kick Webhook
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `POST` | `/api/webhooks/kick/events` | Public |
+| `POST` | `/api/webhooks/kick/events` | Público |
 
 ### Language
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Language` | JWT |
 | `PUT` | `/api/Language` | JWT |
@@ -676,7 +676,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Live Overlays
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/live-overlays` | JWT + `overlays` |
 | `POST` | `/api/live-overlays` | JWT + `overlays` |
@@ -686,13 +686,13 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Live Translation
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/live-translation/admin/active` | JWT |
 | `GET` | `/api/live-translation/admin/overview` | JWT |
 | `GET` | `/api/live-translation/admin/sessions` | JWT |
 | `POST` | `/api/live-translation/admin/stop/{userId}` | JWT |
-| `GET` | `/api/live-translation/public/{login}` | Public |
+| `GET` | `/api/live-translation/public/{login}` | Público |
 | `GET` | `/api/live-translation/sessions` | JWT + `settings` |
 | `GET` | `/api/live-translation/settings` | JWT + `settings` |
 | `PUT` | `/api/live-translation/settings` | JWT + `settings` |
@@ -702,7 +702,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Lol Coach
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/lol-coach/settings` | JWT + `settings` |
 | `PUT` | `/api/lol-coach/settings` | JWT + `settings` |
@@ -710,7 +710,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Micro Commands
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/commands/microcommands` | JWT + `commands` |
 | `POST` | `/api/commands/microcommands` | JWT + `commands` |
@@ -723,7 +723,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Moderation
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Moderation/banned-words` | JWT + `moderation` |
 | `POST` | `/api/Moderation/banned-words` | JWT + `moderation` |
@@ -745,7 +745,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Now Playing
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/nowplaying/admin/assign-cupo/{userId}` | JWT |
 | `POST` | `/api/nowplaying/admin/revoke-cupo/{userId}` | JWT |
@@ -763,7 +763,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Pets
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/pets/catalog` | JWT |
 | `GET` | `/api/pets/config` | JWT + `overlays` |
@@ -775,17 +775,17 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Public Commands
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/public/commands/{channel}` | Public |
+| `GET` | `/api/public/commands/{channel}` | Público |
 | `GET` | `/api/publiccommands/config` | JWT |
 | `POST` | `/api/publiccommands/config` | JWT |
 
 ### Public Emotes
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/public/emotes/{channel}` | Public |
+| `GET` | `/api/public/emotes/{channel}` | Público |
 | `GET` | `/api/public/emotes/{channel}/me` | JWT |
 | `DELETE` | `/api/public/emotes/{channel}/mine/{id}` | JWT |
 | `POST` | `/api/public/emotes/{channel}/upload` | JWT |
@@ -793,7 +793,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Raffle
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/raffles` | JWT + `raffles` |
 | `POST` | `/api/raffles` | JWT + `raffles` |
@@ -813,7 +813,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Riot Account
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/me/riot-accounts` | JWT |
 | `POST` | `/api/me/riot-accounts` | JWT |
@@ -822,14 +822,14 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Ruleta
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/ruleta/config` | JWT |
 | `POST` | `/api/ruleta/config` | JWT |
 
 ### Scripts
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Scripts` | JWT |
 | `POST` | `/api/Scripts` | JWT |
@@ -841,7 +841,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Settings
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/settings/add-access` | JWT + `user_management` |
 | `GET` | `/api/settings/bot/status` | JWT |
@@ -854,7 +854,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Shoutout
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Shoutout/config` | JWT |
 | `POST` | `/api/Shoutout/config` | JWT |
@@ -865,7 +865,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Song Request
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/public/song-request/{channel}` | JWT |
 | `GET` | `/api/public/song-request/{channel}/guide` | JWT |
@@ -926,14 +926,14 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Song Request Share Page
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/sr/{channel}` | Public |
-| `GET` | `/sr/{channel}/p/{code}` | Public |
+| `GET` | `/sr/{channel}` | Público |
+| `GET` | `/sr/{channel}/p/{code}` | Público |
 
 ### Sound Alerts
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/SoundAlerts/assign-media-file` | JWT |
 | `POST` | `/api/SoundAlerts/assign-system-file` | JWT |
@@ -954,7 +954,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Speak Chat
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/speakchat/config` | JWT |
 | `POST` | `/api/speakchat/config` | JWT |
@@ -965,16 +965,16 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Spotify
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/spotify/authorize-url` | JWT + `overlays` |
-| `GET` | `/api/spotify/callback` | Public |
+| `GET` | `/api/spotify/callback` | Público |
 | `POST` | `/api/spotify/disconnect` | JWT + `overlays` |
 | `GET` | `/api/spotify/status` | JWT + `overlays` |
 
 ### Supporters
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `PUT` | `/api/Supporters/admin/culqi-mode` | JWT |
 | `GET` | `/api/Supporters/admin/invoices` | JWT |
@@ -987,31 +987,31 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/Supporters/billing-profile` | JWT |
 | `PUT` | `/api/Supporters/billing-profile` | JWT |
 | `GET` | `/api/Supporters/billing-profile/ruc/{ruc}` | JWT |
-| `POST` | `/api/Supporters/capture-donation-order` | Public |
+| `POST` | `/api/Supporters/capture-donation-order` | Público |
 | `POST` | `/api/Supporters/capture-paypal-order` | JWT |
 | `GET` | `/api/Supporters/config` | JWT |
 | `POST` | `/api/Supporters/config` | JWT |
 | `POST` | `/api/Supporters/create-culqi-charge` | JWT |
-| `POST` | `/api/Supporters/create-culqi-donation` | Public |
-| `POST` | `/api/Supporters/create-donation-order` | Public |
+| `POST` | `/api/Supporters/create-culqi-donation` | Público |
+| `POST` | `/api/Supporters/create-donation-order` | Público |
 | `POST` | `/api/Supporters/create-paypal-order` | JWT |
-| `GET` | `/api/Supporters/culqi-public-key` | Public |
+| `GET` | `/api/Supporters/culqi-public-key` | Público |
 | `GET` | `/api/Supporters/discount-codes` | JWT |
 | `POST` | `/api/Supporters/discount-codes` | JWT |
 | `DELETE` | `/api/Supporters/discount-codes/{id}` | JWT |
 | `PATCH` | `/api/Supporters/discount-codes/{id}` | JWT |
 | `GET` | `/api/Supporters/list` | JWT |
-| `GET` | `/api/Supporters/list-public` | Public |
+| `GET` | `/api/Supporters/list-public` | Público |
 | `GET` | `/api/Supporters/my-invoices` | JWT |
 | `GET` | `/api/Supporters/my-invoices/{paymentId}/download/{formato}` | JWT |
-| `POST` | `/api/Supporters/paypal/webhook` | Public |
-| `GET` | `/api/Supporters/public-config` | Public |
-| `GET` | `/api/Supporters/tier-limits` | Public |
-| `GET` | `/api/Supporters/validate-code` | Public |
+| `POST` | `/api/Supporters/paypal/webhook` | Público |
+| `GET` | `/api/Supporters/public-config` | Público |
+| `GET` | `/api/Supporters/tier-limits` | Público |
+| `GET` | `/api/Supporters/validate-code` | Público |
 
 ### Tcg
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/tcg/balance` | JWT |
 | `POST` | `/api/tcg/cards/{instanceId}/upgrade/attempt` | JWT |
@@ -1034,7 +1034,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Timer Backup
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/timer/backup` | JWT |
 | `GET` | `/api/timer/backup/by-session/{sessionId}` | JWT |
@@ -1044,7 +1044,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Timer Extension
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/timer/config` | JWT |
 | `POST` | `/api/timer/config` | JWT |
@@ -1077,7 +1077,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Timer Media
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/timer/media` | JWT |
 | `GET` | `/api/timer/media/categories` | JWT |
@@ -1089,7 +1089,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Timers
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Timers` | JWT + `timers` |
 | `POST` | `/api/Timers` | JWT + `timers` |
@@ -1100,26 +1100,26 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tips
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/Tips/config` | JWT |
 | `POST` | `/api/Tips/config` | JWT |
 | `GET` | `/api/Tips/history` | JWT |
-| `GET` | `/api/Tips/page/{channelName}` | Public |
-| `GET` | `/api/Tips/paypal/callback` | Public |
-| `POST` | `/api/Tips/paypal/capture-order` | Public |
+| `GET` | `/api/Tips/page/{channelName}` | Público |
+| `GET` | `/api/Tips/paypal/callback` | Público |
+| `POST` | `/api/Tips/paypal/capture-order` | Público |
 | `GET` | `/api/Tips/paypal/connect` | JWT |
-| `POST` | `/api/Tips/paypal/create-order` | Public |
+| `POST` | `/api/Tips/paypal/create-order` | Público |
 | `POST` | `/api/Tips/paypal/disconnect` | JWT |
 | `GET` | `/api/Tips/paypal/resolve-token` | JWT |
-| `POST` | `/api/Tips/paypal/webhook` | Public |
+| `POST` | `/api/Tips/paypal/webhook` | Público |
 | `GET` | `/api/Tips/statistics` | JWT |
 | `POST` | `/api/Tips/test` | JWT |
 | `GET` | `/api/Tips/top-donors` | JWT |
 
 ### Title Command
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/commands/title/current` | JWT + `commands` |
 | `GET` | `/api/commands/title/history` | JWT + `commands` |
@@ -1129,7 +1129,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions` | JWT |
 | `POST` | `/api/admin/tournament/editions` | JWT |
@@ -1147,17 +1147,17 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Appearance
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/appearance` | JWT |
 | `PUT` | `/api/admin/tournament/editions/{editionId}/appearance` | JWT |
 | `DELETE` | `/api/admin/tournament/editions/{editionId}/appearance/{kind}` | JWT |
 | `POST` | `/api/admin/tournament/editions/{editionId}/appearance/{kind}` | JWT |
-| `GET` | `/api/public/tournament/assets/{editionId}/{file}` | Public |
+| `GET` | `/api/public/tournament/assets/{editionId}/{file}` | Público |
 
 ### Tournament Blue Shell Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/admin/tournament/blueshell/events/{eventId}/fulfill` | JWT |
 | `GET` | `/api/admin/tournament/editions/{editionId}/blueshell/catalogs` | JWT |
@@ -1176,20 +1176,20 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Dashboard Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/dashboard` | JWT |
 
 ### Tournament Embed
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/embed/torneo/{channelName}/{editionSlug}/ranking` | Public |
-| `GET` | `/api/overlay/torneo/{token}` | Public |
+| `GET` | `/api/embed/torneo/{channelName}/{editionSlug}/ranking` | Público |
+| `GET` | `/api/overlay/torneo/{token}` | Público |
 
 ### Tournament Fortnite Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/fortnite` | JWT |
 | `GET` | `/api/admin/tournament/editions/{editionId}/fortnite/audit` | JWT |
@@ -1220,7 +1220,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Me
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/me/tournament/{channelName}/{editionSlug}` | JWT |
 | `GET` | `/api/me/tournament/{channelName}/{editionSlug}/audit` | JWT |
@@ -1238,14 +1238,14 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Overlay Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/participants/{participantId}/overlay` | JWT |
 | `POST` | `/api/admin/tournament/editions/{editionId}/participants/{participantId}/overlay` | JWT |
 
 ### Tournament Prize Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/prizes` | JWT |
 | `POST` | `/api/admin/tournament/editions/{editionId}/prizes` | JWT |
@@ -1254,21 +1254,21 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Public
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/bracket` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/fortnite/files/{fileId}` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/fortnite/standings` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/fortnite/teams/{teamId}` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/participants` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/participants/{participantId}` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/prizes` | Public |
-| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/rules` | Public |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/bracket` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/fortnite/files/{fileId}` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/fortnite/standings` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/fortnite/teams/{teamId}` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/participants` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/participants/{participantId}` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/prizes` | Público |
+| `GET` | `/api/public/tournament/{channelName}/{editionSlug}/rules` | Público |
 
 ### Tournament Registration Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/registrations` | JWT |
 | `POST` | `/api/admin/tournament/participants/{participantId}/approve` | JWT |
@@ -1276,14 +1276,14 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Rules Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/rules` | JWT |
 | `PUT` | `/api/admin/tournament/editions/{editionId}/rules` | JWT |
 
 ### Tournament Sponsor Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/sponsors` | JWT |
 | `POST` | `/api/admin/tournament/editions/{editionId}/sponsors` | JWT |
@@ -1293,7 +1293,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Team Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/admin/tournament/bracket/matches/{matchId}/result` | JWT |
 | `GET` | `/api/admin/tournament/editions/{editionId}/bracket` | JWT |
@@ -1305,7 +1305,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tournament Win Condition Admin
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/admin/tournament/editions/{editionId}/win-conditions` | JWT |
 | `POST` | `/api/admin/tournament/editions/{editionId}/win-conditions` | JWT |
@@ -1315,13 +1315,13 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tts
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/Tts/generate` | JWT |
 
 ### Tts Credits
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/tts-credits/balance` | JWT |
 | `GET` | `/api/tts-credits/history` | JWT |
@@ -1329,7 +1329,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Tts Voices
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/tts/premium-voices` | JWT |
 | `GET` | `/api/tts/standard-voices` | JWT |
@@ -1337,24 +1337,24 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Twitch OAuth Proxy
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
-| `POST` | `/api/oauth/twitch/token` | Public |
+| `POST` | `/api/oauth/twitch/token` | Público |
 
 ### Twitch Webhook
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `POST` | `/api/twitch/eventsub/subscribe/channel-points` | JWT + `settings` |
 | `POST` | `/api/twitch/eventsub/subscribe/chat` | JWT + `settings` |
 | `POST` | `/api/twitch/eventsub/subscribe/follow` | JWT + `settings` |
 | `GET` | `/api/twitch/eventsub/subscriptions` | JWT + `settings` |
 | `DELETE` | `/api/twitch/eventsub/subscriptions/{subscriptionId}` | JWT + `settings` |
-| `POST` | `/api/twitch/webhook` | Public |
+| `POST` | `/api/twitch/webhook` | Público |
 
 ### User Permissions
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/user/available-accounts` | JWT |
 | `GET` | `/api/user/channel-users` | JWT + `user_management` |
@@ -1362,14 +1362,14 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ### Watchtime
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/watchtime/config` | JWT |
 | `POST` | `/api/watchtime/config` | JWT |
 
 ### Wheel
 
-| Method | Route | Access |
+| Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/wheel/deliveries` | JWT + `overlays` |
 | `PUT` | `/api/wheel/deliveries/{deliveryId}` | JWT + `overlays` |
@@ -1409,80 +1409,80 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 ---
 
-## WebSocket / SignalR Hubs
+## WebSocket / Hubs de SignalR
 
-Decatron has three SignalR hubs and one raw WebSocket. Their methods, groups and events are documented in [OVERLAYS.md](OVERLAYS.md#signalr-events-reference) and in [ARCHITECTURE.md](ARCHITECTURE.md#4-real-time-communication).
+Decatron tiene tres hubs de SignalR y un WebSocket directo. Sus métodos, grupos y eventos están documentados en [OVERLAYS.md](OVERLAYS.md#referencia-de-eventos-de-signalr) y en [ARCHITECTURE.md](ARCHITECTURE.md#4-comunicación-en-tiempo-real).
 
-| Endpoint | Purpose |
-|----------|---------|
-| `/hubs/overlay` | OBS overlays and dashboard previews (group `overlay_{channel}`) |
-| `/hubs/songrequest` | Song Request player, overlays, dashboard and public queue |
-| `/hubs/translation` | Live translation for viewers (browser extension) |
-| `/api/desktop/ws` | Decatron Desktop companion app (single multiplexed WebSocket) |
+| Endpoint | Propósito |
+|----------|-----------|
+| `/hubs/overlay` | Overlays de OBS y vistas previas del panel (grupo `overlay_{canal}`) |
+| `/hubs/songrequest` | Reproductor, overlays, panel y cola pública de Song Request |
+| `/hubs/translation` | Traducción en vivo para espectadores (extensión de navegador) |
+| `/api/desktop/ws` | App de escritorio Decatron Desktop (un único WebSocket multiplexado) |
 
-Overlay connections need no authentication.
-
----
-
-## Static File Endpoints
-
-These routes serve static files from disk (the folders are configurable, see [ENV_VARIABLES.md](ENV_VARIABLES.md#physical-paths)):
-
-| Route | Description |
-|-------|-------------|
-| `/downloads/*` | Downloaded Twitch clips |
-| `/uploads/soundalerts/*` | Uploaded sound alert files |
-| `/uploads/brand/*` | Brand logos |
-| `/uploads/emotes/*` | Channel and global emote images |
-| `/timerextensible/*` | Timer extension media files |
-| `/tts-audio/*` | Cached TTS audio |
-| `/system-files/*` | Pre-loaded sounds and images |
-| `/tcg-packs/*` | Trading card pack images |
-| `/swagger` | Swagger UI (Development only) |
+Las conexiones de los overlays no necesitan autenticación.
 
 ---
 
-## Overlay URLs (Public Pages)
+## Endpoints de archivos estáticos
 
-Overlay and public page URLs are listed in [OVERLAYS.md](OVERLAYS.md#quick-reference). Public pages that need no login include `/tip/{channelName}` (also `/donate/{channelName}`), `/commands/{channelName}`, `/sr/{channelName}`, `/torneos/{channelName}/{editionSlug}`, `/emotes/{channelName}`, `/supporters`, `/oauth/authorize` and `/docs/*`.
+Estas rutas sirven archivos estáticos desde disco (las carpetas son configurables, consulta [ENV_VARIABLES.md](ENV_VARIABLES.md#rutas-físicas)):
+
+| Ruta | Descripción |
+|------|-------------|
+| `/downloads/*` | Clips de Twitch descargados |
+| `/uploads/soundalerts/*` | Archivos de alertas de sonido subidos |
+| `/uploads/brand/*` | Logos de la marca |
+| `/uploads/emotes/*` | Imágenes de emotes de canal y globales |
+| `/timerextensible/*` | Archivos de medios de la extensión del timer |
+| `/tts-audio/*` | Audio de TTS en caché |
+| `/system-files/*` | Sonidos e imágenes precargados |
+| `/tcg-packs/*` | Imágenes de los sobres de cartas |
+| `/swagger` | Swagger UI (solo en Development) |
 
 ---
 
-## Error Format
+## URL de overlays (páginas públicas)
 
-Most dashboard endpoints return JSON objects such as:
+Las URL de los overlays y de las páginas públicas están en [OVERLAYS.md](OVERLAYS.md#referencia-rápida). Las páginas públicas que no necesitan inicio de sesión incluyen `/tip/{canal}` (también `/donate/{canal}`), `/commands/{canal}`, `/sr/{canal}`, `/torneos/{canal}/{edicion}`, `/emotes/{canal}`, `/supporters`, `/oauth/authorize` y `/docs/*`.
+
+---
+
+## Formato de errores
+
+La mayoría de los endpoints del panel devuelven objetos JSON como:
 
 ```json
 {
   "success": false,
-  "message": "Description of the error"
+  "message": "Descripción del error"
 }
 ```
 
-Unhandled exceptions are caught by `GlobalExceptionMiddleware` and return HTTP 500 with a generic message and no internal details. The public API v1 uses `{ "error": "code" }` instead.
+Las excepciones no controladas las captura `GlobalExceptionMiddleware` y devuelven HTTP 500 con un mensaje genérico y sin detalles internos. La API pública v1 usa `{ "error": "codigo" }` en su lugar.
 
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 400 | Bad Request (validation error, missing parameters) |
-| 401 | Unauthorized (missing or invalid token) |
-| 403 | Forbidden (insufficient permissions) |
-| 404 | Not Found |
-| 429 | Too Many Requests (rate-limited routes) |
-| 500 | Internal Server Error |
+| Código | Significado |
+|--------|-------------|
+| 200 | Éxito |
+| 400 | Solicitud incorrecta (error de validación, parámetros faltantes) |
+| 401 | No autorizado (token ausente o inválido) |
+| 403 | Prohibido (permisos insuficientes) |
+| 404 | No encontrado |
+| 429 | Demasiadas solicitudes (rutas con límite) |
+| 500 | Error interno del servidor |
 
 ---
 
-## Rate Limiting
+## Límite de solicitudes
 
-There is no global rate limit. Named fixed-window policies protect a few public routes:
+No hay un límite global. Unas políticas nombradas de ventana fija protegen algunas rutas públicas:
 
-| Policy | Limit | Used by |
-|--------|-------|---------|
-| `tournament-register` | 5 requests per 10 minutes | Tournament registration endpoints |
-| `tournament-embed` | 60 requests per minute | Tournament overlay and ranking widget |
-| `tcg-images` | 600 requests per minute | Trading card images |
-| `live-translation-public` | 60 requests per minute | Public live translation endpoint |
-| `live-translation-claim` | 10 requests per 10 minutes | Linking Decatron Desktop with a code |
+| Política | Límite | Se usa en |
+|----------|--------|-----------|
+| `tournament-register` | 5 solicitudes cada 10 minutos | Endpoints de inscripción a torneos |
+| `tournament-embed` | 60 solicitudes por minuto | Overlay de torneos y widget de ranking |
+| `tcg-images` | 600 solicitudes por minuto | Imágenes de cartas coleccionables |
+| `live-translation-public` | 60 solicitudes por minuto | Endpoint público de traducción en vivo |
+| `live-translation-claim` | 10 solicitudes cada 10 minutos | Vincular Decatron Desktop con un código |
 
-Public endpoints that are sensitive to abuse and have no limit yet include `POST /api/tips/paypal/create-order`, `POST /api/tips/paypal/capture-order`, `POST /api/gacha-auth/validate` and `POST /api/tts/generate`.
+Los endpoints públicos sensibles al abuso que aún no tienen límite incluyen `POST /api/tips/paypal/create-order`, `POST /api/tips/paypal/capture-order`, `POST /api/gacha-auth/validate` y `POST /api/tts/generate`.
