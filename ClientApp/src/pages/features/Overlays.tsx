@@ -40,21 +40,21 @@ export default function Overlays() {
     }, []);
 
     if (loading) {
-        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('overlays:loading')}</div>;
+        return <div className="text-center py-8 text-ds-soft">{t('overlays:loading')}</div>;
     }
 
     if (!hasMinimumLevel('moderation')) {
         return (
             <div className="flex flex-col items-center justify-center py-16">
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
-                    <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">{t('overlays:accessDenied.title')}</h2>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mb-6">
+                <div className="bg-ds-danger/10 border border-ds-danger/30 rounded-lg p-8 max-w-md text-center">
+                    <Lock className="w-16 h-16 text-ds-danger mx-auto mb-4" />
+                    <h2 className="text-2xl font-black text-ds-danger mb-2">{t('overlays:accessDenied.title')}</h2>
+                    <p className="text-ds-soft mb-6">
                         {t('overlays:accessDenied.message')}
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         {t('overlays:accessDenied.backButton')}
                     </button>
@@ -69,7 +69,7 @@ export default function Overlays() {
             name: t('overlays:overlays.chat.name'),
             description: t('overlays:overlays.chat.description'),
             status: 'active',
-            icon: <MessageSquare className="w-6 h-6 text-[#2563eb]" />,
+            icon: <MessageSquare className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.chat.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.chat.usage'),
             kickReady: true, // Chat unificado Twitch + Kick (.dev/plans/CHAT_UNIFICADO_PLAN.md)
@@ -79,7 +79,7 @@ export default function Overlays() {
             name: t('overlays:overlays.shoutout.name'),
             description: t('overlays:overlays.shoutout.description'),
             status: 'active',
-            icon: <Users className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Users className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.shoutout.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.shoutout.usage'),
         },
@@ -88,7 +88,7 @@ export default function Overlays() {
             name: t('overlays:overlays.timer.name'),
             description: t('overlays:overlays.timer.description'),
             status: 'active',
-            icon: <Clock className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Clock className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.timer.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.timer.usage'),
         },
@@ -97,7 +97,7 @@ export default function Overlays() {
             name: t('overlays:overlays.giveaway.name'),
             description: t('overlays:overlays.giveaway.description'),
             status: 'active',
-            icon: <Gift className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Gift className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.giveaway.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.giveaway.usage'),
         },
@@ -106,7 +106,7 @@ export default function Overlays() {
             name: t('overlays:overlays.soundAlerts.name'),
             description: t('overlays:overlays.soundAlerts.description'),
             status: 'active',
-            icon: <Volume2 className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Volume2 className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.soundAlerts.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.soundAlerts.usage'),
             kickReady: true, // Resuelve rewards contra la API de Kick (plan UNIFICACION, sección 8, item 3)
@@ -116,7 +116,7 @@ export default function Overlays() {
             name: 'Event Alerts',
             description: 'Alertas personalizables para follows, bits, subs, raids y más eventos de Twitch',
             status: 'active',
-            icon: <Bell className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Bell className="w-6 h-6 text-ds-accent-text" />,
             features: [
                 'Alertas para follows, bits, subs, raids',
                 'Sistema de tiers por monto/cantidad',
@@ -130,7 +130,7 @@ export default function Overlays() {
             name: 'Now Playing',
             description: 'Muestra la canción que estás escuchando en tu stream. Conecta Last.fm o Spotify',
             status: 'active',
-            icon: <Music className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Music className="w-6 h-6 text-ds-accent-text" />,
             features: [
                 'Muestra canción, artista, álbum y miniatura',
                 'Barra de progreso en tiempo real',
@@ -144,7 +144,7 @@ export default function Overlays() {
             name: t('overlays:overlays.songRequest.name'),
             description: t('overlays:overlays.songRequest.description'),
             status: 'active',
-            icon: <ListMusic className="w-6 h-6 text-[#2563eb]" />,
+            icon: <ListMusic className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.songRequest.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.songRequest.usage'),
             // Kick vinculado usa la misma cola que Twitch (fase K del plan de song request)
@@ -155,7 +155,7 @@ export default function Overlays() {
             name: 'Game Overlays',
             description: 'Tu rango, W-L de la sesión y últimas partidas en pantalla, del juego que estás jugando. LoL con datos automáticos; TFT, Valorant, Marvel Rivals, CS2, Fortnite, Rocket League y Warzone con rango manual por ahora.',
             status: 'active',
-            icon: <Gamepad2 className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Gamepad2 className="w-6 h-6 text-ds-accent-text" />,
             features: [
                 'Cambia solo según la categoría del stream',
                 'Varias cuentas por juego con rotación',
@@ -170,7 +170,7 @@ export default function Overlays() {
             name: 'Partida en vivo',
             description: 'Lo que pasa en tu partida ahora, leído del cliente de LoL por Decatron Desktop: lobby con tus amigos, selección de campeón con el coach, tiempo de partida con la predicción del chat y resumen al terminar. Una pantalla por fase, en una caja que no cambia de tamaño.',
             status: 'active',
-            icon: <Radio className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Radio className="w-6 h-6 text-ds-accent-text" />,
             features: [
                 'Lobby, selección, en partida y fin en una sola fuente de OBS',
                 'Coach de LoL y predicción del chat integrados',
@@ -185,7 +185,7 @@ export default function Overlays() {
             name: t('overlays:overlays.pets.name'),
             description: t('overlays:overlays.pets.description'),
             status: 'active',
-            icon: <Cat className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Cat className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.pets.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.pets.usage'),
             kickReady: true,
@@ -195,7 +195,7 @@ export default function Overlays() {
             name: t('overlays:overlays.wheel.name'),
             description: t('overlays:overlays.wheel.description'),
             status: 'active',
-            icon: <Disc3 className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Disc3 className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.wheel.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.wheel.usage'),
         },
@@ -204,7 +204,7 @@ export default function Overlays() {
             name: t('overlays:overlays.gacha.name'),
             description: t('overlays:overlays.gacha.description'),
             status: 'coming-soon',
-            icon: <Sparkles className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Sparkles className="w-6 h-6 text-ds-accent-text" />,
             features: t('overlays:overlays.gacha.features', { returnObjects: true } as any),
         }
     ];
@@ -228,12 +228,12 @@ export default function Overlays() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('overlays:header.title')}</h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">
+                    <h1 className="text-3xl font-black text-ds-text">{t('overlays:header.title')}</h1>
+                    <p className="text-ds-soft mt-2">
                         {t('overlays:header.subtitle')}
                     </p>
                 </div>
@@ -267,47 +267,47 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
 
     return (
         <div
-            className={`bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151] hover:shadow-lg transition-all flex flex-col ${kickUnverified ? 'opacity-60' : ''}`}
+            className={`bg-ds-surface rounded-lg p-5 border border-ds-border transition-all flex flex-col ${kickUnverified ? 'opacity-60' : ''}`}
             title={kickUnverified ? 'Todavía no verificado para Kick — se habilita de a uno, card por card.' : undefined}
         >
             {/* Header */}
-            <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
                     {overlay.icon}
-                    <h3 className="text-base font-black text-[#1e293b] dark:text-[#f8fafc] truncate">
+                    <h3 className="text-base font-black text-ds-text leading-tight">
                         {overlay.name}
                     </h3>
                 </div>
                 <div className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
                     isActive
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                        ? 'bg-ds-ok/10 text-ds-ok '
+                        : 'bg-ds-raised border border-ds-border text-ds-soft'
                 }`}>
                     {isActive ? t('overlays:status.available') : kickUnverified ? 'Próximamente en Kick' : t('overlays:status.comingSoon')}
                 </div>
             </div>
 
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-3">
+            <p className="text-sm text-ds-soft mb-3">
                 {overlay.description}
             </p>
 
             <button
                 onClick={() => setExpanded(prev => !prev)}
-                className="flex items-center gap-1 text-xs font-semibold text-[#2563eb] hover:text-blue-700 mb-1 self-start"
+                className="flex items-center gap-1 text-xs font-semibold text-ds-accent-text hover:text-ds-accent-text mb-1 self-start"
             >
                 {expanded ? t('overlays:hideDetails') : t('overlays:showDetails')}
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
 
             {expanded && (
-                <div className="mb-3 pt-2 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                <div className="mb-3 pt-2 border-t border-ds-border space-y-3">
                     <div>
-                        <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1.5">{t('overlays:features')}</p>
+                        <p className="text-xs font-bold text-ds-soft mb-1.5">{t('overlays:features')}</p>
                         <div className="flex flex-wrap gap-1.5">
                             {overlay.features.map((feature, i) => (
                                 <span
                                     key={i}
-                                    className="text-[11px] px-2 py-0.5 rounded-full bg-[#f1f5f9] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8]"
+                                    className="text-[11px] px-2 py-0.5 rounded-full bg-ds-bg text-ds-soft"
                                 >
                                     {feature}
                                 </span>
@@ -317,8 +317,8 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
 
                     {overlay.usage && (
                         <div>
-                            <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1.5">{t('overlays:usage')}</p>
-                            <code className="block text-xs font-mono bg-[#f8fafc] dark:bg-[#262626] px-3 py-2 rounded border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc]">
+                            <p className="text-xs font-bold text-ds-soft mb-1.5">{t('overlays:usage')}</p>
+                            <code className="block text-xs font-mono bg-ds-bg px-3 py-2 rounded border border-ds-border text-ds-text">
                                 {overlay.usage}
                             </code>
                         </div>
@@ -327,11 +327,11 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-end pt-3 mt-auto border-t border-[#e2e8f0] dark:border-[#374151]">
+            <div className="flex items-center justify-end pt-3 mt-auto border-t border-ds-border">
                 {isActive ? (
                     <button
                         onClick={onConfigure}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-white rounded-lg transition-all font-semibold text-sm"
                     >
                         <Settings className="w-4 h-4" />
                         {t('overlays:configureButton')}
@@ -339,7 +339,7 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
                 ) : (
                     <button
                         disabled
-                        className="flex items-center gap-2 px-4 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] dark:text-[#94a3b8] font-semibold text-sm opacity-50 cursor-not-allowed"
+                        className="flex items-center gap-2 px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-soft font-semibold text-sm opacity-50 cursor-not-allowed"
                     >
                         <Settings className="w-4 h-4" />
                         {t('overlays:comingSoonButton')}

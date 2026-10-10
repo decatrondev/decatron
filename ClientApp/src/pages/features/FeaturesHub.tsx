@@ -41,63 +41,63 @@ export default function FeaturesHub() {
             id: 'emotes',
             name: 'Emotes propios',
             description: 'Los emotes de tu comunidad: súbelos, apruébalos y decide quién puede subir los suyos. Se ven en tu overlay de chat',
-            icon: <Smile className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Smile className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/emotes'
         },
         {
             id: 'timers',
             name: 'Timers',
             description: 'Mensajes automaticos que se envian en intervalos regulares',
-            icon: <Clock className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Clock className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/timers'
         },
         {
             id: 'giveaways',
             name: 'Giveaways',
             description: 'Crea y gestiona sorteos para tu comunidad',
-            icon: <Gift className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Gift className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/giveaways'
         },
         {
             id: 'decatron-chat',
             name: 'Decatron Chat',
             description: 'Chat integrado con funciones avanzadas de moderacion',
-            icon: <MessageSquare className="w-6 h-6 text-[#2563eb]" />,
+            icon: <MessageSquare className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/decatron-chat'
         },
         {
             id: 'tips',
             name: 'Tips',
             description: 'Recibe donaciones de tu comunidad via PayPal',
-            icon: <DollarSign className="w-6 h-6 text-[#2563eb]" />,
+            icon: <DollarSign className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/tips'
         },
         {
             id: 'speak-chat',
             name: 'Speak Chat',
             description: 'Lee los mensajes del chat en voz alta con TTS (Polly o navegador)',
-            icon: <Mic className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Mic className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/speak-chat'
         },
         {
             id: 'gacha',
             name: 'Gacha System',
             description: 'Sistema de cartas coleccionables con donaciones y probabilidades',
-            icon: <Dices className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Dices className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/gacha'
         },
         {
             id: 'torneos',
             name: 'Torneos',
             description: 'Torneo de LoL estilo SoloQ Climb con ranking en vivo (Milestone 0, en desarrollo)',
-            icon: <Trophy className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Trophy className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/torneos'
         },
         {
             id: 'spirits',
             name: 'Fortnite Spirit Tracker',
             description: 'Colección visual de Fortnite Spirits. Tus viewers trackean cuáles tienen con comandos de Twitch y Discord',
-            icon: <Zap className="w-6 h-6 text-[#7B61FF]" />,
+            icon: <Zap className="w-6 h-6 text-ds-accent-text" />,
             route: '/me/spirits',
             buttonLabel: 'Ver colección',
             kickVerified: true // Es por cuenta, no por canal — ver plan seccion 8.10.
@@ -106,21 +106,21 @@ export default function FeaturesHub() {
             id: 'live-translation',
             name: 'Traducción en vivo',
             description: 'Tus viewers te escuchan doblado a su idioma desde la extensión; cada uno elige el suyo y nadie más lo nota',
-            icon: <Languages className="w-6 h-6 text-[#9146FF]" />,
+            icon: <Languages className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/live-translation'
         },
         {
             id: 'lol-coach',
             name: 'Decatron Coach · LoL',
             description: 'Un coach con IA que comenta tu selección de campeón, te da runas y build al lockear y opina al terminar. Con Decatron Desktop',
-            icon: <Gamepad2 className="w-6 h-6 text-[#c8aa6e]" />,
+            icon: <Gamepad2 className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/lol-coach'
         },
         {
             id: 'decatron-ai',
             name: 'Decatron AI',
             description: 'Inteligencia artificial para tu bot con respuestas contextuales',
-            icon: <Cpu className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Cpu className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/decatron-ai',
             requiresControlTotal: true
         }
@@ -131,11 +131,11 @@ export default function FeaturesHub() {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Funciones</h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">
+                    <h1 className="text-3xl font-black text-ds-text">Funciones</h1>
+                    <p className="text-ds-soft mt-2">
                         Configura las funciones de tu bot
                     </p>
                 </div>
@@ -148,33 +148,33 @@ export default function FeaturesHub() {
                     return (
                         <div
                             key={card.id}
-                            className={`bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] hover:shadow-lg transition-all ${kickUnverified ? 'opacity-60' : ''}`}
+                            className={`bg-ds-surface rounded-lg p-6 border border-ds-border transition-all ${kickUnverified ? 'opacity-60' : ''}`}
                             title={kickUnverified ? 'Todavía no verificado para Kick — se habilita de a uno, card por card.' : undefined}
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
                                         {card.icon}
-                                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                        <h3 className="text-xl font-black text-ds-text">
                                             {card.name}
                                         </h3>
                                     </div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-sm text-ds-soft">
                                         {card.description}
                                     </p>
                                 </div>
                                 {kickUnverified && (
-                                    <div className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                                    <div className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap bg-ds-raised text-ds-accent-text">
                                         Próximamente en Kick
                                     </div>
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-end pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="flex items-center justify-end pt-4 border-t border-ds-border">
                                 {kickUnverified ? (
                                     <button
                                         disabled
-                                        className="flex items-center gap-2 px-4 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] dark:text-[#94a3b8] font-semibold text-sm opacity-50 cursor-not-allowed"
+                                        className="flex items-center gap-2 px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-soft font-semibold text-sm opacity-50 cursor-not-allowed"
                                     >
                                         <Settings className="w-4 h-4" />
                                         Próximamente
@@ -182,7 +182,7 @@ export default function FeaturesHub() {
                                 ) : (
                                     <button
                                         onClick={() => navigate(card.route)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-white rounded-lg transition-all font-semibold text-sm"
                                     >
                                         <Settings className="w-4 h-4" />
                                         {card.buttonLabel ?? 'Configurar'}
