@@ -126,7 +126,7 @@ export default function TcgHub() {
     }, []);
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <TcgContextBanner />
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>

@@ -78,7 +78,7 @@ export default function LiveTranslationAdmin() {
     };
 
     return (
-        <div className="max-w-[1400px] mx-auto space-y-6">
+        <div className="panel-scale max-w-[1400px] mx-auto space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-ds-bg"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>

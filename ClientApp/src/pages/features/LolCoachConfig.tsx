@@ -83,7 +83,7 @@ export default function LolCoachConfig() {
     const cs = phase?.champSelect;
 
     return (
-        <div className="max-w-[1200px] mx-auto space-y-6">
+        <div className="panel-scale max-w-[1200px] mx-auto space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/features')} className="p-2 rounded-lg hover:bg-ds-bg"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>

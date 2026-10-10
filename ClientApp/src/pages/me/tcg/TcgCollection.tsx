@@ -103,7 +103,7 @@ export default function TcgCollection() {
     const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <TcgPageHeader title="Mi colección" subtitle={`${totalCount} carta${totalCount === 1 ? '' : 's'}`} />
 
             <div className="flex flex-wrap gap-3 items-center">

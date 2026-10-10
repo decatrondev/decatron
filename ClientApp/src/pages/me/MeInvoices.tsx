@@ -226,7 +226,7 @@ export default function MeInvoices() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <div>
                 <h1 className="text-3xl font-black text-ds-text">Mis comprobantes</h1>
                 <p className="text-ds-soft mt-2">

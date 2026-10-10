@@ -41,6 +41,8 @@ export type ExitAnimation = 'fade' | 'slide' | 'none';
 export type MinRole = 'all' | 'sub' | 'vip' | 'mod';
 export type BubbleMovement = 'float' | 'drift' | 'bounce' | 'fall' | 'stay' | 'random';
 export type BubbleShape = 'round' | 'comic' | 'rect';
+/** classic = globo simple; glass = cristal translúcido con el nombre en una píldora de color */
+export type BubbleStyle = 'classic' | 'glass';
 
 /** Un área del lienzo: donde pueden aparecer burbujas (allow) o donde nunca debe aparecer nada (deny) */
 export interface BubbleZone { id: string; kind: 'allow' | 'deny'; x: number; y: number; width: number; height: number }
@@ -118,6 +120,15 @@ export interface ChatOverlayConfig {
         maxBubbles: number;
         maxWidth: number;
         shape: BubbleShape;
+        style: BubbleStyle;
+        /** Escala de toda la burbuja (letra, relleno, nombre, insignias y emotes); 1 = tamaño base */
+        scale: number;
+        /** Letra de las burbujas, aparte de la del modo lista */
+        fontSize: number;
+        paddingY: number;
+        paddingX: number;
+        /** Curvatura de las esquinas; -1 = automática según la forma */
+        radius: number;
         background: string;
         /** Borde del color de quien escribe */
         userBorder: boolean;
@@ -184,8 +195,14 @@ export const DEFAULT_CHAT_CONFIG: ChatOverlayConfig = {
         speed: 60,
         durationSeconds: 9,
         maxBubbles: 12,
-        maxWidth: 520,
+        maxWidth: 460,
         shape: 'round',
+        style: 'classic',
+        scale: 0.8,
+        fontSize: 26,
+        paddingY: 10,
+        paddingX: 20,
+        radius: -1,
         background: 'rgba(15,15,20,0.82)',
         userBorder: true,
         avoidOverlap: true,
@@ -266,7 +283,13 @@ export function normalizeChatConfig(raw: unknown): ChatOverlayConfig {
     const b = c.bubbles;
     if (!['float', 'drift', 'bounce', 'fall', 'stay', 'random'].includes(b.movement)) b.movement = 'float';
     if (!['round', 'comic', 'rect'].includes(b.shape)) b.shape = 'round';
+    if (!['classic', 'glass'].includes(b.style)) b.style = 'classic';
     if (!['replace', 'skip'].includes(b.whenFull)) b.whenFull = 'replace';
+    b.scale = Math.min(2, Math.max(0.3, b.scale));
+    b.fontSize = Math.min(80, Math.max(10, b.fontSize));
+    b.paddingY = Math.min(40, Math.max(0, b.paddingY));
+    b.paddingX = Math.min(60, Math.max(0, b.paddingX));
+    b.radius = b.radius < 0 ? -1 : Math.min(60, b.radius);
     b.speed = Math.min(400, Math.max(0, b.speed));
     b.durationSeconds = Math.min(60, Math.max(2, b.durationSeconds));
     b.maxBubbles = Math.min(40, Math.max(1, Math.round(b.maxBubbles)));

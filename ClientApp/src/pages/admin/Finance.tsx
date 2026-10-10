@@ -53,7 +53,7 @@ export default function Finance() {
     useEffect(() => { load(); }, [load]);
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto">
+        <div className="panel-scale space-y-6 max-w-6xl mx-auto">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/admin')} className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>

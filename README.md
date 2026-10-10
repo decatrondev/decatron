@@ -618,6 +618,7 @@ Full documentation is available in the [`docs/`](docs/) directory:
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, project structure, data flow |
+| [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Design tokens, component library, runtime theme editor |
 | [API.md](docs/API.md) | Complete API reference (100+ endpoints) |
 | [COMMANDS.md](docs/COMMANDS.md) | Bot commands reference (default, custom, scripting, micro) |
 | [CONFIGURATION.md](docs/CONFIGURATION.md) | Environment variables, app settings, service configuration |

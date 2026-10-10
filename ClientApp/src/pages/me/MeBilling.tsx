@@ -160,7 +160,7 @@ export default function MeBilling() {
     }
 
     return (
-        <div className="space-y-6 max-w-2xl">
+        <div className="panel-scale space-y-6 max-w-2xl">
             <div>
                 <h1 className="text-3xl font-black text-ds-text flex items-center gap-3">
                     <FileText className="w-7 h-7 text-ds-accent-text" />

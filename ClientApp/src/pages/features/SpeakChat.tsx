@@ -376,7 +376,7 @@ export default function SpeakChat() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="panel-scale space-y-6 max-w-4xl mx-auto">
 
             {/* ===== HEADER ===== */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

@@ -82,7 +82,7 @@ export default function Credits() {
     const spentPeriod = s.byFeature.reduce((a, b) => a + b.credits, 0);
 
     return (
-        <div className="space-y-6 max-w-[1100px] mx-auto">
+        <div className="panel-scale space-y-6 max-w-[1100px] mx-auto">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 className="text-3xl font-black text-ds-text">{t('title')}</h1>

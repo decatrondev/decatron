@@ -16,7 +16,7 @@ export default function EmailManagement() {
     const [activeTab, setActiveTab] = useState('templates');
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button onClick={() => navigate('/admin')} className="p-2 hover:bg-ds-raised rounded-lg transition-colors">

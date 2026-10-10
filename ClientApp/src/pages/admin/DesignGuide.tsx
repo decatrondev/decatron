@@ -8,6 +8,8 @@ import {
 import type { DsTheme } from '../../components/ds/tokens';
 import { getActiveDesign } from '../../design/runtime';
 import DesignEditor from './DesignEditor';
+import { highlightCode } from '../commands/scripting/grammar';
+import TabIcon from '../../components/dashboard/TabIcon';
 
 /**
  * Guía de estilo viva (solo dueño). Fase 0 del sistema de diseño: SIN conectar a ninguna página ni a la base de datos.
@@ -17,7 +19,7 @@ import DesignEditor from './DesignEditor';
 const SECTIONS = [
     ['principios', 'Principios'], ['colores', 'Colores y contraste'], ['tipografia', 'Tipografía'], ['botones', 'Botones'],
     ['campos', 'Campos'], ['seleccion', 'Selección'], ['navegacion', 'Pestañas'], ['tarjetas', 'Tarjetas y etiquetas'],
-    ['avisos', 'Avisos'], ['tabla', 'Tabla'], ['modal', 'Modal y avisos emergentes'], ['estados', 'Vacío y cargando'], ['ambiente', 'Ambiente'],
+    ['avisos', 'Avisos'], ['tabla', 'Tabla'], ['modal', 'Modal y avisos emergentes'], ['estados', 'Vacío y cargando'], ['ambiente', 'Ambiente'], ['codigo', 'Código y pestañas'],
 ] as const;
 
 function lum(hex: string) {
@@ -226,6 +228,17 @@ export default function DesignGuide() {
                                 <div className="ds-ambient ds-ambient--off" /><p style={{ position: 'relative', padding: 16, margin: 0, fontWeight: 700 }}>Plano</p>
                             </div>
                         </div>
+                    </Block>
+                    <Block id="codigo" eyebrow="componente" title="Código y pestañas" note="El resaltado del editor de scripts lee tres variables editables (palabras clave y funciones, textos y $(variables), números). Las pestañas de configuración usan iconos de línea que heredan el color, nunca emojis.">
+                        <Card>
+                            <pre className="ds-code" style={{ margin: 0, padding: 16, background: 'var(--ds-input)', border: '1px solid var(--ds-border)', borderRadius: 'var(--ds-radius)', fontFamily: 'var(--ds-font-mono)', fontSize: 13, color: 'var(--ds-text)', overflowX: 'auto' }}
+                                dangerouslySetInnerHTML={{ __html: highlightCode('set suerte = roll(1, 100)\n\nwhen $(suerte) >= 90 then\n    send "Tienes $(suerte)% de suerte"\nend') }} />
+                        </Card>
+                        <Row label="barra de pestañas de configuración">
+                            {[['📚', 'Guía', true], ['⚙️', 'Básico', false], ['🎨', 'Tema', false], ['🔔', 'Alertas', false]].map(([e, l, on]) => (
+                                <button key={String(l)} type="button" className={on ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}><TabIcon emoji={String(e)} />{String(l)}</button>
+                            ))}
+                        </Row>
                     </Block>
                 </main>
             </div>

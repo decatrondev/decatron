@@ -196,7 +196,7 @@ const GiveawayConfig = () => {
     }
 
     return (
-        <div className="min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8">
+        <div className="panel-scale bg-ds-bg p-4 sm:p-6 lg:p-8">
             <div className="max-w-[1920px] mx-auto">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">

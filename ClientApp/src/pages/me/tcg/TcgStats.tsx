@@ -72,7 +72,7 @@ export default function TcgStats() {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <TcgPageHeader title="Estadísticas" subtitle="Tu colección en números." />
 
             {/* Números principales */}

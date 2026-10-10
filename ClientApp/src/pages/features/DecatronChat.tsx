@@ -506,7 +506,7 @@ export default function DecatronChat() {
     }
 
     return (
-        <div className="h-[calc(100vh-12rem)] flex gap-4">
+        <div className="panel-scale h-[calc(100vh-12rem)] flex gap-4">
             {/* Sidebar - Conversaciones */}
             <div className="w-80 bg-ds-surface rounded-lg border border-ds-border flex flex-col overflow-hidden">
                 <div className="p-4 border-b border-ds-border">

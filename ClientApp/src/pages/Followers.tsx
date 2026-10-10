@@ -504,7 +504,7 @@ export default function Followers() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {/* Toast Notification */}
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg ${

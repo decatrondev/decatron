@@ -201,7 +201,7 @@ export default function AdminHub() {
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black text-ds-text">Admin</h1>

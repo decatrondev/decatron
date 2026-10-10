@@ -8,7 +8,7 @@ import OverlayCanvasEditor from '../../../../components/overlay-editor/OverlayCa
 import ChatBox from '../../../../components/chat-overlay/ChatRenderer';
 import BotListModal from '../../../../components/bot-list/BotListModal';
 import { FONT_OPTIONS } from '../../../../components/shoutout-overlay/defaults';
-import { CANVAS, CHAT_PRESETS, type BubbleMovement, type BubbleShape, type BubbleZone, type ChatOverlayConfig, type ChatPreset, type EnterAnimation, type ExitAnimation, type MinRole } from '../../../../components/chat-overlay/types';
+import { CANVAS, CHAT_PRESETS, type BubbleMovement, type BubbleShape, type BubbleStyle, type BubbleZone, type ChatOverlayConfig, type ChatPreset, type EnterAnimation, type ExitAnimation, type MinRole } from '../../../../components/chat-overlay/types';
 import { sampleMessage } from '../../../../components/chat-overlay/sample';
 import type { FeedItem } from '../../../../components/chat-overlay/useChatFeed';
 import type { ChatOverlayConfigState } from '../hooks/useChatOverlayConfig';
@@ -200,6 +200,7 @@ export function BubblesTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: C
     const b = c.bubbles;
     const movements: BubbleMovement[] = ['float', 'drift', 'bounce', 'fall', 'stay', 'random'];
     const shapes: BubbleShape[] = ['round', 'comic', 'rect'];
+    const styles: BubbleStyle[] = ['classic', 'glass'];
     return (
         <Stack>
             {c.mode !== 'bubbles' && (
@@ -237,10 +238,30 @@ export function BubblesTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: C
                     <Toggle checked={b.avoidOverlap} onChange={v => set('bubbles', { avoidOverlap: v })} label={t('chat.bubbles.avoidOverlap')} hint={t('chat.bubbles.avoidOverlapHint')} />
                 </div>
             </Card>
+            <Card title={t('chat.bubbles.sizeTitle')} description={t('chat.bubbles.sizeDescription')}>
+                <Field label={t('chat.bubbles.scale')} hint={t('chat.bubbles.scaleHint')}>
+                    <Slider value={Math.round(b.scale * 100)} min={30} max={200} step={5} suffix="%" onChange={v => set('bubbles', { scale: v / 100 })} />
+                </Field>
+                <Field label={t('chat.bubbles.fontSize')} hint={t('chat.bubbles.fontSizeHint')}>
+                    <Slider value={b.fontSize} min={10} max={80} suffix="px" onChange={v => set('bubbles', { fontSize: v })} />
+                </Field>
+                <Field label={t('chat.bubbles.paddingY')}>
+                    <Slider value={b.paddingY} min={0} max={40} suffix="px" onChange={v => set('bubbles', { paddingY: v })} />
+                </Field>
+                <Field label={t('chat.bubbles.paddingX')}>
+                    <Slider value={b.paddingX} min={0} max={60} suffix="px" onChange={v => set('bubbles', { paddingX: v })} />
+                </Field>
+                <Field label={t('chat.bubbles.radius')} hint={t('chat.bubbles.radiusHint')}>
+                    <Slider value={b.radius < 0 ? (b.shape === 'rect' ? 10 : b.shape === 'comic' ? 22 : 30) : b.radius} min={0} max={60} suffix="px" onChange={v => set('bubbles', { radius: v })} />
+                </Field>
+            </Card>
             <Card title={t('chat.bubbles.lookTitle')}>
+                <Field label={t('chat.bubbles.style')} hint={t('chat.bubbles.styleHint')}>
+                    <Select<BubbleStyle> value={b.style} onChange={v => set('bubbles', { style: v })} options={styles.map(st => ({ value: st, label: t(`chat.bubbles.styles.${st}`) }))} />
+                </Field>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <Field label={t('chat.bubbles.shape')}>
-                        <Select<BubbleShape> value={b.shape} onChange={v => set('bubbles', { shape: v })} options={shapes.map(sh => ({ value: sh, label: t(`chat.bubbles.shapes.${sh}`) }))} />
+                        <Select<BubbleShape> value={b.shape} onChange={v => set('bubbles', { shape: v, radius: -1 })} options={shapes.map(sh => ({ value: sh, label: t(`chat.bubbles.shapes.${sh}`) }))} />
                     </Field>
                     <ColorField label={t('chat.bubbles.background')} value={b.background} onChange={v => set('bubbles', { background: v })} />
                     <Field label={t('chat.bubbles.maxWidth')}>

@@ -41,7 +41,7 @@ export default function MeOverview() {
     const progress = Math.round((user.globalXp / user.globalXpRequired) * 100);
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-black text-ds-text">Mi Perfil</h1>

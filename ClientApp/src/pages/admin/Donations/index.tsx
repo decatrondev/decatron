@@ -69,7 +69,7 @@ export default function AdminDonations() {
     const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
 
     return (
-        <div className="space-y-6 max-w-[1400px] mx-auto">
+        <div className="panel-scale space-y-6 max-w-[1400px] mx-auto">
 
             {/* ── Header ── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

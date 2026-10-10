@@ -31,7 +31,7 @@ export default function GachaConfig() {
     const [activeTab, setActiveTab] = useState<GachaTabType>('items');
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-black text-ds-text">Gacha System</h1>

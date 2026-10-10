@@ -89,7 +89,7 @@ export default function GameOverlayPromosAdmin() {
     const totalWeight = promos.filter(p => p.isEnabled).reduce((s, p) => s + p.weight, 0);
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <div className="flex items-center gap-3">
                 <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-ds-raised"><ArrowLeft className="w-5 h-5" /></button>
                 <Megaphone className="w-6 h-6 text-ds-accent-text" />

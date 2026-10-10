@@ -117,7 +117,7 @@ export default function DiscordWelcome() {
   }
 
   return (
-    <div className="min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8">
+    <div className="panel-scale min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8">
       <div className="max-w-[1920px] mx-auto">
         {/* Header */}
         <div className="bg-ds-surface rounded-lg p-6 border border-ds-border mb-6">

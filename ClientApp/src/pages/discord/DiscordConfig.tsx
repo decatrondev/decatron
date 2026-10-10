@@ -57,7 +57,7 @@ export default function DiscordConfig() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="panel-scale space-y-6">
       {/* Header */}
       <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
         <div className="flex items-center justify-between">

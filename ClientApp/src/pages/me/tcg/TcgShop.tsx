@@ -173,7 +173,7 @@ export default function TcgShop() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {toast && (
                 <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-lg border font-semibold ${toast.type === 'success' ? 'bg-ds-accent/20 border-ds-ok/40 text-ds-ok' : 'bg-ds-danger-solid/20 border-ds-danger/40 text-ds-danger'}`}>
                     {toast.type === 'success' ? <Check className="w-5 h-5 shrink-0" /> : <X className="w-5 h-5 shrink-0" />}

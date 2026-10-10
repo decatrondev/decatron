@@ -50,7 +50,7 @@ function originColor(login: string): string {
     return `hsl(${hash(login) % 360}, 70%, 65%)`;
 }
 
-function BadgeView({ badge, size }: { badge: ChatBadge; size: number }) {
+export function BadgeView({ badge, size }: { badge: ChatBadge; size: number }) {
     if (badge.url) {
         return <img src={badge.url} alt={badge.title || badge.id} title={badge.title} style={{ display: 'inline-block', height: size, width: size, verticalAlign: 'middle', marginRight: 4 }} />;
     }
@@ -127,7 +127,8 @@ function formatTime(ts: number): string {
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-export function MessageView({ msg, config }: { msg: ChatMsg; config: ChatOverlayConfig }) {
+/** `hideAuthor` quita insignias, nombre y separador (el estilo cristal los pone aparte, en la píldora) */
+export function MessageView({ msg, config, hideAuthor = false }: { msg: ChatMsg; config: ChatOverlayConfig; hideAuthor?: boolean }) {
     const { text, display, sources, sharedChat } = config;
     const badgeSize = Math.round(text.fontSize * 0.95);
     const platform = PLATFORM_STYLE[msg.platform];
@@ -146,9 +147,9 @@ export function MessageView({ msg, config }: { msg: ChatMsg; config: ChatOverlay
                         [{msg.channel.name}]
                     </span>
                 )}
-                {display.showBadges && msg.badges.map(b => <BadgeView key={b.id} badge={b} size={badgeSize} />)}
-                <span style={{ color: nameColorOf(msg, config), fontWeight: 800 }}>{msg.user.name}</span>
-                <span style={{ marginRight: 8 }}>{display.separator}</span>
+                {!hideAuthor && display.showBadges && msg.badges.map(b => <BadgeView key={b.id} badge={b} size={badgeSize} />)}
+                {!hideAuthor && <span style={{ color: nameColorOf(msg, config), fontWeight: 800 }}>{msg.user.name}</span>}
+                {!hideAuthor && <span style={{ marginRight: 8 }}>{display.separator}</span>}
                 <PartsView parts={msg.parts} config={config} />
             </div>
         </>

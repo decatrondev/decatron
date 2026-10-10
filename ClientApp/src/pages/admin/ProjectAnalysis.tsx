@@ -345,7 +345,7 @@ export default function ProjectAnalysis() {
     const biggest = data.largestFiles[0];
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto">
+        <div className="panel-scale space-y-6 max-w-5xl mx-auto">
             <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-4">
                     <button

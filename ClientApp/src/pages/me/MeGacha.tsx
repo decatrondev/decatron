@@ -180,7 +180,7 @@ export default function MeGacha() {
     if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-ds-accent-text" /></div>;
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
                 {jwt?.profileImage ? (

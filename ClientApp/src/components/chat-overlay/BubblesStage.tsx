@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import { MessageView, nameColorOf, textStyle } from './ChatRenderer';
+import { BadgeView, MessageView, nameColorOf, textStyle } from './ChatRenderer';
 import { CANVAS, type BubbleMovement, type BubbleZone, type ChatMsg, type ChatOverlayConfig, type ChatPart } from './types';
 
 // Modo burbujas (.dev/plans/CHAT_OVERLAY_EMOTES_PLAN.md, fase 2): cada mensaje aparece en un lugar del lienzo de
@@ -83,13 +83,14 @@ export function useBubbles(config: ChatOverlayConfig) {
     /** Busca un lugar libre para una burbuja ya medida; null si no lo hay */
     const findSpot = (p: Phys): { x: number; y: number } | null => {
         const c = cfg.current.bubbles;
-        const w = p.w * p.scale, h = p.h * p.scale;
+        const sc = p.scale * c.scale;
+        const w = p.w * sc, h = p.h * sc;
         const allow = c.zones.filter(z => z.kind === 'allow');
         const deny = c.zones.filter(z => z.kind === 'deny');
         const areas: BubbleZone[] = allow.length > 0 ? allow : [{ id: 'all', kind: 'allow', x: 0, y: 0, width: CANVAS.width, height: CANVAS.height }];
         const total = areas.reduce((n, z) => n + z.width * z.height, 0);
         const others = [...phys.current.values()].filter(o => o.id !== p.id && o.state !== 'pending')
-            .map<Rect>(o => ({ x: o.x, y: o.y, w: o.w * o.scale, h: o.h * o.scale }));
+            .map<Rect>(o => ({ x: o.x, y: o.y, w: o.w * o.scale * c.scale, h: o.h * o.scale * c.scale }));
 
         for (let i = 0; i < PLACE_TRIES; i++) {
             let pick = Math.random() * total;
@@ -126,7 +127,7 @@ export function useBubbles(config: ChatOverlayConfig) {
             if (!spot) {
                 if (c.whenFull === 'skip') { dropped.push(p.id); continue; }
                 // Sin lugar libre en una pantalla llena: se acepta encimarse antes que perder el mensaje
-                const w = p.w * p.scale, h = p.h * p.scale;
+                const w = p.w * p.scale * c.scale, h = p.h * p.scale * c.scale;
                 p.x = Math.random() * Math.max(0, CANVAS.width - w);
                 p.y = Math.random() * Math.max(0, CANVAS.height - h);
             } else {
@@ -167,7 +168,7 @@ export function useBubbles(config: ChatOverlayConfig) {
                 const age = now - p.born;
                 if (p.state === 'live' && age >= c.durationSeconds * 1000) startLeaving(p);
 
-                const w = p.w * p.scale, h = p.h * p.scale;
+                const w = p.w * p.scale * c.scale, h = p.h * p.scale * c.scale;
                 if (p.kind === 'float' || p.kind === 'fall') {
                     p.y += p.vy * dt;
                     if (p.state === 'live' && (p.y + h < -10 || p.y > CANVAS.height + 10)) startLeaving(p);
@@ -183,7 +184,7 @@ export function useBubbles(config: ChatOverlayConfig) {
 
                 const enter = Math.min(1, age / ENTER_MS);
                 let opacity = enter;
-                let scale = p.scale * (0.7 + 0.3 * (1 - (1 - enter) * (1 - enter)));
+                let scale = p.scale * c.scale * (0.7 + 0.3 * (1 - (1 - enter) * (1 - enter)));
                 if (p.state === 'leaving') {
                     const t = Math.min(1, (now - p.leaveAt) / EXIT_MS);
                     opacity *= 1 - t;
@@ -230,13 +231,25 @@ export function useBubbles(config: ChatOverlayConfig) {
 
 export type BubblesEngine = ReturnType<typeof useBubbles>;
 
+/** Color de letra legible sobre el color del usuario (blanco u oscuro según su luminosidad) */
+function readableOn(color: string): string {
+    let r = 255, g = 255, bl = 255;
+    const rgb = /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i.exec(color);
+    const hex = /^#?([0-9a-f]{6})$/i.exec(color.trim());
+    if (rgb) { r = +rgb[1]; g = +rgb[2]; bl = +rgb[3]; }
+    else if (hex) { const n = parseInt(hex[1], 16); r = (n >> 16) & 255; g = (n >> 8) & 255; bl = n & 255; }
+    return (0.299 * r + 0.587 * g + 0.114 * bl) / 255 > 0.6 ? '#111' : '#fff';
+}
+
 function BubbleNode({ b, config, register }: { b: BubbleView; config: ChatOverlayConfig; register: BubblesEngine['register'] }) {
-    const { bubbles, emotes, text } = config;
+    const { bubbles, emotes } = config;
+    // Las burbujas usan su propia letra: el resto del renderer lee el tamaño de config.text
+    const cfg: ChatOverlayConfig = { ...config, text: { ...config.text, fontSize: bubbles.fontSize } };
     const accent = nameColorOf(b.msg, config);
 
     const outer: CSSProperties = {
         position: 'absolute', left: 0, top: 0, width: 'max-content', maxWidth: bubbles.maxWidth, willChange: 'transform, opacity',
-        transformOrigin: '50% 50%',
+        transformOrigin: '50% 50%', fontSize: bubbles.fontSize,
     };
 
     if (b.emoteOnly) {
@@ -248,17 +261,53 @@ function BubbleNode({ b, config, register }: { b: BubbleView; config: ChatOverla
                         <img key={i} src={p.u} alt={p.n} style={{ display: 'block', height: size }} />
                     ))}
                 </div>
-                <div style={{ fontSize: text.fontSize * 0.7, fontWeight: 800, color: accent, marginTop: 2 }}>{b.msg.user.name}</div>
+                <div style={{ fontSize: bubbles.fontSize * 0.7, fontWeight: 800, color: accent, marginTop: 2 }}>{b.msg.user.name}</div>
             </div>
         );
     }
 
-    const radius = bubbles.shape === 'rect' ? 10 : bubbles.shape === 'comic' ? 22 : 30;
+    const autoRadius = bubbles.shape === 'rect' ? 10 : bubbles.shape === 'comic' ? 22 : 30;
+    const radius = bubbles.radius < 0 ? autoRadius : bubbles.radius;
+
+    if (bubbles.style === 'glass') {
+        // Cristal: cuerpo translúcido y el nombre en una píldora del color del usuario, montada sobre la esquina
+        const pillFont = bubbles.fontSize * 0.78;
+        const badgeSize = Math.round(pillFont * 1.05);
+        const pillColor = accent;
+        return (
+            <div ref={el => register(b.id, el)} style={outer}>
+                <div
+                    style={{
+                        position: 'relative', zIndex: 1, display: 'inline-flex', alignItems: 'center', gap: 5,
+                        marginLeft: Math.min(radius, 18), marginBottom: -pillFont * 0.62,
+                        padding: `${pillFont * 0.14}px ${pillFont * 0.7}px ${pillFont * 0.14}px ${pillFont * 0.35}px`,
+                        borderRadius: 999, background: pillColor, color: readableOn(pillColor),
+                        fontSize: pillFont, fontWeight: 800, lineHeight: 1.25, whiteSpace: 'nowrap', textShadow: 'none',
+                        boxShadow: '0 2px 6px rgba(0,0,0,.35)',
+                    }}
+                >
+                    {config.display.showBadges && b.msg.badges.map(bd => <BadgeView key={bd.id} badge={bd} size={badgeSize} />)}
+                    <span>{b.msg.user.name}</span>
+                </div>
+                <div
+                    style={{
+                        position: 'relative', background: bubbles.background,
+                        border: '1.5px solid rgba(255,255,255,0.16)', borderRadius: radius,
+                        padding: `${bubbles.paddingY + pillFont * 0.62}px ${bubbles.paddingX}px ${bubbles.paddingY}px`,
+                        boxShadow: '0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12)',
+                    }}
+                >
+                    <MessageView msg={b.msg} config={cfg} hideAuthor />
+                </div>
+            </div>
+        );
+    }
+
     const border = bubbles.userBorder ? `3px solid ${accent}` : '3px solid transparent';
     return (
         <div ref={el => register(b.id, el)} style={outer}>
-            <div style={{ position: 'relative', background: bubbles.background, border, borderRadius: radius, padding: '10px 20px' }}>
-                <MessageView msg={b.msg} config={config} />
+            <div style={{ position: 'relative', background: bubbles.background, border, borderRadius: radius, padding: `${bubbles.paddingY}px ${bubbles.paddingX}px` }}>
+                <MessageView msg={b.msg} config={cfg} />
                 {bubbles.shape === 'comic' && (
                     <span
                         style={{

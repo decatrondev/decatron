@@ -140,7 +140,7 @@ export default function DeveloperPortal() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             {/* Toast Notifications */}
             <div className="fixed top-4 right-4 z-50 space-y-2">
                 {toasts.map(toast => (

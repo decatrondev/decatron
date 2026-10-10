@@ -77,7 +77,7 @@ export default function ChannelsVisibility() {
     const list = channels[activeTab];
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="panel-scale max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div>
                     <button

@@ -23,7 +23,7 @@ export default function ApiReference() {
     const baseUrl = 'https://twitch.decatron.net';
 
     return (
-        <div className="min-h-screen bg-ds-bg text-ds-text p-6">
+        <div className="panel-scale min-h-screen bg-ds-bg text-ds-text p-6">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">

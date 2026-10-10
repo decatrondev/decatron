@@ -73,7 +73,7 @@ export default function Layout() {
             <aside className={`panel-scale fixed md:static inset-y-0 left-0 z-50 w-64 bg-ds-surface border-r border-ds-border transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
                 <div className="p-6 border-b border-ds-border flex-shrink-0">
                     <Link to="/dashboard" className="flex items-center">
-                        <BrandMark slot="panel-sidebar" fallback={<img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />} />
+                        <BrandMark slot="panel-sidebar" fallback={<><img src={decatronLockup} alt="Decatron" className="h-10 object-contain dark:hidden" /><img src="/brand/decatron-lockup-light.png" alt="Decatron" className="h-10 object-contain hidden dark:block" /></>} />
                     </Link>
                 </div>
 

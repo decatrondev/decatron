@@ -205,7 +205,7 @@ export default function TtsCreditsAdmin() {
         });
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto">
+        <div className="panel-scale space-y-6 max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin')}
