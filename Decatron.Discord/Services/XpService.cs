@@ -202,6 +202,9 @@ public class XpService
     /// <summary>
     /// XP needed to reach a specific level. Formula: 100 * level^2 * difficulty
     /// </summary>
+    /// <summary>XP que pide un nivel con la dificultad configurada en el servidor.</summary>
+    public long RequiredXpFor(XpConfig config, int level) => CalculateRequiredXp(level, GetDifficultyMultiplier(config));
+
     public static long CalculateRequiredXp(int level, double difficulty = 1.0)
     {
         return (long)Math.Round(100.0 * level * level * difficulty);
@@ -356,7 +359,7 @@ public class XpService
         userXp.UpdatedAt = DateTime.UtcNow;
 
         // Recalculate level from total XP
-        RecalculateLevel(userXp);
+        RecalculateLevel(userXp, await GetOrCreateConfigAsync(guildId));
 
         db.XpTransactions.Add(new XpTransaction
         {
@@ -410,9 +413,9 @@ public class XpService
         userXp.UpdatedAt = DateTime.UtcNow;
 
         // Recalculate level
-        RecalculateLevel(userXp);
-
         var config = await GetOrCreateConfigAsync(guildId);
+        RecalculateLevel(userXp, config);
+
         CheckAndApplyLevelUp(userXp, config);
 
         db.XpTransactions.Add(new XpTransaction
@@ -429,14 +432,14 @@ public class XpService
         return (userXp, newAchievements);
     }
 
-    private void RecalculateLevel(UserXp userXp)
+    private void RecalculateLevel(UserXp userXp, XpConfig config)
     {
         // Reset level and recalculate from XP
         var totalXp = userXp.Xp;
         userXp.Level = 0;
         while (true)
         {
-            var required = CalculateRequiredXp(userXp.Level + 1);
+            var required = RequiredXpFor(config, userXp.Level + 1);
             if (totalXp >= required)
             {
                 totalXp -= required;

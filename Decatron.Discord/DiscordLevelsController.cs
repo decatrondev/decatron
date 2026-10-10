@@ -588,7 +588,7 @@ public class DiscordLevelsController : ControllerBase
                     {
                         var rank = await _xpService.GetUserRankAsync(guildId, userId);
                         var totalUsers = await _xpService.GetTotalUsersAsync(guildId);
-                        var requiredXp = Services.XpService.CalculateRequiredXp(newLevel + 1);
+                        var requiredXp = _xpService.RequiredXpFor(config, newLevel + 1);
 
                         var cardStream = await rankCardGen.GenerateAsync(
                             username: userXp.Username,

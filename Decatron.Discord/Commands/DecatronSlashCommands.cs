@@ -423,7 +423,7 @@ public class DecatronSlashCommands
         var config = await xpService.GetOrCreateConfigAsync(guildId);
         var rank = await xpService.GetUserRankAsync(guildId, userId);
         var totalUsers = await xpService.GetTotalUsersAsync(guildId);
-        var requiredXp = Services.XpService.CalculateRequiredXp(userXp.Level + 1);
+        var requiredXp = xpService.RequiredXpFor(config, userXp.Level + 1);
 
         var cardStream = await rankCardGen.GenerateAsync(
             username: userXp.Username,
@@ -613,7 +613,7 @@ public class DecatronSlashCommands
 
                 var rank = await xpService.GetUserRankAsync(guildId, target.Id.ToString());
                 var totalUsers = await xpService.GetTotalUsersAsync(guildId);
-                var requiredXp = XpService.CalculateRequiredXp(userXp.Level + 1);
+                var requiredXp = xpService.RequiredXpFor(config, userXp.Level + 1);
 
                 using var scope = _serviceProvider.CreateScope();
                 var rankCardGen = scope.ServiceProvider.GetRequiredService<RankCardGenerator>();

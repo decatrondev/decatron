@@ -110,8 +110,7 @@ public class MessageXpHandler
             // Get rank info
             var rank = await _xpService.GetUserRankAsync(guildId, userXp.UserId);
             var totalUsers = await _xpService.GetTotalUsersAsync(guildId);
-            var difficulty = 1.0; // TODO: pull from config
-            var requiredXp = XpService.CalculateRequiredXp(userXp.Level + 1, difficulty);
+            var requiredXp = _xpService.RequiredXpFor(config, userXp.Level + 1);
 
             // Generate rank card (resolve from scope since it needs DbContext)
             using var scope = _serviceProvider.CreateScope();
