@@ -83,12 +83,12 @@ export default function AdminTcgArtQueue() {
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/admin')} className="p-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-[#1e293b] dark:text-[#f8fafc]" />
+                    <button onClick={() => navigate('/admin')} className="p-2 hover:bg-ds-raised rounded-lg transition-colors">
+                        <ArrowLeft className="w-5 h-5 text-ds-text" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">TCG — Cola de arte pendiente</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <h1 className="text-3xl font-black text-ds-text">TCG — Cola de arte pendiente</h1>
+                        <p className="text-ds-soft mt-1">
                             Cartas que sacaron grado 10 y esperan su ilustración exclusiva. Cuando subís el
                             archivo, el upgrade se completa y el jugador ya puede confirmarlo.
                         </p>
@@ -97,7 +97,7 @@ export default function AdminTcgArtQueue() {
                 <button
                     onClick={load}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-[#1a1b1e] border border-[#374151] hover:border-[#2563eb] text-white px-4 py-2 rounded-xl transition-colors"
+                    className="flex items-center gap-2 bg-ds-bg border border-ds-border hover:border-ds-accent text-ds-text px-4 py-2 rounded-lg transition-colors"
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                     Actualizar
@@ -105,43 +105,43 @@ export default function AdminTcgArtQueue() {
             </div>
 
             {error && (
-                <div className="text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+                <div className="text-sm font-semibold text-ds-danger bg-ds-danger-solid/10 border border-ds-danger/40 rounded-lg px-4 py-3">
                     {error}
                 </div>
             )}
 
             {loading ? (
                 <div className="flex items-center justify-center min-h-[200px]">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                    <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
                 </div>
             ) : items.length === 0 ? (
-                <p className="text-[#64748b] dark:text-[#94a3b8]">
+                <p className="text-ds-soft">
                     No hay nada pendiente. Un grado 10 sale en el 0.5% de los intentos, así que esto
                     va a estar vacío casi siempre.
                 </p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {items.map((item) => (
-                        <div key={item.id} className="bg-[#1a1b1e] border border-[#374151] rounded-2xl p-5 space-y-4">
+                        <div key={item.id} className="bg-ds-bg border border-ds-border rounded-lg p-5 space-y-4">
                             <div className="flex gap-4">
                                 {item.referenceImageUrl ? (
                                     <img
                                         src={item.referenceImageUrl}
                                         alt={item.cardName || 'carta'}
-                                        className="w-24 aspect-[3/4] object-cover rounded-lg bg-black/20 shrink-0"
+                                        className="w-24 aspect-[3/4] object-cover rounded-lg bg-ds-input/20 shrink-0"
                                     />
                                 ) : (
-                                    <div className="w-24 aspect-[3/4] rounded-lg bg-black/20 shrink-0 flex items-center justify-center text-[10px] text-[#64748b]">
+                                    <div className="w-24 aspect-[3/4] rounded-lg bg-ds-input/20 shrink-0 flex items-center justify-center text-[10px] text-ds-soft">
                                         sin arte
                                     </div>
                                 )}
                                 <div className="min-w-0">
-                                    <div className="font-bold text-white truncate">{item.cardName || '???'}</div>
-                                    <div className="text-xs text-[#94a3b8] mt-0.5">{item.cardRarity} · nivel {item.level}</div>
-                                    <div className="text-xs text-[#64748b] mt-0.5">{item.cardElement} · {item.cardClass}</div>
-                                    <div className="text-[11px] text-[#64748b] mt-2">Pedida {formatDate(item.requestedAt)}</div>
+                                    <div className="font-bold text-ds-text truncate">{item.cardName || '???'}</div>
+                                    <div className="text-xs text-ds-soft mt-0.5">{item.cardRarity} · nivel {item.level}</div>
+                                    <div className="text-xs text-ds-soft mt-0.5">{item.cardElement} · {item.cardClass}</div>
+                                    <div className="text-[11px] text-ds-soft mt-2">Pedida {formatDate(item.requestedAt)}</div>
                                     {item.waitingPlayers > 0 && (
-                                        <div className="text-[11px] text-amber-400 mt-1 flex items-center gap-1">
+                                        <div className="text-[11px] text-ds-warn mt-1 flex items-center gap-1">
                                             <Users className="w-3 h-3" />
                                             {item.waitingPlayers} esperando
                                         </div>
@@ -149,7 +149,7 @@ export default function AdminTcgArtQueue() {
                                 </div>
                             </div>
 
-                            <p className="text-[11px] text-[#64748b] leading-relaxed">
+                            <p className="text-[11px] text-ds-soft leading-relaxed">
                                 Tiene que ser el mismo personaje que la referencia, evolucionado. Mismo formato
                                 que las cartas base (WEBP, vertical 3:4).
                             </p>
@@ -164,7 +164,7 @@ export default function AdminTcgArtQueue() {
                             <button
                                 onClick={() => fileInputs.current[item.id]?.click()}
                                 disabled={uploading === item.id}
-                                className="w-full flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50 text-white font-bold py-2.5 rounded-xl transition-colors"
+                                className="w-full flex items-center justify-center gap-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold py-2.5 rounded-lg transition-colors"
                             >
                                 {uploading === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                                 Subir ilustración

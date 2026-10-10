@@ -46,18 +46,18 @@ interface InvoicesResponse {
 }
 
 const FILTROS: { id: string | null; label: string; clave: keyof InvoicesResponse['counts'] | null; color: string }[] = [
-    { id: null,        label: 'Todos',     clave: null,       color: 'text-[#1e293b] dark:text-[#f8fafc]' },
-    { id: 'ACCEPTED',  label: 'Aceptados', clave: 'accepted', color: 'text-green-600 dark:text-green-400' },
-    { id: 'PENDING',   label: 'Pendientes', clave: 'pending', color: 'text-amber-600 dark:text-amber-400' },
-    { id: 'REJECTED',  label: 'Rechazados', clave: 'rejected', color: 'text-red-600 dark:text-red-400' },
-    { id: 'ERROR',     label: 'Con error', clave: 'error',    color: 'text-red-600 dark:text-red-400' },
+    { id: null, label: 'Todos', clave: null, color: 'text-ds-text ' },
+    { id: 'ACCEPTED', label: 'Aceptados', clave: 'accepted', color: 'text-ds-ok ' },
+    { id: 'PENDING', label: 'Pendientes', clave: 'pending', color: 'text-ds-warn ' },
+    { id: 'REJECTED', label: 'Rechazados', clave: 'rejected', color: 'text-ds-danger ' },
+    { id: 'ERROR', label: 'Con error', clave: 'error', color: 'text-ds-danger ' },
 ];
 
 const ESTADO_ESTILO: Record<string, string> = {
-    ACCEPTED: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-    PENDING:  'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-    REJECTED: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
-    ERROR:    'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    ACCEPTED: 'bg-ds-ok/10 text-ds-ok ',
+    PENDING: 'bg-ds-warn/10 text-ds-warn ',
+    REJECTED: 'bg-ds-danger/10 text-ds-danger ',
+    ERROR: 'bg-ds-danger/10 text-ds-danger ',
 };
 
 function fecha(iso: string | null): string {
@@ -138,8 +138,8 @@ export function InvoicesTab() {
 
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg">Comprobantes</h3>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                    <h3 className="font-black text-ds-text text-lg">Comprobantes</h3>
+                    <p className="text-sm text-ds-soft mt-0.5">
                         Boletas y facturas de las compras de tier. Las donaciones no llevan comprobante.
                     </p>
                 </div>
@@ -147,13 +147,13 @@ export function InvoicesTab() {
                     {aviso && (
                         <span className={`text-sm font-bold px-3 py-1.5 rounded-lg max-w-md truncate ${
                             aviso.tipo === 'ok'
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                ? 'bg-ds-ok/10 text-ds-ok '
+                                : 'bg-ds-danger/10 text-ds-danger '
                         }`} title={aviso.texto}>{aviso.texto}</span>
                     )}
                     <button
                         onClick={cargar}
-                        className="flex items-center gap-2 px-4 py-2.5 border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold rounded-xl text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#262626]"
+                        className="flex items-center gap-2 px-4 py-2.5 border border-ds-border text-sm font-bold rounded-lg text-ds-soft hover:bg-ds-bg"
                     >
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Actualizar
@@ -167,23 +167,23 @@ export function InvoicesTab() {
                     <button
                         key={f.label}
                         onClick={() => { setStatus(f.id); setPage(1); }}
-                        className={`rounded-xl p-3 border text-left transition-all ${
+                        className={`rounded-lg p-3 border text-left transition-all ${
                             status === f.id
-                                ? 'border-[#2563eb] ring-2 ring-[#2563eb]/30 bg-white dark:bg-[#1B1C1D]'
-                                : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] hover:border-[#2563eb]/50'
+                                ? 'border-ds-accent ring-2 ring-ds-accent/30 bg-ds-surface '
+                                : 'border-ds-border bg-ds-surface hover:border-ds-accent/50'
                         }`}
                     >
                         <p className={`text-2xl font-black ${f.color}`}>
                             {data ? (f.clave ? data.counts[f.clave] : data.total) : '—'}
                         </p>
-                        <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">{f.label}</p>
+                        <p className="text-xs font-bold text-ds-soft">{f.label}</p>
                     </button>
                 ))}
             </div>
 
             {/* Buscador */}
             <div className="relative">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ds-soft" />
                 <input
                     type="text"
                     value={busqueda}
@@ -195,11 +195,11 @@ export function InvoicesTab() {
 
             {loading && !data ? (
                 <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#2563eb]" />
+                    <Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" />
                 </div>
             ) : !data || data.items.length === 0 ? (
                 <div className={`${CARD} text-center py-12`}>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] font-bold">No hay comprobantes con este filtro</p>
+                    <p className="text-ds-soft font-bold">No hay comprobantes con este filtro</p>
                 </div>
             ) : (
                 <div className="space-y-2">
@@ -208,28 +208,28 @@ export function InvoicesTab() {
                             <div className="flex flex-wrap items-start justify-between gap-4">
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-black text-[#1e293b] dark:text-[#f8fafc] font-mono">
+                                        <span className="font-black text-ds-text font-mono">
                                             {fila.number ?? 'sin número'}
                                         </span>
                                         <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
-                                            ESTADO_ESTILO[fila.status ?? ''] ?? 'bg-[#f1f5f9] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8]'
+                                            ESTADO_ESTILO[fila.status ?? ''] ?? 'bg-ds-raised text-ds-soft '
                                         }`}>
                                             {fila.status ?? 'SIN COMPROBANTE'}
                                         </span>
                                         {fila.customerCountry && fila.customerCountry !== 'PE' && (
-                                            <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                                            <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-ds-accent/10 text-ds-accent-text">
                                                 EXPORTACIÓN {fila.customerCountry}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                    <p className="text-sm text-ds-soft mt-1">
                                         <span className="font-bold">{fila.twitchLogin ?? '—'}</span>
                                         {' · '}{fila.tier ?? '—'}
                                         {fila.billingType === 'permanent' ? ' permanente' : ' mensual'}
                                         {' · '}{fecha(fila.capturedAt)}
                                         {' · '}{fila.provider ?? '—'}
                                     </p>
-                                    <p className="text-xs text-[#94a3b8] mt-0.5 truncate">
+                                    <p className="text-xs text-ds-soft mt-0.5 truncate">
                                         {fila.customerName ?? 'sin nombre'}
                                         {fila.customerDoc ? ` · ${fila.customerDocType} ${fila.customerDoc}` : ''}
                                         {fila.orderId ? ` · ${fila.orderId}` : ''}
@@ -237,7 +237,7 @@ export function InvoicesTab() {
                                 </div>
 
                                 <div className="flex items-center gap-3 shrink-0">
-                                    <span className="font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                    <span className="font-black text-ds-text">
                                         {fila.currency === 'PEN' ? 'S/' : '$'} {fila.amount.toFixed(2)}
                                     </span>
 
@@ -247,7 +247,7 @@ export function InvoicesTab() {
                                             onClick={() => bajar(fila, f.id)}
                                             disabled={ocupado === `${f.id}-${fila.paymentId}`}
                                             title={f.hint}
-                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-xs font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#262626] disabled:opacity-60"
+                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-ds-border text-xs font-bold text-ds-soft hover:bg-ds-bg disabled:opacity-60"
                                         >
                                             {ocupado === `${f.id}-${fila.paymentId}`
                                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -263,7 +263,7 @@ export function InvoicesTab() {
                                             title={fila.documentId
                                                 ? 'Ya está emitido: solo vuelve a consultar su estado en SUNAT'
                                                 : 'Emite el comprobante ahora, sin esperar al job'}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2563eb] text-white text-xs font-bold hover:bg-[#1d4ed8] disabled:opacity-60"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ds-accent text-ds-on-accent text-xs font-bold hover:bg-ds-accent-hover disabled:opacity-60"
                                         >
                                             {ocupado === `retry-${fila.paymentId}`
                                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -275,11 +275,11 @@ export function InvoicesTab() {
                             </div>
 
                             {fila.error && (
-                                <div className="mt-3 flex items-start gap-2 text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+                                <div className="mt-3 flex items-start gap-2 text-xs text-ds-danger bg-ds-danger/10 border border-ds-danger/40 rounded-lg px-3 py-2">
                                     <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                                     <span className="break-words">
                                         {fila.error}
-                                        <span className="text-[#94a3b8] ml-2">
+                                        <span className="text-ds-soft ml-2">
                                             ({fila.attempts} intento{fila.attempts === 1 ? '' : 's'}, último {fecha(fila.lastAttempt)})
                                         </span>
                                     </span>
@@ -290,23 +290,23 @@ export function InvoicesTab() {
 
                     {totalPaginas > 1 && (
                         <div className="flex items-center justify-between pt-2">
-                            <span className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                            <span className="text-sm text-ds-soft">
                                 {data.total} comprobante{data.total === 1 ? '' : 's'} · página {data.page} de {totalPaginas}
                             </span>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
                                     disabled={page <= 1}
-                                    className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40"
+                                    className="p-2 rounded-lg border border-ds-border disabled:opacity-40"
                                 >
-                                    <ChevronLeft className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
+                                    <ChevronLeft className="w-4 h-4 text-ds-soft" />
                                 </button>
                                 <button
                                     onClick={() => setPage(p => Math.min(totalPaginas, p + 1))}
                                     disabled={page >= totalPaginas}
-                                    className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40"
+                                    className="p-2 rounded-lg border border-ds-border disabled:opacity-40"
                                 >
-                                    <ChevronRight className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
+                                    <ChevronRight className="w-4 h-4 text-ds-soft" />
                                 </button>
                             </div>
                         </div>

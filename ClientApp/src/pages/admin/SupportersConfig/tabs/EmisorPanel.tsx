@@ -119,8 +119,8 @@ export function EmisorPanel() {
 
     if (loading) {
         return (
-            <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 flex items-center justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-[#2563eb]" />
+            <div className="rounded-lg border border-ds-border p-6 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -132,10 +132,10 @@ export function EmisorPanel() {
     // Tres estados y tres colores: rojo cuando no se puede emitir, ámbar en beta, verde en
     // producción. Que se sepa de un vistazo desde el otro lado de la habitación.
     const tono = sinEmisor
-        ? { borde: 'border-red-300 dark:border-red-800',   fondo: 'bg-red-50 dark:bg-red-900/20',     texto: 'text-red-700 dark:text-red-400' }
+        ? { borde: 'border-ds-danger/40 ', fondo: 'bg-ds-danger/10 ', texto: 'text-ds-danger ' }
         : beta
-            ? { borde: 'border-amber-300 dark:border-amber-800', fondo: 'bg-amber-50 dark:bg-amber-900/20', texto: 'text-amber-700 dark:text-amber-400' }
-            : { borde: 'border-green-300 dark:border-green-800', fondo: 'bg-green-50 dark:bg-green-900/20', texto: 'text-green-700 dark:text-green-400' };
+            ? { borde: 'border-ds-warn/40 ', fondo: 'bg-ds-warn/10 ', texto: 'text-ds-warn ' }
+            : { borde: 'border-ds-ok/40 ', fondo: 'bg-ds-ok/10 ', texto: 'text-ds-ok ' };
 
     const Icono = sinEmisor ? AlertTriangle : beta ? FlaskConical : ShieldCheck;
 
@@ -146,21 +146,21 @@ export function EmisorPanel() {
         {/* El modo de cobro va en su propio bloque y arriba de todo: es lo unico que
             decide si entra plata de verdad. Quedarse en prueba sin darse cuenta es
             regalar coins y tiers a todo el que compre. */}
-        <div className={`rounded-2xl border-2 p-5 mb-4 ${
+        <div className={`rounded-lg border-2 p-5 mb-4 ${
             enTest
-                ? 'border-amber-400 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20'
-                : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D]'
+                ? 'border-ds-warn/40 bg-ds-warn/10 '
+                : 'border-ds-border bg-ds-surface '
         }`}>
             <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-3">
                     {enTest
-                        ? <FlaskConical className="w-6 h-6 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                        : <ShieldCheck className="w-6 h-6 shrink-0 mt-0.5 text-green-600 dark:text-green-400" />}
+                        ? <FlaskConical className="w-6 h-6 shrink-0 mt-0.5 text-ds-accent-text" />
+                        : <ShieldCheck className="w-6 h-6 shrink-0 mt-0.5 text-ds-ok" />}
                     <div>
-                        <h3 className={`font-black text-lg ${enTest ? 'text-amber-700 dark:text-amber-400' : 'text-[#1e293b] dark:text-[#f8fafc]'}`}>
+                        <h3 className={`font-black text-lg ${enTest ? 'text-ds-warn ' : 'text-ds-text '}`}>
                             {enTest ? 'COBRANDO EN PRUEBA — no entra plata' : 'Cobrando dinero real'}
                         </h3>
-                        <p className="text-sm mt-1 text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm mt-1 text-ds-soft">
                             {enTest
                                 ? 'Cualquiera que compre recibe coins o tier sin pagar, y esas compras no generan comprobante.'
                                 : 'Las compras se cobran con las llaves de producción de Culqi.'}
@@ -170,8 +170,8 @@ export function EmisorPanel() {
                 <button
                     onClick={() => cambiarModoCobro(!enTest)}
                     disabled={cambiandoModo}
-                    className={`px-4 py-2 rounded-xl font-bold text-sm text-white disabled:opacity-50 transition-colors ${
-                        enTest ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'
+                    className={`px-4 py-2 rounded-lg font-bold text-sm text-ds-text disabled:opacity-50 transition-colors ${
+                        enTest ? 'bg-ds-accent hover:bg-ds-accent-hover' : 'bg-ds-warn hover:bg-ds-warn'
                     }`}
                 >
                     {cambiandoModo ? 'Cambiando…' : enTest ? 'Volver a producción' : 'Pasar a modo prueba'}
@@ -179,14 +179,14 @@ export function EmisorPanel() {
             </div>
 
             {estado?.advertencia && (
-                <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3">
-                    <AlertTriangle className="w-5 h-5 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
-                    <p className="text-sm font-semibold text-red-700 dark:text-red-400">{estado.advertencia}</p>
+                <div className="mt-3 flex items-start gap-2 rounded-lg border border-ds-danger/40 bg-ds-danger/10 px-4 py-3">
+                    <AlertTriangle className="w-5 h-5 shrink-0 text-ds-danger mt-0.5" />
+                    <p className="text-sm font-semibold text-ds-danger">{estado.advertencia}</p>
                 </div>
             )}
         </div>
 
-        <div className={`rounded-2xl border-2 ${tono.borde} ${tono.fondo} p-5 space-y-4`}>
+        <div className={`rounded-lg border-2 ${tono.borde} ${tono.fondo} p-5 space-y-4`}>
             <div className="flex items-start gap-3">
                 <Icono className={`w-6 h-6 shrink-0 mt-0.5 ${tono.texto}`} />
                 <div className="min-w-0 flex-1">
@@ -199,29 +199,29 @@ export function EmisorPanel() {
                     </h3>
 
                     {sinEmisor ? (
-                        <p className="text-sm mt-1 text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm mt-1 text-ds-soft">
                             {estado?.error ?? 'Falta elegir una empresa emisora.'} Mientras tanto los pagos se
                             cobran igual y quedan pendientes de comprobante — no se pierde ninguno.
                         </p>
                     ) : (
                         <>
-                            <p className="text-sm mt-1 text-[#1e293b] dark:text-[#f8fafc]">
+                            <p className="text-sm mt-1 text-ds-text">
                                 <span className="font-bold">{activa!.alias || activa!.razonSocial}</span>
                                 {' · '}empresa #{activa!.id}
                             </p>
-                            <p className="text-xs mt-0.5 text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-xs mt-0.5 text-ds-soft">
                                 {activa!.razonSocial} · RUC {activa!.ruc} · series {activa!.boletaSeries ?? '—'}/{activa!.facturaSeries ?? '—'}
                             </p>
                             {/* Sin alias no hay forma de saber si esta es la empresa del bot o la de
                                 otro proyecto: mismo RUC y misma razón social se ven idénticos. */}
                             {!activa!.alias && (
-                                <p className="text-xs mt-1 text-amber-700 dark:text-amber-400">
+                                <p className="text-xs mt-1 text-ds-warn">
                                     Esta empresa no tiene identificador. Ponele uno en DecatronAPI para no
                                     confundirla con otra del mismo RUC.
                                 </p>
                             )}
                             {beta && (
-                                <p className="text-sm mt-2 text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-sm mt-2 text-ds-soft">
                                     Se emite contra el entorno de pruebas de SUNAT. Los comprobantes salen, se
                                     aceptan y se ven iguales, pero <span className="font-bold">no existen</span>:
                                     no declaran, no valen ante nadie y su correlativo no cuenta.
@@ -233,16 +233,16 @@ export function EmisorPanel() {
             </div>
 
             {/* Selector de empresa */}
-            <div className="pt-4 border-t border-[#e2e8f0]/60 dark:border-[#374151]">
+            <div className="pt-4 border-t border-ds-border/60">
                 <div className="flex flex-wrap items-end gap-3">
                     <div className="flex-1 min-w-[260px]">
-                        <label className="text-xs font-black text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide block mb-1.5">
+                        <label className="text-xs font-black text-ds-soft uppercase tracking-wide block mb-1.5">
                             Empresa que emite
                         </label>
                         <select
                             value={elegida}
                             onChange={e => setElegida(e.target.value === '' ? '' : Number(e.target.value))}
-                            className="w-full px-4 py-2.5 border border-[#e2e8f0] dark:border-[#374151] rounded-xl bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-sm"
+                            className="w-full px-4 py-2.5 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent text-sm"
                         >
                             <option value="">— elegir empresa —</option>
                             {estado?.companies.map(e => (
@@ -258,7 +258,7 @@ export function EmisorPanel() {
                     <button
                         onClick={cambiar}
                         disabled={guardando || elegida === '' || elegida === estado?.companyId}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#2563eb] text-white text-sm font-black rounded-xl hover:bg-[#1d4ed8] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-ds-accent text-ds-on-accent text-sm font-black rounded-lg hover:bg-ds-accent-hover disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         {guardando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
                         Cambiar emisor
@@ -267,11 +267,11 @@ export function EmisorPanel() {
 
                 {aviso && (
                     <p className={`text-sm font-bold mt-3 ${
-                        aviso.tipo === 'ok' ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                        aviso.tipo === 'ok' ? 'text-ds-ok ' : 'text-ds-danger '
                     }`}>{aviso.texto}</p>
                 )}
 
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-3 leading-relaxed">
+                <p className="text-xs text-ds-soft mt-3 leading-relaxed">
                     El modo beta o producción es de la empresa y <span className="font-bold">no se puede cambiar</span>:
                     una vez que emitió aunque sea un comprobante, su correlativo le pertenece, y cambiarle el entorno
                     dejaría la serie con un salto que SUNAT observa. Para pasar a producción se crea una empresa nueva
@@ -281,7 +281,7 @@ export function EmisorPanel() {
                         href={API_EMPRESAS}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[#2563eb] font-bold hover:underline"
+                        className="inline-flex items-center gap-1 text-ds-accent-text font-bold hover:underline"
                     >
                         Crear empresa en DecatronAPI <ExternalLink className="w-3 h-3" />
                     </a>

@@ -34,11 +34,11 @@ const RARITIES = ['Rare', 'Special', 'Epic', 'Legendary', 'Mythic'];
 const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Cube', 'Rift/Cube', 'Cheat', 'Quack', 'Hacker'];
 
 const RARITY_COLORS: Record<string, string> = {
-    Rare:      'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    Special:   'bg-green-500/20 text-green-400 border-green-500/30',
-    Epic:      'bg-purple-500/20 text-purple-400 border-purple-500/30',
-    Legendary: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    Mythic:    'bg-rose-500/20 text-rose-400 border-rose-500/30',
+    Rare: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30',
+    Special: 'bg-ds-accent/20 text-ds-ok border-ds-ok/40',
+    Epic: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30',
+    Legendary: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40',
+    Mythic: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30',
 };
 
 // ─── Shared UI ───────────────────────────────────────────────────────────────
@@ -46,7 +46,7 @@ const RARITY_COLORS: Record<string, string> = {
 function LoadingSpinner() {
     return (
         <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+            <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
         </div>
     );
 }
@@ -57,14 +57,14 @@ function FormField({ label, value, onChange, type = 'text', placeholder, disable
 }) {
     return (
         <div>
-            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">{label}</label>
+            <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">{label}</label>
             <input
                 type={type}
                 value={value ?? ''}
                 onChange={e => onChange(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 placeholder-[#94a3b8] disabled:opacity-50"
+                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft disabled:opacity-50"
             />
         </div>
     );
@@ -76,11 +76,11 @@ function FormSelect({ label, value, onChange, options }: {
 }) {
     return (
         <div>
-            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">{label}</label>
+            <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">{label}</label>
             <select
                 value={value}
                 onChange={e => onChange(e.target.value)}
-                className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 [&>option]:bg-ds-surface"
             >
                 {options.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
@@ -90,15 +90,15 @@ function FormSelect({ label, value, onChange, options }: {
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ds-input/50 backdrop-blur-sm" onClick={onClose}>
             <div
-                className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
+                className="bg-ds-surface rounded-lg border border-ds-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{title}</h3>
-                    <button onClick={onClose} className="p-1.5 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                        <X className="w-5 h-5 text-[#64748b]" />
+                    <h3 className="text-lg font-black text-ds-text">{title}</h3>
+                    <button onClick={onClose} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                        <X className="w-5 h-5 text-ds-soft" />
                     </button>
                 </div>
                 {children}
@@ -231,15 +231,15 @@ function SpritesTab() {
     return (
         <div className="space-y-4">
             {/* Importar desde la API propia (decatron-fortnite-api) sin esperar al cron horario */}
-            <div className="bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151] space-y-3">
+            <div className="bg-ds-bg rounded-lg p-3 border border-ds-border space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">Importar desde la API</span>
-                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Corre solo cada hora; aqui lo puedes forzar tras subir un parche</span>
+                    <span className="text-xs font-bold text-ds-soft uppercase">Importar desde la API</span>
+                    <span className="text-xs text-ds-soft">Corre solo cada hora; aqui lo puedes forzar tras subir un parche</span>
                     <div className="flex-1" />
                     <button
                         onClick={() => handleSync(true)}
                         disabled={syncing !== null}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f1f5f9] dark:hover:bg-[#374151]/50 disabled:opacity-50 text-[#1e293b] dark:text-[#f8fafc] rounded-lg text-xs font-bold transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-ds-surface border border-ds-border hover:bg-ds-raised disabled:opacity-50 text-ds-text rounded-lg text-xs font-bold transition-colors"
                     >
                         {syncing === 'preview' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
                         Ver cambios
@@ -247,7 +247,7 @@ function SpritesTab() {
                     <button
                         onClick={() => handleSync(false)}
                         disabled={syncing !== null}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2563eb] hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-xs font-bold transition-colors"
                     >
                         {syncing === 'apply' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <DownloadCloud className="w-3.5 h-3.5" />}
                         Sincronizar ahora
@@ -255,12 +255,12 @@ function SpritesTab() {
                 </div>
                 {syncResult && (
                     <div className="space-y-2">
-                        <div className={`flex items-center gap-1.5 text-xs font-semibold ${syncResult.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <div className={`flex items-center gap-1.5 text-xs font-semibold ${syncResult.ok ? 'text-ds-ok ' : 'text-ds-danger '}`}>
                             {syncResult.ok ? <Check className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
                             {syncResult.msg}
                         </div>
                         {syncResult.output && (
-                            <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg p-3 text-xs font-mono text-[#1e293b] dark:text-[#e2e8f0]">
+                            <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words bg-ds-surface border border-ds-border rounded-lg p-3 text-xs font-mono text-ds-text">
                                 {syncResult.output}
                             </pre>
                         )}
@@ -269,32 +269,32 @@ function SpritesTab() {
             </div>
 
             {/* Probar aviso de Twitch a mano — simula que el stream de ese usuario recien arranco */}
-            <div className="flex flex-wrap items-center gap-2 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151]">
-                <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">Probar aviso</span>
+            <div className="flex flex-wrap items-center gap-2 bg-ds-bg rounded-lg p-3 border border-ds-border">
+                <span className="text-xs font-bold text-ds-soft uppercase">Probar aviso</span>
                 <input
                     type="text"
                     value={testUsername}
                     onChange={e => setTestUsername(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleTestNotify('twitch')}
                     placeholder="username"
-                    className="px-3 py-1.5 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-[#1e293b] dark:text-[#f8fafc] w-40"
+                    className="px-3 py-1.5 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text w-40"
                 />
                 <button
                     onClick={() => handleTestNotify('twitch')}
                     disabled={testingNotify || !testUsername.trim()}
-                    className="px-3 py-1.5 bg-[#2563eb] hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                    className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-xs font-bold transition-colors"
                 >
                     {testingNotify ? 'Enviando...' : 'Twitch'}
                 </button>
                 <button
                     onClick={() => handleTestNotify('discord')}
                     disabled={testingNotify || !testUsername.trim()}
-                    className="px-3 py-1.5 bg-[#5865F2] hover:bg-[#4752c4] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                    className="px-3 py-1.5 bg-[#5865F2] hover:bg-[#4752c4] disabled:opacity-50 text-ds-text rounded-lg text-xs font-bold transition-colors"
                 >
                     {testingNotify ? 'Enviando...' : 'Discord'}
                 </button>
                 {testResult && (
-                    <span className={`text-xs font-semibold ${testResult.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className={`text-xs font-semibold ${testResult.ok ? 'text-ds-ok ' : 'text-ds-danger '}`}>
                         {testResult.msg}
                     </span>
                 )}
@@ -305,7 +305,7 @@ function SpritesTab() {
                 <select
                     value={filterCharacter}
                     onChange={e => setFilterCharacter(e.target.value)}
-                    className="px-3 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                     <option value="">Todos los personajes</option>
                     {characters.map(c => <option key={c} value={c}>{c}</option>)}
@@ -314,7 +314,7 @@ function SpritesTab() {
                 <select
                     value={filterRarity}
                     onChange={e => setFilterRarity(e.target.value)}
-                    className="px-3 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                     <option value="">Todas las rarezas</option>
                     {RARITIES.map(r => <option key={r} value={r}>{r}</option>)}
@@ -323,7 +323,7 @@ function SpritesTab() {
                 <select
                     value={filterUnreleased}
                     onChange={e => setFilterUnreleased(e.target.value as any)}
-                    className="px-3 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                     <option value="">Todos</option>
                     <option value="false">Lanzados</option>
@@ -333,7 +333,7 @@ function SpritesTab() {
                 <select
                     value={filterSeason}
                     onChange={e => setFilterSeason(e.target.value)}
-                    className="px-3 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                     <option value="">Todas las temporadas</option>
                     {allSeasons.map(s => (
@@ -343,7 +343,7 @@ function SpritesTab() {
 
                 <button
                     onClick={load}
-                    className="p-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#64748b] hover:bg-[#f8fafc] dark:hover:bg-[#374151]/50 transition-colors"
+                    className="p-2 bg-ds-surface border border-ds-border rounded-lg text-ds-soft hover:bg-ds-bg transition-colors"
                 >
                     <RefreshCw className="w-4 h-4" />
                 </button>
@@ -352,7 +352,7 @@ function SpritesTab() {
 
                 <button
                     onClick={() => { setModal({ mode: 'create', data: { ...emptySprite } }); setSaveError(null); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold transition-colors"
                 >
                     <Plus className="w-4 h-4" /> Nuevo sprite
                 </button>
@@ -360,39 +360,39 @@ function SpritesTab() {
 
             {/* Table */}
             {loading ? <LoadingSpinner /> : (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Imagen</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Nombre</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Personaje</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Tema</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Rareza</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Temporada</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Clave</th>
-                                    <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
-                                    <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Acciones</th>
+                                <tr className="border-b border-ds-border">
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Imagen</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Nombre</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Personaje</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Tema</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Rareza</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Temporada</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Clave</th>
+                                    <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Estado</th>
+                                    <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {sprites.map(sprite => (
-                                    <tr key={sprite.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
+                                    <tr key={sprite.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
                                         <td className="px-4 py-3">
                                             {sprite.imageUrl ? (
-                                                <img src={sprite.imageUrl} alt={sprite.name} className="w-10 h-10 object-contain rounded-lg bg-[#f1f5f9] dark:bg-[#374151]/50" />
+                                                <img src={sprite.imageUrl} alt={sprite.name} className="w-10 h-10 object-contain rounded-lg bg-ds-raised" />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-lg bg-[#f1f5f9] dark:bg-[#374151]/50 flex items-center justify-center">
-                                                    <span className="text-[10px] text-[#94a3b8]">—</span>
+                                                <div className="w-10 h-10 rounded-lg bg-ds-raised flex items-center justify-center">
+                                                    <span className="text-[10px] text-ds-soft">—</span>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 font-bold text-[#1e293b] dark:text-[#f8fafc]">{sprite.name}</td>
-                                        <td className="px-4 py-3 text-[#64748b]">{sprite.character}</td>
-                                        <td className="px-4 py-3 text-[#64748b]">{sprite.theme}</td>
+                                        <td className="px-4 py-3 font-bold text-ds-text">{sprite.name}</td>
+                                        <td className="px-4 py-3 text-ds-soft">{sprite.character}</td>
+                                        <td className="px-4 py-3 text-ds-soft">{sprite.theme}</td>
                                         <td className="px-4 py-3">
-                                            <span className={`text-xs font-bold px-2 py-1 rounded-full border ${RARITY_COLORS[sprite.rarity] ?? 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+                                            <span className={`text-xs font-bold px-2 py-1 rounded-full border ${RARITY_COLORS[sprite.rarity] ?? 'bg-ds-faint/20 text-ds-soft border-ds-border/30'}`}>
                                                 {sprite.rarity}
                                             </span>
                                         </td>
@@ -401,22 +401,22 @@ function SpritesTab() {
                                                 <span className={`text-xs font-bold px-2 py-1 rounded-full border ${
                                                     sprite.season === currentSeason
                                                         ? 'bg-[#7B61FF]/10 text-[#7B61FF] border-[#7B61FF]/30'
-                                                        : 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                        : 'bg-ds-faint/10 text-ds-soft border-ds-border/20'
                                                 }`}>
                                                     {sprite.season}
                                                 </span>
                                             ) : (
-                                                <span className="text-xs text-[#94a3b8]">—</span>
+                                                <span className="text-xs text-ds-soft">—</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 font-mono text-xs text-[#64748b]">{sprite.spriteKey}</td>
+                                        <td className="px-4 py-3 font-mono text-xs text-ds-soft">{sprite.spriteKey}</td>
                                         <td className="px-4 py-3 text-center">
                                             {sprite.isUnreleased ? (
-                                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-ds-warn/10 text-ds-warn border border-ds-warn/40">
                                                     <EyeOff className="w-3 h-3" /> Unreleased
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-ds-accent/10 text-ds-ok border border-ds-ok/40">
                                                     <Eye className="w-3 h-3" /> Activo
                                                 </span>
                                             )}
@@ -425,17 +425,17 @@ function SpritesTab() {
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
                                                     onClick={() => { setModal({ mode: 'edit', data: { ...sprite } }); setSaveError(null); }}
-                                                    className="p-1.5 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors"
+                                                    className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors"
                                                     title="Editar"
                                                 >
-                                                    <Pencil className="w-4 h-4 text-[#64748b]" />
+                                                    <Pencil className="w-4 h-4 text-ds-soft" />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteConfirm(sprite.id)}
-                                                    className="p-1.5 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                    className="p-1.5 hover:bg-ds-danger-solid/10 rounded-lg transition-colors"
                                                     title="Eliminar"
                                                 >
-                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                    <Trash2 className="w-4 h-4 text-ds-danger" />
                                                 </button>
                                             </div>
                                         </td>
@@ -443,7 +443,7 @@ function SpritesTab() {
                                 ))}
                                 {sprites.length === 0 && (
                                     <tr>
-                                        <td colSpan={9} className="px-4 py-12 text-center text-[#64748b]">
+                                        <td colSpan={9} className="px-4 py-12 text-center text-ds-soft">
                                             No hay sprites
                                         </td>
                                     </tr>
@@ -451,7 +451,7 @@ function SpritesTab() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="px-4 py-3 border-t border-[#e2e8f0] dark:border-[#374151] text-xs text-[#94a3b8]">
+                    <div className="px-4 py-3 border-t border-ds-border text-xs text-ds-soft">
                         {sprites.length} sprite{sprites.length !== 1 ? 's' : ''}
                     </div>
                 </div>
@@ -465,7 +465,7 @@ function SpritesTab() {
                 >
                     <div className="space-y-4">
                         {saveError && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400 flex items-center gap-2">
+                            <div className="p-3 bg-ds-danger-solid/10 border border-ds-danger/40 rounded-lg text-sm text-ds-danger flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4 flex-shrink-0" /> {saveError}
                             </div>
                         )}
@@ -528,14 +528,14 @@ function SpritesTab() {
                                 type="checkbox"
                                 checked={modal.data.isUnreleased ?? false}
                                 onChange={e => update('isUnreleased', e.target.checked)}
-                                className="w-4 h-4 rounded border-[#e2e8f0] dark:border-[#374151] text-[#2563eb] focus:ring-[#2563eb]"
+                                className="w-4 h-4 rounded border-ds-border text-ds-accent-text focus:ring-ds-accent"
                             />
-                            <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">No lanzado (Unreleased)</span>
+                            <span className="text-sm text-ds-text">No lanzado (Unreleased)</span>
                         </label>
 
                         {/* Preview */}
                         {modal.data.imageUrl && (
-                            <div className="p-3 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl flex items-center gap-3">
+                            <div className="p-3 bg-ds-bg rounded-lg flex items-center gap-3">
                                 <img
                                     src={modal.data.imageUrl}
                                     alt="preview"
@@ -543,8 +543,8 @@ function SpritesTab() {
                                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                 />
                                 <div>
-                                    <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{modal.data.name || '—'}</p>
-                                    <p className="text-xs text-[#64748b]">{modal.data.character} · {modal.data.theme} · {modal.data.rarity}</p>
+                                    <p className="text-sm font-bold text-ds-text">{modal.data.name || '—'}</p>
+                                    <p className="text-xs text-ds-soft">{modal.data.character} · {modal.data.theme} · {modal.data.rarity}</p>
                                 </div>
                             </div>
                         )}
@@ -552,14 +552,14 @@ function SpritesTab() {
                         <div className="flex justify-end gap-3 pt-4">
                             <button
                                 onClick={() => setModal(null)}
-                                className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] rounded-xl text-sm font-bold"
+                                className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center gap-2 transition-colors"
+                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2 transition-colors"
                             >
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Guardar
@@ -573,19 +573,19 @@ function SpritesTab() {
             {deleteConfirm !== null && (
                 <Modal title="Eliminar sprite" onClose={() => setDeleteConfirm(null)}>
                     <div className="space-y-4">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Esta accion eliminara el sprite y <strong className="text-[#1e293b] dark:text-[#f8fafc]">todas las colecciones de usuarios</strong> que lo tengan marcado. No se puede deshacer.
+                        <p className="text-sm text-ds-soft">
+                            Esta accion eliminara el sprite y <strong className="text-ds-text">todas las colecciones de usuarios</strong> que lo tengan marcado. No se puede deshacer.
                         </p>
                         <div className="flex justify-end gap-3 pt-2">
                             <button
                                 onClick={() => setDeleteConfirm(null)}
-                                className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] rounded-xl text-sm font-bold"
+                                className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleDelete(deleteConfirm)}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+                                className="px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
                             >
                                 <Trash2 className="w-4 h-4" /> Eliminar
                             </button>
@@ -620,64 +620,64 @@ function StatsTab() {
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-xs font-bold text-[#64748b] uppercase mb-1">Total sprites</p>
-                    <p className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{total}</p>
+                <div className="bg-ds-surface rounded-lg p-5 border border-ds-border">
+                    <p className="text-xs font-bold text-ds-soft uppercase mb-1">Total sprites</p>
+                    <p className="text-3xl font-black text-ds-text">{total}</p>
                 </div>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-xs font-bold text-[#64748b] uppercase mb-1">Usuarios en leaderboard</p>
-                    <p className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{leaderboard.length}</p>
+                <div className="bg-ds-surface rounded-lg p-5 border border-ds-border">
+                    <p className="text-xs font-bold text-ds-soft uppercase mb-1">Usuarios en leaderboard</p>
+                    <p className="text-3xl font-black text-ds-text">{leaderboard.length}</p>
                 </div>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-xs font-bold text-[#64748b] uppercase mb-1">Top coleccionista</p>
-                    <p className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                <div className="bg-ds-surface rounded-lg p-5 border border-ds-border">
+                    <p className="text-xs font-bold text-ds-soft uppercase mb-1">Top coleccionista</p>
+                    <p className="text-3xl font-black text-ds-text">
                         {leaderboard[0]?.displayName ?? '—'}
                     </p>
                     {leaderboard[0] && (
-                        <p className="text-xs text-[#64748b] mt-1">{leaderboard[0].count}/{leaderboard[0].total} sprites</p>
+                        <p className="text-xs text-ds-soft mt-1">{leaderboard[0].count}/{leaderboard[0].total} sprites</p>
                     )}
                 </div>
             </div>
 
             {leaderboard.length > 0 && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
-                    <div className="px-6 py-4 border-b border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc]">Leaderboard Global</h3>
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
+                    <div className="px-6 py-4 border-b border-ds-border">
+                        <h3 className="font-black text-ds-text">Leaderboard Global</h3>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                    <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase w-12">#</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Usuario</th>
-                                    <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Sprites</th>
-                                    <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Completado</th>
+                                <tr className="border-b border-ds-border">
+                                    <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase w-12">#</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Usuario</th>
+                                    <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Sprites</th>
+                                    <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Completado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {leaderboard.map((entry, i) => (
-                                    <tr key={entry.username} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
+                                    <tr key={entry.username} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
                                         <td className="px-4 py-3 text-center">
-                                            <span className={`text-sm font-black ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-[#94a3b8]' : i === 2 ? 'text-amber-700' : 'text-[#64748b]'}`}>
+                                            <span className={`text-sm font-black ${i === 0 ? 'text-ds-warn' : i === 1 ? 'text-ds-soft' : i === 2 ? 'text-ds-warn' : 'text-ds-soft'}`}>
                                                 {i + 1}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{entry.displayName}</p>
-                                            <p className="text-xs text-[#64748b]">@{entry.username}</p>
+                                            <p className="font-bold text-ds-text">{entry.displayName}</p>
+                                            <p className="text-xs text-ds-soft">@{entry.username}</p>
                                         </td>
-                                        <td className="px-4 py-3 text-right font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                        <td className="px-4 py-3 text-right font-black text-ds-text">
                                             {entry.count}
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <div className="w-20 h-1.5 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                                                <div className="w-20 h-1.5 bg-ds-raised rounded-full overflow-hidden">
                                                     <div
-                                                        className="h-full bg-gradient-to-r from-[#2563eb] to-[#7B61FF] rounded-full"
+                                                        className="h-full bg-gradient-to-r from-ds-accent to-[#7B61FF] rounded-full"
                                                         style={{ width: `${Math.round(entry.count / entry.total * 100)}%` }}
                                                     />
                                                 </div>
-                                                <span className="text-xs font-bold text-[#64748b] w-10 text-right">
+                                                <span className="text-xs font-bold text-ds-soft w-10 text-right">
                                                     {Math.round(entry.count / entry.total * 100)}%
                                                 </span>
                                             </div>
@@ -712,18 +712,18 @@ export default function AdminFortnite() {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin')}
-                    className="p-2 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors"
+                    className="p-2 hover:bg-ds-raised rounded-lg transition-colors"
                 >
-                    <ArrowLeft className="w-5 h-5 text-[#64748b]" />
+                    <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>
                 <div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Fortnite Spirit Tracker</h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">Gestiona el catalogo de sprites y ve las estadisticas de coleccion</p>
+                    <h1 className="text-3xl font-black text-ds-text">Fortnite Spirit Tracker</h1>
+                    <p className="text-ds-soft mt-1">Gestiona el catalogo de sprites y ve las estadisticas de coleccion</p>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                 <div className="flex flex-wrap gap-2">
                     {tabs.map(tab => {
                         const Icon = tab.icon;
@@ -731,10 +731,10 @@ export default function AdminFortnite() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                                     activeTab === tab.id
-                                        ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg shadow-blue-500/20'
-                                        : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                        ? 'bg-ds-accent text-ds-on-accent shadow-blue-500/20'
+                                        : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                                 }`}
                             >
                                 <Icon className="w-4 h-4" />

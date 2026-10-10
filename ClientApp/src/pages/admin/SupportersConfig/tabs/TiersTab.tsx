@@ -35,7 +35,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                 <div key={tier.id} className={`${CARD} relative`}>
                     {tier.highlighted && (
                         <div className="absolute -top-3 left-6">
-                            <span className="bg-gradient-to-r from-[#2563eb] to-[#7c3aed] text-white text-xs font-black px-3 py-1 rounded-full">
+                            <span className="bg-ds-accent text-ds-on-accent text-xs font-black px-3 py-1 rounded-full">
                                 ⭐ Más popular
                             </span>
                         </div>
@@ -43,7 +43,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
 
                     <div className="flex items-center gap-3 mb-5">
                         <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                            className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
                             style={{ backgroundColor: tier.color + '20' }}
                         >
                             {tier.badgeEmoji}
@@ -53,11 +53,11 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                                 type="text"
                                 value={tier.name}
                                 onChange={e => updateTier(tier.id, { name: e.target.value })}
-                                className="font-black text-xl text-[#1e293b] dark:text-[#f8fafc] bg-transparent border-b-2 border-transparent hover:border-[#e2e8f0] dark:hover:border-[#374151] focus:border-[#2563eb] outline-none transition-colors pb-0.5 w-full"
+                                className="font-black text-xl text-ds-text bg-transparent border-b-2 border-transparent hover:border-ds-border focus:border-ds-accent outline-none transition-colors pb-0.5 w-full"
                             />
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Destacar</span>
+                            <span className="text-xs text-ds-soft">Destacar</span>
                             <Toggle value={tier.highlighted} onChange={() => updateTier(tier.id, { highlighted: !tier.highlighted })} />
                         </div>
                     </div>
@@ -79,7 +79,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                         <div>
                             <label className={`${LABEL} block mb-1.5`}>Precio mensual (USD)</label>
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[#64748b] dark:text-[#94a3b8] font-bold">$</span>
+                                <span className="text-ds-soft font-bold">$</span>
                                 <input
                                     type="number"
                                     min={0}
@@ -88,7 +88,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                                     className={INPUT}
                                     placeholder="—"
                                 />
-                                <span className="text-xs text-[#94a3b8]">/mes</span>
+                                <span className="text-xs text-ds-soft">/mes</span>
                             </div>
                         </div>
 
@@ -96,7 +96,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                         <div>
                             <label className={`${LABEL} block mb-1.5`}>Precio permanente (USD)</label>
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[#64748b] dark:text-[#94a3b8] font-bold">$</span>
+                                <span className="text-ds-soft font-bold">$</span>
                                 <input
                                     type="number"
                                     min={0}
@@ -105,7 +105,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                                     className={INPUT}
                                     placeholder="—"
                                 />
-                                <span className="text-xs text-[#94a3b8]">único</span>
+                                <span className="text-xs text-ds-soft">único</span>
                             </div>
                         </div>
                     </div>
@@ -117,9 +117,9 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                             type="color"
                             value={tier.color}
                             onChange={e => updateTier(tier.id, { color: e.target.value })}
-                            className="w-10 h-8 rounded-lg cursor-pointer border border-[#e2e8f0] dark:border-[#374151]"
+                            className="w-10 h-8 rounded-lg cursor-pointer border border-ds-border"
                         />
-                        <span className="text-sm font-mono text-[#64748b] dark:text-[#94a3b8]">{tier.color}</span>
+                        <span className="text-sm font-mono text-ds-soft">{tier.color}</span>
                     </div>
 
                     {/* Benefits */}
@@ -128,7 +128,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                             <label className={LABEL}>Beneficios</label>
                             <button
                                 onClick={() => addBenefit(tier.id)}
-                                className="flex items-center gap-1.5 text-xs font-bold text-[#2563eb] hover:text-[#1d4ed8] transition-colors"
+                                className="flex items-center gap-1.5 text-xs font-bold text-ds-accent-text hover:text-ds-accent-text transition-colors"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                                 Agregar
@@ -137,7 +137,7 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                         <div className="space-y-2">
                             {tier.benefits.map((benefit, idx) => (
                                 <div key={idx} className="flex items-center gap-2">
-                                    <span className="text-green-500 text-sm">✓</span>
+                                    <span className="text-ds-ok text-sm">✓</span>
                                     <input
                                         type="text"
                                         value={benefit}
@@ -147,14 +147,14 @@ export function TiersTab({ tiers, onChange }: { tiers: TierConfig[]; onChange: (
                                     />
                                     <button
                                         onClick={() => removeBenefit(tier.id, idx)}
-                                        className="p-1.5 text-[#94a3b8] hover:text-red-500 transition-colors"
+                                        className="p-1.5 text-ds-soft hover:text-ds-danger transition-colors"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
                             ))}
                             {tier.benefits.length === 0 && (
-                                <p className="text-sm text-[#94a3b8] text-center py-4">
+                                <p className="text-sm text-ds-soft text-center py-4">
                                     Sin beneficios. Agrega uno arriba.
                                 </p>
                             )}

@@ -6,9 +6,9 @@ export function AppearanceTab({ config, onChange }: { config: PageConfig; onChan
     return (
         <div className="space-y-6">
             <div className={CARD}>
-                <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg mb-5">Gradiente del Hero</h3>
+                <h3 className="font-black text-ds-text text-lg mb-5">Gradiente del Hero</h3>
                 <div
-                    className="w-full h-24 rounded-xl mb-5"
+                    className="w-full h-24 rounded-lg mb-5"
                     style={{ background: `linear-gradient(135deg, ${config.heroFrom}, ${config.heroTo})` }}
                 />
                 <div className="grid grid-cols-2 gap-4">
@@ -19,7 +19,7 @@ export function AppearanceTab({ config, onChange }: { config: PageConfig; onChan
                                 type="color"
                                 value={config.heroFrom}
                                 onChange={e => onChange({ heroFrom: e.target.value })}
-                                className="w-10 h-9 rounded-lg cursor-pointer border border-[#e2e8f0] dark:border-[#374151]"
+                                className="w-10 h-9 rounded-lg cursor-pointer border border-ds-border"
                             />
                             <input
                                 type="text"
@@ -37,7 +37,7 @@ export function AppearanceTab({ config, onChange }: { config: PageConfig; onChan
                                 type="color"
                                 value={config.heroTo}
                                 onChange={e => onChange({ heroTo: e.target.value })}
-                                className="w-10 h-9 rounded-lg cursor-pointer border border-[#e2e8f0] dark:border-[#374151]"
+                                className="w-10 h-9 rounded-lg cursor-pointer border border-ds-border"
                             />
                             <input
                                 type="text"
@@ -52,8 +52,8 @@ export function AppearanceTab({ config, onChange }: { config: PageConfig; onChan
             </div>
 
             <div className={CARD}>
-                <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg mb-2">Presets de gradiente</h3>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Haz clic para aplicar</p>
+                <h3 className="font-black text-ds-text text-lg mb-2">Presets de gradiente</h3>
+                <p className="text-sm text-ds-soft mb-4">Haz clic para aplicar</p>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                     {[
                         { from: '#2563eb', to: '#7c3aed', label: 'Blue-Purple' },
@@ -65,12 +65,12 @@ export function AppearanceTab({ config, onChange }: { config: PageConfig; onChan
                         <button
                             key={preset.label}
                             onClick={() => onChange({ heroFrom: preset.from, heroTo: preset.to })}
-                            className="group relative rounded-xl overflow-hidden aspect-video hover:scale-105 transition-transform"
+                            className="group relative rounded-lg overflow-hidden aspect-video hover:scale-105 transition-transform"
                             style={{ background: `linear-gradient(135deg, ${preset.from}, ${preset.to})` }}
                             title={preset.label}
                         >
                             <div className="absolute inset-0 flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-white text-[10px] font-bold bg-black/40 px-1.5 py-0.5 rounded">{preset.label}</span>
+                                <span className="text-ds-text text-[10px] font-bold bg-ds-input/40 px-1.5 py-0.5 rounded">{preset.label}</span>
                             </div>
                         </button>
                     ))}

@@ -262,7 +262,7 @@ export default function DecatronAIAdmin() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ds-accent"></div>
             </div>
         );
     }
@@ -274,35 +274,35 @@ export default function DecatronAIAdmin() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-[#f8fafc] dark:hover:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                        <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                    <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-ds-bg rounded-lg border border-ds-border">
+                        <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <Cpu className="w-8 h-8 text-[#2563eb]" />
-                            <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Decatron IA - Admin</h1>
+                            <Cpu className="w-8 h-8 text-ds-accent-text" />
+                            <h1 className="text-3xl font-black text-ds-text">Decatron IA - Admin</h1>
                         </div>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">Configuración global del sistema de IA</p>
+                        <p className="text-ds-soft">Configuración global del sistema de IA</p>
                     </div>
                 </div>
 
                 {/* Toggle Global */}
                 <div className="flex items-center gap-3">
-                    <span className={`text-sm font-bold ${config.enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className={`text-sm font-bold ${config.enabled ? 'text-ds-ok ' : 'text-ds-danger '}`}>
                         {config.enabled ? 'ACTIVO' : 'INACTIVO'}
                     </span>
                     <button
                         onClick={() => setConfig({ ...config, enabled: !config.enabled })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${config.enabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${config.enabled ? 'bg-ds-accent' : 'bg-ds-raised '}`}
                     >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${config.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-ds-surface transition-transform ${config.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                 </div>
             </div>
 
             {/* Message */}
             {message && (
-                <div className={`p-4 rounded-lg font-semibold ${message.type === 'success' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
+                <div className={`p-4 rounded-lg font-semibold ${message.type === 'success' ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-danger/10 text-ds-danger '}`}>
                     {message.text}
                 </div>
             )}
@@ -311,19 +311,19 @@ export default function DecatronAIAdmin() {
             <div className="flex gap-2">
                 <button
                     onClick={() => setActiveTab('config')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'config' ? 'bg-[#2563eb] text-white' : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'config' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
                 >
                     <Settings className="w-4 h-4" /> Configuración
                 </button>
                 <button
                     onClick={() => setActiveTab('channels')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'channels' ? 'bg-[#2563eb] text-white' : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'channels' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
                 >
                     <Users className="w-4 h-4" /> Canales ({channels.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('stats')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'stats' ? 'bg-[#2563eb] text-white' : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'stats' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
                 >
                     <BarChart3 className="w-4 h-4" /> Estadísticas
                 </button>
@@ -331,44 +331,44 @@ export default function DecatronAIAdmin() {
 
             {/* Tab Content */}
             {activeTab === 'config' && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] space-y-6">
+                <div className="bg-ds-surface rounded-lg p-6 border border-ds-border space-y-6">
                     {/* Provider Selection */}
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-4">
-                        <h3 className="font-bold text-blue-800 dark:text-blue-300">Proveedor de IA</h3>
+                    <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-4 space-y-4">
+                        <h3 className="font-bold text-ds-accent-text">Proveedor de IA</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">PROVIDER PRINCIPAL</label>
+                                <label className="block text-sm font-bold text-ds-soft mb-2">PROVIDER PRINCIPAL</label>
                                 <select
                                     value={config.aiProvider}
                                     onChange={(e) => setConfig({ ...config, aiProvider: e.target.value })}
-                                    className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                                 >
                                     <option value="gemini">Gemini (Google)</option>
                                     <option value="openrouter">OpenRouter</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">FALLBACK</label>
+                                <label className="block text-sm font-bold text-ds-soft mb-2">FALLBACK</label>
                                 <div className="flex items-center gap-3 h-10">
                                     <button
                                         onClick={() => setConfig({ ...config, fallbackEnabled: !config.fallbackEnabled })}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${config.fallbackEnabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${config.fallbackEnabled ? 'bg-ds-accent' : 'bg-ds-raised '}`}
                                     >
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${config.fallbackEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-ds-surface transition-transform ${config.fallbackEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                                     </button>
-                                    <span className="text-sm font-semibold text-[#64748b] dark:text-[#94a3b8]">
+                                    <span className="text-sm font-semibold text-ds-soft">
                                         {config.fallbackEnabled ? 'Activado' : 'Desactivado'}
                                     </span>
                                 </div>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Si falla, intenta con el otro</p>
+                                <p className="text-xs text-ds-soft mt-1">Si falla, intenta con el otro</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">MAX TOKENS</label>
+                                <label className="block text-sm font-bold text-ds-soft mb-2">MAX TOKENS</label>
                                 <input
                                     type="number"
                                     value={config.maxTokens}
                                     onChange={(e) => setConfig({ ...config, maxTokens: parseInt(e.target.value) || 60 })}
-                                    className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                                 />
                             </div>
                         </div>
@@ -376,92 +376,92 @@ export default function DecatronAIAdmin() {
 
                     {/* Models Configuration */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className={`p-4 rounded-lg border-2 ${config.aiProvider === 'gemini' ? 'border-[#2563eb] bg-blue-50 dark:bg-blue-900/20' : 'border-[#e2e8f0] dark:border-[#374151]'}`}>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">
-                                MODELO GEMINI {config.aiProvider === 'gemini' && <span className="text-[#2563eb]">(Activo)</span>}
+                        <div className={`p-4 rounded-lg border-2 ${config.aiProvider === 'gemini' ? 'border-ds-accent bg-ds-accent/10 ' : 'border-ds-border '}`}>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">
+                                MODELO GEMINI {config.aiProvider === 'gemini' && <span className="text-ds-accent-text">(Activo)</span>}
                             </label>
                             <input
                                 type="text"
                                 value={config.model}
                                 onChange={(e) => setConfig({ ...config, model: e.target.value })}
                                 placeholder="gemini-3.5-flash-lite"
-                                className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                             />
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Ej: gemini-3.5-flash-lite, gemini-3.5-flash, gemini-2.5-flash-lite</p>
+                            <p className="text-xs text-ds-soft mt-1">Ej: gemini-3.5-flash-lite, gemini-3.5-flash, gemini-2.5-flash-lite</p>
                         </div>
-                        <div className={`p-4 rounded-lg border-2 ${config.aiProvider === 'openrouter' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-[#e2e8f0] dark:border-[#374151]'}`}>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">
-                                MODELO OPENROUTER {config.aiProvider === 'openrouter' && <span className="text-purple-500">(Activo)</span>}
+                        <div className={`p-4 rounded-lg border-2 ${config.aiProvider === 'openrouter' ? 'border-ds-accent bg-ds-accent/10 ' : 'border-ds-border '}`}>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">
+                                MODELO OPENROUTER {config.aiProvider === 'openrouter' && <span className="text-ds-accent-text">(Activo)</span>}
                             </label>
                             <input
                                 type="text"
                                 value={config.openRouterModel}
                                 onChange={(e) => setConfig({ ...config, openRouterModel: e.target.value })}
                                 placeholder="qwen/qwen3.8-flash"
-                                className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                             />
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Ej: qwen/qwen3.8-flash, deepseek/deepseek-v4.1-flash — precios y uso en Admin → Costos de IA</p>
+                            <p className="text-xs text-ds-soft mt-1">Ej: qwen/qwen3.8-flash, deepseek/deepseek-v4.1-flash — precios y uso en Admin → Costos de IA</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">PREFIJO RESPUESTA</label>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">PREFIJO RESPUESTA</label>
                             <input
                                 type="text"
                                 value={config.responsePrefix}
                                 onChange={(e) => setConfig({ ...config, responsePrefix: e.target.value })}
-                                className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">MAX LONGITUD PROMPT</label>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">MAX LONGITUD PROMPT</label>
                             <input
                                 type="number"
                                 value={config.maxPromptLength}
                                 onChange={(e) => setConfig({ ...config, maxPromptLength: parseInt(e.target.value) || 200 })}
-                                className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">SYSTEM PROMPT</label>
+                        <label className="block text-sm font-bold text-ds-soft mb-2">SYSTEM PROMPT</label>
                         <textarea
                             value={config.systemPrompt}
                             onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
                             rows={4}
-                            className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                            className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                         />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">CD CANAL MÍNIMO (seg)</label>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">CD CANAL MÍNIMO (seg)</label>
                             <input
                                 type="number"
                                 value={config.minChannelCooldownSeconds}
                                 onChange={(e) => setConfig({ ...config, minChannelCooldownSeconds: parseInt(e.target.value) || 120 })}
-                                className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                             />
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Mín que puede poner streamer</p>
+                            <p className="text-xs text-ds-soft mt-1">Mín que puede poner streamer</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">CD CANAL DEFAULT (seg)</label>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">CD CANAL DEFAULT (seg)</label>
                             <input
                                 type="number"
                                 value={config.defaultChannelCooldownSeconds}
                                 onChange={(e) => setConfig({ ...config, defaultChannelCooldownSeconds: parseInt(e.target.value) || 300 })}
-                                className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                             />
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Default para nuevos canales</p>
+                            <p className="text-xs text-ds-soft mt-1">Default para nuevos canales</p>
                         </div>
                     </div>
 
                     <button
                         onClick={saveConfig}
                         disabled={saving}
-                        className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-bold transition-all disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all disabled:opacity-50"
                     >
                         <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Configuración'}
                     </button>
@@ -469,7 +469,7 @@ export default function DecatronAIAdmin() {
             )}
 
             {activeTab === 'channels' && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
                     {/* Add Channel */}
                     <div className="flex gap-2 mb-6">
                         <input
@@ -477,11 +477,11 @@ export default function DecatronAIAdmin() {
                             value={newChannel}
                             onChange={(e) => setNewChannel(e.target.value)}
                             placeholder="Nombre del canal..."
-                            className="flex-1 px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                            className="flex-1 px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                         />
                         <button
                             onClick={addChannel}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-all"
+                            className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all"
                         >
                             <Plus className="w-4 h-4" /> Agregar
                         </button>
@@ -490,40 +490,40 @@ export default function DecatronAIAdmin() {
                     {/* Channels List */}
                     <div className="space-y-3">
                         {channels.map((channel) => (
-                            <div key={channel.id} className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                            <div key={channel.id} className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                                 <div className="flex items-center gap-4">
-                                    <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{channel.channelName}</span>
+                                    <span className="font-bold text-ds-text">{channel.channelName}</span>
                                     <div className="flex items-center gap-4">
                                         <label className="flex items-center gap-2 text-sm">
                                             <input
                                                 type="checkbox"
                                                 checked={channel.enabled}
                                                 onChange={(e) => updateChannel(channel.channelName, { enabled: e.target.checked })}
-                                                className="rounded border-[#e2e8f0] dark:border-[#374151]"
+                                                className="rounded border-ds-border"
                                             />
-                                            <span className="font-semibold text-[#64748b] dark:text-[#94a3b8]">Habilitado</span>
+                                            <span className="font-semibold text-ds-soft">Habilitado</span>
                                         </label>
                                         <label className="flex items-center gap-2 text-sm">
                                             <input
                                                 type="checkbox"
                                                 checked={channel.canConfigure}
                                                 onChange={(e) => updateChannel(channel.channelName, { canConfigure: e.target.checked })}
-                                                className="rounded border-[#e2e8f0] dark:border-[#374151]"
+                                                className="rounded border-ds-border"
                                             />
-                                            <span className="font-semibold text-[#64748b] dark:text-[#94a3b8]">Puede Configurar</span>
+                                            <span className="font-semibold text-ds-soft">Puede Configurar</span>
                                         </label>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => openChannelConfig(channel.channelName)}
-                                        className="flex items-center gap-1 px-3 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all"
+                                        className="flex items-center gap-1 px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold text-sm transition-all"
                                     >
                                         <Settings className="w-4 h-4" /> Configurar
                                     </button>
                                     <button
                                         onClick={() => deleteChannel(channel.channelName)}
-                                        className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all"
+                                        className="p-2 text-ds-danger hover:bg-ds-danger/10 rounded-lg transition-all"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -531,7 +531,7 @@ export default function DecatronAIAdmin() {
                             </div>
                         ))}
                         {channels.length === 0 && (
-                            <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">
+                            <div className="text-center py-8 text-ds-soft">
                                 No hay canales configurados
                             </div>
                         )}
@@ -541,25 +541,25 @@ export default function DecatronAIAdmin() {
 
             {/* Modal de Configuración de Canal */}
             {editingChannel && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-ds-input/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                            <h2 className="text-xl font-black text-ds-text">
                                 Configurar: {editingChannel}
                             </h2>
-                            <button onClick={() => setEditingChannel(null)} className="p-2 hover:bg-[#f8fafc] dark:hover:bg-[#262626] rounded-lg">
-                                <X className="w-5 h-5 text-[#64748b]" />
+                            <button onClick={() => setEditingChannel(null)} className="p-2 hover:bg-ds-bg rounded-lg">
+                                <X className="w-5 h-5 text-ds-soft" />
                             </button>
                         </div>
 
                         <div className="space-y-6">
                             {/* Nivel de Permiso */}
                             <div>
-                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">NIVEL DE PERMISO</label>
+                                <label className="block text-sm font-bold text-ds-soft mb-2">NIVEL DE PERMISO</label>
                                 <select
                                     value={channelConfig.permissionLevel}
                                     onChange={(e) => setChannelConfig({ ...channelConfig, permissionLevel: e.target.value })}
-                                    className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                                 >
                                     <option value="everyone">Todos</option>
                                     <option value="subscriber">Suscriptores+</option>
@@ -572,30 +572,30 @@ export default function DecatronAIAdmin() {
                             {/* Cooldowns */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">COOLDOWN CANAL (seg)</label>
+                                    <label className="block text-sm font-bold text-ds-soft mb-2">COOLDOWN CANAL (seg)</label>
                                     <input
                                         type="number"
                                         value={channelConfig.channelCooldownSeconds}
                                         onChange={(e) => setChannelConfig({ ...channelConfig, channelCooldownSeconds: parseInt(e.target.value) || 300 })}
-                                        className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                        className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">COOLDOWN USUARIO (seg)</label>
+                                    <label className="block text-sm font-bold text-ds-soft mb-2">COOLDOWN USUARIO (seg)</label>
                                     <input
                                         type="number"
                                         value={channelConfig.userCooldownSeconds || ''}
                                         placeholder="Sin límite"
                                         onChange={(e) => setChannelConfig({ ...channelConfig, userCooldownSeconds: e.target.value ? parseInt(e.target.value) : null })}
-                                        className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
+                                        className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
                                     />
                                 </div>
                             </div>
 
                             {/* Whitelist */}
-                            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                            <div className="p-4 bg-ds-ok/10 border border-ds-ok/40 rounded-lg">
                                 <div className="flex items-center justify-between mb-3">
-                                    <h3 className="font-bold text-green-700 dark:text-green-400">Whitelist</h3>
+                                    <h3 className="font-bold text-ds-ok">Whitelist</h3>
                                     <label className="flex items-center gap-2">
                                         <input
                                             type="checkbox"
@@ -603,7 +603,7 @@ export default function DecatronAIAdmin() {
                                             onChange={(e) => setChannelConfig({ ...channelConfig, whitelistEnabled: e.target.checked })}
                                             className="rounded"
                                         />
-                                        <span className="text-sm font-semibold text-green-700 dark:text-green-400">Activar</span>
+                                        <span className="text-sm font-semibold text-ds-ok">Activar</span>
                                     </label>
                                 </div>
                                 {channelConfig.whitelistEnabled && (
@@ -614,23 +614,23 @@ export default function DecatronAIAdmin() {
                                                 value={newWhitelistUser}
                                                 onChange={(e) => setNewWhitelistUser(e.target.value)}
                                                 placeholder="Usuario..."
-                                                className="flex-1 px-3 py-2 border border-green-300 dark:border-green-700 rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="flex-1 px-3 py-2 border border-ds-ok/40 rounded-lg bg-ds-surface text-ds-text"
                                             />
-                                            <button onClick={addWhitelistUserAdmin} className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold">
+                                            <button onClick={addWhitelistUserAdmin} className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold">
                                                 <Plus className="w-4 h-4" />
                                             </button>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {channelConfig.whitelistUsers.map((user) => (
-                                                <span key={user} className="flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-semibold text-sm">
+                                                <span key={user} className="flex items-center gap-1 px-3 py-1 bg-ds-ok/10 text-ds-ok rounded-full font-semibold text-sm">
                                                     {user}
-                                                    <button onClick={() => removeWhitelistUserAdmin(user)} className="hover:text-red-600">
+                                                    <button onClick={() => removeWhitelistUserAdmin(user)} className="hover:text-ds-danger">
                                                         <X className="w-3 h-3" />
                                                     </button>
                                                 </span>
                                             ))}
                                             {channelConfig.whitelistUsers.length === 0 && (
-                                                <span className="text-sm text-green-600 dark:text-green-500">Sin usuarios</span>
+                                                <span className="text-sm text-ds-ok">Sin usuarios</span>
                                             )}
                                         </div>
                                     </>
@@ -638,47 +638,47 @@ export default function DecatronAIAdmin() {
                             </div>
 
                             {/* Blacklist */}
-                            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                                <h3 className="font-bold text-red-700 dark:text-red-400 mb-3">Blacklist</h3>
+                            <div className="p-4 bg-ds-danger/10 border border-ds-danger/40 rounded-lg">
+                                <h3 className="font-bold text-ds-danger mb-3">Blacklist</h3>
                                 <div className="flex gap-2 mb-3">
                                     <input
                                         type="text"
                                         value={newBlacklistUser}
                                         onChange={(e) => setNewBlacklistUser(e.target.value)}
                                         placeholder="Usuario a bloquear..."
-                                        className="flex-1 px-3 py-2 border border-red-300 dark:border-red-700 rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                        className="flex-1 px-3 py-2 border border-ds-danger/40 rounded-lg bg-ds-surface text-ds-text"
                                     />
-                                    <button onClick={addBlacklistUserAdmin} className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold">
+                                    <button onClick={addBlacklistUserAdmin} className="px-3 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg font-bold">
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {channelConfig.blacklistUsers.map((user) => (
-                                        <span key={user} className="flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full font-semibold text-sm">
+                                        <span key={user} className="flex items-center gap-1 px-3 py-1 bg-ds-danger/10 text-ds-danger rounded-full font-semibold text-sm">
                                             {user}
-                                            <button onClick={() => removeBlacklistUserAdmin(user)} className="hover:text-red-900">
+                                            <button onClick={() => removeBlacklistUserAdmin(user)} className="hover:text-ds-danger">
                                                 <X className="w-3 h-3" />
                                             </button>
                                         </span>
                                     ))}
                                     {channelConfig.blacklistUsers.length === 0 && (
-                                        <span className="text-sm text-red-600 dark:text-red-500">Sin usuarios bloqueados</span>
+                                        <span className="text-sm text-ds-danger">Sin usuarios bloqueados</span>
                                     )}
                                 </div>
                             </div>
 
                             {/* Botones */}
-                            <div className="flex gap-3 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="flex gap-3 pt-4 border-t border-ds-border">
                                 <button
                                     onClick={saveChannelConfig}
                                     disabled={savingChannelConfig}
-                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-bold transition-all disabled:opacity-50"
+                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all disabled:opacity-50"
                                 >
                                     <Save className="w-4 h-4" /> {savingChannelConfig ? 'Guardando...' : 'Guardar'}
                                 </button>
                                 <button
                                     onClick={() => setEditingChannel(null)}
-                                    className="px-6 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] rounded-lg font-bold transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    className="px-6 py-3 bg-ds-bg border border-ds-border text-ds-soft rounded-lg font-bold transition-all hover:bg-ds-bg"
                                 >
                                     Cancelar
                                 </button>
@@ -692,54 +692,54 @@ export default function DecatronAIAdmin() {
                 <div className="space-y-6">
                     {/* Stats Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">TOTAL</p>
-                            <p className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{stats.totalUsage}</p>
+                        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                            <p className="text-sm font-bold text-ds-soft mb-1">TOTAL</p>
+                            <p className="text-3xl font-black text-ds-text">{stats.totalUsage}</p>
                         </div>
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">HOY</p>
-                            <p className="text-3xl font-black text-[#2563eb]">{stats.todayUsage}</p>
+                        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                            <p className="text-sm font-bold text-ds-soft mb-1">HOY</p>
+                            <p className="text-3xl font-black text-ds-accent-text">{stats.todayUsage}</p>
                         </div>
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">ESTA SEMANA</p>
-                            <p className="text-3xl font-black text-green-500">{stats.weekUsage}</p>
+                        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                            <p className="text-sm font-bold text-ds-soft mb-1">ESTA SEMANA</p>
+                            <p className="text-3xl font-black text-ds-ok">{stats.weekUsage}</p>
                         </div>
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">TOKENS USADOS</p>
-                            <p className="text-3xl font-black text-purple-500">{stats.totalTokens}</p>
+                        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                            <p className="text-sm font-bold text-ds-soft mb-1">TOKENS USADOS</p>
+                            <p className="text-3xl font-black text-ds-accent-text">{stats.totalTokens}</p>
                         </div>
                     </div>
 
                     {/* Top Channels */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Top Canales</h3>
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h3 className="text-xl font-black text-ds-text mb-4">Top Canales</h3>
                         <div className="space-y-2">
                             {stats.topChannels.map((item, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                                    <span className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">{item.channel}</span>
-                                    <span className="font-bold text-[#2563eb]">{item.count} usos</span>
+                                <div key={i} className="flex justify-between items-center p-3 bg-ds-bg rounded-lg border border-ds-border">
+                                    <span className="font-semibold text-ds-text">{item.channel}</span>
+                                    <span className="font-bold text-ds-accent-text">{item.count} usos</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Recent Usage */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Uso Reciente</h3>
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h3 className="text-xl font-black text-ds-text mb-4">Uso Reciente</h3>
                         <div className="space-y-2">
                             {stats.recentUsage.map((item, i) => (
-                                <div key={i} className="p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                <div key={i} className="p-3 bg-ds-bg rounded-lg border border-ds-border">
                                     <div className="flex justify-between mb-1">
                                         <div>
-                                            <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{item.channelName}</span>
-                                            <span className="text-[#64748b] dark:text-[#94a3b8] mx-2">|</span>
-                                            <span className="font-semibold text-[#64748b] dark:text-[#94a3b8]">{item.username}</span>
+                                            <span className="font-bold text-ds-text">{item.channelName}</span>
+                                            <span className="text-ds-soft mx-2">|</span>
+                                            <span className="font-semibold text-ds-soft">{item.username}</span>
                                         </div>
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${item.success ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${item.success ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-danger/10 text-ds-danger '}`}>
                                             {item.success ? 'OK' : 'Error'}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{item.prompt}</p>
+                                    <p className="text-sm text-ds-soft">{item.prompt}</p>
                                 </div>
                             ))}
                         </div>

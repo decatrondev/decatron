@@ -16,10 +16,10 @@ interface LogRow { id: number; actor: string; action: string; detail?: string | 
 interface Req { id: number; login: string; message?: string | null; createdAt: string }
 const TRASH_DAYS = 30;
 
-const card = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-4 3xl:p-6 shadow-sm';
-const input = 'px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-sm 3xl:text-base text-[#1e293b] dark:text-[#f1f5f9]';
-const btnBlue = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] text-white hover:bg-[#1d4ed8] disabled:opacity-50 flex items-center gap-2';
-const iconBtn = 'p-2 rounded-lg bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]';
+const card = 'rounded-lg border border-ds-border bg-ds-surface p-4 3xl:p-6 ';
+const input = 'px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-sm 3xl:text-base text-ds-text ';
+const btnBlue = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent text-ds-on-accent hover:bg-ds-accent-hover disabled:opacity-50 flex items-center gap-2';
+const iconBtn = 'p-2 rounded-lg bg-ds-raised text-ds-soft hover:bg-ds-raised ';
 
 /** Gestor de los emotes globales. `embedded` lo deja sin cabecera ni pantalla completa para usarlo dentro de la página pública. */
 export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boolean }) {
@@ -121,10 +121,10 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
         catch (x: any) { setNotice({ kind: 'err', text: err(x?.response?.data?.error) }); }
     };
 
-    if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-10 h-10 animate-spin text-[#2563eb]" /></div>;
+    if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-10 h-10 animate-spin text-ds-accent-text" /></div>;
     if (error) {
         return (
-            <div className="p-8"><div className="max-w-xl mx-auto p-6 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300">
+            <div className="p-8"><div className="max-w-xl mx-auto p-6 rounded-lg border border-ds-danger/40 bg-ds-danger/10 text-ds-danger">
                 {error === 'forbidden' ? t('global.forbidden') : t('global.loadFailed')}
             </div></div>
         );
@@ -134,21 +134,21 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
     const trash = emotes.filter(e => e.status === 'removed');
 
     return (
-        <div className={embedded ? 'space-y-6' : 'min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8'}>
+        <div className={embedded ? 'space-y-6' : 'min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8'}>
             <div className={embedded ? 'space-y-6' : 'panel-scale max-w-[1200px] mx-auto space-y-6'}>
                 {!embedded && <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/admin')} aria-label={t('global.back')}
-                        className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] shadow-lg">
-                        <ArrowLeft className="w-5 h-5 text-[#64748b]" />
+                        className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg">
+                        <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
-                        <h1 className="text-2xl 3xl:text-3xl font-bold text-[#1e293b] dark:text-[#f1f5f9]">{t('global.title')}</h1>
-                        <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('global.subtitle')}</p>
+                        <h1 className="text-2xl 3xl:text-3xl font-bold text-ds-text">{t('global.title')}</h1>
+                        <p className="text-sm 3xl:text-base text-ds-soft">{t('global.subtitle')}</p>
                     </div>
                 </div>}
 
                 {notice && (
-                    <div className={`flex items-start gap-2 p-3 rounded-xl border text-sm ${notice.kind === 'err' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300' : notice.kind === 'warn' ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300' : 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300'}`}>
+                    <div className={`flex items-start gap-2 p-3 rounded-lg border text-sm ${notice.kind === 'err' ? 'border-ds-danger/40 bg-ds-danger/10 text-ds-danger ' : notice.kind === 'warn' ? 'border-ds-warn/40 bg-ds-warn/10 text-ds-warn ' : 'border-ds-ok/40 bg-ds-ok/10 text-ds-ok '}`}>
                         {notice.kind === 'warn' && <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />}
                         <span className="flex-1">{notice.text}</span>
                         <button onClick={() => setNotice(null)} aria-label="x"><X className="w-4 h-4" /></button>
@@ -156,15 +156,15 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
                 )}
 
                 <section className={card}>
-                    <h2 className="font-bold text-lg 3xl:text-xl text-[#1e293b] dark:text-[#f1f5f9] mb-4">{t('global.upload')}</h2>
+                    <h2 className="font-bold text-lg 3xl:text-xl text-ds-text mb-4">{t('global.upload')}</h2>
                     <div className="flex flex-wrap items-end gap-3">
-                        <label className="flex flex-col gap-1 text-sm text-[#64748b] dark:text-[#94a3b8]">{t('global.name')}
+                        <label className="flex flex-col gap-1 text-sm text-ds-soft">{t('global.name')}
                             <input className={input} value={name} maxLength={25} onChange={e => setName(e.target.value)} />
                         </label>
-                        <label className="flex flex-col gap-1 text-sm text-[#64748b] dark:text-[#94a3b8]">{t('global.file')}
+                        <label className="flex flex-col gap-1 text-sm text-ds-soft">{t('global.file')}
                             <input ref={fileRef} type="file" accept="image/png,image/gif,image/webp,image/jpeg" className={input} onChange={e => setFile(e.target.files?.[0] ?? null)} />
                         </label>
-                        <label className="flex items-center gap-2 text-sm text-[#475569] dark:text-[#cbd5e1] pb-2">
+                        <label className="flex items-center gap-2 text-sm text-ds-soft pb-2">
                             <input type="checkbox" checked={zeroWidth} onChange={e => setZeroWidth(e.target.checked)} />{t('global.zeroWidth')}
                         </label>
                         <button className={btnBlue} disabled={busy || !file || !name.trim()} onClick={upload}>
@@ -172,25 +172,25 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
                         </button>
                     </div>
                     {collision && (
-                        <p className="mt-3 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300"><AlertTriangle className="w-4 h-4" />{t('global.collides', { name: name.trim() })}</p>
+                        <p className="mt-3 flex items-center gap-2 text-sm text-ds-warn"><AlertTriangle className="w-4 h-4" />{t('global.collides', { name: name.trim() })}</p>
                     )}
                 </section>
 
                 <section className={card}>
-                    {live.length === 0 ? <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('global.empty')}</p> : (
+                    {live.length === 0 ? <p className="text-sm text-ds-soft">{t('global.empty')}</p> : (
                         <ul className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
                             {live.map(e => (
-                                <li key={e.id} className={`flex items-center gap-3 p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] ${e.status === 'hidden' ? 'opacity-60' : ''}`}>
+                                <li key={e.id} className={`flex items-center gap-3 p-3 rounded-lg border border-ds-border ${e.status === 'hidden' ? 'opacity-60' : ''}`}>
                                     <img src={e.urls.x2} alt={e.name} className="w-12 h-12 object-contain shrink-0" />
                                     <div className="min-w-0 flex-1">
-                                        <div className="font-bold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f1f5f9] truncate">{e.name}{e.status === 'hidden' && <span className="ml-2 text-xs font-normal text-[#94a3b8]">{t('global.hidden')}</span>}</div>
-                                        <div className="text-xs text-[#94a3b8] truncate">{t('global.by', { name: e.uploadedBy })}</div>
+                                        <div className="font-bold text-sm 3xl:text-base text-ds-text truncate">{e.name}{e.status === 'hidden' && <span className="ml-2 text-xs font-normal text-ds-soft">{t('global.hidden')}</span>}</div>
+                                        <div className="text-xs text-ds-soft truncate">{t('global.by', { name: e.uploadedBy })}</div>
                                     </div>
                                     <button className={iconBtn} title={e.status === 'hidden' ? t('global.show') : t('global.hide')} onClick={() => patch(e, { visible: e.status === 'hidden' })}>
                                         {e.status === 'hidden' ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                     </button>
                                     <button className={iconBtn} title={t('global.rename')} onClick={() => rename(e)}><Pencil className="w-4 h-4" /></button>
-                                    <button className={iconBtn} title={t('global.delete')} onClick={() => remove(e)}><Trash2 className="w-4 h-4 text-red-500" /></button>
+                                    <button className={iconBtn} title={t('global.delete')} onClick={() => remove(e)}><Trash2 className="w-4 h-4 text-ds-danger" /></button>
                                 </li>
                             ))}
                         </ul>
@@ -199,19 +199,19 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
 
                 {trash.length > 0 && (
                     <section className={card}>
-                        <h2 className="font-bold text-lg 3xl:text-xl text-[#1e293b] dark:text-[#f1f5f9]">{t('global.trash')}</h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">{t('global.trashHint', { days: TRASH_DAYS })}</p>
+                        <h2 className="font-bold text-lg 3xl:text-xl text-ds-text">{t('global.trash')}</h2>
+                        <p className="text-sm text-ds-soft mb-4">{t('global.trashHint', { days: TRASH_DAYS })}</p>
                         <ul className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
                             {trash.map(e => (
-                                <li key={e.id} className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-[#e2e8f0] dark:border-[#374151] opacity-80">
+                                <li key={e.id} className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-ds-border opacity-80">
                                     <img src={e.urls.x2} alt={e.name} className="w-12 h-12 object-contain shrink-0" />
                                     <div className="min-w-0 flex-1">
-                                        <div className="font-bold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f1f5f9] truncate">{e.name}</div>
-                                        <div className="text-xs text-[#94a3b8] truncate">{t('global.deletedBy', { name: e.removedBy ?? '?' })} · {t('global.daysLeft', { count: daysLeft(e) })}</div>
+                                        <div className="font-bold text-sm 3xl:text-base text-ds-text truncate">{e.name}</div>
+                                        <div className="text-xs text-ds-soft truncate">{t('global.deletedBy', { name: e.removedBy ?? '?' })} · {t('global.daysLeft', { count: daysLeft(e) })}</div>
                                     </div>
                                     {canRestore && <>
                                         <button className={iconBtn} title={t('global.restore')} onClick={() => restore(e)}><RotateCcw className="w-4 h-4" /></button>
-                                        <button className={iconBtn} title={t('global.purge')} onClick={() => purge(e)}><Trash2 className="w-4 h-4 text-red-500" /></button>
+                                        <button className={iconBtn} title={t('global.purge')} onClick={() => purge(e)}><Trash2 className="w-4 h-4 text-ds-danger" /></button>
                                     </>}
                                 </li>
                             ))}
@@ -221,15 +221,15 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
 
                 {canRestore && (
                     <section className={card}>
-                        <h2 className="font-bold text-lg 3xl:text-xl text-[#1e293b] dark:text-[#f1f5f9] mb-4">{t('global.log')}</h2>
-                        {log.length === 0 ? <p className="text-sm text-[#94a3b8]">{t('global.logEmpty')}</p> : (
-                            <ul className="divide-y divide-[#e2e8f0] dark:divide-[#374151] max-h-96 overflow-y-auto">
+                        <h2 className="font-bold text-lg 3xl:text-xl text-ds-text mb-4">{t('global.log')}</h2>
+                        {log.length === 0 ? <p className="text-sm text-ds-soft">{t('global.logEmpty')}</p> : (
+                            <ul className="divide-y divide-ds-border max-h-96 overflow-y-auto">
                                 {log.map(l => (
                                     <li key={l.id} className="py-2 flex flex-wrap items-baseline gap-x-3 text-sm">
-                                        <span className="text-xs text-[#94a3b8] tabular-nums">{new Date(l.createdAt).toLocaleString()}</span>
-                                        <span className="font-bold text-[#1e293b] dark:text-[#f1f5f9]">{l.actor}</span>
-                                        <span className="text-[#2563eb] dark:text-[#93c5fd]">{t(`global.actions.${l.action}`, { defaultValue: l.action })}</span>
-                                        <span className="text-[#64748b] dark:text-[#94a3b8] break-all">{l.detail}</span>
+                                        <span className="text-xs text-ds-soft tabular-nums">{new Date(l.createdAt).toLocaleString()}</span>
+                                        <span className="font-bold text-ds-text">{l.actor}</span>
+                                        <span className="text-ds-accent-text">{t(`global.actions.${l.action}`, { defaultValue: l.action })}</span>
+                                        <span className="text-ds-soft break-all">{l.detail}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -240,15 +240,15 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
                 {managers && (
                     <section className={card}>
                         {requests.length > 0 && (
-                            <div className="mb-6 p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
-                                <h3 className="font-bold text-sm 3xl:text-base text-amber-800 dark:text-amber-300 mb-3">{t('global.requests', { count: requests.length })}</h3>
+                            <div className="mb-6 p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10">
+                                <h3 className="font-bold text-sm 3xl:text-base text-ds-warn mb-3">{t('global.requests', { count: requests.length })}</h3>
                                 <ul className="space-y-2">
                                     {requests.map(r => (
                                         <li key={r.id} className="flex flex-wrap items-center gap-3">
                                             <div className="min-w-0 flex-1">
-                                                <span className="font-bold text-sm text-[#1e293b] dark:text-[#f1f5f9]">{r.login}</span>
-                                                <span className="ml-2 text-xs text-[#94a3b8]">{new Date(r.createdAt).toLocaleDateString()}</span>
-                                                {r.message && <p className="text-sm text-[#64748b] dark:text-[#cbd5e1] break-words">{r.message}</p>}
+                                                <span className="font-bold text-sm text-ds-text">{r.login}</span>
+                                                <span className="ml-2 text-xs text-ds-soft">{new Date(r.createdAt).toLocaleDateString()}</span>
+                                                {r.message && <p className="text-sm text-ds-soft break-words">{r.message}</p>}
                                             </div>
                                             <button className={btnBlue} onClick={() => resolveRequest(r, true)}>{t('global.approve')}</button>
                                             <button className={iconBtn} onClick={() => resolveRequest(r, false)}>{t('global.reject')}</button>
@@ -257,18 +257,18 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
                                 </ul>
                             </div>
                         )}
-                        <h2 className="font-bold text-lg 3xl:text-xl text-[#1e293b] dark:text-[#f1f5f9]">{t('global.people')}</h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">{t('global.peopleHint')}</p>
+                        <h2 className="font-bold text-lg 3xl:text-xl text-ds-text">{t('global.people')}</h2>
+                        <p className="text-sm text-ds-soft mb-4">{t('global.peopleHint')}</p>
                         <div className="flex flex-wrap gap-3 mb-4">
                             <input className={input} value={login} placeholder={t('global.loginPlaceholder')} onChange={e => setLogin(e.target.value)} onKeyDown={e => e.key === 'Enter' && addManager()} />
                             <button className={btnBlue} onClick={addManager} disabled={!login.trim()}>{t('global.add')}</button>
                         </div>
-                        {managers.length === 0 ? <p className="text-sm text-[#94a3b8]">{t('global.noPeople')}</p> : (
+                        {managers.length === 0 ? <p className="text-sm text-ds-soft">{t('global.noPeople')}</p> : (
                             <ul className="flex flex-wrap gap-2">
                                 {managers.map(m => (
-                                    <li key={m.id} className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-[#f1f5f9] dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f1f5f9]">
+                                    <li key={m.id} className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-ds-raised text-sm text-ds-text">
                                         {m.login}
-                                        <button className="p-1 rounded-full hover:bg-[#e2e8f0] dark:hover:bg-[#374151]" title={t('global.remove')} aria-label={t('global.remove')} onClick={() => removeManager(m)}><X className="w-3.5 h-3.5" /></button>
+                                        <button className="p-1 rounded-full hover:bg-ds-raised" title={t('global.remove')} aria-label={t('global.remove')} onClick={() => removeManager(m)}><X className="w-3.5 h-3.5" /></button>
                                     </li>
                                 ))}
                             </ul>

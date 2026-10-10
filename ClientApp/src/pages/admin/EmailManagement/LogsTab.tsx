@@ -18,9 +18,9 @@ interface Log {
 }
 
 const STATUS_BADGES: Record<string, string> = {
-    sent: 'bg-green-500/10 text-green-400 border-green-500/30',
-    failed: 'bg-red-500/10 text-red-400 border-red-500/30',
-    bounced: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+    sent: 'bg-ds-accent/10 text-ds-ok border-ds-ok/40',
+    failed: 'bg-ds-danger-solid/10 text-ds-danger border-ds-danger/40',
+    bounced: 'bg-ds-warn/10 text-ds-warn border-ds-warn/40',
 };
 
 export default function LogsTab() {
@@ -63,15 +63,15 @@ export default function LogsTab() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
             </div>
         );
     }
 
     if (campaigns.length === 0) {
         return (
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-12 text-center">
-                <p className="text-[#64748b] dark:text-[#94a3b8]">No hay campañas enviadas. Los logs aparecerán aquí cuando envíes tu primera campaña.</p>
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-12 text-center">
+                <p className="text-ds-soft">No hay campañas enviadas. Los logs aparecerán aquí cuando envíes tu primera campaña.</p>
             </div>
         );
     }
@@ -80,11 +80,11 @@ export default function LogsTab() {
         <div className="space-y-4">
             {/* Filter */}
             <div className="flex items-center gap-3">
-                <Filter className="w-4 h-4 text-[#64748b]" />
+                <Filter className="w-4 h-4 text-ds-soft" />
                 <select
                     value={selectedCampaign || ''}
                     onChange={e => setSelectedCampaign(Number(e.target.value) || null)}
-                    className="px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                    className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                     {campaigns.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
@@ -93,36 +93,36 @@ export default function LogsTab() {
             </div>
 
             {/* Logs table */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+            <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Email</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Fecha</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Resend ID</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Error</th>
+                            <tr className="border-b border-ds-border">
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Email</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Estado</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Fecha</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Resend ID</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Error</th>
                             </tr>
                         </thead>
                         <tbody>
                             {logs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-[#94a3b8]">Sin logs para esta campaña</td>
+                                    <td colSpan={5} className="px-4 py-8 text-center text-ds-soft">Sin logs para esta campaña</td>
                                 </tr>
                             ) : logs.map(l => (
-                                <tr key={l.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
-                                    <td className="px-4 py-3 font-semibold text-[#1e293b] dark:text-[#f8fafc]">{l.recipientEmail}</td>
+                                <tr key={l.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
+                                    <td className="px-4 py-3 font-semibold text-ds-text">{l.recipientEmail}</td>
                                     <td className="px-4 py-3">
                                         <span className={`text-xs font-bold px-2 py-1 rounded-full border ${STATUS_BADGES[l.status] || STATUS_BADGES.sent}`}>
                                             {l.status}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">
+                                    <td className="px-4 py-3 text-ds-soft">
                                         {new Date(l.sentAt).toLocaleString()}
                                     </td>
-                                    <td className="px-4 py-3 text-xs text-[#94a3b8] font-mono">{l.resendId || '-'}</td>
-                                    <td className="px-4 py-3 text-xs text-red-400 max-w-[200px] truncate">{l.errorMessage || '-'}</td>
+                                    <td className="px-4 py-3 text-xs text-ds-soft font-mono">{l.resendId || '-'}</td>
+                                    <td className="px-4 py-3 text-xs text-ds-danger max-w-[200px] truncate">{l.errorMessage || '-'}</td>
                                 </tr>
                             ))}
                         </tbody>

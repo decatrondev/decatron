@@ -15,8 +15,8 @@ interface AdminChannel {
 }
 
 const TABS: { id: Platform; label: string; badgeClass: string }[] = [
-    { id: 'twitch', label: 'Twitch', badgeClass: 'bg-twitch text-white' },
-    { id: 'kick', label: 'Kick', badgeClass: 'bg-kick text-black' },
+    { id: 'twitch', label: 'Twitch', badgeClass: 'bg-twitch text-ds-text' },
+    { id: 'kick', label: 'Kick', badgeClass: 'bg-kick text-ds-text' },
 ];
 
 export default function ChannelsVisibility() {
@@ -68,7 +68,7 @@ export default function ChannelsVisibility() {
             <div className="flex items-center justify-center py-32">
                 <div className="text-center">
                     <div className="text-5xl mb-4">📺</div>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] font-bold">Cargando canales...</p>
+                    <p className="text-ds-soft font-bold">Cargando canales...</p>
                 </div>
             </div>
         );
@@ -82,12 +82,12 @@ export default function ChannelsVisibility() {
                 <div>
                     <button
                         onClick={() => navigate('/admin')}
-                        className="flex items-center gap-2 text-sm text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] mb-2"
+                        className="flex items-center gap-2 text-sm text-ds-soft hover:text-ds-accent-text mb-2"
                     >
                         <ArrowLeft className="w-4 h-4" /> Volver a Admin
                     </button>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Canales del Carrusel</h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">
+                    <h1 className="text-3xl font-black text-ds-text">Canales del Carrusel</h1>
+                    <p className="text-ds-soft mt-2">
                         Controla qué canales aparecen en el carrusel público de la landing
                     </p>
                 </div>
@@ -98,7 +98,7 @@ export default function ChannelsVisibility() {
                 )}
             </div>
 
-            <div className="flex gap-2 mb-6 border-b border-[#e2e8f0] dark:border-[#374151]">
+            <div className="flex gap-2 mb-6 border-b border-ds-border">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
@@ -106,7 +106,7 @@ export default function ChannelsVisibility() {
                         className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-all ${
                             activeTab === tab.id
                                 ? tab.badgeClass
-                                : 'text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc]'
+                                : 'text-ds-soft hover:text-ds-text '
                         }`}
                     >
                         {tab.label}
@@ -117,24 +117,24 @@ export default function ChannelsVisibility() {
 
             <div className="space-y-2">
                 {list.length === 0 && (
-                    <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-12">
+                    <p className="text-center text-ds-soft py-12">
                         No hay canales de {TABS.find(t => t.id === activeTab)?.label} todavía
                     </p>
                 )}
                 {list.map(channel => (
                     <div
                         key={channel.id}
-                        className="flex items-center justify-between gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]"
+                        className="flex items-center justify-between gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border"
                     >
                         <div className="flex items-center gap-3 min-w-0">
                             <img src={channel.avatarUrl} alt={channel.displayName} className="w-10 h-10 rounded-full shrink-0" />
                             <div className="min-w-0">
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{channel.displayName}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] truncate">@{channel.login}</p>
+                                <p className="font-bold text-ds-text truncate">{channel.displayName}</p>
+                                <p className="text-xs text-ds-soft truncate">@{channel.login}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+                            <span className="text-xs font-bold text-ds-soft">
                                 {channel.isHidden ? 'Oculto' : 'Visible'}
                             </span>
                             <Toggle value={!channel.isHidden} onChange={() => handleToggle(channel)} />

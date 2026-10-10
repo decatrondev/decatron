@@ -59,7 +59,7 @@ export default function TemplatesTab() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -80,7 +80,7 @@ export default function TemplatesTab() {
             <div className="flex justify-end">
                 <button
                     onClick={() => { setEditingId(null); setEditorOpen(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
                 >
                     <Plus className="w-4 h-4" />
                     Nuevo Template
@@ -89,39 +89,39 @@ export default function TemplatesTab() {
 
             {/* List */}
             {templates.length === 0 ? (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-12 text-center">
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">No hay templates. Crea uno para empezar.</p>
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-12 text-center">
+                    <p className="text-ds-soft">No hay templates. Crea uno para empezar.</p>
                 </div>
             ) : (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Nombre</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Subject</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Actualizado</th>
-                                    <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Acciones</th>
+                                <tr className="border-b border-ds-border">
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Nombre</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Subject</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Actualizado</th>
+                                    <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {templates.map(t => (
-                                    <tr key={t.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
-                                        <td className="px-4 py-3 font-semibold text-[#1e293b] dark:text-[#f8fafc]">{t.name}</td>
-                                        <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">{t.subject}</td>
-                                        <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">
+                                    <tr key={t.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
+                                        <td className="px-4 py-3 font-semibold text-ds-text">{t.name}</td>
+                                        <td className="px-4 py-3 text-ds-soft">{t.subject}</td>
+                                        <td className="px-4 py-3 text-ds-soft">
                                             {new Date(t.updatedAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end gap-1">
-                                                <button onClick={() => { setEditingId(t.id); setEditorOpen(true); }} className="p-2 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors" title="Editar">
-                                                    <Edit3 className="w-4 h-4 text-[#2563eb]" />
+                                                <button onClick={() => { setEditingId(t.id); setEditorOpen(true); }} className="p-2 hover:bg-ds-raised rounded-lg transition-colors" title="Editar">
+                                                    <Edit3 className="w-4 h-4 text-ds-accent-text" />
                                                 </button>
-                                                <button onClick={() => handleDuplicate(t.id)} className="p-2 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors" title="Duplicar">
-                                                    <Copy className="w-4 h-4 text-[#64748b]" />
+                                                <button onClick={() => handleDuplicate(t.id)} className="p-2 hover:bg-ds-raised rounded-lg transition-colors" title="Duplicar">
+                                                    <Copy className="w-4 h-4 text-ds-soft" />
                                                 </button>
-                                                <button onClick={() => handleDelete(t.id)} className="p-2 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors" title="Eliminar">
-                                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                                <button onClick={() => handleDelete(t.id)} className="p-2 hover:bg-ds-raised rounded-lg transition-colors" title="Eliminar">
+                                                    <Trash2 className="w-4 h-4 text-ds-danger" />
                                                 </button>
                                             </div>
                                         </td>

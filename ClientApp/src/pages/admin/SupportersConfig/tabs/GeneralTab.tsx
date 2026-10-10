@@ -18,11 +18,11 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
         <div className="space-y-6">
             {/* Estado */}
             <div className={CARD}>
-                <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg mb-5">Estado de la página</h3>
+                <h3 className="font-black text-ds-text text-lg mb-5">Estado de la página</h3>
                 <div className="flex items-center justify-between mb-5">
                     <div>
                         <p className={LABEL}>Página pública activa</p>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                        <p className="text-xs text-ds-soft mt-0.5">
                             Si está desactivada, nadie puede ver la página de apoyos
                         </p>
                     </div>
@@ -34,7 +34,7 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
                         <input type="text" value={publicUrl} readOnly className={`${INPUT} font-mono text-xs`} />
                         <button
                             onClick={handleCopy}
-                            className="px-3 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl text-sm font-bold flex items-center gap-1.5 whitespace-nowrap"
+                            className="px-3 py-2 bg-ds-accent text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-1.5 whitespace-nowrap"
                         >
                             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                             {copied ? 'Copiado' : 'Copiar'}
@@ -43,7 +43,7 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
                             href="/supporters"
                             target="_blank"
                             rel="noopener"
-                            className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] rounded-xl text-sm font-bold flex items-center gap-1.5 whitespace-nowrap hover:bg-[#f8fafc] dark:hover:bg-[#374151] transition-colors"
+                            className="px-3 py-2 border border-ds-border bg-ds-surface text-ds-soft rounded-lg text-sm font-bold flex items-center gap-1.5 whitespace-nowrap hover:bg-ds-bg transition-colors"
                         >
                             <ExternalLink className="w-4 h-4" />
                             Ver
@@ -54,7 +54,7 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
 
             {/* Contenido */}
             <div className={CARD}>
-                <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg mb-5">Contenido de la página</h3>
+                <h3 className="font-black text-ds-text text-lg mb-5">Contenido de la página</h3>
                 <div className="space-y-4">
                     <div>
                         <label className={`${LABEL} block mb-1.5`}>Título principal</label>
@@ -91,11 +91,11 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
 
             {/* Objetivo mensual */}
             <div className={CARD}>
-                <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg mb-5">Objetivo mensual</h3>
+                <h3 className="font-black text-ds-text text-lg mb-5">Objetivo mensual</h3>
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <p className={LABEL}>Mostrar barra de progreso</p>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                        <p className="text-xs text-ds-soft mt-0.5">
                             Muestra cuánto del objetivo mensual se ha alcanzado
                         </p>
                     </div>
@@ -105,7 +105,7 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
                     <div>
                         <label className={`${LABEL} block mb-1.5`}>Objetivo mensual (USD)</label>
                         <div className="flex items-center gap-2">
-                            <span className="text-[#64748b] dark:text-[#94a3b8] font-bold text-lg">$</span>
+                            <span className="text-ds-soft font-bold text-lg">$</span>
                             <input
                                 type="number"
                                 min={0}
@@ -113,17 +113,17 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
                                 onChange={e => onChange({ monthlyGoal: Number(e.target.value) })}
                                 className={`${INPUT} w-32`}
                             />
-                            <span className="text-sm text-[#64748b] dark:text-[#94a3b8]">/ mes</span>
+                            <span className="text-sm text-ds-soft">/ mes</span>
                         </div>
                         {config.monthlyGoal > 0 && (
                             <div className="mt-4">
-                                <div className="flex justify-between text-xs text-[#64748b] dark:text-[#94a3b8] mb-1.5">
+                                <div className="flex justify-between text-xs text-ds-soft mb-1.5">
                                     <span>Recaudado: ${config.monthlyRaised}</span>
                                     <span>Objetivo: ${config.monthlyGoal}</span>
                                 </div>
-                                <div className="h-3 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                                <div className="h-3 bg-ds-raised rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-gradient-to-r from-[#2563eb] to-[#7c3aed] rounded-full transition-all"
+                                        className="h-full bg-ds-accent rounded-full transition-all"
                                         style={{ width: `${Math.min(100, (config.monthlyRaised / config.monthlyGoal) * 100)}%` }}
                                     />
                                 </div>
@@ -135,7 +135,7 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
 
             {/* Secciones visibles */}
             <div className={CARD}>
-                <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg mb-5">Secciones visibles</h3>
+                <h3 className="font-black text-ds-text text-lg mb-5">Secciones visibles</h3>
                 <div className="space-y-4">
                     {[
                         { key: 'showSupportersWall', label: 'Muro de supporters', desc: 'Muestra la grilla de todos los supporters activos' },
@@ -144,7 +144,7 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
                         <div key={key} className="flex items-center justify-between">
                             <div>
                                 <p className={LABEL}>{label}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">{desc}</p>
+                                <p className="text-xs text-ds-soft mt-0.5">{desc}</p>
                             </div>
                             <Toggle
                                 value={config[key as keyof PageConfig] as boolean}

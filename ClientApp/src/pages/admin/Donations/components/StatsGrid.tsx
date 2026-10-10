@@ -28,7 +28,7 @@ function fmt(amount: number, currency = 'USD') {
 }
 
 function Skeleton() {
-    return <div className="h-8 bg-[#e2e8f0] dark:bg-[#262626] rounded-lg animate-pulse" />;
+    return <div className="h-8 bg-ds-raised rounded-lg animate-pulse" />;
 }
 
 export function StatsGrid({ stats, loading, currency = 'USD' }: Props) {
@@ -71,19 +71,19 @@ export function StatsGrid({ stats, loading, currency = 'USD' }: Props) {
     ];
 
     const colorMap: Record<string, string> = {
-        green:  'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30',
-        blue:   'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30',
-        purple: 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30',
-        pink:   'text-pink-600 dark:text-pink-400 bg-pink-100 dark:bg-pink-900/30',
-        orange: 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30',
+        green: 'text-ds-ok bg-ds-ok/10 ',
+        blue: 'text-ds-accent-text bg-ds-accent/10 ',
+        purple: 'text-ds-accent-text bg-ds-accent/10 ',
+        pink: 'text-ds-accent-text bg-ds-accent/10 ',
+        orange: 'text-ds-warn bg-ds-warn/10 ',
     };
 
     const valueColorMap: Record<string, string> = {
-        green:  'text-green-700 dark:text-green-300',
-        blue:   'text-blue-700 dark:text-blue-300',
-        purple: 'text-purple-700 dark:text-purple-300',
-        pink:   'text-pink-700 dark:text-pink-300',
-        orange: 'text-orange-700 dark:text-orange-300',
+        green: 'text-ds-ok ',
+        blue: 'text-ds-accent-text ',
+        purple: 'text-ds-accent-text ',
+        pink: 'text-ds-accent-text ',
+        orange: 'text-ds-warn ',
     };
 
     return (
@@ -93,13 +93,13 @@ export function StatsGrid({ stats, loading, currency = 'USD' }: Props) {
                 {cards.map((c) => (
                     <div
                         key={c.label}
-                        className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4 shadow-sm"
+                        className="bg-ds-surface border border-ds-border rounded-lg p-4"
                     >
                         <div className="flex items-center justify-between mb-3">
-                            <p className="text-xs font-semibold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">
+                            <p className="text-xs font-semibold text-ds-soft uppercase tracking-wide">
                                 {c.label}
                             </p>
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${colorMap[c.color]}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorMap[c.color]}`}>
                                 {c.icon}
                             </div>
                         </div>
@@ -108,25 +108,25 @@ export function StatsGrid({ stats, loading, currency = 'USD' }: Props) {
                         ) : (
                             <p className={`text-2xl font-black ${valueColorMap[c.color]}`}>{c.value}</p>
                         )}
-                        <p className="text-xs text-[#94a3b8] mt-1">{c.sub}</p>
+                        <p className="text-xs text-ds-soft mt-1">{c.sub}</p>
                     </div>
                 ))}
             </div>
 
             {/* Top donor highlight */}
             {!loading && stats?.topDonor && (
-                <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
-                        <Award className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                <div className="bg-ds-surface border border-ds-border rounded-lg p-4 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-ds-warn/10 flex items-center justify-center shrink-0">
+                        <Award className="w-6 h-6 text-ds-accent-text" />
                     </div>
                     <div className="min-w-0">
-                        <p className="text-xs font-semibold text-yellow-600 dark:text-yellow-400 uppercase tracking-wide">
+                        <p className="text-xs font-semibold text-ds-warn uppercase tracking-wide">
                             Top donante del período
                         </p>
-                        <p className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] truncate">
+                        <p className="text-xl font-black text-ds-text truncate">
                             {stats.topDonor}
                         </p>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm text-ds-soft">
                             {fmt(stats.topDonorTotal, currency)} en total
                         </p>
                     </div>

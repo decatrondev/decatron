@@ -34,9 +34,9 @@ interface RecentResult {
 }
 
 const RESULT_LABELS: Record<string, { label: string; color: string }> = {
-    fail: { label: 'Falló (destruida)', color: 'text-red-400' },
-    success_paid: { label: 'Confirmado', color: 'text-green-400' },
-    success_expired_unpaid: { label: 'No pagó a tiempo (destruida)', color: 'text-red-400' },
+    fail: { label: 'Falló (destruida)', color: 'text-ds-danger' },
+    success_paid: { label: 'Confirmado', color: 'text-ds-ok' },
+    success_expired_unpaid: { label: 'No pagó a tiempo (destruida)', color: 'text-ds-danger' },
 };
 
 function formatCountdown(iso: string): string {
@@ -79,18 +79,18 @@ export default function AdminTcg() {
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/admin')} className="p-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-[#1e293b] dark:text-[#f8fafc]" />
+                    <button onClick={() => navigate('/admin')} className="p-2 hover:bg-ds-raised rounded-lg transition-colors">
+                        <ArrowLeft className="w-5 h-5 text-ds-text" />
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">TCG — Upgrades en curso</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">Solo lectura — el sistema resuelve todo automático, esto no dispara nada.</p>
+                        <h1 className="text-3xl font-black text-ds-text">TCG — Upgrades en curso</h1>
+                        <p className="text-ds-soft mt-1">Solo lectura — el sistema resuelve todo automático, esto no dispara nada.</p>
                     </div>
                 </div>
                 <button
                     onClick={load}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-[#1a1b1e] border border-[#374151] hover:border-[#2563eb] text-white px-4 py-2 rounded-xl transition-colors"
+                    className="flex items-center gap-2 bg-ds-bg border border-ds-border hover:border-ds-accent text-ds-text px-4 py-2 rounded-lg transition-colors"
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                     Actualizar
@@ -99,27 +99,27 @@ export default function AdminTcg() {
 
             {loading ? (
                 <div className="flex items-center justify-center min-h-[200px]">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                    <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
                 </div>
             ) : (
                 <>
                     <div>
-                        <h2 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                            <Clock className="w-5 h-5 text-amber-400" /> Nivel 10 esperando tu arte ({grading.length})
+                        <h2 className="text-lg font-bold text-ds-text mb-3 flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-ds-accent-text" /> Nivel 10 esperando tu arte ({grading.length})
                         </h2>
                         {grading.length === 0 ? (
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-sm text-ds-soft">
                                 Nadie sacó un 10 pendiente de ilustrar. Todo lo demás se resuelve solo.
                             </p>
                         ) : (
                             <>
-                                <p className="text-sm text-amber-400/80 mb-2">
+                                <p className="text-sm text-ds-warn/80 mb-2">
                                     Estas cartas están frenadas hasta que subas su ilustración en la cola de arte.
                                     No se resuelven solas ni vencen — el jugador espera lo que tardes.
                                 </p>
-                                <div className="overflow-x-auto rounded-xl border border-[#374151]">
+                                <div className="overflow-x-auto rounded-lg border border-ds-border">
                                     <table className="w-full text-sm">
-                                        <thead className="bg-[#1a1b1e] text-[#94a3b8]">
+                                        <thead className="bg-ds-bg text-ds-soft">
                                             <tr>
                                                 <th className="text-left p-3">ID</th>
                                                 <th className="text-left p-3">Jugador</th>
@@ -130,12 +130,12 @@ export default function AdminTcg() {
                                         </thead>
                                         <tbody>
                                             {grading.map(r => (
-                                                <tr key={r.instanceId} className="border-t border-[#374151] text-white">
-                                                    <td className="p-3 text-[#64748b]">#{r.instanceId}</td>
+                                                <tr key={r.instanceId} className="border-t border-ds-border text-ds-text">
+                                                    <td className="p-3 text-ds-soft">#{r.instanceId}</td>
                                                     <td className="p-3">{r.ownerLogin}</td>
                                                     <td className="p-3">{r.cardName || '???'}</td>
                                                     <td className="p-3">{r.cardRarity}</td>
-                                                    <td className="p-3 text-amber-300 font-semibold">
+                                                    <td className="p-3 text-ds-warn font-semibold">
                                                         {r.attemptStartedAt ? formatDate(r.attemptStartedAt) : '—'}
                                                     </td>
                                                 </tr>
@@ -148,15 +148,15 @@ export default function AdminTcg() {
                     </div>
 
                     <div>
-                        <h2 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                            <Coins className="w-5 h-5 text-yellow-400" /> Esperando pago ({pendingPayment.length})
+                        <h2 className="text-lg font-bold text-ds-text mb-3 flex items-center gap-2">
+                            <Coins className="w-5 h-5 text-ds-accent-text" /> Esperando pago ({pendingPayment.length})
                         </h2>
                         {pendingPayment.length === 0 ? (
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Nadie esperando pagar un upgrade ahora mismo.</p>
+                            <p className="text-sm text-ds-soft">Nadie esperando pagar un upgrade ahora mismo.</p>
                         ) : (
-                            <div className="overflow-x-auto rounded-xl border border-[#374151]">
+                            <div className="overflow-x-auto rounded-lg border border-ds-border">
                                 <table className="w-full text-sm">
-                                    <thead className="bg-[#1a1b1e] text-[#94a3b8]">
+                                    <thead className="bg-ds-bg text-ds-soft">
                                         <tr>
                                             <th className="text-left p-3">ID</th>
                                             <th className="text-left p-3">Jugador</th>
@@ -169,14 +169,14 @@ export default function AdminTcg() {
                                     </thead>
                                     <tbody>
                                         {pendingPayment.map(r => (
-                                            <tr key={r.instanceId} className="border-t border-[#374151] text-white">
-                                                <td className="p-3 text-[#64748b]">#{r.instanceId}</td>
+                                            <tr key={r.instanceId} className="border-t border-ds-border text-ds-text">
+                                                <td className="p-3 text-ds-soft">#{r.instanceId}</td>
                                                 <td className="p-3">{r.ownerLogin}</td>
                                                 <td className="p-3">{r.cardName || '???'}</td>
                                                 <td className="p-3">{r.cardRarity}</td>
                                                 <td className="p-3">{r.pendingTargetLevel}</td>
                                                 <td className="p-3">{r.paymentAmountDue?.toLocaleString()}</td>
-                                                <td className="p-3 text-yellow-300 font-semibold">{r.paymentDeadlineAt ? formatCountdown(r.paymentDeadlineAt) : '—'}</td>
+                                                <td className="p-3 text-ds-warn font-semibold">{r.paymentDeadlineAt ? formatCountdown(r.paymentDeadlineAt) : '—'}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -186,15 +186,15 @@ export default function AdminTcg() {
                     </div>
 
                     <div>
-                        <h2 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                            <History className="w-5 h-5 text-[#94a3b8]" /> Resultados recientes
+                        <h2 className="text-lg font-bold text-ds-text mb-3 flex items-center gap-2">
+                            <History className="w-5 h-5 text-ds-soft" /> Resultados recientes
                         </h2>
                         {recentResults.length === 0 ? (
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Todavía no hay resultados.</p>
+                            <p className="text-sm text-ds-soft">Todavía no hay resultados.</p>
                         ) : (
-                            <div className="overflow-x-auto rounded-xl border border-[#374151]">
+                            <div className="overflow-x-auto rounded-lg border border-ds-border">
                                 <table className="w-full text-sm">
-                                    <thead className="bg-[#1a1b1e] text-[#94a3b8]">
+                                    <thead className="bg-ds-bg text-ds-soft">
                                         <tr>
                                             <th className="text-left p-3">Jugador</th>
                                             <th className="text-left p-3">Carta</th>
@@ -206,13 +206,13 @@ export default function AdminTcg() {
                                     </thead>
                                     <tbody>
                                         {recentResults.map((r, idx) => (
-                                            <tr key={idx} className="border-t border-[#374151] text-white">
+                                            <tr key={idx} className="border-t border-ds-border text-ds-text">
                                                 <td className="p-3">{r.ownerLogin}</td>
                                                 <td className="p-3">{r.cardName || '???'}</td>
                                                 <td className="p-3">{r.cardRarity}</td>
                                                 <td className={`p-3 font-semibold ${RESULT_LABELS[r.result]?.color || ''}`}>{RESULT_LABELS[r.result]?.label || r.result}</td>
                                                 <td className="p-3">{r.result === 'success_paid' ? r.level : '—'}</td>
-                                                <td className="p-3 text-[#94a3b8]">{formatDate(r.resolvedAt)}</td>
+                                                <td className="p-3 text-ds-soft">{formatDate(r.resolvedAt)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

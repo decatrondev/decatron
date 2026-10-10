@@ -90,10 +90,10 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
     return (
         <div className="space-y-6">
             <div className={CARD}>
-                <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] text-lg mb-1 flex items-center gap-2">
+                <h3 className="font-black text-ds-text text-lg mb-1 flex items-center gap-2">
                     ⚙️ Asignación manual de tier
                 </h3>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-5">
+                <p className="text-sm text-ds-soft mb-5">
                     Asigna o modifica el tier de cualquier usuario. Cada tier recuerda su propia configuración de duración.
                 </p>
 
@@ -117,10 +117,10 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                                 <button
                                     key={t.id}
                                     onClick={() => setTier(t.id)}
-                                    className={`py-3 px-4 rounded-xl text-sm font-bold border-2 transition-all ${
+                                    className={`py-3 px-4 rounded-lg text-sm font-bold border-2 transition-all ${
                                         tier === t.id
-                                            ? 'text-white shadow-lg'
-                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-[#94a3b8]'
+                                            ? 'text-ds-text '
+                                            : 'bg-ds-bg text-ds-soft border-ds-border hover:border-ds-faint'
                                     }`}
                                     style={tier === t.id ? { backgroundColor: t.color, borderColor: t.color } : {}}
                                 >
@@ -131,7 +131,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                     </div>
 
                     {/* Duration — per-tier, shown for the active tier only */}
-                    <div className="border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4 bg-[#f8fafc] dark:bg-[#262626]">
+                    <div className="border border-ds-border rounded-lg p-4 bg-ds-bg">
                         <p className={`${LABEL} mb-3`}>
                             Duración para{' '}
                             <span style={{ color: TIER_OPTIONS.find(t => t.id === tier)?.color }}>
@@ -142,10 +142,10 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         <div className="flex items-center gap-3 mb-4">
                             <button
                                 onClick={() => setDur({ isPermanent: false })}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                                className={`px-4 py-2 rounded-lg text-sm font-bold border-2 transition-all ${
                                     !cur.isPermanent
-                                        ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white border-transparent shadow'
-                                        : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151]'
+                                        ? 'bg-ds-accent text-ds-on-accent border-transparent shadow'
+                                        : 'bg-ds-surface text-ds-soft border-ds-border '
                                 }`}
                             >
                                 <Clock className="w-4 h-4 inline mr-1.5" />
@@ -153,10 +153,10 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                             </button>
                             <button
                                 onClick={() => setDur({ isPermanent: true })}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                                className={`px-4 py-2 rounded-lg text-sm font-bold border-2 transition-all ${
                                     cur.isPermanent
-                                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-transparent shadow'
-                                        : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151]'
+                                        ? 'bg-ds-accent text-ds-on-accent border-transparent shadow'
+                                        : 'bg-ds-surface text-ds-soft border-ds-border '
                                 }`}
                             >
                                 ∞ Permanente
@@ -170,12 +170,12 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                                     min={1}
                                     value={cur.duration}
                                     onChange={e => setDur({ duration: Math.max(1, Number(e.target.value)) })}
-                                    className={`${INPUT} w-28 bg-white dark:bg-[#1B1C1D]`}
+                                    className={`${INPUT} w-28 bg-ds-surface `}
                                 />
                                 <select
                                     value={cur.unit}
                                     onChange={e => setDur({ unit: e.target.value as DurationUnit })}
-                                    className={`${INPUT} bg-white dark:bg-[#1B1C1D]`}
+                                    className={`${INPUT} bg-ds-surface `}
                                 >
                                     {DURATION_UNITS.map(u => (
                                         <option key={u.value} value={u.value}>{u.label}</option>
@@ -185,7 +185,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         )}
 
                         {/* Expiry preview */}
-                        <div className="mt-3 text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">
+                        <div className="mt-3 text-xs text-ds-soft font-semibold">
                             {expiryPreview()}
                         </div>
 
@@ -193,7 +193,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         <button
                             onClick={handleSaveDurations}
                             disabled={savingDur}
-                            className="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50 text-white text-sm font-bold transition-all"
+                            className="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent text-sm font-bold transition-all"
                         >
                             <Save className="w-4 h-4" />
                             {savingDur ? 'Guardando...' : 'Guardar duración predeterminada'}
@@ -202,7 +202,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
 
                     {/* Quick presets — apply to current tier */}
                     <div>
-                        <p className="text-xs text-[#94a3b8] font-semibold mb-2 uppercase tracking-wide">Presets rápidos</p>
+                        <p className="text-xs text-ds-soft font-semibold mb-2 uppercase tracking-wide">Presets rápidos</p>
                         <div className="grid grid-cols-4 gap-2">
                             {[
                                 { label: '5 min',    d: 5,  u: 'minutes' as DurationUnit },
@@ -220,7 +220,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                                         ? setDur({ isPermanent: true })
                                         : setDur({ isPermanent: false, duration: preset.d, unit: preset.u })
                                     }
-                                    className="px-2 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-xs font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] hover:text-[#1e293b] dark:hover:text-[#f8fafc] transition-all text-center"
+                                    className="px-2 py-2 bg-ds-surface border border-ds-border rounded-lg text-xs font-bold text-ds-soft hover:bg-ds-raised hover:text-ds-text transition-all text-center"
                                 >
                                     {preset.label}
                                 </button>
@@ -230,10 +230,10 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
 
                     {/* Result */}
                     {result && (
-                        <div className={`px-4 py-3 rounded-xl text-sm font-bold ${
+                        <div className={`px-4 py-3 rounded-lg text-sm font-bold ${
                             result.type === 'success'
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                                ? 'bg-ds-ok/10 text-ds-ok '
+                                : 'bg-ds-danger/10 text-ds-danger '
                         }`}>
                             {result.text}
                         </div>
@@ -244,7 +244,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         <button
                             onClick={handleApply}
                             disabled={applying || !target}
-                            className="flex-1 py-3 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-60 text-white rounded-xl font-black transition-all shadow-lg flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg font-black transition-all flex items-center justify-center gap-2"
                         >
                             <Check className="w-4 h-4" />
                             {applying ? 'Asignando...' : `Asignar "${tier}" a @${target?.login ?? '...'}`}
@@ -252,7 +252,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         <button
                             onClick={handleRemove}
                             disabled={applying || !target}
-                            className="px-5 py-3 border border-red-200 dark:border-red-800 bg-white dark:bg-[#262626] hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-xl font-bold transition-all disabled:opacity-60"
+                            className="px-5 py-3 border border-ds-danger/40 bg-ds-surface hover:bg-ds-danger/10 text-ds-danger rounded-lg font-bold transition-all disabled:opacity-60"
                         >
                             Quitar tier
                         </button>

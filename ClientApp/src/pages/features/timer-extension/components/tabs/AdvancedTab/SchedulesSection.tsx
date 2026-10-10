@@ -80,7 +80,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                     {!showCreateScheduleModal && (
                         <button
                             onClick={onPrepareCreate}
-                            className="px-6 py-2.5 bg-ds-raised hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold transform hover:-translate-y-0.5"
+                            className="px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold transform hover:-translate-y-0.5"
                         >
                             <Plus className="w-5 h-5" />
                             {t('timerAdvanced.newSchedule')}

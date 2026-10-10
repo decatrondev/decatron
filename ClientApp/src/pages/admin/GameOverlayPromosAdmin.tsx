@@ -21,11 +21,11 @@ const targetNames = (games: string) => games.split(',').map(g => TARGETS.find(x 
 
 const EMPTY: Promo = { id: 0, isEnabled: true, weight: 1, sortOrder: 0, titleEs: 'Consigue Decatron gratis en', titleEn: 'Get Decatron for free at', lineEs: '', lineEn: '', imageUrl: null, durationSeconds: 8, games: null };
 
-const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg';
-const h2 = 'text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4';
-const muted = 'text-xs text-[#64748b] dark:text-[#94a3b8]';
-const input = 'w-full px-3 py-2 rounded-lg bg-[#f8fafc] dark:bg-[#111214] border border-[#e2e8f0] dark:border-[#374151] text-sm text-[#1e293b] dark:text-[#f8fafc]';
-const label = 'block text-[11px] font-semibold uppercase tracking-wide text-[#64748b] dark:text-[#94a3b8] mb-1';
+const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
+const h2 = 'text-sm font-bold text-ds-text mb-4';
+const muted = 'text-xs text-ds-soft ';
+const input = 'w-full px-3 py-2 rounded-lg bg-ds-bg border border-ds-border text-sm text-ds-text ';
+const label = 'block text-[11px] font-semibold uppercase tracking-wide text-ds-soft mb-1';
 
 /**
  * Admin → Anuncios de Game Overlays: el catálogo que tapa la tarjeta de la cuenta cada
@@ -91,22 +91,22 @@ export default function GameOverlayPromosAdmin() {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3">
-                <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-[#f1f5f9] dark:hover:bg-[#262626]"><ArrowLeft className="w-5 h-5" /></button>
-                <Megaphone className="w-6 h-6 text-[#2563eb]" />
+                <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-ds-raised"><ArrowLeft className="w-5 h-5" /></button>
+                <Megaphone className="w-6 h-6 text-ds-accent-text" />
                 <div>
-                    <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Anuncios de Decatron en overlays</h1>
+                    <h1 className="text-2xl font-black text-ds-text">Anuncios de Decatron en overlays</h1>
                     <p className={muted}>Tapan unos segundos la tarjeta de rango (Game Overlays) y el panel de música (Song Request). El streamer no los edita: solo los apaga si es Supporter o más.</p>
                 </div>
-                <button onClick={load} className="ml-auto p-2 rounded-lg hover:bg-[#f1f5f9] dark:hover:bg-[#262626]" title="Recargar"><RefreshCw className="w-4 h-4" /></button>
+                <button onClick={load} className="ml-auto p-2 rounded-lg hover:bg-ds-raised" title="Recargar"><RefreshCw className="w-4 h-4" /></button>
             </div>
 
-            {error && <div className="rounded-lg bg-red-500/10 border border-red-500/40 text-red-400 text-sm px-4 py-2">{error}</div>}
+            {error && <div className="rounded-lg bg-ds-danger-solid/10 border border-ds-danger/40 text-ds-danger text-sm px-4 py-2">{error}</div>}
 
             <div className={cardClass}>
                 <h2 className={h2}>Frecuencia</h2>
                 <div className="flex flex-wrap items-end gap-3">
                     <div className="w-48"><label className={label}>Cada cuántos segundos</label><input type="number" min={30} max={1800} className={input} value={everySeconds} onChange={e => setEverySeconds(Number(e.target.value))} /></div>
-                    <button onClick={saveSettings} disabled={saving} className="px-4 py-2 rounded-lg bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-semibold flex items-center gap-2"><Save className="w-4 h-4" />Guardar</button>
+                    <button onClick={saveSettings} disabled={saving} className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-semibold flex items-center gap-2"><Save className="w-4 h-4" />Guardar</button>
                     <span className={muted}>Se aplica a todos los canales. Cada anuncio tiene su propia duración. El overlay lo relee en menos de un minuto.</span>
                 </div>
             </div>
@@ -114,25 +114,25 @@ export default function GameOverlayPromosAdmin() {
             <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className={h2 + ' mb-0'}>Catálogo ({promos.length})</h2>
-                    <button onClick={() => setEditing({ ...EMPTY, sortOrder: promos.length })} className="px-3 py-2 rounded-lg bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />Nuevo anuncio</button>
+                    <button onClick={() => setEditing({ ...EMPTY, sortOrder: promos.length })} className="px-3 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />Nuevo anuncio</button>
                 </div>
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : promos.length === 0 ? <p className={muted}>Sin anuncios: el overlay usa el mensaje de fábrica.</p> : (
                     <div className="space-y-2">
                         {promos.map(p => (
-                            <div key={p.id} className={`flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 ${p.isEnabled ? 'border-[#e2e8f0] dark:border-[#374151]' : 'border-dashed border-[#cbd5e1] dark:border-[#4b5563] opacity-60'}`}>
-                                <button onClick={() => toggle(p)} className={`w-10 h-6 rounded-full relative transition-colors ${p.isEnabled ? 'bg-emerald-500' : 'bg-[#94a3b8]'}`} title={p.isEnabled ? 'Activo' : 'Apagado'}>
-                                    <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${p.isEnabled ? 'left-[18px]' : 'left-0.5'}`} />
+                            <div key={p.id} className={`flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3 ${p.isEnabled ? 'border-ds-border ' : 'border-dashed border-ds-border opacity-60'}`}>
+                                <button onClick={() => toggle(p)} className={`w-10 h-6 rounded-full relative transition-colors ${p.isEnabled ? 'bg-ds-accent' : 'bg-ds-faint'}`} title={p.isEnabled ? 'Activo' : 'Apagado'}>
+                                    <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-ds-surface transition-all ${p.isEnabled ? 'left-[18px]' : 'left-0.5'}`} />
                                 </button>
                                 <div className="flex-1 min-w-[240px]">
-                                    <div className="text-sm text-[#1e293b] dark:text-[#f8fafc] font-medium">{p.lineEs}</div>
+                                    <div className="text-sm text-ds-text font-medium">{p.lineEs}</div>
                                     <div className={muted}>{p.lineEn || <em>sin inglés (usa el español)</em>}</div>
                                 </div>
                                 <div className={muted + ' text-right'}>
                                     <div>peso {p.weight}{totalWeight > 0 && p.isEnabled ? ` · ${Math.round(100 * p.weight / totalWeight)}%` : ''} · {p.durationSeconds} s</div>
                                     <div>{p.games ? `solo ${targetNames(p.games)}` : 'en todos lados'}{p.imageUrl ? ' · imagen propia' : ''}</div>
                                 </div>
-                                <button onClick={() => setEditing({ ...p })} className="px-3 py-1.5 rounded-lg bg-[#f1f5f9] dark:bg-[#262626] text-sm">Editar</button>
-                                <button onClick={() => remove(p)} className="p-2 rounded-lg hover:bg-red-500/10 text-red-400" title="Borrar"><Trash2 className="w-4 h-4" /></button>
+                                <button onClick={() => setEditing({ ...p })} className="px-3 py-1.5 rounded-lg bg-ds-raised text-sm">Editar</button>
+                                <button onClick={() => remove(p)} className="p-2 rounded-lg hover:bg-ds-danger-solid/10 text-ds-danger" title="Borrar"><Trash2 className="w-4 h-4" /></button>
                             </div>
                         ))}
                     </div>
@@ -162,23 +162,23 @@ export default function GameOverlayPromosAdmin() {
                                     {TARGETS.map(({ id: g, name }) => {
                                         const set = new Set((editing.games ?? '').split(',').map(x => x.trim()).filter(Boolean));
                                         const on = set.has(g);
-                                        return <button key={g} onClick={() => { if (on) set.delete(g); else set.add(g); setEditing({ ...editing, games: set.size ? [...set].join(',') : null }); }} className={`px-2.5 py-1 rounded-lg text-xs border ${on ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#f8fafc] dark:bg-[#111214] border-[#e2e8f0] dark:border-[#374151]'}`}>{name}</button>;
+                                        return <button key={g} onClick={() => { if (on) set.delete(g); else set.add(g); setEditing({ ...editing, games: set.size ? [...set].join(',') : null }); }} className={`px-2.5 py-1 rounded-lg text-xs border ${on ? 'bg-ds-accent border-ds-accent text-ds-on-accent' : 'bg-ds-bg border-ds-border '}`}>{name}</button>;
                                     })}
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 pt-2">
                                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.isEnabled} onChange={e => setEditing({ ...editing, isEnabled: e.target.checked })} />Activo</label>
-                                <button onClick={savePromo} disabled={saving || !editing.lineEs.trim()} className="ml-auto px-4 py-2 rounded-lg bg-[#2563eb] hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold flex items-center gap-2">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Guardar</button>
-                                <button onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg bg-[#f1f5f9] dark:bg-[#262626] text-sm">Cancelar</button>
+                                <button onClick={savePromo} disabled={saving || !editing.lineEs.trim()} className="ml-auto px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent text-sm font-semibold flex items-center gap-2">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Guardar</button>
+                                <button onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg bg-ds-raised text-sm">Cancelar</button>
                             </div>
                         </div>
                         <div>
                             <div className="flex items-center gap-2 mb-2">
                                 <span className={muted}>Vista previa</span>
-                                {(['card', 'compact', 'bar'] as const).map(l => <button key={l} onClick={() => setPreviewLayout(l)} className={`px-2 py-0.5 rounded text-xs border ${previewLayout === l ? 'bg-blue-600 border-blue-500 text-white' : 'border-[#374151]'}`}>{l}</button>)}
-                                {(['es', 'en'] as const).map(l => <button key={l} onClick={() => setPreviewLang(l)} className={`px-2 py-0.5 rounded text-xs border ${previewLang === l ? 'bg-blue-600 border-blue-500 text-white' : 'border-[#374151]'}`}>{l.toUpperCase()}</button>)}
+                                {(['card', 'compact', 'bar'] as const).map(l => <button key={l} onClick={() => setPreviewLayout(l)} className={`px-2 py-0.5 rounded text-xs border ${previewLayout === l ? 'bg-ds-accent border-ds-accent text-ds-on-accent' : 'border-ds-border'}`}>{l}</button>)}
+                                {(['es', 'en'] as const).map(l => <button key={l} onClick={() => setPreviewLang(l)} className={`px-2 py-0.5 rounded text-xs border ${previewLang === l ? 'bg-ds-accent border-ds-accent text-ds-on-accent' : 'border-ds-border'}`}>{l.toUpperCase()}</button>)}
                             </div>
-                            <div className="rounded-xl p-4 overflow-auto" style={{ background: 'radial-gradient(800px 300px at 30% 20%, #1c2230 0%, #0b0d10 60%)' }}>
+                            <div className="rounded-lg p-4 overflow-auto" style={{ background: 'radial-gradient(800px 300px at 30% 20%, #1c2230 0%, #0b0d10 60%)' }}>
                                 {preview && <GameOverlayCard game="lol" gameName="League of Legends" config={previewCfg} account={preview} view="promo" promo={previewItem} accountIndex={0} accountCount={1} switchAnimation="none" formatTier={formatTier} lang={previewLang} labels={CARD_LABELS[previewLang]} />}
                             </div>
                             <p className={muted + ' mt-2'}>Con el fondo y acento por defecto; en OBS usa los del streamer, en su misma caja.</p>

@@ -105,8 +105,8 @@ export function DonationHistory({ refreshKey }: Props) {
         return pages;
     };
 
-    const inputClass = 'px-3 py-2 text-sm border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-purple-500';
-    const btnBase = 'p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#374151] disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
+    const inputClass = 'px-3 py-2 text-sm border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent';
+    const btnBase = 'p-2 rounded-lg border border-ds-border bg-ds-surface text-ds-soft hover:bg-ds-bg disabled:opacity-40 disabled:cursor-not-allowed transition-colors';
 
     return (
         <div className="space-y-4">
@@ -115,7 +115,7 @@ export function DonationHistory({ refreshKey }: Props) {
                 {/* Search */}
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <div className="relative flex-1 sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ds-soft" />
                         <input
                             type="text"
                             value={searchInput}
@@ -127,14 +127,14 @@ export function DonationHistory({ refreshKey }: Props) {
                     </div>
                     <button
                         onClick={handleSearch}
-                        className="px-4 py-2 text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                        className="px-4 py-2 text-sm font-semibold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-colors"
                     >
                         Buscar
                     </button>
                     {search && (
                         <button
                             onClick={() => { setSearch(''); setSearchInput(''); }}
-                            className="text-sm text-[#94a3b8] hover:text-[#64748b] transition-colors"
+                            className="text-sm text-ds-soft hover:text-ds-soft transition-colors"
                         >
                             Limpiar
                         </button>
@@ -142,7 +142,7 @@ export function DonationHistory({ refreshKey }: Props) {
                 </div>
 
                 {/* Page size + count */}
-                <div className="flex items-center gap-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                <div className="flex items-center gap-3 text-sm text-ds-soft">
                     <span>{total} registros</span>
                     <select
                         value={pageSize}
@@ -157,33 +157,33 @@ export function DonationHistory({ refreshKey }: Props) {
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-ds-surface border border-ds-border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626]">
-                                <th className="text-left px-4 py-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide w-12">#</th>
-                                <th className="text-left px-4 py-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">Donante</th>
-                                <th className="text-right px-4 py-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">Monto</th>
-                                <th className="text-left px-4 py-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide hidden md:table-cell">Mensaje</th>
-                                <th className="text-center px-4 py-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide hidden lg:table-cell">Timer</th>
-                                <th className="text-right px-4 py-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide hidden sm:table-cell">Fecha</th>
+                            <tr className="border-b border-ds-border bg-ds-bg">
+                                <th className="text-left px-4 py-3 text-xs font-bold text-ds-soft uppercase tracking-wide w-12">#</th>
+                                <th className="text-left px-4 py-3 text-xs font-bold text-ds-soft uppercase tracking-wide">Donante</th>
+                                <th className="text-right px-4 py-3 text-xs font-bold text-ds-soft uppercase tracking-wide">Monto</th>
+                                <th className="text-left px-4 py-3 text-xs font-bold text-ds-soft uppercase tracking-wide hidden md:table-cell">Mensaje</th>
+                                <th className="text-center px-4 py-3 text-xs font-bold text-ds-soft uppercase tracking-wide hidden lg:table-cell">Timer</th>
+                                <th className="text-right px-4 py-3 text-xs font-bold text-ds-soft uppercase tracking-wide hidden sm:table-cell">Fecha</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 [...Array(pageSize > 5 ? 5 : pageSize)].map((_, i) => (
-                                    <tr key={i} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0">
+                                    <tr key={i} className="border-b border-ds-border last:border-0">
                                         {[...Array(6)].map((__, j) => (
                                             <td key={j} className="px-4 py-3">
-                                                <div className="h-5 bg-[#e2e8f0] dark:bg-[#262626] rounded animate-pulse" />
+                                                <div className="h-5 bg-ds-raised rounded animate-pulse" />
                                             </td>
                                         ))}
                                     </tr>
                                 ))
                             ) : donations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-12 text-[#94a3b8]">
+                                    <td colSpan={6} className="text-center py-12 text-ds-soft">
                                         {search ? `No hay resultados para "${search}"` : 'Aún no hay donaciones'}
                                     </td>
                                 </tr>
@@ -191,20 +191,20 @@ export function DonationHistory({ refreshKey }: Props) {
                                 donations.map((d, idx) => (
                                     <tr
                                         key={d.id}
-                                        className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
+                                        className="border-b border-ds-border last:border-0 hover:bg-ds-bg transition-colors"
                                     >
                                         {/* Row # */}
-                                        <td className="px-4 py-3 text-sm text-[#94a3b8]">
+                                        <td className="px-4 py-3 text-sm text-ds-soft">
                                             {(page - 1) * pageSize + idx + 1}
                                         </td>
 
                                         {/* Donor */}
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                <div className="w-8 h-8 rounded-full bg-ds-accent flex items-center justify-center text-ds-on-accent text-xs font-bold shrink-0">
                                                     {d.donorName.charAt(0).toUpperCase()}
                                                 </div>
-                                                <span className="font-semibold text-[#1e293b] dark:text-[#f8fafc] text-sm">
+                                                <span className="font-semibold text-ds-text text-sm">
                                                     {d.donorName}
                                                 </span>
                                             </div>
@@ -212,7 +212,7 @@ export function DonationHistory({ refreshKey }: Props) {
 
                                         {/* Amount */}
                                         <td className="px-4 py-3 text-right">
-                                            <span className="font-black text-green-600 dark:text-green-400">
+                                            <span className="font-black text-ds-ok">
                                                 {fmt(d.amount, d.currency)}
                                             </span>
                                         </td>
@@ -220,29 +220,29 @@ export function DonationHistory({ refreshKey }: Props) {
                                         {/* Message */}
                                         <td className="px-4 py-3 hidden md:table-cell max-w-xs">
                                             {d.message ? (
-                                                <span className="flex items-center gap-1 text-sm text-[#64748b] dark:text-[#94a3b8] truncate">
+                                                <span className="flex items-center gap-1 text-sm text-ds-soft truncate">
                                                     <MessageSquare className="w-3 h-3 shrink-0" />
                                                     {d.message}
                                                 </span>
                                             ) : (
-                                                <span className="text-[#cbd5e1] dark:text-[#374151] text-sm">—</span>
+                                                <span className="text-ds-text text-sm">—</span>
                                             )}
                                         </td>
 
                                         {/* Timer */}
                                         <td className="px-4 py-3 text-center hidden lg:table-cell">
                                             {d.timeAdded > 0 ? (
-                                                <span className="inline-flex items-center gap-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded-full font-semibold">
+                                                <span className="inline-flex items-center gap-1 text-xs bg-ds-accent/10 text-ds-accent-text px-2 py-1 rounded-full font-semibold">
                                                     <Clock className="w-3 h-3" />
                                                     +{fmtTime(d.timeAdded)}
                                                 </span>
                                             ) : (
-                                                <span className="text-[#cbd5e1] dark:text-[#374151] text-sm">—</span>
+                                                <span className="text-ds-text text-sm">—</span>
                                             )}
                                         </td>
 
                                         {/* Date */}
-                                        <td className="px-4 py-3 text-right text-sm text-[#64748b] dark:text-[#94a3b8] hidden sm:table-cell whitespace-nowrap">
+                                        <td className="px-4 py-3 text-right text-sm text-ds-soft hidden sm:table-cell whitespace-nowrap">
                                             {fmtDate(d.donatedAt)}
                                         </td>
                                     </tr>
@@ -254,8 +254,8 @@ export function DonationHistory({ refreshKey }: Props) {
 
                 {/* Pagination */}
                 {!loading && totalPages > 1 && (
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626]">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-ds-border bg-ds-bg">
+                        <p className="text-sm text-ds-soft">
                             Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} de {total}
                         </p>
                         <div className="flex items-center gap-1">
@@ -264,15 +264,15 @@ export function DonationHistory({ refreshKey }: Props) {
                             </button>
                             {pageNumbers().map((p, i) =>
                                 p === '...' ? (
-                                    <span key={`ellipsis-${i}`} className="px-2 text-[#94a3b8]">…</span>
+                                    <span key={`ellipsis-${i}`} className="px-2 text-ds-soft">…</span>
                                 ) : (
                                     <button
                                         key={p}
                                         onClick={() => setPage(p as number)}
                                         className={`w-8 h-8 text-sm font-semibold rounded-lg transition-colors ${
                                             page === p
-                                                ? 'bg-purple-600 text-white'
-                                                : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                                ? 'bg-ds-accent text-ds-on-accent'
+                                                : 'text-ds-soft hover:bg-ds-raised '
                                         }`}
                                     >
                                         {p}

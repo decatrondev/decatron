@@ -27,10 +27,10 @@ interface Campaign {
 }
 
 const STATUS_BADGES: Record<string, string> = {
-    draft: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
-    sending: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
-    sent: 'bg-green-500/10 text-green-400 border-green-500/30',
-    failed: 'bg-red-500/10 text-red-400 border-red-500/30',
+    draft: 'bg-ds-faint/10 text-ds-soft border-ds-border/30',
+    sending: 'bg-ds-warn/10 text-ds-warn border-ds-warn/40',
+    sent: 'bg-ds-accent/10 text-ds-ok border-ds-ok/40',
+    failed: 'bg-ds-danger-solid/10 text-ds-danger border-ds-danger/40',
 };
 
 export default function CampaignsTab() {
@@ -129,7 +129,7 @@ export default function CampaignsTab() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -139,12 +139,12 @@ export default function CampaignsTab() {
         return (
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Preview</h3>
-                    <button onClick={() => setPreviewHtml(null)} className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                    <h3 className="text-lg font-black text-ds-text">Preview</h3>
+                    <button onClick={() => setPreviewHtml(null)} className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm font-semibold text-ds-text">
                         Cerrar Preview
                     </button>
                 </div>
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                     <iframe srcDoc={previewHtml} className="w-full" style={{ height: '70vh', border: 'none' }} />
                 </div>
             </div>
@@ -156,33 +156,33 @@ export default function CampaignsTab() {
         return (
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Nueva Campaña</h3>
-                    <button onClick={() => setCreating(false)} className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                    <h3 className="text-lg font-black text-ds-text">Nueva Campaña</h3>
+                    <button onClick={() => setCreating(false)} className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm font-semibold text-ds-text">
                         Cancelar
                     </button>
                 </div>
 
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 space-y-4">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
                     {/* Name */}
                     <div>
-                        <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Nombre de la campaña</label>
+                        <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Nombre de la campaña</label>
                         <input
                             type="text"
                             value={name}
                             onChange={e => setName(e.target.value)}
                             placeholder="Ej: Newsletter Mayo 2026"
-                            className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 placeholder-[#94a3b8]"
+                            className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
                         />
                     </div>
 
                     {/* Template selector */}
                     <div>
-                        <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Template</label>
+                        <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Template</label>
                         <div className="flex gap-2">
                             <select
                                 value={selectedTemplate || ''}
                                 onChange={e => setSelectedTemplate(Number(e.target.value) || null)}
-                                className="flex-1 px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                                className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                             >
                                 <option value="">Seleccionar template...</option>
                                 {templates.map(t => (
@@ -190,8 +190,8 @@ export default function CampaignsTab() {
                                 ))}
                             </select>
                             {selectedTemplate && (
-                                <button onClick={handlePreview} className="px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm font-semibold hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors">
-                                    <Eye className="w-4 h-4 text-[#2563eb]" />
+                                <button onClick={handlePreview} className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm font-semibold hover:bg-ds-raised transition-colors">
+                                    <Eye className="w-4 h-4 text-ds-accent-text" />
                                 </button>
                             )}
                         </div>
@@ -199,52 +199,52 @@ export default function CampaignsTab() {
 
                     {/* Recipients */}
                     <div>
-                        <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">
+                        <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">
                             Destinatarios ({selectedRecipients.length} seleccionados)
                         </label>
                         <div className="flex items-center gap-2 mb-2">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ds-soft" />
                                 <input
                                     type="text"
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     placeholder="Buscar por login o email..."
-                                    className="w-full pl-9 pr-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 placeholder-[#94a3b8]"
+                                    className="w-full pl-9 pr-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
                                 />
                             </div>
-                            <button onClick={toggleAll} className="px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-xs font-bold text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors">
+                            <button onClick={toggleAll} className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-xs font-bold text-ds-soft hover:bg-ds-raised transition-colors">
                                 {filteredRecipients.every(r => selectedRecipients.includes(r.id)) ? 'Deseleccionar' : 'Seleccionar'} todos
                             </button>
                         </div>
-                        <div className="max-h-60 overflow-y-auto border border-[#e2e8f0] dark:border-[#374151] rounded-xl">
+                        <div className="max-h-60 overflow-y-auto border border-ds-border rounded-lg">
                             {filteredRecipients.map(r => (
                                 <label
                                     key={r.id}
-                                    className="flex items-center gap-3 px-3 py-2 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30 cursor-pointer border-b border-[#e2e8f0] dark:border-[#374151] last:border-0"
+                                    className="flex items-center gap-3 px-3 py-2 hover:bg-ds-bg cursor-pointer border-b border-ds-border last:border-0"
                                 >
-                                    <button onClick={() => toggleRecipient(r.id)} className="text-[#2563eb]">
-                                        {selectedRecipients.includes(r.id) ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-[#94a3b8]" />}
+                                    <button onClick={() => toggleRecipient(r.id)} className="text-ds-accent-text">
+                                        {selectedRecipients.includes(r.id) ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-ds-soft" />}
                                     </button>
                                     {r.profileImageUrl && (
                                         <img src={r.profileImageUrl} alt="" className="w-6 h-6 rounded-full" />
                                     )}
-                                    <span className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">{r.login}</span>
-                                    <span className="text-xs text-[#94a3b8]">{r.email}</span>
+                                    <span className="text-sm font-semibold text-ds-text">{r.login}</span>
+                                    <span className="text-xs text-ds-soft">{r.email}</span>
                                 </label>
                             ))}
                             {filteredRecipients.length === 0 && (
-                                <p className="px-3 py-4 text-center text-sm text-[#94a3b8]">No hay destinatarios con email</p>
+                                <p className="px-3 py-4 text-center text-sm text-ds-soft">No hay destinatarios con email</p>
                             )}
                         </div>
                     </div>
 
                     {/* Send */}
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-ds-border">
                         <button
                             onClick={handleSend}
                             disabled={sending || !name || !selectedTemplate || selectedRecipients.length === 0}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50"
                         >
                             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             Enviar Campaña
@@ -261,7 +261,7 @@ export default function CampaignsTab() {
             <div className="flex justify-end">
                 <button
                     onClick={() => setCreating(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
                 >
                     <Send className="w-4 h-4" />
                     Nueva Campaña
@@ -269,37 +269,37 @@ export default function CampaignsTab() {
             </div>
 
             {campaigns.length === 0 ? (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-12 text-center">
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">No hay campañas enviadas aún.</p>
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-12 text-center">
+                    <p className="text-ds-soft">No hay campañas enviadas aún.</p>
                 </div>
             ) : (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Nombre</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Template</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Enviados</th>
-                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Fecha</th>
+                                <tr className="border-b border-ds-border">
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Nombre</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Template</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Estado</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Enviados</th>
+                                    <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Fecha</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {campaigns.map(c => (
-                                    <tr key={c.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
-                                        <td className="px-4 py-3 font-semibold text-[#1e293b] dark:text-[#f8fafc]">{c.name}</td>
-                                        <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">{c.templateName}</td>
+                                    <tr key={c.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
+                                        <td className="px-4 py-3 font-semibold text-ds-text">{c.name}</td>
+                                        <td className="px-4 py-3 text-ds-soft">{c.templateName}</td>
                                         <td className="px-4 py-3">
                                             <span className={`text-xs font-bold px-2 py-1 rounded-full border ${STATUS_BADGES[c.status] || STATUS_BADGES.draft}`}>
                                                 {c.status}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className="text-green-400 font-bold">{c.totalSent}</span>
-                                            {c.totalFailed > 0 && <span className="text-red-400 ml-1">/ {c.totalFailed} fail</span>}
+                                            <span className="text-ds-ok font-bold">{c.totalSent}</span>
+                                            {c.totalFailed > 0 && <span className="text-ds-danger ml-1">/ {c.totalFailed} fail</span>}
                                         </td>
-                                        <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">
+                                        <td className="px-4 py-3 text-ds-soft">
                                             {c.sentAt ? new Date(c.sentAt).toLocaleString() : '-'}
                                         </td>
                                     </tr>

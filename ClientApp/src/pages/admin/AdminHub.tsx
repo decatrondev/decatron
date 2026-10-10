@@ -18,7 +18,7 @@ export default function AdminHub() {
             id: 'decatron-ai',
             name: 'Decatron AI Admin',
             description: 'Administracion global del sistema de inteligencia artificial',
-            icon: <Cpu className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Cpu className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/decatron-ai',
             ready: true
         },
@@ -26,7 +26,7 @@ export default function AdminHub() {
             id: 'decatron-chat',
             name: 'Decatron Chat Admin',
             description: 'Administracion global del sistema de chat',
-            icon: <MessageSquare className="w-6 h-6 text-[#2563eb]" />,
+            icon: <MessageSquare className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/decatron-chat',
             ready: true
         },
@@ -34,7 +34,7 @@ export default function AdminHub() {
             id: 'donations',
             name: 'Donaciones',
             description: 'Gestiona las donaciones recibidas en la plataforma',
-            icon: <Heart className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Heart className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/donations',
             ready: true
         },
@@ -42,7 +42,7 @@ export default function AdminHub() {
             id: 'finance',
             name: 'Finanzas',
             description: 'Ingresos, costos y beneficio de la plataforma',
-            icon: <Wallet className="w-6 h-6 text-[#16a34a]" />,
+            icon: <Wallet className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/finance',
             ready: true
         },
@@ -50,7 +50,7 @@ export default function AdminHub() {
             id: 'supporters',
             name: 'Supporters',
             description: 'Gestiona los supporters y benefactores de la plataforma',
-            icon: <Star className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Star className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/supporters',
             ready: true
         },
@@ -58,7 +58,7 @@ export default function AdminHub() {
             id: 'economy',
             name: 'Economia',
             description: 'Gestiona DecaCoins, paquetes, cupones, referidos y usuarios',
-            icon: <Coins className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Coins className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/economy',
             ready: true
         },
@@ -66,7 +66,7 @@ export default function AdminHub() {
             id: 'tcg',
             name: 'TCG — Upgrades en curso',
             description: 'Monitorea las cartas en gradeo y las que esperan pago de upgrade',
-            icon: <Sparkles className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Sparkles className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/tcg',
             ready: true
         },
@@ -74,7 +74,7 @@ export default function AdminHub() {
             id: 'tcg-art-queue',
             name: 'TCG — Cola de arte',
             description: 'Cartas que llegaron a nivel 3/6/9 y esperan la ilustración nueva',
-            icon: <Palette className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Palette className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/tcg-art-queue',
             ready: true
         },
@@ -82,7 +82,7 @@ export default function AdminHub() {
             id: 'ranking',
             name: 'Ranking Global',
             description: 'Configura el leaderboard global de la plataforma Decatron',
-            icon: <TrendingUp className="w-6 h-6 text-[#2563eb]" />,
+            icon: <TrendingUp className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/ranking',
             ready: false
         },
@@ -90,7 +90,7 @@ export default function AdminHub() {
             id: 'channels-visibility',
             name: 'Canales del Carrusel',
             description: 'Gestiona qué canales de Twitch y Kick aparecen en la página pública',
-            icon: <Users className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Users className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/channels',
             ready: true
         },
@@ -98,7 +98,7 @@ export default function AdminHub() {
             id: 'channel-mods',
             name: 'Mod en canales',
             description: 'Da o quita mod al bot y a ti en los canales de Twitch, con el token del streamer',
-            icon: <ShieldCheck className="w-6 h-6 text-[#2563eb]" />,
+            icon: <ShieldCheck className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/mods',
             ready: true
         },
@@ -106,7 +106,7 @@ export default function AdminHub() {
             id: 'email',
             name: 'Email Campaigns',
             description: 'Crea templates visuales y envia emails a streamers via Resend',
-            icon: <Mail className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Mail className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/email',
             ready: true
         },
@@ -114,7 +114,7 @@ export default function AdminHub() {
             id: 'fortnite',
             name: 'Fortnite Spirit Tracker',
             description: 'Gestiona el catalogo de sprites de Fortnite y visualiza estadisticas de coleccion',
-            icon: <Gamepad2 className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Gamepad2 className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/fortnite',
             ready: true
         },
@@ -122,7 +122,7 @@ export default function AdminHub() {
             id: 'game-overlay-promos',
             name: 'Anuncios de Decatron en overlays',
             description: 'Catálogo de anuncios de Decatron que tapan la tarjeta de rango (Game Overlays) y el panel de música (Song Request): mensajes, imagen, peso, frecuencia y duración',
-            icon: <Megaphone className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Megaphone className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/game-overlay-promos',
             ready: true
         },
@@ -130,7 +130,7 @@ export default function AdminHub() {
             id: 'dev-docs',
             name: 'Dev Docs',
             description: 'Documentacion interna del proyecto, auditorias y planes',
-            icon: <FileText className="w-6 h-6 text-[#2563eb]" />,
+            icon: <FileText className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/dev-docs',
             ready: true
         },
@@ -138,7 +138,7 @@ export default function AdminHub() {
             id: 'estilo',
             name: 'Guía de estilo',
             description: 'Referencia de todos los componentes y sus estados, en claro y oscuro (vista previa del sistema de diseño)',
-            icon: <Palette className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Palette className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/estilo',
             ready: true
         },
@@ -146,7 +146,7 @@ export default function AdminHub() {
             id: 'tts-lab',
             name: 'Laboratorio de voces',
             description: 'Compara las voces de Piper (gratis, en el servidor) con Polly: calidad, tiempo y coste',
-            icon: <Mic className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Mic className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/tts-lab',
             ready: true
         },
@@ -162,7 +162,7 @@ export default function AdminHub() {
             id: 'tts-credits',
             name: 'Créditos TTS',
             description: 'Saldo, historial y ajustes manuales de créditos por canal',
-            icon: <Coins className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Coins className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/tts-credits',
             ready: true
         },
@@ -170,7 +170,7 @@ export default function AdminHub() {
             id: 'global-emotes',
             name: 'Emotes globales',
             description: 'El set de emotes de Decatron que se ve en el chat de todos los canales, y quién puede manejarlo',
-            icon: <ImageIcon className="w-6 h-6 text-[#2563eb]" />,
+            icon: <ImageIcon className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/global-emotes',
             ready: true
         },
@@ -178,7 +178,7 @@ export default function AdminHub() {
             id: 'brand',
             name: 'Logos de la marca',
             description: 'Cómo se ve el logo de Decatron en cada lugar del sitio: imagen, texto, tamaño y posición por pantalla. Se publica al guardar',
-            icon: <ImageIcon className="w-6 h-6 text-[#2563eb]" />,
+            icon: <ImageIcon className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/brand',
             ready: true
         },
@@ -186,7 +186,7 @@ export default function AdminHub() {
             id: 'logo',
             name: 'Logo de Decatron',
             description: 'Guía paso a paso para elegir la mascota y generar los 7 prompts derivados (favicon, avatar, hero, etc.)',
-            icon: <Palette className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Palette className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/logo',
             ready: true
         },
@@ -194,7 +194,7 @@ export default function AdminHub() {
             id: 'project-analysis',
             name: 'Radiografía del proyecto',
             description: 'Tamaño, composición, crecimiento y en qué archivos se concentra el riesgo',
-            icon: <Activity className="w-6 h-6 text-[#2563eb]" />,
+            icon: <Activity className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/project-analysis',
             ready: true
         }
@@ -204,8 +204,8 @@ export default function AdminHub() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Admin</h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">
+                    <h1 className="text-3xl font-black text-ds-text">Admin</h1>
+                    <p className="text-ds-soft mt-2">
                         Panel de administracion
                     </p>
                 </div>
@@ -215,33 +215,33 @@ export default function AdminHub() {
                 {cards.map((card) => (
                     <div
                         key={card.id}
-                        className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] hover:shadow-lg transition-all"
+                        className="bg-ds-surface rounded-lg p-6 border border-ds-border transition-all"
                     >
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                     {card.icon}
-                                    <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                    <h3 className="text-xl font-black text-ds-text">
                                         {card.name}
                                     </h3>
                                 </div>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-sm text-ds-soft">
                                     {card.description}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-end pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="flex items-center justify-end pt-4 border-t border-ds-border">
                             {card.ready ? (
                                 <button
                                     onClick={() => navigate(card.route)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
                                 >
                                     <Settings className="w-4 h-4" />
                                     Configurar
                                 </button>
                             ) : (
-                                <span className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] text-sm font-bold rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                <span className="px-4 py-2 bg-ds-bg text-ds-soft text-sm font-bold rounded-lg border border-ds-border">
                                     Proximamente
                                 </span>
                             )}

@@ -75,9 +75,9 @@ const FEATURE_LABEL: Record<string, string> = {
     admin: 'Admin',
 };
 
-const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg';
-const inputClass = 'w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm';
-const labelClass = 'text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2';
+const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
+const inputClass = 'w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm';
+const labelClass = 'text-xs font-bold text-ds-soft block mb-2';
 
 export default function TtsCreditsAdmin() {
     const navigate = useNavigate();
@@ -209,13 +209,13 @@ export default function TtsCreditsAdmin() {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin')}
-                    className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg"
+                    className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
                 >
-                    <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                    <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>
                 <div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Créditos TTS</h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-1 text-sm">
+                    <h1 className="text-3xl font-black text-ds-text">Créditos TTS</h1>
+                    <p className="text-ds-soft mt-1 text-sm">
                         Saldo, historial y ajustes manuales por canal
                     </p>
                 </div>
@@ -233,16 +233,16 @@ export default function TtsCreditsAdmin() {
                     className="w-full flex items-center justify-between gap-3 text-left"
                 >
                     <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
-                        <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                        <Users className="w-4 h-4 text-ds-soft" />
+                        <span className="text-sm font-bold text-ds-text">
                             Dar créditos a varios canales a la vez
                         </span>
                     </div>
-                    <span className="text-[#64748b] dark:text-[#94a3b8]">{batchOpen ? '▲' : '▼'}</span>
+                    <span className="text-ds-soft">{batchOpen ? '▲' : '▼'}</span>
                 </button>
 
                 {batchOpen && (
-                    <div className="mt-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-4">
+                    <div className="mt-4 pt-4 border-t border-ds-border space-y-4">
                         <div>
                             <label className={labelClass}>A quién</label>
                             <select
@@ -255,13 +255,13 @@ export default function TtsCreditsAdmin() {
                             </select>
                             <button
                                 onClick={previewBatch}
-                                className="mt-2 px-3 py-1 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-xs font-bold text-[#64748b] dark:text-[#94a3b8] hover:border-blue-400 hover:text-blue-600 transition-colors"
+                                className="mt-2 px-3 py-1 rounded-lg border border-ds-border text-xs font-bold text-ds-soft hover:border-ds-accent hover:text-ds-accent-text transition-colors"
                             >
                                 Ver a cuántos alcanza
                             </button>
                             {batchPreview && (
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
-                                    <strong className="text-[#1e293b] dark:text-[#f8fafc]">{batchPreview.count} canales</strong>
+                                <p className="text-xs text-ds-soft mt-2">
+                                    <strong className="text-ds-text">{batchPreview.count} canales</strong>
                                     {batchPreview.logins.length > 0 && `: ${batchPreview.logins.slice(0, 12).join(', ')}`}
                                     {batchPreview.logins.length > 12 && ` y ${batchPreview.logins.length - 12} más`}
                                 </p>
@@ -304,7 +304,7 @@ export default function TtsCreditsAdmin() {
                         </div>
 
                         {Number(batchAmount) > 0 && batchPreview && (
-                            <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                            <p className="text-sm text-ds-text">
                                 Vas a dar <strong>{Math.abs(Number(batchAmount)).toLocaleString()}</strong> créditos{' '}
                                 {batchBucket === 'standard' ? 'de voz estándar' : batchBucket === 'monthly' ? 'premium del mes' : 'premium comprados'}{' '}
                                 a <strong>{batchPreview.count} canales</strong>. Son{' '}
@@ -316,15 +316,15 @@ export default function TtsCreditsAdmin() {
                             <button
                                 onClick={runBatch}
                                 disabled={batchRunning || !(Number(batchAmount) > 0) || batchNote.trim().length < 3}
-                                className="px-5 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
+                                className="px-5 py-2 rounded-lg bg-ds-accent text-ds-on-accent text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
                             >
                                 {batchRunning ? 'Acreditando…' : 'Aplicar a todos'}
                             </button>
                             {batchResult && (
                                 <span className={`text-xs font-bold ${
                                     batchResult.kind === 'ok'
-                                        ? 'text-green-600 dark:text-green-400'
-                                        : 'text-red-600 dark:text-red-400'
+                                        ? 'text-ds-ok '
+                                        : 'text-ds-danger '
                                 }`}>
                                     {batchResult.text}
                                 </span>
@@ -345,7 +345,7 @@ export default function TtsCreditsAdmin() {
             </div>
 
             {loadingDetail && (
-                <div className={cardClass + ' text-center text-sm text-[#64748b] dark:text-[#94a3b8]'}>
+                <div className={cardClass + ' text-center text-sm text-ds-soft '}>
                     Cargando saldo…
                 </div>
             )}
@@ -359,10 +359,10 @@ export default function TtsCreditsAdmin() {
                                 <img src={detail.user.profileImageUrl} alt="" className="w-10 h-10 rounded-full" />
                             )}
                             <div>
-                                <p className="font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                <p className="font-black text-ds-text">
                                     {detail.user.displayName || detail.user.login}
                                 </p>
-                                <p className="text-xs text-[#94a3b8]">
+                                <p className="text-xs text-ds-soft">
                                     @{detail.user.login} · plan {detail.tier}
                                     {detail.tierExpiresAt && ` · vence ${fmtDate(detail.tierExpiresAt)}`}
                                 </p>
@@ -370,42 +370,42 @@ export default function TtsCreditsAdmin() {
                         </div>
 
                         {detail.isUnlimited ? (
-                            <div className="flex items-center gap-2 text-sm font-bold text-[#2563eb]">
+                            <div className="flex items-center gap-2 text-sm font-bold text-ds-accent-text">
                                 <InfinityIcon className="w-5 h-5" />
                                 Créditos ilimitados: este canal no consume ninguna bolsa.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900">
-                                    <p className="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wide">
+                                <div className="p-4 rounded-lg bg-ds-ok/10 border border-ds-ok/40">
+                                    <p className="text-xs font-bold text-ds-ok uppercase tracking-wide">
                                         Voz estándar
                                     </p>
-                                    <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                    <p className="text-2xl font-black text-ds-text">
                                         {detail.standard.remaining.toLocaleString()}
                                     </p>
-                                    <p className="text-[10px] text-[#94a3b8]">
+                                    <p className="text-[10px] text-ds-soft">
                                         de {detail.standard.granted.toLocaleString()} este mes
                                     </p>
                                 </div>
-                                <div className="p-4 rounded-xl bg-[#f8fafc] dark:bg-[#262626]">
-                                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">
+                                <div className="p-4 rounded-lg bg-ds-bg">
+                                    <p className="text-xs font-bold text-ds-soft uppercase tracking-wide">
                                         Premium del mes
                                     </p>
-                                    <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                    <p className="text-2xl font-black text-ds-text">
                                         {detail.premium.monthlyRemaining.toLocaleString()}
                                     </p>
-                                    <p className="text-[10px] text-[#94a3b8]">
+                                    <p className="text-[10px] text-ds-soft">
                                         de {detail.premium.monthlyGranted.toLocaleString()} · se reinicia el día 1
                                     </p>
                                 </div>
-                                <div className="p-4 rounded-xl bg-[#f8fafc] dark:bg-[#262626]">
-                                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">
+                                <div className="p-4 rounded-lg bg-ds-bg">
+                                    <p className="text-xs font-bold text-ds-soft uppercase tracking-wide">
                                         Comprados
                                     </p>
-                                    <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                    <p className="text-2xl font-black text-ds-text">
                                         {detail.premium.purchasedBalance.toLocaleString()}
                                     </p>
-                                    <p className="text-[10px] text-[#94a3b8]">no caducan</p>
+                                    <p className="text-[10px] text-ds-soft">no caducan</p>
                                 </div>
                             </div>
                         )}
@@ -413,10 +413,10 @@ export default function TtsCreditsAdmin() {
 
                     {/* Ajuste manual */}
                     <div className={cardClass}>
-                        <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1 flex items-center gap-2">
+                        <h2 className="text-sm font-bold text-ds-text mb-1 flex items-center gap-2">
                             <Coins className="w-4 h-4" /> Dar o quitar créditos
                         </h2>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
+                        <p className="text-xs text-ds-soft mb-4">
                             Nada se edita ni se borra: cada movimiento se apunta en el libro mayor con tu nombre,
                             y una corrección es otro movimiento encima.
                         </p>
@@ -429,8 +429,8 @@ export default function TtsCreditsAdmin() {
                                     onClick={() => setDirection('add')}
                                     className={`px-4 py-3 rounded-lg border-2 text-sm font-bold transition-all ${
                                         direction === 'add'
-                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                                            : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-green-300'
+                                            ? 'border-ds-ok/40 bg-ds-ok/10 text-ds-ok '
+                                            : 'border-ds-border text-ds-soft hover:border-ds-ok/40'
                                     }`}
                                 >
                                     ➕ Dar créditos
@@ -439,8 +439,8 @@ export default function TtsCreditsAdmin() {
                                     onClick={() => setDirection('remove')}
                                     className={`px-4 py-3 rounded-lg border-2 text-sm font-bold transition-all ${
                                         direction === 'remove'
-                                            ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                                            : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-red-300'
+                                            ? 'border-ds-danger/40 bg-ds-danger/10 text-ds-danger '
+                                            : 'border-ds-border text-ds-soft hover:border-ds-danger/40'
                                     }`}
                                 >
                                     ➖ Quitar créditos
@@ -462,11 +462,11 @@ export default function TtsCreditsAdmin() {
                             </select>
 
                             {bucket === 'purchased' ? (
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
+                                <p className="text-xs text-ds-soft mt-2">
                                     Es la que quieres casi siempre: lo que pongas aquí se queda hasta que se gaste.
                                 </p>
                             ) : (
-                                <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-2">
+                                <p className="text-xs text-ds-warn mt-2">
                                     ⚠️ Esta bolsa se reinicia el día 1, así que lo que hagas aquí dura hasta fin de mes
                                     y se pierde si no se gasta. Para algo permanente usa los comprados.
                                 </p>
@@ -489,7 +489,7 @@ export default function TtsCreditsAdmin() {
                                     <button
                                         key={n}
                                         onClick={() => setAmount(String(n))}
-                                        className="px-3 py-1 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-xs font-bold text-[#64748b] dark:text-[#94a3b8] hover:border-blue-400 hover:text-blue-600 transition-colors"
+                                        className="px-3 py-1 rounded-lg border border-ds-border text-xs font-bold text-ds-soft hover:border-ds-accent hover:text-ds-accent-text transition-colors"
                                     >
                                         {n.toLocaleString()}
                                     </button>
@@ -503,7 +503,7 @@ export default function TtsCreditsAdmin() {
                                                 : bucket === 'monthly' ? detail.premium.monthlyRemaining
                                                 : detail.premium.purchasedBalance
                                         ))}
-                                        className="px-3 py-1 rounded-lg border border-red-300 dark:border-red-800 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                        className="px-3 py-1 rounded-lg border border-ds-danger/40 text-xs font-bold text-ds-danger hover:bg-ds-danger/10 transition-colors"
                                     >
                                         Dejar a cero
                                     </button>
@@ -522,7 +522,7 @@ export default function TtsCreditsAdmin() {
                                 className={inputClass + ' max-w-md'}
                             />
                             {!noteIsValid && (
-                                <p className="text-xs text-[#94a3b8] mt-1">
+                                <p className="text-xs text-ds-soft mt-1">
                                     Obligatorio. Queda en el historial junto a tu nombre.
                                 </p>
                             )}
@@ -531,7 +531,7 @@ export default function TtsCreditsAdmin() {
                         {/* Resumen antes de confirmar: leer una frase es más difícil de
                             equivocar que releer cuatro campos sueltos */}
                         {Number(amount) > 0 && (
-                            <p className="text-sm text-[#1e293b] dark:text-[#f8fafc] mb-3">
+                            <p className="text-sm text-ds-text mb-3">
                                 Vas a <strong>{direction === 'add' ? 'dar' : 'quitar'}</strong>{' '}
                                 <strong>{Math.abs(Number(amount)).toLocaleString()}</strong> créditos{' '}
                                 {bucket === 'standard' ? 'de voz estándar' : bucket === 'monthly' ? 'premium del mes' : 'premium comprados'}{' '}
@@ -543,10 +543,10 @@ export default function TtsCreditsAdmin() {
                             <button
                                 onClick={grant}
                                 disabled={granting || !(Number(amount) > 0) || !noteIsValid}
-                                className={`px-5 py-2 rounded-lg text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40 ${
+                                className={`px-5 py-2 rounded-lg text-ds-text text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40 ${
                                     direction === 'add'
-                                        ? 'bg-gradient-to-r from-green-500 to-emerald-600'
-                                        : 'bg-gradient-to-r from-red-500 to-rose-600'
+                                        ? 'bg-ds-accent'
+                                        : 'bg-ds-danger-solid'
                                 }`}
                             >
                                 {granting
@@ -557,8 +557,8 @@ export default function TtsCreditsAdmin() {
                             {feedback && (
                                 <span className={`text-xs font-bold ${
                                     feedback.kind === 'ok'
-                                        ? 'text-green-600 dark:text-green-400'
-                                        : 'text-red-600 dark:text-red-400'
+                                        ? 'text-ds-ok '
+                                        : 'text-ds-danger '
                                 }`}>
                                     {feedback.text}
                                 </span>
@@ -568,17 +568,17 @@ export default function TtsCreditsAdmin() {
 
                     {/* Historial */}
                     <div className={cardClass}>
-                        <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+                        <h2 className="text-sm font-bold text-ds-text mb-4">
                             Últimos movimientos
                         </h2>
 
                         {detail.history.length === 0 ? (
-                            <p className="text-xs text-[#94a3b8]">Este canal todavía no tiene movimientos.</p>
+                            <p className="text-xs text-ds-soft">Este canal todavía no tiene movimientos.</p>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="text-left text-[#64748b] dark:text-[#94a3b8] border-b border-[#e2e8f0] dark:border-[#374151]">
+                                        <tr className="text-left text-ds-soft border-b border-ds-border">
                                             <th className="py-2 pr-3 font-bold">Fecha</th>
                                             <th className="py-2 pr-3 font-bold">Tipo</th>
                                             <th className="py-2 pr-3 font-bold text-right">Créditos</th>
@@ -589,27 +589,27 @@ export default function TtsCreditsAdmin() {
                                     </thead>
                                     <tbody>
                                         {detail.history.map(h => (
-                                            <tr key={h.id} className="border-b border-[#f1f5f9] dark:border-[#262626]">
-                                                <td className="py-2 pr-3 text-[#94a3b8] whitespace-nowrap">{fmtDate(h.createdAt)}</td>
-                                                <td className="py-2 pr-3 text-[#1e293b] dark:text-[#f8fafc]">
+                                            <tr key={h.id} className="border-b border-ds-border">
+                                                <td className="py-2 pr-3 text-ds-soft whitespace-nowrap">{fmtDate(h.createdAt)}</td>
+                                                <td className="py-2 pr-3 text-ds-text">
                                                     {TYPE_LABEL[h.type] ?? h.type}
                                                 </td>
                                                 <td className={`py-2 pr-3 text-right font-mono font-bold ${
                                                     h.credits > 0
-                                                        ? 'text-green-600 dark:text-green-400'
+                                                        ? 'text-ds-ok '
                                                         : h.credits < 0
-                                                            ? 'text-red-600 dark:text-red-400'
-                                                            : 'text-[#94a3b8]'
+                                                            ? 'text-ds-danger '
+                                                            : 'text-ds-soft'
                                                 }`}>
                                                     {h.credits > 0 ? '+' : ''}{h.credits.toLocaleString()}
                                                 </td>
-                                                <td className="py-2 pr-3 text-[#64748b] dark:text-[#94a3b8]">
+                                                <td className="py-2 pr-3 text-ds-soft">
                                                     {BUCKET_LABEL[h.bucket] ?? h.bucket}
                                                 </td>
-                                                <td className="py-2 pr-3 text-[#64748b] dark:text-[#94a3b8]">
+                                                <td className="py-2 pr-3 text-ds-soft">
                                                     {FEATURE_LABEL[h.feature ?? ''] ?? h.feature ?? '—'}
                                                 </td>
-                                                <td className="py-2 text-[#94a3b8]">
+                                                <td className="py-2 text-ds-soft">
                                                     {h.note ?? (h.chars ? `${h.chars} caracteres` : '')}
                                                     {h.voice && ` · ${h.voice}`}
                                                     {h.grantedBy && ` · por ${h.grantedBy}`}
@@ -649,20 +649,20 @@ function UsageSection() {
         api.get(`/admin/tts-credits/usage?days=${days}`).then(r => { if (alive) setData(r.data); }).catch(() => { }).finally(() => { if (alive) setLoading(false); });
         return () => { alive = false; };
     }, [days]);
-    const th = 'py-1 text-left text-[#64748b] dark:text-[#94a3b8] font-medium';
-    const tr = 'border-t border-[#f1f5f9] dark:border-[#26262c]';
+    const th = 'py-1 text-left text-ds-soft font-medium';
+    const tr = 'border-t border-ds-border ';
     return (
         <div className={cardClass}>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div>
-                    <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Consumo de créditos premium</h2>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Lo que cuesta dinero de verdad, por canal y por concepto. 1M créditos ≈ ${data ? (data.creditUsd * 1_000_000).toFixed(0) : '4'}.</p>
+                    <h2 className="text-sm font-bold text-ds-text">Consumo de créditos premium</h2>
+                    <p className="text-xs text-ds-soft">Lo que cuesta dinero de verdad, por canal y por concepto. 1M créditos ≈ ${data ? (data.creditUsd * 1_000_000).toFixed(0) : '4'}.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className={`px-3 py-1 rounded-lg text-xs border ${days === d ? 'bg-[#9146FF] border-[#9146FF] text-white' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b]'}`}>{d} días</button>)}
+                    {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className={`px-3 py-1 rounded-lg text-xs border ${days === d ? 'bg-[#9146FF] border-[#9146FF] text-ds-text' : 'border-ds-border text-ds-soft'}`}>{d} días</button>)}
                 </div>
             </div>
-            {!data ? <p className="text-xs text-[#64748b]">{loading ? 'Cargando…' : 'Sin datos.'}</p> : (
+            {!data ? <p className="text-xs text-ds-soft">{loading ? 'Cargando…' : 'Sin datos.'}</p> : (
                 <>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                         <Stat label="Créditos consumidos" value={data.totalCredits.toLocaleString()} />
@@ -672,19 +672,19 @@ function UsageSection() {
                     </div>
                     <div className="grid lg:grid-cols-2 gap-6">
                         <div className="overflow-x-auto">
-                            <h3 className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2 uppercase">Por concepto</h3>
+                            <h3 className="text-xs font-bold text-ds-soft mb-2 uppercase">Por concepto</h3>
                             <table className="w-full text-sm">
                                 <thead><tr><th className={th}>Concepto</th><th className={`${th} text-right`}>Movs.</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>USD</th></tr></thead>
-                                <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                                <tbody className="text-ds-text">
                                     {data.byFeature.map(f => <tr key={f.feature} className={tr}><td className="py-1 text-xs">{(FEATURE_LABEL as Record<string, string>)[f.feature] ?? f.feature}</td><td className="text-right text-xs">{f.entries}</td><td className="text-right font-mono text-xs">{f.credits.toLocaleString()}</td><td className="text-right font-mono text-xs">{usdFmt(f.usd)}</td></tr>)}
                                 </tbody>
                             </table>
                         </div>
                         <div className="overflow-x-auto">
-                            <h3 className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2 uppercase">Por canal (top 50)</h3>
+                            <h3 className="text-xs font-bold text-ds-soft mb-2 uppercase">Por canal (top 50)</h3>
                             <table className="w-full text-sm">
                                 <thead><tr><th className={th}>Canal</th><th className={th}>Tier</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>USD</th><th className={`${th} text-right`}>Cuota mes</th></tr></thead>
-                                <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                                <tbody className="text-ds-text">
                                     {data.byChannel.map(c => (
                                         <tr key={c.userId} className={tr}>
                                             <td className="py-1 text-xs">{c.login ?? `#${c.userId}`}</td>
@@ -706,9 +706,9 @@ function UsageSection() {
 
 function Stat({ label, value }: { label: string; value: string }) {
     return (
-        <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#262626]">
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{label}</p>
-            <p className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{value}</p>
+        <div className="p-3 rounded-lg bg-ds-bg">
+            <p className="text-xs text-ds-soft">{label}</p>
+            <p className="text-lg font-black text-ds-text">{value}</p>
         </div>
     );
 }
@@ -752,34 +752,34 @@ function PackagesSection() {
         try { await api.delete(`/admin/tts-credits/packages/${p.id}`); await load(); } catch { setMsg('No se pudo borrar.'); }
     };
     const perM = (p: { credits: number; bonusCredits: number; priceUsd: number }) => p.credits + p.bonusCredits > 0 ? (p.priceUsd * 1_000_000 / (p.credits + p.bonusCredits)).toFixed(0) : '—';
-    const th = 'py-1 text-left text-[#64748b] dark:text-[#94a3b8] font-medium';
-    const tr = 'border-t border-[#f1f5f9] dark:border-[#26262c]';
+    const th = 'py-1 text-left text-ds-soft font-medium';
+    const tr = 'border-t border-ds-border ';
     const field = (label: string, node: React.ReactNode) => <label className="block"><span className={labelClass}>{label}</span>{node}</label>;
 
     return (
         <div className={cardClass}>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div>
-                    <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Paquetes de créditos a la venta</h2>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Lo que ve el streamer en /credits. Costo real ≈ $4 por millón; los planes dan ~$17–33/M.</p>
+                    <h2 className="text-sm font-bold text-ds-text">Paquetes de créditos a la venta</h2>
+                    <p className="text-xs text-ds-soft">Lo que ve el streamer en /credits. Costo real ≈ $4 por millón; los planes dan ~$17–33/M.</p>
                 </div>
-                <button onClick={() => setEditing({ ...EMPTY_PACKAGE, sortOrder: packages.length + 1 })} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-white text-xs font-bold">Nuevo paquete</button>
+                <button onClick={() => setEditing({ ...EMPTY_PACKAGE, sortOrder: packages.length + 1 })} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-ds-text text-xs font-bold">Nuevo paquete</button>
             </div>
-            {msg && <p className="text-xs text-red-500 mb-3">{msg}</p>}
+            {msg && <p className="text-xs text-ds-danger mb-3">{msg}</p>}
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead><tr><th className={th}>#</th><th className={th}>Nombre</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>Bono</th><th className={`${th} text-right`}>USD</th><th className={`${th} text-right`}>$/M</th><th className={th}>Estado</th><th className={th}></th></tr></thead>
-                    <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                    <tbody className="text-ds-text">
                         {packages.map(p => (
                             <tr key={p.id} className={tr}>
                                 <td className="py-1 text-xs">{p.sortOrder}</td>
-                                <td className="text-xs">{p.name}{p.highlight && <span className="ml-1 text-[10px] uppercase text-[#9146FF]">popular</span>}<div className="text-[11px] text-[#94a3b8]">{p.description}</div></td>
+                                <td className="text-xs">{p.name}{p.highlight && <span className="ml-1 text-[10px] uppercase text-[#9146FF]">popular</span>}<div className="text-[11px] text-ds-soft">{p.description}</div></td>
                                 <td className="text-right font-mono text-xs">{p.credits.toLocaleString()}</td>
                                 <td className="text-right font-mono text-xs">{p.bonusCredits.toLocaleString()}</td>
                                 <td className="text-right font-mono text-xs">${p.priceUsd.toFixed(2)}</td>
                                 <td className="text-right font-mono text-xs">${perM(p)}</td>
-                                <td className="text-xs">{p.enabled ? <span className="text-green-500">activo</span> : <span className="text-[#94a3b8]">oculto</span>}</td>
-                                <td className="text-right text-xs whitespace-nowrap"><button onClick={() => setEditing({ ...p })} className="text-[#9146FF] hover:underline mr-3">Editar</button><button onClick={() => remove(p)} className="text-red-500 hover:underline">Borrar</button></td>
+                                <td className="text-xs">{p.enabled ? <span className="text-ds-ok">activo</span> : <span className="text-ds-soft">oculto</span>}</td>
+                                <td className="text-right text-xs whitespace-nowrap"><button onClick={() => setEditing({ ...p })} className="text-[#9146FF] hover:underline mr-3">Editar</button><button onClick={() => remove(p)} className="text-ds-danger hover:underline">Borrar</button></td>
                             </tr>
                         ))}
                     </tbody>
@@ -787,7 +787,7 @@ function PackagesSection() {
             </div>
 
             {editing && (
-                <div className="mt-4 p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#111213]">
+                <div className="mt-4 p-4 rounded-lg border border-ds-border bg-ds-bg">
                     <div className="grid md:grid-cols-3 gap-3">
                         {field('Nombre', <input className={inputClass} value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />)}
                         {field('Créditos', <input type="number" className={inputClass} value={editing.credits} onChange={e => setEditing({ ...editing, credits: Number(e.target.value) })} />)}
@@ -796,27 +796,27 @@ function PackagesSection() {
                         {field('Orden', <input type="number" className={inputClass} value={editing.sortOrder} onChange={e => setEditing({ ...editing, sortOrder: Number(e.target.value) })} />)}
                         {field('Descripción', <input className={inputClass} value={editing.description ?? ''} onChange={e => setEditing({ ...editing, description: e.target.value })} />)}
                     </div>
-                    <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-[#1e293b] dark:text-[#f8fafc]">
+                    <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-ds-text">
                         <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editing.enabled} onChange={e => setEditing({ ...editing, enabled: e.target.checked })} /> Activo</label>
                         <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editing.highlight} onChange={e => setEditing({ ...editing, highlight: e.target.checked })} /> Destacar como "popular"</label>
-                        <span className="text-[#94a3b8]">≈ ${perM(editing)} por millón</span>
+                        <span className="text-ds-soft">≈ ${perM(editing)} por millón</span>
                         <span className="flex-1" />
-                        <button onClick={() => setEditing(null)} className="px-3 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151]">Cancelar</button>
-                        <button onClick={save} disabled={saving} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-white font-bold disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar'}</button>
+                        <button onClick={() => setEditing(null)} className="px-3 py-1.5 rounded-lg border border-ds-border">Cancelar</button>
+                        <button onClick={save} disabled={saving} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-ds-text font-bold disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar'}</button>
                     </div>
                 </div>
             )}
 
             {purchases.length > 0 && (
                 <div className="mt-6 overflow-x-auto">
-                    <h3 className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2 uppercase">Últimas compras</h3>
+                    <h3 className="text-xs font-bold text-ds-soft mb-2 uppercase">Últimas compras</h3>
                     <table className="w-full text-sm">
                         <thead><tr><th className={th}>Cuándo</th><th className={th}>Canal</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>Cobrado</th><th className={th}>Culqi</th><th className={th}>Comprobante</th></tr></thead>
-                        <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                        <tbody className="text-ds-text">
                             {purchases.map(p => (
                                 <tr key={p.id} className={tr}>
                                     <td className="py-1 text-xs whitespace-nowrap">{new Date(p.createdAt).toLocaleString()}</td>
-                                    <td className="text-xs">{p.login ?? `#${p.userId}`}{p.isTest && <span className="ml-1 text-[10px] uppercase text-amber-500">test</span>}</td>
+                                    <td className="text-xs">{p.login ?? `#${p.userId}`}{p.isTest && <span className="ml-1 text-[10px] uppercase text-ds-warn">test</span>}</td>
                                     <td className="text-right font-mono text-xs">{p.creditsReceived.toLocaleString()}</td>
                                     <td className="text-right font-mono text-xs">{p.chargedCurrency === 'PEN' ? 'S/ ' : '$'}{(p.chargedAmount ?? p.amountPaidUsd).toFixed(2)}</td>
                                     <td className="text-xs font-mono">{p.chargeId ?? '—'}</td>

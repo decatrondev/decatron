@@ -18,12 +18,12 @@ interface Models { chatProvider: string; fallbackEnabled: boolean; chatModel: st
 
 const usd = (n: number) => `$${n.toFixed(n < 0.01 && n > 0 ? 4 : 2)}`;
 const k = (n: number) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(2)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
-const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg';
-const h2 = 'text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4';
-const muted = 'text-xs text-[#64748b] dark:text-[#94a3b8]';
-const input = 'w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#111213] text-sm text-[#1e293b] dark:text-[#f8fafc] font-mono';
-const th = 'py-1 text-left text-[#64748b] dark:text-[#94a3b8] font-medium';
-const tr = 'border-t border-[#f1f5f9] dark:border-[#26262c]';
+const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
+const h2 = 'text-sm font-bold text-ds-text mb-4';
+const muted = 'text-xs text-ds-soft ';
+const input = 'w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-sm text-ds-text font-mono';
+const th = 'py-1 text-left text-ds-soft font-medium';
+const tr = 'border-t border-ds-border ';
 
 /**
  * Admin → Costos de IA: todo lo que el bot gasta en LLMs (OpenRouter + Gemini), por módulo,
@@ -81,23 +81,23 @@ export default function AiCostsAdmin() {
         <div className="max-w-[1400px] mx-auto space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222324]"><ArrowLeft className="w-5 h-5 text-[#64748b]" /></button>
+                    <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-ds-bg"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
                     <div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-3"><CircleDollarSign className="w-8 h-8 text-[#9146FF]" /> Costos de IA</h1>
+                        <h1 className="text-3xl font-black text-ds-text flex items-center gap-3"><CircleDollarSign className="w-8 h-8 text-[#9146FF]" /> Costos de IA</h1>
                         <p className={muted}>Todo lo que el bot gasta en modelos de lenguaje, por módulo y streamer. Costo estimado con la tabla de precios de abajo.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
                     {[7, 30, 90].map(d => (
-                        <button key={d} onClick={() => setDays(d)} className={`px-3 py-1.5 rounded-lg text-sm border ${days === d ? 'bg-[#9146FF] border-[#9146FF] text-white' : 'border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc]'}`}>{d} días</button>
+                        <button key={d} onClick={() => setDays(d)} className={`px-3 py-1.5 rounded-lg text-sm border ${days === d ? 'bg-[#9146FF] border-[#9146FF] text-ds-text' : 'border-ds-border text-ds-text '}`}>{d} días</button>
                     ))}
-                    <button onClick={load} className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151]" title="Actualizar"><RefreshCw className="w-4 h-4 text-[#64748b]" /></button>
+                    <button onClick={load} className="p-2 rounded-lg border border-ds-border" title="Actualizar"><RefreshCw className="w-4 h-4 text-ds-soft" /></button>
                 </div>
             </div>
 
-            {error && <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm">{error}</div>}
-            {notice && <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-sm">{notice}</div>}
-            {loading && !data && <Loader2 className="w-6 h-6 animate-spin text-[#94a3b8]" />}
+            {error && <div className="p-3 rounded-lg bg-ds-danger/10 text-ds-danger text-sm">{error}</div>}
+            {notice && <div className="p-3 rounded-lg bg-ds-ok/10 text-ds-ok text-sm">{notice}</div>}
+            {loading && !data && <Loader2 className="w-6 h-6 animate-spin text-ds-soft" />}
 
             {data && (
                 <>
@@ -120,11 +120,11 @@ export default function AiCostsAdmin() {
                             {data.byModule.length === 0 ? <p className={muted}>Sin llamadas en el período.</p> : (
                                 <table className="w-full text-sm">
                                     <thead><tr><th className={th}>Módulo</th><th className={th}>Llamadas</th><th className={th}>Tokens in/out</th><th className={th}>Prom.</th><th className={`${th} text-right`}>Costo</th></tr></thead>
-                                    <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                                    <tbody className="text-ds-text">
                                         {data.byModule.map(m => (
                                             <tr key={m.module} className={tr}>
                                                 <td className="py-2 font-semibold">{MODULE_LABEL[m.module] ?? m.module}</td>
-                                                <td>{m.calls.toLocaleString()}{m.failed ? <span className="text-red-500 text-xs"> ({m.failed} ✗)</span> : null}</td>
+                                                <td>{m.calls.toLocaleString()}{m.failed ? <span className="text-ds-danger text-xs"> ({m.failed} ✗)</span> : null}</td>
                                                 <td className="font-mono text-xs">{k(m.promptTokens)} / {k(m.completionTokens)}</td>
                                                 <td className="text-xs">{m.avgMs} ms</td>
                                                 <td className="text-right font-mono">{usd(m.costUsd)}</td>
@@ -140,7 +140,7 @@ export default function AiCostsAdmin() {
                             {data.byModel.length === 0 ? <p className={muted}>Sin llamadas en el período.</p> : (
                                 <table className="w-full text-sm">
                                     <thead><tr><th className={th}>Modelo</th><th className={th}>Llamadas</th><th className={th}>Tokens in/out</th><th className={`${th} text-right`}>Costo</th></tr></thead>
-                                    <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                                    <tbody className="text-ds-text">
                                         {data.byModel.map(m => (
                                             <tr key={m.provider + m.model} className={tr}>
                                                 <td className="py-2 font-mono text-xs">{m.model}<span className={`${muted} ml-1`}>({m.provider})</span></td>
@@ -162,7 +162,7 @@ export default function AiCostsAdmin() {
                                 {data.byDay.map(d => (
                                     <div key={d.day} className="flex-1 flex flex-col justify-end group relative" title={`${d.day}: ${usd(d.costUsd)} · ${d.calls} llamadas`}>
                                         <div className="bg-[#9146FF]/80 rounded-t" style={{ height: `${Math.max(2, (d.costUsd / maxDayCost) * 100)}%` }} />
-                                        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] text-[#94a3b8] hidden group-hover:block whitespace-nowrap">{d.day.slice(5)}</div>
+                                        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] text-ds-soft hidden group-hover:block whitespace-nowrap">{d.day.slice(5)}</div>
                                     </div>
                                 ))}
                             </div>
@@ -175,7 +175,7 @@ export default function AiCostsAdmin() {
                             {data.topChannels.length === 0 ? <p className={muted}>Sin datos.</p> : (
                                 <table className="w-full text-sm">
                                     <thead><tr><th className={th}>Canal</th><th className={th}>Llamadas</th><th className={th}>Tokens</th><th className={`${th} text-right`}>Costo</th></tr></thead>
-                                    <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                                    <tbody className="text-ds-text">
                                         {data.topChannels.map(c => (
                                             <tr key={`${c.userId}-${c.channel}`} className={tr}>
                                                 <td className="py-2 font-semibold">{c.channel ?? `user #${c.userId}`}</td>
@@ -201,7 +201,7 @@ export default function AiCostsAdmin() {
                                         <div className={`${muted} mb-1`}>Precios USD por 1M tokens: {"{ \"modelo\": { \"in\": n, \"out\": n } }"}</div>
                                         <textarea value={pricesText} onChange={e => setPricesText(e.target.value)} rows={7} className={input} spellCheck={false} />
                                     </div>
-                                    <button onClick={saveModels} disabled={saving} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-[#7c3aed] text-white text-sm inline-flex items-center gap-2 disabled:opacity-50">
+                                    <button onClick={saveModels} disabled={saving} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover text-ds-text text-sm inline-flex items-center gap-2 disabled:opacity-50">
                                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                                     </button>
                                 </div>
@@ -227,7 +227,7 @@ function Stat({ label, value, hint, accent }: { label: string; value: string; hi
     return (
         <div className={`${cardClass} !p-4 ${accent ? 'border-[#9146FF]/50' : ''}`}>
             <div className={muted}>{label}</div>
-            <div className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">{value}</div>
+            <div className="text-2xl font-black text-ds-text mt-1">{value}</div>
             {hint && <div className={`${muted} mt-1 truncate`} title={hint}>{hint}</div>}
         </div>
     );

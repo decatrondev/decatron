@@ -66,7 +66,7 @@ export default function AdminDonations() {
 
     const refresh = () => setRefreshKey(k => k + 1);
 
-    const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-sm';
+    const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
 
     return (
         <div className="space-y-6 max-w-[1400px] mx-auto">
@@ -74,14 +74,14 @@ export default function AdminDonations() {
             {/* ── Header ── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
-                        <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                    <div className="w-10 h-10 rounded-lg bg-ds-accent/10 flex items-center justify-center">
+                        <Heart className="w-5 h-5 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                        <h1 className="text-2xl font-black text-ds-text">
                             {t('donations.title')}
                         </h1>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm text-ds-soft">
                             {t('donations.subtitle')}
                         </p>
                     </div>
@@ -89,15 +89,15 @@ export default function AdminDonations() {
 
                 <div className="flex items-center gap-2 flex-wrap">
                     {/* Period selector */}
-                    <div className="flex items-center bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-1 gap-0.5">
+                    <div className="flex items-center bg-ds-bg border border-ds-border rounded-lg p-1 gap-0.5">
                         {(Object.keys(PERIOD_LABELS) as Period[]).map(p => (
                             <button
                                 key={p}
                                 onClick={() => setPeriod(p)}
                                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                                     period === p
-                                        ? 'bg-purple-600 text-white shadow-sm'
-                                        : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#374151]'
+                                        ? 'bg-ds-accent text-ds-on-accent '
+                                        : 'text-ds-soft hover:bg-ds-surface '
                                 }`}
                             >
                                 {PERIOD_LABELS[p]}
@@ -109,15 +109,15 @@ export default function AdminDonations() {
                     <button
                         onClick={refresh}
                         title={t('donations.refresh')}
-                        className="p-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] hover:bg-[#f8fafc] dark:hover:bg-[#374151] transition-colors"
+                        className="p-2 rounded-lg border border-ds-border bg-ds-surface hover:bg-ds-bg transition-colors"
                     >
-                        <RefreshCw className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
+                        <RefreshCw className="w-4 h-4 text-ds-soft" />
                     </button>
 
                     {/* Go to tips config */}
                     <button
                         onClick={() => navigate('/features/tips')}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-semibold border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] hover:bg-[#f8fafc] dark:hover:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] rounded-xl transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-semibold border border-ds-border bg-ds-surface hover:bg-ds-bg text-ds-soft rounded-lg transition-colors"
                     >
                         <ExternalLink className="w-4 h-4" />
                         {t('donations.configureTips')}
@@ -126,15 +126,15 @@ export default function AdminDonations() {
             </div>
 
             {/* ── Tabs ── */}
-            <div className="flex items-center gap-1 border-b border-[#e2e8f0] dark:border-[#374151]">
+            <div className="flex items-center gap-1 border-b border-ds-border">
                 {TABS.map(t => (
                     <button
                         key={t.id}
                         onClick={() => setTab(t.id)}
                         className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px ${
                             tab === t.id
-                                ? 'border-purple-600 text-purple-600 dark:text-purple-400'
-                                : 'border-transparent text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc]'
+                                ? 'border-ds-accent text-ds-accent-text '
+                                : 'border-transparent text-ds-soft hover:text-ds-text '
                         }`}
                     >
                         {t.icon}
@@ -158,15 +158,15 @@ export default function AdminDonations() {
                 <div className="space-y-4">
                     <div className={cardClass}>
                         <div className="flex items-center justify-between mb-1">
-                            <h2 className="font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-                                <Trophy className="w-5 h-5 text-yellow-500" />
+                            <h2 className="font-bold text-ds-text flex items-center gap-2">
+                                <Trophy className="w-5 h-5 text-ds-accent-text" />
                                 {t('donations.donorRanking')}
                             </h2>
-                            <span className="text-sm text-[#94a3b8]">
+                            <span className="text-sm text-ds-soft">
                                 {PERIOD_LABELS[period]}
                             </span>
                         </div>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-5">
+                        <p className="text-sm text-ds-soft mb-5">
                             {t('donations.top20')}
                         </p>
                         <TopDonors period={period} refreshKey={refreshKey} />

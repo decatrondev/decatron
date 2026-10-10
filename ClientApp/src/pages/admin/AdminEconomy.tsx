@@ -27,13 +27,13 @@ function formatDate(dateStr: string): string {
 }
 
 const TYPE_BADGES: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    purchase:        { label: 'Compra',        color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <ShoppingBag className="w-3 h-3" /> },
-    admin_give:      { label: 'Regalo Admin',  color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',   icon: <Gift className="w-3 h-3" /> },
-    admin_remove:    { label: 'Removido',      color: 'bg-red-500/20 text-red-400 border-red-500/30',      icon: <ArrowDownLeft className="w-3 h-3" /> },
-    transfer_in:     { label: 'Recibido',      color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <ArrowDownLeft className="w-3 h-3" /> },
-    transfer_out:    { label: 'Enviado',       color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <ArrowUpRight className="w-3 h-3" /> },
-    marketplace_buy: { label: 'Marketplace',   color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <ShoppingBag className="w-3 h-3" /> },
-    referral_bonus:  { label: 'Referido',      color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',    icon: <Users className="w-3 h-3" /> },
+    purchase: { label: 'Compra', color: 'bg-ds-accent/20 text-ds-ok border-ds-ok/40', icon: <ShoppingBag className="w-3 h-3" /> },
+    admin_give: { label: 'Regalo Admin', color: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30', icon: <Gift className="w-3 h-3" /> },
+    admin_remove: { label: 'Removido', color: 'bg-ds-danger-solid/20 text-ds-danger border-ds-danger/40', icon: <ArrowDownLeft className="w-3 h-3" /> },
+    transfer_in: { label: 'Recibido', color: 'bg-ds-accent/20 text-ds-ok border-ds-ok/40', icon: <ArrowDownLeft className="w-3 h-3" /> },
+    transfer_out: { label: 'Enviado', color: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40', icon: <ArrowUpRight className="w-3 h-3" /> },
+    marketplace_buy: { label: 'Marketplace', color: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30', icon: <ShoppingBag className="w-3 h-3" /> },
+    referral_bonus: { label: 'Referido', color: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30', icon: <Users className="w-3 h-3" /> },
 };
 
 type TabId = 'dashboard' | 'packages' | 'discounts' | 'users' | 'audit' | 'referrals' | 'settings';
@@ -60,28 +60,28 @@ function DashboardTab() {
 
     if (loading) return <LoadingSpinner />;
 
-    if (!stats) return <p className="text-[#64748b] text-center py-8">No se pudieron cargar las estadisticas</p>;
+    if (!stats) return <p className="text-ds-soft text-center py-8">No se pudieron cargar las estadisticas</p>;
 
     const cards = [
-        { label: 'Total en circulacion', value: formatNumber(stats.totalCoinsInCirculation), color: 'text-amber-400', bg: 'bg-amber-500/10' },
-        { label: 'Total vendido',        value: formatNumber(stats.totalCoinsSold),          color: 'text-green-400', bg: 'bg-green-500/10' },
-        { label: 'Ingresos totales',     value: formatCurrency(stats.totalRevenue),          color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-        { label: 'Ingresos este mes',    value: formatCurrency(stats.revenueThisMonth),      color: 'text-blue-400', bg: 'bg-blue-500/10' },
-        { label: 'Transacciones hoy',    value: formatNumber(stats.transactionsToday),       color: 'text-purple-400', bg: 'bg-purple-500/10' },
-        { label: 'Total usuarios',       value: formatNumber(stats.totalUsers),              color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-        { label: 'Usuarios flagged',     value: formatNumber(stats.flaggedUsers),            color: 'text-red-400', bg: 'bg-red-500/10' },
-        { label: 'Referidos pendientes', value: formatNumber(stats.pendingReferrals),        color: 'text-orange-400', bg: 'bg-orange-500/10' },
+        { label: 'Total en circulacion', value: formatNumber(stats.totalCoinsInCirculation), color: 'text-ds-warn', bg: 'bg-ds-warn/10' },
+        { label: 'Total vendido', value: formatNumber(stats.totalCoinsSold), color: 'text-ds-ok', bg: 'bg-ds-accent/10' },
+        { label: 'Ingresos totales', value: formatCurrency(stats.totalRevenue), color: 'text-ds-ok', bg: 'bg-ds-accent/10' },
+        { label: 'Ingresos este mes', value: formatCurrency(stats.revenueThisMonth), color: 'text-ds-accent-text', bg: 'bg-ds-accent/10' },
+        { label: 'Transacciones hoy', value: formatNumber(stats.transactionsToday), color: 'text-ds-accent-text', bg: 'bg-ds-accent/10' },
+        { label: 'Total usuarios', value: formatNumber(stats.totalUsers), color: 'text-ds-accent-text', bg: 'bg-ds-accent/10' },
+        { label: 'Usuarios flagged', value: formatNumber(stats.flaggedUsers), color: 'text-ds-danger', bg: 'bg-ds-danger-solid/10' },
+        { label: 'Referidos pendientes', value: formatNumber(stats.pendingReferrals), color: 'text-ds-warn', bg: 'bg-ds-warn/10' },
     ];
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {cards.map((c, i) => (
-                <div key={i} className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151]">
-                    <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center mb-3`}>
+                <div key={i} className="bg-ds-surface rounded-lg p-5 border border-ds-border">
+                    <div className={`w-10 h-10 ${c.bg} rounded-lg flex items-center justify-center mb-3`}>
                         <Coins className={`w-5 h-5 ${c.color}`} />
                     </div>
                     <p className={`text-2xl font-black ${c.color}`}>{c.value}</p>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 font-medium">{c.label}</p>
+                    <p className="text-xs text-ds-soft mt-1 font-medium">{c.label}</p>
                 </div>
             ))}
         </div>
@@ -134,51 +134,51 @@ function PackagesTab() {
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <button onClick={() => setModal({ mode: 'create', data: { ...emptyPkg } })} className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors">
+                <button onClick={() => setModal({ mode: 'create', data: { ...emptyPkg } })} className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold transition-colors">
                     <Plus className="w-4 h-4" /> Nuevo paquete
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+            <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Nombre</th>
-                                <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Coins</th>
-                                <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Bonus</th>
-                                <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Precio</th>
-                                <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Oferta</th>
-                                <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Orden</th>
-                                <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
-                                <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Acciones</th>
+                            <tr className="border-b border-ds-border">
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Nombre</th>
+                                <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Coins</th>
+                                <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Bonus</th>
+                                <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Precio</th>
+                                <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Oferta</th>
+                                <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Orden</th>
+                                <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Estado</th>
+                                <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {packages.map(pkg => (
-                                <tr key={pkg.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
-                                    <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium">{pkg.name}</td>
-                                    <td className="px-4 py-3 text-right text-[#1e293b] dark:text-[#f8fafc]">{pkg.coins.toLocaleString()}</td>
-                                    <td className="px-4 py-3 text-right text-amber-500 font-bold">{pkg.bonusCoins > 0 ? `+${pkg.bonusCoins}` : '-'}</td>
-                                    <td className="px-4 py-3 text-right text-green-500 font-bold">${pkg.priceUsd}</td>
-                                    <td className="px-4 py-3 text-center">{pkg.isOffer ? <span className="text-amber-400 text-xs font-bold">OFERTA</span> : '-'}</td>
-                                    <td className="px-4 py-3 text-center text-[#64748b]">{pkg.sortOrder}</td>
+                                <tr key={pkg.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
+                                    <td className="px-4 py-3 text-ds-text font-medium">{pkg.name}</td>
+                                    <td className="px-4 py-3 text-right text-ds-text">{pkg.coins.toLocaleString()}</td>
+                                    <td className="px-4 py-3 text-right text-ds-warn font-bold">{pkg.bonusCoins > 0 ? `+${pkg.bonusCoins}` : '-'}</td>
+                                    <td className="px-4 py-3 text-right text-ds-ok font-bold">${pkg.priceUsd}</td>
+                                    <td className="px-4 py-3 text-center">{pkg.isOffer ? <span className="text-ds-warn text-xs font-bold">OFERTA</span> : '-'}</td>
+                                    <td className="px-4 py-3 text-center text-ds-soft">{pkg.sortOrder}</td>
                                     <td className="px-4 py-3 text-center">
                                         <button onClick={() => toggleEnabled(pkg)} className="focus:outline-none">
                                             {pkg.enabled
-                                                ? <ToggleRight className="w-6 h-6 text-green-500" />
-                                                : <ToggleLeft className="w-6 h-6 text-[#64748b]" />}
+                                                ? <ToggleRight className="w-6 h-6 text-ds-accent-text" />
+                                                : <ToggleLeft className="w-6 h-6 text-ds-soft" />}
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <button onClick={() => setModal({ mode: 'edit', data: { ...pkg } })} className="p-1.5 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                                            <Pencil className="w-4 h-4 text-[#64748b]" />
+                                        <button onClick={() => setModal({ mode: 'edit', data: { ...pkg } })} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                                            <Pencil className="w-4 h-4 text-ds-soft" />
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                             {packages.length === 0 && (
-                                <tr><td colSpan={8} className="px-4 py-8 text-center text-[#64748b]">No hay paquetes</td></tr>
+                                <tr><td colSpan={8} className="px-4 py-8 text-center text-ds-soft">No hay paquetes</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -209,8 +209,8 @@ function PackagesTab() {
                             <FormField label="Max por transaccion" type="number" value={modal.data.maxPerTransaction} onChange={v => setModal({ ...modal, data: { ...modal.data, maxPerTransaction: parseInt(v) || 1 } })} />
                         </div>
                         <div className="flex justify-end gap-3 pt-4">
-                            <button onClick={() => setModal(null)} className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] rounded-lg text-sm font-bold">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
+                            <button onClick={() => setModal(null)} className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold">Cancelar</button>
+                            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                             </button>
                         </div>
@@ -322,42 +322,42 @@ function DiscountsTab() {
 
     const discountTypeLabel: Record<string, string> = { percentage: 'Porcentaje', fixed_amount: 'Monto fijo', bonus_coins: 'Bonus coins' };
     const discountTypeBadge: Record<string, string> = {
-        percentage: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-        fixed_amount: 'bg-green-500/20 text-green-400 border-green-500/30',
-        bonus_coins: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+        percentage: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30',
+        fixed_amount: 'bg-ds-accent/20 text-ds-ok border-ds-ok/40',
+        bonus_coins: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40',
     };
 
     const getStatus = (c: any): { label: string; color: string } => {
-        if (!c.enabled) return { label: 'Deshabilitado', color: 'bg-gray-500/10 text-gray-400 border-gray-500/30' };
+        if (!c.enabled) return { label: 'Deshabilitado', color: 'bg-ds-faint/10 text-ds-soft border-ds-border/30' };
         const now = new Date();
-        if (c.startsAt && new Date(c.startsAt) > now) return { label: 'Programado', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' };
-        if (c.expiresAt && new Date(c.expiresAt) < now) return { label: 'Expirado', color: 'bg-red-500/10 text-red-400 border-red-500/30' };
-        if (c.maxUses && c.totalUses >= c.maxUses) return { label: 'Agotado', color: 'bg-orange-500/10 text-orange-400 border-orange-500/30' };
-        return { label: 'Activo', color: 'bg-green-500/10 text-green-400 border-green-500/30' };
+        if (c.startsAt && new Date(c.startsAt) > now) return { label: 'Programado', color: 'bg-ds-warn/10 text-ds-warn border-ds-warn/40' };
+        if (c.expiresAt && new Date(c.expiresAt) < now) return { label: 'Expirado', color: 'bg-ds-danger-solid/10 text-ds-danger border-ds-danger/40' };
+        if (c.maxUses && c.totalUses >= c.maxUses) return { label: 'Agotado', color: 'bg-ds-warn/10 text-ds-warn border-ds-warn/40' };
+        return { label: 'Activo', color: 'bg-ds-accent/10 text-ds-ok border-ds-ok/40' };
     };
 
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <button onClick={() => setModal({ mode: 'create', data: { ...emptyCode } })} className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors">
+                <button onClick={() => setModal({ mode: 'create', data: { ...emptyCode } })} className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold transition-colors">
                     <Plus className="w-4 h-4" /> Nuevo cupon
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+            <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Codigo</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Tipo</th>
-                                <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Valor</th>
-                                <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Usos</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Vigencia</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Asignado</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Paquete</th>
-                                <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
-                                <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Acciones</th>
+                            <tr className="border-b border-ds-border">
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Codigo</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Tipo</th>
+                                <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Valor</th>
+                                <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Usos</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Vigencia</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Asignado</th>
+                                <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Paquete</th>
+                                <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Estado</th>
+                                <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -365,28 +365,28 @@ function DiscountsTab() {
                                 const status = getStatus(c);
                                 const pkg = c.applicablePackageId ? packages.find((p: any) => p.id === c.applicablePackageId) : null;
                                 return (
-                                <tr key={c.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
-                                    <td className="px-4 py-3 font-mono font-bold text-[#1e293b] dark:text-[#f8fafc]">{c.code}</td>
+                                <tr key={c.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
+                                    <td className="px-4 py-3 font-mono font-bold text-ds-text">{c.code}</td>
                                     <td className="px-4 py-3">
                                         <span className={`text-xs font-bold px-2 py-1 rounded-full border ${discountTypeBadge[c.discountType] || ''}`}>
                                             {discountTypeLabel[c.discountType] || c.discountType}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 text-right text-amber-500 font-bold">
+                                    <td className="px-4 py-3 text-right text-ds-warn font-bold">
                                         {c.discountType === 'percentage' ? `${c.discountValue}%` : c.discountType === 'bonus_coins' ? `+${c.discountValue} coins` : `$${c.discountValue}`}
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <span className="text-[#64748b]">{c.totalUses ?? c.currentUses ?? 0}</span>
-                                        <span className="text-[#94a3b8]">/{c.maxUses ?? '∞'}</span>
+                                        <span className="text-ds-soft">{c.totalUses ?? c.currentUses ?? 0}</span>
+                                        <span className="text-ds-soft">/{c.maxUses ?? '∞'}</span>
                                     </td>
-                                    <td className="px-4 py-3 text-xs text-[#64748b]">
+                                    <td className="px-4 py-3 text-xs text-ds-soft">
                                         {c.startsAt && <div>Desde: {formatDate(c.startsAt)}</div>}
                                         {c.expiresAt ? <div>Hasta: {formatDate(c.expiresAt)}</div> : <span>Sin limite</span>}
                                     </td>
-                                    <td className="px-4 py-3 text-xs text-[#64748b]">
+                                    <td className="px-4 py-3 text-xs text-ds-soft">
                                         {c.assignedUserId ? `Usuario #${c.assignedUserId}` : 'Publico'}
                                     </td>
-                                    <td className="px-4 py-3 text-xs text-[#64748b]">
+                                    <td className="px-4 py-3 text-xs text-ds-soft">
                                         {pkg ? pkg.name : c.applicablePackageId ? `#${c.applicablePackageId}` : 'Todos'}
                                     </td>
                                     <td className="px-4 py-3 text-center">
@@ -394,12 +394,12 @@ function DiscountsTab() {
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         <div className="flex items-center justify-center gap-1">
-                                            <button onClick={() => { setModal({ mode: 'edit', data: { ...c } }); setSaveError(null); setUserSearch(''); }} className="p-1.5 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                                                <Pencil className="w-4 h-4 text-[#64748b]" />
+                                            <button onClick={() => { setModal({ mode: 'edit', data: { ...c } }); setSaveError(null); setUserSearch(''); }} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                                                <Pencil className="w-4 h-4 text-ds-soft" />
                                             </button>
                                             {c.enabled && (
-                                                <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-red-500/10 rounded-lg transition-colors">
-                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-ds-danger-solid/10 rounded-lg transition-colors">
+                                                    <Trash2 className="w-4 h-4 text-ds-danger" />
                                                 </button>
                                             )}
                                         </div>
@@ -408,7 +408,7 @@ function DiscountsTab() {
                                 );
                             })}
                             {codes.length === 0 && (
-                                <tr><td colSpan={9} className="px-4 py-8 text-center text-[#64748b]">No hay cupones</td></tr>
+                                <tr><td colSpan={9} className="px-4 py-8 text-center text-ds-soft">No hay cupones</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -420,24 +420,24 @@ function DiscountsTab() {
                 <Modal title={modal.mode === 'create' ? 'Nuevo cupon' : 'Editar cupon'} onClose={() => { setModal(null); setSaveError(null); }}>
                     <div className="space-y-4">
                         {saveError && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400 flex items-center gap-2">
+                            <div className="p-3 bg-ds-danger-solid/10 border border-ds-danger/40 rounded-lg text-sm text-ds-danger flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4 flex-shrink-0" /> {saveError}
                             </div>
                         )}
 
                         {/* Code + Generate */}
                         <div>
-                            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Codigo</label>
+                            <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Codigo</label>
                             <div className="flex gap-2">
                                 <input
                                     value={modal.data.code}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, code: e.target.value.toUpperCase() } })}
                                     placeholder="CODIGO"
-                                    className="flex-1 px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] font-mono"
+                                    className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text font-mono"
                                 />
                                 <button
                                     onClick={() => setModal({ ...modal, data: { ...modal.data, code: generateCode() } })}
-                                    className="px-3 py-2 bg-[#374151] hover:bg-[#475569] text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap"
+                                    className="px-3 py-2 bg-ds-raised hover:bg-ds-raised text-ds-text text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
                                 >
                                     Generar
                                 </button>
@@ -447,11 +447,11 @@ function DiscountsTab() {
                         {/* Type + Value */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Tipo</label>
+                                <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Tipo</label>
                                 <select
                                     value={modal.data.discountType}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, discountType: e.target.value } })}
-                                    className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                                    className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                                 >
                                     <option value="percentage">Porcentaje (%)</option>
                                     <option value="fixed_amount">Monto fijo ($)</option>
@@ -475,28 +475,28 @@ function DiscountsTab() {
                         {/* Dates */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Fecha inicio (opcional)</label>
+                                <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Fecha inicio (opcional)</label>
                                 <input
                                     type="datetime-local"
                                     value={modal.data.startsAt ? new Date(modal.data.startsAt).toISOString().slice(0, 16) : ''}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, startsAt: e.target.value || null } })}
-                                    className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                    className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Fecha expiracion (opcional)</label>
+                                <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Fecha expiracion (opcional)</label>
                                 <input
                                     type="datetime-local"
                                     value={modal.data.expiresAt ? new Date(modal.data.expiresAt).toISOString().slice(0, 16) : ''}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, expiresAt: e.target.value || null } })}
-                                    className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                    className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
                                 />
                             </div>
                         </div>
 
                         {/* Assigned user */}
                         <div className="relative">
-                            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Asignar a usuario (vacio = publico)</label>
+                            <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Asignar a usuario (vacio = publico)</label>
                             <div className="flex gap-2">
                                 <div className="flex-1 relative">
                                     <input
@@ -504,10 +504,10 @@ function DiscountsTab() {
                                         onChange={e => { handleUserSearch(e.target.value); if (!e.target.value) setModal({ ...modal, data: { ...modal.data, assignedUserId: null } }); }}
                                         onBlur={() => setTimeout(() => setShowUserSuggestions(false), 200)}
                                         placeholder="Buscar usuario..."
-                                        className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                        className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
                                     />
                                     {showUserSuggestions && userSuggestions.length > 0 && (
-                                        <div className="absolute z-50 top-full mt-1 w-full bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                                        <div className="absolute z-50 top-full mt-1 w-full bg-ds-surface border border-ds-border rounded-lg max-h-36 overflow-y-auto">
                                             {userSuggestions.map((u: any) => (
                                                 <button
                                                     key={u.id}
@@ -516,17 +516,17 @@ function DiscountsTab() {
                                                         setUserSearch(u.displayName || u.login);
                                                         setShowUserSuggestions(false);
                                                     }}
-                                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] text-left text-sm"
+                                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-ds-raised text-left text-sm"
                                                 >
-                                                    <span className="font-medium text-[#1e293b] dark:text-white">{u.displayName || u.login}</span>
-                                                    <span className="text-xs text-[#64748b]">#{u.id}</span>
+                                                    <span className="font-medium text-ds-text">{u.displayName || u.login}</span>
+                                                    <span className="text-xs text-ds-soft">#{u.id}</span>
                                                 </button>
                                             ))}
                                         </div>
                                     )}
                                 </div>
                                 {modal.data.assignedUserId && (
-                                    <button onClick={() => { setModal({ ...modal, data: { ...modal.data, assignedUserId: null } }); setUserSearch(''); }} className="px-3 py-2 bg-red-500/10 text-red-400 rounded-xl text-xs font-bold">
+                                    <button onClick={() => { setModal({ ...modal, data: { ...modal.data, assignedUserId: null } }); setUserSearch(''); }} className="px-3 py-2 bg-ds-danger-solid/10 text-ds-danger rounded-lg text-xs font-bold">
                                         Quitar
                                     </button>
                                 )}
@@ -535,11 +535,11 @@ function DiscountsTab() {
 
                         {/* Applicable package */}
                         <div>
-                            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Paquete aplicable</label>
+                            <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">Paquete aplicable</label>
                             <select
                                 value={modal.data.applicablePackageId ?? ''}
                                 onChange={e => setModal({ ...modal, data: { ...modal.data, applicablePackageId: e.target.value ? parseInt(e.target.value) : null } })}
-                                className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                             >
                                 <option value="">Todos los paquetes</option>
                                 {packages.map((p: any) => (
@@ -555,10 +555,10 @@ function DiscountsTab() {
                         <FormCheckbox label="Combinable con bonus de primera compra" checked={modal.data.combinableWithFirstPurchase} onChange={v => setModal({ ...modal, data: { ...modal.data, combinableWithFirstPurchase: v } })} />
 
                         {/* Preview */}
-                        <div className="p-3 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl text-xs text-[#64748b]">
+                        <div className="p-3 bg-ds-bg rounded-lg text-xs text-ds-soft">
                             <p className="font-bold mb-1">Vista previa:</p>
                             <p>
-                                Codigo: <span className="font-mono text-[#1e293b] dark:text-white">{modal.data.code || '---'}</span>
+                                Codigo: <span className="font-mono text-ds-text">{modal.data.code || '---'}</span>
                                 {' · '}
                                 {modal.data.discountType === 'percentage' && `${modal.data.discountValue}% de descuento`}
                                 {modal.data.discountType === 'fixed_amount' && `$${modal.data.discountValue} de descuento`}
@@ -571,8 +571,8 @@ function DiscountsTab() {
                         </div>
 
                         <div className="flex justify-end gap-3 pt-2">
-                            <button onClick={() => { setModal(null); setSaveError(null); }} className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] rounded-lg text-sm font-bold">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
+                            <button onClick={() => { setModal(null); setSaveError(null); }} className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold">Cancelar</button>
+                            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                             </button>
                         </div>
@@ -657,28 +657,28 @@ function UsersTab() {
         <div className="space-y-6">
             {/* Search */}
             <div className="relative">
-                <div className="flex items-center gap-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-2">
-                    <Search className="w-4 h-4 text-[#64748b]" />
+                <div className="flex items-center gap-2 bg-ds-surface border border-ds-border rounded-lg px-4 py-2">
+                    <Search className="w-4 h-4 text-ds-soft" />
                     <input
                         type="text"
                         value={search}
                         onChange={e => doSearch(e.target.value)}
                         placeholder="Buscar usuario por nombre..."
-                        className="flex-1 bg-transparent text-sm text-[#1e293b] dark:text-[#f8fafc] focus:outline-none placeholder-[#94a3b8]"
+                        className="flex-1 bg-transparent text-sm text-ds-text focus:outline-none placeholder-ds-soft"
                     />
                 </div>
                 {suggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl shadow-lg z-20 overflow-hidden">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-ds-surface border border-ds-border rounded-lg z-20 overflow-hidden">
                         {suggestions.map(u => (
                             <button
                                 key={u.id}
                                 onClick={() => selectUser(u)}
-                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/50 transition-colors text-left"
+                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-ds-bg transition-colors text-left"
                             >
                                 {u.profileImage && <img src={u.profileImage} className="w-8 h-8 rounded-full" alt="" />}
                                 <div>
-                                    <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{u.displayName || u.login}</p>
-                                    {u.discordUsername && <p className="text-xs text-[#64748b]">Discord: {u.discordUsername}</p>}
+                                    <p className="text-sm font-bold text-ds-text">{u.displayName || u.login}</p>
+                                    {u.discordUsername && <p className="text-xs text-ds-soft">Discord: {u.discordUsername}</p>}
                                 </div>
                             </button>
                         ))}
@@ -689,18 +689,18 @@ function UsersTab() {
             {/* User Details */}
             {loadingDetails && <LoadingSpinner />}
             {userDetails && selectedUser && !loadingDetails && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 space-y-6">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
                     <div className="flex items-center gap-4">
                         {selectedUser.profileImage && <img src={selectedUser.profileImage} className="w-12 h-12 rounded-full" alt="" />}
                         <div>
-                            <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{selectedUser.displayName || selectedUser.login}</h3>
-                            <p className="text-xs text-[#64748b]">ID: {selectedUser.id}</p>
+                            <h3 className="text-lg font-black text-ds-text">{selectedUser.displayName || selectedUser.login}</h3>
+                            <p className="text-xs text-ds-soft">ID: {selectedUser.id}</p>
                         </div>
                         <div className="ml-auto">
                             <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                                userDetails.economyStatus === 'normal' ? 'bg-green-500/10 text-green-400' :
-                                userDetails.economyStatus === 'flagged' ? 'bg-amber-500/10 text-amber-400' :
-                                'bg-red-500/10 text-red-400'
+                                userDetails.economyStatus === 'normal' ? 'bg-ds-accent/10 text-ds-ok' :
+                                userDetails.economyStatus === 'flagged' ? 'bg-ds-warn/10 text-ds-warn' :
+                                'bg-ds-danger-solid/10 text-ds-danger'
                             }`}>
                                 {userDetails.economyStatus}
                             </span>
@@ -715,22 +715,22 @@ function UsersTab() {
                     </div>
 
                     {/* Actions */}
-                    <div className="border-t border-[#e2e8f0] dark:border-[#374151] pt-4 space-y-4">
+                    <div className="border-t border-ds-border pt-4 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <FormField label="Cantidad" type="number" value={actionAmount} onChange={setActionAmount} placeholder="100" />
                             <FormField label="Descripcion" value={actionDesc} onChange={setActionDesc} placeholder="Razon..." />
                             <div className="flex items-end gap-2">
-                                <button onClick={giveCoins} disabled={actionLoading || !actionAmount} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-1">
+                                <button onClick={giveCoins} disabled={actionLoading || !actionAmount} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-1">
                                     {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Dar
                                 </button>
-                                <button onClick={removeCoins} disabled={actionLoading || !actionAmount} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-1">
+                                <button onClick={removeCoins} disabled={actionLoading || !actionAmount} className="px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-1">
                                     {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Quitar
                                 </button>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2 uppercase">Cambiar estado</label>
+                            <label className="block text-xs font-bold text-ds-soft mb-2 uppercase">Cambiar estado</label>
                             <div className="flex gap-2">
                                 {['normal', 'flagged', 'banned_economy'].map(s => (
                                     <button
@@ -738,9 +738,9 @@ function UsersTab() {
                                         onClick={() => changeStatus(s)}
                                         disabled={userDetails.economyStatus === s}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-30 ${
-                                            s === 'normal' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' :
-                                            s === 'flagged' ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' :
-                                            'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                                            s === 'normal' ? 'bg-ds-accent/10 text-ds-ok hover:bg-ds-accent/20' :
+                                            s === 'flagged' ? 'bg-ds-warn/10 text-ds-warn hover:bg-ds-warn/20' :
+                                            'bg-ds-danger-solid/10 text-ds-danger hover:bg-ds-danger-solid/20'
                                         }`}
                                     >
                                         {s}
@@ -789,7 +789,7 @@ function AuditTab() {
                 <select
                     value={filterType}
                     onChange={e => setFilterType(e.target.value)}
-                    className="px-3 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                     <option value="">Todos los tipos</option>
                     {types.map(t => <option key={t} value={t}>{TYPE_BADGES[t]?.label || t}</option>)}
@@ -799,50 +799,50 @@ function AuditTab() {
                     value={filterUserId}
                     onChange={e => setFilterUserId(e.target.value)}
                     placeholder="User ID..."
-                    className="px-3 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] w-40"
+                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text placeholder-ds-soft w-40"
                 />
-                <button onClick={() => load(1)} className="px-3 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-1">
+                <button onClick={() => load(1)} className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-1">
                     <Search className="w-4 h-4" /> Filtrar
                 </button>
             </div>
 
             {loading ? <LoadingSpinner /> : (
                 <>
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                        <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Fecha</th>
-                                        <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Usuario</th>
-                                        <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Tipo</th>
-                                        <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Monto</th>
-                                        <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Balance</th>
-                                        <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Descripcion</th>
+                                    <tr className="border-b border-ds-border">
+                                        <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Fecha</th>
+                                        <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Usuario</th>
+                                        <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Tipo</th>
+                                        <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Monto</th>
+                                        <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Balance</th>
+                                        <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Descripcion</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {transactions.map(t => {
-                                        const badge = TYPE_BADGES[t.type] || { label: t.type, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', icon: null };
+                                        const badge = TYPE_BADGES[t.type] || { label: t.type, color: 'bg-ds-faint/20 text-ds-soft border-ds-border/30', icon: null };
                                         return (
-                                            <tr key={t.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
-                                                <td className="px-4 py-3 text-xs text-[#64748b]">{formatDate(t.createdAt)}</td>
-                                                <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium text-xs">{t.userName}</td>
+                                            <tr key={t.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
+                                                <td className="px-4 py-3 text-xs text-ds-soft">{formatDate(t.createdAt)}</td>
+                                                <td className="px-4 py-3 text-ds-text font-medium text-xs">{t.userName}</td>
                                                 <td className="px-4 py-3">
                                                     <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full border ${badge.color}`}>
                                                         {badge.icon} {badge.label}
                                                     </span>
                                                 </td>
-                                                <td className={`px-4 py-3 text-right font-bold ${t.amount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                <td className={`px-4 py-3 text-right font-bold ${t.amount >= 0 ? 'text-ds-ok' : 'text-ds-danger'}`}>
                                                     {t.amount >= 0 ? '+' : ''}{t.amount.toLocaleString()}
                                                 </td>
-                                                <td className="px-4 py-3 text-right text-[#64748b]">{t.balanceAfter.toLocaleString()}</td>
-                                                <td className="px-4 py-3 text-xs text-[#64748b] max-w-[200px] truncate">{t.description || '-'}</td>
+                                                <td className="px-4 py-3 text-right text-ds-soft">{t.balanceAfter.toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-xs text-ds-soft max-w-[200px] truncate">{t.description || '-'}</td>
                                             </tr>
                                         );
                                     })}
                                     {transactions.length === 0 && (
-                                        <tr><td colSpan={6} className="px-4 py-8 text-center text-[#64748b]">No hay transacciones</td></tr>
+                                        <tr><td colSpan={6} className="px-4 py-8 text-center text-ds-soft">No hay transacciones</td></tr>
                                     )}
                                 </tbody>
                             </table>
@@ -852,12 +852,12 @@ function AuditTab() {
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-center gap-3">
-                            <button onClick={() => load(page - 1)} disabled={page <= 1} className="p-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg disabled:opacity-30">
-                                <ChevronLeft className="w-4 h-4 text-[#64748b]" />
+                            <button onClick={() => load(page - 1)} disabled={page <= 1} className="p-2 bg-ds-surface border border-ds-border rounded-lg disabled:opacity-30">
+                                <ChevronLeft className="w-4 h-4 text-ds-soft" />
                             </button>
-                            <span className="text-sm text-[#64748b]">Pagina {page} de {totalPages}</span>
-                            <button onClick={() => load(page + 1)} disabled={page >= totalPages} className="p-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg disabled:opacity-30">
-                                <ChevronRight className="w-4 h-4 text-[#64748b]" />
+                            <span className="text-sm text-ds-soft">Pagina {page} de {totalPages}</span>
+                            <button onClick={() => load(page + 1)} disabled={page >= totalPages} className="p-2 bg-ds-surface border border-ds-border rounded-lg disabled:opacity-30">
+                                <ChevronRight className="w-4 h-4 text-ds-soft" />
                             </button>
                         </div>
                     )}
@@ -891,52 +891,52 @@ function ReferralsTab() {
     if (loading) return <LoadingSpinner />;
 
     const statusColors: Record<string, string> = {
-        pending: 'bg-amber-500/10 text-amber-400',
-        completed: 'bg-green-500/10 text-green-400',
-        rejected: 'bg-red-500/10 text-red-400',
+        pending: 'bg-ds-warn/10 text-ds-warn',
+        completed: 'bg-ds-accent/10 text-ds-ok',
+        rejected: 'bg-ds-danger-solid/10 text-ds-danger',
     };
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+        <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                            <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Referidor</th>
-                            <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Referido</th>
-                            <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Codigo</th>
-                            <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
-                            <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Bonus</th>
-                            <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Fecha</th>
-                            <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Acciones</th>
+                        <tr className="border-b border-ds-border">
+                            <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Referidor</th>
+                            <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Referido</th>
+                            <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Codigo</th>
+                            <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Estado</th>
+                            <th className="text-right px-4 py-3 text-ds-soft font-bold text-xs uppercase">Bonus</th>
+                            <th className="text-left px-4 py-3 text-ds-soft font-bold text-xs uppercase">Fecha</th>
+                            <th className="text-center px-4 py-3 text-ds-soft font-bold text-xs uppercase">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {referrals.map(r => (
-                            <tr key={r.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
-                                <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium">{r.referrerName}</td>
-                                <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium">{r.referredName}</td>
-                                <td className="px-4 py-3 font-mono text-[#64748b] text-xs">{r.referralCode}</td>
+                            <tr key={r.id} className="border-b border-ds-border last:border-0 hover:bg-ds-bg">
+                                <td className="px-4 py-3 text-ds-text font-medium">{r.referrerName}</td>
+                                <td className="px-4 py-3 text-ds-text font-medium">{r.referredName}</td>
+                                <td className="px-4 py-3 font-mono text-ds-soft text-xs">{r.referralCode}</td>
                                 <td className="px-4 py-3 text-center">
-                                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${statusColors[r.status] || 'bg-gray-500/10 text-gray-400'}`}>
+                                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${statusColors[r.status] || 'bg-ds-faint/10 text-ds-soft'}`}>
                                         {r.status}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-right text-amber-500 font-bold">
+                                <td className="px-4 py-3 text-right text-ds-warn font-bold">
                                     {r.bonusGivenToReferrer > 0 ? `${r.bonusGivenToReferrer}/${r.bonusGivenToReferred}` : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-xs text-[#64748b]">{formatDate(r.createdAt)}</td>
+                                <td className="px-4 py-3 text-xs text-ds-soft">{formatDate(r.createdAt)}</td>
                                 <td className="px-4 py-3 text-center">
                                     {r.status === 'pending' && (
-                                        <button onClick={() => reject(r.id)} className="p-1.5 hover:bg-red-500/10 rounded-lg transition-colors" title="Rechazar">
-                                            <X className="w-4 h-4 text-red-400" />
+                                        <button onClick={() => reject(r.id)} className="p-1.5 hover:bg-ds-danger-solid/10 rounded-lg transition-colors" title="Rechazar">
+                                            <X className="w-4 h-4 text-ds-danger" />
                                         </button>
                                     )}
                                 </td>
                             </tr>
                         ))}
                         {referrals.length === 0 && (
-                            <tr><td colSpan={7} className="px-4 py-8 text-center text-[#64748b]">No hay referidos</td></tr>
+                            <tr><td colSpan={7} className="px-4 py-8 text-center text-ds-soft">No hay referidos</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -970,15 +970,15 @@ function SettingsTab() {
     };
 
     if (loading) return <LoadingSpinner />;
-    if (!settings) return <p className="text-[#64748b] text-center py-8">No se pudo cargar la configuracion</p>;
+    if (!settings) return <p className="text-ds-soft text-center py-8">No se pudo cargar la configuracion</p>;
 
     const update = (key: string, value: any) => setSettings({ ...settings, [key]: value });
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 space-y-6">
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {message && (
-                <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${
-                    message.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                <div className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium ${
+                    message.type === 'success' ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-danger/10 text-ds-danger '
                 }`}>
                     {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
                     {message.text}
@@ -986,7 +986,7 @@ function SettingsTab() {
             )}
 
             <div>
-                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">General</h3>
+                <h3 className="text-lg font-black text-ds-text mb-4">General</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField label="Nombre moneda" value={settings.currencyName} onChange={v => update('currencyName', v)} />
                     <FormField label="Icono moneda" value={settings.currencyIcon} onChange={v => update('currencyIcon', v)} />
@@ -994,8 +994,8 @@ function SettingsTab() {
                 </div>
             </div>
 
-            <div className="border-t border-[#e2e8f0] dark:border-[#374151] pt-6">
-                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Transferencias</h3>
+            <div className="border-t border-ds-border pt-6">
+                <h3 className="text-lg font-black text-ds-text mb-4">Transferencias</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField label="Max coins por dia" type="number" value={settings.maxTransferPerDay} onChange={v => update('maxTransferPerDay', parseInt(v) || 0)} />
                     <FormField label="Max transferencias por dia" type="number" value={settings.maxTransfersPerDay} onChange={v => update('maxTransfersPerDay', parseInt(v) || 0)} />
@@ -1005,8 +1005,8 @@ function SettingsTab() {
                 </div>
             </div>
 
-            <div className="border-t border-[#e2e8f0] dark:border-[#374151] pt-6">
-                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Referidos</h3>
+            <div className="border-t border-ds-border pt-6">
+                <h3 className="text-lg font-black text-ds-text mb-4">Referidos</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField label="Max referidos por usuario" type="number" value={settings.maxReferralsPerUser ?? ''} onChange={v => update('maxReferralsPerUser', v ? parseInt(v) : null)} />
                     <FormField label="Bonus referidor" type="number" value={settings.referralBonusReferrer} onChange={v => update('referralBonusReferrer', parseInt(v) || 0)} />
@@ -1015,15 +1015,15 @@ function SettingsTab() {
                 </div>
             </div>
 
-            <div className="border-t border-[#e2e8f0] dark:border-[#374151] pt-6">
-                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Compras</h3>
+            <div className="border-t border-ds-border pt-6">
+                <h3 className="text-lg font-black text-ds-text mb-4">Compras</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField label="Bonus primera compra (%)" type="number" value={settings.firstPurchaseBonusPercent} onChange={v => update('firstPurchaseBonusPercent', parseInt(v) || 0)} />
                 </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                <button onClick={handleSave} disabled={saving} className="px-6 py-2.5 bg-[#2563eb] hover:bg-blue-700 text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center gap-2 transition-colors">
+            <div className="flex justify-end pt-4 border-t border-ds-border">
+                <button onClick={handleSave} disabled={saving} className="px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2 transition-colors">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar configuracion
                 </button>
             </div>
@@ -1036,16 +1036,16 @@ function SettingsTab() {
 function LoadingSpinner() {
     return (
         <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+            <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
         </div>
     );
 }
 
 function StatMini({ label, value }: { label: string; value: string }) {
     return (
-        <div className="p-3 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-            <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">{label}</p>
-            <p className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{value}</p>
+        <div className="p-3 bg-ds-bg rounded-lg">
+            <p className="text-[10px] font-bold text-ds-soft mb-1 uppercase">{label}</p>
+            <p className="text-lg font-black text-ds-text">{value}</p>
         </div>
     );
 }
@@ -1053,13 +1053,13 @@ function StatMini({ label, value }: { label: string; value: string }) {
 function FormField({ label, value, onChange, type = 'text', placeholder }: { label: string; value: any; onChange: (v: string) => void; type?: string; placeholder?: string }) {
     return (
         <div>
-            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">{label}</label>
+            <label className="block text-xs font-bold text-ds-soft mb-1 uppercase">{label}</label>
             <input
                 type={type}
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 placeholder-[#94a3b8]"
+                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
             />
         </div>
     );
@@ -1068,20 +1068,20 @@ function FormField({ label, value, onChange, type = 'text', placeholder }: { lab
 function FormCheckbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
     return (
         <label className="flex items-center gap-2 cursor-pointer py-2">
-            <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="w-4 h-4 rounded border-[#e2e8f0] dark:border-[#374151] text-[#2563eb] focus:ring-[#2563eb]" />
-            <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">{label}</span>
+            <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="w-4 h-4 rounded border-ds-border text-ds-accent-text focus:ring-ds-accent" />
+            <span className="text-sm text-ds-text">{label}</span>
         </label>
     );
 }
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ds-input/50 backdrop-blur-sm" onClick={onClose}>
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{title}</h3>
-                    <button onClick={onClose} className="p-1.5 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                        <X className="w-5 h-5 text-[#64748b]" />
+                    <h3 className="text-lg font-black text-ds-text">{title}</h3>
+                    <button onClick={onClose} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                        <X className="w-5 h-5 text-ds-soft" />
                     </button>
                 </div>
                 {children}
@@ -1112,17 +1112,17 @@ export default function AdminEconomy() {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <button onClick={() => navigate('/admin')} className="p-2 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                    <ArrowLeft className="w-5 h-5 text-[#64748b]" />
+                <button onClick={() => navigate('/admin')} className="p-2 hover:bg-ds-raised rounded-lg transition-colors">
+                    <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>
                 <div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Economia</h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">Gestiona DecaCoins, paquetes, cupones, referidos y usuarios</p>
+                    <h1 className="text-3xl font-black text-ds-text">Economia</h1>
+                    <p className="text-ds-soft mt-1">Gestiona DecaCoins, paquetes, cupones, referidos y usuarios</p>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                 <div className="flex flex-wrap gap-2">
                     {tabs.map(tab => {
                         const Icon = tab.icon;
@@ -1130,10 +1130,10 @@ export default function AdminEconomy() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                                     activeTab === tab.id
-                                        ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg shadow-blue-500/20'
-                                        : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                        ? 'bg-ds-accent text-ds-on-accent shadow-blue-500/20'
+                                        : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                                 }`}
                             >
                                 <Icon className="w-4 h-4" />
