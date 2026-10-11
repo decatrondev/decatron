@@ -11,7 +11,8 @@
     "error_generic": "Error processing category command.",
     "relink": "The streamer needs to link their Kick account again to allow this change.",
     "not_found": "I couldn't find the category «{0}» on Kick.",
-    "read_offline": "Kick only shows the current category while the channel is live."
+    "read_offline": "Kick only shows the current category while the channel is live.",
+    "sync_failed": "It couldn't be applied on {0} as well."
   },
   "ia": {
     "channel_cooldown": "@{0}, you must wait {1} before using !ia again.",
@@ -35,7 +36,8 @@
     "error_change": "Error changing stream title.",
     "error_generic": "Error processing title command.",
     "relink": "The streamer needs to link their Kick account again to allow this change.",
-    "read_offline": "Kick only shows the current title while the channel is live."
+    "read_offline": "Kick only shows the current title while the channel is live.",
+    "sync_failed": "It couldn't be applied on {0} as well."
   },
   "dstart": {
     "usage": "Usage: !dstart <duration> (e.g.: !dstart 5m, !dstart 1h30m, !dstart 300)",
@@ -123,7 +125,8 @@
     "error_change": "Error changing category using {0}.",
     "error_generic": "Error processing micro command.",
     "error_channel_info": "Error: Could not get channel information.",
-    "relink": "The streamer needs to link their Kick account again to allow this change."
+    "relink": "The streamer needs to link their Kick account again to allow this change.",
+    "sync_failed": "It couldn't be applied on {0} as well."
   },
   "dtimer_cmd": {
     "usage": "⏱️ Usage: !dtimer 5m | !dtimer 1h30m | !dtimer add 1h | !dtimer remove 30s",

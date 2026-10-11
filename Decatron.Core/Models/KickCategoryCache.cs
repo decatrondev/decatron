@@ -37,3 +37,23 @@ namespace Decatron.Core.Models
     /// <summary>Resultado de PATCH /public/v1/channels. NeedsRelink = el token no sirve o no tiene channel:write.</summary>
     public record KickUpdateResult(bool Ok, bool NeedsRelink);
 }
+
+namespace Decatron.Core.Models
+{
+    /// <summary>
+    /// ¿Aplicar !title / !game / micro comandos en las dos plataformas a la vez? Una fila por cuenta (la de la fila principal).
+    /// Sin fila = apagado. SQL: Decatron.Data/Migrations/Add_Title_Game_Sync.sql
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.Schema.Table("title_game_sync_settings")]
+    public class TitleGameSyncSetting
+    {
+        [System.ComponentModel.DataAnnotations.Key, System.ComponentModel.DataAnnotations.Schema.Column("user_id")]
+        public long UserId { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Schema.Column("enabled")]
+        public bool Enabled { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Schema.Column("updated_at")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
+}

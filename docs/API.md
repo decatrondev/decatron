@@ -222,6 +222,13 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/channel/context` | JWT |
 | `POST` | `/api/channel/switch` | JWT |
 
+### Channel Sync
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/channel-sync` | JWT + `settings` |
+| `PUT` | `/api/channel-sync` | JWT + `settings` |
+
 ### Channels
 
 | Method | Route | Access |

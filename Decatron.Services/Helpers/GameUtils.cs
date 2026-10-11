@@ -73,6 +73,9 @@ namespace Decatron.Default.Helpers
                     return null;
                 }
 
+                // Si la cuenta tiene activado aplicar en las dos plataformas, se copia a Kick (sin bloquear)
+                ChannelSyncHooks.Fire(ChannelSyncHooks.CategoryChanged, twitchId, gameInfo.Name);
+
                 // Devolver el nombre REAL del juego que Twitch usó
                 return gameInfo.Name;
             }

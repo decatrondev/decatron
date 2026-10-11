@@ -269,6 +269,25 @@
         ]
       },
       {
+        "id": "titulo-categoria",
+        "title": "Título y categoría en las dos plataformas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes Twitch y Kick vinculados, en Ajustes → Mi cuenta aparece «Título y categoría» con el interruptor «Aplicar en las dos plataformas». Está apagado por defecto."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Encendido, cuando cambias el título o la categoría con `!title`, `!game`, `!g` o un micro comando en un chat, el mismo cambio se hace en el otro canal.",
+              "La categoría se copia por nombre. Si en la otra plataforma el nombre no existe, ese cambio no se aplica.",
+              "Si falla en una plataforma, el bot lo avisa cuando el cambio salió del chat de Kick, y lo anota en el registro del servidor cuando salió del chat de Twitch.",
+              "Solo el propietario de la cuenta lo ve y lo cambia, y solo aparece con las dos plataformas vinculadas."
+            ]
+          }
+        ]
+      },
+      {
         "id": "cambiar",
         "title": "Cambiar de canal",
         "blocks": [

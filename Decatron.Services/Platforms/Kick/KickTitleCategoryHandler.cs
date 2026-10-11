@@ -4,6 +4,7 @@ using Decatron.Core.Models;
 using Decatron.Data;
 using Decatron.Default.Helpers;
 using Decatron.Services.Accounts;
+using Decatron.Services.Platforms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,18 +24,20 @@ namespace Decatron.Services.Platforms.Kick
         private readonly ICommandStateService _commandState;
         private readonly ICommandMessagesService _messages;
         private readonly AccountChannelResolver _accounts;
+        private readonly ChannelSyncService _sync;
         private readonly ILogger<KickTitleCategoryHandler> _logger;
 
         /// <summary>Lo pone CommandService para que recargue su caché de micro comandos tras un !g set / !g remove (evita una dependencia circular).</summary>
         public Func<string, Task>? OnMicroCommandsChanged { get; set; }
 
         public KickTitleCategoryHandler(IServiceScopeFactory scopeFactory, ICommandStateService commandState,
-            ICommandMessagesService messages, AccountChannelResolver accounts, ILogger<KickTitleCategoryHandler> logger)
+            ICommandMessagesService messages, AccountChannelResolver accounts, ChannelSyncService sync, ILogger<KickTitleCategoryHandler> logger)
         {
             _scopeFactory = scopeFactory;
             _commandState = commandState;
             _messages = messages;
             _accounts = accounts;
+            _sync = sync;
             _logger = logger;
         }
 
@@ -131,6 +134,7 @@ namespace Decatron.Services.Platforms.Kick
 
                     var res = await kickApi.UpdateChannelAsync(token, arg, null);
                     await sender.SendMessageAsync(ctx.Channel, res.Ok ? Say("success", arg) : Say(res.NeedsRelink ? "relink" : "error_change"));
+                    if (res.Ok) await MirrorAsync(ctx, sender, user.Id, "title", arg, Say);
                     return true;
                 }
 
@@ -142,6 +146,7 @@ namespace Decatron.Services.Platforms.Kick
 
                 var upd = await kickApi.UpdateChannelAsync(token, null, category.Id);
                 await sender.SendMessageAsync(ctx.Channel, upd.Ok ? Say("success", category.Name) : Say(upd.NeedsRelink ? "relink" : "error_change"));
+                if (upd.Ok) await MirrorAsync(ctx, sender, user.Id, "game", category.Name, Say);
                 return true;
             }
             catch (Exception ex)
@@ -187,12 +192,20 @@ namespace Decatron.Services.Platforms.Kick
 
                 var upd = await sp.GetRequiredService<IKickApiService>().UpdateChannelAsync(token, null, category.Id);
                 await sender.SendMessageAsync(ctx.Channel, upd.Ok ? Say("success", category.Name, commandName) : Say(upd.NeedsRelink ? "relink" : "error_change", commandName));
+                if (upd.Ok) await MirrorAsync(ctx, sender, user.Id, "game", category.Name, Say);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Kick] Error en el micro comando {Command} de {Channel}", commandName, ctx.Channel);
                 try { await sender.SendMessageAsync(ctx.Channel, Say("error_generic")); } catch { /* sin respuesta */ }
             }
+        }
+
+        /// <summary>Si la cuenta tiene activado aplicar en las dos plataformas, copia el cambio a Twitch y avisa solo si falló.</summary>
+        private async Task MirrorAsync(CommandContext ctx, IMessageSender sender, long kickRowUserId, string kind, string value, Func<string, object[], string> say)
+        {
+            var res = await _sync.MirrorFromKickAsync(kickRowUserId, kind, value);
+            if (res.Attempted && !res.Ok) await sender.SendMessageAsync(ctx.Channel, say("sync_failed", new object[] { "Twitch" }));
         }
 
         private async Task HandleMicroManagementAsync(IServiceProvider sp, DecatronDbContext db, CommandContext ctx, IMessageSender sender,

@@ -269,6 +269,25 @@
         ]
       },
       {
+        "id": "titulo-categoria",
+        "title": "Title and category on both platforms",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have Twitch and Kick linked, Settings → My account shows «Title and category» with the «Apply on both platforms» switch. It is off by default."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "When it is on, changing the title or category with `!title`, `!game`, `!g` or a micro command in one chat makes the same change on the other channel.",
+              "The category is copied by name. If the name doesn't exist on the other platform, that change isn't applied.",
+              "If it fails on one platform, the bot says so when the change came from Kick chat, and it is logged on the server when it came from Twitch chat.",
+              "Only the account owner sees and changes it, and it only appears with both platforms linked."
+            ]
+          }
+        ]
+      },
+      {
         "id": "cambiar",
         "title": "Switching channels",
         "blocks": [

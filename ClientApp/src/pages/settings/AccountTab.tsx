@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import { SettingsGroup, SettingsRow, ReadOnlyNotice, Linked, PlatformIcon, TierBadge, linkButton, unlinkButton } from './parts';
 import type { SettingsCtx } from './types';
+import TitleGameSyncGroup from './TitleGameSyncGroup';
 
 /** Pestaña «Mi cuenta»: plataformas vinculadas, plan e idioma. */
 export default function AccountTab({ s }: { s: SettingsCtx }) {
@@ -169,6 +170,8 @@ export default function AccountTab({ s }: { s: SettingsCtx }) {
                     </>
                 )}
             </SettingsGroup>
+
+            {viewerIsOwner && twitchLinked && kickLinked && <TitleGameSyncGroup />}
 
             <SettingsGroup title={t('settings:sections.plan.title')} description={t('settings:sections.plan.description')}>
                 <div className="px-5 4xl:px-7 py-4 4xl:py-5">

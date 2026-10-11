@@ -181,5 +181,12 @@
   "channelSwitch": {
     "current": "Configuring now",
     "switch": "Configure this one"
+  },
+  "sync": {
+    "title": "Title and category",
+    "description": "For accounts with Twitch and Kick linked.",
+    "rowTitle": "Apply on both platforms",
+    "rowDescription": "When the title or category is changed with !title, !game, !g or a micro command in one chat, it is changed on the other channel too. The category is looked up by name. If it fails on one platform, the bot says so when the change came from Kick and logs it when it came from Twitch.",
+    "failed": "The change could not be saved."
   }
 }

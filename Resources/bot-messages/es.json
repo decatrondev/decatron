@@ -11,7 +11,8 @@
     "error_generic": "Error al procesar el comando de categoría.",
     "relink": "El streamer debe volver a vincular su cuenta de Kick para permitir este cambio.",
     "not_found": "No encontré la categoría «{0}» en Kick.",
-    "read_offline": "Kick solo muestra la categoría actual cuando el canal está en vivo."
+    "read_offline": "Kick solo muestra la categoría actual cuando el canal está en vivo.",
+    "sync_failed": "No se pudo aplicar también en {0}."
   },
   "ia": {
     "channel_cooldown": "@{0}, debes esperar {1} antes de usar !ia de nuevo.",
@@ -35,7 +36,8 @@
     "error_change": "Error al cambiar el título del stream.",
     "error_generic": "Error al procesar el comando de título.",
     "relink": "El streamer debe volver a vincular su cuenta de Kick para permitir este cambio.",
-    "read_offline": "Kick solo muestra el título actual cuando el canal está en vivo."
+    "read_offline": "Kick solo muestra el título actual cuando el canal está en vivo.",
+    "sync_failed": "No se pudo aplicar también en {0}."
   },
   "dstart": {
     "usage": "Uso: !dstart <duración> (ej: !dstart 5m, !dstart 1h30m, !dstart 300)",
@@ -123,7 +125,8 @@
     "error_change": "Error al cambiar la categoría usando {0}.",
     "error_generic": "Error al procesar el micro comando.",
     "error_channel_info": "Error: No se pudo obtener información del canal.",
-    "relink": "El streamer debe volver a vincular su cuenta de Kick para permitir este cambio."
+    "relink": "El streamer debe volver a vincular su cuenta de Kick para permitir este cambio.",
+    "sync_failed": "No se pudo aplicar también en {0}."
   },
   "dtimer_cmd": {
     "usage": "⏱️ Uso: !dtimer 5m | !dtimer 1h30m | !dtimer add 1h | !dtimer remove 30s",

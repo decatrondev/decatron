@@ -71,6 +71,7 @@ namespace Decatron.Core.Helpers // Namespace corregido al original
                 var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PatchAsync(apiUrl, content);
+                if (response.IsSuccessStatusCode) ChannelSyncHooks.Fire(ChannelSyncHooks.TitleChanged, broadcasterId, newTitle);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception)

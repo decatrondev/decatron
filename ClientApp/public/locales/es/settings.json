@@ -181,5 +181,12 @@
   "channelSwitch": {
     "current": "Configurando ahora",
     "switch": "Configurar este"
+  },
+  "sync": {
+    "title": "Título y categoría",
+    "description": "Para cuentas con Twitch y Kick vinculados.",
+    "rowTitle": "Aplicar en las dos plataformas",
+    "rowDescription": "Cuando se cambia el título o la categoría con !title, !game, !g o un micro comando en un chat, se cambia también en el otro canal. La categoría se busca por nombre. Si falla en una plataforma, el bot lo avisa cuando el cambio salió de Kick y lo anota en el registro cuando salió de Twitch.",
+    "failed": "No se pudo guardar el cambio."
   }
 }
