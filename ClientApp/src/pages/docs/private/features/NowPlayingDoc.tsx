@@ -17,7 +17,7 @@ export default function NowPlayingDoc() {
                             Now Playing
                         </h1>
                         <p className="text-ds-soft">
-                            Muestra la cancion que esta sonando en tu stream
+                            Muestra la canción que está sonando en tu stream
                         </p>
                     </div>
                 </div>
@@ -25,22 +25,22 @@ export default function NowPlayingDoc() {
                     to="/overlays/now-playing"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
-                    Ir a configuracion
+                    Ir a configuración
                     <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
 
             {/* Que es */}
-            <DocSection title="Que es Now Playing?">
+            <DocSection title="¿Qué es Now Playing?">
                 <p>
-                    Now Playing es un overlay que muestra en tu stream la cancion que estas escuchando
-                    en tiempo real. Se conecta con Spotify o Last.fm para detectar automaticamente
-                    la musica y mostrar un widget personalizable.
+                    Now Playing es un overlay que muestra en tu stream la canción que estás escuchando
+                    en tiempo real. Se conecta con Spotify o Last.fm para detectar automáticamente
+                    la música y mostrar un widget personalizable.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <FeatureCard
                         icon={<Radio className="w-5 h-5" />}
-                        title="Deteccion automatica"
+                        title="Detección automática"
                         description="Se conecta con Spotify o Last.fm"
                     />
                     <FeatureCard
@@ -51,13 +51,13 @@ export default function NowPlayingDoc() {
                     <FeatureCard
                         icon={<Monitor className="w-5 h-5" />}
                         title="Overlay para OBS"
-                        description="Se oculta automaticamente cuando no hay musica"
+                        description="Se oculta solo cuando no suena nada (puedes apagarlo)"
                     />
                 </div>
             </DocSection>
 
-            {/* Fuentes de musica */}
-            <DocSection title="Fuentes de musica">
+            {/* Fuentes de música */}
+            <DocSection title="Fuentes de música">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
                         <div className="flex items-center gap-3 mb-3">
@@ -67,9 +67,9 @@ export default function NowPlayingDoc() {
                             <h4 className="font-bold text-ds-text">Spotify</h4>
                         </div>
                         <p className="text-sm text-ds-soft">
-                            Conexion directa con la API de Spotify. Detecta la cancion actual,
-                            artwork del album y progreso en tiempo real.
-                        </p>
+                            Conexión directa con Spotify, con el progreso exacto de la canción. Por un límite de Spotify hay
+                            pocos cupos y los asigna el equipo de Decatron: en Conexión escribes el correo de tu cuenta de Spotify y pides
+                            el cupo. Si están ocupados, quedas en una lista de espera (primero por plan de supporter y después por fecha de pedido).</p>
                     </div>
                     <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
                         <div className="flex items-center gap-3 mb-3">
@@ -79,14 +79,13 @@ export default function NowPlayingDoc() {
                             <h4 className="font-bold text-ds-text">Last.fm</h4>
                         </div>
                         <p className="text-sm text-ds-soft">
-                            Se conecta a Last.fm para detectar lo que estas scrobbleando.
-                            Compatible con cualquier reproductor que use Last.fm.
-                        </p>
+                            Escribes tu usuario de Last.fm y se detecta lo que estás scrobbleando, con portada incluida.
+                            Funciona con cualquier reproductor que haga scrobbling y no tiene límite de cupos.</p>
                     </div>
                 </div>
                 <DocAlert type="tip" title="Consejo">
-                    Spotify es la opcion recomendada ya que proporciona artwork del album
-                    y barra de progreso en tiempo real. Last.fm es ideal si usas otros reproductores.
+                    Si necesitas el progreso exacto de la canción, usa Spotify (si hay cupo). Si no, Last.fm funciona
+                    con cualquier reproductor y no tiene límite.
                 </DocAlert>
             </DocSection>
 

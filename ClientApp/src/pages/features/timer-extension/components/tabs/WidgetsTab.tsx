@@ -247,7 +247,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                 {happyHour.enabled && (
                     <div className="bg-ds-warn/10 border border-ds-warn/40 rounded-lg p-3">
                         <p className="text-xs text-ds-warn">
-                            <strong>Ojo:</strong> en tu overlay real este cartel aparece <strong>solo mientras haya un Happy Hour corriendo</strong>. Si lo configurás y no lo ves, no está roto: no hay ninguno activo. Para verlo y acomodarlo ahora mismo, usá el botón <strong>🔥 Simular Happy Hour</strong> de la vista previa.
+                            <strong>Ojo:</strong> en tu overlay real este cartel aparece <strong>solo mientras haya un Happy Hour corriendo</strong>. Si lo configuras y no lo ves, no está roto: no hay ninguno activo. Para verlo y acomodarlo ahora mismo, usa el botón <strong>🔥 Simular Happy Hour</strong> de la vista previa.
                         </p>
                     </div>
                 )}
@@ -271,7 +271,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                     label="Color de fondo"
                                     value={happyHour.backgroundColor}
                                     onChange={v => onWidgetsConfigChange({ happyHour: { ...happyHour, backgroundColor: v } })}
-                                    hint="Movés la barra a la izquierda del todo (o tocás Sin fondo) para dejarlo transparente."
+                                    hint="Mueve la barra a la izquierda del todo (o toca Sin fondo) para dejarlo transparente."
                                 />
                             </div>
                             <div>

@@ -53,7 +53,7 @@ export default function SoundAlertsDoc() {
                         <p>En la pestaña <strong>Recompensas</strong>, haz clic en una recompensa o arrastra un archivo encima. Puedes subir uno nuevo o elegirlo de la <strong>Biblioteca</strong>.</p>
                     </Step>
                     <Step number={3} title="Agrega el overlay a OBS">
-                        <p>Copia el link de la pestaña <strong>Guía</strong> y agrégalo como fuente de navegador de 1920×1080. Haz clic una vez en la fuente (Interactuar) para desbloquear el audio.</p>
+                        <p>Copia el link <strong>Todo</strong> de la pestaña <strong>Guía</strong> y agrégalo como fuente de navegador de 1920×1080. Haz clic una vez en la fuente (Interactuar) para desbloquear el audio. Si vinculaste Twitch y Kick, ese único link muestra las alertas de ambos; también hay un link por plataforma (en «Avanzado»), pero no los pongas juntos en la misma escena porque cada alerta sonaría repetida.</p>
                     </Step>
                     <Step number={4} title="Pruébalo">
                         <p>Elige una recompensa en la vista previa y usa <strong>Probar en OBS</strong>. La prueba usa lo último que guardaste.</p>
@@ -61,12 +61,23 @@ export default function SoundAlertsDoc() {
                 </div>
             </DocSection>
 
+            {/* Pestañas */}
+            <DocSection title="Pestañas del panel">
+                <ul className="space-y-2">
+                    <DocItem label="Guía">Los pasos para empezar y los links del overlay.</DocItem>
+                    <DocItem label="Recompensas">Asigna un archivo a cada recompensa y ajusta su volumen propio.</DocItem>
+                    <DocItem label="Biblioteca">Tus archivos subidos, para reutilizarlos en varias recompensas.</DocItem>
+                    <DocItem label="Básico">Alertas activadas o apagadas (apagadas, los canjes se registran pero no se muestran), volumen general (0 a 100 %), duración de las imágenes (3 a 30 s), pausa entre alertas (0 a 10 s) y restablecer el diseño.</DocItem>
+                    <DocItem label="Textos, Fondo, Animación y Editor">El diseño de la alerta, descrito más abajo.</DocItem>
+                </ul>
+            </DocSection>
+
             {/* Archivos */}
             <DocSection title="Archivos">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <FormatCard icon={<Music className="w-5 h-5" />} title="Sonido" formats={['MP3', 'WAV', 'OGG']} maxSize="10 MB" />
                     <FormatCard icon={<Video className="w-5 h-5" />} title="Video" formats={['MP4', 'WebM']} maxSize="50 MB" />
-                    <FormatCard icon={<ImageIcon className="w-5 h-5" />} title="Imagen" formats={['PNG', 'JPG']} maxSize="5 MB" />
+                    <FormatCard icon={<ImageIcon className="w-5 h-5" />} title="Imagen" formats={['PNG', 'JPG', 'JPEG']} maxSize="5 MB" />
                 </div>
                 <DocAlert type="info" title="Imagen para los sonidos">
                     A un sonido le puedes poner una imagen (subida o por link, PNG/JPG/GIF de hasta 10 MB) con el lápiz de la
@@ -79,7 +90,7 @@ export default function SoundAlertsDoc() {
                 <ul className="space-y-2 mb-4">
                     <DocItem label="Textos">Líneas con @redeemer (quien canjeó) y @reward (la recompensa), con su tamaño, grosor y alineación. Fuente, color, sombra y borde para todas.</DocItem>
                     <DocItem label="Fondo">Transparente, de un color o degradado, con opacidad.</DocItem>
-                    <DocItem label="Animación">Fundido, deslizar, rebote, zoom o sin animación, en tres velocidades.</DocItem>
+                    <DocItem label="Animación">Fundido, deslizar, rebote, zoom o sin animación; velocidad lenta, normal o rápida.</DocItem>
                     <DocItem label="Editor">Arrastra la imagen, cada línea de texto y el fondo, y cambia su tamaño desde las esquinas.</DocItem>
                     <DocItem label="Duración">Los sonidos y videos duran lo que dura el archivo; las imágenes, lo que elijas en Básico (3 a 30 s).</DocItem>
                 </ul>

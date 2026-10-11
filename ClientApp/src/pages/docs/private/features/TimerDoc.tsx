@@ -1,8 +1,7 @@
-import { Clock, Play, Pause, Square, RotateCcw, Settings, Palette, BarChart3, Bell, Zap, ArrowRight, Monitor, ExternalLink } from 'lucide-react';
+import { Clock, ArrowRight, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DocAlert from '../../../../components/docs/DocAlert';
 import DocSection from '../../../../components/docs/DocSection';
-import CodeBlock from '../../../../components/docs/CodeBlock';
 
 export default function TimerDoc() {
     return (
@@ -10,258 +9,173 @@ export default function TimerDoc() {
             {/* Header */}
             <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                    <div className="w-16 h-16 bg-ds-raised border border-ds-border rounded-lg flex items-center justify-center">
                         <Clock className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-ds-text">
-                            Guia del Timer
-                        </h1>
-                        <p className="text-ds-soft">
-                            Temporizadores profesionales con overlay, alertas y eventos
-                        </p>
+                        <h1 className="text-3xl font-black text-ds-text">Guía del Timer</h1>
+                        <p className="text-ds-soft">Un temporizador para el stream que el chat puede alargar con subs, bits, raids y más</p>
                     </div>
                 </div>
                 <Link
                     to="/overlays/timer"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
-                    Ir a configuracion
+                    Ir a configuración
                     <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
 
-            {/* Que es el timer */}
-            <DocSection title="Que es el timer?">
-                <p>
-                    El timer de Decatron es un temporizador profesional que puedes mostrar en tu stream.
-                    Soporta cuenta regresiva (countdown) y cuenta ascendente (countup), con barras de progreso,
-                    alertas de finalizacion y eventos automaticos.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <FeatureCard
-                        icon={<Clock className="w-5 h-5" />}
-                        title="Countdown / Countup"
-                        description="Cuenta regresiva o ascendente"
-                    />
-                    <FeatureCard
-                        icon={<BarChart3 className="w-5 h-5" />}
-                        title="Barras de progreso"
-                        description="Horizontal, vertical o circular"
-                    />
-                    <FeatureCard
-                        icon={<Bell className="w-5 h-5" />}
-                        title="Alertas"
-                        description="Audio y video al finalizar"
-                    />
-                </div>
-            </DocSection>
-
-            {/* Crear tu primer timer */}
-            <DocSection title="Crear tu primer timer">
-                <div className="space-y-4">
-                    <Step number={1} title="Ve a la configuracion del timer">
-                        <p>Navega a <strong>Overlays → Timer</strong> en el menu lateral.</p>
-                    </Step>
-                    <Step number={2} title="Configura la duracion">
-                        <p>
-                            En la pestaña "Basico", establece la duracion del timer usando el selector de tiempo.
-                            Puedes configurar horas, minutos y segundos.
-                        </p>
-                    </Step>
-                    <Step number={3} title="Copia la URL del overlay">
-                        <p>
-                            Haz clic en el boton "Copiar URL" para obtener la URL del overlay.
-                            Esta URL es unica para tu cuenta.
-                        </p>
-                    </Step>
-                    <Step number={4} title="Agrega a OBS">
-                        <p>
-                            Agrega una fuente de navegador en OBS con la URL copiada.
-                            Usa dimensiones de 1920x1080.
-                        </p>
-                        <Link
-                            to="/dashboard/docs/overlays"
-                            className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline mt-2"
-                        >
-                            Ver guia de overlays
-                            <ExternalLink className="w-4 h-4" />
-                        </Link>
-                    </Step>
-                </div>
-            </DocSection>
-
-            {/* Comandos asociados */}
-            <DocSection title="Comandos del timer">
+            {/* Qué es */}
+            <DocSection title="¿Qué es el Timer?">
                 <p className="mb-4">
-                    Puedes controlar el timer desde el chat usando estos comandos:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CommandCard
-                        command="!dstart"
-                        description="Inicia el timer desde el principio"
-                        icon={<Play className="w-4 h-4" />}
-                    />
-                    <CommandCard
-                        command="!dplay"
-                        description="Reanuda el timer pausado"
-                        icon={<Play className="w-4 h-4" />}
-                    />
-                    <CommandCard
-                        command="!dpause"
-                        description="Pausa el timer"
-                        icon={<Pause className="w-4 h-4" />}
-                    />
-                    <CommandCard
-                        command="!dstop"
-                        description="Detiene y oculta el timer"
-                        icon={<Square className="w-4 h-4" />}
-                    />
-                    <CommandCard
-                        command="!dreset"
-                        description="Reinicia el timer a su duracion inicial"
-                        icon={<RotateCcw className="w-4 h-4" />}
-                    />
-                    <CommandCard
-                        command="!dtimer [tiempo]"
-                        description="Cambia la duracion (ej: !dtimer 30m)"
-                        icon={<Settings className="w-4 h-4" />}
-                    />
-                </div>
-                <DocAlert type="info" title="Permisos">
-                    Por defecto, solo los moderadores y el broadcaster pueden controlar el timer.
-                    Puedes cambiar los permisos en la configuracion de comandos.
-                </DocAlert>
-            </DocSection>
-
-            {/* Configuracion de display */}
-            <DocSection title="Configuracion del display">
-                <p className="mb-4">
-                    En la pestaña "Display" puedes configurar que elementos mostrar en el overlay:
+                    Es un temporizador que se muestra en tu stream con un overlay de OBS. Sirve para maratones tipo «subathon»:
+                    empieza con una duración y cada evento del canal (subs, bits, raids, follows, hype train, donaciones) le suma tiempo según las reglas que definas.
+                    También puedes controlarlo desde el chat.
                 </p>
                 <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Tiempo:</strong> Muestra el contador principal (HH:MM:SS o MM:SS)
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Etiqueta:</strong> Texto personalizado sobre o debajo del timer
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Barra de progreso:</strong> Visual del progreso del timer
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Formato:</strong> Compacto (1:30:00), detallado (1h 30m 0s), etc.
-                    </li>
+                    <DocItem label="Tiempo que se suma">Reglas por tipo de evento, con tiempo base y reglas avanzadas por cantidad.</DocItem>
+                    <DocItem label="Control desde el chat">Comandos para iniciar, pausar, reanudar, detener, reiniciar y sumar o restar tiempo.</DocItem>
+                    <DocItem label="Overlay personalizable">Tema, barra de progreso, tipografía, alertas, animaciones y widgets.</DocItem>
+                    <DocItem label="Automatizaciones">Auto-pausa por horario, Happy Hour que multiplica el tiempo, y arranque y pausa según el stream.</DocItem>
                 </ul>
             </DocSection>
 
-            {/* Barras de progreso */}
-            <DocSection title="Barras de progreso">
-                <p className="mb-4">
-                    El timer soporta tres tipos de barras de progreso:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
-                        <h4 className="font-bold text-ds-text mb-2">Horizontal</h4>
-                        <div className="h-4 bg-ds-bg rounded-full overflow-hidden">
-                            <div className="h-full w-2/3 bg-ds-accent rounded-full" />
-                        </div>
-                        <p className="text-sm text-ds-soft mt-2">
-                            Barra clasica de izquierda a derecha
-                        </p>
-                    </div>
-                    <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
-                        <h4 className="font-bold text-ds-text mb-2">Vertical</h4>
-                        <div className="h-16 w-4 bg-ds-bg rounded-full overflow-hidden mx-auto flex flex-col-reverse">
-                            <div className="w-full h-2/3 bg-ds-accent rounded-full" />
-                        </div>
-                        <p className="text-sm text-ds-soft mt-2">
-                            Barra vertical de abajo hacia arriba
-                        </p>
-                    </div>
-                    <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
-                        <h4 className="font-bold text-ds-text mb-2">Circular</h4>
-                        <div className="w-16 h-16 rounded-full border-4 border-ds-border mx-auto relative">
-                            <div className="absolute inset-0 rounded-full border-4 border-ds-accent border-t-transparent border-r-transparent rotate-45" />
-                        </div>
-                        <p className="text-sm text-ds-soft mt-2">
-                            Anillo con progreso circular
-                        </p>
-                    </div>
-                </div>
+            {/* Primeros pasos */}
+            <DocSection title="Primeros pasos">
+                <ol className="space-y-2 list-decimal pl-5 text-ds-soft">
+                    <li>
+                        <strong>Entra a Overlays → Timer.</strong> La pestaña <strong>Guía</strong> resume los pasos y tiene el link del overlay.
+                    </li>
+                    <li>
+                        <strong>Define el tiempo inicial</strong> en la pestaña <strong>Básico</strong> (por ejemplo, «24h» o «4d 2h»).
+                    </li>
+                    <li>
+                        <strong>Define cuánto suma cada evento</strong> en la pestaña <strong>Eventos</strong>.
+                    </li>
+                    <li>
+                        <strong>Agrega el overlay a OBS.</strong> Copia el link del overlay y agrégalo como fuente de navegador de 1920×1080.
+                        <Link
+                            to="/dashboard/docs/overlays"
+                            className="inline-flex items-center gap-1 text-ds-accent-text font-medium hover:underline ml-2"
+                        >
+                            Ver guía de overlays
+                            <ExternalLink className="w-3 h-3" />
+                        </Link>
+                    </li>
+                    <li>
+                        <strong>Inicia el timer</strong> desde el panel (pestaña Básico) o con <code>!dstart</code> en el chat.
+                    </li>
+                </ol>
             </DocSection>
 
-            {/* Alertas de finalizacion */}
-            <DocSection title="Alertas de finalizacion">
+            {/* Pestañas */}
+            <DocSection title="Pestañas del panel">
+                <ul className="space-y-2">
+                    <DocItem label="Básico">Tiempo inicial, controles (pausar, reanudar, reiniciar, parada de emergencia), arranque automático al cargar el overlay, reacción al inicio y fin del stream, respaldo de la sesión y las reglas de Game Over.</DocItem>
+                    <DocItem label="Eventos">Cuánto tiempo suma cada tipo de evento.</DocItem>
+                    <DocItem label="Tema, Barra, Pantalla, Tipografía y Animaciones">El aspecto del timer: colores y fondo, barra de progreso, qué elementos y formato de tiempo se muestran, fuentes y efectos de entrada, salida y cuenta final.</DocItem>
+                    <DocItem label="Alertas">Lo que se muestra en pantalla cuando llega un evento que suma tiempo, con un botón de prueba rápida.</DocItem>
+                    <DocItem label="Comandos e Info Cmds">Permisos de los comandos de control y mensajes de los comandos informativos.</DocItem>
+                    <DocItem label="Sorteos">Sorteos con quienes participaron en una sesión del timer.</DocItem>
+                    <DocItem label="Avanzado">Zona horaria, plantillas, auto-pausa por horario y Happy Hour.</DocItem>
+                    <DocItem label="Historial">Sesiones anteriores, con el total agregado por tipo de evento, los registros de la sesión y la opción de restaurar.</DocItem>
+                    <DocItem label="Media">Tu galería de audio, video e imágenes para las alertas.</DocItem>
+                    <DocItem label="Widgets">Elementos de texto sueltos para el overlay: estadísticas en vivo, uptime e indicador de Happy Hour.</DocItem>
+                    <DocItem label="Overlay">El link y los datos de conexión con OBS.</DocItem>
+                </ul>
+            </DocSection>
+
+            {/* Eventos */}
+            <DocSection title="Cuánto tiempo suma cada evento">
                 <p className="mb-4">
-                    Cuando el timer llega a cero, puedes reproducir alertas de audio y video:
+                    En la pestaña <strong>Eventos</strong> eliges un tipo y defines su tiempo. Los tipos son bits, follow, suscripciones
+                    (Prime, Tier 1, Tier 2 y Tier 3 por separado), subs regaladas, raids, hype train y donaciones.
                 </p>
                 <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Audio:</strong> Reproduce un sonido de notificacion
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Video:</strong> Muestra un video o GIF de celebracion
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Imagen:</strong> Muestra una imagen estatica
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        <strong>Mensaje en chat:</strong> Envia un mensaje automatico al chat
-                    </li>
+                    <DocItem label="Tiempo base">Lo que suma el evento. En eventos con cantidad (bits, donaciones, raids, subs regaladas) se define por unidad: por ejemplo, un tiempo por cada cierta cantidad de bits, o por cada viewer de un raid, con un mínimo por raid.</DocItem>
+                    <DocItem label="Reglas avanzadas">Un tiempo fijo cuando la cantidad cumple un rango. Por ejemplo, «mínimo 10 subs: 1 hora» suma exactamente 1 hora al recibir 10 subs, en lugar del cálculo base. Si ninguna regla coincide, se usa el cálculo base.</DocItem>
                 </ul>
-                <DocAlert type="tip" title="Formatos soportados">
-                    Audio: MP3, WAV, OGG. Video: MP4, WebM. Imagenes: PNG, JPG, GIF, WebP.
+                <DocAlert type="tip" title="Seguimiento del tiempo">
+                    En Básico puedes ver el tiempo restante, el transcurrido y lo que se ha agregado. Se puede copiar el valor en segundos.
                 </DocAlert>
             </DocSection>
 
-            {/* Eventos automaticos */}
-            <DocSection title="Eventos automaticos">
+            {/* Comandos */}
+            <DocSection title="Comandos de control">
+                <p className="mb-4">El tiempo se escribe como «5m», «1h30m», «1d12h» o solo segundos («300»). El máximo al iniciar es de 7 días.</p>
+                <ul className="space-y-2 mb-4">
+                    <DocItem label="!dstart [tiempo]">Inicia el timer con esa duración (por ejemplo, <code>!dstart 5m</code>).</DocItem>
+                    <DocItem label="!dtimer [tiempo]">También inicia el timer con esa duración.</DocItem>
+                    <DocItem label="!dtimer add [tiempo]">Suma tiempo al timer activo (por ejemplo, <code>!dtimer add 1h</code>).</DocItem>
+                    <DocItem label="!dtimer remove [tiempo]">Resta tiempo (por ejemplo, <code>!dtimer remove 30s</code>). También funciona <code>!dtimer -30s</code>.</DocItem>
+                    <DocItem label="!dplay">Reanuda el timer pausado o lo inicia.</DocItem>
+                    <DocItem label="!dpause">Pausa el timer.</DocItem>
+                    <DocItem label="!dreset">Lo deja detenido en el tiempo total configurado.</DocItem>
+                    <DocItem label="!dstop">Detiene el timer completamente y lo oculta del overlay.</DocItem>
+                </ul>
+                <DocAlert type="info" title="Permisos">
+                    Por defecto los usan el streamer y los moderadores. En la pestaña <strong>Comandos</strong> puedes activar o desactivar cada uno,
+                    bloquear usuarios, y activar la lista blanca para dar acceso a personas de confianza (por ejemplo, VIPs).
+                </DocAlert>
+            </DocSection>
+
+            {/* Info */}
+            <DocSection title="Comandos informativos">
+                <p className="mb-4">Para el chat. Su mensaje se edita en la pestaña <strong>Info Cmds</strong>, con variables y un tiempo mínimo entre usos:</p>
+                <ul className="space-y-2">
+                    <DocItem label="!dtiempo">El tiempo restante.</DocItem>
+                    <DocItem label="!dcuando">Fecha y hora en que terminará.</DocItem>
+                    <DocItem label="!dstats">Estadísticas de la sesión activa.</DocItem>
+                    <DocItem label="!drecord">El récord histórico del canal.</DocItem>
+                    <DocItem label="!dtop">Quienes más aportaron en la sesión.</DocItem>
+                </ul>
+            </DocSection>
+
+            {/* Game over */}
+            <DocSection title="Cuando el tiempo llega a cero">
+                <p className="mb-4">En Básico, <strong>Reglas de Game Over</strong> define qué pasa al agotarse el tiempo:</p>
+                <ul className="space-y-2">
+                    <DocItem label="Muerte súbita">El timer termina.</DocItem>
+                    <DocItem label="Resurrección">Tienes de 1 a 99 vidas extra: si el tiempo se agota, una donación o un comando puede revivir el timer gastando una vida. Los mensajes de resurrección y de «sin vidas» son editables y usan <code>{'{lives}'}</code> (usadas) y <code>{'{max}'}</code> (totales).</DocItem>
+                </ul>
+            </DocSection>
+
+            {/* Automatización */}
+            <DocSection title="Automatización">
+                <ul className="space-y-2">
+                    <DocItem label="Arranque automático">El timer comienza al cargarse el overlay (útil para eventos programados).</DocItem>
+                    <DocItem label="Según el stream">Si lo activas, el timer se reanuda al empezar a transmitir y se pausa al terminar, conservando el tiempo.</DocItem>
+                    <DocItem label="Auto-pausa por horario">En Avanzado programas momentos en que el timer se detiene solo (dormir, comer…), con nombre, motivo, horas y días.</DocItem>
+                    <DocItem label="Happy Hour">En Avanzado multiplicas el tiempo que suman ciertos eventos: ahora mismo por un rato, o programado en días y horas con la zona horaria del canal.</DocItem>
+                    <DocItem label="Plantillas">Predefinidas (Subathon, Gaming Marathon, Speedrun) o propias, para aplicar toda la configuración, o solo algunas partes, de una vez.</DocItem>
+                </ul>
+                <DocAlert type="warning" title="Zona de peligro">
+                    En Avanzado existe un restablecimiento de fábrica que borra la configuración visual, las plantillas, los horarios, los Happy Hour y el historial. No se puede deshacer.
+                </DocAlert>
+            </DocSection>
+
+            {/* Respaldo */}
+            <DocSection title="Respaldo y restauración">
                 <p className="mb-4">
-                    Configura acciones automaticas basadas en eventos del timer:
+                    Si se va la luz o se cierra algo por error, en Básico puedes guardar una copia del estado del timer y restaurar una sesión
+                    anterior: el timer vuelve en pausa con el tiempo guardado (o con el tiempo que escribas). El Historial lista las sesiones, con el
+                    motivo de cierre (parada manual, auto-guardado, respaldo manual o parada de emergencia).
                 </p>
-                <div className="space-y-3">
-                    <EventCard
-                        event="Al iniciar"
-                        description="Ejecuta acciones cuando el timer comienza"
-                        examples={["Enviar mensaje al chat", "Cambiar titulo del stream"]}
-                    />
-                    <EventCard
-                        event="Al pausar"
-                        description="Ejecuta acciones cuando el timer se pausa"
-                        examples={["Enviar mensaje de pausa"]}
-                    />
-                    <EventCard
-                        event="Al terminar"
-                        description="Ejecuta acciones cuando el timer llega a cero"
-                        examples={["Reproducir alerta", "Enviar mensaje", "Iniciar raid"]}
-                    />
-                    <EventCard
-                        event="Al extender"
-                        description="Ejecuta acciones cuando se agrega tiempo al timer"
-                        examples={["Agradecer al usuario", "Actualizar meta"]}
-                    />
-                </div>
             </DocSection>
 
-            {/* Tips y trucos */}
-            <DocSection title="Tips y trucos">
+            {/* Sorteos y widgets */}
+            <DocSection title="Sorteos y widgets">
+                <ul className="space-y-2">
+                    <DocItem label="Sorteos">Crea sorteos con nombre y ganadores. Se puede entrar por bits, por suscripción (eligiendo los tiers), por regalar subs (con un mínimo) o por un follow nuevo, o importar a los participantes de una sesión. Puedes excluir moderadores, VIPs y al streamer, y volver a sortear un puesto.</DocItem>
+                    <DocItem label="Widgets">Estadísticas en vivo (subs y bits de hoy, totales, recaudado, eventos), uptime del timer e indicador de Happy Hour. El indicador de Happy Hour solo aparece mientras hay uno activo; usa «Simular Happy Hour» para acomodarlo.</DocItem>
+                </ul>
+            </DocSection>
+
+            <DocSection title="Consejos">
                 <div className="space-y-4">
-                    <DocAlert type="tip" title="Posicion del overlay">
-                        Puedes mover el timer a cualquier posicion de la pantalla usando los controles
-                        de posicion en la pestaña "Display".
-                    </DocAlert>
-                    <DocAlert type="tip" title="Ocultar cuando no esta activo">
-                        Activa la opcion "Ocultar cuando esta detenido" para que el timer desaparezca
-                        automaticamente cuando no esta en uso.
+                    <DocAlert type="tip" title="Prueba rápida">
+                        En Alertas, «Prueba rápida» simula un evento en el overlay. Ten cuidado con la opción que suma tiempo real al timer aunque no estés en directo.
                     </DocAlert>
                 </div>
             </DocSection>
@@ -269,82 +183,11 @@ export default function TimerDoc() {
     );
 }
 
-interface FeatureCardProps {
-    icon: React.ReactNode;
-    title: string;
-    description: string;
-}
-
-function FeatureCard({ icon, title, description }: FeatureCardProps) {
+function DocItem({ label, children }: { label: string; children: React.ReactNode }) {
     return (
-        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
-            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">
-                {icon}
-            </div>
-            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
-            <p className="text-sm text-ds-soft">{description}</p>
-        </div>
-    );
-}
-
-interface StepProps {
-    number: number;
-    title: string;
-    children: React.ReactNode;
-}
-
-function Step({ number, title, children }: StepProps) {
-    return (
-        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
-            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
-                {number}
-            </div>
-            <div>
-                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
-                <div className="text-sm text-ds-soft">{children}</div>
-            </div>
-        </div>
-    );
-}
-
-interface CommandCardProps {
-    command: string;
-    description: string;
-    icon: React.ReactNode;
-}
-
-function CommandCard({ command, description, icon }: CommandCardProps) {
-    return (
-        <div className="flex items-start gap-3 bg-ds-surface rounded-lg p-4 border border-ds-border">
-            <div className="w-8 h-8 bg-ds-bg rounded-lg flex items-center justify-center text-ds-accent-text flex-shrink-0">
-                {icon}
-            </div>
-            <div>
-                <code className="text-ds-accent-text font-mono font-bold">{command}</code>
-                <p className="text-sm text-ds-soft mt-1">{description}</p>
-            </div>
-        </div>
-    );
-}
-
-interface EventCardProps {
-    event: string;
-    description: string;
-    examples: string[];
-}
-
-function EventCard({ event, description, examples }: EventCardProps) {
-    return (
-        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
-            <h4 className="font-bold text-ds-text mb-1">{event}</h4>
-            <p className="text-sm text-ds-soft mb-2">{description}</p>
-            <div className="flex flex-wrap gap-2">
-                {examples.map((example, index) => (
-                    <span key={index} className="px-2 py-1 bg-ds-bg text-xs text-ds-soft rounded">
-                        {example}
-                    </span>
-                ))}
-            </div>
-        </div>
+        <li className="flex items-start gap-2 text-ds-soft">
+            <span className="text-ds-accent-text">•</span>
+            <span><strong className="text-ds-text">{label}:</strong> {children}</span>
+        </li>
     );
 }
