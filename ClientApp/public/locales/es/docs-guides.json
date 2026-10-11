@@ -1,0 +1,1544 @@
+{
+  "soundAlerts": {
+    "title": "Sound Alerts",
+    "subtitle": "Sonidos, videos e imágenes con los puntos del canal",
+    "cta": {
+      "to": "/overlays/sound-alerts",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Sound Alerts reproduce un sonido, un video o una imagen en tu stream cuando alguien canjea una recompensa de puntos del canal. Cada recompensa tiene su propio archivo. Funciona en Twitch y en Kick."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Puntos del canal: cada recompensa dispara su propia alerta.",
+              "Sonido, video o imagen: a los sonidos se les puede poner una imagen.",
+              "Overlay en OBS: lo que ves en el editor es lo que sale en OBS."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Primeros pasos",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Crea las recompensas en tu panel de creador de Twitch (o en Kick): Puntos de canal, Agregar recompensa. Aparecen solas en Sound Alerts.",
+              "En la pestaña Recompensas, haz clic en una recompensa o arrastra un archivo encima. Puedes subir uno nuevo o elegirlo de la Biblioteca.",
+              "Copia el link «Todo» de la pestaña Guía y agrégalo como fuente de navegador de 1920×1080. Haz clic una vez en la fuente (Interactuar) para desbloquear el audio. Si vinculaste Twitch y Kick, ese único link muestra las alertas de ambos; también hay un link por plataforma (en «Avanzado»), pero no los pongas juntos en la misma escena porque cada alerta sonaría repetida.",
+              "Elige una recompensa en la vista previa y usa «Probar en OBS». La prueba usa lo último que guardaste."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Guía: los pasos para empezar y los links del overlay.",
+              "Recompensas: asigna un archivo a cada recompensa y ajusta su volumen propio.",
+              "Biblioteca: tus archivos subidos, para reutilizarlos en varias recompensas.",
+              "Básico: alertas activadas o apagadas (apagadas, los canjes se registran pero no se muestran), volumen general (0 a 100 %), duración de las imágenes (3 a 30 s), pausa entre alertas (0 a 10 s) y restablecer el diseño.",
+              "Textos, Fondo, Animación y Editor: el diseño de la alerta, descrito más abajo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "archivos",
+        "title": "Archivos",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tipo",
+              "Formatos",
+              "Tamaño máximo"
+            ],
+            "rows": [
+              [
+                "Sonido",
+                "MP3, WAV, OGG",
+                "10 MB"
+              ],
+              [
+                "Video",
+                "MP4, WebM",
+                "50 MB"
+              ],
+              [
+                "Imagen",
+                "PNG, JPG, JPEG",
+                "5 MB"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "A un sonido le puedes poner una imagen (subida o por link, PNG/JPG/GIF de hasta 10 MB) con el lápiz de la recompensa. Si apagas «Mostrar imagen», solo se escucha el sonido.",
+            "title": "Imagen para los sonidos"
+          }
+        ]
+      },
+      {
+        "id": "diseno",
+        "title": "Diseño de la alerta",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Textos: líneas con @redeemer (quien canjeó) y @reward (la recompensa), con su tamaño, grosor y alineación. Fuente, color, sombra y borde para todas.",
+              "Fondo: transparente, de un color o degradado, con opacidad.",
+              "Animación: fundido, deslizar, rebote, zoom o sin animación; velocidad lenta, normal o rápida.",
+              "Editor: arrastra la imagen, cada línea de texto y el fondo, y cambia su tamaño desde las esquinas.",
+              "Duración: los sonidos y videos duran lo que dura el archivo; las imágenes, lo que elijas en Básico."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Si llega un canje mientras otra alerta se está mostrando, espera su turno y suena después, en el orden en que llegaron. La pausa entre alertas (en Básico) es el tiempo mínimo entre el final de una y el comienzo de la siguiente. La cola vive en el overlay: si recargas la fuente en OBS, se vacía.",
+            "title": "Cola de alertas"
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Consejos",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Crea recompensas con distintos costos para alertas más largas o más llamativas.",
+            "title": "Costos diferentes"
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Usa contenido libre de derechos o con licencia para evitar problemas de copyright.",
+            "title": "Derechos de autor"
+          }
+        ]
+      }
+    ]
+  },
+  "eventAlerts": {
+    "title": "Alertas de eventos",
+    "subtitle": "Follows, bits, subs, regalos, raids, resubs y hype train en tu stream",
+    "cta": {
+      "to": "/overlays/event-alerts",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "eventos",
+        "title": "Qué eventos avisan",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las alertas se disparan con los eventos de tu canal de Twitch. Cada tipo tiene su pestaña dentro de Eventos:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Follows: alguien sigue tu canal. Tiene un anti-spam por usuario (activado por defecto, 24 horas): el mismo usuario no repite la alerta si deja de seguirte y vuelve a seguirte.",
+              "Bits: alguien usa bits. Se puede dar una alerta distinta según la cantidad.",
+              "Subs: una sub nueva, con su propia alerta para Prime, Tier 1, Tier 2 y Tier 3.",
+              "Subs regaladas: alguien regala subs a la comunidad; la cantidad regalada decide el nivel.",
+              "Raids: otro canal te hace raid; la cantidad de viewers decide el nivel.",
+              "Resubs: una sub que se renueva, con los meses y el mensaje del usuario; los meses de antigüedad deciden el nivel.",
+              "Hype Train: una alerta por cada nivel del hype train (del 1 al 5) y otra para cuando se completa."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Estas alertas no se disparan con eventos de Kick. Para las recompensas canjeadas con puntos del canal, en Twitch y en Kick, usa Sound Alerts.",
+            "title": "Solo Twitch"
+          },
+          {
+            "t": "link",
+            "to": "sound-alerts"
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Primeros pasos",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Agrega el overlay a OBS. En la pestaña Guía copia el link y agrégalo como fuente de navegador, con el ancho y el alto que indica la guía (por defecto 1920×1080). Marca «Controlar audio mediante OBS» si quieres manejar el volumen desde el mezclador.",
+              "Configura cada evento en la pestaña Eventos.",
+              "Dale el diseño en la pestaña Diseño.",
+              "Guarda y prueba con «Probar en OBS» en la vista previa. El overlay usa lo nuevo desde la próxima alerta."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Guía: pasos y link del overlay.",
+              "General: alertas activadas o apagadas, duración, volumen, animación, posición y tamaño del lienzo por defecto, cola de alertas, esperas entre alertas y la voz (TTS) que usan todos los eventos salvo que uno tenga la suya.",
+              "Eventos: la alerta de cada evento: mensaje, duración, volumen, multimedia, sonido, animación y efectos, voz, mensaje del bot en el chat, niveles por cantidad y variantes.",
+              "Diseño: cómo se ve la alerta: un diseño general para todas y, si quieres, uno propio por evento (en el hype train, también por nivel). Incluye el editor visual, diseños prearmados, temas de color y animaciones.",
+              "Avanzado: los ajustes de estilo de la tarjeta (fondo, borde y forma, tipografía y ajuste de la multimedia).",
+              "Media: tu galería de audio, video e imágenes para usar en las alertas.",
+              "Pruebas: envía una alerta de prueba de cualquier evento con el nombre y la cantidad que elijas."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "alerta",
+        "title": "La alerta de cada evento",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Mensaje: el texto de la alerta, con variables.",
+              "Duración y volumen: de 1 a 30 segundos y de 0 a 100.",
+              "Multimedia y sonido: una imagen, un video o un audio que acompaña la alerta.",
+              "Animación y efectos: entrada y salida (fundido, deslizar, deslizar con rebote, rebote, zoom, giro, giro 3D o glitch) y efectos que se pueden combinar: brillo, confeti y fuegos artificiales; de sacudida, flotar y pulso va uno solo.",
+              "Mensaje del bot en el chat: el bot puede escribir un mensaje en el chat cuando llega la alerta."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "niveles",
+        "title": "Niveles por cantidad",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En bits, subs regaladas, raids y resubs puedes crear niveles según la cantidad. Cada nivel tiene su propia alerta, y la condición puede ser un rango (por ejemplo, de 100 a 499), un mínimo (500 o más) o una cantidad exacta. Además existe una alerta base, que suena siempre; los niveles pueden sobrescribirla."
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Para los niveles nuevos, el panel propone valores crecientes (más duración, más volumen y más efectos), que puedes cambiar a tu gusto.",
+            "title": "Consejo"
+          }
+        ]
+      },
+      {
+        "id": "variantes",
+        "title": "Variantes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Una alerta puede tener varias variantes (mensaje, multimedia, sonido, voz) y el bot elige una cada vez. El modo de elección puede ser:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Aleatorio: todas con la misma probabilidad.",
+              "Por peso: cada variante tiene un peso de 1 a 100 que decide su probabilidad.",
+              "Secuencial: en orden, una tras otra.",
+              "Sin repetir: usa todas antes de repetir; se reinicia al terminar o pasado un tiempo que eliges."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "El editor permite hasta 5 variantes por alerta."
+          }
+        ]
+      },
+      {
+        "id": "variables",
+        "title": "Variables",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En los mensajes, la voz y el mensaje del chat puedes usar:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "{username}: quien hizo el evento (también valen {user} y {userName}).",
+              "{amount}: la cantidad: bits, subs regaladas o viewers del raid.",
+              "{tier}: el tier de la sub (Prime, Tier 1, Tier 2 o Tier 3).",
+              "{months}: los meses de una resub.",
+              "{level}: el nivel del hype train.",
+              "{message}: el mensaje que escribió el usuario, en los eventos que lo traen."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "En el editor de la pestaña Diseño también están disponibles el emoji, el título y el nombre del evento, la hora y la fecha."
+          }
+        ]
+      },
+      {
+        "id": "cola",
+        "title": "Cola de alertas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si llegan varias alertas juntas, esperan su turno y salen una por una. En General puedes ajustar:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Cola activada: si la apagas, cada alerta se muestra apenas llega, aunque haya otra en pantalla.",
+              "Tamaño máximo: de 1 a 50 alertas pendientes. Si se llena, se descartan las más antiguas.",
+              "Espera entre alertas: de 0 a 10 000 ms entre el final de una y el comienzo de la siguiente.",
+              "Contador de la cola: muestra cuántas alertas faltan.",
+              "Cooldowns: un tiempo mínimo (de 0 a 60 segundos) entre cualquier alerta y otro entre alertas del mismo tipo, para evitar spam."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "La cola vive en el overlay: si recargas la fuente en OBS, se vacía."
+          }
+        ]
+      },
+      {
+        "id": "tts",
+        "title": "Voz (Text-to-Speech)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada evento puede leer su mensaje en voz alta. Hay dos motores:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Voz estándar: incluida en tu plan.",
+              "Voz premium: gasta créditos premium y ofrece más idiomas. Si te quedas sin créditos, la alerta no se queda muda: se lee con la voz estándar."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Puedes leer el mensaje de la alerta, el mensaje del usuario (con un máximo de caracteres) y elegir si la voz espera a que termine el sonido de la alerta. La voz general se define en General y cada evento puede cambiarla."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "En la vista previa, «Reproducir» suena con el sonido y el video de la alerta; la voz se escucha con «Probar en OBS».",
+            "title": "Vista previa"
+          }
+        ]
+      }
+    ]
+  },
+  "nowPlaying": {
+    "title": "Now Playing",
+    "subtitle": "Muestra la canción que está sonando en tu stream",
+    "cta": {
+      "to": "/overlays/now-playing",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué es Now Playing?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Now Playing es un overlay que muestra en tu stream la canción que estás escuchando en tiempo real. Se conecta con Spotify o Last.fm para detectar automáticamente la música y mostrar un widget personalizable."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Detección automática: se conecta con Spotify o Last.fm.",
+              "Personalizable: colores, fuentes, layout y animaciones.",
+              "Overlay para OBS: se oculta solo cuando no suena nada (puedes apagarlo)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "fuentes",
+        "title": "Fuentes de música",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Spotify: conexión directa con Spotify, con el progreso exacto de la canción. Por un límite de Spotify hay pocos cupos y los asigna el equipo de Decatron: en Conexión escribes el correo de tu cuenta de Spotify y pides el cupo. Si están ocupados, quedas en una lista de espera (primero por plan de supporter y después por fecha de pedido).",
+              "Last.fm: escribes tu usuario de Last.fm y se detecta lo que estás scrobbleando, con portada incluida. Funciona con cualquier reproductor que haga scrobbling y no tiene límite de cupos."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Si necesitas el progreso exacto de la canción, usa Spotify (si hay cupo). Si no, Last.fm funciona con cualquier reproductor y no tiene límite.",
+            "title": "Consejo"
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Pestañas de configuración",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La vista previa en vivo queda siempre a la derecha, con una canción de ejemplo o la que está sonando."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Guía: los pasos para empezar y el link para OBS.",
+              "Conexión: activar y conectar Last.fm o Spotify (con su cupo). La canción se consulta cada 3 segundos.",
+              "Tema: temas prearmados, fondo, borde, acento y plantillas guardadas.",
+              "Elementos: portada, título, artista, álbum, barra, tiempos, icono y ecualizador.",
+              "Tipografía: fuente, tamaño, color y sombra de cada texto.",
+              "Animaciones: entrada, salida y cambio de canción.",
+              "Editor: diseños prearmados y lienzo para arrastrar cada elemento."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Agregar a OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Conecta Last.fm o Spotify en la pestaña Conexión.",
+              "Copia el link del overlay desde la pestaña Guía.",
+              "En OBS, agrega una fuente de Navegador con ese link.",
+              "Ancho y alto: el tamaño del lienzo (1920×1080 salvo que lo cambies en el Editor)."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El overlay desaparece con la animación de salida cuando no suena nada y vuelve con la próxima canción. Si prefieres que quede a la vista, apaga «Ocultar cuando no suena nada» en Animaciones.",
+            "title": "Se oculta solo"
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Consejos",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Elige un diseño en el Editor y después arrastra cada elemento donde quieras: lo que ves es lo que sale en OBS.",
+            "title": "Posición"
+          }
+        ]
+      }
+    ]
+  },
+  "timer": {
+    "title": "Guía del Timer",
+    "subtitle": "Un temporizador para el stream que el chat puede alargar con subs, bits, raids y más",
+    "cta": {
+      "to": "/overlays/timer",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué es el Timer?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Es un temporizador que se muestra en tu stream con un overlay de OBS. Sirve para maratones tipo «subathon»: empieza con una duración y cada evento del canal (subs, bits, raids, follows, hype train, donaciones) le suma tiempo según las reglas que definas. También puedes controlarlo desde el chat."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Tiempo que se suma: reglas por tipo de evento, con tiempo base y reglas avanzadas por cantidad.",
+              "Control desde el chat: comandos para iniciar, pausar, reanudar, detener, reiniciar y sumar o restar tiempo.",
+              "Overlay personalizable: tema, barra de progreso, tipografía, alertas, animaciones y widgets.",
+              "Automatizaciones: auto-pausa por horario, Happy Hour que multiplica el tiempo, y arranque y pausa según el stream."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Primeros pasos",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Entra a Overlays → Timer. La pestaña Guía resume los pasos y tiene el link del overlay.",
+              "Define el tiempo inicial en la pestaña Básico (por ejemplo, «24h» o «4d 2h»).",
+              "Define cuánto suma cada evento en la pestaña Eventos.",
+              "Agrega el overlay a OBS: copia el link del overlay y agrégalo como fuente de navegador de 1920×1080.",
+              "Inicia el timer desde el panel (pestaña Básico) o con `!dstart` en el chat."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "overlays-guide"
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Básico: tiempo inicial, controles (pausar, reanudar, reiniciar, parada de emergencia), arranque automático al cargar el overlay, reacción al inicio y fin del stream, respaldo de la sesión y las reglas de Game Over.",
+              "Eventos: cuánto tiempo suma cada tipo de evento.",
+              "Tema, Barra, Pantalla, Tipografía y Animaciones: el aspecto del timer: colores y fondo, barra de progreso, qué elementos y formato de tiempo se muestran, fuentes y efectos de entrada, salida y cuenta final.",
+              "Alertas: lo que se muestra en pantalla cuando llega un evento que suma tiempo, con un botón de prueba rápida.",
+              "Comandos e Info Cmds: permisos de los comandos de control y mensajes de los comandos informativos.",
+              "Sorteos: sorteos con quienes participaron en una sesión del timer.",
+              "Avanzado: zona horaria, plantillas, auto-pausa por horario y Happy Hour.",
+              "Historial: sesiones anteriores, con el total agregado por tipo de evento, los registros de la sesión y la opción de restaurar.",
+              "Media: tu galería de audio, video e imágenes para las alertas.",
+              "Widgets: elementos de texto sueltos para el overlay: estadísticas en vivo, uptime e indicador de Happy Hour.",
+              "Overlay: el link y los datos de conexión con OBS."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "eventos",
+        "title": "Cuánto tiempo suma cada evento",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Eventos eliges un tipo y defines su tiempo. Los tipos son bits, follow, suscripciones (Prime, Tier 1, Tier 2 y Tier 3 por separado), subs regaladas, raids, hype train y donaciones."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Tiempo base: lo que suma el evento. En eventos con cantidad (bits, donaciones, raids, subs regaladas) se define por unidad: por ejemplo, un tiempo por cada cierta cantidad de bits, o por cada viewer de un raid, con un mínimo por raid.",
+              "Reglas avanzadas: un tiempo fijo cuando la cantidad cumple un rango. Por ejemplo, «mínimo 10 subs: 1 hora» suma exactamente 1 hora al recibir 10 subs, en lugar del cálculo base. Si ninguna regla coincide, se usa el cálculo base."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "En Básico puedes ver el tiempo restante, el transcurrido y lo que se ha agregado. Se puede copiar el valor en segundos.",
+            "title": "Seguimiento del tiempo"
+          }
+        ]
+      },
+      {
+        "id": "comandos",
+        "title": "Comandos de control",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El tiempo se escribe como «5m», «1h30m», «1d12h» o solo segundos («300»). El máximo al iniciar es de 7 días."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "`!dstart [tiempo]`: inicia el timer con esa duración (por ejemplo, `!dstart 5m`).",
+              "`!dtimer [tiempo]`: también inicia el timer con esa duración.",
+              "`!dtimer add [tiempo]`: suma tiempo al timer activo (por ejemplo, `!dtimer add 1h`).",
+              "`!dtimer remove [tiempo]`: resta tiempo (por ejemplo, `!dtimer remove 30s`). También funciona `!dtimer -30s`.",
+              "`!dplay`: reanuda el timer pausado o lo inicia.",
+              "`!dpause`: pausa el timer.",
+              "`!dreset`: lo deja detenido en el tiempo total configurado.",
+              "`!dstop`: detiene el timer completamente y lo oculta del overlay."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Por defecto los usan el streamer y los moderadores. En la pestaña Comandos puedes activar o desactivar cada uno, bloquear usuarios, y activar la lista blanca para dar acceso a personas de confianza (por ejemplo, VIPs).",
+            "title": "Permisos"
+          }
+        ]
+      },
+      {
+        "id": "info",
+        "title": "Comandos informativos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Para el chat. Su mensaje se edita en la pestaña Info Cmds, con variables y un tiempo mínimo entre usos:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "`!dtiempo`: el tiempo restante.",
+              "`!dcuando`: fecha y hora en que terminará.",
+              "`!dstats`: estadísticas de la sesión activa.",
+              "`!drecord`: el récord histórico del canal.",
+              "`!dtop`: quienes más aportaron en la sesión."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "gameover",
+        "title": "Cuando el tiempo llega a cero",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Básico, Reglas de Game Over define qué pasa al agotarse el tiempo:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Muerte súbita: el timer termina.",
+              "Resurrección: tienes de 1 a 99 vidas extra: si el tiempo se agota, una donación o un comando puede revivir el timer gastando una vida. Los mensajes de resurrección y de «sin vidas» son editables y usan {lives} (usadas) y {max} (totales)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "auto",
+        "title": "Automatización",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Arranque automático: el timer comienza al cargarse el overlay (útil para eventos programados).",
+              "Según el stream: si lo activas, el timer se reanuda al empezar a transmitir y se pausa al terminar, conservando el tiempo.",
+              "Auto-pausa por horario: en Avanzado programas momentos en que el timer se detiene solo (dormir, comer…), con nombre, motivo, horas y días.",
+              "Happy Hour: en Avanzado multiplicas el tiempo que suman ciertos eventos: ahora mismo por un rato, o programado en días y horas con la zona horaria del canal.",
+              "Plantillas: predefinidas (Subathon, Gaming Marathon, Speedrun) o propias, para aplicar toda la configuración, o solo algunas partes, de una vez."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "En Avanzado existe un restablecimiento de fábrica que borra la configuración visual, las plantillas, los horarios, los Happy Hour y el historial. No se puede deshacer.",
+            "title": "Zona de peligro"
+          }
+        ]
+      },
+      {
+        "id": "respaldo",
+        "title": "Respaldo y restauración",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si se va la luz o se cierra algo por error, en Básico puedes guardar una copia del estado del timer y restaurar una sesión anterior: el timer vuelve en pausa con el tiempo guardado (o con el tiempo que escribas). El Historial lista las sesiones, con el motivo de cierre (parada manual, auto-guardado, respaldo manual o parada de emergencia)."
+          }
+        ]
+      },
+      {
+        "id": "sorteos",
+        "title": "Sorteos y widgets",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Sorteos: crea sorteos con nombre y ganadores. Se puede entrar por bits, por suscripción (eligiendo los tiers), por regalar subs (con un mínimo) o por un follow nuevo, o importar a los participantes de una sesión. Puedes excluir moderadores, VIPs y al streamer, y volver a sortear un puesto.",
+              "Widgets: estadísticas en vivo (subs y bits de hoy, totales, recaudado, eventos), uptime del timer e indicador de Happy Hour. El indicador de Happy Hour solo aparece mientras hay uno activo; usa «Simular Happy Hour» para acomodarlo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Consejos",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "En Alertas, «Prueba rápida» simula un evento en el overlay. Ten cuidado con la opción que suma tiempo real al timer aunque no estés en directo.",
+            "title": "Prueba rápida"
+          }
+        ]
+      }
+    ]
+  },
+  "tips": {
+    "title": "Donaciones / Tips",
+    "subtitle": "Recibe donaciones con PayPal, con alertas y tiempo para el timer",
+    "cta": {
+      "to": "/features/tips",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tu audiencia dona desde una página pública con tu nombre, paga con PayPal y el dinero va directo a la cuenta de PayPal que conectaste. Decatron no retiene ningún porcentaje; solo aplican las comisiones de PayPal. La donación dispara una alerta en tu stream y, si quieres, suma tiempo al timer."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los pagos se procesan en PayPal. Los reembolsos se gestionan directamente allí.",
+            "title": "Dinero y datos de pago"
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Primeros pasos",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Conecta PayPal. En la pestaña General pulsa «Conectar PayPal» e inicia sesión. Las donaciones se envían al correo de esa cuenta.",
+              "Define los montos. En General eliges la moneda, el monto mínimo y máximo y los montos sugeridos (los botones rápidos de la página).",
+              "Activa el sistema de Tips. Mientras esté apagado, tu página de donaciones muestra que no está disponible.",
+              "Comparte tu enlace: `https://decatron.net/tip/tu-canal`. El panel lo muestra listo para copiar.",
+              "Agrega las alertas a OBS (ver más abajo)."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Monedas disponibles: USD, EUR, GBP, MXN, ARS, COP, CLP, BRL y PEN."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "General: activar Tips, conectar PayPal, moneda, mínimo, máximo y montos sugeridos.",
+              "Página: título, descripción, color de acento e imagen de fondo (por URL) de la página de donaciones.",
+              "Alertas: elige cómo se avisan las donaciones (ver más abajo).",
+              "Timer: cuánto tiempo suma cada donación.",
+              "Seguridad: longitud máxima del mensaje (de 1 a 500), espera entre donaciones, filtro de palabras prohibidas y mensaje obligatorio.",
+              "Historial: estadísticas por periodo (hoy, semana, mes, año o todo el tiempo) y donaciones recientes."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "donante",
+        "title": "Lo que ve quien dona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En tu página escribe su nombre (se muestra en el stream), elige o escribe un monto dentro de tu mínimo y tu máximo, agrega un mensaje y paga con PayPal."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Mensaje: opcional, o requerido si activas «Requerir mensaje».",
+              "Filtro de palabras: si lo activas, usa la misma lista de palabras prohibidas de la moderación del chat.",
+              "Espera entre donaciones: segundos que debe esperar antes de donar de nuevo (0 = sin espera).",
+              "Confirmación: al terminar ve un agradecimiento y, si el timer suma tiempo, cuánto añadió su donación."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "alertas",
+        "title": "Alertas de donación",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Alertas eliges uno de dos sistemas:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Sistema del Timer (por defecto): usa el mismo sistema que las alertas de bits, subs y raids del Timer: variantes, multimedia, voz y más. Se configura en la pestaña Alertas del Timer, en «Donaciones», donde puedes crear variantes según el monto. El tiempo que suma la donación sale de las reglas del evento «Donaciones» de la pestaña Eventos del Timer. Si el timer está apagado o detenido y no puede procesar la donación, se muestra la alerta independiente.",
+              "Alertas independientes: un sistema propio para Tips, con sonido, voz, multimedia y niveles por monto. Su overlay para OBS es el link «Overlay OBS» que muestra el panel de Tips. Aquí el tiempo que suma la donación sale de la pestaña Timer de Tips."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "timer",
+        "title": "Integración con el Timer",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Timer de Tips activas la integración con el Timer y defines cuánto tiempo vale cada 1 unidad de tu moneda, en segundos, minutos, horas o días. El panel muestra un ejemplo de cuánto sumará una donación. Útil para subathons en los que las donaciones alargan el stream."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Si usas el sistema de alertas del Timer, el tiempo de cada donación lo deciden las reglas del evento «Donaciones» del Timer (tiempo base y reglas avanzadas por monto).",
+            "title": "Con el sistema de alertas del Timer"
+          },
+          {
+            "t": "link",
+            "to": "timer"
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "Historial y estadísticas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Historial muestra, para el periodo que elijas:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Estadísticas: total recaudado, cantidad de donaciones, promedio, tiempo añadido y el top donante.",
+              "Donaciones recientes: quién donó, el monto, el mensaje si dejó uno y el tiempo que sumó."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "giveaway": {
+    "title": "Giveaways",
+    "subtitle": "Sorteos en el chat con requisitos, pesos y validaciones",
+    "cta": {
+      "to": "/features/giveaways",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Configuras el premio, los requisitos y los pesos en el panel y lo inicias desde allí. La gente entra escribiendo `!join` en el chat. Al terminar, el bot elige a los ganadores al azar (con más probabilidad para quienes tengan más peso) y los anuncia en el chat."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El giveaway se inicia, se termina, se cancela y se vuelve a sortear desde el panel. En el chat solo se usa `!join`, para participar. El comando `!raffle` (con `!raffle create`, `join`, `close` y `draw`) es un sistema de sorteo rápido distinto, sin panel ni requisitos; está en la lista de comandos por defecto.",
+            "title": "Se controla desde el panel"
+          },
+          {
+            "t": "link",
+            "to": "commands-default"
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Crear: premio, duración, participantes, ganadores y re-sorteo automático.",
+              "Requisitos: quién puede participar.",
+              "Pesos: multiplicadores que suben la probabilidad de ganar.",
+              "Activo: control del giveaway en curso: participantes, ganadores, re-sortear y descalificar.",
+              "Historial: giveaways anteriores y estadísticas, con exportación a CSV o JSON.",
+              "Configuración: anuncios, mensajes y espera para ganadores recientes.",
+              "Debug: herramienta de pruebas que genera participantes de ejemplo (hasta 1000)."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "No puedes guardar cambios mientras hay un giveaway activo."
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Crear un giveaway",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Premio: nombre del giveaway, nombre del premio (obligatorio) y una descripción opcional.",
+              "Duración: con tiempo límite (de 1 a 1440 minutos, termina solo) o manual (lo terminas tú desde el panel).",
+              "Participantes: si un usuario puede entrar varias veces y un límite máximo de participantes.",
+              "Ganadores: de 1 a 10 ganadores y, si quieres, de 1 a 5 ganadores de respaldo.",
+              "Tiempo de respuesta: entre 10 y 300 segundos que tiene el ganador para responder (con cualquier mensaje en el chat) antes de ser descalificado.",
+              "Re-sorteo automático: sortear un nuevo ganador si el elegido no responde a tiempo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "requisitos",
+        "title": "Requisitos de participación",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada requisito se activa o se apaga por separado y se pueden combinar:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Debe seguir el canal: solo followers.",
+              "Debe estar suscrito: solo suscriptores.",
+              "Permitir VIPs y moderadores: si ellos pueden participar.",
+              "Tiempo mínimo viendo: minutos viendo el stream actual.",
+              "Edad mínima de la cuenta: tiempo desde que se creó la cuenta de Twitch (en días, meses o años).",
+              "Tiempo mínimo siguiendo: tiempo desde que sigue el canal.",
+              "Mensajes mínimos en el chat: mensajes escritos en el stream actual.",
+              "Bloquear multicuentas y verificar IP duplicada: detectan cuentas repetidas y la misma IP.",
+              "Lista negra y lista blanca: usuarios bloqueados; o, con la lista blanca activa, solo los usuarios permitidos."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Por defecto: debe seguir el canal, 10 minutos viendo, cuenta de al menos 7 días, y bloqueo de multicuentas e IP duplicada activado."
+          }
+        ]
+      },
+      {
+        "id": "pesos",
+        "title": "Pesos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Un multiplicador de 2.0× significa el doble de probabilidad de ganar. Los multiplicadores se acumulan: por ejemplo, Sub Tier 3 (6.0) y VIP (1.5) dan 9.0×."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Suscripción: un multiplicador para Sub Tier 1, Tier 2 y Tier 3 (por defecto 2, 4 y 6).",
+              "VIP: un multiplicador para VIPs (por defecto 1.5).",
+              "Tiempo viendo: un multiplicador por cada hora viendo; se aplica en cadena (con 1.1×, tres horas dan 1.331×).",
+              "Antigüedad de follow: un multiplicador por cada mes siguiendo.",
+              "Bits: un multiplicador por cada 100 bits donados durante el giveaway.",
+              "Racha de suscripción: un multiplicador por cada mes de racha."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Por defecto solo están activos los multiplicadores de suscripción, VIP y tiempo viendo."
+          }
+        ]
+      },
+      {
+        "id": "activo",
+        "title": "Mientras está activo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Activo muestra el estado (activo, esperando respuestas, completado o cancelado), los participantes (con búsqueda, y ordenables por peso, nombre o hora de entrada, con sus insignias y su peso) y los ganadores. Desde allí puedes volver a sortear un puesto o descalificar a un ganador."
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Anuncios y mensajes",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Anunciar al iniciar: un mensaje en el chat cuando empieza.",
+              "Recordatorios: mensajes periódicos (cada 1 a 30 minutos) mientras está activo.",
+              "Contador de participantes: incluye la cantidad de participantes en los anuncios.",
+              "Mensajes: se editan los de inicio, recordatorio, ganador y sin respuesta, con las variables {command}, {prize}, {count}, {winner} y {timeout}.",
+              "Espera para ganadores: quien ganó no puede participar durante los días que elijas (de 1 a 365; por defecto 7)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "Overlay",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El overlay de OBS muestra «Nuevos participantes»: los últimos 10 usuarios que se han unido, cada uno con una animación de entrada. Los ganadores se anuncian en el chat."
+          },
+          {
+            "t": "link",
+            "to": "overlays-guide"
+          }
+        ]
+      }
+    ]
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Estadísticas y registros de tu canal",
+    "cta": {
+      "to": "/analytics",
+      "label": "Ver analytics"
+    },
+    "sections": [
+      {
+        "id": "periodo",
+        "title": "Periodo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Todas las pestañas muestran el periodo que elijas arriba: los últimos 7, 30 o 90 días, o un rango personalizado con fecha de inicio y de fin. Al abrir la página se muestran los últimos 7 días. El botón Actualizar vuelve a cargar los datos."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Resumen: cantidad de eventos del Timer, tiempo agregado, acciones de moderación y cambios de juego en el periodo, además de los tipos de evento más frecuentes y los eventos por día.",
+              "Eventos Timer: el historial de eventos que sumaron tiempo al timer: fecha, tipo (follow, sub, Prime, bits, raid, regalo de subs, tip, comando o hype train), usuario, tiempo y detalles.",
+              "Moderación: total de acciones, cuántas fueron severas, palabras únicas y las palabras más detectadas, con el historial de cada acción: fecha, usuario, palabra, severidad, acción y strike.",
+              "Historial Stream: los cambios de categoría y de título del stream, con quién los hizo. Se puede filtrar por categoría o por título.",
+              "Chat: total de mensajes y usuarios únicos, con el historial del chat y una búsqueda por usuario o por mensaje.",
+              "Actividad: nuevos followers y total de tips, con los followers y los tips por día y los principales supporters."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Las listas largas se paginan, y puedes elegir cuántos registros ver por página."
+          }
+        ]
+      },
+      {
+        "id": "exportar",
+        "title": "Exportar a CSV",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El botón Exportar CSV descarga los datos del periodo elegido. Incluye:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Eventos del Timer: follows, subs, bits y el resto de eventos.",
+              "Acciones de moderación: las del periodo.",
+              "Historial de juegos y títulos: los cambios del stream.",
+              "Mensajes de chat: los del periodo."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "followers": {
+    "title": "Seguidores",
+    "subtitle": "Administra y analiza tu comunidad de seguidores de Twitch",
+    "cta": {
+      "to": "/followers",
+      "label": "Ver seguidores"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "Qué muestra",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Una lista de los seguidores de tu canal que Decatron guarda y mantiene al día sincronizándola con Twitch. Además de quién te sigue ahora, registra quién dejó de seguirte y quién volvió."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Total: todos los seguidores registrados.",
+              "Activos: los que te siguen actualmente.",
+              "Unfollows: los que dejaron de seguirte.",
+              "Retornados: los que dejaron de seguirte y volvieron a hacerlo.",
+              "Bloqueados: los que marcaste como bloqueados (ver más abajo)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sync",
+        "title": "Sincronizar con Twitch",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El botón Sincronizar actualiza la lista con Twitch y al terminar muestra cuántos seguidores nuevos, retornados y unfollows encontró. También puedes activar la sincronización automática y elegir cada cuánto se repite: 5, 10, 15 o 30 minutos, 1 hora o 24 horas. El panel indica la fecha de la última sincronización."
+          }
+        ]
+      },
+      {
+        "id": "buscar",
+        "title": "Buscar y filtrar",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Búsqueda: por nombre o nombre de usuario; se busca sola mientras escribes.",
+              "Filtros rápidos: Todos, Activos, Unfollows o Retornados.",
+              "Filtros avanzados: por rango de fecha de follow (desde y hasta).",
+              "Historial: cada seguidor tiene un historial de sus movimientos: follow, unfollow, bloqueo y desbloqueo, con fecha y hora."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "La lista se pagina, con botones para ir a la primera, anterior, siguiente y última página."
+          }
+        ]
+      },
+      {
+        "id": "bloqueo",
+        "title": "Bloquear y desbloquear",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con nivel de acceso Moderación o superior puedes bloquear o desbloquear a un seguidor, o seleccionar varios y hacerlo en bloque (con una confirmación antes). Sin ese nivel la página funciona en modo limitado: puedes ver la lista, pero no bloquear."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El bloqueo queda registrado en la lista de seguidores de Decatron, con su historial. No bloquea a la persona en Twitch.",
+            "title": "Es una marca de Decatron"
+          }
+        ]
+      },
+      {
+        "id": "followage",
+        "title": "Comando !followage",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En el chat, `!followage` muestra cuánto tiempo lleva la persona siguiendo el canal, y `!followage @usuario` lo muestra para otro usuario. Está disponible para todos y solo en Twitch."
+          }
+        ]
+      },
+      {
+        "id": "alertas",
+        "title": "Alertas de follow",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las alertas y el mensaje del bot cuando alguien te sigue se configuran en la guía de Alertas de eventos, en la pestaña Eventos → Follows."
+          },
+          {
+            "t": "link",
+            "to": "event-alerts"
+          }
+        ]
+      }
+    ]
+  },
+  "decatronChat": {
+    "title": "Decatron Chat",
+    "subtitle": "Chat con la IA de Decatron desde tu dashboard",
+    "cta": {
+      "to": "/features/decatron-chat",
+      "label": "Ir al chat"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué es Decatron Chat?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Es un asistente de IA dentro de tu dashboard. Le haces preguntas, le pides ayuda con tu stream o con código, y las conversaciones se guardan para que continúes donde las dejaste. Cada conversación la ve solo quien la creó, dentro de ese canal; los espectadores no tienen acceso."
+          }
+        ]
+      },
+      {
+        "id": "acceso",
+        "title": "Quién puede usarlo",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Activación: el chat se activa para toda la plataforma desde la administración de Decatron. Si está apagado, la página muestra «El sistema de chat está deshabilitado».",
+              "Dueño del canal: siempre tiene acceso completo.",
+              "Otras personas del canal: necesitan un permiso que otorga el equipo de Decatron: solo ver las conversaciones, o también escribir. Con permiso de solo lectura aparece «Solo puedes ver conversaciones»."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Cada mensaje consume créditos de IA. Si no tienes saldo, el mensaje no se envía y el chat te avisa que compres un plan o un paquete de créditos.",
+            "title": "Créditos"
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      },
+      {
+        "id": "usar",
+        "title": "Cómo usarlo",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Abre Decatron Chat desde el menú de Funciones.",
+              "Crea una conversación con el botón «+» del panel izquierdo.",
+              "Escribe tu mensaje y envíalo con Enter (Shift+Enter hace un salto de línea).",
+              "La respuesta aparece mientras se genera. Con «Detener» puedes cortarla."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "conv",
+        "title": "Conversaciones y respuestas",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Varias conversaciones: cada una guarda su propio historial; haz clic en una del panel para retomarla. La IA recibe los mensajes recientes de esa conversación como contexto.",
+              "Eliminar: borra una conversación; no se puede deshacer.",
+              "Continuar: si una respuesta larga se corta, el botón «Continue» de la respuesta sigue generándola desde donde quedó.",
+              "Código: los bloques de código se pueden copiar. Si es HTML, CSS o JavaScript, un botón abre una vista previa en vivo, y el botón «Editar» pone el código en el cuadro de mensaje con la petición «Modifica este código» para que escribas los cambios.",
+              "Uso: cada respuesta indica los tokens usados y cuánto tardó."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "dif",
+        "title": "Decatron Chat y Decatron IA",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Característica",
+              "Decatron Chat",
+              "Decatron IA"
+            ],
+            "rows": [
+              [
+                "Dónde funciona",
+                "En el dashboard",
+                "En el chat del stream"
+              ],
+              [
+                "Quién lo usa",
+                "Quien tiene acceso al panel",
+                "Los espectadores, según el nivel que elijas"
+              ],
+              [
+                "Historial",
+                "Conversaciones guardadas",
+                "Cada pregunta es independiente"
+              ],
+              [
+                "Cómo se usa",
+                "Ventana de chat",
+                "`!ia` en el chat"
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "ai"
+          }
+        ]
+      }
+    ]
+  },
+  "decatronAI": {
+    "title": "Decatron IA",
+    "subtitle": "Tu chat le pregunta a la IA con el comando !ia",
+    "cta": {
+      "to": "/features/decatron-ai",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué es Decatron IA?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Es un comando del chat: quien lo use escribe `!ia` seguido de una pregunta y el bot responde con un mensaje en el chat."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Ejemplos: `!ia dame un dato curioso` o `!ia ¿cuál es el sentido de la vida?`",
+              "Respuesta: un solo mensaje, que empieza con un prefijo (por defecto el de la plataforma, o uno propio de tu canal) y se recorta si pasa del límite de Twitch.",
+              "Idioma: los mensajes del bot (cooldown, permisos, uso) salen en el idioma del dueño del canal."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "activar",
+        "title": "Cómo activarlo",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Pide el acceso. Decatron IA se habilita canal por canal desde la administración de Decatron. Mientras tu canal no tenga el permiso, el comando no responde y el panel muestra «Acceso restringido».",
+              "Entra a Funciones → Decatron IA. Para configurarlo necesitas nivel de acceso Control Total en el canal.",
+              "Ajusta la configuración (ver abajo) y guarda."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Cada respuesta se descuenta de los créditos del dueño del canal. Sin saldo, el comando no responde.",
+            "title": "Créditos de IA"
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Configuración",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Configuración tiene:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Nivel de permiso: quién puede usar `!ia`: todos, suscriptores o más, VIPs o más, moderadores o más, o solo el streamer.",
+              "Cooldown del canal: segundos entre una respuesta y la siguiente en todo el canal. Tiene un mínimo que define la plataforma.",
+              "Cooldown por usuario: opcional: segundos que debe esperar la misma persona para volver a usarlo.",
+              "Prefijo personalizado: el texto con el que empieza cada respuesta; si lo dejas vacío se usa el de la plataforma.",
+              "Prompt personalizado: instrucciones propias para la IA (por ejemplo, su personalidad); si lo dejas vacío se usa el de la plataforma."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "usuarios",
+        "title": "Usuarios",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Whitelist: si la activas, solo los usuarios de la lista pueden usar `!ia`, sin importar el nivel de permiso. Apagada, rige el nivel de permiso.",
+              "Blacklist: usuarios bloqueados, que no pueden usarlo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stats",
+        "title": "Estadísticas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Estadísticas muestra el total de usos, los de hoy y los de la semana, los usuarios que más lo usan y el uso reciente."
+          }
+        ]
+      },
+      {
+        "id": "rel",
+        "title": "Relacionado",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Para conversar con la IA desde el dashboard, sin pasar por el chat del stream, está Decatron Chat."
+          },
+          {
+            "t": "link",
+            "to": "decatron-chat"
+          }
+        ]
+      }
+    ]
+  },
+  "shoutout": {
+    "title": "Shoutouts",
+    "subtitle": "Presenta a otro streamer con su clip, su foto y su juego",
+    "cta": {
+      "to": "/overlays/shoutout",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada shoutout hace tres cosas: muestra un overlay en OBS con la persona, escribe un mensaje en el chat y, si lo activas, hace también el shoutout nativo de Twitch."
+          },
+          {
+            "t": "p",
+            "x": "El diseño del overlay (clip, foto, textos, animaciones, variables y permisos) está explicado en la guía del overlay de Shoutouts."
+          },
+          {
+            "t": "link",
+            "to": "overlay-shoutout"
+          }
+        ]
+      },
+      {
+        "id": "cmd",
+        "title": "Comando !so",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Escribe `!so @usuario` o `!so usuario`. Por defecto lo usan el streamer y los moderadores; en la pestaña Permisos puedes agregar a otras personas. No está disponible en Kick."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Para no repetir a la misma persona hay una espera (30 segundos por defecto, configurable en la pestaña General). Si alguien repite el comando antes, el bot responde cuántos segundos faltan.",
+            "title": "Espera entre shoutouts"
+          }
+        ]
+      },
+      {
+        "id": "auto",
+        "title": "Pestaña Automático",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Varios seguidos: si alguien hace !so mientras hay otro en pantalla, espera su turno (hasta 10). Apagado, el nuevo reemplaza al que se está viendo.",
+              "Mensaje en el chat: el bot escribe un mensaje con cada shoutout. Puedes escribir el tuyo con variables que empiezan con @ (@displayname, @username, @game, @title, @tags, @followers, @clipTitle, @clipViews, @clipCreator y @url). Para mencionar a la persona escribe una @ antes: @@username. Si lo dejas vacío se usa el mensaje de siempre, en el idioma de tu canal.",
+              "Shoutout nativo de Twitch: muestra en el chat la tarjeta de Twitch con el botón Seguir y le aparece a la persona en su panel. Twitch permite uno cada 2 minutos en tu canal y uno por hora a la misma persona, y solo con tu canal en vivo; el bot debe ser moderador de tu canal y tener el permiso moderator:manage:shoutouts. Si no se puede, igual salen el overlay y el mensaje del chat. El panel muestra el estado y el resultado del último intento.",
+              "Shoutout a los raids: cuando alguien te hace raid, el bot le hace el shoutout solo, sin que nadie escriba !so. Puedes pedir un mínimo de espectadores y una espera antes del shoutout para que no se encime con la alerta del raid."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "shoutoutOverlay": {
+    "title": "Overlay de Shoutouts",
+    "subtitle": "Presenta a otro streamer con su clip, su foto y su juego cuando alguien usa !so",
+    "sections": [
+      {
+        "id": "que",
+        "title": "Qué muestra",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cuando alguien escribe `!so @usuario` en tu chat, el overlay muestra a esa persona. Cada parte se puede prender, apagar, mover y cambiar de tamaño:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Clip: un clip de la persona (ver «Qué clip se muestra»).",
+              "Foto de perfil: la de Twitch, redonda, redondeada o cuadrada.",
+              "Textos: una o más líneas con el nombre, el juego y lo que escribas, con variables.",
+              "Insignia: Partner o Afiliado de Twitch (los afiliados se pueden ocultar).",
+              "En vivo: un cartel que aparece si la persona está transmitiendo en ese momento.",
+              "Barra de tiempo y contador: la barra se vacía mientras dura el shoutout; el contador muestra los segundos que faltan (sirve para probar y normalmente va apagado)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Agregarlo a OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "En el panel, entra a Overlays → Shoutout y copia el link de la pestaña Guía.",
+              "En OBS agrega una fuente Navegador y pega el link.",
+              "Pon el ancho y el alto que indica la guía. Por defecto son 1000×300, pero cambian si eliges otro diseño.",
+              "Guarda y usa Probar en OBS para ver un shoutout de prueba en tu escena."
+            ]
+          },
+          {
+            "t": "code",
+            "x": "https://decatron.net/overlay/shoutout?channel=tu_canal"
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Guía: link del overlay y pasos para empezar.",
+              "General: duración en pantalla, espera para repetir a la misma persona (por defecto 30 segundos; en 0, sin espera) y el contador.",
+              "Clip: qué clip se muestra, qué hacer si no hay clips, y volumen del clip.",
+              "Tema: diseños prearmados (Clásico, Tarjeta vertical, Clip con título encima, Barra inferior, Solo texto y foto), temas de color y el fondo (degradado, color sólido o transparente, esquinas, desenfoque, sombra y borde).",
+              "Elementos: prende o apaga cada parte y ajusta cómo se ve.",
+              "Texto: las líneas de texto, sus variables, fuente, color, tamaño, sombra y contorno.",
+              "Animaciones: entrada y salida: fundido, fundido con zoom, deslizar, rebote, salto, zoom, giro, giro 3D o glitch, con dirección, suavizado y duración.",
+              "Editor: un lienzo para arrastrar cada elemento y cambiar su tamaño desde las esquinas.",
+              "Automático: varios seguidos, mensaje en el chat, shoutout nativo de Twitch y shoutout automático a los raids.",
+              "Permisos: quién más puede usar !so y qué canales están bloqueados."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "clip",
+        "title": "Qué clip se muestra",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Al azar: uno de sus 20 clips más vistos (es lo habitual).",
+              "El más visto: siempre su clip con más vistas.",
+              "El más reciente: el último clip que le hicieron.",
+              "De los últimos días: uno al azar dentro del rango que elijas. Si no hay clips en ese rango puedes usar cualquiera, o dejar que el shoutout salga sin clip."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Si la persona no tiene clips, en el lugar del clip puedes mostrar su foto, su imagen de canal offline (o su foto si no tiene) o dejar el espacio vacío, y elegir cuánto tiempo se queda. Si el clip termina antes de la duración, el shoutout se va cuando termina."
+          }
+        ]
+      },
+      {
+        "id": "vars",
+        "title": "Variables de texto",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En las líneas de texto se reemplazan por los datos de la persona:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "@displayname: el nombre como se ve en Twitch.",
+              "@username: su usuario de Twitch, en minúsculas.",
+              "@game: el último juego o categoría.",
+              "@title: el título de su último stream.",
+              "@tags: las etiquetas de su canal.",
+              "@followers: su cantidad de seguidores.",
+              "@clipTitle, @clipViews y @clipCreator: el título del clip, sus vistas y quién lo creó."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "perm",
+        "title": "Quién puede usar !so",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Siempre: tú y tus moderadores.",
+              "Lista de permitidos: en Permisos puedes agregar a otras personas (por ejemplo, VIPs de confianza); los moderadores siguen pudiendo.",
+              "Canales bloqueados: a esos canales no se les puede hacer !so: el bot responde con un mensaje en broma."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Si repites el !so a la misma persona antes de que pase la espera, el bot responde indicando cuántos segundos faltan. Si el usuario no existe en Twitch, avisa que no existe."
+          }
+        ]
+      },
+      {
+        "id": "prob",
+        "title": "Problemas frecuentes",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "El overlay no aparece en OBS: revisa que el link sea el de tu canal, que el ancho y el alto coincidan con los de la guía, y actualiza la fuente (clic derecho → Actualizar).",
+              "!so no responde: el bot debe estar conectado a tu canal y quien lo usa debe ser moderador o estar en la lista de permitidos. En Kick no está disponible.",
+              "No se muestra clip: es normal si la persona no tiene clips; revisa en la pestaña Clip qué se muestra en ese caso.",
+              "Los cambios no se reflejan: guarda en el panel: el overlay de OBS se actualiza solo. Si no cambia, actualiza la fuente en OBS."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

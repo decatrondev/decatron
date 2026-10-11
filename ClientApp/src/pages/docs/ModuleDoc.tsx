@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DocSections, asArray, type DocSectionData } from '../../components/docs/DocBlocks';
 import type { DocScope } from './registry';
@@ -6,7 +7,7 @@ import type { DocScope } from './registry';
 // Página de un módulo descrita como datos: public/locales/{es,en}/<ns>.json → una clave por página con
 // { title, subtitle, sections[], tail[] }. `children` se dibuja entre las secciones y `tail` (por ejemplo
 // una lista generada desde el código).
-interface PageData { title?: string; subtitle?: string; sections?: DocSectionData[]; tail?: DocSectionData[] }
+interface PageData { title?: string; subtitle?: string; cta?: { to: string; label: string }; sections?: DocSectionData[]; tail?: DocSectionData[] }
 
 export function ModuleDoc({ ns, page, scope, icon: Icon, children }: {
     ns: string;
@@ -32,6 +33,11 @@ export function ModuleDoc({ ns, page, scope, icon: Icon, children }: {
                         <p className="text-ds-soft">{data.subtitle}</p>
                     </div>
                 </div>
+                {data.cta && (
+                    <Link to={data.cta.to} className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors">
+                        {data.cta.label} →
+                    </Link>
+                )}
             </div>
 
             <DocSections sections={asArray<DocSectionData>(data.sections)} scope={scope} />
