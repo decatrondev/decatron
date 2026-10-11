@@ -38,7 +38,7 @@
     "community": {
       "enabled": true,
       "rulesChannel": "rules",
-      "updatesChannel": "announcements",
+      "updatesChannel": "community-updates",
       "safetyAlertsChannel": "automod-alerts"
     },
     "afk": {
@@ -1610,7 +1610,6 @@
           "type": "announcement",
           "access": "announce",
           "topic": "Official news / Novedades oficiales",
-          "role": "updates_channel",
           "crosspost": true
         },
         {
@@ -1799,7 +1798,7 @@
             }
           ],
           "guidelines": "partnerships",
-          "slowmodeSeconds": 86400
+          "slowmodeSeconds": 21600
         }
       ],
       "enabled": true
@@ -3142,6 +3141,14 @@
           "feed": "automod"
         },
         {
+          "key": "community-updates",
+          "name": "community-updates",
+          "type": "text",
+          "access": "bot_only_staff",
+          "topic": "Discord notices for Community admins / Avisos de Discord para administradores de Comunidad",
+          "role": "updates_channel"
+        },
+        {
           "key": "announcement-drafts",
           "name": "announcement-drafts",
           "type": "text",
@@ -3211,8 +3218,8 @@
         "en": "One post per channel. Tell us what you do and how often you stream."
       },
       "partnerships": {
-        "es": "Describe la propuesta o el servidor. El equipo la revisa antes de aprobarla. Una publicación por persona cada 24 horas.",
-        "en": "Describe the proposal or server. The team reviews it before approving. One post per person every 24 hours."
+        "es": "Describe la propuesta o el servidor. El equipo la revisa antes de aprobarla. Una publicación por persona cada 24 horas (el límite lo vigila el equipo: Discord solo permite un modo lento de hasta 6 horas).",
+        "en": "Describe the proposal or server. The team reviews it before approving. One post per person every 24 hours (enforced by the team: Discord's slowmode goes up to 6 hours only)."
       }
     },
     "rules": [

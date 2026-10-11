@@ -142,6 +142,7 @@ public static class ServerTemplatePlanner
         var enabledCats = t.Categories.Where(c => c.Enabled).ToList();
 
         var foundInfo = new Dictionary<string, ChannelInfo?>();
+        var needsConvert = new List<string>();   // anuncios que están (o nacen) como texto: se convierten tras fijar los canales de Comunidad
         // Pasada A: categorías y todo lo que ya se puede crear. Los anuncios, sin Comunidad, nacen como texto.
         foreach (var c in enabledCats)
         {
@@ -160,10 +161,8 @@ public static class ServerTemplatePlanner
 
                 if (existingId != null)
                 {
-                    if (soft && found != null && found.Type == 0 && communityNow)
-                        Add("channels", "channel", ch.Key, ch.Name, canChannels ? PlanOp.Convert : PlanOp.Blocked, "channel.convert", "Pasa de texto a canal de anuncios", existingId);
-                    else
-                        Add("channels", "channel", ch.Key, ch.Name, byName ? PlanOp.Adopt : PlanOp.Skip, byName ? "channel.adopt" : "channel.exists", byName ? "Ya existe con ese nombre: se enlaza sin tocarlo" : "Ya creado", existingId);
+                    if (soft && found != null && found.Type == 0) needsConvert.Add(ch.Key);
+                    Add("channels", "channel", ch.Key, ch.Name, byName ? PlanOp.Adopt : PlanOp.Skip, byName ? "channel.adopt" : "channel.exists", byName ? "Ya existe con ese nombre: se enlaza sin tocarlo" : "Ya creado", existingId);
                 }
                 else if (!canChannels) Add("channels", "channel", ch.Key, ch.Name, PlanOp.Blocked, "channel.blocked_perm", "El bot no tiene permiso para gestionar canales");
                 else if (hard && !communityNow)
@@ -173,7 +172,10 @@ public static class ServerTemplatePlanner
                     // si se va a activar Comunidad, se crea en la pasada B
                 }
                 else if (soft && !communityNow)
+                {
+                    needsConvert.Add(ch.Key);
                     Add("channels", "channel", ch.Key, ch.Name, PlanOp.Create, "channel.create_as_text", "Se crea como texto y se convierte en anuncios al activar Comunidad");
+                }
                 else
                     Add("channels", "channel", ch.Key, ch.Name, PlanOp.Create, $"channel.create_{ch.Type}", $"Se crea ({ch.Type})", null, ch.Type);
             }
@@ -183,23 +185,31 @@ public static class ServerTemplatePlanner
         if (o.EnableCommunity && t.Guild.Community.Enabled)
         {
             if (HasCommunity(s.Guild))
-                Add("community", "guild", "community", "Comunidad", PlanOp.Skip, "community.exists", "Ya está activada");
+            {
+                // Los canales de reglas y de novedades de Comunidad deben ser de texto: si apuntan a otro (p. ej. el de anuncios), se reasignan
+                chanIds.TryGetValue(t.Guild.Community.RulesChannel, out var wantRules);
+                chanIds.TryGetValue(t.Guild.Community.UpdatesChannel, out var wantUpdates);
+                var mismatch = wantRules == null || wantUpdates == null || s.Guild.RulesChannelId != wantRules || s.Guild.PublicUpdatesChannelId != wantUpdates;
+                if (!mismatch) Add("community", "guild", "community", "Comunidad", PlanOp.Skip, "community.exists", "Ya está activada");
+                else if (!canGuild) Add("community", "guild", "community", "Comunidad", PlanOp.Blocked, "community.blocked_admin", "Hace falta el permiso Gestionar servidor");
+                else Add("community", "guild", "community", "Comunidad", PlanOp.Update, "community.update_channels", $"Los canales de reglas (#{t.Guild.Community.RulesChannel}) y de novedades de Comunidad (#{t.Guild.Community.UpdatesChannel}) se reasignan");
+            }
             else if (!isAdmin || !canGuild)
                 Add("community", "guild", "community", "Comunidad", PlanOp.Blocked, "community.blocked_admin", "Activar Comunidad exige que el bot sea Administrador (se lo puedes quitar después)");
             else
                 Add("community", "guild", "community", "Comunidad", PlanOp.Update, "community.enable", $"Se activa con reglas en #{t.Guild.Community.RulesChannel} y novedades en #{t.Guild.Community.UpdatesChannel}");
         }
-        // Pasada B: con Comunidad recién activada, se crean foros y escenarios y los anuncios pasan de texto a anuncios
-        if (willEnableCommunity)
+        // Pasada B: con Comunidad (ya activa o recién activada) y los canales de Comunidad fijados, se crean foros y escenarios y los anuncios
+        // pasan de texto a anuncios (antes no: un canal que sigue siendo el de reglas/novedades de Comunidad no puede ser de anuncios)
+        if (willEnableCommunity || communityNow)
         {
             foreach (var c in enabledCats)
                 foreach (var ch in c.Channels)
                 {
                     var hard = NeedsCommunityHard(ch.Type);
-                    var soft = ch.Type == "announcement";
-                    if (hard && chanIds.TryGetValue(ch.Key, out var hid) && hid == null && canChannels)
+                    if (hard && willEnableCommunity && chanIds.TryGetValue(ch.Key, out var hid) && hid == null && canChannels)
                         Add("channels2", "channel", ch.Key, ch.Name, PlanOp.Create, $"channel.create_{ch.Type}", $"Se crea ({ch.Type}) una vez activada Comunidad", null, ch.Type);
-                    else if (soft && (!foundInfo.TryGetValue(ch.Key, out var fi) || fi == null || fi.Type == 0) && canChannels)
+                    else if (needsConvert.Contains(ch.Key) && canChannels)
                         Add("channels2", "channel", ch.Key, ch.Name, PlanOp.Convert, "channel.convert", "Pasa de texto a canal de anuncios", chanIds.TryGetValue(ch.Key, out var sid) ? sid : null);
                 }
         }
