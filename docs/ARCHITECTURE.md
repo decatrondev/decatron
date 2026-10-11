@@ -922,6 +922,15 @@ Plans (tiers `free`, `supporter`, `premium`, `fundador`) are assigned by `Suppor
 - **Expiry.** Monthly plans are prepaid periods, not subscriptions: when `tier_expires_at` passes, the user resolves to `free` again and nothing is charged. Permanent plans have no expiry date.
 - **Billing profile and receipts.** `GET`/`PUT /api/supporters/billing-profile`, `GET /api/supporters/billing-profile/ruc/{ruc}` (SUNAT lookup), and `GET /api/supporters/my-invoices` with `.../download/{pdf|xml|cdr}`; the same profile is used by credit purchases.
 
+### Kick platform
+
+Kick is a second platform next to Twitch. A Kick channel is its own row in `users` (`KickId`, tokens), and a Twitch and a Kick channel owned by the same person are grouped under one `Account`; overlays use the account's primary row (Twitch if it exists) so both platforms share one link and one configuration (see the multi-platform overlay pattern in `.dev`).
+
+- **Login and linking.** `GET /api/auth/kick/login` starts OAuth with PKCE (state and verifier in cookies on `.decatron.net`); `POST /api/auth/kick/link-start` links a Kick channel to the signed-in account and `POST /api/auth/kick/unlink` separates it. A channel that belongs to another account is rejected (`kick_already_linked`). The JWT is handed over through the generic `/api/auth/exchange`.
+- **Events.** On every Kick login `KickEventSubService` subscribes to `chat.message.sent` and `channel.reward.redemption.updated` (webhook method, Kick API `/public/v1/events/subscriptions`). `KickWebhookController` verifies the RSA signature (`Kick-Event-Signature`), then feeds chat messages to the overlay and to `CommandService` (the channel arrives as the numeric `KickId`) and reward redemptions to the sound alerts. Those two are the only events Kick sends; follows, subscriptions and raids are not received.
+- **Outgoing.** `MessageSenderRouter` decides per channel whether a reply goes to Twitch or to `KickConnector`, which posts to `/public/v1/chat` with the channel's own token. `KickApiService` also deletes messages, bans and unbans for moderation and lists channel rewards.
+- **Panel.** Overlays and features carry a `kickReady` or `kickVerified` flag; a Kick session shows the rest as "Próximamente en Kick". Commands without data on Kick (`followage`, `so`) or still to build (`title`, `game`) are marked in the default commands catalog.
+
 ## 8. External Integrations
 
 ```mermaid

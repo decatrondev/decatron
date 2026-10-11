@@ -923,6 +923,15 @@ Los planes (tiers `free`, `supporter`, `premium` y `fundador`) los asigna `Suppo
 - **Vencimiento.** Los planes mensuales son períodos prepagados, no suscripciones: cuando pasa `tier_expires_at`, el usuario vuelve a resolverse como `free` y no se cobra nada. Los permanentes no tienen fecha de fin.
 - **Perfil de facturación y comprobantes.** `GET`/`PUT /api/supporters/billing-profile`, `GET /api/supporters/billing-profile/ruc/{ruc}` (consulta a SUNAT) y `GET /api/supporters/my-invoices` con `.../download/{pdf|xml|cdr}`; el mismo perfil lo usan las compras de créditos.
 
+### Plataforma Kick
+
+Kick es una segunda plataforma junto a Twitch. Un canal de Kick es su propia fila en `users` (`KickId`, tokens), y un canal de Twitch y uno de Kick de la misma persona se agrupan bajo una `Account`; los overlays usan la fila principal de la cuenta (la de Twitch si existe) para que ambas plataformas compartan un enlace y una configuración (ver el patrón de overlays multiplataforma en `.dev`).
+
+- **Inicio de sesión y vinculación.** `GET /api/auth/kick/login` inicia OAuth con PKCE (estado y verificador en cookies de `.decatron.net`); `POST /api/auth/kick/link-start` vincula un canal de Kick a la cuenta con sesión iniciada y `POST /api/auth/kick/unlink` lo separa. Un canal que pertenece a otra cuenta se rechaza (`kick_already_linked`). El JWT se entrega mediante el genérico `/api/auth/exchange`.
+- **Eventos.** En cada inicio de sesión con Kick, `KickEventSubService` se suscribe a `chat.message.sent` y a `channel.reward.redemption.updated` (método webhook, API de Kick `/public/v1/events/subscriptions`). `KickWebhookController` verifica la firma RSA (`Kick-Event-Signature`) y entrega los mensajes del chat al overlay y a `CommandService` (el canal llega como el `KickId` numérico) y los canjes de recompensas a las alertas de sonido. Esos dos son los únicos eventos que Kick envía; no se reciben follows, suscripciones ni raids.
+- **Salida.** `MessageSenderRouter` decide por canal si una respuesta va a Twitch o a `KickConnector`, que publica en `/public/v1/chat` con el token del propio canal. `KickApiService` también borra mensajes, banea y desbanea para la moderación y lista las recompensas del canal.
+- **Panel.** Los overlays y las funciones llevan una marca `kickReady` o `kickVerified`; una sesión de Kick muestra el resto como «Próximamente en Kick». Los comandos sin datos en Kick (`followage`, `so`) o por construir (`title`, `game`) están marcados en el catálogo de comandos por defecto.
+
 ## 8. Integraciones externas
 
 ```mermaid

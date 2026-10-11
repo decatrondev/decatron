@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'credits' | 'plans' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'credits' | 'plans' | 'kick' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'credits', 'plans', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'credits', 'plans', 'kick', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -108,6 +108,8 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'credits-overview', scopes: pub, group: 'modules', path: 'credits', icon: Coins, color: 'yellow' },
 
     { id: 'plans-overview', scopes: pub, group: 'modules', path: 'plans', icon: Zap, color: 'yellow' },
+
+    { id: 'kick-overview', scopes: pub, group: 'modules', path: 'kick', icon: Radio, color: 'green' },
 
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
@@ -178,6 +180,10 @@ export const DOC_PAGES: DocPage[] = [
     // — Planes y apoyo: manual con cuenta —
     { id: 'plans-buy', scopes: priv, group: 'plans', path: 'plans/buy', icon: DollarSign, color: 'yellow' },
     { id: 'plans-plans', scopes: priv, group: 'plans', path: 'plans/plans', icon: Sparkles, color: 'yellow' },
+
+    // — Kick: manual con cuenta —
+    { id: 'kick-connect', scopes: priv, group: 'kick', path: 'kick/connect', icon: Plug, color: 'green' },
+    { id: 'kick-features', scopes: priv, group: 'kick', path: 'kick/features', icon: Grid, color: 'green' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

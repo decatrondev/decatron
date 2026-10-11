@@ -196,7 +196,7 @@ export default function Dashboard() {
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-black text-ds-text mb-1">Tu cuenta de Kick ya está lista</h3>
-                                <p className="text-sm text-ds-soft">El bot para Kick todavía está en desarrollo — comandos, moderación y overlays llegan pronto a este panel.</p>
+                                <p className="text-sm text-ds-soft">Los comandos y varios overlays ya funcionan en Kick (chat en pantalla, alertas de sonido, Song Request y más); el resto se habilita poco a poco.</p>
                             </div>
                         </div>
                     </div>

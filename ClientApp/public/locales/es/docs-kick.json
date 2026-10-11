@@ -1,0 +1,230 @@
+{
+  "overview": {
+    "title": "Decatron en Kick",
+    "subtitle": "Qué funciona en Kick, cómo conectarlo y cómo se combina con Twitch",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron funciona en Twitch y en Kick. Puedes entrar con tu cuenta de Kick, o vincular tu canal de Kick a tu cuenta de Twitch para tener un solo lugar donde ver todo. El bot lee el chat de Kick, responde comandos y escribe en tu chat."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Kick es más reciente en Decatron que Twitch: algunas funciones todavía no están disponibles o dependen de datos que la API de Kick no ofrece. El manual con cuenta tiene la tabla completa y se actualiza a medida que se habilitan."
+          }
+        ]
+      },
+      {
+        "id": "funciona",
+        "title": "Lo que ya funciona",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Comandos por defecto y personalizados en el chat de Kick.",
+              "Chat en pantalla, con Twitch y Kick juntos o por separado.",
+              "Alertas de sonido con las recompensas de puntos de Kick.",
+              "Song Request, con la misma cola que Twitch.",
+              "Moderación del chat, con algunas diferencias.",
+              "Fortnite Spirits, con una sola colección para tus dos canales."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, el manual para conectar Kick y la tabla de funciones están en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "kick-connect"
+          }
+        ]
+      }
+    ]
+  },
+  "connect": {
+    "title": "Kick: conectar y vincular",
+    "subtitle": "Entrar con Kick, vincularlo a tu cuenta de Twitch y qué pasa al desvincular",
+    "sections": [
+      {
+        "id": "entrar",
+        "title": "Entrar con Kick",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pantalla de inicio de sesión elige Kick: Decatron te manda a Kick para que autorices la app y vuelves con la sesión iniciada. La primera vez se crea tu cuenta en el plan gratuito. Al autorizar, Decatron se suscribe a los eventos del chat de tu canal y a los canjes de tus recompensas de puntos; sin la suscripción de chat, Kick no le envía los mensajes al bot."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Cada vez que inicias sesión con Kick se reconfirman las suscripciones. Si algo deja de llegar, cerrar la sesión y volver a entrar suele arreglarlo."
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "Vincular Kick a tu cuenta de Twitch",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Inicia sesión con Twitch y entra a Ajustes → Cuenta.",
+              "En la fila de Kick pulsa «Vincular Kick» y autoriza en Kick.",
+              "Al volver, la fila muestra «Vinculado» con tu usuario de Kick."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Lo mismo funciona al revés: si entraste con Kick, puedes vincular tu canal de Twitch desde la misma pantalla."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Un canal de Kick solo puede estar vinculado a una cuenta. Si ya pertenece a otra, la vinculación se rechaza con el aviso «kick_already_linked»."
+          }
+        ]
+      },
+      {
+        "id": "cuenta",
+        "title": "Qué se comparte al vincular",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada canal sigue siendo un canal propio, pero ambos quedan agrupados bajo la misma cuenta. Se comparten:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "La colección de Fortnite Spirits (una sola).",
+              "Los overlays: un solo enlace por módulo. La configuración se guarda en el canal principal de la cuenta (el de Twitch si existe) y el chat en pantalla reúne ambas plataformas."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Si tienes los dos canales vinculados, el selector de canal de la barra superior del panel te deja cambiar entre ellos."
+          }
+        ]
+      },
+      {
+        "id": "desvincular",
+        "title": "Desvincular",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Ajustes → Cuenta, el botón «Desvincular» de cada canal avisa: «El canal sigue existiendo, solo deja de estar agrupado con esta cuenta». Funciona igual desde una sesión de Twitch (para Kick) y desde una de Kick (para Twitch)."
+          }
+        ]
+      },
+      {
+        "id": "bot",
+        "title": "Cómo habla el bot en Kick",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El bot lee los mensajes de tu chat de Kick y envía sus respuestas a través de la API de Kick con la autorización que diste al conectar. Si la autorización caduca o se revoca en Kick, el bot deja de poder escribir hasta que vuelvas a iniciar sesión con Kick."
+          }
+        ]
+      }
+    ]
+  },
+  "features": {
+    "title": "Kick: qué funciona y qué no",
+    "subtitle": "La tabla de funciones en Kick y sus diferencias con Twitch",
+    "sections": [
+      {
+        "id": "panel",
+        "title": "Cómo lo ves en el panel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con una sesión de Kick, las tarjetas de Overlays y de Funciones que todavía no están verificadas para Kick aparecen atenuadas con la etiqueta «Próximamente en Kick». El panel de Comandos y Créditos están disponibles. Moderación, Discord y Analytics se muestran en el menú solo si tu cuenta tiene acceso de Twitch."
+          }
+        ]
+      },
+      {
+        "id": "tabla",
+        "title": "Tabla de funciones",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Función",
+              "En Kick",
+              "Notas"
+            ],
+            "rows": [
+              [
+                "Comandos por defecto y personalizados",
+                "Sí",
+                "`!title` y `!game` aparecen como «Próximamente en Kick»; `!followage` y `!so` como «No disponible en Kick»."
+              ],
+              [
+                "Chat en pantalla",
+                "Sí",
+                "Los mensajes borrados y los usuarios baneados no se quitan solos del overlay."
+              ],
+              [
+                "Alertas de sonido",
+                "Sí",
+                "Se activan con las recompensas de puntos de Kick."
+              ],
+              [
+                "Song Request",
+                "Sí",
+                "Misma cola que Twitch; los viewers piden desde el chat o iniciando sesión con Twitch o Kick."
+              ],
+              [
+                "Overlays de juegos, Partida en vivo y Mascota",
+                "Sí",
+                "Marcados como listos para Kick en el panel."
+              ],
+              [
+                "Moderación",
+                "Sí, con diferencias",
+                "Sin modo pánico ni filtro de cuentas nuevas, sin Lead Moderator. Se sanciona con la autorización del streamer."
+              ],
+              [
+                "Fortnite Spirits",
+                "Sí",
+                "La colección es de la persona, compartida entre Twitch y Kick."
+              ],
+              [
+                "Alertas de eventos (follows, subs, raids)",
+                "Todavía no",
+                "Decatron solo recibe de Kick los mensajes del chat y los canjes de recompensas."
+              ],
+              [
+                "Otras funciones del panel",
+                "Próximamente",
+                "Se habilitan una por una, tras verificar cada una con Kick."
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "moderation-overview"
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Por qué hay diferencias",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Kick ofrece una API pública más pequeña que la de Twitch. Decatron solo recibe de Kick dos tipos de eventos —los mensajes del chat y los canjes de recompensas de puntos— y puede enviar mensajes, borrar mensajes y sancionar. Lo que la API no entrega (seguidores y desde cuándo, clips, modos del chat, antigüedad de las cuentas) no se puede ofrecer en Kick. Lo que sí tiene la API pero aún no está construido se marca «Próximamente en Kick»."
+          }
+        ]
+      }
+    ]
+  }
+}

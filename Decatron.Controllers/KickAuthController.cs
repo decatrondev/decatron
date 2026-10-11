@@ -327,8 +327,14 @@ namespace Decatron.Controllers
                 // Sin esto, Kick nunca nos manda el chat — cada login/relogin
                 // reconfirma la suscripcion, mismo criterio que ya usa el login de
                 // Twitch con EventSub. No bloquea el redirect si falla.
+                // Lo mismo para los canjes de recompensas de puntos: sin esta suscripcion las
+                // Sound Alerts de Kick nunca se enteran de un canje (antes solo se podia pedir a
+                // mano con POST /api/auth/kick/subscribe-rewards).
                 if (!string.IsNullOrEmpty(tokenData?.AccessToken))
+                {
                     _ = _kickEventSubService.SubscribeAsync(kickId, tokenData.AccessToken, "chat.message.sent");
+                    _ = _kickEventSubService.SubscribeAsync(kickId, tokenData.AccessToken, "channel.reward.redemption.updated");
+                }
 
                 if (isNewUser && !linkToUserId.HasValue)
                 {
