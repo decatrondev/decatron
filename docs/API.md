@@ -71,9 +71,9 @@ Authorization: Bearer <OAUTH_ACCESS_TOKEN>
 
 | Category | Scopes |
 |----------|--------|
-| Read | `read:profile`, `read:timer`, `read:commands`, `read:alerts`, `read:giveaways`, `read:goals`, `read:analytics`, `read:sounds`, `read:games`, `read:stream` |
-| Write | `write:timer`, `write:commands`, `write:alerts`, `write:giveaways`, `write:goals`, `write:sounds` |
-| Action | `action:timer`, `action:alerts`, `action:chat`, `action:giveaway`, `action:goals`, `action:sounds`, `action:category`, `action:title`, `action:marker` |
+| Read | `read:profile`, `read:timer`, `read:commands`, `read:alerts`, `read:giveaways`, `read:analytics`, `read:sounds`, `read:games`, `read:stream` |
+| Write | `write:timer`, `write:commands`, `write:alerts`, `write:giveaways`, `write:sounds` |
+| Action | `action:timer`, `action:alerts`, `action:chat`, `action:giveaway`, `action:sounds`, `action:category`, `action:title`, `action:marker` |
 
 `action:chat` requires app verification.
 
@@ -638,18 +638,6 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/global-emotes/me` | JWT |
 | `POST` | `/api/global-emotes/request` | JWT |
 | `GET` | `/api/public/global-emotes` | Public |
-
-### Goals
-
-| Method | Route | Access |
-|---|---|---|
-| `GET` | `/api/Goals/config` | JWT + `overlays` |
-| `POST` | `/api/Goals/config` | JWT + `overlays` |
-| `GET` | `/api/Goals/config/overlay/{channelName}` | JWT |
-| `GET` | `/api/Goals/history` | JWT + `overlays` |
-| `POST` | `/api/Goals/{goalId}/progress` | JWT + `overlays` |
-| `POST` | `/api/Goals/{goalId}/reset` | JWT + `overlays` |
-| `POST` | `/api/Goals/{goalId}/set` | JWT + `overlays` |
 
 ### Kick Auth
 

@@ -177,5 +177,9 @@
     "accessLevel": {
       "title": "Your access level"
     }
+  },
+  "channelSwitch": {
+    "current": "Configuring now",
+    "switch": "Configure this one"
   }
 }

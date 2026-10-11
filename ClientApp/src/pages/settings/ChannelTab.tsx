@@ -25,14 +25,14 @@ export default function ChannelTab({ s }: { s: SettingsCtx }) {
                             description={ch.hasKick ? 'Kick' : 'Twitch'}
                         >
                             {ch.isCurrent ? (
-                                <span className="text-sm 4xl:text-base font-bold text-ds-accent-text px-3 py-1.5">Configurando ahora</span>
+                                <span className="text-sm 4xl:text-base font-bold text-ds-accent-text px-3 py-1.5">{t('settings:channelSwitch.current')}</span>
                             ) : (
                                 <button
                                     onClick={() => switchToChannel(ch.id)}
                                     disabled={switchingChannel}
                                     className="ds-btn ds-btn--primary"
                                 >
-                                    Configurar este
+                                    {t('settings:channelSwitch.switch')}
                                 </button>
                             )}
                         </SettingsRow>
