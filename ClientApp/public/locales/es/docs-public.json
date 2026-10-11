@@ -1,0 +1,330 @@
+{
+  "about": {
+    "tagline": "El bot para Twitch y Kick más completo para streamers",
+    "intro": "Decatron es una plataforma todo-en-uno que te permite gestionar comandos, overlays, alertas, sorteos y mucho más. Diseñado por streamers, para streamers.",
+    "start": "Comenzar ahora",
+    "seeAll": "Ver todas las features",
+    "audienceTitle": "¿Para quién es Decatron?",
+    "audienceIntro": "Decatron está diseñado para streamers de Twitch y Kick que buscan:",
+    "audience": [
+      {
+        "t": "Streamers principiantes",
+        "d": "Interfaz intuitiva y comandos listos para usar desde el primer día"
+      },
+      {
+        "t": "Streamers avanzados",
+        "d": "Sistema de scripting potente para crear comandos complejos"
+      },
+      {
+        "t": "Creadores de contenido",
+        "d": "Overlays personalizables y alertas profesionales"
+      },
+      {
+        "t": "Comunidades activas",
+        "d": "Sorteos y herramientas de engagement"
+      }
+    ],
+    "featuresTitle": "Principales características",
+    "features": [
+      {
+        "t": "Comandos inteligentes",
+        "d": "Variables dinámicas, scripting avanzado y micro comandos para automatizar tu chat"
+      },
+      {
+        "t": "Timer profesional",
+        "d": "Temporizadores con overlay, alertas, barras de progreso y eventos automáticos"
+      },
+      {
+        "t": "Sorteos y Giveaways",
+        "d": "Sistema completo de sorteos con requisitos, pesos e historial"
+      },
+      {
+        "t": "Alertas de eventos",
+        "d": "Notificaciones personalizadas para follows, subs, raids, bits y más"
+      },
+      {
+        "t": "Shoutouts automáticos",
+        "d": "Muestra información de canales con clip preview y estadísticas"
+      },
+      {
+        "t": "Moderación inteligente",
+        "d": "Filtros de palabras, sistema de strikes y acciones automáticas"
+      },
+      {
+        "t": "Decatron IA",
+        "d": "Pregunta a la IA con !ia en el chat, y conversa con ella desde tu dashboard"
+      }
+    ],
+    "ctaTitle": "¿Listo para empezar?",
+    "ctaText": "Conecta tu cuenta de Twitch o de Kick y comienza a usar Decatron en minutos. El bot, los comandos y los overlays son gratis, sin tarjeta de crédito.",
+    "ctaButton": "Conectar con Twitch o Kick"
+  },
+  "features": {
+    "title": "Todas las features de Decatron",
+    "subtitle": "Explora todas las herramientas disponibles para potenciar tu stream.",
+    "sCommands": "Sistema de comandos",
+    "sMain": "Features principales",
+    "sTools": "Herramientas",
+    "dashboard": "Dashboard",
+    "seeDocs": "Ver documentación",
+    "ctaTitle": "¿Listo para probar Decatron?",
+    "ctaText": "Conecta tu cuenta de Twitch o de Kick y empieza a usar todas estas features en minutos.",
+    "ctaButton": "Comenzar gratis",
+    "cards": {
+      "default": {
+        "t": "Comandos por defecto",
+        "d": "Comandos listos para usar: !game, !title, !so, !followage y muchos más. Configurables y con permisos personalizados."
+      },
+      "custom": {
+        "t": "Comandos personalizados",
+        "d": "Crea tus propios comandos con variables dinámicas. Usa $(user), $(game), $(uptime) y más para respuestas inteligentes."
+      },
+      "micro": {
+        "t": "Micro comandos",
+        "d": "Atajos de chat para cambiar la categoría del stream. Escribes !apex y el stream pasa a Apex Legends."
+      },
+      "scripting": {
+        "t": "Scripts avanzados",
+        "d": "Crea comandos con lógica condicional, bucles y variables. El sistema de scripting más potente para bots de Twitch."
+      },
+      "timer": {
+        "t": "Timer / Countdown",
+        "d": "Temporizadores profesionales con overlay, barras de progreso, alertas de finalización y eventos automáticos."
+      },
+      "eventAlerts": {
+        "t": "Alertas de eventos",
+        "d": "Notificaciones visuales y de audio para follows, subs, bits, raids y más. Sistema de niveles y variantes."
+      },
+      "giveaway": {
+        "t": "Sorteos / Giveaways",
+        "d": "Sorteos con requisitos de participación, pesos que suben la probabilidad de ganar e historial."
+      },
+      "sound": {
+        "t": "Sound Alerts",
+        "d": "Asigna un sonido, video o imagen a cada recompensa de puntos del canal (Twitch y Kick)."
+      },
+      "tips": {
+        "t": "Donaciones / Tips",
+        "d": "Recibe donaciones con PayPal. Página personalizable, alertas e integración con el timer."
+      },
+      "shoutout": {
+        "t": "Shoutouts",
+        "d": "Muestra información de otros canales con preview de su último clip y estadísticas."
+      },
+      "moderation": {
+        "t": "Moderación",
+        "d": "Palabras prohibidas, enlaces, spam, modo pánico y strikes en Twitch y Kick, con comandos para tus mods e historial con deshacer."
+      },
+      "ai": {
+        "t": "Decatron IA",
+        "d": "El comando !ia responde preguntas en tu chat, y Decatron Chat te deja conversar con la IA desde el dashboard."
+      },
+      "analytics": {
+        "t": "Analytics",
+        "d": "Eventos del timer, acciones de moderación, cambios de juego y título, mensajes del chat, followers y tips, con exportación a CSV."
+      },
+      "followers": {
+        "t": "Seguidores",
+        "d": "Lista de seguidores sincronizada con Twitch, con unfollows, retornados, búsqueda y filtros."
+      }
+    }
+  },
+  "start": {
+    "title": "Cómo empezar con Decatron",
+    "subtitle": "En solo 5 minutos tendrás tu bot configurado y funcionando en tu canal de Twitch o de Kick.",
+    "reqTitle": "Requisitos previos",
+    "req": [
+      "Una cuenta de Twitch o de Kick (streamer o creador)",
+      "Navegador web moderno (Chrome, Firefox, Edge, Safari)",
+      "OBS Studio o similar (para overlays)"
+    ],
+    "optional": "Opcional",
+    "stepsTitle": "Guía paso a paso",
+    "s1": {
+      "t": "Inicia sesión con Twitch o Kick",
+      "d": "Haz clic en el botón de inicio de sesión y autoriza a Decatron para acceder a tu cuenta.",
+      "btn": "Iniciar sesión",
+      "note": "Decatron solo solicita los permisos necesarios para funcionar. Puedes revocar el acceso en cualquier momento desde tu cuenta de Twitch o de Kick."
+    },
+    "s2": {
+      "t": "Configura tu bot",
+      "d": "Una vez conectado, serás redirigido al dashboard donde podrás personalizar tu bot.",
+      "items": [
+        {
+          "t": "Comandos por defecto",
+          "d": "Activa o desactiva comandos como !game, !title, !so"
+        },
+        {
+          "t": "Interruptor del bot",
+          "d": "Activa o apaga el bot en tu canal desde Ajustes → Canal y bot"
+        },
+        {
+          "t": "Idioma",
+          "d": "Selecciona el idioma de la interfaz y de los mensajes del bot"
+        },
+        {
+          "t": "Permisos",
+          "d": "Configura quién puede usar cada comando"
+        }
+      ]
+    },
+    "s3": {
+      "t": "Prueba el comando !title",
+      "d": "Ve a tu chat de Twitch y escribe el comando para verificar que el bot está funcionando (cambiar el título todavía no está disponible en Kick).",
+      "command": "Comando:",
+      "response": "Respuesta:",
+      "copy": "Copiar comando",
+      "ok": "Título actual: Mi primer stream con Decatron",
+      "alertTitle": "¡El bot responde!",
+      "alert": "Si ves la respuesta en el chat, ¡felicidades! Tu bot está configurado correctamente."
+    },
+    "s4": {
+      "t": "Agrega tu primer overlay",
+      "d": "Los overlays son elementos visuales que puedes agregar a tu stream en OBS.",
+      "intro": "Para agregar el overlay del timer a OBS:",
+      "steps": [
+        "Abre OBS Studio y ve a la escena donde quieres el overlay",
+        "Haz clic en «+» en Fuentes y selecciona «Navegador»",
+        "Copia la URL del overlay desde tu dashboard",
+        "Pega la URL en OBS y ajusta el tamaño (el que indique el panel; 1920x1080 en la mayoría)"
+      ],
+      "tipTitle": "Consejo",
+      "tip": "Activa «Actualizar navegador cuando la escena se active» para que el overlay se refresque automáticamente."
+    },
+    "nextTitle": "Siguiente paso",
+    "next": "Ya tienes lo básico configurado. Ahora explora todas las features que Decatron tiene para ofrecer.",
+    "nextFeatures": "Ver todas las features",
+    "nextCommands": "Comandos por defecto"
+  },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "subtitle": "Respuestas a las dudas más comunes sobre Decatron",
+    "guide": "Ver guía completa",
+    "tipTitle": "Consejo",
+    "ctaTitle": "¿No encontraste lo que buscabas?",
+    "ctaText": "Revisa la documentación completa o contáctanos directamente.",
+    "ctaButton": "Ver documentación",
+    "sections": [
+      {
+        "title": "General",
+        "items": [
+          {
+            "q": "¿Qué es Decatron?",
+            "a": "Decatron es un bot para Twitch y Kick todo-en-uno que te permite gestionar comandos, overlays, alertas, sorteos y mucho más. Está diseñado para ser fácil de usar pero con opciones avanzadas para streamers experimentados."
+          },
+          {
+            "q": "¿Es gratis?",
+            "a": "El bot, los comandos y los overlays son gratis. Las funciones que tienen un costo real para la plataforma (IA, voz premium, traducción en vivo, coach de LoL) se pagan con créditos, y los planes de apoyo solo amplían cantidades (más cuentas, más variantes, más refresco); nunca bloquean funciones."
+          },
+          {
+            "q": "¿Qué navegadores son compatibles?",
+            "a": "Decatron funciona en todos los navegadores modernos: Chrome, Firefox, Edge, Safari y Opera. Recomendamos usar la última versión de tu navegador para la mejor experiencia."
+          }
+        ]
+      },
+      {
+        "title": "Conexión y configuración",
+        "items": [
+          {
+            "q": "¿Cómo conecto el bot a mi canal?",
+            "intro": "Conectar Decatron a tu canal es muy sencillo:",
+            "steps": [
+              "Haz clic en «Iniciar sesión» en la página principal",
+              "Autoriza a Decatron con tu cuenta de Twitch o de Kick",
+              "El bot se conectará automáticamente a tu canal"
+            ],
+            "link": {
+              "to": "/docs/getting-started"
+            }
+          },
+          {
+            "q": "¿Puedo usar el bot en múltiples canales?",
+            "a": "Una cuenta de Decatron puede unir tu canal de Twitch y el de Kick y cambiar entre ellos desde Ajustes. Si otra persona te da acceso a su canal, también puedes configurarlo desde tu cuenta con el nivel que ella te asigne."
+          }
+        ]
+      },
+      {
+        "title": "Comandos",
+        "items": [
+          {
+            "q": "El bot no responde a comandos, ¿qué hago?",
+            "intro": "Si el bot no responde, verifica lo siguiente:",
+            "steps": [
+              "Asegúrate de que has iniciado sesión y el bot está conectado (indicador verde en el dashboard)",
+              "Verifica que el comando existe y está habilitado",
+              "Comprueba que tienes los permisos necesarios para usar ese comando",
+              "Revisa que no haya un cooldown activo"
+            ],
+            "tip": "Prueba el comando !title en el chat (si eres moderador o el streamer). Si no responde, hay un problema de conexión."
+          },
+          {
+            "q": "¿Cómo creo un comando personalizado?",
+            "intro": "Para crear un comando personalizado:",
+            "steps": [
+              "Ve a Comandos → Personalizados en el dashboard",
+              "Haz clic en «Nuevo comando»",
+              "Escribe el nombre del comando (sin el !)",
+              "Escribe la respuesta usando variables si lo deseas",
+              "Configura permisos y cooldown",
+              "Guarda el comando"
+            ],
+            "link": {
+              "to": "/docs/commands/custom",
+              "label": "Ver documentación de comandos"
+            }
+          },
+          {
+            "q": "¿Qué variables puedo usar en los comandos?",
+            "a": "Decatron tiene muchas variables disponibles como $(user), $(game), $(title), $(uptime), $(followage) y más. Cada variable se reemplaza automáticamente por su valor en tiempo real.",
+            "link": {
+              "to": "/docs/variables",
+              "label": "Ver todas las variables"
+            }
+          }
+        ]
+      },
+      {
+        "title": "Overlays",
+        "items": [
+          {
+            "q": "¿Cómo agrego overlays a OBS?",
+            "intro": "Para agregar un overlay a OBS:",
+            "steps": [
+              "Abre OBS Studio",
+              "En la escena donde quieres el overlay, haz clic en «+» en Fuentes",
+              "Selecciona «Navegador»",
+              "Dale un nombre y haz clic en OK",
+              "Copia la URL del overlay desde tu dashboard",
+              "Pega la URL en el campo «URL»",
+              "Ajusta el ancho y alto (el que indique el panel de ese overlay; 1920x1080 en la mayoría)",
+              "Haz clic en OK"
+            ],
+            "note": "Los overlays tienen fondo transparente, así que puedes colocarlos sobre tu escena."
+          },
+          {
+            "q": "Los overlays no se actualizan, ¿qué hago?",
+            "intro": "Si los overlays no se actualizan:",
+            "steps": [
+              "Haz clic derecho en la fuente del navegador en OBS",
+              "Selecciona «Actualizar»",
+              "Si el problema persiste, selecciona «Propiedades» y activa «Actualizar navegador cuando la escena se active»"
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Soporte",
+        "items": [
+          {
+            "q": "¿Cómo reporto un bug?",
+            "a": "Puedes reportar bugs creando un issue en el repositorio de GitHub. Incluye todos los detalles posibles: qué estabas haciendo, qué esperabas que pasara y qué pasó realmente."
+          },
+          {
+            "q": "¿Dónde puedo pedir nuevas features?",
+            "a": "Las sugerencias de features son bienvenidas como issues en GitHub. Revisamos todas las sugerencias y priorizamos las más pedidas por la comunidad."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,330 @@
+{
+  "about": {
+    "tagline": "The most complete bot for Twitch and Kick streamers",
+    "intro": "Decatron is an all-in-one platform that lets you manage commands, overlays, alerts, giveaways and much more. Designed by streamers, for streamers.",
+    "start": "Get started",
+    "seeAll": "See all features",
+    "audienceTitle": "Who is Decatron for?",
+    "audienceIntro": "Decatron is designed for Twitch and Kick streamers who want:",
+    "audience": [
+      {
+        "t": "Beginner streamers",
+        "d": "An intuitive interface and ready-to-use commands from day one"
+      },
+      {
+        "t": "Advanced streamers",
+        "d": "A powerful scripting system to build complex commands"
+      },
+      {
+        "t": "Content creators",
+        "d": "Customizable overlays and professional alerts"
+      },
+      {
+        "t": "Active communities",
+        "d": "Giveaways and engagement tools"
+      }
+    ],
+    "featuresTitle": "Main features",
+    "features": [
+      {
+        "t": "Smart commands",
+        "d": "Dynamic variables, advanced scripting and micro commands to automate your chat"
+      },
+      {
+        "t": "Professional timer",
+        "d": "Timers with overlay, alerts, progress bars and automatic events"
+      },
+      {
+        "t": "Raffles and giveaways",
+        "d": "A complete raffle system with requirements, weights and history"
+      },
+      {
+        "t": "Event alerts",
+        "d": "Custom notifications for follows, subs, raids, bits and more"
+      },
+      {
+        "t": "Automatic shoutouts",
+        "d": "Show channel information with a clip preview and statistics"
+      },
+      {
+        "t": "Smart moderation",
+        "d": "Word filters, a strike system and automatic actions"
+      },
+      {
+        "t": "Decatron AI",
+        "d": "Ask the AI with !ia in the chat, and talk with it from your dashboard"
+      }
+    ],
+    "ctaTitle": "Ready to get started?",
+    "ctaText": "Connect your Twitch or Kick account and start using Decatron in minutes. The bot, the commands and the overlays are free, with no credit card.",
+    "ctaButton": "Connect with Twitch or Kick"
+  },
+  "features": {
+    "title": "All of Decatron's features",
+    "subtitle": "Explore all the tools available to boost your stream.",
+    "sCommands": "Command system",
+    "sMain": "Main features",
+    "sTools": "Tools",
+    "dashboard": "Dashboard",
+    "seeDocs": "See documentation",
+    "ctaTitle": "Ready to try Decatron?",
+    "ctaText": "Connect your Twitch or Kick account and start using all these features in minutes.",
+    "ctaButton": "Start for free",
+    "cards": {
+      "default": {
+        "t": "Default commands",
+        "d": "Ready-to-use commands: !game, !title, !so, !followage and many more. Configurable, with custom permissions."
+      },
+      "custom": {
+        "t": "Custom commands",
+        "d": "Create your own commands with dynamic variables. Use $(user), $(game), $(uptime) and more for smart replies."
+      },
+      "micro": {
+        "t": "Micro commands",
+        "d": "Chat shortcuts to change the stream category. You type !apex and the stream switches to Apex Legends."
+      },
+      "scripting": {
+        "t": "Advanced scripts",
+        "d": "Create commands with conditional logic, loops and variables. The most powerful scripting system for Twitch bots."
+      },
+      "timer": {
+        "t": "Timer / Countdown",
+        "d": "Professional timers with overlay, progress bars, completion alerts and automatic events."
+      },
+      "eventAlerts": {
+        "t": "Event alerts",
+        "d": "Visual and audio notifications for follows, subs, bits, raids and more. Level and variant system."
+      },
+      "giveaway": {
+        "t": "Raffles / Giveaways",
+        "d": "Raffles with participation requirements, weights that raise the chance of winning and history."
+      },
+      "sound": {
+        "t": "Sound Alerts",
+        "d": "Assign a sound, video or image to each channel points reward (Twitch and Kick)."
+      },
+      "tips": {
+        "t": "Donations / Tips",
+        "d": "Receive donations with PayPal. Customizable page, alerts and timer integration."
+      },
+      "shoutout": {
+        "t": "Shoutouts",
+        "d": "Show information about other channels with a preview of their latest clip and statistics."
+      },
+      "moderation": {
+        "t": "Moderation",
+        "d": "Banned words, links, spam, panic mode and strikes on Twitch and Kick, with commands for your mods and a history with undo."
+      },
+      "ai": {
+        "t": "Decatron AI",
+        "d": "The !ia command answers questions in your chat, and Decatron Chat lets you talk with the AI from the dashboard."
+      },
+      "analytics": {
+        "t": "Analytics",
+        "d": "Timer events, moderation actions, game and title changes, chat messages, followers and tips, with CSV export."
+      },
+      "followers": {
+        "t": "Followers",
+        "d": "Follower list synced with Twitch, with unfollows, returned followers, search and filters."
+      }
+    }
+  },
+  "start": {
+    "title": "Getting started with Decatron",
+    "subtitle": "In just 5 minutes you will have your bot set up and running on your Twitch or Kick channel.",
+    "reqTitle": "Requirements",
+    "req": [
+      "A Twitch or Kick account (streamer or creator)",
+      "A modern web browser (Chrome, Firefox, Edge, Safari)",
+      "OBS Studio or similar (for overlays)"
+    ],
+    "optional": "Optional",
+    "stepsTitle": "Step-by-step guide",
+    "s1": {
+      "t": "Sign in with Twitch or Kick",
+      "d": "Click the sign-in button and authorize Decatron to access your account.",
+      "btn": "Sign in",
+      "note": "Decatron only requests the permissions it needs to work. You can revoke access at any time from your Twitch or Kick account."
+    },
+    "s2": {
+      "t": "Set up your bot",
+      "d": "Once connected, you will be redirected to the dashboard where you can customize your bot.",
+      "items": [
+        {
+          "t": "Default commands",
+          "d": "Turn commands like !game, !title, !so on or off"
+        },
+        {
+          "t": "Bot switch",
+          "d": "Turn the bot on or off in your channel from Settings → Channel and bot"
+        },
+        {
+          "t": "Language",
+          "d": "Choose the language of the interface and of the bot's messages"
+        },
+        {
+          "t": "Permissions",
+          "d": "Set who can use each command"
+        }
+      ]
+    },
+    "s3": {
+      "t": "Try the !title command",
+      "d": "Go to your Twitch chat and type the command to check that the bot is working (changing the title is not available on Kick yet).",
+      "command": "Command:",
+      "response": "Response:",
+      "copy": "Copy command",
+      "ok": "Current title: My first stream with Decatron",
+      "alertTitle": "The bot answers!",
+      "alert": "If you see the answer in the chat, congratulations! Your bot is set up correctly."
+    },
+    "s4": {
+      "t": "Add your first overlay",
+      "d": "Overlays are visual elements you can add to your stream in OBS.",
+      "intro": "To add the timer overlay to OBS:",
+      "steps": [
+        "Open OBS Studio and go to the scene where you want the overlay",
+        "Click \"+\" in Sources and select \"Browser\"",
+        "Copy the overlay URL from your dashboard",
+        "Paste the URL in OBS and adjust the size (the one the panel shows; 1920x1080 for most)"
+      ],
+      "tipTitle": "Tip",
+      "tip": "Turn on \"Refresh browser when scene becomes active\" so the overlay refreshes automatically."
+    },
+    "nextTitle": "Next step",
+    "next": "You have the basics set up. Now explore all the features Decatron has to offer.",
+    "nextFeatures": "See all features",
+    "nextCommands": "Default commands"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Answers to the most common questions about Decatron",
+    "guide": "See the full guide",
+    "tipTitle": "Tip",
+    "ctaTitle": "Did not find what you were looking for?",
+    "ctaText": "Check the full documentation or contact us directly.",
+    "ctaButton": "See documentation",
+    "sections": [
+      {
+        "title": "General",
+        "items": [
+          {
+            "q": "What is Decatron?",
+            "a": "Decatron is an all-in-one bot for Twitch and Kick that lets you manage commands, overlays, alerts, giveaways and much more. It is designed to be easy to use, with advanced options for experienced streamers."
+          },
+          {
+            "q": "Is it free?",
+            "a": "The bot, the commands and the overlays are free. Features that have a real cost for the platform (AI, premium voice, live translation, LoL coach) are paid with credits, and the support plans only expand quantities (more accounts, more variants, faster refresh); they never lock features."
+          },
+          {
+            "q": "Which browsers are supported?",
+            "a": "Decatron works in all modern browsers: Chrome, Firefox, Edge, Safari and Opera. We recommend using the latest version of your browser for the best experience."
+          }
+        ]
+      },
+      {
+        "title": "Connection and setup",
+        "items": [
+          {
+            "q": "How do I connect the bot to my channel?",
+            "intro": "Connecting Decatron to your channel is very simple:",
+            "steps": [
+              "Click \"Sign in\" on the main page",
+              "Authorize Decatron with your Twitch or Kick account",
+              "The bot will connect to your channel automatically"
+            ],
+            "link": {
+              "to": "/docs/getting-started"
+            }
+          },
+          {
+            "q": "Can I use the bot on multiple channels?",
+            "a": "One Decatron account can join your Twitch channel and your Kick channel and switch between them from Settings. If someone gives you access to their channel, you can also configure it from your account with the level they assign you."
+          }
+        ]
+      },
+      {
+        "title": "Commands",
+        "items": [
+          {
+            "q": "The bot does not answer commands, what do I do?",
+            "intro": "If the bot does not answer, check the following:",
+            "steps": [
+              "Make sure you have signed in and the bot is connected (green indicator in the dashboard)",
+              "Check that the command exists and is enabled",
+              "Check that you have the permissions needed to use that command",
+              "Check that there is no active cooldown"
+            ],
+            "tip": "Try the !title command in the chat (if you are a moderator or the streamer). If it does not answer, there is a connection problem."
+          },
+          {
+            "q": "How do I create a custom command?",
+            "intro": "To create a custom command:",
+            "steps": [
+              "Go to Commands → Custom in the dashboard",
+              "Click \"New command\"",
+              "Type the command name (without the !)",
+              "Type the reply, using variables if you like",
+              "Set permissions and cooldown",
+              "Save the command"
+            ],
+            "link": {
+              "to": "/docs/commands/custom",
+              "label": "See the commands documentation"
+            }
+          },
+          {
+            "q": "Which variables can I use in commands?",
+            "a": "Decatron has many variables available such as $(user), $(game), $(title), $(uptime), $(followage) and more. Each variable is replaced automatically with its value in real time.",
+            "link": {
+              "to": "/docs/variables",
+              "label": "See all variables"
+            }
+          }
+        ]
+      },
+      {
+        "title": "Overlays",
+        "items": [
+          {
+            "q": "How do I add overlays to OBS?",
+            "intro": "To add an overlay to OBS:",
+            "steps": [
+              "Open OBS Studio",
+              "In the scene where you want the overlay, click \"+\" in Sources",
+              "Select \"Browser\"",
+              "Give it a name and click OK",
+              "Copy the overlay URL from your dashboard",
+              "Paste the URL in the \"URL\" field",
+              "Adjust the width and height (the one that overlay's panel shows; 1920x1080 for most)",
+              "Click OK"
+            ],
+            "note": "Overlays have a transparent background, so you can place them over your scene."
+          },
+          {
+            "q": "The overlays do not update, what do I do?",
+            "intro": "If the overlays do not update:",
+            "steps": [
+              "Right-click the browser source in OBS",
+              "Select \"Refresh\"",
+              "If the problem persists, select \"Properties\" and turn on \"Refresh browser when scene becomes active\""
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Support",
+        "items": [
+          {
+            "q": "How do I report a bug?",
+            "a": "You can report bugs by creating an issue in the GitHub repository. Include as many details as possible: what you were doing, what you expected to happen and what actually happened."
+          },
+          {
+            "q": "Where can I request new features?",
+            "a": "Feature suggestions are welcome as issues on GitHub. We review all suggestions and prioritize the ones the community asks for most."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,234 +1,75 @@
 import { HelpCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import DocAlert from '../../../components/docs/DocAlert';
+import { asArray } from '../../../components/docs/DocBlocks';
+
+// El texto vive en public/locales/{es,en}/docs-public.json → faq.
+interface FaqItem { q: string; a?: string; intro?: string; steps?: string[]; tip?: string; note?: string; link?: { to: string; label?: string } }
+interface FaqSection { title: string; items: FaqItem[] }
 
 export default function FAQ() {
+    const { t } = useTranslation('docs-public');
+    const sections = asArray<FaqSection>(t('faq.sections', { returnObjects: true }));
+
     return (
         <div className="space-y-8">
-            {/* Header */}
             <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
                         <HelpCircle className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-ds-text">
-                            Preguntas Frecuentes
-                        </h1>
-                        <p className="text-ds-soft">
-                            Respuestas a las dudas mas comunes sobre Decatron
-                        </p>
+                        <h1 className="text-4xl font-black text-ds-text">{t('faq.title')}</h1>
+                        <p className="text-ds-soft">{t('faq.subtitle')}</p>
                     </div>
                 </div>
             </div>
 
-            {/* FAQ Sections */}
-            <FAQSection title="General">
-                <FAQItem
-                    question="Que es Decatron?"
-                    answer="Decatron es un bot para Twitch y Kick todo-en-uno que te permite gestionar comandos, overlays, alertas, sorteos y mucho mas. Esta diseñado para ser facil de usar pero con opciones avanzadas para streamers experimentados."
-                />
-                <FAQItem
-                    question="Es gratis?"
-                    answer="El bot, los comandos y los overlays son gratis. Las funciones que tienen un costo real para la plataforma (IA, voz premium, traduccion en vivo, coach de LoL) se pagan con creditos, y los planes de apoyo solo amplian cantidades (mas cuentas, mas variantes, mas refresco); nunca bloquean funciones."
-                />
-                <FAQItem
-                    question="Que navegadores son compatibles?"
-                    answer="Decatron funciona en todos los navegadores modernos: Chrome, Firefox, Edge, Safari y Opera. Recomendamos usar la ultima version de tu navegador para la mejor experiencia."
-                />
-            </FAQSection>
-
-            <FAQSection title="Conexion y configuracion">
-                <FAQItem
-                    question="Como conecto el bot a mi canal?"
-                >
-                    <p className="mb-3">
-                        Conectar Decatron a tu canal es muy sencillo:
-                    </p>
-                    <ol className="list-decimal ml-4 space-y-2">
-                        <li>Haz clic en "Iniciar Sesion" en la pagina principal</li>
-                        <li>Autoriza a Decatron con tu cuenta de Twitch o de Kick</li>
-                        <li>El bot se conectara automaticamente a tu canal</li>
-                    </ol>
-                    <div className="mt-4">
-                        <Link
-                            to="/docs/getting-started"
-                            className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline"
-                        >
-                            Ver guia completa
-                            <ExternalLink className="w-4 h-4" />
-                        </Link>
+            {sections.map(s => (
+                <div key={s.title}>
+                    <h2 className="text-2xl font-black text-ds-text mb-4">{s.title}</h2>
+                    <div className="space-y-3">
+                        {asArray<FaqItem>(s.items).map(item => <Item key={item.q} item={item} guide={t('faq.guide')} tipTitle={t('faq.tipTitle')} />)}
                     </div>
-                </FAQItem>
-                <FAQItem
-                    question="Puedo usar el bot en multiples canales?"
-                    answer="Una cuenta de Decatron puede unir tu canal de Twitch y el de Kick y cambiar entre ellos desde Ajustes. Si otra persona te da acceso a su canal, tambien puedes configurarlo desde tu cuenta con el nivel que ella te asigne."
-                />
-            </FAQSection>
-
-            <FAQSection title="Comandos">
-                <FAQItem
-                    question="El bot no responde a comandos, que hago?"
-                >
-                    <p className="mb-3">Si el bot no responde, verifica lo siguiente:</p>
-                    <ol className="list-decimal ml-4 space-y-2">
-                        <li>Asegurate de que has iniciado sesion y el bot esta conectado (indicador verde en el dashboard)</li>
-                        <li>Verifica que el comando existe y esta habilitado</li>
-                        <li>Comprueba que tienes los permisos necesarios para usar ese comando</li>
-                        <li>Revisa que no haya un cooldown activo</li>
-                    </ol>
-                    <DocAlert type="tip" title="Consejo">
-                        Prueba el comando !title en el chat (si eres moderador o el streamer). Si no responde, hay un problema de conexion.
-                    </DocAlert>
-                </FAQItem>
-                <FAQItem
-                    question="Como creo un comando personalizado?"
-                >
-                    <p className="mb-3">
-                        Para crear un comando personalizado:
-                    </p>
-                    <ol className="list-decimal ml-4 space-y-2">
-                        <li>Ve a Comandos → Personalizados en el dashboard</li>
-                        <li>Haz clic en "Nuevo Comando"</li>
-                        <li>Escribe el nombre del comando (sin el !)</li>
-                        <li>Escribe la respuesta usando variables si lo deseas</li>
-                        <li>Configura permisos y cooldown</li>
-                        <li>Guarda el comando</li>
-                    </ol>
-                    <div className="mt-4">
-                        <Link
-                            to="/docs/commands/custom"
-                            className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline"
-                        >
-                            Ver documentacion de comandos
-                            <ExternalLink className="w-4 h-4" />
-                        </Link>
-                    </div>
-                </FAQItem>
-                <FAQItem
-                    question="Que variables puedo usar en los comandos?"
-                    answer="Decatron tiene muchas variables disponibles como $(user), $(game), $(title), $(uptime), $(followage) y mas. Cada variable se reemplaza automaticamente por su valor en tiempo real."
-                >
-                    <div className="mt-4">
-                        <Link
-                            to="/docs/variables"
-                            className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline"
-                        >
-                            Ver todas las variables
-                            <ExternalLink className="w-4 h-4" />
-                        </Link>
-                    </div>
-                </FAQItem>
-            </FAQSection>
-
-            <FAQSection title="Overlays">
-                <FAQItem
-                    question="Como agrego overlays a OBS?"
-                >
-                    <p className="mb-3">
-                        Para agregar un overlay a OBS:
-                    </p>
-                    <ol className="list-decimal ml-4 space-y-2">
-                        <li>Abre OBS Studio</li>
-                        <li>En la escena donde quieres el overlay, haz clic en "+" en Fuentes</li>
-                        <li>Selecciona "Navegador"</li>
-                        <li>Dale un nombre y haz clic en OK</li>
-                        <li>Copia la URL del overlay desde tu dashboard</li>
-                        <li>Pega la URL en el campo "URL"</li>
-                        <li>Ajusta el ancho y alto (1920x1080 recomendado para pantalla completa)</li>
-                        <li>Haz clic en OK</li>
-                    </ol>
-                    <DocAlert type="info">
-                        Los overlays tienen fondo transparente, asi que puedes colocarlos sobre tu escena.
-                    </DocAlert>
-                </FAQItem>
-                <FAQItem
-                    question="Los overlays no se actualizan, que hago?"
-                >
-                    <p className="mb-3">Si los overlays no se actualizan:</p>
-                    <ol className="list-decimal ml-4 space-y-2">
-                        <li>Haz clic derecho en la fuente del navegador en OBS</li>
-                        <li>Selecciona "Actualizar"</li>
-                        <li>Si el problema persiste, selecciona "Propiedades" y activa "Actualizar navegador cuando la escena se active"</li>
-                    </ol>
-                </FAQItem>
-            </FAQSection>
-
-            <FAQSection title="Soporte">
-                <FAQItem
-                    question="Como reporto un bug?"
-                    answer="Puedes reportar bugs creando un issue en el repositorio de GitHub. Incluye todos los detalles posibles: que estabas haciendo, que esperabas que pasara, y que paso realmente."
-                />
-                <FAQItem
-                    question="Donde puedo pedir nuevas features?"
-                    answer="Las sugerencias de features son bienvenidas como issues en GitHub. Revisamos todas las sugerencias y priorizamos las mas pedidas por la comunidad."
-                />
-            </FAQSection>
-
-            {/* Contact CTA */}
-            <div className="bg-ds-bg rounded-lg p-8 border border-ds-border text-center">
-                <h2 className="text-2xl font-black text-ds-text mb-4">
-                    No encontraste lo que buscabas?
-                </h2>
-                <p className="text-ds-soft mb-6">
-                    Revisa la documentacion completa o contactanos directamente.
-                </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                    <Link
-                        to="/docs"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
-                    >
-                        Ver documentacion
-                    </Link>
                 </div>
+            ))}
+
+            <div className="bg-ds-surface border border-ds-border rounded-lg p-8 text-center">
+                <h2 className="text-2xl font-black text-ds-text mb-4">{t('faq.ctaTitle')}</h2>
+                <p className="text-ds-soft mb-6">{t('faq.ctaText')}</p>
+                <Link to="/docs" className="ds-btn ds-btn--primary ds-btn--lg">{t('faq.ctaButton')}</Link>
             </div>
         </div>
     );
 }
 
-interface FAQSectionProps {
-    title: string;
-    children: React.ReactNode;
-}
-
-function FAQSection({ title, children }: FAQSectionProps) {
-    return (
-        <div>
-            <h2 className="text-2xl font-black text-ds-text mb-4">{title}</h2>
-            <div className="space-y-3">
-                {children}
-            </div>
-        </div>
-    );
-}
-
-interface FAQItemProps {
-    question: string;
-    answer?: string;
-    children?: React.ReactNode;
-}
-
-function FAQItem({ question, answer, children }: FAQItemProps) {
-    const [isOpen, setIsOpen] = useState(false);
-
+function Item({ item, guide, tipTitle }: { item: FaqItem; guide: string; tipTitle: string }) {
+    const [open, setOpen] = useState(false);
     return (
         <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-ds-bg transition-colors"
-            >
-                <span className="font-bold text-ds-text pr-4">{question}</span>
-                {isOpen ? (
-                    <ChevronUp className="w-5 h-5 text-ds-soft flex-shrink-0" />
-                ) : (
-                    <ChevronDown className="w-5 h-5 text-ds-soft flex-shrink-0" />
-                )}
+            <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between gap-4 p-5 text-left">
+                <span className="font-bold text-ds-text">{item.q}</span>
+                {open ? <ChevronUp className="w-5 h-5 text-ds-soft flex-shrink-0" /> : <ChevronDown className="w-5 h-5 text-ds-soft flex-shrink-0" />}
             </button>
-            {isOpen && (
-                <div className="px-4 pb-4 text-ds-soft">
-                    {answer && <p>{answer}</p>}
-                    {children}
+            {open && (
+                <div className="px-5 pb-5 text-ds-soft space-y-3">
+                    {item.a && <p>{item.a}</p>}
+                    {item.intro && <p>{item.intro}</p>}
+                    {item.steps && (
+                        <ol className="list-decimal ml-4 space-y-2">
+                            {asArray<string>(item.steps).map(x => <li key={x}>{x}</li>)}
+                        </ol>
+                    )}
+                    {item.tip && <DocAlert type="tip" title={tipTitle}>{item.tip}</DocAlert>}
+                    {item.note && <DocAlert type="info">{item.note}</DocAlert>}
+                    {item.link && (
+                        <Link to={item.link.to} className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline">
+                            {item.link.label || guide}
+                            <ExternalLink className="w-4 h-4" />
+                        </Link>
+                    )}
                 </div>
             )}
         </div>
