@@ -182,17 +182,23 @@ public static class ServerTemplatePlanner
         }
 
         // ---- 4. Comunidad
-        if (o.EnableCommunity && t.Guild.Community.Enabled)
+        // Si Comunidad ya está activa y un canal que hay que convertir a anuncios es hoy el de reglas, el de novedades o el de alertas de
+        // seguridad, hay que reasignar esos canales ANTES (Discord exige que sean de texto): se hace aunque no se haya marcado «Activar Comunidad»
+        bool IsCommunityChannel(string? id) => id != null && (id == s.Guild.RulesChannelId || id == s.Guild.PublicUpdatesChannelId || id == s.Guild.SafetyAlertsChannelId);
+        var conflict = communityNow && needsConvert.Any(k => IsCommunityChannel(chanIds.TryGetValue(k, out var cid) ? cid : null));
+        if (t.Guild.Community.Enabled && (o.EnableCommunity || conflict))
         {
             if (HasCommunity(s.Guild))
             {
-                // Los canales de reglas y de novedades de Comunidad deben ser de texto: si apuntan a otro (p. ej. el de anuncios), se reasignan
+                // Los canales de Comunidad deben ser de texto: si apuntan a otro (p. ej. el de anuncios), se reasignan
                 chanIds.TryGetValue(t.Guild.Community.RulesChannel, out var wantRules);
                 chanIds.TryGetValue(t.Guild.Community.UpdatesChannel, out var wantUpdates);
-                var mismatch = wantRules == null || wantUpdates == null || s.Guild.RulesChannelId != wantRules || s.Guild.PublicUpdatesChannelId != wantUpdates;
+                chanIds.TryGetValue(t.Guild.Community.SafetyAlertsChannel, out var wantSafety);
+                var mismatch = wantRules == null || wantUpdates == null || s.Guild.RulesChannelId != wantRules || s.Guild.PublicUpdatesChannelId != wantUpdates
+                               || (!string.IsNullOrEmpty(t.Guild.Community.SafetyAlertsChannel) && (wantSafety == null || s.Guild.SafetyAlertsChannelId != wantSafety));
                 if (!mismatch) Add("community", "guild", "community", "Comunidad", PlanOp.Skip, "community.exists", "Ya está activada");
                 else if (!canGuild) Add("community", "guild", "community", "Comunidad", PlanOp.Blocked, "community.blocked_admin", "Hace falta el permiso Gestionar servidor");
-                else Add("community", "guild", "community", "Comunidad", PlanOp.Update, "community.update_channels", $"Los canales de reglas (#{t.Guild.Community.RulesChannel}) y de novedades de Comunidad (#{t.Guild.Community.UpdatesChannel}) se reasignan");
+                else Add("community", "guild", "community", "Comunidad", PlanOp.Update, "community.update_channels", $"Los canales de reglas (#{t.Guild.Community.RulesChannel}), de novedades (#{t.Guild.Community.UpdatesChannel}) y de alertas de Comunidad se reasignan");
             }
             else if (!isAdmin || !canGuild)
                 Add("community", "guild", "community", "Comunidad", PlanOp.Blocked, "community.blocked_admin", "Activar Comunidad exige que el bot sea Administrador (se lo puedes quitar después)");

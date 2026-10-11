@@ -13,7 +13,7 @@ namespace Decatron.Services.DiscordServer;
 
 public record GuildInfo(string Id, string Name, List<string> Features, int VerificationLevel, int ExplicitContentFilter,
     int DefaultMessageNotifications, string PreferredLocale, string? AfkChannelId, int AfkTimeout, string? SystemChannelId, int SystemChannelFlags,
-    string? RulesChannelId, string? PublicUpdatesChannelId);
+    string? RulesChannelId, string? PublicUpdatesChannelId, string? SafetyAlertsChannelId = null);
 public record RoleInfo(string Id, string Name, int Position, ulong Permissions, bool Managed);
 public record ChannelInfo(string Id, string Name, int Type, string? ParentId, string? Topic);
 public record BotInfo(string UserId, List<string> RoleIds);
@@ -103,7 +103,7 @@ public class DiscordRest : IDiscordRest
         var features = g.TryGetProperty("features", out var f) ? f.EnumerateArray().Select(x => x.GetString() ?? "").ToList() : new List<string>();
         return new GuildInfo(Str(g, "id")!, Str(g, "name") ?? "", features, Int(g, "verification_level"), Int(g, "explicit_content_filter"),
             Int(g, "default_message_notifications"), Str(g, "preferred_locale") ?? "en-US", Str(g, "afk_channel_id"), Int(g, "afk_timeout"),
-            Str(g, "system_channel_id"), Int(g, "system_channel_flags"), Str(g, "rules_channel_id"), Str(g, "public_updates_channel_id"));
+            Str(g, "system_channel_id"), Int(g, "system_channel_flags"), Str(g, "rules_channel_id"), Str(g, "public_updates_channel_id"), Str(g, "safety_alerts_channel_id"));
     }
 
     public async Task<List<RoleInfo>> GetRolesAsync(string guildId)

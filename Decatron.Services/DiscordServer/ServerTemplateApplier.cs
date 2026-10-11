@@ -203,14 +203,18 @@ public static class ServerTemplateApplier
             {
                 if (!ids.TryGetValue(ObjKey("channel", t.Guild.Community.RulesChannel), out var rules) || !ids.TryGetValue(ObjKey("channel", t.Guild.Community.UpdatesChannel), out var updates))
                     throw new InvalidOperationException("Faltan los canales de reglas o de novedades");
+                ids.TryGetValue(ObjKey("channel", t.Guild.Community.SafetyAlertsChannel), out var safety);
+                var body = new Dictionary<string, object?> { ["rules_channel_id"] = rules, ["public_updates_channel_id"] = updates };
+                if (safety != null) body["safety_alerts_channel_id"] = safety;
                 if (!snap.Guild.Features.Contains("COMMUNITY"))
                 {
-                    var features = snap.Guild.Features.Append("COMMUNITY").ToList();
-                    await rest.ModifyGuildAsync(guildId, new { features, rules_channel_id = rules, public_updates_channel_id = updates, preferred_locale = t.Guild.PreferredLocale });
+                    body["features"] = snap.Guild.Features.Append("COMMUNITY").ToList();
+                    body["preferred_locale"] = t.Guild.PreferredLocale;
+                    await rest.ModifyGuildAsync(guildId, body);
                     snap.Guild.Features.Add("COMMUNITY");
                 }
                 else
-                    await rest.ModifyGuildAsync(guildId, new { rules_channel_id = rules, public_updates_channel_id = updates });
+                    await rest.ModifyGuildAsync(guildId, body);
                 break;
             }
             case "afk":
