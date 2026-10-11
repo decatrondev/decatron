@@ -254,8 +254,8 @@
       "description": "Personaliza el comportamiento del bot"
     },
     "permissions": {
-      "title": "Permisos",
-      "description": "Niveles de acceso, roles y control de funciones"
+      "title": "Accesos y permisos",
+      "description": "Quién entra a tu panel y con qué nivel"
     },
     "sr-overview": {
       "title": "Song Request",

@@ -73,7 +73,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Entra a Funciones → Speak Chat (`/features/speak-chat`). En la pestaña Global activa «Speak Chat activo». Viene apagado: mientras esté apagado, nada se lee aunque las reglas estén bien."
+            "x": "Entra a Funciones → Speak Chat (`/features/speak-chat`). En la pestaña Global activa «Speak Chat activo». Viene apagado: mientras esté apagado, nada se lee aunque las reglas estén bien. Para configurarlo y probarlo hace falta el nivel Moderación o superior en el panel."
           },
           {
             "t": "p",

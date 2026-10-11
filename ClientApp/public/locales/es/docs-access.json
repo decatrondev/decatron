@@ -1,0 +1,118 @@
+{
+  "permissions": {
+    "title": "Accesos y permisos",
+    "subtitle": "Quién puede entrar a tu panel, con qué nivel, y cómo darle acceso a tu equipo",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Además de ti, otras personas pueden ayudarte a gestionar tu canal desde el panel: moderadores, editores, un amigo. Cada una entra con su propia cuenta de Decatron y recibe un nivel de acceso que tú decides. Esto es distinto de los permisos en el chat (quién puede usar cada comando), que se configuran en cada comando."
+          }
+        ]
+      },
+      {
+        "id": "niveles",
+        "title": "Los niveles de acceso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada nivel incluye todo lo del anterior:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Nivel",
+              "Qué abre en el panel"
+            ],
+            "rows": [
+              [
+                "Solo comandos",
+                "Los comandos, los micro comandos y cambiar el título y el juego del stream."
+              ],
+              [
+                "Moderación",
+                "Todo lo anterior, más: overlays y sus módulos (Song Request, Rueda, Games, Partida en vivo, Mascotas, Now Playing, chat en pantalla, Speak Chat, emotes), timers, sorteos, moderación y filtros del chat."
+              ],
+              [
+                "Control total",
+                "Todo lo anterior, más: Ajustes, la gestión de accesos, Discord, traducción en vivo, Decatron Desktop, Coach de LoL, la colección de Spirits y los ajustes sensibles de otros módulos. Actúa como si fuera el streamer."
+              ],
+              [
+                "Propietario",
+                "El dueño del canal. Siempre tiene acceso a todo y es el único que puede comprar créditos."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "En los emotes propios, quien tiene nivel Moderación en tu panel cuenta como moderador y quien tiene Control total, como el streamer. El rol de Lead Moderator es de Twitch y se evalúa aparte, en el chat."
+          }
+        ]
+      },
+      {
+        "id": "dar",
+        "title": "Dar acceso a alguien",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Pide a esa persona que inicie sesión en Decatron y copie su «ID Único» de Ajustes → Canal y bot → Información del sistema.",
+              "En tu panel entra a Ajustes → Accesos y pulsa «Agregar Acceso».",
+              "Pega el ID Único y elige el nivel: Solo Comandos, Moderación o Control Total. Pulsa «Agregar»."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Solo el propietario y quien tenga Control total pueden gestionar accesos. Si agregas a alguien que ya tenía acceso, su nivel se actualiza."
+          }
+        ]
+      },
+      {
+        "id": "gestion",
+        "title": "Gestionar los accesos",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "La tabla «Usuarios con Acceso» muestra nombre, usuario, permisos y quién lo agregó. El lápiz edita el nivel y quitar a alguien pide confirmación.",
+              "Alias: lo que verán los demás usuarios con acceso en lugar del nombre real (por ejemplo «Dev» o «Soporte»).",
+              "Ocultar: esa persona mantiene su acceso, pero solo tú y ella ven que está en la lista."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El alias y ocultar a alguien los decide solo el propietario; si un editor con Control total manda esos campos, se ignoran."
+          }
+        ]
+      },
+      {
+        "id": "cambiar",
+        "title": "Entrar al canal de otra persona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si alguien te dio acceso, su canal aparece en el selector de canal de la barra superior del panel, con tu nivel debajo de su nombre («Moderación», «Control total»…). Al elegirlo, todo el panel pasa a trabajar sobre ese canal: ves y editas lo que tu nivel permite. Para volver al tuyo, elígelo en el mismo selector."
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Lo que solo hace el propietario",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Comprar créditos.",
+              "Decidir alias y ocultar accesos."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

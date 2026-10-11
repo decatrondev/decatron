@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Decatron.Attributes;
 using Decatron.Core.Helpers;
 using Decatron.Core.Interfaces;
 using Decatron.Data;
@@ -47,6 +48,7 @@ namespace Decatron.Controllers
         // GET /api/speakchat/config
         // ============================
         [HttpGet("config")]
+        [RequirePermission("overlays")]
         public async Task<IActionResult> GetConfig()
         {
             try
@@ -78,6 +80,7 @@ namespace Decatron.Controllers
         // POST /api/speakchat/config
         // ============================
         [HttpPost("config")]
+        [RequirePermission("overlays")]
         public async Task<IActionResult> SaveConfig([FromBody] SpeakChatSaveRequest body)
         {
             try
@@ -141,6 +144,7 @@ namespace Decatron.Controllers
         // POST /api/speakchat/test
         // ============================
         [HttpPost("test")]
+        [RequirePermission("overlays")]
         public async Task<IActionResult> SendTest([FromBody] SpeakChatTestRequest body)
         {
             try
@@ -219,6 +223,7 @@ namespace Decatron.Controllers
         // GET /api/speakchat/usage
         // ============================
         [HttpGet("usage")]
+        [RequirePermission("overlays")]
         public async Task<IActionResult> GetUsage()
         {
             try
@@ -279,6 +284,7 @@ namespace Decatron.Controllers
         // solos al detectar un despliegue nuevo, pero esto lo hace al instante.
         // ==========================================================
         [HttpPost("overlay/reload")]
+        [RequirePermission("overlays")]
         public async Task<IActionResult> ReloadOverlays()
         {
             try

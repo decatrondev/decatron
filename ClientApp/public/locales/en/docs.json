@@ -254,8 +254,8 @@
       "description": "Customize how the bot behaves"
     },
     "permissions": {
-      "title": "Permissions",
-      "description": "Access levels, roles and feature control"
+      "title": "Access and permissions",
+      "description": "Who enters your dashboard and at what level"
     },
     "sr-overview": {
       "title": "Song Request",

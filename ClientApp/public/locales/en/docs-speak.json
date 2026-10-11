@@ -73,7 +73,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Open Funciones → Speak Chat (`/features/speak-chat`). In the Global tab turn on “Speak Chat activo”. It starts off: while it is off, nothing is read even if the rules are fine."
+            "x": "Open Funciones → Speak Chat (`/features/speak-chat`). In the Global tab turn on “Speak Chat activo”. It starts off: while it is off, nothing is read even if the rules are fine. To configure and test it you need the Moderation level or higher in the dashboard."
           },
           {
             "t": "p",

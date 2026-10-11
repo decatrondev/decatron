@@ -1,0 +1,118 @@
+{
+  "permissions": {
+    "title": "Access and permissions",
+    "subtitle": "Who can enter your dashboard, at what level, and how to give your team access",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Besides you, other people can help you manage your channel from the dashboard: moderators, editors, a friend. Each one signs in with their own Decatron account and receives an access level that you decide. This is different from chat permissions (who can use each command), which are set on each command."
+          }
+        ]
+      },
+      {
+        "id": "niveles",
+        "title": "Access levels",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each level includes everything from the previous one:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Level",
+              "What it opens in the dashboard"
+            ],
+            "rows": [
+              [
+                "Commands only",
+                "Commands, micro commands and changing the stream title and game."
+              ],
+              [
+                "Moderation",
+                "Everything above, plus: overlays and their modules (Song Request, Wheel, Games, Live match, Pets, Now Playing, on-screen chat, Speak Chat, emotes), timers, raffles, moderation and chat filters."
+              ],
+              [
+                "Full control",
+                "Everything above, plus: Settings, access management, Discord, live translation, Decatron Desktop, the LoL coach, the Spirits collection and the sensitive settings of other modules. It acts as if it were the streamer."
+              ],
+              [
+                "Owner",
+                "The channel owner. Always has access to everything and is the only one who can buy credits."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "In own emotes, anyone with a Moderation level on your dashboard counts as a moderator and anyone with Full control as the streamer. The Lead Moderator role belongs to Twitch and is evaluated separately, in chat."
+          }
+        ]
+      },
+      {
+        "id": "dar",
+        "title": "Give someone access",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Ask that person to sign in to Decatron and copy their “ID Único” from Settings → Channel and bot → System information.",
+              "In your dashboard open Settings → Access and press “Agregar Acceso”.",
+              "Paste the Unique ID and choose the level: Solo Comandos, Moderación or Control Total. Press “Agregar”."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Only the owner and anyone with Full control can manage access. If you add someone who already had access, their level is updated."
+          }
+        ]
+      },
+      {
+        "id": "gestion",
+        "title": "Managing access",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "The “Usuarios con Acceso” table shows name, user, permissions and who added them. The pencil edits the level and removing someone asks for confirmation.",
+              "Alias: what other users with access will see instead of the real name (for example “Dev” or “Soporte”).",
+              "Hide: that person keeps their access, but only you and they see that they are on the list."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Alias and hiding someone are decided only by the owner; if an editor with Full control sends those fields, they are ignored."
+          }
+        ]
+      },
+      {
+        "id": "cambiar",
+        "title": "Entering someone else's channel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If someone gave you access, their channel appears in the channel selector in the dashboard's top bar, with your level under their name (“Moderación”, “Control total”…). When you choose it, the whole dashboard works on that channel: you see and edit what your level allows. To return to yours, choose it in the same selector."
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "What only the owner does",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Buy credits.",
+              "Decide aliases and hide accesses."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
