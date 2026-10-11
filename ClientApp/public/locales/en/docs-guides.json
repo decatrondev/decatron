@@ -810,12 +810,12 @@
         "blocks": [
           {
             "t": "p",
-            "x": "You set the prize, the requirements and the weights in the panel and start it from there. People enter by typing `!join` in the chat. When it ends, the bot picks the winners at random (with a higher chance for those with more weight) and announces them in the chat."
+            "x": "You set the prize, the requirements and the weights in the panel and start it from there. People enter by typing `!join` in the chat (or the entry command you configured). When it ends, the bot picks the winners at random (with a higher chance for those with more weight) and announces them in the chat."
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "The giveaway is started, ended, cancelled and re-drawn from the panel. In the chat only `!join` is used, to take part. The `!raffle` command (with `!raffle create`, `join`, `close` and `draw`) is a different quick-raffle system, with no panel or requirements; it is in the default commands list.",
+            "x": "The giveaway is started, ended, cancelled and re-drawn from the panel. In the chat only the entry command (`!join` by default) is used, to take part. The `!raffle` command (with `!raffle create`, `join`, `close` and `draw`) is a different quick-raffle system, with no panel or requirements; it is in the default commands list.",
             "title": "Controlled from the panel"
           },
           {
@@ -855,6 +855,8 @@
             "items": [
               "Prize: the giveaway name, the prize name (required) and an optional description.",
               "Duration: with a time limit (1 to 1440 minutes, ends by itself) or manual (you end it from the panel).",
+              "Entry command: the command people type to take part (`!join` by default; `!join` keeps working even if you change it).",
+              "Automatic entry: anyone who writes a normal chat message enters on their own, with no command, if they meet the requirements.",
               "Participants: whether a user can enter several times and a maximum number of participants.",
               "Winners: from 1 to 10 winners and, if you want, from 1 to 5 backup winners.",
               "Response time: between 10 and 300 seconds the winner has to respond (with any message in the chat) before being disqualified.",

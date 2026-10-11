@@ -810,12 +810,12 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Configuras el premio, los requisitos y los pesos en el panel y lo inicias desde allí. La gente entra escribiendo `!join` en el chat. Al terminar, el bot elige a los ganadores al azar (con más probabilidad para quienes tengan más peso) y los anuncia en el chat."
+            "x": "Configuras el premio, los requisitos y los pesos en el panel y lo inicias desde allí. La gente entra escribiendo `!join` en el chat (o el comando de entrada que hayas configurado). Al terminar, el bot elige a los ganadores al azar (con más probabilidad para quienes tengan más peso) y los anuncia en el chat."
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "El giveaway se inicia, se termina, se cancela y se vuelve a sortear desde el panel. En el chat solo se usa `!join`, para participar. El comando `!raffle` (con `!raffle create`, `join`, `close` y `draw`) es un sistema de sorteo rápido distinto, sin panel ni requisitos; está en la lista de comandos por defecto.",
+            "x": "El giveaway se inicia, se termina, se cancela y se vuelve a sortear desde el panel. En el chat solo se usa el comando de entrada (`!join` por defecto), para participar. El comando `!raffle` (con `!raffle create`, `join`, `close` y `draw`) es un sistema de sorteo rápido distinto, sin panel ni requisitos; está en la lista de comandos por defecto.",
             "title": "Se controla desde el panel"
           },
           {
@@ -855,6 +855,8 @@
             "items": [
               "Premio: nombre del giveaway, nombre del premio (obligatorio) y una descripción opcional.",
               "Duración: con tiempo límite (de 1 a 1440 minutos, termina solo) o manual (lo terminas tú desde el panel).",
+              "Comando de entrada: el comando que escribe la gente para participar (`!join` por defecto; `!join` sigue funcionando aunque lo cambies).",
+              "Entrada automática: quien escriba un mensaje normal en el chat entra solo, sin comando, si cumple los requisitos.",
               "Participantes: si un usuario puede entrar varias veces y un límite máximo de participantes.",
               "Ganadores: de 1 a 10 ganadores y, si quieres, de 1 a 5 ganadores de respaldo.",
               "Tiempo de respuesta: entre 10 y 300 segundos que tiene el ganador para responder (con cualquier mensaje en el chat) antes de ser descalificado.",

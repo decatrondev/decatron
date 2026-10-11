@@ -167,6 +167,7 @@ namespace Decatron.Services
 
             _context.GiveawaySessions.Add(session);
             await _context.SaveChangesAsync();
+            InvalidateEntryRules(session.ChannelId);
 
             _logger.LogWarning($"[DEBUG] Sesión creada exitosamente: ID={session.Id}, ChannelId={session.ChannelId}, Status={session.Status}, EntryCommand en config={config.EntryCommand}");
 
@@ -188,6 +189,58 @@ namespace Decatron.Services
         // Canales con ganadores esperando respuesta (canal -> hasta cuándo mirar el chat). Evita
         // consultar la base por cada mensaje de chat de canales sin giveaway pendiente.
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _pendingWinnerChannels = new();
+
+        // Reglas de entrada del giveaway activo por canal (comando de entrada y entrada automática),
+        // con caché corta para no consultar la base en cada mensaje del chat.
+        public record EntryRules(int SessionId, string Command, bool AutoEntry);
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime At, EntryRules? Rules)> _entryRulesCache = new();
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _autoEntryAttempts = new();
+
+        public async Task<EntryRules?> GetEntryRules(string channelId)
+        {
+            if (_entryRulesCache.TryGetValue(channelId, out var cached) && (DateTime.UtcNow - cached.At).TotalSeconds < 15)
+                return cached.Rules;
+
+            EntryRules? rules = null;
+            var session = await _context.GiveawaySessions.AsNoTracking()
+                .Where(s => s.ChannelId == channelId && s.Status == "active")
+                .OrderByDescending(s => s.UpdatedAt)
+                .FirstOrDefaultAsync();
+            if (session != null)
+            {
+                var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
+                if (config != null)
+                {
+                    var cmd = (config.EntryCommand ?? "!join").Trim().ToLower();
+                    if (cmd.Length == 0) cmd = "!join";
+                    if (!cmd.StartsWith("!")) cmd = "!" + cmd;
+                    rules = new EntryRules(session.Id, cmd, config.AllowAutoEntry);
+                }
+            }
+            _entryRulesCache[channelId] = (DateTime.UtcNow, rules);
+            return rules;
+        }
+
+        public static void InvalidateEntryRules(string channelId) => _entryRulesCache.TryRemove(channelId, out _);
+
+        // Entrada automática: un intento por usuario cada 60 s mientras no haya entrado; al entrar, no se repite.
+        public static bool ShouldTryAutoEntry(int sessionId, string userId)
+        {
+            var key = $"{sessionId}:{userId}";
+            var now = DateTime.UtcNow;
+            if (_autoEntryAttempts.TryGetValue(key, out var until) && until > now) return false;
+            _autoEntryAttempts[key] = now.AddSeconds(60);
+            if (_autoEntryAttempts.Count > 20000)
+                foreach (var k in _autoEntryAttempts.Where(kv => kv.Value < now).Select(kv => kv.Key).ToList())
+                    _autoEntryAttempts.TryRemove(k, out _);
+            return true;
+        }
+
+        public Task<bool> IsParticipant(int sessionId, string userId) =>
+            _context.GiveawayParticipants.AsNoTracking().AnyAsync(p => p.SessionId == sessionId && p.UserId == userId);
+
+        public static void MarkAutoEntered(int sessionId, string userId) =>
+            _autoEntryAttempts[$"{sessionId}:{userId}"] = DateTime.MaxValue;
 
         public static bool HasPendingWinners(string channelId) =>
             _pendingWinnerChannels.TryGetValue(channelId, out var until) && until > DateTime.UtcNow;
@@ -215,6 +268,7 @@ namespace Decatron.Services
                 // IMPORTANTE: Mantener status="active" para que el frontend siga viendo el giveaway
                 // El background service lo cambiará a "completed" cuando se resuelvan los timeouts
                 session.Status = "selecting_winners"; // Nuevo estado intermedio
+            InvalidateEntryRules(session.ChannelId);
                 session.EndedAt = DateTime.UtcNow; // Marca cuando se finalizó
                 session.UpdatedAt = DateTime.UtcNow;
 
@@ -256,6 +310,7 @@ namespace Decatron.Services
                 _logger.LogWarning($"⚠️ Giveaway sin participantes válidos. Cancelando automáticamente: {ex.Message}");
 
                 session.Status = "cancelled";
+            InvalidateEntryRules(session.ChannelId);
                 session.CancelReason = ex.Message;
                 session.EndedAt = DateTime.UtcNow;
                 session.UpdatedAt = DateTime.UtcNow;
@@ -283,6 +338,7 @@ namespace Decatron.Services
             }
 
             session.Status = "cancelled";
+            InvalidateEntryRules(session.ChannelId);
             session.CancelReason = reason;
             session.EndedAt = DateTime.UtcNow;
             session.UpdatedAt = DateTime.UtcNow;

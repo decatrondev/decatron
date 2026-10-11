@@ -590,6 +590,33 @@ namespace Decatron.Services
                     _logger.LogDebug($"[Instance#{_instanceId}] Buscando comando '{commandName}'. Comandos registrados: {string.Join(", ", _commands.Keys)}");
                 }
 
+                // 0. GIVEAWAY — comando de entrada configurable y entrada automática (solo Twitch)
+                if (platform == "twitch" && channelTwitchId != null && commandName != "!join"
+                    && _commands.TryGetValue("!join", out var joinCmd))
+                {
+                    try
+                    {
+                        using var gwScope = _serviceScopeFactory.CreateScope();
+                        var gwService = gwScope.ServiceProvider.GetRequiredService<GiveawayService>();
+                        var rules = await gwService.GetEntryRules(channelTwitchId);
+                        if (rules != null)
+                        {
+                            var isEntryCommand = commandName == rules.Command;
+                            if (isEntryCommand || (rules.AutoEntry && !commandName.StartsWith("!") && GiveawayService.ShouldTryAutoEntry(rules.SessionId, userId)))
+                            {
+                                var ctx = new CommandContext(username, channel, "!join", userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                                await joinCmd.ExecuteAsync(ctx, _messageSender);
+                                if (!isEntryCommand && await gwService.IsParticipant(rules.SessionId, userId)) GiveawayService.MarkAutoEntered(rules.SessionId, userId);
+                                if (isEntryCommand) return;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error en la entrada del giveaway para {Cmd}", commandName);
+                    }
+                }
+
                 // 1. COMANDOS DEL SERVIDOR (registrados en _commands)
                 if (_commands.TryGetValue(commandName, out var command))
                 {
