@@ -230,7 +230,7 @@ send "Hello $(user), welcome to $(channel)!"
 |----------|-------------|---------|
 | `roll(min, max)` | Random integer between `min` and `max`. `min` must be lower than `max` | `roll(1, 100)` |
 | `pick("a, b, c")` | A random item from a comma-separated list | `pick("yes, no, maybe")` |
-| `count()` | Execution count of the current command (persistent counter) | `count()` |
+| `count()` | Execution count of the current command (counter kept in memory: it resets when the bot restarts; `count("name")` makes extra counters) | `count()` |
 
 ### Operators
 

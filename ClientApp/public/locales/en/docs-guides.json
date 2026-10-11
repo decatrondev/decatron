@@ -3111,5 +3111,234 @@
         ]
       }
     ]
+  },
+  "scripting": {
+    "title": "Script commands",
+    "subtitle": "Create custom commands with advanced logic using scripting",
+    "sections": [
+      {
+        "id": "que",
+        "title": "What are scripts?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Scripts are commands that run code with advanced logic, giving you full control over the bot's behavior. With scripts you can:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Use variables and store values.",
+              "Implement conditional logic with when/then/end.",
+              "Generate random numbers and make picks.",
+              "Create counters and interactive systems."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sintaxis",
+        "title": "Basic syntax",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The language has three statements: `set`, `when…then…end` and `send`. A script runs in order:"
+          },
+          {
+            "t": "code",
+            "x": "set variable = value\nsend \"message\"\n\nwhen $(variable) > 5 then\n    send \"reply\"\nend"
+          },
+          {
+            "t": "p",
+            "x": "Variables: use `set` to declare them and `$(name)` to use them."
+          },
+          {
+            "t": "code",
+            "x": "set name = \"John\"\nset age = 25\nsend \"Hi $(name), you are $(age) years old\""
+          },
+          {
+            "t": "p",
+            "x": "Conditionals: use `when/then/end`. Consecutive `when` blocks are evaluated in order and the first one that matches runs; chain several to get an \"if / else\"."
+          },
+          {
+            "t": "code",
+            "x": "set number = roll(1, 10)\n\nwhen $(number) > 5 then\n    send \"Greater than 5!\"\nend\n\nwhen $(number) <= 5 then\n    send \"Less than or equal to 5\"\nend"
+          }
+        ]
+      },
+      {
+        "id": "sistema",
+        "title": "System variables",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "What it is",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`$(user)`",
+                "User who ran the command",
+                "`send \"Hi $(user)!\"`"
+              ],
+              [
+                "`$(channel)`",
+                "Current channel of the stream",
+                "`send \"You are in $(channel)\"`"
+              ],
+              [
+                "`$(game)`",
+                "Current game or category",
+                "`send \"Playing $(game)\"`"
+              ],
+              [
+                "`$(uptime)`",
+                "How long the stream has been live",
+                "`send \"Live: $(uptime)\"`"
+              ],
+              [
+                "`$(ruser)`",
+                "A random chat user",
+                "`send \"Random user: $(ruser)\"`"
+              ],
+              [
+                "`$(touser)`",
+                "User mentioned with @",
+                "`send \"Greetings to $(touser)\"`"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "funciones",
+        "title": "Functions",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Function",
+              "What it does",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`roll(min, max)`",
+                "Random integer between min and max (min must be lower than max)",
+                "`roll(1, 100)`"
+              ],
+              [
+                "`pick(\"a, b, c\")`",
+                "Picks a random option from a comma-separated list",
+                "`pick(\"pizza, tacos, sushi\")`"
+              ],
+              [
+                "`count()`",
+                "Execution count of the current command: adds 1 each time it is called. `count(\"name\")` creates extra counters.",
+                "`count()`"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Script counters are kept in memory: they reset when the bot restarts. If you need a count that is not lost, use the `$(count)` variable of custom commands.",
+            "title": "Counters"
+          }
+        ]
+      },
+      {
+        "id": "operadores",
+        "title": "Operators",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Comparison: `==` equal to, `!=` different from, `>` greater than, `<` less than, `>=` greater or equal, `<=` less or equal.",
+              "Arithmetic: `+` add and `-` subtract."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ejemplos",
+        "title": "Practical examples",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Simple dice: Rolls a 6-sided die"
+          },
+          {
+            "t": "code",
+            "x": "set result = roll(1, 6)\nsend \"🎲 $(user) rolled a die and got: $(result)\""
+          },
+          {
+            "t": "p",
+            "x": "Random pick: Picks among several options"
+          },
+          {
+            "t": "code",
+            "x": "set choice = pick(\"pizza, tacos, sushi, burger\")\nsend \"🍕 $(user), I recommend: $(choice)\""
+          },
+          {
+            "t": "p",
+            "x": "Counter: Counts the command's uses"
+          },
+          {
+            "t": "code",
+            "x": "set counter = count()\nsend \"📊 This command has been used $(counter) times\""
+          },
+          {
+            "t": "p",
+            "x": "Two dice: Rolls two dice and adds the result"
+          },
+          {
+            "t": "code",
+            "x": "set die1 = roll(1, 6)\nset die2 = roll(1, 6)\nset total = $(die1) + $(die2)\n\nwhen $(die1) == $(die2) then\n    send \"🎲🎲 DOUBLES! $(user) rolled $(die1) and $(die2) = $(total)\"\nend\n\nwhen $(die1) != $(die2) then\n    send \"🎲 $(user) rolled $(die1) + $(die2) = $(total)\"\nend"
+          },
+          {
+            "t": "p",
+            "x": "Luck system: A luck percentage with ranges"
+          },
+          {
+            "t": "code",
+            "x": "set luck = roll(1, 100)\n\nwhen $(luck) >= 90 then\n    send \"⭐ LEGENDARY! $(user) has $(luck)% luck\"\nend\n\nwhen $(luck) >= 70 then\n    send \"🔥 Good luck: $(user) has $(luck)%\"\nend\n\nwhen $(luck) >= 50 then\n    send \"👍 Normal luck: $(user) has $(luck)%\"\nend\n\nwhen $(luck) < 50 then\n    send \"😅 Bad luck: $(user) has $(luck)%\"\nend"
+          }
+        ]
+      },
+      {
+        "id": "editor",
+        "title": "The editor",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Commands → Scripting the editor offers syntax highlighting, live validation, a preview with simulated data, autocomplete, quick templates and undo/redo."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Use the \"Validate\" button to check the syntax before saving.",
+              "Test your script with the test console to see how it runs.",
+              "You can use `count(\"name\")` to have several counters in the same command."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Tips and best practices",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Consecutive `when` conditions are evaluated in order: the first one that matches runs.",
+              "Put the most specific condition first.",
+              "Always validate your script before saving to catch errors."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

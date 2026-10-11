@@ -3111,5 +3111,234 @@
         ]
       }
     ]
+  },
+  "scripting": {
+    "title": "Comandos con scripts",
+    "subtitle": "Crea comandos personalizados con lógica avanzada usando scripting",
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué son los scripts?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los scripts son comandos que ejecutan código con lógica avanzada, dándote control total sobre el comportamiento del bot. Con scripts puedes:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Usar variables y almacenar valores.",
+              "Implementar lógica condicional con when/then/end.",
+              "Generar números aleatorios y hacer picks.",
+              "Crear contadores y sistemas interactivos."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sintaxis",
+        "title": "Sintaxis básica",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El lenguaje tiene tres declaraciones: `set`, `when…then…end` y `send`. Un script se ejecuta en orden:"
+          },
+          {
+            "t": "code",
+            "x": "set variable = valor\nsend \"mensaje\"\n\nwhen $(variable) > 5 then\n    send \"respuesta\"\nend"
+          },
+          {
+            "t": "p",
+            "x": "Variables: usa `set` para declararlas y `$(nombre)` para usarlas."
+          },
+          {
+            "t": "code",
+            "x": "set nombre = \"Juan\"\nset edad = 25\nsend \"Hola $(nombre), tienes $(edad) años\""
+          },
+          {
+            "t": "p",
+            "x": "Condicionales: usa `when/then/end`. Los bloques `when` consecutivos se evalúan en orden y se ejecuta el primero que se cumple; encadena varios para obtener un «si / si no»."
+          },
+          {
+            "t": "code",
+            "x": "set numero = roll(1, 10)\n\nwhen $(numero) > 5 then\n    send \"Mayor que 5!\"\nend\n\nwhen $(numero) <= 5 then\n    send \"Menor o igual a 5\"\nend"
+          }
+        ]
+      },
+      {
+        "id": "sistema",
+        "title": "Variables del sistema",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Qué es",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`$(user)`",
+                "Usuario que ejecutó el comando",
+                "`send \"Hola $(user)!\"`"
+              ],
+              [
+                "`$(channel)`",
+                "Canal actual del stream",
+                "`send \"Estás en $(channel)\"`"
+              ],
+              [
+                "`$(game)`",
+                "Juego o categoría actual",
+                "`send \"Jugando $(game)\"`"
+              ],
+              [
+                "`$(uptime)`",
+                "Tiempo que lleva el stream en vivo",
+                "`send \"En vivo: $(uptime)\"`"
+              ],
+              [
+                "`$(ruser)`",
+                "Usuario aleatorio del chat",
+                "`send \"Usuario random: $(ruser)\"`"
+              ],
+              [
+                "`$(touser)`",
+                "Usuario mencionado con @",
+                "`send \"Saludos para $(touser)\"`"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "funciones",
+        "title": "Funciones",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Función",
+              "Qué hace",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`roll(min, max)`",
+                "Número entero aleatorio entre min y max (min debe ser menor que max)",
+                "`roll(1, 100)`"
+              ],
+              [
+                "`pick(\"a, b, c\")`",
+                "Elige una opción aleatoria de una lista separada por comas",
+                "`pick(\"pizza, tacos, sushi\")`"
+              ],
+              [
+                "`count()`",
+                "Cuenta de ejecuciones del comando actual: suma 1 cada vez que se llama. `count(\"nombre\")` crea contadores adicionales.",
+                "`count()`"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Los contadores de scripts se guardan en memoria: se reinician cuando se reinicia el bot. Si necesitas un conteo que no se pierda, usa la variable `$(count)` de los comandos personalizados.",
+            "title": "Contadores"
+          }
+        ]
+      },
+      {
+        "id": "operadores",
+        "title": "Operadores",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Comparación: `==` igual a, `!=` diferente de, `>` mayor que, `<` menor que, `>=` mayor o igual, `<=` menor o igual.",
+              "Aritméticos: `+` suma y `-` resta."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ejemplos",
+        "title": "Ejemplos prácticos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Dado simple: Tira un dado de 6 caras"
+          },
+          {
+            "t": "code",
+            "x": "set resultado = roll(1, 6)\nsend \"🎲 $(user) lanzó un dado y obtuvo: $(resultado)\""
+          },
+          {
+            "t": "p",
+            "x": "Pick aleatorio: Elige entre múltiples opciones"
+          },
+          {
+            "t": "code",
+            "x": "set eleccion = pick(\"pizza, tacos, sushi, hamburguesa\")\nsend \"🍕 $(user), te recomiendo: $(eleccion)\""
+          },
+          {
+            "t": "p",
+            "x": "Contador: Cuenta los usos del comando"
+          },
+          {
+            "t": "code",
+            "x": "set contador = count()\nsend \"📊 Este comando se ha usado $(contador) veces\""
+          },
+          {
+            "t": "p",
+            "x": "Dos dados: Tira dos dados y suma el resultado"
+          },
+          {
+            "t": "code",
+            "x": "set dado1 = roll(1, 6)\nset dado2 = roll(1, 6)\nset total = $(dado1) + $(dado2)\n\nwhen $(dado1) == $(dado2) then\n    send \"🎲🎲 DOBLES! $(user) sacó $(dado1) y $(dado2) = $(total)\"\nend\n\nwhen $(dado1) != $(dado2) then\n    send \"🎲 $(user) sacó $(dado1) + $(dado2) = $(total)\"\nend"
+          },
+          {
+            "t": "p",
+            "x": "Sistema de suerte: Porcentaje de suerte con rangos"
+          },
+          {
+            "t": "code",
+            "x": "set suerte = roll(1, 100)\n\nwhen $(suerte) >= 90 then\n    send \"⭐ LEGENDARIA! $(user) tiene $(suerte)% de suerte\"\nend\n\nwhen $(suerte) >= 70 then\n    send \"🔥 Buena suerte: $(user) tiene $(suerte)%\"\nend\n\nwhen $(suerte) >= 50 then\n    send \"👍 Suerte normal: $(user) tiene $(suerte)%\"\nend\n\nwhen $(suerte) < 50 then\n    send \"😅 Mala suerte: $(user) tiene $(suerte)%\"\nend"
+          }
+        ]
+      },
+      {
+        "id": "editor",
+        "title": "El editor",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Comandos → Scripting el editor ofrece resaltado de sintaxis, validación en vivo, una vista previa con datos simulados, autocompletado, plantillas rápidas y deshacer/rehacer."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Usa el botón «Validar» para verificar la sintaxis antes de guardar.",
+              "Prueba tu script con la consola de pruebas para ver cómo se ejecuta.",
+              "Puedes usar `count(\"nombre\")` para tener varios contadores en un mismo comando."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Consejos y buenas prácticas",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Las condiciones `when` consecutivas se evalúan en orden: se ejecuta la primera que se cumple.",
+              "Pon la condición más específica primero.",
+              "Siempre valida tu script antes de guardar para detectar errores."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

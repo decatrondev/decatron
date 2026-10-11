@@ -230,7 +230,7 @@ Los bloques `when` se evalúan uno tras otro; encadena varios para obtener un co
 |---------|-------------|---------|
 | `roll(min, max)` | Entero aleatorio entre `min` y `max`. `min` debe ser menor que `max` | `roll(1, 100)` |
 | `pick("a, b, c")` | Un elemento aleatorio de una lista separada por comas | `pick("sí, no, quizás")` |
-| `count()` | Cantidad de ejecuciones del comando actual (contador persistente) | `count()` |
+| `count()` | Cantidad de ejecuciones del comando actual (contador en memoria: se reinicia cuando se reinicia el bot; `count("nombre")` crea contadores adicionales) | `count()` |
 
 ### Operadores
 
