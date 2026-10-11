@@ -1922,5 +1922,796 @@
         ]
       }
     ]
+  },
+  "gacha": {
+    "title": "Sistema Gacha",
+    "subtitle": "Configura tu sistema de cartas coleccionables",
+    "cta": {
+      "to": "/features/gacha",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "general",
+        "title": "Descripción general",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El sistema Gacha de Decatron es un juego de cartas coleccionables para tu comunidad. Los viewers obtienen pulls (tiradas) al donar, dar bits, suscribirse, regalar subs o gastar DecaCoins, y reciben cartas con diferentes niveles de rareza."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "11 pestañas de configuración: control total sobre items, restricciones, probabilidades, sonidos y más.",
+              "Overlay para OBS: animación de apertura de cartas en tu stream.",
+              "Múltiples fuentes de pulls: tips, bits, subs, gift subs y DecaCoins."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tabs",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El panel de configuración del Gacha tiene 11 pestañas:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Items: crea y edita cartas con nombre, imagen y nivel de rareza. Cada carta pertenece a una rareza que define su probabilidad de salir.",
+              "Restricciones: donación mínima requerida, cartas únicas (no repetidas), cooldown entre pulls, milestones (pity system) y tipos de pull habilitados.",
+              "Preferencias: sobrescribe probabilidades de rareza por usuario específico o de forma global. Útil para eventos especiales.",
+              "Probabilidades: porcentaje base por rareza (deben sumar 100 %). También configura porcentajes separados para pulls con DecaCoins.",
+              "Límites Rareza: intervalo de pulls e intervalo de tiempo entre apariciones de cada rareza. Controla la frecuencia de cartas raras.",
+              "Banners: sube imágenes para el header de la página de colección pública de tu canal.",
+              "Participantes: visualiza donantes, su inventario de cartas, progreso de milestones y cartas más deseadas por la comunidad.",
+              "Overlay: presets de tamaño, velocidad de animación y URL del overlay para agregar como fuente de navegador en OBS.",
+              "Sonidos: 9 eventos de sonido (redoble, flash, 5 reveals por rareza, victoria, ambiente). Volumen individual y subida de archivos personalizados.",
+              "Integraciones: tips ($), bits, subs (por tier), gift subs y DecaCoins (precio por pull + límite diario).",
+              "Comandos: permisos por comando, cooldowns, aliases personalizados y configuración de multi-pull."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "milestones",
+        "title": "Sistema de milestones",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los milestones son restricciones que controlan cuándo un viewer puede recibir cartas. Se configuran en la pestaña Restricciones y se pueden reordenar con drag & drop."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Gate (donación mínima): umbral permanente de donación. El viewer debe haber donado al menos esta cantidad en total para poder participar. El total donado nunca se pierde ni se descuenta.",
+              "Gate coins (mínimo de coins gastados): igual que el Gate pero para DecaCoins. El viewer debe haber gastado al menos X coins en total para desbloquear el gacha.",
+              "Milestone de donación (pity system): sistema de acumulación por donaciones. Cada donación suma al contador del viewer. Cuando alcanza el umbral, se dispara un pull garantizado y se descuenta el valor del umbral del contador (el excedente se conserva para el siguiente ciclo).",
+              "Milestone de coins: independiente del milestone de donación. Misma lógica de acumulación y descuento, pero usando DecaCoins.",
+              "Ciclo de colección: prioriza la carta más barata disponible. Lleva registro de las cartas ganadas por el viewer y se reinicia automáticamente cuando ha ganado todas.",
+              "Prioridad y orden: las restricciones se evalúan en orden. Usa drag & drop en la pestaña de Restricciones para reordenar la prioridad de evaluación."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "El milestone es oculto para los viewers. Solo tú lo ves en el dashboard. Los viewers no saben cuánto les falta para el pity.",
+            "title": "Milestone oculto"
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "Overlay y sonidos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Configura la experiencia visual y auditiva de las aperturas de cartas en tu stream."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Configurar el overlay: ve a la pestaña Overlay, selecciona un preset de tamaño o configura las dimensiones manualmente. Copia la URL del overlay.",
+              "Agregar a OBS: en OBS, agrega una nueva fuente de navegador. Pega la URL copiada y usa las dimensiones recomendadas del preset seleccionado.",
+              "Habilitar sonidos: los sonidos vienen deshabilitados por defecto. Ve a la pestaña Sonidos para activarlos. Hay 9 eventos de sonido disponibles.",
+              "Personalizar sonidos: cada evento tiene volumen individual y un volumen maestro general. Sube tus propios archivos MP3 desde la media library para reemplazar los sonidos por defecto."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Eventos de sonido: `drum_roll`, `flash`, `reveal_common`, `reveal_uncommon`, `reveal_rare`, `reveal_epic`, `reveal_legendary`, `win` y `ambient`."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los sonidos por defecto se pueden reemplazar con tus propios archivos MP3 desde la media library. Cada evento se puede personalizar independientemente.",
+            "title": "Sonidos personalizados"
+          }
+        ]
+      },
+      {
+        "id": "integ",
+        "title": "Integraciones",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Configura cómo los viewers obtienen pulls a través de diferentes acciones:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Tips (donaciones): cada $X donados otorga un pull. Configura el monto por pull. Ej: $5 = 1 pull.",
+              "Bits: X bits cheereados otorgan un pull. Configura la cantidad de bits por pull. Ej: 500 bits = 1 pull.",
+              "Suscripciones: pulls al suscribirse, configurable por tier: Prime, Tier 1, Tier 2 y Tier 3. Ej: T1=1, T2=2, T3=5.",
+              "Gift subs: los pulls se otorgan al gifter (quien regala), no al receptor. Configurable por cantidad.",
+              "DecaCoins: los viewers gastan coins para hacer pulls. Configura el precio por pull y un límite diario máximo. Ej: 100 coins, máx 5/día."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "coins-overview"
+          }
+        ]
+      },
+      {
+        "id": "cmds",
+        "title": "Comandos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Comandos del bot para el sistema Gacha; todos son atajos de `!gacha` (por ejemplo, `!gacha pull`). Los permisos, cooldowns y aliases se configuran en la pestaña Comandos."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Qué hace",
+              "Quién"
+            ],
+            "rows": [
+              [
+                "`!gcpull [n]`",
+                "Abre una o varias cartas si el viewer tiene pulls disponibles",
+                "Todos"
+              ],
+              [
+                "`!gcpulls`",
+                "Muestra cuántos pulls tiene disponibles",
+                "Todos"
+              ],
+              [
+                "`!gccol`",
+                "Muestra un resumen de la colección en el chat",
+                "Todos"
+              ],
+              [
+                "`!gctop`",
+                "Muestra el ranking de coleccionistas",
+                "Todos"
+              ],
+              [
+                "`!gcpause` / `!gcresume`",
+                "Pausa o reanuda un multi-pull en curso",
+                "Todos"
+              ],
+              [
+                "`!gcbuy [n]`",
+                "Compra pulls con DecaCoins",
+                "Todos"
+              ],
+              [
+                "`!gcprice`",
+                "Muestra las formas de conseguir pulls y sus precios",
+                "Todos"
+              ],
+              [
+                "`!gcdonar <usuario> <monto>`",
+                "Registra una donación manual a un usuario para darle pulls",
+                "Streamer / mods"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Cada comando puede tener aliases personalizados. Por ejemplo, puedes crear `!pull` como alias de `!gcpull`. Configúralos en la pestaña Comandos.",
+            "title": "Aliases"
+          }
+        ]
+      },
+      {
+        "id": "final",
+        "title": "Consideraciones importantes",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Los cambios en restricciones y milestones afectan a todos los viewers. Planifica antes de modificar thresholds activos. Por ejemplo, si reduces un milestone de $50 a $20, los viewers que ya tenían acumulado más de $20 podrían recibir pulls inmediatamente.",
+            "title": "Cambios en restricciones"
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Antes de ir live con el gacha, configura todas las pestañas y haz pruebas con la cuenta de un moderador. Revisa que el overlay funcione y los sonidos se escuchen correctamente.",
+            "title": "Recomendación"
+          }
+        ]
+      }
+    ]
+  },
+  "gachaOverlay": {
+    "title": "Sistema Gacha",
+    "subtitle": "Juego de colección de cartas para tu stream",
+    "cta": {
+      "to": "/features/gacha",
+      "label": "Ir a configuración"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué es el Gacha?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El sistema Gacha de Decatron es un juego de colección de cartas integrado en tu stream. Como streamer, creas cartas con diferentes rarezas y tus viewers las coleccionan al donar, suscribirse, usar bits o gastar DecaCoins."
+          },
+          {
+            "t": "p",
+            "x": "Cada acción otorga «pulls» (tiradas) que revelan cartas aleatorias con una animación en tu overlay. Los viewers pueden ver su colección y competir por completar todas las cartas."
+          }
+        ]
+      },
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Donaciones: tips, bits, suscripciones y gift subs otorgan pulls automáticamente.",
+              "Colección: 5 niveles de rareza: Común, Poco común, Raro, Épico y Legendario.",
+              "Overlay: animación de revelación de cartas directamente en tu stream."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "streamers",
+        "title": "Para streamers: configuración",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Crear cartas: en la pestaña Items, sube imágenes para cada carta y asígnales una rareza. Puedes crear tantas cartas como quieras en cada nivel de rareza.",
+              "Configurar probabilidades: en la pestaña Probabilidades, ajusta los porcentajes de probabilidad para cada nivel (deben sumar 100 %).",
+              "Agregar integraciones: en la pestaña Integraciones, configura cuántos pulls otorga cada tipo de acción: tips (por monto), bits (por cantidad), suscripciones, gift subs y DecaCoins (precio por pull).",
+              "Configurar el overlay: en la pestaña Sonidos, personaliza los sonidos de revelación por rareza. El tamaño y la animación se ajustan en la pestaña Overlay.",
+              "Agregar a OBS: copia la URL del overlay desde el dashboard y agrégala como fuente de navegador en OBS, con fondo transparente y las dimensiones recomendadas."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "gacha"
+          }
+        ]
+      },
+      {
+        "id": "viewers",
+        "title": "Para viewers: cómo jugar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Como viewer, hay varias formas de obtener pulls para coleccionar cartas:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Donar: cada donación otorga pulls según el monto configurado por el streamer.",
+              "Bits: usa bits en el canal para recibir pulls automáticamente.",
+              "Suscribirse: las suscripciones y los gift subs otorgan pulls.",
+              "DecaCoins: compra pulls con tus DecaCoins usando `!gcbuy`."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Usa los comandos de chat para tirar cartas, ver tu colección y más. También puedes ver tu colección completa en la web: `https://decatron.net/gacha/collection?channel=CANAL&user=USUARIO`. En `https://decatron.net/me/gacha` cada viewer decide si su colección es pública."
+          },
+          {
+            "t": "link",
+            "to": "coins-overview"
+          }
+        ]
+      },
+      {
+        "id": "rarezas",
+        "title": "Rarezas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las cartas tienen 5 niveles de rareza. El streamer configura las probabilidades de cada una:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Común (1 estrella)",
+              "Poco común (2 estrellas)",
+              "Raro (3 estrellas)",
+              "Épico (4 estrellas)",
+              "Legendario (5 estrellas)"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "cmds",
+        "title": "Comandos de chat",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "`!gacha pull [n]` / `!gcpull`",
+                "Tira cartas. Opcionalmente indica cuántas (ej: `!gcpull 5`)"
+              ],
+              [
+                "`!gacha col` / `!gccol`",
+                "Muestra un resumen de tu colección en el chat"
+              ],
+              [
+                "`!gacha pulls` / `!gcpulls`",
+                "Consulta cuántos pulls tienes disponibles"
+              ],
+              [
+                "`!gacha buy [n]` / `!gcbuy`",
+                "Compra pulls con tus DecaCoins"
+              ],
+              [
+                "`!gacha price` / `!gcprice`",
+                "Muestra todas las formas de obtener pulls y sus precios"
+              ],
+              [
+                "`!gacha donate usuario monto` / `!gcdonar` (mods)",
+                "Registra una donación manual a un usuario para darle pulls"
+              ],
+              [
+                "`!gacha pause` / `!gacha resume`",
+                "Pausa o reanuda una tirada múltiple en progreso"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Overlay en OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Copia la URL del overlay: desde el dashboard de Gacha, copia la URL del overlay que se genera automáticamente para tu canal.",
+              "Agrega una fuente de navegador en OBS y pega la URL copiada.",
+              "Configura las dimensiones: usa las dimensiones recomendadas del dashboard. Asegúrate de que el tamaño cubra el área donde quieres que aparezcan las cartas.",
+              "Fondo transparente: asegúrate de que el «CSS personalizado» no interfiera y que el fondo sea transparente."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Los sonidos del overlay se pueden personalizar por rareza desde la pestaña Sonidos en la configuración del Gacha.",
+            "title": "Sonidos personalizados"
+          }
+        ]
+      }
+    ]
+  },
+  "overlaysGuide": {
+    "title": "Configurar Overlays en OBS",
+    "subtitle": "Guía paso a paso para agregar overlays de Decatron a tu stream",
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué es un overlay?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Un overlay es un elemento visual que se muestra sobre tu stream. Decatron proporciona overlays para mostrar información en tiempo real como timers, alertas y más."
+          },
+          {
+            "t": "p",
+            "x": "Los overlays funcionan como páginas web que puedes agregar a OBS usando una fuente de navegador. Son transparentes y se actualizan automáticamente."
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Cómo agregar un overlay a OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Abre OBS Studio: inicia OBS y selecciona la escena donde quieres agregar el overlay.",
+              "Agregar fuente de navegador: en el panel «Fuentes», haz clic en «+» y selecciona «Navegador».",
+              "Nombrar la fuente: dale un nombre descriptivo como «Decatron Timer» y haz clic en OK.",
+              "Configurar la URL: copia la URL del overlay desde tu dashboard y pégala en el campo «URL».",
+              "Ajustar dimensiones: usa el tamaño que indica el panel de ese overlay (1920×1080 en la mayoría).",
+              "Opciones adicionales: activa «Actualizar navegador cuando la escena se active» para refrescar automáticamente."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Los overlays tienen fondo transparente por defecto. Si ves un fondo blanco o negro, asegúrate de que la opción «CSS personalizado» no tenga estilos de fondo.",
+            "title": "Consejo"
+          }
+        ]
+      },
+      {
+        "id": "dim",
+        "title": "Dimensiones recomendadas",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Overlay",
+              "Ancho",
+              "Alto",
+              "Notas"
+            ],
+            "rows": [
+              [
+                "Sound Alerts",
+                "1920",
+                "1080",
+                "Lienzo completo"
+              ],
+              [
+                "Shoutout",
+                "1000",
+                "300",
+                "Por defecto; cambia si eliges otro diseño"
+              ],
+              [
+                "Mascota",
+                "1920",
+                "420",
+                "Por defecto; se cambia en la pestaña Overlay"
+              ],
+              [
+                "Los demás",
+                "—",
+                "—",
+                "El panel de cada overlay indica el tamaño exacto; usa ese"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "urls",
+        "title": "URLs de overlays",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada overlay tiene una URL propia de tu canal. La encuentras en la pestaña Guía u Overlay del panel correspondiente, lista para copiar. Dónde se configura cada uno:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Overlay",
+              "Dónde se configura"
+            ],
+            "rows": [
+              [
+                "Timer",
+                "`/overlays/timer`"
+              ],
+              [
+                "Alertas de eventos",
+                "`/overlays/event-alerts`"
+              ],
+              [
+                "Sorteos (Giveaway)",
+                "`/features/giveaways`"
+              ],
+              [
+                "Sound Alerts",
+                "`/overlays/sound-alerts`"
+              ],
+              [
+                "Donaciones",
+                "`/features/tips`"
+              ],
+              [
+                "Shoutout",
+                "`/overlays/shoutout`"
+              ],
+              [
+                "Chat en pantalla",
+                "`/overlays/chat`"
+              ],
+              [
+                "Now Playing",
+                "`/overlays/now-playing`"
+              ],
+              [
+                "Song Request",
+                "`/overlays/song-request`"
+              ],
+              [
+                "Mascota",
+                "`/overlays/pets`"
+              ],
+              [
+                "Rueda",
+                "`/overlays/rueda`"
+              ],
+              [
+                "Game Overlays",
+                "`/overlays/games`"
+              ],
+              [
+                "Partida en vivo",
+                "`/overlays/live`"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "prob",
+        "title": "Solución de problemas",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "El overlay no se muestra: verifica que la URL sea correcta y esté completa; asegúrate de que el navegador de OBS tenga internet; revisa que no haya errores en la consola de OBS (Ver → Docks → Browser).",
+              "El overlay tiene fondo blanco o negro: borra cualquier CSS personalizado en las propiedades de la fuente; asegúrate de que «CSS personalizado» esté vacío o solo tenga `body { background: transparent; }`.",
+              "El overlay no se actualiza: haz clic derecho en la fuente y selecciona «Actualizar»; activa «Actualizar navegador cuando la escena se active» en propiedades; verifica tu conexión a internet.",
+              "El overlay se ve borroso: asegúrate de usar las dimensiones correctas; no escales la fuente del navegador, ajusta las dimensiones en propiedades."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "avanzado",
+        "title": "Consejos avanzados",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Puedes agregar el mismo overlay a múltiples escenas. OBS reutilizará la fuente si usas «Agregar existente» en lugar de crear una nueva.",
+            "title": "Múltiples escenas"
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los overlays de Decatron no requieren interacción. Puedes desactivar «Control de audio vía OBS» y «Shutdown source when not visible» para mejor rendimiento (los overlays con sonido, como Sound Alerts, necesitan el audio activo).",
+            "title": "Interacción desactivada"
+          }
+        ]
+      }
+    ]
+  },
+  "developer": {
+    "title": "Portal de Desarrolladores",
+    "subtitle": "Crea aplicaciones OAuth que se integren con la API de Decatron",
+    "cta": {
+      "to": "/developer",
+      "label": "Ir al portal"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué es el Portal de Desarrolladores?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El Portal de Desarrolladores te permite crear aplicaciones OAuth que se conectan con la API de Decatron. Puedes crear bots, integraciones o herramientas externas que interactúen con tu configuración de Decatron."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "OAuth 2.0: autenticación segura, con PKCE.",
+              "Scopes: control granular de permisos.",
+              "REST API: endpoints para timer, alertas, chat, sonidos y datos del stream."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Crear una aplicación",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Ve al Portal de Desarrolladores desde el dashboard.",
+              "Haz clic en «Nueva aplicación».",
+              "Completa el nombre, la descripción y la URL de redirección.",
+              "Selecciona los scopes (permisos) que necesita tu app.",
+              "Copia tu Client ID y Client Secret."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "El Client Secret solo se muestra una vez al crear la aplicación. Guárdalo en un lugar seguro. Si lo pierdes, tendrás que regenerarlo.",
+            "title": "Importante"
+          }
+        ]
+      },
+      {
+        "id": "gestionar",
+        "title": "Gestionar aplicaciones",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Ver detalles: consulta el Client ID, las estadísticas de uso (usuarios únicos, tokens activos) y el estado de verificación.",
+              "Regenerar secret: si pierdes tu Client Secret, puedes regenerarlo.",
+              "Eliminar aplicación: elimina una aplicación y revoca todos sus tokens. Esta acción no se puede deshacer."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "scopes",
+        "title": "Scopes disponibles",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los scopes definen qué permisos tiene tu aplicación:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Categoría",
+              "Scope",
+              "Descripción"
+            ],
+            "rows": [
+              [
+                "Lectura",
+                "`read:profile`",
+                "Ver tu información de perfil (nombre, avatar)"
+              ],
+              [
+                "",
+                "`read:timer`",
+                "Ver el estado actual del timer"
+              ],
+              [
+                "",
+                "`read:commands`",
+                "Ver la lista de comandos"
+              ],
+              [
+                "",
+                "`read:alerts`",
+                "Ver la configuración de alertas de eventos"
+              ],
+              [
+                "",
+                "`read:giveaways`",
+                "Ver sorteos activos e historial"
+              ],
+              [
+                "",
+                "`read:analytics`",
+                "Ver estadísticas y métricas del canal"
+              ],
+              [
+                "",
+                "`read:sounds`",
+                "Ver la configuración de alertas de sonido"
+              ],
+              [
+                "",
+                "`read:games`",
+                "Buscar categorías de Twitch por nombre"
+              ],
+              [
+                "",
+                "`read:stream`",
+                "Ver categoría, título, espectadores y último seguidor en vivo"
+              ],
+              [
+                "Escritura",
+                "`write:timer`",
+                "Modificar la configuración del timer"
+              ],
+              [
+                "",
+                "`write:commands`",
+                "Crear, editar y eliminar comandos"
+              ],
+              [
+                "",
+                "`write:alerts`",
+                "Modificar la configuración de alertas"
+              ],
+              [
+                "",
+                "`write:giveaways`",
+                "Crear y gestionar sorteos"
+              ],
+              [
+                "",
+                "`write:sounds`",
+                "Modificar la configuración de sonidos"
+              ],
+              [
+                "Acciones",
+                "`action:timer`",
+                "Controlar el timer (iniciar, pausar, detener)"
+              ],
+              [
+                "",
+                "`action:alerts`",
+                "Disparar alertas personalizadas en tu stream"
+              ],
+              [
+                "",
+                "`action:chat`",
+                "Enviar mensajes al chat de Twitch en tu nombre"
+              ],
+              [
+                "",
+                "`action:giveaway`",
+                "Iniciar sorteos y seleccionar ganadores"
+              ],
+              [
+                "",
+                "`action:sounds`",
+                "Reproducir sonidos en el overlay"
+              ],
+              [
+                "",
+                "`action:category`",
+                "Cambiar la categoría del stream"
+              ],
+              [
+                "",
+                "`action:title`",
+                "Cambiar el título del stream"
+              ],
+              [
+                "",
+                "`action:marker`",
+                "Crear un marcador en el stream"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "api",
+        "title": "Documentación de la API",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Para detalles completos sobre endpoints, autenticación y ejemplos de código, consulta la referencia de la API: `/docs/api`."
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Consejos",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Para aplicaciones frontend (SPA) usa el flujo PKCE en lugar de Client Secret. Es más seguro para apps que no pueden guardar secretos.",
+            "title": "PKCE"
+          }
+        ]
+      }
+    ]
   }
 }
