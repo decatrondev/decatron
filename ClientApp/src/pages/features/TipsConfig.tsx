@@ -89,7 +89,7 @@ export default function TipsConfig() {
     const [recentTips, setRecentTips] = useState<RecentTip[]>([]);
     const [statsPeriod, setStatsPeriod] = useState<string>('month');
 
-    const tipsUrl = `https://twitch.decatron.net/tip/${channelName}`;
+    const tipsUrl = `https://decatron.net/tip/${channelName}`;
     const overlayUrl = `https://decatron.net/overlay/tips?channel=${channelName}`;
 
     // Handle PayPal OAuth callback
