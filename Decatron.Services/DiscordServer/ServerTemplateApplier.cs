@@ -206,15 +206,17 @@ public static class ServerTemplateApplier
                 ids.TryGetValue(ObjKey("channel", t.Guild.Community.SafetyAlertsChannel), out var safety);
                 var body = new Dictionary<string, object?> { ["rules_channel_id"] = rules, ["public_updates_channel_id"] = updates };
                 if (safety != null) body["safety_alerts_channel_id"] = safety;
-                if (!snap.Guild.Features.Contains("COMMUNITY"))
-                {
-                    body["features"] = snap.Guild.Features.Append("COMMUNITY").ToList();
-                    body["preferred_locale"] = t.Guild.PreferredLocale;
-                    await rest.ModifyGuildAsync(guildId, body);
-                    snap.Guild.Features.Add("COMMUNITY");
-                }
-                else
-                    await rest.ModifyGuildAsync(guildId, body);
+                // OJO (comprobado contra Discord real el 2026-10-11): sin `features` en el mismo PATCH, Discord responde 200 pero IGNORA el cambio de
+                // los canales de reglas y de novedades. Hay que mandar siempre la lista de features (con COMMUNITY añadida si falta).
+                var hadCommunity = snap.Guild.Features.Contains("COMMUNITY");
+                body["features"] = hadCommunity ? snap.Guild.Features.ToList() : snap.Guild.Features.Append("COMMUNITY").ToList();
+                if (!hadCommunity) body["preferred_locale"] = t.Guild.PreferredLocale;
+                await rest.ModifyGuildAsync(guildId, body);
+                if (!hadCommunity) snap.Guild.Features.Add("COMMUNITY");
+                // Comprobar que Discord lo aplicó de verdad (el 200 no basta)
+                var after = await rest.GetGuildAsync(guildId);
+                if (after.RulesChannelId != rules || after.PublicUpdatesChannelId != updates)
+                    throw new InvalidOperationException("Discord respondió OK pero no aplicó los canales de reglas y novedades de Comunidad");
                 break;
             }
             case "afk":
