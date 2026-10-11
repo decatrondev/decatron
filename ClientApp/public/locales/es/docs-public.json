@@ -326,5 +326,365 @@
         ]
       }
     ]
+  },
+  "api": {
+    "title": "Decatron API",
+    "subtitle": "Documentación para desarrolladores",
+    "intro": "Integra Decatron en tus aplicaciones usando nuestra API REST con autenticación OAuth2. Controla timers, alertas, sonidos, el chat y más.",
+    "quickTitle": "Inicio rápido",
+    "q1": {
+      "t": "Registra tu aplicación",
+      "p": "Ve al Portal de Desarrolladores y crea una nueva aplicación. Obtendrás un client_id y un client_secret.",
+      "link": "Portal de Desarrolladores"
+    },
+    "q2": {
+      "t": "Obtener autorización del usuario",
+      "p": "Redirige al usuario a la página de autorización:",
+      "code": "https://decatron.net/oauth/authorize?\n  client_id=TU_CLIENT_ID\n  &redirect_uri=https://tuapp.com/callback\n  &response_type=code\n  &scope=read:timer action:timer\n  &state=random_state_string"
+    },
+    "q3": {
+      "t": "Intercambiar el código por tokens",
+      "p": "Cuando el usuario autorice, será redirigido a tu redirect_uri con un código:",
+      "code": "curl -X POST https://decatron.net/api/oauth/token \\\n  -H \"Content-Type: application/x-www-form-urlencoded\" \\\n  -d \"grant_type=authorization_code\" \\\n  -d \"code=CODIGO_RECIBIDO\" \\\n  -d \"redirect_uri=https://tuapp.com/callback\" \\\n  -d \"client_id=TU_CLIENT_ID\" \\\n  -d \"client_secret=TU_CLIENT_SECRET\"",
+      "resp": "Respuesta:",
+      "json": "{\n  \"access_token\": \"deca_abc123...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"refresh_token\": \"deca_refresh_xyz789...\",\n  \"scope\": \"read:timer action:timer\"\n}"
+    },
+    "q4": {
+      "t": "Usar la API",
+      "p": "Incluye el token en el header Authorization:",
+      "code": "curl https://decatron.net/api/v1/timer \\\n  -H \"Authorization: Bearer TU_ACCESS_TOKEN\""
+    },
+    "authTitle": "Autenticación",
+    "authIntro": "Decatron usa OAuth 2.0 con el flujo Authorization Code. Es el flujo más seguro para aplicaciones que pueden mantener un secreto.",
+    "flowTitle": "Flujo de autorización",
+    "flow": [
+      "Tu app redirige al usuario a /oauth/authorize",
+      "El usuario ve los permisos solicitados y aprueba o deniega",
+      "Decatron redirige al usuario de vuelta con un código temporal",
+      "Tu servidor intercambia el código por tokens en /api/oauth/token",
+      "Usa el access_token para llamar a la API"
+    ],
+    "pkceTitle": "PKCE (Proof Key for Code Exchange)",
+    "pkceIntro": "Para aplicaciones públicas (móviles, SPA), usa PKCE para mayor seguridad:",
+    "pkceCode": "// Generar code_verifier (cadena aleatoria)\nconst codeVerifier = generateRandomString(64);\n\n// Crear code_challenge (SHA256 + base64url)\nconst encoder = new TextEncoder();\nconst data = encoder.encode(codeVerifier);\nconst hash = await crypto.subtle.digest('SHA-256', data);\nconst codeChallenge = base64UrlEncode(hash);\n\n// Incluir en la URL de autorización\nconst authUrl = `https://decatron.net/oauth/authorize?\n  client_id=${clientId}\n  &code_challenge=${codeChallenge}\n  &code_challenge_method=S256\n  ...`;\n\n// Al intercambiar el código, incluir code_verifier\n// en lugar de client_secret",
+    "refreshTitle": "Refrescar tokens",
+    "refreshIntro": "Los access tokens expiran en 1 hora. Usa el refresh token para obtener uno nuevo:",
+    "refreshCode": "curl -X POST https://decatron.net/api/oauth/token \\\n  -H \"Content-Type: application/x-www-form-urlencoded\" \\\n  -d \"grant_type=refresh_token\" \\\n  -d \"refresh_token=TU_REFRESH_TOKEN\" \\\n  -d \"client_id=TU_CLIENT_ID\" \\\n  -d \"client_secret=TU_CLIENT_SECRET\"",
+    "revokeTitle": "Revocar tokens",
+    "revokeIntro": "Para invalidar un token (por ejemplo, cuando el usuario cierra sesión):",
+    "revokeCode": "curl -X POST https://decatron.net/api/oauth/revoke \\\n  -H \"Content-Type: application/x-www-form-urlencoded\" \\\n  -d \"token=TOKEN_A_REVOCAR\"",
+    "scopesTitle": "Scopes (permisos)",
+    "scopesIntro": "Los scopes definen qué puede hacer tu aplicación. Solicita solo los que necesitas.",
+    "scopeHead": [
+      "Scope",
+      "Descripción"
+    ],
+    "scopeGroups": [
+      {
+        "t": "Lectura (read:*)",
+        "rows": [
+          [
+            "read:profile",
+            "Información básica del usuario"
+          ],
+          [
+            "read:timer",
+            "Estado y configuración del timer"
+          ],
+          [
+            "read:commands",
+            "Lista de comandos del canal"
+          ],
+          [
+            "read:alerts",
+            "Configuración de alertas"
+          ],
+          [
+            "read:giveaways",
+            "Sorteos activos e historial"
+          ],
+          [
+            "read:analytics",
+            "Estadísticas del canal"
+          ],
+          [
+            "read:sounds",
+            "Configuración de alertas de sonido"
+          ],
+          [
+            "read:games",
+            "Buscar categorías de Twitch por nombre"
+          ],
+          [
+            "read:stream",
+            "Categoría, título, espectadores y último seguidor en vivo"
+          ]
+        ]
+      },
+      {
+        "t": "Escritura (write:*)",
+        "rows": [
+          [
+            "write:timer",
+            "Modificar la configuración del timer"
+          ],
+          [
+            "write:commands",
+            "Crear, editar y eliminar comandos"
+          ],
+          [
+            "write:alerts",
+            "Modificar la configuración de alertas"
+          ],
+          [
+            "write:giveaways",
+            "Crear y gestionar sorteos"
+          ],
+          [
+            "write:sounds",
+            "Modificar la configuración de sonidos"
+          ]
+        ]
+      },
+      {
+        "t": "Acciones (action:*)",
+        "rows": [
+          [
+            "action:timer",
+            "Iniciar, pausar y detener el timer"
+          ],
+          [
+            "action:alerts",
+            "Disparar alertas personalizadas"
+          ],
+          [
+            "action:chat",
+            "Enviar mensajes al chat (requiere que la app esté verificada)"
+          ],
+          [
+            "action:giveaway",
+            "Iniciar sorteos y seleccionar ganadores"
+          ],
+          [
+            "action:sounds",
+            "Reproducir sonidos en el overlay"
+          ],
+          [
+            "action:category",
+            "Cambiar la categoría del stream"
+          ],
+          [
+            "action:title",
+            "Cambiar el título del stream"
+          ],
+          [
+            "action:marker",
+            "Crear un marcador en el stream"
+          ]
+        ]
+      }
+    ],
+    "endpointsTitle": "Endpoints",
+    "endpointGroups": [
+      {
+        "t": "Endpoints OAuth",
+        "open": true,
+        "items": [
+          {
+            "m": "GET",
+            "p": "/oauth/authorize",
+            "d": "Página donde el usuario aprueba o deniega los permisos",
+            "s": null
+          },
+          {
+            "m": "POST",
+            "p": "/api/oauth/token",
+            "d": "Intercambia el código por tokens o refresca tokens",
+            "s": null
+          },
+          {
+            "m": "POST",
+            "p": "/api/oauth/revoke",
+            "d": "Revoca un token",
+            "s": null
+          },
+          {
+            "m": "GET",
+            "p": "/api/oauth/userinfo",
+            "d": "Información del usuario autenticado",
+            "s": "read:profile"
+          },
+          {
+            "m": "GET",
+            "p": "/api/oauth/scopes",
+            "d": "Lista todos los scopes disponibles",
+            "s": null
+          }
+        ]
+      },
+      {
+        "t": "API del timer",
+        "open": false,
+        "items": [
+          {
+            "m": "GET",
+            "p": "/api/v1/timer",
+            "d": "Obtiene el estado actual del timer",
+            "s": "read:timer"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/timer/start",
+            "d": "Inicia el timer",
+            "s": "action:timer"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/timer/pause",
+            "d": "Pausa el timer",
+            "s": "action:timer"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/timer/resume",
+            "d": "Reanuda el timer",
+            "s": "action:timer"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/timer/stop",
+            "d": "Detiene el timer",
+            "s": "action:timer"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/timer/add",
+            "d": "Agrega tiempo al timer",
+            "s": "action:timer"
+          }
+        ]
+      },
+      {
+        "t": "API de alertas",
+        "open": false,
+        "items": [
+          {
+            "m": "POST",
+            "p": "/api/v1/alerts/trigger",
+            "d": "Dispara una alerta personalizada",
+            "s": "action:alerts"
+          }
+        ]
+      },
+      {
+        "t": "API de Twitch",
+        "open": false,
+        "items": [
+          {
+            "m": "GET",
+            "p": "/api/v1/twitch/games/search",
+            "d": "Busca categorías de juegos",
+            "s": "read:games"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/twitch/category",
+            "d": "Cambia la categoría del stream",
+            "s": "action:category"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/twitch/title",
+            "d": "Cambia el título del stream",
+            "s": "action:title"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/twitch/marker",
+            "d": "Crea un marcador en el stream",
+            "s": "action:marker"
+          },
+          {
+            "m": "GET",
+            "p": "/api/v1/twitch/live-info",
+            "d": "Información del stream en vivo",
+            "s": "read:stream"
+          }
+        ]
+      },
+      {
+        "t": "API de sonidos",
+        "open": false,
+        "items": [
+          {
+            "m": "GET",
+            "p": "/api/v1/sounds",
+            "d": "Lista los sonidos disponibles",
+            "s": "read:sounds"
+          },
+          {
+            "m": "POST",
+            "p": "/api/v1/sounds/play",
+            "d": "Reproduce un sonido en el overlay",
+            "s": "action:sounds"
+          }
+        ]
+      },
+      {
+        "t": "API del chat",
+        "open": false,
+        "items": [
+          {
+            "m": "POST",
+            "p": "/api/v1/chat/send",
+            "d": "Envía un mensaje al chat de Twitch",
+            "s": "action:chat"
+          }
+        ]
+      }
+    ],
+    "errorsTitle": "Errores",
+    "errorHead": [
+      "Código",
+      "Error",
+      "Descripción"
+    ],
+    "errors": [
+      [
+        "400",
+        "invalid_request",
+        "Parámetros faltantes o inválidos"
+      ],
+      [
+        "401",
+        "invalid_token",
+        "Token inválido o expirado"
+      ],
+      [
+        "403",
+        "insufficient_scope",
+        "El token no tiene los scopes necesarios"
+      ],
+      [
+        "404",
+        "not_found",
+        "Recurso no encontrado"
+      ],
+      [
+        "429",
+        "rate_limited",
+        "Demasiadas solicitudes (solo en las rutas públicas que tienen límite)"
+      ],
+      [
+        "500",
+        "server_error",
+        "Error interno del servidor"
+      ]
+    ],
+    "limitsTitle": "Límites de uso",
+    "limits": "La API pública v1 no tiene un límite global de solicitudes. Solo algunas rutas públicas (por ejemplo, el registro a torneos o las imágenes de cartas) tienen límites propios y responden 429 al superarlos.",
+    "helpTitle": "¿Necesitas ayuda?",
+    "helpText": "Si tienes preguntas o problemas con la API, consulta las preguntas frecuentes.",
+    "helpButton": "Ver FAQ"
   }
 }
