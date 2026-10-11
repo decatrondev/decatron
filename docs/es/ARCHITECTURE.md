@@ -905,6 +905,15 @@ Los módulos 01-21 vienen de la auditoría original del código; los módulos po
 
 ---
 
+### Créditos y pagos
+
+Un canal tiene un saldo de créditos (`tts_credit_balances`) y un libro mayor solo de altas (`tts_credit_ledger`). `TtsCreditService` es el único lugar que cobra o acredita.
+
+- **Bolsas.** Los créditos mensuales vienen del plan (150 000, 500 000 y 1 500 000 en Supporter, Premium y Fundador; ninguno en el plan gratis) y se gastan primero; los comprados no vencen. La voz estándar (Piper) tiene su propia cuota mensual en caracteres (1, 3, 6 y 10 millones según el plan) y nunca toca los créditos. Los tiers sin límite registran el uso con valor 0.
+- **Tarifas.** Lo que cuesta cada motor por unidad vive en `credit_rates` (se edita desde Finanzas), leído mediante `CreditRates` con un caché de un minuto; un motor sin tarifa se cobra con un valor de resguardo deliberadamente alto. `GET /api/tts-credits/summary` devuelve el saldo, el gasto por función y las tarifas vigentes para la página `/credits`.
+- **Compra.** `GET /api/tts-credits/packages` lista `credit_packages`; `POST /api/tts-credits/billing-preview` muestra el comprobante que se emitiría; `POST /api/tts-credits/buy` cobra el precio del paquete convertido a PEN al tipo de cambio de la plataforma mediante Culqi (`/v2/charges`, llaves de `PaymentModeService`, de prueba o reales), registra una fila de `credit_purchases` con los datos de facturación congelados y acredita los créditos. Solo el dueño del canal puede comprar y antes debe existir el perfil de facturación. Un cargo confirmado sin id de cargo queda en el registro para revisión manual, igual que un cargo que no se acreditó.
+- **Comprobantes.** `BillingProfileService` valida el perfil (tipo de documento según el país, formatos de RUC, DNI, CE y pasaporte, consulta del RUC a SUNAT) y arma la vista previa: boleta con IGV incluido (18 %), factura con IGV para quien tiene RUC y la pide, o factura de exportación sin IGV para un domicilio extranjero. La emisión es asíncrona (`PENDING` a `ACCEPTED`); `GET /api/tts-credits/purchases` lista las compras con el estado de su comprobante y `.../download/{pdf|xml|cdr}` devuelve los archivos.
+
 ## 8. Integraciones externas
 
 ```mermaid

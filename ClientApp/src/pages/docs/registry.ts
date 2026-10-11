@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'credits' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'credits', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -105,6 +105,8 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'speak-overview', scopes: pub, group: 'modules', path: 'speak-chat', icon: Mic, color: 'purple' },
 
+    { id: 'credits-overview', scopes: pub, group: 'modules', path: 'credits', icon: Coins, color: 'yellow' },
+
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
@@ -165,6 +167,11 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'speak-activation', scopes: priv, group: 'speak', path: 'speak-chat/activation', icon: Zap, color: 'purple' },
     { id: 'speak-voice', scopes: priv, group: 'speak', path: 'speak-chat/voice', icon: Volume2, color: 'purple' },
     { id: 'speak-filters', scopes: priv, group: 'speak', path: 'speak-chat/filters', icon: SlidersHorizontal, color: 'purple' },
+
+    // — Créditos, compras y comprobantes: manual con cuenta —
+    { id: 'credits-balance', scopes: priv, group: 'credits', path: 'credits/balance', icon: Coins, color: 'yellow' },
+    { id: 'credits-buy', scopes: priv, group: 'credits', path: 'credits/buy', icon: DollarSign, color: 'yellow' },
+    { id: 'credits-billing', scopes: priv, group: 'credits', path: 'credits/billing', icon: Book, color: 'yellow' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

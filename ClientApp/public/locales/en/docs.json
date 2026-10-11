@@ -64,7 +64,8 @@
     "discord": "Discord",
     "spirits": "Fortnite Spirits",
     "chat": "Chat and emotes",
-    "speak": "Speak Chat"
+    "speak": "Speak Chat",
+    "credits": "Credits and purchases"
   },
   "layout": {
     "documentation": "Documentation",
@@ -496,6 +497,22 @@
     "speak-filters": {
       "title": "Filters, balloon and tests",
       "description": "Limit what is read and what is seen"
+    },
+    "credits-overview": {
+      "title": "Credits",
+      "description": "A single balance for what costs money"
+    },
+    "credits-balance": {
+      "title": "Balance and spending",
+      "description": "What you have and what it is spent on"
+    },
+    "credits-buy": {
+      "title": "Buy credits",
+      "description": "Packages and payment by card or Yape"
+    },
+    "credits-billing": {
+      "title": "Billing and receipts",
+      "description": "Data, receipt or invoice and downloads"
     }
   },
   "microCommands": {

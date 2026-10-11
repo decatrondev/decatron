@@ -1,0 +1,371 @@
+{
+  "overview": {
+    "title": "Credits",
+    "subtitle": "A single balance for everything that costs money in Decatron",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What they are",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Credits are the balance Decatron uses to pay for the features that have a real cost to the platform: premium voice, live translation, the LoL coach, the `!ia` command and AI chat. Each feature is charged according to what it really costs."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "What runs on our own server, such as the standard voice, does not use credits: it has its own quota included in the plan. The bot, commands and overlays are free."
+          }
+        ]
+      },
+      {
+        "id": "origen",
+        "title": "Where they come from",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Source",
+              "How it works"
+            ],
+            "rows": [
+              [
+                "Your plan",
+                "Each paid plan grants credits every month. They are spent first and renew on the 1st."
+              ],
+              [
+                "Package purchase",
+                "You pay with a card or Yape and receive an electronic receipt. Purchased credits do not expire and are used when the monthly ones run out."
+              ],
+              [
+                "Courtesy",
+                "While the transition lasts, accounts without a plan receive a courtesy balance."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the manual for your balance, purchases and receipts is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      }
+    ]
+  },
+  "balance": {
+    "title": "Credits: balance and spending",
+    "subtitle": "What you have, what it is spent on and how the history looks",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Where to see it",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Open Créditos (`/credits`). The balance belongs to the channel: every feature with a cost uses it, no matter who on the team turns them on."
+          }
+        ]
+      },
+      {
+        "id": "saldo",
+        "title": "Your balance",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Item",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "Disponibles",
+                "The total you can spend now: the monthly part plus the purchased part."
+              ],
+              [
+                "Del plan este mes",
+                "What your plan grants and how much you have used. It renews on the 1st."
+              ],
+              [
+                "Comprados",
+                "They do not expire; they are used when the monthly part runs out."
+              ],
+              [
+                "Standard voice",
+                "The standard voice characters you have left this month. It is a separate quota that does not touch credits."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The plan's monthly credits are 150,000 on Supporter, 500,000 on Premium and 1,500,000 on Fundador; the free plan includes none. The standard voice quota is 1,000,000, 3,000,000, 6,000,000 and 10,000,000 characters, from free to Fundador respectively."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "When your plan expires, the page tells you; purchased credits are not lost. If you are in the transition window you will see a courtesy balance with its deadline."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Without credits the coach, live translation, `!ia` and AI chat are paused. The standard voice keeps working."
+          }
+        ]
+      },
+      {
+        "id": "gasto",
+        "title": "Spent this period",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A breakdown by item of what was spent since the start of the period: LoL coach (AI and voice), live translation (listening, translating and voice), `!ia`, Decatron Chat, event alerts, Speak Chat, timers and tips."
+          }
+        ]
+      },
+      {
+        "id": "tarifas",
+        "title": "How they are spent",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The “Cómo se gastan” table shows what each thing costs today: listening for translation (per second spoken), premium voice (per character), the coach and translation AI calls (approximate, based on the model's real tokens) and the standard voice, which is free. These rates are set by the platform and may change, so that table is the current reference."
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "History",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every movement is recorded, with date, feature, detail and credits, and can be filtered by feature. The types are:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Type",
+              "What it is"
+            ],
+            "rows": [
+              [
+                "Créditos otorgados",
+                "A delivery of credits."
+              ],
+              [
+                "Compra",
+                "A package you bought."
+              ],
+              [
+                "Renovación mensual",
+                "The reset of plan credits on the 1st."
+              ],
+              [
+                "Devolución",
+                "Credits given back, for example if a voice synthesis failed."
+              ],
+              [
+                "Desde caché (gratis)",
+                "An audio that already existed and was not charged."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "buy": {
+    "title": "Credits: buying",
+    "subtitle": "Packages, payment by card or Yape and what you receive",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Before buying",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Only the channel owner can buy credits. An editor with permissions will see the notice “Solo el dueño del canal puede comprar créditos”.",
+              "You must have your billing data complete (asked for only once). If it is missing, the purchase asks you to complete it before continuing."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "paquetes",
+        "title": "Packages",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Under “Comprar créditos” you will see the available packages, with how many credits they include, the price in dollars, a “popular” tag on the recommended one and, if there is one, a gift of extra credits. Each package shows the approximate price per million credits."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The packages and their prices are set by the platform and may change. If there are no packages, the page says “No hay paquetes disponibles por ahora”."
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "How to buy",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Choose a package and press “Comprar”.",
+              "Check the preview of your receipt: type, name, document and subtotal.",
+              "Pay by card or Yape in the Culqi window.",
+              "Once the payment is confirmed, credits are added instantly and “¡Listo! Recibiste N créditos” appears. Your receipt arrives in a few minutes."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The price is in dollars and the charge is made in soles, at the platform's fixed exchange rate. Purchased credits do not expire."
+          }
+        ]
+      },
+      {
+        "id": "problemas",
+        "title": "If something goes wrong",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "If the bank rejects the payment, you will see the reason reported by the gateway and nothing is charged.",
+              "If the charge reached you but the page did not confirm the purchase, do not pay again: write to support with your payment receipt.",
+              "If the electronic receipt fails, your credits are credited anyway and the team resolves it."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "compras",
+        "title": "Your purchases",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "At the bottom of the page, “Tus compras” lists each purchase with the date, credits, amount paid and the status of the receipt (“Factura” or “Boleta”, “en emisión…” if it has not been issued yet)."
+          },
+          {
+            "t": "link",
+            "to": "credits-billing"
+          }
+        ]
+      }
+    ]
+  },
+  "billing": {
+    "title": "Billing data and receipts",
+    "subtitle": "Who appears on your receipt and how to download it",
+    "sections": [
+      {
+        "id": "datos",
+        "title": "Your billing data",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In My account → Billing data (`/me/billing`) you fill in, once, the data used to issue your receipt or invoice when you buy something. If you only use Decatron for free, you do not need to fill them in."
+          },
+          {
+            "t": "p",
+            "x": "First you choose where your address is, because that decides the type of receipt:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Address",
+              "Allowed documents",
+              "Receipt"
+            ],
+            "rows": [
+              [
+                "In Peru",
+                "DNI, RUC (allows requesting an invoice), foreigner ID card or passport.",
+                "Electronic sales receipt with IGV included, or invoice with IGV if you have a RUC and ask for it."
+              ],
+              [
+                "Outside Peru",
+                "Document of your country of residence (RUT, DNI, CUIT…), passport, foreigner ID card, TIN, IN or diplomatic ID.",
+                "Services export invoice, without IGV."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "validacion",
+        "title": "What is validated",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "DNI: 8 digits.",
+              "RUC: 11 digits starting with 10, 15, 16, 17 or 20. When you type it, Decatron queries SUNAT and fills in the legal name (and the address if you did not enter one); that legal name cannot be changed, because the registered one must appear on the invoice.",
+              "Foreigner ID card: 9 to 12 characters. Passport: 5 to 12.",
+              "The RUC only exists in Peru: with an address outside the country, use the document of your country.",
+              "Address and email for the receipt are optional."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Receipt data is frozen with each purchase: if you change your profile later, earlier purchases keep the data they were made with."
+          }
+        ]
+      },
+      {
+        "id": "antes",
+        "title": "The preview when buying",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Before paying, the “Tu comprobante” window shows exactly which document will be issued: invoice or receipt, name, document and subtotal. If you have a RUC you can choose an invoice instead of a receipt. For exports it is always an invoice and without IGV."
+          }
+        ]
+      },
+      {
+        "id": "comprobantes",
+        "title": "My receipts",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In My account → My receipts (`/me/invoices`) are all your receipts: those for your plan, for DecaCoins and for credits. Each one shows the type, number, date, amount and its status:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Status",
+              "Meaning"
+            ],
+            "rows": [
+              [
+                "Aceptado por SUNAT",
+                "The receipt is valid and can be downloaded."
+              ],
+              [
+                "Emitiéndose",
+                "It is still being generated; it usually takes a couple of minutes. Come back and it will be here."
+              ],
+              [
+                "Con un problema",
+                "You do not need to pay again: the purchase is already credited and the team reviews it."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "It is downloaded in three formats: PDF (to print or save), XML (the signed file, the one that counts before SUNAT) and CDR (the proof that SUNAT received it)."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "overview": {
+    "title": "Créditos",
+    "subtitle": "Un solo saldo para todo lo que cuesta dinero en Decatron",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué son",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los créditos son el saldo con el que Decatron paga las funciones que tienen un costo real para la plataforma: la voz premium, la traducción en vivo, el coach de LoL, el comando `!ia` y el chat con IA. Cada función descuenta según lo que cuesta de verdad."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Lo que corre en nuestro servidor, como la voz estándar, no gasta créditos: tiene su propia cuota incluida en el plan. El bot, los comandos y los overlays son gratis."
+          }
+        ]
+      },
+      {
+        "id": "origen",
+        "title": "De dónde salen",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Origen",
+              "Cómo funciona"
+            ],
+            "rows": [
+              [
+                "Tu plan",
+                "Cada plan de pago otorga créditos cada mes. Se gastan primero y se renuevan el día 1."
+              ],
+              [
+                "Compra de paquetes",
+                "Pagas con tarjeta o Yape y recibes un comprobante electrónico. Los créditos comprados no vencen y se usan cuando se agota lo del mes."
+              ],
+              [
+                "Cortesía",
+                "Mientras dure la transición, las cuentas sin plan reciben un saldo de cortesía."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, el manual de tu saldo, la compra y los comprobantes está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      }
+    ]
+  },
+  "balance": {
+    "title": "Créditos: saldo y gasto",
+    "subtitle": "Qué tienes, en qué se gasta y cómo se ve el historial",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Dónde verlo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Entra a Créditos (`/credits`). El saldo es del canal: lo usan todas las funciones con costo, sin importar quién del equipo las active."
+          }
+        ]
+      },
+      {
+        "id": "saldo",
+        "title": "Tu saldo",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Dato",
+              "Qué significa"
+            ],
+            "rows": [
+              [
+                "Disponibles",
+                "El total que puedes gastar ahora: lo del mes más lo comprado."
+              ],
+              [
+                "Del plan este mes",
+                "Lo que otorga tu plan y cuánto llevas usado. Se renueva el día 1."
+              ],
+              [
+                "Comprados",
+                "No vencen; se usan cuando se agota lo del mes."
+              ],
+              [
+                "Voz estándar",
+                "Los caracteres de voz estándar que te quedan este mes. Es una cuota aparte, que no toca los créditos."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los créditos mensuales del plan son 150 000 en Supporter, 500 000 en Premium y 1 500 000 en Fundador; el plan gratis no incluye. La cuota de voz estándar es de 1 000 000, 3 000 000, 6 000 000 y 10 000 000 de caracteres, respectivamente, de gratis a Fundador."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Cuando tu plan vence, la página lo avisa; los créditos comprados no se pierden. Si estás en la ventana de transición verás un saldo de cortesía con su fecha límite."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Sin créditos quedan en pausa el coach, la traducción en vivo, `!ia` y el chat con IA. La voz estándar sigue funcionando."
+          }
+        ]
+      },
+      {
+        "id": "gasto",
+        "title": "Gastado este período",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Un desglose por concepto de lo gastado desde el inicio del período: coach de LoL (IA y voz), traducción en vivo (escuchar, traducir y voz), `!ia`, Decatron Chat, alertas de eventos, Speak Chat, temporizadores y donaciones."
+          }
+        ]
+      },
+      {
+        "id": "tarifas",
+        "title": "Cómo se gastan",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La tabla «Cómo se gastan» muestra lo que cuesta cada cosa hoy: escuchar para la traducción (por segundo hablado), la voz premium (por carácter), las llamadas de IA del coach y de la traducción (aproximadas, según los tokens reales del modelo) y la voz estándar, que es gratis. Estas tarifas las fija la plataforma y pueden cambiar, así que esa tabla es la referencia vigente."
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "Historial",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada movimiento queda registrado, con fecha, función, detalle y créditos, y se puede filtrar por función. Los tipos son:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Tipo",
+              "Qué es"
+            ],
+            "rows": [
+              [
+                "Créditos otorgados",
+                "Una entrega de créditos."
+              ],
+              [
+                "Compra",
+                "Un paquete que compraste."
+              ],
+              [
+                "Renovación mensual",
+                "El reinicio de los créditos del plan el día 1."
+              ],
+              [
+                "Devolución",
+                "Créditos devueltos, por ejemplo si una síntesis de voz falló."
+              ],
+              [
+                "Desde caché (gratis)",
+                "Un audio que ya existía y no se cobró."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "buy": {
+    "title": "Créditos: comprar",
+    "subtitle": "Paquetes, pago con tarjeta o Yape y qué recibes",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Antes de comprar",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Solo el dueño del canal puede comprar créditos. Un editor con permisos verá el aviso «Solo el dueño del canal puede comprar créditos».",
+              "Debes tener completos tus datos de facturación (se piden una sola vez). Si faltan, la compra te pide completarlos antes de continuar."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "paquetes",
+        "title": "Paquetes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En «Comprar créditos» verás los paquetes disponibles, con cuántos créditos incluyen, el precio en dólares, una etiqueta «popular» en el recomendado y, si lo hay, un regalo de créditos extra. Cada paquete muestra el precio aproximado por millón de créditos."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los paquetes y sus precios los define la plataforma y pueden cambiar. Si no hay paquetes, la página dice «No hay paquetes disponibles por ahora»."
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Cómo comprar",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Elige un paquete y pulsa «Comprar».",
+              "Revisa la vista previa de tu comprobante: tipo, nombre, documento y subtotal.",
+              "Paga con tarjeta o Yape en la ventana de Culqi.",
+              "Al confirmarse el pago, los créditos se acreditan al instante y aparece «¡Listo! Recibiste N créditos». Tu comprobante llega en unos minutos."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "El precio está en dólares y el cobro se hace en soles, al tipo de cambio fijo de la plataforma. Los créditos comprados no vencen."
+          }
+        ]
+      },
+      {
+        "id": "problemas",
+        "title": "Si algo sale mal",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Si el banco rechaza el pago, verás el motivo que informa la pasarela y no se descuenta nada.",
+              "Si te llegó el cargo pero la página no confirmó la compra, no vuelvas a pagar: escribe a soporte con tu comprobante de pago.",
+              "Si el comprobante electrónico falla, tus créditos quedan acreditados igual y el equipo lo resuelve."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "compras",
+        "title": "Tus compras",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Al final de la página, «Tus compras» lista cada compra con la fecha, los créditos, lo pagado y el estado del comprobante («Factura» o «Boleta», «en emisión…» si aún no sale)."
+          },
+          {
+            "t": "link",
+            "to": "credits-billing"
+          }
+        ]
+      }
+    ]
+  },
+  "billing": {
+    "title": "Datos de facturación y comprobantes",
+    "subtitle": "Quién figura en tu comprobante y cómo descargarlo",
+    "sections": [
+      {
+        "id": "datos",
+        "title": "Tus datos de facturación",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Mi cuenta → Datos de facturación (`/me/billing`) completas, una sola vez, los datos con los que se emite tu boleta o factura cuando compras algo. Si solo usas Decatron gratis, no hace falta llenarlos."
+          },
+          {
+            "t": "p",
+            "x": "Primero eliges dónde está tu domicilio, porque eso decide el tipo de comprobante:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Domicilio",
+              "Documentos permitidos",
+              "Comprobante"
+            ],
+            "rows": [
+              [
+                "En el Perú",
+                "DNI, RUC (permite pedir factura), carné de extranjería o pasaporte.",
+                "Boleta de venta electrónica con IGV incluido, o factura con IGV si tienes RUC y la pides."
+              ],
+              [
+                "Fuera del Perú",
+                "Documento de tu país de residencia (RUT, DNI, CUIT…), pasaporte, carné de extranjería, TIN, IN o cédula diplomática.",
+                "Factura de exportación de servicios, sin IGV."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "validacion",
+        "title": "Qué se valida",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "DNI: 8 dígitos.",
+              "RUC: 11 dígitos que empiezan en 10, 15, 16, 17 o 20. Al escribirlo, Decatron consulta SUNAT y completa la razón social (y la dirección si no la escribiste); esa razón social no se puede cambiar, porque en la factura debe ir la registrada.",
+              "Carné de extranjería: de 9 a 12 caracteres. Pasaporte: de 5 a 12.",
+              "El RUC solo existe en el Perú: con domicilio fuera del país corresponde el documento de tu país.",
+              "Dirección y correo para el comprobante son opcionales."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los datos del comprobante se congelan con cada compra: si después cambias tu perfil, las compras anteriores conservan los datos con los que se hicieron."
+          }
+        ]
+      },
+      {
+        "id": "antes",
+        "title": "La vista previa al comprar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Antes de pagar, la ventana «Tu comprobante» muestra exactamente qué documento saldrá: factura o boleta, nombre, documento y subtotal. Si tienes RUC puedes elegir factura en lugar de boleta. En exportación siempre es factura y sin IGV."
+          }
+        ]
+      },
+      {
+        "id": "comprobantes",
+        "title": "Mis comprobantes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Mi cuenta → Mis comprobantes (`/me/invoices`) están todos tus comprobantes: los de tu plan, los de DecaCoins y los de créditos. Cada uno muestra el tipo, el número, la fecha, el importe y su estado:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Estado",
+              "Significado"
+            ],
+            "rows": [
+              [
+                "Aceptado por SUNAT",
+                "El comprobante es válido y se puede descargar."
+              ],
+              [
+                "Emitiéndose",
+                "Aún se está generando; suele tardar un par de minutos. Vuelve a entrar y estará aquí."
+              ],
+              [
+                "Con un problema",
+                "No hace falta que vuelvas a pagar: la compra ya está acreditada y el equipo lo revisa."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Se descarga en tres formatos: PDF (para imprimir o guardar), XML (el archivo firmado, el que vale ante SUNAT) y CDR (la constancia de que SUNAT lo recibió)."
+          }
+        ]
+      }
+    ]
+  }
+}

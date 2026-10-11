@@ -6,7 +6,7 @@ import { COUNTRIES } from '../../data/countries';
 /**
  * Datos con los que se emite el comprobante de una compra.
  *
- * Se completan una sola vez, acá, y no en medio del pago. Un comprobante se emite sobre un
+ * Se completan una sola vez, aquí, y no en medio del pago. Un comprobante se emite sobre un
  * cobro ya hecho: si el documento está mal o falta, después ya no hay a quién preguntarle
  * y la única salida es anular con una nota de crédito.
  */

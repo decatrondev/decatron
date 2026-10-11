@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Qué comprobante va a salir, mostrado ANTES de pagar. El backend lo calcula con las
 // mismas reglas que usa al emitir (ver BillingProfileService.Preview), así que lo que
-// se ve acá es exactamente lo que después llega: si dice factura sin IGV, eso sale.
+// se ve aquí es exactamente lo que después llega: si dice factura sin IGV, eso sale.
 
 export interface ComprobantePreview {
     documentType: string;
@@ -26,7 +26,7 @@ interface Props {
     /** 'PROFILE_REQUIRED' cuando todavía no completó sus datos de facturación. */
     error: string | null;
     /**
-     * Lo que falló al intentar cobrar (tarjeta rechazada, etc). Va acá adentro y no en
+     * Lo que falló al intentar cobrar (tarjeta rechazada, etc). Va aquí adentro y no en
      * un toast: el comprador está mirando este modal, no la esquina de la pantalla.
      */
     submitError: string | null;
@@ -61,7 +61,7 @@ export default function BillingConfirmModal({
                     <div className="space-y-4">
                         <div className="flex items-start gap-2 text-sm text-ds-warn bg-ds-warn/10 border border-ds-warn/40 rounded-lg px-4 py-3">
                             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                            <span>Completá tus datos de facturación antes de comprar. Se piden una sola vez.</span>
+                            <span>Completa tus datos de facturación antes de comprar. Se piden una sola vez.</span>
                         </div>
                         <button
                             onClick={() => navigate('/me/billing')}

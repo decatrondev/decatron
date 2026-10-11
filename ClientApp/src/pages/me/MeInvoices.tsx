@@ -8,7 +8,7 @@ import { descargarComprobante, FORMATOS, type FormatoComprobante } from '../../u
  * Los comprobantes de las compras del usuario: tiers y DecaCoins, mezclados por fecha.
  *
  * Las donaciones no aparecen: son liberalidades y no llevan comprobante, así que no
- * tendría sentido listarlas acá y dejar la fila vacía.
+ * tendría sentido listarlas aquí y dejar la fila vacía.
  *
  * Un comprobante puede tardar en salir — se emite fuera del cobro, cada dos minutos — y
  * eso hay que decirlo, no dejar un hueco: quien acaba de pagar entra justo a mirar.
@@ -135,7 +135,7 @@ export default function MeInvoices() {
             ]);
 
             if (tiers.status === 'rejected' && coins.status === 'rejected' && credits.status === 'rejected') {
-                setError('No pudimos cargar tus comprobantes. Intentá de nuevo en un momento.');
+                setError('No pudimos cargar tus comprobantes. Inténtalo de nuevo en un momento.');
                 setLoading(false);
                 return;
             }
@@ -211,7 +211,7 @@ export default function MeInvoices() {
         try {
             await descargarComprobante(item.downloadBase, formato);
         } catch {
-            setError('No se pudo descargar el archivo. Si acabás de comprar, esperá un par de minutos.');
+            setError('No se pudo descargar el archivo. Si acabas de comprar, espera un par de minutos.');
         } finally {
             setBajando(null);
         }
@@ -247,9 +247,9 @@ export default function MeInvoices() {
             {items.length === 0 ? (
                 <div className="bg-ds-surface rounded-lg p-10 border border-ds-border text-center">
                     <Receipt className="w-10 h-10 mx-auto mb-3 text-ds-soft" />
-                    <p className="font-black text-ds-text">Todavía no compraste ningún tier</p>
+                    <p className="font-black text-ds-text">Todavía no has comprado ningún tier</p>
                     <p className="text-sm text-ds-soft mt-1">
-                        Cuando lo hagas, tu comprobante aparece acá.
+                        Cuando lo hagas, tu comprobante aparece aquí.
                     </p>
                     <Link
                         to="/supporters"
@@ -316,8 +316,8 @@ export default function MeInvoices() {
                                 ) : (
                                     <p className="text-sm text-ds-soft">
                                         {c.status === 'PENDING' || c.status === null
-                                            ? 'Tu comprobante se está emitiendo. Suele tardar un par de minutos; volvé a entrar y ya va a estar acá.'
-                                            : `Hubo un problema al emitir este comprobante. ${c.yaAcreditado} y ya lo estamos revisando — no tenés que hacer nada.`}
+                                            ? 'Tu comprobante se está emitiendo. Suele tardar un par de minutos; vuelve a entrar y ya estará aquí.'
+                                            : `Hubo un problema al emitir este comprobante. ${c.yaAcreditado} y ya lo estamos revisando — no tienes que hacer nada.`}
                                     </p>
                                 )}
                             </div>

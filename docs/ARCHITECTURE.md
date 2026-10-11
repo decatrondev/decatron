@@ -904,6 +904,15 @@ Modules 01-21 come from the original codebase audit; later modules are appended 
 
 ---
 
+### Credits and payments
+
+A channel has one credit balance (`tts_credit_balances`) and an append-only ledger (`tts_credit_ledger`). `TtsCreditService` is the only place that charges or grants.
+
+- **Pools.** Monthly credits come from the plan (150,000, 500,000 and 1,500,000 for Supporter, Premium and Fundador; none for free) and are spent first; purchased credits do not expire. The standard voice (Piper) has its own monthly quota in characters (1, 3, 6 and 10 million by plan) and never touches credits. Unlimited tiers record usage with a value of 0.
+- **Rates.** What each engine costs per unit lives in `credit_rates` (edited from Finance), read through `CreditRates` with a one-minute cache; an engine without a rate is charged a deliberately high fallback. `GET /api/tts-credits/summary` returns the balance, spending by feature and the current rates for the `/credits` page.
+- **Buying.** `GET /api/tts-credits/packages` lists `credit_packages`; `POST /api/tts-credits/billing-preview` shows the receipt that would be issued; `POST /api/tts-credits/buy` charges the package price converted to PEN at the platform exchange rate through Culqi (`/v2/charges`, keys from `PaymentModeService`, test or live), records a `credit_purchases` row with the billing data frozen, and grants the credits. Only the channel owner can buy, and the billing profile must exist first. A charge confirmed without a charge id is logged for manual review, and a charge that was not credited is logged as well.
+- **Receipts.** `BillingProfileService` validates the profile (document type by country, RUC/DNI/CE/passport formats, RUC lookup against SUNAT) and builds the preview: boleta with IGV included (18 %), factura with IGV for a RUC holder who asks for it, or an export invoice without IGV for a foreign address. Issuing is asynchronous (`PENDING` to `ACCEPTED`); `GET /api/tts-credits/purchases` lists purchases with their receipt state and `.../download/{pdf|xml|cdr}` returns the files.
+
 ## 8. External Integrations
 
 ```mermaid
