@@ -479,6 +479,14 @@ namespace Decatron.Services
                             await watchTimeService.TrackUserPresence(channelInfo.TwitchId, userId, username);
                         }
 
+                        // Giveaway: si el que escribe es un ganador esperando respuesta, cualquier mensaje suyo cuenta como respuesta
+                        if (Decatron.Services.GiveawayService.HasPendingWinners(channelInfo.TwitchId))
+                        {
+                            var giveawayService = scope.ServiceProvider.GetService<Decatron.Services.GiveawayService>();
+                            if (giveawayService != null)
+                                await giveawayService.MarkWinnerAsResponded(channelInfo.TwitchId, username, message);
+                        }
+
                         // Track chat activity (incrementa contador de mensajes)
                         var chatActivityService = scope.ServiceProvider.GetService<IChatActivityService>();
                         if (chatActivityService != null)

@@ -185,6 +185,13 @@ namespace Decatron.Services
             return session;
         }
 
+        // Canales con ganadores esperando respuesta (canal -> hasta cuándo mirar el chat). Evita
+        // consultar la base por cada mensaje de chat de canales sin giveaway pendiente.
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _pendingWinnerChannels = new();
+
+        public static bool HasPendingWinners(string channelId) =>
+            _pendingWinnerChannels.TryGetValue(channelId, out var until) && until > DateTime.UtcNow;
+
         public async Task<GiveawaySession> EndGiveaway(string channelId)
         {
             var session = await GetActiveSession(channelId);
@@ -212,6 +219,9 @@ namespace Decatron.Services
                 session.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
+
+                var responseWindow = TimeSpan.FromSeconds(Math.Max(60, config.WinnerResponseTimeout) * (config.NumberOfWinners + config.NumberOfBackupWinners + 1));
+                _pendingWinnerChannels[channelId] = DateTime.UtcNow + responseWindow;
 
                 _logger.LogInformation($"Giveaway finalizó selección de ganadores en canal {channelId}: {session.Name}");
 
