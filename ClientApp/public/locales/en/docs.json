@@ -67,7 +67,8 @@
     "speak": "Speak Chat",
     "credits": "Credits and purchases",
     "plans": "Plans and support",
-    "kick": "Kick"
+    "kick": "Kick",
+    "accounts": "Game accounts"
   },
   "layout": {
     "documentation": "Documentation",
@@ -539,6 +540,18 @@
     "kick-features": {
       "title": "What works and what does not",
       "description": "The feature table on Kick"
+    },
+    "accounts-overview": {
+      "title": "Game accounts",
+      "description": "Riot, Epic and other games"
+    },
+    "accounts-riot": {
+      "title": "Riot accounts",
+      "description": "Link and verify League of Legends"
+    },
+    "accounts-epic": {
+      "title": "Epic and other games",
+      "description": "Fortnite and the other accounts"
     }
   },
   "microCommands": {

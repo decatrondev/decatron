@@ -932,6 +932,15 @@ Kick es una segunda plataforma junto a Twitch. Un canal de Kick es su propia fil
 - **Salida.** `MessageSenderRouter` decide por canal si una respuesta va a Twitch o a `KickConnector`, que publica en `/public/v1/chat` con el token del propio canal. `KickApiService` también borra mensajes, banea y desbanea para la moderación y lista las recompensas del canal.
 - **Panel.** Los overlays y las funciones llevan una marca `kickReady` o `kickVerified`; una sesión de Kick muestra el resto como «Próximamente en Kick». Los comandos sin datos en Kick (`followage`, `so`) o por construir (`title`, `game`) están marcados en el catálogo de comandos por defecto.
 
+### Cuentas de juego
+
+Las cuentas de juego vinculadas están en `linked_game_accounts` y pertenecen a la `Account` (así que los canales de Twitch y Kick de la misma persona las comparten), no a un canal. Las mismas filas sirven a los torneos y a los overlays de juegos.
+
+- **Proveedores.** `GameAccountService` vincula mediante un proveedor por juego: `RiotLolProvider` (League of Legends, con datos de la API de Riot, región obligatoria y verificación de propiedad) y `ManualProvider` (todos los demás: TFT, VALORANT, Marvel Rivals, CS2, Fortnite, Rocket League y Warzone, solo por nombre y con rango manual). Al vincular se respeta el tope del plan por juego (`GameOverlayTierLimits`: 1, 3, 5 y 10), se rechaza un duplicado y se rechaza una cuenta ya verificada por otro usuario.
+- **Verificación de Riot.** `POST /api/me/riot-accounts` resuelve el PUUID (`RiotApiClient`, llave de plataforma de `RiotApiKeys`) y asigna un icono de perfil al azar de un grupo fijo; `POST /api/me/riot-accounts/{id}/verify` lee el icono actual y marca la fila como verificada cuando coincide (`VerifiedAt`), limpia el desafío y verifica las filas hermanas de la misma cuenta de Riot dentro de la misma cuenta de Decatron.
+- **Epic.** `GET /api/me/epic/status`, `GET /api/me/epic/login-url` y `GET /api/auth/epic/callback` ejecutan el OAuth oficial de Epic, canjean el código, leen el id de cuenta y el nombre visible y guardan una cuenta `epic` verificada; sin OAuth de Epic disponible, las cuentas de Fortnite se agregan por nombre con `POST /api/me/game-accounts` y quedan sin verificar.
+- **Otros endpoints.** `GET /api/me/game-accounts` (con el catálogo de juegos), `PUT` para fijar un rango manual y `DELETE` para desvincular. Los torneos solo ofrecen cuentas verificadas de la región de la edición (`TournamentMeController`).
+
 ## 8. Integraciones externas
 
 ```mermaid

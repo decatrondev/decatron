@@ -931,6 +931,15 @@ Kick is a second platform next to Twitch. A Kick channel is its own row in `user
 - **Outgoing.** `MessageSenderRouter` decides per channel whether a reply goes to Twitch or to `KickConnector`, which posts to `/public/v1/chat` with the channel's own token. `KickApiService` also deletes messages, bans and unbans for moderation and lists channel rewards.
 - **Panel.** Overlays and features carry a `kickReady` or `kickVerified` flag; a Kick session shows the rest as "Próximamente en Kick". Commands without data on Kick (`followage`, `so`) or still to build (`title`, `game`) are marked in the default commands catalog.
 
+### Game accounts
+
+Linked game accounts live in `linked_game_accounts` and belong to the `Account` (so Twitch and Kick channels of the same person share them), not to a channel. The same rows serve tournaments and the game overlays.
+
+- **Providers.** `GameAccountService` links through a provider per game: `RiotLolProvider` (League of Legends, with Riot API data, region required and ownership verification) and `ManualProvider` (every other game: TFT, VALORANT, Marvel Rivals, CS2, Fortnite, Rocket League and Warzone, name only, manual rank). Linking respects the plan cap per game (`GameOverlayTierLimits`: 1, 3, 5 and 10), rejects a duplicate and rejects an account already verified by another user.
+- **Riot verification.** `POST /api/me/riot-accounts` resolves the PUUID (`RiotApiClient`, platform key from `RiotApiKeys`) and assigns a random profile icon from a fixed pool; `POST /api/me/riot-accounts/{id}/verify` reads the current icon and marks the row verified when it matches (`VerifiedAt`), clearing the challenge and verifying sibling rows of the same Riot account in the same Decatron account.
+- **Epic.** `GET /api/me/epic/status`, `GET /api/me/epic/login-url` and `GET /api/auth/epic/callback` run the official Epic OAuth, exchange the code, read the account id and display name and save a verified `epic` account; without Epic OAuth available, Fortnite accounts are added by name through `POST /api/me/game-accounts` and stay unverified.
+- **Other endpoints.** `GET /api/me/game-accounts` (with the game catalog), `PUT` to set a manual rank, `DELETE` to unlink. Tournaments only offer verified accounts of the edition's region (`TournamentMeController`).
+
 ## 8. External Integrations
 
 ```mermaid

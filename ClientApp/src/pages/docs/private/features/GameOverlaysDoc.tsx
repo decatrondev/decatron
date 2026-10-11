@@ -83,7 +83,7 @@ export default function GameOverlaysDoc() {
 
             <DocSection title="Planes">
                 <p>La personalización, la detección, los comandos y los ocho juegos son gratis para todos. Lo que crece con el plan es la cantidad:
-                    cuentas por juego (1 / 3 / 5 / ilimitado), overlays (1 / 2 / 4 / ilimitado), refresco de datos (3 / 2 / 1 / 1 min),
+                    cuentas por juego (1 / 3 / 5 / 10), overlays (1 / 2 / 4 / ilimitado), refresco de datos (3 / 2 / 1 / 1 min),
                     partidas mostradas (5 / 10 / 20) y rotación avanzada (por intervalo desde Supporter, "la que está en partida" desde Premium).</p>
             </DocSection>
 

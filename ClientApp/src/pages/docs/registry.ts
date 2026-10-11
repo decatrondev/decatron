@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'credits' | 'plans' | 'kick' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'credits' | 'plans' | 'kick' | 'accounts' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'credits', 'plans', 'kick', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'credits', 'plans', 'kick', 'accounts', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -110,6 +110,8 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'plans-overview', scopes: pub, group: 'modules', path: 'plans', icon: Zap, color: 'yellow' },
 
     { id: 'kick-overview', scopes: pub, group: 'modules', path: 'kick', icon: Radio, color: 'green' },
+
+    { id: 'accounts-overview', scopes: pub, group: 'modules', path: 'game-accounts', icon: Gamepad2, color: 'blue' },
 
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
@@ -184,6 +186,10 @@ export const DOC_PAGES: DocPage[] = [
     // — Kick: manual con cuenta —
     { id: 'kick-connect', scopes: priv, group: 'kick', path: 'kick/connect', icon: Plug, color: 'green' },
     { id: 'kick-features', scopes: priv, group: 'kick', path: 'kick/features', icon: Grid, color: 'green' },
+
+    // — Cuentas de juego: manual con cuenta —
+    { id: 'accounts-riot', scopes: priv, group: 'accounts', path: 'game-accounts/riot', icon: Gamepad2, color: 'blue' },
+    { id: 'accounts-epic', scopes: priv, group: 'accounts', path: 'game-accounts/epic', icon: Crosshair, color: 'blue' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

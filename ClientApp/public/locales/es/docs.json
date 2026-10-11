@@ -67,7 +67,8 @@
     "speak": "Speak Chat",
     "credits": "Créditos y compras",
     "plans": "Planes y apoyo",
-    "kick": "Kick"
+    "kick": "Kick",
+    "accounts": "Cuentas de juego"
   },
   "layout": {
     "documentation": "Documentación",
@@ -539,6 +540,18 @@
     "kick-features": {
       "title": "Qué funciona y qué no",
       "description": "La tabla de funciones en Kick"
+    },
+    "accounts-overview": {
+      "title": "Cuentas de juego",
+      "description": "Riot, Epic y otros juegos"
+    },
+    "accounts-riot": {
+      "title": "Cuentas de Riot",
+      "description": "Vincular y verificar League of Legends"
+    },
+    "accounts-epic": {
+      "title": "Epic y otros juegos",
+      "description": "Fortnite y las demás cuentas"
     }
   },
   "microCommands": {

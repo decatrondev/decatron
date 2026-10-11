@@ -1,0 +1,250 @@
+{
+  "overview": {
+    "title": "Game accounts",
+    "subtitle": "Link your Riot, Epic and other game accounts for tournaments and overlays",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Game accounts are the accounts you use inside games (League of Legends, Fortnite and others) linked to your Decatron account. With them you can register for tournaments and show your rank in the game overlays."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Linking accounts is free. The plan only changes how many accounts per game you can have."
+          }
+        ]
+      },
+      {
+        "id": "juegos",
+        "title": "What can be linked",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Game",
+              "How it is linked",
+              "Data"
+            ],
+            "rows": [
+              [
+                "League of Legends",
+                "Riot ID, tag and region, verified with a summoner icon.",
+                "Automatic: rank, LP, matches and live game."
+              ],
+              [
+                "Fortnite",
+                "With the Epic Games sign-in (verified) or with the name only.",
+                "Manual rank in the overlays."
+              ],
+              [
+                "TFT, VALORANT, Marvel Rivals, CS2, Rocket League and Warzone",
+                "By name, from the game overlays panel.",
+                "Manual rank, which you set yourself."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the manual to link each account is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "accounts-riot"
+          }
+        ]
+      }
+    ]
+  },
+  "riot": {
+    "title": "Riot accounts (League of Legends)",
+    "subtitle": "Link and verify your LoL account with the summoner icon",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Where it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Settings → Games (`/settings`), the “Cuentas de Riot Games” block. You can link several accounts (smurfs, another server): when registering for a tournament you choose which to use. The accounts belong to your Decatron account, so you see them the same from Twitch and from Kick."
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "1 · Link the account",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Press “Vincular cuenta”.",
+              "Type your Riot ID (the name, without the tag), your Tag (for example KR1, without the #) and choose the region: EUW, EUNE, NA, LAN, LAS, BR, KR, JP, OCE, TR or RU.",
+              "Decatron looks the account up on Riot. If it does not exist, you will see “No se encontró la cuenta” with the chosen region; check the name, tag and region."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "An account you already linked, or that someone else already verified, is rejected with its notice."
+          }
+        ]
+      },
+      {
+        "id": "verificar",
+        "title": "2 · Verify it with an icon",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "To check that the account is yours, Decatron asks for a specific, randomly chosen profile icon. Change it in the League of Legends client and press “Verificar”. While your account's icon does not match you will see “Todavía no coincide el icono”; the check may take a little while to show, so wait a moment and press again."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Once verified, the account shows “Riot · verificada” and you can set whatever icon you like again. If you already verified the same Riot account on another row of your account, it is verified without repeating the step."
+          }
+        ]
+      },
+      {
+        "id": "usos",
+        "title": "What it is used for",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Registering for League of Legends tournaments: only verified accounts from the tournament's region are offered.",
+              "The LoL game overlay: rank, LP, matches and live game."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Limits and messages",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Message",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "Tu plan permite N cuenta(s) por juego",
+                "You reached your plan's cap: 1 on free, 3 on Supporter, 5 on Premium and 10 on Fundador."
+              ],
+              [
+                "Esa cuenta de Riot ya está verificada por otro usuario",
+                "That account already belongs to another Decatron account."
+              ],
+              [
+                "No se pudo verificar la cuenta contra Riot ahora mismo",
+                "Riot did not respond or a temporary limit was hit; try again in a while."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "desvincular",
+        "title": "Unlink",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The trash icon on each account unlinks it, after a confirmation. You can link it again whenever you want."
+          }
+        ]
+      }
+    ]
+  },
+  "epic": {
+    "title": "Epic accounts and other games",
+    "subtitle": "Link Fortnite with Epic Games and the accounts of the other games",
+    "sections": [
+      {
+        "id": "epic",
+        "title": "Epic Games (Fortnite)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Settings → Games, the “Cuentas de Epic Games (Fortnite)” block. There are two ways to link, depending on whether the Epic sign-in is available:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Way",
+              "How it works",
+              "Result"
+            ],
+            "rows": [
+              [
+                "Vincular con Epic Games",
+                "It takes you to the official Epic sign-in. When you return, Decatron stores your account and the name shown in Fortnite.",
+                "“Cuenta de Epic vinculada y verificada.”"
+              ],
+              [
+                "Solo con el nombre (or Vincular cuenta)",
+                "You type the Epic name (the one shown in Fortnite) without signing in.",
+                "It stays “sin verificar”. It is the only option while the Epic sign-in is not available."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Verification with Epic proves the account is yours without giving Decatron any password: the sign-in happens on Epic. If Epic rejects or cancels the process, you will see the reason when you return to Settings."
+          }
+        ]
+      },
+      {
+        "id": "usos",
+        "title": "What it is used for",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Verified Epic accounts are used to register for Fortnite tournaments and for the game overlays. The tournaments guide explains how the account is used when registering."
+          },
+          {
+            "t": "link",
+            "to": "tournament-fortnite"
+          }
+        ]
+      },
+      {
+        "id": "otros",
+        "title": "The other games",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "TFT, VALORANT, Marvel Rivals, CS2, Rocket League and Warzone are linked by name from the game overlays panel (the “Cuentas” step). They do not need verification because they do not have automatic data yet: you set the rank on the account or with `!setrango`, and the overlay shows it just the same."
+          },
+          {
+            "t": "link",
+            "to": "game-overlays"
+          }
+        ]
+      },
+      {
+        "id": "planes",
+        "title": "How many accounts you can have",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Per game: 1 on the free plan, 3 on Supporter, 5 on Premium and 10 on Fundador. When you reach the cap, linking tells you how many your plan allows."
+          },
+          {
+            "t": "link",
+            "to": "plans-plans"
+          }
+        ]
+      }
+    ]
+  }
+}

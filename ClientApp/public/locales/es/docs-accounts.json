@@ -1,0 +1,250 @@
+{
+  "overview": {
+    "title": "Cuentas de juego",
+    "subtitle": "Vincula tus cuentas de Riot, Epic y otros juegos para torneos y overlays",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las cuentas de juego son las cuentas que usas dentro de los juegos (League of Legends, Fortnite y otros) vinculadas a tu cuenta de Decatron. Con ellas puedes inscribirte a torneos y mostrar tu rango en los overlays de juegos."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Vincular cuentas es gratis. El plan solo cambia cuántas cuentas por juego puedes tener."
+          }
+        ]
+      },
+      {
+        "id": "juegos",
+        "title": "Qué se puede vincular",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Juego",
+              "Cómo se vincula",
+              "Datos"
+            ],
+            "rows": [
+              [
+                "League of Legends",
+                "Riot ID, tag y región, verificada con un icono de invocador.",
+                "Automáticos: rango, LP, partidas y partida en vivo."
+              ],
+              [
+                "Fortnite",
+                "Con el inicio de sesión de Epic Games (verificada) o solo con el nombre.",
+                "Rango manual en los overlays."
+              ],
+              [
+                "TFT, VALORANT, Marvel Rivals, CS2, Rocket League y Warzone",
+                "Por nombre, desde el panel de Overlays de juegos.",
+                "Rango manual, que fijas tú."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, el manual para vincular cada cuenta está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "accounts-riot"
+          }
+        ]
+      }
+    ]
+  },
+  "riot": {
+    "title": "Cuentas de Riot (League of Legends)",
+    "subtitle": "Vincular y verificar tu cuenta de LoL con el icono de invocador",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Dónde está",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Ajustes → Juegos (`/settings`), el bloque «Cuentas de Riot Games». Puedes vincular varias cuentas (smurfs, otro servidor): al inscribirte a un torneo eliges cuál usar. Las cuentas son de tu cuenta de Decatron, así que las ves igual desde Twitch y desde Kick."
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "1 · Vincular la cuenta",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Pulsa «Vincular cuenta».",
+              "Escribe tu Riot ID (el nombre, sin el tag), tu Tag (por ejemplo KR1, sin el #) y elige la región: EUW, EUNE, NA, LAN, LAS, BR, KR, JP, OCE, TR o RU.",
+              "Decatron busca la cuenta en Riot. Si no existe, verás «No se encontró la cuenta» con la región elegida; revisa el nombre, el tag y la región."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Una cuenta que ya tienes vinculada, o que otra persona ya verificó, se rechaza con su aviso."
+          }
+        ]
+      },
+      {
+        "id": "verificar",
+        "title": "2 · Verificarla con un icono",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Para comprobar que la cuenta es tuya, Decatron te pide un icono de perfil concreto, elegido al azar. Cámbialo en el cliente de League of Legends y pulsa «Verificar». Mientras el icono de tu cuenta no coincida verás «Todavía no coincide el icono»; la comprobación puede tardar un poco en reflejarse, así que espera un momento y vuelve a pulsar."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Al verificarse, la cuenta pasa a «Riot · verificada» y puedes volver a poner el icono que quieras. Si ya verificaste la misma cuenta de Riot en otra fila de tu cuenta, queda verificada sin repetir el paso."
+          }
+        ]
+      },
+      {
+        "id": "usos",
+        "title": "Para qué se usa",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Inscribirte a torneos de League of Legends: solo se ofrecen las cuentas verificadas y de la región del torneo.",
+              "El overlay de juegos de LoL: rango, LP, partidas y partida en vivo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Límites y mensajes",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Mensaje",
+              "Qué significa"
+            ],
+            "rows": [
+              [
+                "Tu plan permite N cuenta(s) por juego",
+                "Llegaste al tope de tu plan: 1 en gratis, 3 en Supporter, 5 en Premium y 10 en Fundador."
+              ],
+              [
+                "Esa cuenta de Riot ya está verificada por otro usuario",
+                "Esa cuenta ya pertenece a otra cuenta de Decatron."
+              ],
+              [
+                "No se pudo verificar la cuenta contra Riot ahora mismo",
+                "Riot no respondió o hubo un límite temporal; vuelve a intentarlo en un rato."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "desvincular",
+        "title": "Desvincular",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El icono de basura de cada cuenta la desvincula, tras una confirmación. Podrás volver a vincularla cuando quieras."
+          }
+        ]
+      }
+    ]
+  },
+  "epic": {
+    "title": "Cuentas de Epic y otros juegos",
+    "subtitle": "Vincular Fortnite con Epic Games y las cuentas de los demás juegos",
+    "sections": [
+      {
+        "id": "epic",
+        "title": "Epic Games (Fortnite)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Ajustes → Juegos, el bloque «Cuentas de Epic Games (Fortnite)». Hay dos formas de vincular, según si el inicio de sesión de Epic está disponible:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Forma",
+              "Cómo funciona",
+              "Resultado"
+            ],
+            "rows": [
+              [
+                "Vincular con Epic Games",
+                "Te lleva al inicio de sesión oficial de Epic. Al volver, Decatron guarda tu cuenta y el nombre que se ve en Fortnite.",
+                "«Cuenta de Epic vinculada y verificada.»"
+              ],
+              [
+                "Solo con el nombre (o Vincular cuenta)",
+                "Escribes el nombre de Epic (el que se ve en Fortnite) sin iniciar sesión.",
+                "Queda «sin verificar». Es la única opción mientras el inicio de sesión de Epic no esté disponible."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "La verificación con Epic prueba que la cuenta es tuya sin pedirte ninguna contraseña a Decatron: el inicio de sesión ocurre en Epic. Si Epic rechaza o cancela el proceso, verás el motivo al volver a Ajustes."
+          }
+        ]
+      },
+      {
+        "id": "usos",
+        "title": "Para qué se usa",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las cuentas de Epic verificadas se usan para inscribirse a torneos de Fortnite y para los overlays de juegos. La guía de torneos explica cómo se usa la cuenta al inscribirse."
+          },
+          {
+            "t": "link",
+            "to": "tournament-fortnite"
+          }
+        ]
+      },
+      {
+        "id": "otros",
+        "title": "Los demás juegos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "TFT, VALORANT, Marvel Rivals, CS2, Rocket League y Warzone se vinculan por nombre desde el panel de Overlays de juegos (paso «Cuentas»). No necesitan verificación porque todavía no tienen datos automáticos: el rango lo fijas tú en la cuenta o con `!setrango`, y el overlay lo muestra igual."
+          },
+          {
+            "t": "link",
+            "to": "game-overlays"
+          }
+        ]
+      },
+      {
+        "id": "planes",
+        "title": "Cuántas cuentas puedes tener",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Por juego: 1 en el plan gratuito, 3 en Supporter, 5 en Premium y 10 en Fundador. Al llegar al tope, la vinculación te avisa de cuántas permite tu plan."
+          },
+          {
+            "t": "link",
+            "to": "plans-plans"
+          }
+        ]
+      }
+    ]
+  }
+}
