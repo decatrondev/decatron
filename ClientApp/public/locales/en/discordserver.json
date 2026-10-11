@@ -128,7 +128,8 @@
     "manual.step4": "Have a native speaker review the names and tags of the unreviewed languages before turning them on.",
     "manual.step5": "Link the server to the Decatron panel (Settings → Integrations → Discord) and link the level roles by name with the XP bot's.",
     "manual.step6": "Turn on Onboarding and the rules screening by hand (the two manual steps above) and test the flow with a test account.",
-    "community.update_channels": "The Community rules and updates channels are reassigned to the template's (they must be text channels)."
+    "community.update_channels": "The Community rules and updates channels are reassigned to the template's (they must be text channels).",
+    "channel.require_tag": "«Require a tag» is turned on in the forum (Discord doesn't allow it when creating it)."
   },
   "apply": {
     "title": "Load",

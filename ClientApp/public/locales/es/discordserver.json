@@ -128,7 +128,8 @@
     "manual.step4": "Revisa con una persona nativa los nombres y etiquetas de los idiomas sin revisar antes de activarlos.",
     "manual.step5": "Vincula el servidor al panel de Decatron (Configuración → Integraciones → Discord) y enlaza los roles de nivel por nombre con los del bot de XP.",
     "manual.step6": "Activa a mano el Onboarding y las reglas con aceptación (los dos pasos manuales de arriba) y comprueba el flujo con una cuenta de prueba.",
-    "community.update_channels": "Los canales de reglas y de novedades de Comunidad se reasignan a los de la plantilla (deben ser de texto)."
+    "community.update_channels": "Los canales de reglas y de novedades de Comunidad se reasignan a los de la plantilla (deben ser de texto).",
+    "channel.require_tag": "Se activa «requerir etiqueta» en el foro (Discord no lo permite al crearlo)."
   },
   "apply": {
     "title": "Cargar",

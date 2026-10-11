@@ -89,6 +89,14 @@ public static class ServerTemplateApplier
                         break;
                     }
 
+                    case "channel" when it.Code == "channel.require_tag":
+                    {
+                        var current = snap.Channels.FirstOrDefault(c => c.Id == it.ExistingId)?.Flags ?? 0;
+                        await rest.ModifyChannelAsync(it.ExistingId!, new { flags = current | 16 });
+                        Report(it, "ok", "Etiqueta obligatoria activada");
+                        break;
+                    }
+
                     case "channel" when it.Op == PlanOp.Convert:
                     {
                         if (!ids.TryGetValue(it.ObjectKey, out var cid)) { Report(it, "failed", "El canal no existe"); break; }
@@ -114,11 +122,12 @@ public static class ServerTemplateApplier
                         if (type == 15)
                         {
                             body["available_tags"] = ch.Tags.Select(g => new { name = g.Name, moderated = g.Moderated }).ToList();
-                            if (ch.RequireTag) body["flags"] = 16;     // REQUIRE_TAG
+                            // REQUIRE_TAG (16): Discord ignora `flags` al crear; se pone justo después con un PATCH
                         }
                         var created = await rest.CreateChannelAsync(guildId, body);
                         ids[it.ObjectKey] = created.Id;
                         await store.SaveAsync(guildId, t.Template.Key, it.ObjectKey, created.Id);
+                        if (type == 15 && ch.RequireTag) await rest.ModifyChannelAsync(created.Id, new { flags = 16 });
                         Report(it, "ok", "Creado");
                         break;
                     }

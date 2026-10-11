@@ -15,7 +15,7 @@ public record GuildInfo(string Id, string Name, List<string> Features, int Verif
     int DefaultMessageNotifications, string PreferredLocale, string? AfkChannelId, int AfkTimeout, string? SystemChannelId, int SystemChannelFlags,
     string? RulesChannelId, string? PublicUpdatesChannelId, string? SafetyAlertsChannelId = null);
 public record RoleInfo(string Id, string Name, int Position, ulong Permissions, bool Managed);
-public record ChannelInfo(string Id, string Name, int Type, string? ParentId, string? Topic);
+public record ChannelInfo(string Id, string Name, int Type, string? ParentId, string? Topic, int Flags = 0);
 public record BotInfo(string UserId, List<string> RoleIds);
 public record AutoModRuleInfo(string Id, string Name);
 
@@ -116,7 +116,7 @@ public class DiscordRest : IDiscordRest
     public async Task<List<ChannelInfo>> GetChannelsAsync(string guildId)
     {
         using var d = await SendAsync(HttpMethod.Get, $"/guilds/{guildId}/channels");
-        return d.RootElement.EnumerateArray().Select(c => new ChannelInfo(Str(c, "id")!, Str(c, "name") ?? "", Int(c, "type"), Str(c, "parent_id"), Str(c, "topic"))).ToList();
+        return d.RootElement.EnumerateArray().Select(c => new ChannelInfo(Str(c, "id")!, Str(c, "name") ?? "", Int(c, "type"), Str(c, "parent_id"), Str(c, "topic"), Int(c, "flags"))).ToList();
     }
 
     public async Task<BotInfo> GetBotMemberAsync(string guildId)
@@ -154,7 +154,7 @@ public class DiscordRest : IDiscordRest
     {
         using var d = await SendAsync(HttpMethod.Post, $"/guilds/{guildId}/channels", body);
         var c = d.RootElement;
-        return new ChannelInfo(Str(c, "id")!, Str(c, "name") ?? "", Int(c, "type"), Str(c, "parent_id"), Str(c, "topic"));
+        return new ChannelInfo(Str(c, "id")!, Str(c, "name") ?? "", Int(c, "type"), Str(c, "parent_id"), Str(c, "topic"), Int(c, "flags"));
     }
 
     public async Task ModifyChannelAsync(string channelId, object body)

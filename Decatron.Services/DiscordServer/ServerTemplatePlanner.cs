@@ -163,6 +163,9 @@ public static class ServerTemplatePlanner
                 {
                     if (soft && found != null && found.Type == 0) needsConvert.Add(ch.Key);
                     Add("channels", "channel", ch.Key, ch.Name, byName ? PlanOp.Adopt : PlanOp.Skip, byName ? "channel.adopt" : "channel.exists", byName ? "Ya existe con ese nombre: se enlaza sin tocarlo" : "Ya creado", existingId);
+                    // Etiqueta obligatoria de foro: Discord ignora `flags` al crear, así que se pone con un ajuste aparte (también en los foros que ya existían)
+                    if (ch.Type == "forum" && ch.RequireTag && found != null && (found.Flags & 16) == 0 && !byName)
+                        Add("channels", "channel", ch.Key + "#flags", ch.Name, canChannels ? PlanOp.Update : PlanOp.Blocked, "channel.require_tag", "Se activa «requerir etiqueta» en el foro", existingId);
                 }
                 else if (!canChannels) Add("channels", "channel", ch.Key, ch.Name, PlanOp.Blocked, "channel.blocked_perm", "El bot no tiene permiso para gestionar canales");
                 else if (hard && !communityNow)
