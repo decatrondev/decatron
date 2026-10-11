@@ -1,0 +1,352 @@
+{
+  "overview": {
+    "title": "Speak Chat",
+    "subtitle": "Read chat messages aloud on your stream",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Speak Chat turns chat messages into speech and plays them on your stream through an OBS overlay. You decide what triggers them: a command, bits, a channel points reward, a role or every message."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "It works with a standard voice included in your plan and optional premium voices. The audio is generated on the server, so it sounds the same in any OBS."
+          }
+        ]
+      },
+      {
+        "id": "como",
+        "title": "How it works",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "A viewer triggers the reading according to the rules you set.",
+              "The server applies the filters (cooldowns, length and blocks) and generates the audio.",
+              "The OBS overlay plays the audio and shows, if you want, a balloon with the user and their message."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "control",
+        "title": "What you control",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "What triggers the reading and which roles can use it.",
+              "The voice, language, quality and volume.",
+              "Cooldowns, maximum length, blocked words and users.",
+              "The look and position of the balloon on screen."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the step-by-step setup is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "speak-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Speak Chat: getting started",
+    "subtitle": "Turn it on, put the overlay in OBS and run a test",
+    "sections": [
+      {
+        "id": "activar",
+        "title": "1 · Turn on Speak Chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Open Funciones → Speak Chat (`/features/speak-chat`). In the Global tab turn on “Speak Chat activo”. It starts off: while it is off, nothing is read even if the rules are fine."
+          },
+          {
+            "t": "p",
+            "x": "The page has six tabs: Global, Activación, Voz, Filtros, Overlay and Testing. Everything is saved with the “Guardar” button."
+          }
+        ]
+      },
+      {
+        "id": "reglas",
+        "title": "2 · Choose what triggers it",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "All rules start off. Turn on at least one in the Activación tab; for example, the `!tts` command."
+          },
+          {
+            "t": "link",
+            "to": "speak-activation"
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "3 · Add the overlay to OBS",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Global tab shows the overlay URL, in the format `/overlay/speak-chat?channel=your_channel`. Add it as a “Navegador” (Browser) source in OBS. Audios play one at a time, in order of arrival."
+          },
+          {
+            "t": "p",
+            "x": "If you change the configuration, overlays update on their own; the reload button does it instantly."
+          }
+        ]
+      },
+      {
+        "id": "probar",
+        "title": "4 · Test",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Testing you type a message and send it to the overlay. If Speak Chat is off, the server rejects it with the notice “Speak Chat está desactivado”. The test generates real audio, so it uses the same balance as a real message."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If the audio is generated but does not play, the most common cause is that the overlay is not connected in OBS. Check that the source is in the scene and visible."
+          }
+        ]
+      }
+    ]
+  },
+  "activation": {
+    "title": "Speak Chat: activation rules",
+    "subtitle": "What makes a message be read and who can trigger it",
+    "sections": [
+      {
+        "id": "como",
+        "title": "How they work",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "There are five rules, each with its own switch. All start off. A message is read if it meets any of the turned-on rules."
+          }
+        ]
+      },
+      {
+        "id": "tipos",
+        "title": "The five rules",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Rule",
+              "What it does",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Chat command",
+                "The viewer types the command followed by the text, for example `!tts Hello streamer`, and “Hello streamer” is read. The command must be complete: `!tts` is not triggered by `!ttsx`.",
+                "`!tts`, for everyone and the streamer"
+              ],
+              [
+                "Minimum bits",
+                "When someone sends that many bits or more with a message, the message is read.",
+                "100 bits"
+              ],
+              [
+                "Channel points",
+                "When a specific reward is redeemed, which you choose from the list of your rewards or by pasting its ID, the redemption text is read. A redemption without text is ignored.",
+                "No reward"
+              ],
+              [
+                "By role",
+                "Any message from those with an enabled role is read.",
+                "Subs, VIPs, mods and streamer"
+              ],
+              [
+                "All messages",
+                "Absolutely the whole chat is read.",
+                "Off"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "“Todos los mensajes” and “Por rol” read messages without anyone asking and use credits or quota on each one. Use them together with the cooldown and maximum length filters."
+          }
+        ]
+      },
+      {
+        "id": "roles",
+        "title": "Who can use each rule",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The command, bits, channel points and role rules have a list of roles: Todos, Subs, VIPs, Mods and Streamer. If “Todos” is checked, the rest is not looked at. Lead moderators count as moderators."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "When a redemption arrives as a channel points event, Twitch does not report the redeemer's badges: it only tells whether they are the streamer. For rewards, leave the rule on “Todos” so anyone can redeem it."
+          }
+        ]
+      },
+      {
+        "id": "duplicados",
+        "title": "Repeated redemptions",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The same redemption can arrive twice (as a chat message and as a points event). Only the first is read: repeats from the same user and reward are discarded for 30 seconds."
+          }
+        ]
+      }
+    ]
+  },
+  "voice": {
+    "title": "Speak Chat: voice and credits",
+    "subtitle": "Engine, language, voice, volume and what is charged",
+    "sections": [
+      {
+        "id": "motores",
+        "title": "Standard and premium voice",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Engine",
+              "How it sounds",
+              "Cost"
+            ],
+            "rows": [
+              [
+                "Standard",
+                "Runs on our server. It is the default engine.",
+                "Comes from your plan's standard voice quota, in characters, without using credits."
+              ],
+              [
+                "Premium (AWS Polly)",
+                "More voices and languages, including Japanese. There are two qualities: Normal and Alta calidad.",
+                "Credits per character; Alta calidad costs more than Normal."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Each plan's standard quota and the current premium voice rates are on the credits page (`/credits`). Premium voices are only available if your account has credits or is unlimited."
+          }
+        ]
+      },
+      {
+        "id": "ajustes",
+        "title": "Voice tab settings",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Voice engine, and in Premium the quality.",
+              "Language: the available voices depend on the language and come from the server catalog.",
+              "Voice: a specific one, or “Automática” (the first of the language). Each engine remembers its own choice, so switching engines does not lose the other.",
+              "Audio volume, from 0 to 100 (80 by default)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "agotar",
+        "title": "If credits run out",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "With a premium voice, if you run out of credits chat does not go silent: it is read with the standard voice until your monthly quota runs out. If the language does not exist in the standard voice (Japanese), it will sound in Spanish."
+          },
+          {
+            "t": "p",
+            "x": "The Testing tab shows your TTS credits, and the Voz tab a summary of your balance: the monthly quota (it resets on the 1st), purchased ones (they do not expire) and the standard voice characters you have left. Buy credits from the credits page."
+          }
+        ]
+      }
+    ]
+  },
+  "filters": {
+    "title": "Speak Chat: filters, balloon and tests",
+    "subtitle": "Limit what is read and customize what is seen",
+    "sections": [
+      {
+        "id": "cooldowns",
+        "title": "Cooldowns and length",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Setting",
+              "What it does",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Global cooldown",
+                "Minimum seconds between any read message. 0 turns it off.",
+                "0"
+              ],
+              [
+                "Per-user cooldown",
+                "Minimum seconds between messages from the same user.",
+                "10"
+              ],
+              [
+                "Maximum characters",
+                "A longer message is cut to that length (it is not discarded).",
+                "200"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bloqueos",
+        "title": "Block lists",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Blocked words (one per line): a message containing any of them, anywhere in the text and regardless of case, is not read.",
+              "Blocked users (one per line): their messages are not read."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "globo",
+        "title": "On-screen balloon",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Overlay tab you turn the balloon with the user and their message on or off. You can choose the position (top or bottom, left, center or right; bottom left by default), the background and text colors, the font size (16 px by default) and how long it shows (5,000 ms by default). The balloon stays that long after the audio ends, and messages are shown one at a time. There is a preview in the same tab."
+          }
+        ]
+      },
+      {
+        "id": "pruebas",
+        "title": "Tests",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Testing sends a test message to the overlay (by default “Mensaje de prueba del Speak Chat”). It requires Speak Chat to be on and uses your balance like a real message."
+          }
+        ]
+      }
+    ]
+  }
+}

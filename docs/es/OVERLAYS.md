@@ -20,6 +20,7 @@ Referencia de los overlays de Decatron: URLs, configuración en OBS, qué hace c
 - [Overlay de shoutout](#overlay-de-shoutout)
 - [Sorteo](#sorteo)
 - [Otros overlays](#otros-overlays)
+- [Overlay de Speak Chat](#overlay-de-speak-chat)
 - [Overlay de chat y emotes](#overlay-de-chat-y-emotes)
 - [Overlay y widget de torneos](#overlay-y-widget-de-torneos)
 - [Arquitectura en tiempo real](#arquitectura-en-tiempo-real)
@@ -468,6 +469,18 @@ Estos overlays se configuran desde sus propias páginas del panel; sus manuales 
 | Partida en vivo (`/overlay/live`) | Estado de la partida en curso | Diseño, Overlay |
 | Gacha (`/overlay/gacha`) | Tiradas de gacha de los espectadores | |
 | Torneo (`/overlay/torneo/{token}`) | Datos de un participante para su stream | Consulta [Overlay y widget de torneos](#overlay-y-widget-de-torneos) |
+
+---
+
+## Overlay de Speak Chat
+
+Speak Chat (`/overlay/speak-chat?channel={login}`) lee en voz alta los mensajes del chat. El manual está en `/dashboard/docs/speak-chat`.
+
+- **Configuración.** Un documento JSON por canal en `speak_chat_configs` (`GET`/`POST /api/speakchat/config`), con las secciones `global`, `activation`, `voice`, `filters` y `overlay`. Al guardarlo se envía `SpeakChatConfigChanged` a los overlays del canal; `POST /api/speakchat/overlay/reload` hace lo mismo a pedido, y `GET /api/speakchat/config/overlay/{channel}` es la lectura anónima que usa la fuente de OBS.
+- **Activación.** `SpeakChatService.ProcessChatMessageAsync` corre con cada mensaje del chat y `ProcessChannelPointRedemptionAsync` con los canjes que traen texto. Las reglas son `command` (el comando debe coincidir completo, seguido de un espacio o del fin del mensaje), `bits` (mínimo de bits), `channelPoints` (id de la recompensa), `roles` y `all`; gana la primera regla activa que coincide. Los moderadores líderes cuentan como moderadores. Un canje puede llegar dos veces (mensaje del chat y evento), así que los repetidos del mismo canal, recompensa y usuario se descartan durante 30 segundos.
+- **Filtros.** Enfriamientos global y por usuario (en memoria), un largo máximo que recorta, palabras bloqueadas (coincidencia parcial sin distinguir mayúsculas) y usuarios bloqueados.
+- **Voz y créditos.** El motor es `piper` (estándar, a cargo de la cuota estándar) o `polly` (premium, cobrado en créditos con `GenerateWithCreditsAsync`); sin créditos premium cae a la voz estándar. `GET /api/speakchat/usage` devuelve el saldo. `POST /api/speakchat/test` genera audio real para un mensaje de prueba y exige que la función esté activa.
+- **Entrega.** La URL del MP3 generado llega al overlay en un evento `SpeakChatMessage` (usuario, texto, URL del audio, volumen y aspecto). El overlay reproduce los mensajes de uno en uno y mantiene el globo el tiempo configurado. Si no hay un overlay `speak_chat` conectado, el servidor deja una advertencia en el registro, porque no se va a oír nada.
 
 ---
 

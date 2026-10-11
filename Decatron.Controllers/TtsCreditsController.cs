@@ -24,17 +24,17 @@ namespace Decatron.Controllers
         private readonly ITtsCreditService _creditService;
         private readonly DecatronDbContext _dbContext;
         private readonly ILogger<TtsCreditsController> _logger;
-        private readonly int _sttCreditsPerSecond;
+        private readonly Decatron.Services.Finance.CreditRates _rates;
 
         public TtsCreditsController(
             ITtsCreditService creditService,
             DecatronDbContext dbContext,
-            Microsoft.Extensions.Options.IOptions<Decatron.Services.LiveTranslation.LiveTranslationOptions> liveOpts,
+            Decatron.Services.Finance.CreditRates rates,
             ILogger<TtsCreditsController> logger)
         {
             _creditService = creditService;
             _dbContext = dbContext;
-            _sttCreditsPerSecond = liveOpts.Value.SttCreditsPerSecond;
+            _rates = rates;
             _logger = logger;
         }
 
@@ -147,8 +147,15 @@ namespace Decatron.Controllers
                     rates = new
                     {
                         creditUsd = Decatron.Services.AI.AiCreditGate.CreditUsd,
-                        sttCreditsPerSecond = _sttCreditsPerSecond,
-                        premiumVoicePerChar = new { polly_neural = 4, polly_generative = 8, deepgram_aura = 8, fish = 4 },
+                        // Las tarifas reales (Finanzas → Tarifas): son las que se cobran, no cifras fijas.
+                        sttCreditsPerSecond = Math.Round(await _rates.PerUnitAsync("live_stt"), 2),
+                        premiumVoicePerChar = new
+                        {
+                            polly_neural = Math.Round(await _rates.PerUnitAsync("neural"), 2),
+                            polly_generative = Math.Round(await _rates.PerUnitAsync("generative"), 2),
+                            deepgram_aura = Math.Round(await _rates.PerUnitAsync("deepgram_aura"), 2),
+                            fish = Math.Round(await _rates.PerUnitAsync("fish"), 2),
+                        },
                         aiApproxPerCall = new { lol_coach_ai = 40, live_translation_ai = 5, twitch_chat_ai = 25 },
                     },
                 });

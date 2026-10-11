@@ -63,7 +63,8 @@
     "translation": "Traducción en vivo",
     "discord": "Discord",
     "spirits": "Fortnite Spirits",
-    "chat": "Chat y emotes"
+    "chat": "Chat y emotes",
+    "speak": "Speak Chat"
   },
   "layout": {
     "documentation": "Documentación",
@@ -475,6 +476,26 @@
     "chat-own-emotes": {
       "title": "Emotes propios y globales",
       "description": "Subir, revisar y publicar"
+    },
+    "speak-overview": {
+      "title": "Speak Chat",
+      "description": "Lee el chat en voz alta en tu stream"
+    },
+    "speak-setup": {
+      "title": "Puesta en marcha",
+      "description": "Activar, overlay en OBS y prueba"
+    },
+    "speak-activation": {
+      "title": "Reglas de activación",
+      "description": "Qué hace que un mensaje se lea"
+    },
+    "speak-voice": {
+      "title": "Voz y créditos",
+      "description": "Motor, idioma y saldo"
+    },
+    "speak-filters": {
+      "title": "Filtros, globo y pruebas",
+      "description": "Limitar lo que se lee y lo que se ve"
     }
   },
   "microCommands": {

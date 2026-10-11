@@ -75,7 +75,7 @@ export default function FeaturesHub() {
         {
             id: 'speak-chat',
             name: 'Speak Chat',
-            description: 'Lee los mensajes del chat en voz alta con TTS (Polly o navegador)',
+            description: 'Lee los mensajes del chat en voz alta con voz estándar o premium',
             icon: <Mic className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/speak-chat'
         },

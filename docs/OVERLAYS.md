@@ -20,6 +20,7 @@ Reference for the Decatron overlays: URLs, OBS setup, what each overlay does, it
 - [Shoutout Overlay](#shoutout-overlay)
 - [Giveaway](#giveaway)
 - [Other Overlays](#other-overlays)
+- [Speak Chat Overlay](#speak-chat-overlay)
 - [Chat Overlay and Emotes](#chat-overlay-and-emotes)
 - [Tournament Overlay and Widget](#tournament-overlay-and-widget)
 - [Real-Time Architecture](#real-time-architecture)
@@ -468,6 +469,18 @@ These overlays are configured from their own dashboard pages; their manuals are 
 | Live match (`/overlay/live`) | State of the match in progress | Design, Overlay |
 | Gacha (`/overlay/gacha`) | Gacha pulls made by viewers | |
 | Tournament (`/overlay/torneo/{token}`) | One participant's data for their stream | See [Tournament Overlay and Widget](#tournament-overlay-and-widget) |
+
+---
+
+## Speak Chat Overlay
+
+Speak Chat (`/overlay/speak-chat?channel={login}`) reads chat messages aloud. The manual is in `/dashboard/docs/speak-chat`.
+
+- **Configuration.** One JSON document per channel in `speak_chat_configs` (`GET`/`POST /api/speakchat/config`), with the sections `global`, `activation`, `voice`, `filters` and `overlay`. Saving it sends `SpeakChatConfigChanged` to the channel's overlays; `POST /api/speakchat/overlay/reload` does the same on demand, and `GET /api/speakchat/config/overlay/{channel}` is the anonymous read used by the OBS source.
+- **Activation.** `SpeakChatService.ProcessChatMessageAsync` runs for every chat message and `ProcessChannelPointRedemptionAsync` for redemptions with text. Rules are `command` (the whole command must match, followed by a space or the end of the message), `bits` (minimum bits), `channelPoints` (reward id), `roles` and `all`; the first enabled rule that matches wins. Lead moderators count as moderators. A redemption can arrive twice (chat message and event), so repeats of the same channel, reward and user are dropped for 30 seconds.
+- **Filters.** Global and per-user cooldowns (in memory), a maximum length that truncates, blocked words (case-insensitive substring) and blocked users.
+- **Voice and credits.** The engine is `piper` (standard, charged to the standard quota) or `polly` (premium, charged in credits through `GenerateWithCreditsAsync`); without premium credits it falls back to the standard voice. `GET /api/speakchat/usage` returns the balance. `POST /api/speakchat/test` generates real audio for a test message and requires the feature to be on.
+- **Delivery.** The generated MP3 URL goes to the overlay in a `SpeakChatMessage` event (user, text, audio URL, volume and overlay look). The overlay plays messages one at a time and keeps the balloon for the configured time. If no `speak_chat` overlay is connected the server logs a warning, since nothing will be heard.
 
 ---
 

@@ -675,7 +675,7 @@ export default function SpeakChat() {
                                     {usage?.isUnlimited
                                         ? 'Las voces de AWS Polly suenan en cualquier OBS.'
                                         : isPollyAvailable
-                                            ? `1 crédito premium = 1 carácter. ${usage!.monthlyUsed.toLocaleString()} usados este mes de ${usage!.monthlyGranted.toLocaleString()} de tu plan${usage!.purchasedBalance > 0 ? `, más ${usage!.purchasedBalance.toLocaleString()} comprados que no caducan` : ''}.`
+                                            ? `Cada carácter consume créditos premium (las tarifas vigentes están en la página de créditos). ${usage!.monthlyUsed.toLocaleString()} usados este mes de ${usage!.monthlyGranted.toLocaleString()} de tu plan${usage!.purchasedBalance > 0 ? `, más ${usage!.purchasedBalance.toLocaleString()} comprados que no caducan` : ''}.`
                                             : 'Los créditos premium abren las voces de Polly, con más idiomas y japonés. La voz estándar sigue funcionando sin ellos.'
                                     }
                                 </p>
@@ -768,8 +768,8 @@ export default function SpeakChat() {
                                         onChange={e => changePollyEngine(e.target.value as 'standard' | 'neural')}
                                         className={inputClass}
                                     >
-                                        <option value="standard">Normal · 1 crédito por carácter</option>
-                                        <option value="neural">Alta calidad · 4 créditos por carácter</option>
+                                        <option value="standard">Normal</option>
+                                        <option value="neural">Alta calidad · cuesta más que Normal</option>
                                     </select>
                                     {config.voice.pollyEngine === 'neural' && (
                                         <p className="text-xs text-ds-warn mt-1">

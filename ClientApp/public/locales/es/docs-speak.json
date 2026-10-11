@@ -1,0 +1,352 @@
+{
+  "overview": {
+    "title": "Speak Chat",
+    "subtitle": "Lee en voz alta los mensajes del chat en tu stream",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Speak Chat convierte mensajes del chat en voz y los reproduce en tu stream a través de un overlay de OBS. Tú decides qué los activa: un comando, bits, una recompensa de puntos de canal, un rol o todos los mensajes."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Funciona con una voz estándar incluida en tu plan y con voces premium opcionales. El audio se genera en el servidor, así que suena igual en cualquier OBS."
+          }
+        ]
+      },
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Un espectador activa la lectura según las reglas que configuraste.",
+              "El servidor aplica los filtros (enfriamientos, largo y bloqueos) y genera el audio.",
+              "El overlay de OBS reproduce el audio y muestra, si quieres, un globo con el usuario y su mensaje."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "control",
+        "title": "Lo que controlas",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Qué activa la lectura y qué roles pueden usarla.",
+              "La voz, el idioma, la calidad y el volumen.",
+              "Enfriamientos, largo máximo, palabras y usuarios bloqueados.",
+              "El aspecto y la posición del globo en pantalla."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, la puesta en marcha paso a paso está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "speak-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Speak Chat: puesta en marcha",
+    "subtitle": "Activarlo, poner el overlay en OBS y hacer una prueba",
+    "sections": [
+      {
+        "id": "activar",
+        "title": "1 · Activar Speak Chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Entra a Funciones → Speak Chat (`/features/speak-chat`). En la pestaña Global activa «Speak Chat activo». Viene apagado: mientras esté apagado, nada se lee aunque las reglas estén bien."
+          },
+          {
+            "t": "p",
+            "x": "La página tiene seis pestañas: Global, Activación, Voz, Filtros, Overlay y Testing. Todo se guarda con el botón «Guardar»."
+          }
+        ]
+      },
+      {
+        "id": "reglas",
+        "title": "2 · Elegir qué lo activa",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Todas las reglas vienen apagadas. Enciende al menos una en la pestaña Activación; por ejemplo, el comando `!tts`."
+          },
+          {
+            "t": "link",
+            "to": "speak-activation"
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "3 · Agregar el overlay a OBS",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Global muestra la URL del overlay, con el formato `/overlay/speak-chat?channel=tu_canal`. Agrégala como fuente de tipo «Navegador» en OBS. Los audios se reproducen uno a uno, en orden de llegada."
+          },
+          {
+            "t": "p",
+            "x": "Si cambias la configuración, los overlays se actualizan solos; el botón de recarga lo hace al instante."
+          }
+        ]
+      },
+      {
+        "id": "probar",
+        "title": "4 · Probar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Testing escribes un mensaje y lo envías al overlay. Si Speak Chat está apagado, el servidor lo rechaza con el aviso «Speak Chat está desactivado». La prueba genera audio de verdad, así que gasta del mismo saldo que un mensaje real."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Si el audio se genera pero no suena, lo más habitual es que el overlay no esté conectado en OBS. Revisa que la fuente esté en la escena y visible."
+          }
+        ]
+      }
+    ]
+  },
+  "activation": {
+    "title": "Speak Chat: reglas de activación",
+    "subtitle": "Qué hace que un mensaje se lea y quién puede activarlo",
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funcionan",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Hay cinco reglas, cada una con su interruptor. Todas vienen apagadas. Un mensaje se lee si cumple alguna de las reglas encendidas."
+          }
+        ]
+      },
+      {
+        "id": "tipos",
+        "title": "Las cinco reglas",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Regla",
+              "Qué hace",
+              "Por defecto"
+            ],
+            "rows": [
+              [
+                "Comando de chat",
+                "El viewer escribe el comando seguido del texto, por ejemplo `!tts Hola streamer`, y se lee «Hola streamer». El comando debe ir completo: `!tts` no se activa con `!ttsx`.",
+                "`!tts`, para todos y el streamer"
+              ],
+              [
+                "Bits mínimos",
+                "Cuando alguien envía esa cantidad de bits o más con un mensaje, se lee el mensaje.",
+                "100 bits"
+              ],
+              [
+                "Puntos de canal",
+                "Al canjear una recompensa específica, que eliges de la lista de tus recompensas o pegando su ID, se lee el texto del canje. Un canje sin texto se ignora.",
+                "Sin recompensa"
+              ],
+              [
+                "Por rol",
+                "Se lee cualquier mensaje de quienes tengan un rol habilitado.",
+                "Subs, VIPs, mods y streamer"
+              ],
+              [
+                "Todos los mensajes",
+                "Se lee absolutamente todo el chat.",
+                "Apagada"
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "«Todos los mensajes» y «Por rol» leen mensajes sin que nadie lo pida y gastan créditos o cuota con cada uno. Úsalas junto a los filtros de enfriamiento y largo máximo."
+          }
+        ]
+      },
+      {
+        "id": "roles",
+        "title": "Quién puede usar cada regla",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las reglas de comando, bits, puntos de canal y rol tienen una lista de roles: Todos, Subs, VIPs, Mods y Streamer. Si «Todos» está marcado, no se mira el resto. Los moderadores líderes cuentan como moderadores."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Cuando el canje llega como evento de puntos de canal, Twitch no informa las insignias de quien canjea: solo se sabe si es el streamer. Para recompensas, deja la regla en «Todos» para que cualquiera pueda canjearla."
+          }
+        ]
+      },
+      {
+        "id": "duplicados",
+        "title": "Canjes repetidos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Un mismo canje puede llegar dos veces (como mensaje del chat y como evento de puntos). Solo el primero se lee: se descartan los repetidos del mismo usuario y recompensa durante 30 segundos."
+          }
+        ]
+      }
+    ]
+  },
+  "voice": {
+    "title": "Speak Chat: voz y créditos",
+    "subtitle": "Motor, idioma, voz, volumen y qué se descuenta",
+    "sections": [
+      {
+        "id": "motores",
+        "title": "Voz estándar y premium",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Motor",
+              "Cómo suena",
+              "Cuesta"
+            ],
+            "rows": [
+              [
+                "Estándar",
+                "Corre en nuestro servidor. Es el motor por defecto.",
+                "Sale de tu cuota de voz estándar del plan, en caracteres, sin gastar créditos."
+              ],
+              [
+                "Premium (AWS Polly)",
+                "Más voces e idiomas, incluido japonés. Hay dos calidades: Normal y Alta calidad.",
+                "Créditos por carácter; Alta calidad cuesta más que Normal."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "La cuota estándar de cada plan y las tarifas vigentes de las voces premium están en la página de créditos (`/credits`). Las voces premium solo están disponibles si tu cuenta tiene créditos o es ilimitada."
+          }
+        ]
+      },
+      {
+        "id": "ajustes",
+        "title": "Ajustes de la pestaña Voz",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Motor de voz, y en Premium la calidad.",
+              "Idioma: las voces disponibles dependen del idioma y vienen del catálogo del servidor.",
+              "Voz: una concreta, o «Automática» (la primera del idioma). Cada motor recuerda su propia elección, así que cambiar de motor no pierde la otra.",
+              "Volumen del audio, de 0 a 100 (80 por defecto)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "agotar",
+        "title": "Si se acaban los créditos",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Con voz premium, si te quedas sin créditos el chat no se queda mudo: se lee con la voz estándar hasta que se acabe tu cuota del mes. Si el idioma no existe en voz estándar (el japonés), sonará en español."
+          },
+          {
+            "t": "p",
+            "x": "La pestaña Testing muestra tus créditos TTS, y la pestaña Voz un resumen de tu saldo: la cuota del mes (se reinicia el día 1), los comprados (no caducan) y los caracteres de voz estándar que te quedan. Compra créditos desde la página de créditos."
+          }
+        ]
+      }
+    ]
+  },
+  "filters": {
+    "title": "Speak Chat: filtros, globo y pruebas",
+    "subtitle": "Limitar lo que se lee y personalizar lo que se ve",
+    "sections": [
+      {
+        "id": "cooldowns",
+        "title": "Enfriamientos y largo",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Ajuste",
+              "Qué hace",
+              "Por defecto"
+            ],
+            "rows": [
+              [
+                "Cooldown global",
+                "Segundos mínimos entre cualquier mensaje leído. 0 lo desactiva.",
+                "0"
+              ],
+              [
+                "Cooldown por usuario",
+                "Segundos mínimos entre mensajes del mismo usuario.",
+                "10"
+              ],
+              [
+                "Máximo de caracteres",
+                "Un mensaje más largo se recorta a ese largo (no se descarta).",
+                "200"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bloqueos",
+        "title": "Listas de bloqueo",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Palabras bloqueadas (una por línea): un mensaje que contenga alguna, en cualquier parte del texto y sin distinguir mayúsculas, no se lee.",
+              "Usuarios bloqueados (uno por línea): sus mensajes no se leen."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "globo",
+        "title": "Globo en pantalla",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Overlay activas o apagas el globo con el usuario y su mensaje. Puedes elegir la posición (arriba o abajo, a la izquierda, al centro o a la derecha; por defecto abajo a la izquierda), los colores de fondo y de texto, el tamaño de letra (16 px por defecto) y cuánto se ve (5 000 ms por defecto). El globo se queda ese tiempo después de terminar el audio, y los mensajes se muestran de uno en uno. Hay una vista previa en la misma pestaña."
+          }
+        ]
+      },
+      {
+        "id": "pruebas",
+        "title": "Pruebas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Testing envía un mensaje de prueba al overlay (por defecto «Mensaje de prueba del Speak Chat»). Requiere Speak Chat activo y gasta de tu saldo como un mensaje real."
+          }
+        ]
+      }
+    ]
+  }
+}

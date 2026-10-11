@@ -143,6 +143,7 @@ import { TranslationDoc } from './pages/docs/private/features/TranslationDoc';
 import { DiscordDoc } from './pages/docs/private/features/DiscordDoc';
 import { SpiritsDoc } from './pages/docs/private/features/SpiritsDoc';
 import { ChatEmotesDoc } from './pages/docs/private/features/ChatEmotesDoc';
+import { SpeakChatDoc } from './pages/docs/private/features/SpeakChatDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
@@ -300,6 +301,7 @@ function App() {
                     <Route path="discord" element={<DiscordDoc page="overview" scope="public" />} />
                     <Route path="spirits" element={<SpiritsDoc page="overview" scope="public" />} />
                     <Route path="chat" element={<ChatEmotesDoc page="overview" scope="public" />} />
+                    <Route path="speak-chat" element={<SpeakChatDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -502,6 +504,10 @@ function App() {
                         <Route path="chat/filters" element={<ChatEmotesDoc page="filters" scope="private" />} />
                         <Route path="chat/emotes" element={<ChatEmotesDoc page="emotes" scope="private" />} />
                         <Route path="chat/own-emotes" element={<ChatEmotesDoc page="own-emotes" scope="private" />} />
+                        <Route path="speak-chat/setup" element={<SpeakChatDoc page="setup" scope="private" />} />
+                        <Route path="speak-chat/activation" element={<SpeakChatDoc page="activation" scope="private" />} />
+                        <Route path="speak-chat/voice" element={<SpeakChatDoc page="voice" scope="private" />} />
+                        <Route path="speak-chat/filters" element={<SpeakChatDoc page="filters" scope="private" />} />
                         <Route path="features/analytics" element={<AnalyticsDoc />} />
                         <Route path="features/followers" element={<FollowersDoc />} />
                         <Route path="features/ai" element={<AIDoc />} />
