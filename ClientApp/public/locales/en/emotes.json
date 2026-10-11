@@ -258,6 +258,9 @@
       "viewSet": "See the global set",
       "messagePlaceholder": "Tell us which emotes you'd like to contribute (optional)",
       "request": "Request access"
-    }
+    },
+    "on": "on",
+    "off": "off",
+    "overlapChip": "Overlay"
   }
 }

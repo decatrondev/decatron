@@ -768,6 +768,7 @@ try
     app.MapControllers();
     app.MapHub<Decatron.Hubs.OverlayHub>("/hubs/overlay");
     app.MapHub<Decatron.Hubs.TranslationHub>("/hubs/translation"); // extensión del espectador
+    app.MapHub<Decatron.Hubs.EmotesHub>("/hubs/emotes"); // aviso en vivo de cambios de emotes a la extensión del espectador
     app.MapHub<Decatron.Services.SongRequest.SongRequestHub>("/hubs/songrequest"); // song request: reproductor, overlays, dashboard y cola pública
 
     Log.Information("API ready on https://localhost:7264");

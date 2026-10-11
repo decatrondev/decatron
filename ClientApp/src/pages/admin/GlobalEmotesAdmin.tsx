@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, ArrowLeft, Eye, EyeOff, Loader2, Pencil, RotateCcw, Trash2, Upload, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Eye, EyeOff, Layers, Loader2, Pencil, RotateCcw, Trash2, Upload, X } from 'lucide-react';
 import api from '../../services/api';
 
 // Emotes globales de Decatron: el set de la plataforma que se ve en todos los canales (prioridad más baja).
@@ -183,12 +183,13 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
                                 <li key={e.id} className={`flex items-center gap-3 p-3 rounded-lg border border-ds-border ${e.status === 'hidden' ? 'opacity-60' : ''}`}>
                                     <img src={e.urls.x2} alt={e.name} className="w-12 h-12 object-contain shrink-0" />
                                     <div className="min-w-0 flex-1">
-                                        <div className="font-bold text-sm 3xl:text-base text-ds-text truncate">{e.name}{e.status === 'hidden' && <span className="ml-2 text-xs font-normal text-ds-soft">{t('global.hidden')}</span>}</div>
+                                        <div className="font-bold text-sm 3xl:text-base text-ds-text truncate">{e.name}{e.status === 'hidden' && <span className="ml-2 text-xs font-normal text-ds-soft">{t('global.hidden')}</span>}{e.zeroWidth && <span className="ml-2 text-xs font-normal text-ds-accent-text">{t('global.overlapChip')}</span>}</div>
                                         <div className="text-xs text-ds-soft truncate">{t('global.by', { name: e.uploadedBy })}</div>
                                     </div>
                                     <button className={iconBtn} title={e.status === 'hidden' ? t('global.show') : t('global.hide')} onClick={() => patch(e, { visible: e.status === 'hidden' })}>
                                         {e.status === 'hidden' ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                     </button>
+                                    <button className={`${iconBtn} ${e.zeroWidth ? 'text-ds-accent-text' : ''}`} aria-pressed={e.zeroWidth} title={`${t('global.zeroWidth')} (${e.zeroWidth ? t('global.on') : t('global.off')})`} onClick={() => patch(e, { zeroWidth: !e.zeroWidth })}><Layers className="w-4 h-4" /></button>
                                     <button className={iconBtn} title={t('global.rename')} onClick={() => rename(e)}><Pencil className="w-4 h-4" /></button>
                                     <button className={iconBtn} title={t('global.delete')} onClick={() => remove(e)}><Trash2 className="w-4 h-4 text-ds-danger" /></button>
                                 </li>

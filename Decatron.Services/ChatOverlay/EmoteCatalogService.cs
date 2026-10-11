@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -58,9 +59,12 @@ namespace Decatron.Services.ChatOverlay
         private readonly ConcurrentDictionary<long, (DateTime At, Dictionary<string, EmoteInfo> Map)> _own = new();
         private readonly ConcurrentDictionary<string, (DateTime At, long? UserId)> _owners = new();
 
+        private readonly IHubContext<Decatron.Hubs.EmotesHub> _hub;
+
         public EmoteCatalogService(IHttpClientFactory http, IServiceScopeFactory scopes, Microsoft.Extensions.Configuration.IConfiguration config,
-            ILogger<EmoteCatalogService> logger)
+            ILogger<EmoteCatalogService> logger, IHubContext<Decatron.Hubs.EmotesHub> hub)
         {
+            _hub = hub;
             _http = http;
             _scopes = scopes;
             _publicBase = (config["Emotes:PublicBase"] ?? "https://decatron.net").TrimEnd('/');
@@ -72,6 +76,7 @@ namespace Decatron.Services.ChatOverlay
         {
             _own.TryRemove(userId, out _);
             _merged.Clear();
+            _ = NotifyChannelAsync(userId);
         }
 
         /// <summary>Lo cacheado del set global de Decatron queda viejo (se subió, cambió o borró un emote global)</summary>
@@ -79,6 +84,29 @@ namespace Decatron.Services.ChatOverlay
         {
             _globalOwn = null;
             _merged.Clear();
+            _ = NotifyAsync(Decatron.Hubs.EmotesHub.AllGroup);
+        }
+
+        /// <summary>Avisa a las extensiones que ven este canal para que vuelvan a pedir sus emotes (sin esperar ni recargar)</summary>
+        private async Task NotifyChannelAsync(long userId)
+        {
+            try
+            {
+                using var scope = _scopes.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                var login = await db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Login).FirstOrDefaultAsync();
+                if (!string.IsNullOrEmpty(login)) await NotifyAsync(Decatron.Hubs.EmotesHub.GroupName(login));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[Emotes] No se pudo avisar del cambio de emotes del canal {User}", userId);
+            }
+        }
+
+        private async Task NotifyAsync(string group)
+        {
+            try { await _hub.Clients.Group(group).SendAsync("EmotesChanged"); }
+            catch (Exception ex) { _logger.LogWarning(ex, "[Emotes] No se pudo avisar del cambio de emotes al grupo {Group}", group); }
         }
 
         /// <summary>El set global de Decatron: emotes aprobados de la plataforma, iguales para todos los canales</summary>
