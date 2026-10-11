@@ -428,7 +428,7 @@ Credits come from bits, gifted subs, donations, channel point rewards or deca co
 | `!clip 20 a great play` | 20-second clip with that title |
 | `!clip a great play` | Default duration with that title |
 
-If the first word is a number it is read as the duration (`!clip 2024 recap` is out of range). Twitch accepts 5 to 60 seconds and titles of up to 100 characters (checked by AutoMod). The bot waits up to 60 s for Twitch to finish the clip before posting the link.
+If the first word is a number it is read as the duration (`!clip 2024 recap` is out of range). Twitch accepts 5 to 60 seconds and titles of up to 100 characters (checked by AutoMod). The bot waits up to 60 s for Twitch to finish the clip before posting the link (after 10 s it says once that it is still waiting). If the stream has copyrighted music, Twitch does not publish the clip (the manual clip button is blocked too) and the bot says it was not ready in time.
 
 | Setting | Description |
 |---------|-------------|
@@ -437,7 +437,7 @@ If the first word is a number it is read as the duration (`!clip 2024 recap` is 
 | Cooldowns | Channel (30 s) and per user (120 s); moderators and above skip the per-user one unless turned off. Optional limit per user and stream. Kept in memory: a bot restart resets them |
 | Duration and title | Minimum, default and maximum duration; whether viewers can choose the duration (moderators and above always can) and set a title; title length |
 | Aliases | Up to 10 extra names. While the command is on it answers before any custom command with the same name |
-| Messages | 21 texts in Spanish and English, editable per channel; empty = Decatron's text |
+| Messages | 22 texts in Spanish and English, editable per channel; empty = Decatron's text |
 | Download | Off by default (only the link is saved). When on, each clip is downloaded to the platform archive; it pauses by itself when the server is low on free space, and an admin can set a monthly cap per channel |
 | History | Every attempt (created or failed), kept 90 days by default or forever. Removing a record can also delete the downloaded video, only if no other record uses it |
 

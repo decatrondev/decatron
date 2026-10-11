@@ -428,7 +428,7 @@ Los créditos vienen de bits, subs regaladas, donaciones, recompensas de puntos 
 | `!clip 20 una gran jugada` | Clip de 20 segundos con ese título |
 | `!clip una gran jugada` | Duración por defecto con ese título |
 
-Si la primera palabra es un número, se lee como duración (`!clip 2024 recap` queda fuera de rango). Twitch acepta de 5 a 60 segundos y títulos de hasta 100 caracteres (los revisa AutoMod). El bot espera hasta 60 s a que Twitch termine el clip antes de publicar el enlace.
+Si la primera palabra es un número, se lee como duración (`!clip 2024 recap` queda fuera de rango). Twitch acepta de 5 a 60 segundos y títulos de hasta 100 caracteres (los revisa AutoMod). El bot espera hasta 60 s a que Twitch termine el clip antes de publicar el enlace (a los 10 s avisa una vez que sigue esperando). Si el directo tiene música con copyright, Twitch no publica el clip (el botón manual de clip también se bloquea) y el bot avisa que no estuvo listo a tiempo.
 
 | Ajuste | Descripción |
 |--------|-------------|
@@ -437,7 +437,7 @@ Si la primera palabra es un número, se lee como duración (`!clip 2024 recap` q
 | Cooldowns | Del canal (30 s) y por usuario (120 s); los moderadores y superiores se saltan el de usuario salvo que se desactive. Tope opcional por usuario y stream. Están en memoria: reiniciar el bot los pone a cero |
 | Duración y título | Duración mínima, por defecto y máxima; si el viewer puede elegir la duración (los moderadores y superiores siempre pueden) y poner título; largo del título |
 | Alias | Hasta 10 nombres extra. Mientras el comando está activo, responde antes que cualquier comando personalizado con el mismo nombre |
-| Mensajes | 21 textos en español e inglés, editables por canal; vacío = texto de Decatron |
+| Mensajes | 22 textos en español e inglés, editables por canal; vacío = texto de Decatron |
 | Descarga | Apagada por defecto (solo se guarda el enlace). Si se activa, cada clip se descarga al archivo de la plataforma; se pausa sola si queda poco espacio libre en el servidor y un administrador puede fijar un tope mensual por canal |
 | Historial | Cada intento (creado o fallido), 90 días por defecto o para siempre. Quitar un registro puede borrar también el video descargado, solo si ningún otro registro lo usa |
 

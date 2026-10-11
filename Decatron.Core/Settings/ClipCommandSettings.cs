@@ -20,6 +20,9 @@ namespace Decatron.Core.Settings
         /// <summary>Twitch da por fallido un clip que no aparece en Get Clips a los 60 s.</summary>
         public int ConfirmTimeoutSeconds { get; set; } = 60;
 
+        /// <summary>Si el clip no está listo a los N segundos, el bot avisa una vez en el chat que sigue esperando.</summary>
+        public int ConfirmNoticeSeconds { get; set; } = 10;
+
         /// <summary>Cada cuánto se consulta Get Clips mientras se espera que el clip exista.</summary>
         public int ConfirmPollSeconds { get; set; } = 3;
     }

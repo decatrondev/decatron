@@ -5,24 +5,25 @@ import { Clapperboard, Save } from 'lucide-react';
 import { Alert, Button, Spinner, Switch, Tabs } from '../../components/ds';
 import { ConfigHeader } from '../../components/dashboard/config';
 import { useClipConfig } from './clip/useClipConfig';
+import GuideTab from './clip/GuideTab';
 import GeneralTab from './clip/GeneralTab';
 import PermissionsTab from './clip/PermissionsTab';
 import CooldownsTab from './clip/CooldownsTab';
 import MessagesTab from './clip/MessagesTab';
 import HistoryTab from './clip/HistoryTab';
 
-// Comando !clip (.dev/plans/CLIP_COMANDO_PLAN.md): pestañas General, Permisos, Cooldowns, Mensajes e Historial.
+// Comando !clip (.dev/plans/CLIP_COMANDO_PLAN.md): pestañas Guía, General, Permisos, Cooldowns, Mensajes e Historial.
 // Los textos viven en locales/{es,en}/clipcommand.json.
 
-type TabId = 'general' | 'permissions' | 'cooldowns' | 'messages' | 'history';
-const TAB_IDS: TabId[] = ['general', 'permissions', 'cooldowns', 'messages', 'history'];
+type TabId = 'guide' | 'general' | 'permissions' | 'cooldowns' | 'messages' | 'history';
+const TAB_IDS: TabId[] = ['guide', 'general', 'permissions', 'cooldowns', 'messages', 'history'];
 
 export default function ClipCommandConfig() {
     const { t } = useTranslation('clipcommand');
     const navigate = useNavigate();
     const cfg = useClipConfig();
     const [tab, setTab] = useState<TabId>(() => {
-        try { const saved = sessionStorage.getItem('clip-tab') as TabId; return TAB_IDS.includes(saved) ? saved : 'general'; } catch { return 'general'; }
+        try { const saved = sessionStorage.getItem('clip-tab') as TabId; return TAB_IDS.includes(saved) ? saved : 'guide'; } catch { return 'guide'; }
     });
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -86,6 +87,7 @@ export default function ClipCommandConfig() {
 
             <Tabs items={TAB_IDS.map(id => ({ id, label: t(`tabs.${id}`) }))} value={tab} onChange={id => setTab(id as TabId)} />
 
+            {tab === 'guide' && <GuideTab cfg={cfg} />}
             {tab === 'general' && <GeneralTab cfg={cfg} />}
             {tab === 'permissions' && <PermissionsTab cfg={cfg} />}
             {tab === 'cooldowns' && <CooldownsTab cfg={cfg} />}

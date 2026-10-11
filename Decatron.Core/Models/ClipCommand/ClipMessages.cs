@@ -30,6 +30,7 @@ namespace Decatron.Core.Models.ClipCommand
         public const string NotClippable = "notClippable";
         public const string RateLimited = "rateLimited";
         public const string TwitchDown = "twitchDown";
+        public const string Waiting = "waiting";
         public const string NotReady = "notReady";
         public const string Failed = "failed";
         public const string UnsupportedPlatform = "unsupportedPlatform";
@@ -55,6 +56,7 @@ namespace Decatron.Core.Models.ClipCommand
             [NotClippable]       = new[] { "user" },
             [RateLimited]        = new[] { "user" },
             [TwitchDown]         = new[] { "user" },
+            [Waiting]            = new[] { "user" },
             [NotReady]           = new[] { "user" },
             [Failed]             = new[] { "user" },
             [UnsupportedPlatform] = new[] { "user" },
@@ -118,9 +120,12 @@ namespace Decatron.Core.Models.ClipCommand
             [TwitchDown] = (
                 "@{user}, Twitch no pudo crear el clip ahora. Intenta de nuevo.",
                 "@{user}, Twitch couldn't create the clip right now. Try again."),
+            [Waiting] = (
+                "@{user}, esperando a que Twitch termine el clip…",
+                "@{user}, waiting for Twitch to finish the clip…"),
             [NotReady] = (
-                "@{user}, el clip no estuvo listo a tiempo. Intenta de nuevo.",
-                "@{user}, the clip wasn't ready in time. Try again."),
+                "@{user}, Twitch no terminó el clip a tiempo. Puede deberse a música con copyright en el directo. Intenta de nuevo.",
+                "@{user}, Twitch didn't finish the clip in time. It can be caused by copyrighted music on the stream. Try again."),
             [Failed] = (
                 "@{user}, no se pudo crear el clip.",
                 "@{user}, the clip couldn't be created."),

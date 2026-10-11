@@ -69,7 +69,7 @@ Este archivo contiene ajustes no sensibles que se pueden compartir. Estas son la
 | `EventSubSettings` | `ShardCount` | Cantidad de shards WebSocket del conduit de EventSub (por defecto 1) |
 | `LiveTranslation` | `SttModel`, `GeminiFallbackModel`, `SttCreditsPerSecond`, `MaxConcurrentChannels`, `MaxLanguagesPerChannel`, `LinkCodeMinutes`, `SmartSegmentation`, ..., `ClientTuning` | Límites del pipeline de traducción en vivo y tiempos del cliente (se recarga en caliente) |
 | `WheelOfLuck` | `Enabled` | Interruptor general del módulo de la Rueda |
-| `ClipCommand` | `Enabled`, `MinFreeDiskGb`, `ConfirmTimeoutSeconds`, `ConfirmPollSeconds` | Interruptor general de `!clip`; espacio libre en disco (GB) por debajo del cual se pausa la descarga opcional de clips (10 por defecto, 0 desactiva la comprobación); cuánto (60 s) y cada cuánto (3 s) espera el bot a que Twitch termine un clip (se recarga en caliente) |
+| `ClipCommand` | `Enabled`, `MinFreeDiskGb`, `ConfirmTimeoutSeconds`, `ConfirmNoticeSeconds`, `ConfirmPollSeconds` | Interruptor general de `!clip`; espacio libre en disco (GB) por debajo del cual se pausa la descarga opcional de clips (10 por defecto, 0 desactiva la comprobación); cuánto espera el bot a que Twitch termine un clip (60 s), a los cuántos segundos avisa que sigue esperando (10 s) y cada cuánto lo consulta (3 s) (se recarga en caliente) |
 | `Fortnite` | `CurrentSeason` | Temporada que usan los módulos de Fortnite |
 | `DecatronApi` | `BaseUrl`, `Enabled` | Enlace opcional con la API de facturación |
 | `TtsCredits` | `TransitionEndsAt` | Fecha de fin de la transición de créditos de TTS |

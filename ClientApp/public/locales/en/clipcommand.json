@@ -17,6 +17,7 @@
   "leaveConfirm": "You have unsaved changes. Leave anyway?",
   "enabled": "Command enabled",
   "tabs": {
+    "guide": "Guide",
     "general": "General",
     "permissions": "Permissions",
     "cooldowns": "Cooldowns",
@@ -115,6 +116,7 @@
       "notClippable": "Category without clips",
       "rateLimited": "Twitch is limiting clips",
       "twitchDown": "Twitch didn't respond",
+      "waiting": "Waiting for Twitch (notice)",
       "notReady": "The clip wasn't ready in time",
       "failed": "General error",
       "unsupportedPlatform": "Unsupported platform (Kick)"
@@ -193,5 +195,30 @@
     "lastUsed": "Last used",
     "never": "Never",
     "empty": "No channel has set up !clip yet."
+  },
+  "guide": {
+    "title": "How it works",
+    "intro": "`!clip` creates a clip of the live stream from chat and posts the link. Follow these steps to get it running.",
+    "stepsTitle": "Getting started",
+    "step1": "Turn on «Command enabled» above and save.",
+    "step2": "In Permissions choose who can use it and, if you want, block users.",
+    "step3": "With your channel live, type !clip in chat.",
+    "step4": "Check the result in History: who asked, the link and whether it failed.",
+    "usageTitle": "How to type it",
+    "ex1": "Clip with the default duration",
+    "ex2": "20-second clip",
+    "ex3": "20-second clip with a title",
+    "ex4": "Title with the default duration",
+    "tabsTitle": "What each tab has",
+    "tabGeneral": "Language, aliases, duration, title, Kick, video download and history.",
+    "tabPermissions": "Minimum rank and blocked users.",
+    "tabCooldowns": "Cooldowns and per-stream limit.",
+    "tabMessages": "The texts the bot writes, in Spanish and English.",
+    "tabHistory": "Every attempt, created or failed.",
+    "limitsTitle": "Before you start",
+    "limitLive": "Clips can only be created while the channel is live, and only on Twitch.",
+    "limitMusic": "If the stream has copyrighted music, Twitch doesn't publish the clip: the bot waits and says it wasn't ready. With royalty-free music it works.",
+    "limitScope": "If the bot says the clips permission is missing, link your Decatron account again.",
+    "docs": "See the full documentation"
   }
 }

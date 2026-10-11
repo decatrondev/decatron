@@ -259,7 +259,7 @@
               "Si lo primero que escribes es un número, se lee como duración. Por eso `!clip 2024 recap` se interpreta como una duración de 2024 segundos y el bot avisa que está fuera de rango.",
               "La duración va de 5 a 60 segundos, que es lo que permite Twitch. El streamer puede acotarla más.",
               "El título puede tener hasta 100 caracteres, y Twitch lo revisa con AutoMod.",
-              "El bot espera a que Twitch termine de crear el clip (hasta 60 segundos) y entonces escribe el enlace. Si no está listo a tiempo, avisa y se puede intentar de nuevo."
+              "El bot espera a que Twitch termine de crear el clip (hasta 60 segundos) y entonces escribe el enlace. Si tarda más de 10 segundos, avisa una vez que sigue esperando. Si no está listo a tiempo, lo dice y se puede intentar de nuevo."
             ]
           }
         ]
@@ -336,6 +336,11 @@
               "Twitch limita los clips en ese momento o no respondió; se puede intentar de nuevo.",
               "Duración fuera de rango, duración o título no permitidos, rango insuficiente, usuario bloqueado, cooldown o tope por stream."
             ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Música con copyright: Twitch revisa el audio de los clips y no publica los que llevan música protegida. En ese caso la creación se acepta, pero el clip nunca aparece y el bot avisa que no estuvo listo a tiempo. El botón de clip de Twitch también lo bloquea. Con música libre de derechos o sin música funciona."
           }
         ]
       },
@@ -368,7 +373,7 @@
               ],
               [
                 "Mensajes",
-                "Los 21 textos que escribe el bot, en español e inglés. Un campo vacío usa el texto de Decatron. Cada mensaje muestra las variables que acepta"
+                "Los 22 textos que escribe el bot, en español e inglés. Un campo vacío usa el texto de Decatron. Cada mensaje muestra las variables que acepta"
               ],
               [
                 "Historial",

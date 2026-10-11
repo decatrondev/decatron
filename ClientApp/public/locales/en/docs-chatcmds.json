@@ -259,7 +259,7 @@
               "If the first thing you type is a number, it is read as the duration. So `!clip 2024 recap` is read as a duration of 2024 seconds and the bot says it is out of range.",
               "The duration goes from 5 to 60 seconds, which is what Twitch allows. The streamer can narrow it further.",
               "The title can be up to 100 characters, and Twitch checks it with AutoMod.",
-              "The bot waits for Twitch to finish creating the clip (up to 60 seconds) and then writes the link. If it isn't ready in time, it says so and you can try again."
+              "The bot waits for Twitch to finish creating the clip (up to 60 seconds) and then writes the link. If it takes more than 10 seconds, it says once that it is still waiting. If it isn't ready in time, it says so and you can try again."
             ]
           }
         ]
@@ -336,6 +336,11 @@
               "Twitch is limiting clips right now or didn't respond; you can try again.",
               "Duration out of range, duration or title not allowed, rank too low, blocked user, cooldown or stream limit."
             ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Copyrighted music: Twitch checks the audio of clips and doesn't publish those with protected music. In that case the creation is accepted but the clip never appears and the bot says it wasn't ready in time. Twitch's own clip button blocks it too. With royalty-free music or no music it works."
           }
         ]
       },
@@ -368,7 +373,7 @@
               ],
               [
                 "Messages",
-                "The 21 texts the bot writes, in Spanish and English. An empty field uses Decatron's text. Each message shows the variables it accepts"
+                "The 22 texts the bot writes, in Spanish and English. An empty field uses Decatron's text. Each message shows the variables it accepts"
               ],
               [
                 "History",

@@ -17,6 +17,7 @@
   "leaveConfirm": "Tienes cambios sin guardar. ¿Salir de todos modos?",
   "enabled": "Comando activado",
   "tabs": {
+    "guide": "Guía",
     "general": "General",
     "permissions": "Permisos",
     "cooldowns": "Cooldowns",
@@ -115,6 +116,7 @@
       "notClippable": "Categoría sin clips",
       "rateLimited": "Twitch limita los clips",
       "twitchDown": "Twitch no respondió",
+      "waiting": "Esperando a Twitch (aviso)",
       "notReady": "El clip no estuvo a tiempo",
       "failed": "Error general",
       "unsupportedPlatform": "Plataforma sin soporte (Kick)"
@@ -193,5 +195,30 @@
     "lastUsed": "Último uso",
     "never": "Nunca",
     "empty": "Ningún canal ha configurado !clip todavía."
+  },
+  "guide": {
+    "title": "Cómo funciona",
+    "intro": "`!clip` crea un clip del directo desde el chat y publica el enlace. Sigue estos pasos para dejarlo funcionando.",
+    "stepsTitle": "Primeros pasos",
+    "step1": "Activa «Comando activado» arriba y guarda.",
+    "step2": "En Permisos elige quién puede usarlo y, si quieres, bloquea usuarios.",
+    "step3": "Con tu canal en vivo, escribe !clip en el chat.",
+    "step4": "Revisa el resultado en Historial: quién lo pidió, el enlace y si falló.",
+    "usageTitle": "Cómo se escribe",
+    "ex1": "Clip con la duración por defecto",
+    "ex2": "Clip de 20 segundos",
+    "ex3": "Clip de 20 segundos con título",
+    "ex4": "Título con la duración por defecto",
+    "tabsTitle": "Qué hay en cada pestaña",
+    "tabGeneral": "Idioma, alias, duración, título, Kick, descarga del video e historial.",
+    "tabPermissions": "Rango mínimo y usuarios bloqueados.",
+    "tabCooldowns": "Cooldowns y tope por stream.",
+    "tabMessages": "Los textos que escribe el bot, en español e inglés.",
+    "tabHistory": "Cada intento, creado o fallido.",
+    "limitsTitle": "Antes de empezar",
+    "limitLive": "Solo se pueden crear clips mientras el canal está en vivo, y solo en Twitch.",
+    "limitMusic": "Si el directo tiene música con copyright, Twitch no publica el clip: el bot espera y avisa que no estuvo listo. Con música libre de derechos funciona.",
+    "limitScope": "Si el bot dice que falta el permiso de clips, vuelve a vincular tu cuenta de Decatron.",
+    "docs": "Ver la documentación completa"
   }
 }

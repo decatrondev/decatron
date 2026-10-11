@@ -97,7 +97,8 @@ namespace Decatron.Services.ClipCommand
                 var config = await GetActiveConfigAsync(configUserId);
                 if (config == null || !MatchesName(config, name)) return false;
 
-                var reply = await HandleAsync(ctx, parts.Length > 1 ? parts[1].Trim() : "", config);
+                var reply = await HandleAsync(ctx, parts.Length > 1 ? parts[1].Trim() : "", config,
+                    text => sender.SendMessageAsync(ctx.Channel, text));
                 if (reply != null) await sender.SendMessageAsync(ctx.Channel, reply);
                 return true;
             }
@@ -120,7 +121,7 @@ namespace Decatron.Services.ClipCommand
         /// <summary>
         /// Atiende un !clip. <paramref name="args"/> es lo que viene después del comando.
         /// </summary>
-        public async Task<string?> HandleAsync(CommandContext ctx, string args, ClipCommandConfig config)
+        public async Task<string?> HandleAsync(CommandContext ctx, string args, ClipCommandConfig config, Func<string, Task>? sendInterim = null)
         {
             var lang = config.Language == "en" ? "en" : "es";
             var values = new Dictionary<string, object?> { ["user"] = ctx.Username };
@@ -225,7 +226,7 @@ namespace Decatron.Services.ClipCommand
                 return Say(KeyFor(created.ErrorCode));
             }
 
-            var clip = await WaitForClipAsync(created.ClipId!);
+            var clip = await WaitForClipAsync(created.ClipId!, sendInterim == null ? null : () => sendInterim(Say(ClipMessages.Waiting)));
             if (clip == null)
             {
                 await SaveAsync(channelUserId, ctx, role, title, duration, ClipCommandHistoryItem.StatusFailed, created.ClipId, null, "timeout");
@@ -306,17 +307,27 @@ namespace Decatron.Services.ClipCommand
         };
 
         /// <summary>Twitch da el clip por fallido si a los 60 s no aparece en Get Clips.</summary>
-        private async Task<TwitchClipData?> WaitForClipAsync(string clipId)
+        private async Task<TwitchClipData?> WaitForClipAsync(string clipId, Func<Task>? onSlow)
         {
             var s = _settings.CurrentValue;
             var deadline = DateTime.UtcNow.AddSeconds(Math.Clamp(s.ConfirmTimeoutSeconds, 5, 60));
             var poll = TimeSpan.FromSeconds(Math.Clamp(s.ConfirmPollSeconds, 1, 10));
+            // Si Twitch tarda, se avisa una sola vez en el chat para que no parezca que no pasó nada
+            var slowAt = DateTime.UtcNow.AddSeconds(Math.Clamp(s.ConfirmNoticeSeconds, 3, 30));
+            var noticed = false;
             while (true)
             {
                 await Task.Delay(poll);
                 var clip = await _twitch.GetClipByIdAsync(clipId);
                 if (clip != null) return clip;
-                if (DateTime.UtcNow >= deadline) return null;
+                var now = DateTime.UtcNow;
+                if (now >= deadline) return null;
+                if (!noticed && onSlow != null && now >= slowAt)
+                {
+                    noticed = true;
+                    try { await onSlow(); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "!clip: no se pudo enviar el aviso de espera"); }
+                }
             }
         }
 
