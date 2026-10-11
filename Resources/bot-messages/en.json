@@ -8,7 +8,10 @@
     "error_validation": "Error: {0}",
     "success": "Category changed to: {0}!",
     "error_change": "Error changing stream category.",
-    "error_generic": "Error processing category command."
+    "error_generic": "Error processing category command.",
+    "relink": "The streamer needs to link their Kick account again to allow this change.",
+    "not_found": "I couldn't find the category «{0}» on Kick.",
+    "read_offline": "Kick only shows the current category while the channel is live."
   },
   "ia": {
     "channel_cooldown": "@{0}, you must wait {1} before using !ia again.",
@@ -30,7 +33,9 @@
     "error_validation": "Error: {0}",
     "success": "Title changed to: {0}!",
     "error_change": "Error changing stream title.",
-    "error_generic": "Error processing title command."
+    "error_generic": "Error processing title command.",
+    "relink": "The streamer needs to link their Kick account again to allow this change.",
+    "read_offline": "Kick only shows the current title while the channel is live."
   },
   "dstart": {
     "usage": "Usage: !dstart <duration> (e.g.: !dstart 5m, !dstart 1h30m, !dstart 300)",

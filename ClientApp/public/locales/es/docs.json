@@ -666,7 +666,7 @@
     "reqTitle": "Requisitos",
     "req": [
       "El comando por defecto !game debe estar activado en tu canal (Comandos → Por defecto). Si está desactivado, los micro comandos no responden.",
-      "Hoy los micro comandos cambian la categoría en Twitch. En Kick el cambio de categoría está próximamente, igual que !game."
+      "Hoy los micro comandos cambian la categoría en Twitch. En Kick todavía no funcionan los micro comandos (!game sí cambia la categoría allí)."
     ],
     "countersTitle": "¿Buscas contadores?",
     "counters": "Los micro comandos no cuentan nada. Para un contador (muertes, victorias…) crea un comando personalizado con la variable $(count).",

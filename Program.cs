@@ -336,6 +336,8 @@ try
     builder.Services.AddScoped<IKickTokenRefreshService, KickTokenRefreshService>();
     builder.Services.AddScoped<IKickEventSubService, Decatron.Services.Platforms.Kick.KickEventSubService>();
     builder.Services.AddScoped<IKickApiService, Decatron.Services.Platforms.Kick.KickApiService>();
+    builder.Services.AddScoped<Decatron.Services.Platforms.Kick.KickCategoryService>();
+    builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickTitleCategoryHandler>();
     builder.Services.AddScoped<ISoundAlertTriggerService, Decatron.Services.SoundAlertTriggerService>();
     builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickOAuthClient>();
     builder.Services.AddScoped<ITimerService, TimerService>();

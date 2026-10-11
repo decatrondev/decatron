@@ -50,6 +50,7 @@ namespace Decatron.Data
         public DbSet<ScriptCommand> ScriptedCommands { get; set; }
         public DbSet<GameCache> GameCache { get; set; }
         public DbSet<GameAlias> GameAliases { get; set; }
+        public DbSet<KickCategoryCache> KickCategoryCache { get; set; }
         public DbSet<CommandCounter> CommandCounters { get; set; }
         public DbSet<CommandUses> CommandUses { get; set; }
         public DbSet<ShoutoutConfig> ShoutoutConfigs { get; set; }

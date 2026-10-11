@@ -165,7 +165,7 @@
               [
                 "Default and custom commands",
                 "Yes",
-                "`!title` and `!game` appear as “Próximamente en Kick”; `!followage` and `!so` as “No disponible en Kick”."
+                "`!title` and `!game` (with `!t` and `!g`) change the stream title and category on Kick; `!followage` and `!so` show as “No disponible en Kick”."
               ],
               [
                 "On-screen chat",

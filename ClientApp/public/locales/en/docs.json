@@ -666,7 +666,7 @@
     "reqTitle": "Requirements",
     "req": [
       "The default command !game must be turned on in your channel (Commands → Default). If it is off, micro commands don't respond.",
-      "Today micro commands change the category on Twitch. On Kick, changing the category is coming soon, same as !game."
+      "Today micro commands change the category on Twitch. On Kick micro commands don't work yet (!game does change the category there)."
     ],
     "countersTitle": "Looking for counters?",
     "counters": "Micro commands don't count anything. For a counter (deaths, wins…) create a custom command with the $(count) variable.",

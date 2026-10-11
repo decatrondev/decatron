@@ -32,6 +32,7 @@ namespace Decatron.Services
         private readonly Dictionary<string, ICommand> _commands;
         private readonly Decatron.Services.SongRequest.SongRequestChatHandler _songRequestHandler;
         private readonly Decatron.Services.ClipCommand.ClipCommandService _clipCommand;
+        private readonly Decatron.Services.Platforms.Kick.KickTitleCategoryHandler _kickTitleCategory;
         private readonly Dictionary<string, Dictionary<string, string>> _microCommandsCache;
         private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
         private readonly IBotListService _botList;
@@ -46,9 +47,11 @@ namespace Decatron.Services
             Decatron.Services.Pets.PetEventBridge petEventBridge,
             Decatron.Services.SongRequest.SongRequestChatHandler songRequestHandler,
             IBotListService botList,
-            Decatron.Services.ClipCommand.ClipCommandService clipCommand)
+            Decatron.Services.ClipCommand.ClipCommandService clipCommand,
+            Decatron.Services.Platforms.Kick.KickTitleCategoryHandler kickTitleCategory)
         {
             _botList = botList;
+            _kickTitleCategory = kickTitleCategory;
             _clipCommand = clipCommand;
             _songRequestHandler = songRequestHandler;
             _instanceId = ++_instanceCount;
@@ -618,6 +621,14 @@ namespace Decatron.Services
                     {
                         _logger.LogDebug(ex, "Error en la entrada del giveaway para {Cmd}", commandName);
                     }
+                }
+
+                // 0b. KICK: !title / !t / !game / !g (los de Twitch hablan con la API de Twitch; en Kick los atiende su propio manejador)
+                if (platform == "kick" && commandName is "!title" or "!t" or "!game" or "!g" && channelUserId != null)
+                {
+                    var kickCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                    if (await _kickTitleCategory.TryHandleAsync(kickCtx, _messageSender))
+                        return;
                 }
 
                 // 1. COMANDOS DEL SERVIDOR (registrados en _commands)

@@ -80,6 +80,106 @@ namespace Decatron.Services.Platforms.Kick
             return ok;
         }
 
+        public async Task<KickChannelInfo?> GetOwnChannelAsync(string accessToken)
+        {
+            if (string.IsNullOrEmpty(accessToken)) return null;
+            // OJO: esta respuesta trae la clave de transmisión del streamer (stream.key). Solo se leen título y categoría y
+            // el cuerpo nunca se loga (SendAsync solo lo loga si falla, y una falla no lo trae).
+            var (ok, _, body) = await SendAsync(HttpMethod.Get, "channels", accessToken, null);
+            if (!ok) return null;
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                var first = doc.RootElement.GetProperty("data").EnumerateArray().FirstOrDefault();
+                if (first.ValueKind != JsonValueKind.Object) return null;
+                var title = first.TryGetProperty("stream_title", out var t) ? t.GetString() ?? "" : "";
+                long catId = 0; var catName = "";
+                if (first.TryGetProperty("category", out var c) && c.ValueKind == JsonValueKind.Object)
+                {
+                    catId = c.TryGetProperty("id", out var i) && i.TryGetInt64(out var v) ? v : 0;
+                    catName = c.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+                }
+                return new KickChannelInfo(title, catId, catName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Kick API] No se pudo leer la respuesta de channels");
+                return null;
+            }
+        }
+
+        public async Task<KickUpdateResult> UpdateChannelAsync(string accessToken, string? streamTitle, long? categoryId)
+        {
+            var body = new Dictionary<string, object>();
+            if (streamTitle != null) body["stream_title"] = streamTitle;
+            if (categoryId.HasValue) body["category_id"] = categoryId.Value;
+            if (body.Count == 0 || string.IsNullOrEmpty(accessToken)) return new KickUpdateResult(false, string.IsNullOrEmpty(accessToken));
+
+            var (ok, status, _) = await SendAsync(new HttpMethod("PATCH"), "channels", accessToken, body);
+            return new KickUpdateResult(ok, status is System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden);
+        }
+
+        public async Task<List<KickCategory>> SearchCategoriesAsync(string accessToken, string name)
+        {
+            var found = new List<KickCategory>();
+            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrWhiteSpace(name)) return found;
+            var q = Uri.EscapeDataString(name.Trim());
+
+            // v2 (vigente): filtra por nombre (3 a 100 caracteres) y pone primero la coincidencia exacta
+            if (name.Trim().Length >= 3)
+            {
+                var (ok2, _, body2) = await SendRawAsync(HttpMethod.Get, $"https://api.kick.com/public/v2/categories?name={q}&limit=25", accessToken);
+                if (ok2) found = ParseCategories(body2);
+            }
+            // v1 (obsoleta, por texto): respaldo cuando la v2 no devuelve nada
+            if (found.Count == 0)
+            {
+                var (ok1, _, body1) = await SendRawAsync(HttpMethod.Get, $"https://api.kick.com/public/v1/categories?q={q}", accessToken);
+                if (ok1) found = ParseCategories(body1);
+            }
+            return found;
+        }
+
+        private static List<KickCategory> ParseCategories(string body)
+        {
+            var list = new List<KickCategory>();
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return list;
+                foreach (var e in data.EnumerateArray())
+                {
+                    if (!e.TryGetProperty("id", out var id) || !id.TryGetInt64(out var idv)) continue;
+                    var nm = e.TryGetProperty("name", out var n) ? n.GetString() : null;
+                    if (string.IsNullOrWhiteSpace(nm)) continue;
+                    list.Add(new KickCategory(idv, nm!, e.TryGetProperty("thumbnail", out var th) ? th.GetString() : null));
+                }
+            }
+            catch { /* respuesta ilegible: lista vacía */ }
+            return list;
+        }
+
+        private async Task<(bool Ok, System.Net.HttpStatusCode Status, string Body)> SendRawAsync(HttpMethod method, string url, string accessToken)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                var request = new HttpRequestMessage(method, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                request.Headers.UserAgent.ParseAdd("Decatron/1.0 (+https://decatron.net)");
+                var response = await client.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    _logger.LogWarning("[Kick API] {Method} {Url} -> {Status}", method, url, response.StatusCode);
+                return (response.IsSuccessStatusCode, response.StatusCode, responseBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Kick API] Excepción en {Method} {Url}", method, url);
+                return (false, System.Net.HttpStatusCode.InternalServerError, "");
+            }
+        }
+
         private async Task<(bool Ok, System.Net.HttpStatusCode Status, string Body)> SendAsync(HttpMethod method, string path, string accessToken, object? body)
         {
             try
@@ -87,6 +187,7 @@ namespace Decatron.Services.Platforms.Kick
                 var client = _httpClientFactory.CreateClient();
                 var request = new HttpRequestMessage(method, $"https://api.kick.com/public/v1/{path}");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                request.Headers.UserAgent.ParseAdd("Decatron/1.0 (+https://decatron.net)");
                 if (body != null)
                     request.Content = new StringContent(JsonSerializer.Serialize(body), System.Text.Encoding.UTF8, "application/json");
 

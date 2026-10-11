@@ -21,5 +21,14 @@ namespace Decatron.Core.Interfaces
 
         /// <summary>Borra un mensaje del chat. Scope moderation:chat_message:manage.</summary>
         Task<bool> DeleteMessageAsync(string accessToken, string messageId);
+
+        /// <summary>Título y categoría actuales del canal del token (GET /channels, scope channel:read). null si falla.</summary>
+        Task<KickChannelInfo?> GetOwnChannelAsync(string accessToken);
+
+        /// <summary>Cambia título y/o categoría (PATCH /channels, scope channel:write). Pasar solo lo que cambia.</summary>
+        Task<KickUpdateResult> UpdateChannelAsync(string accessToken, string? streamTitle, long? categoryId);
+
+        /// <summary>Busca categorías por nombre: v2 (vigente, por prefijo) y, si no hay nada, v1 (obsoleta, por texto).</summary>
+        Task<List<KickCategory>> SearchCategoriesAsync(string accessToken, string name);
     }
 }

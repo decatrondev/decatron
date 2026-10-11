@@ -165,7 +165,7 @@
               [
                 "Comandos por defecto y personalizados",
                 "Sí",
-                "`!title` y `!game` aparecen como «Próximamente en Kick»; `!followage` y `!so` como «No disponible en Kick»."
+                "`!title` y `!game` (con `!t` y `!g`) cambian el título y la categoría del directo en Kick; `!followage` y `!so` aparecen como «No disponible en Kick»."
               ],
               [
                 "Chat en pantalla",

@@ -37,7 +37,7 @@ Los registra `CommandService` al iniciar; están disponibles cuando el bot está
 | `!game` | `!g` | Cambia o consulta la categoría/juego del stream | Consultar: todos. Cambiar: streamer y moderadores | `!game`, `!game Just Chatting` |
 | `!g` | | Gestión de categorías y microcomandos (ver abajo) | | `!g`, `!g Just Chatting` |
 
-En Kick, `!title` y `!game` figuran como "próximamente": Kick ya expone la API necesaria, pero el trabajo aún no está hecho.
+En Kick, `!title`/`!t` y `!game`/`!g` también funcionan, con las mismas reglas que en Twitch (cualquiera puede consultar; cambiar requiere al streamer, a un moderador o el permiso de moderación del panel). El bot usa la cuenta de Kick del streamer (permiso `channel:write`, que ya se pide al entrar; si falta, el bot le pide al streamer volver a vincular Kick). Kick solo devuelve el título y la categoría actuales mientras el canal está en vivo, así que consultarlos sin directo responde eso. La categoría se busca en la API de Kick con los mismos alias que en Twitch (`lol`, `chatting`...) y un caché local, y el bot responde con el nombre real que dejó. Los micro comandos todavía no funcionan en Kick.
 
 #### Subcomandos de `!g`
 

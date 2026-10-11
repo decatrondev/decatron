@@ -20,12 +20,11 @@ export function getCommandGroup(commandName: string): string {
     return 'community';
 }
 
-// Comandos que dependen de una API de Twitch sin equivalente todavía armado del lado de Kick
-// — ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md sección 8.17 (6 ago 2026).
+// Comandos que dependen de una API de Twitch sin equivalente todavía armado del lado de Kick.
 //
-// "Próximamente": Kick YA expone la API que hace falta (PATCH /public/v1/channels para título
-// y categoría); es trabajo pendiente nuestro.
-export const KICK_COMING_SOON = new Set(['title', 'game']);
+// "Próximamente": Kick YA expone la API que hace falta pero es trabajo pendiente nuestro. Hoy no queda ninguno:
+// !title y !game salieron de aquí el 2026-10-11 (ver .dev/plans/KICK_TITULO_CATEGORIA_PLAN.md).
+export const KICK_COMING_SOON = new Set<string>();
 // "No disponible en Kick": la API pública de Kick no tiene el dato que estos comandos
 // necesitan (followers/followed_at, clips); no se promete fecha.
 //
