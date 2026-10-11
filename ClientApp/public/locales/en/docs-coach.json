@@ -1,0 +1,357 @@
+{
+  "overview": {
+    "title": "LoL Coach",
+    "subtitle": "An AI coach that comments on your champion select and your League of Legends game",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The LoL Coach comments on champion select, gives you runes, spells and build when you lock your champion and an opinion when the game ends. It speaks in your stream overlay, in chat if you want and, if you turn it on, also by voice on your PC. During the game it stays silent, following Riot's rules."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "It needs Decatron Desktop open on the PC where you play. The coach's AI uses credits; the rest of the Live match overlay is free."
+          }
+        ]
+      },
+      {
+        "id": "hace",
+        "title": "What it does",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Comments on the picks and bans of the champion select and suggests yours on your turn.",
+              "When champion select closes, gives the final plan: runes, spells and first items.",
+              "A briefing when the client opens, a lobby comment and an optional tilt check.",
+              "An opinion when the game ends, with the prediction result.",
+              "Chat predictions: your viewers bet whether you win or lose."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the setup is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "coach-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "LoL Coach: getting started",
+    "subtitle": "Requirements, activation, and the coach's name and tone",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Requirements",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Funciones → Decatron Coach (`/features/lol-coach`), the panel shows three requirements with their status; all three must be green:"
+          },
+          {
+            "t": "ol",
+            "items": [
+              "LoL account linked: it is linked in Overlays → Game Overlays → Accounts.",
+              "Decatron Desktop connected: install it and link it on the PC where you play.",
+              "LoL client open: open League of Legends with the app running."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "accounts-riot"
+          },
+          {
+            "t": "p",
+            "x": "Configuring the coach needs the Full control level on the dashboard. If the server does not have the AI configured, the panel says “La IA no está configurada en el servidor”."
+          }
+        ]
+      },
+      {
+        "id": "activar",
+        "title": "Turn on the coach",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Turn on “Coach activo” and save. It starts off: it begins commenting in the next champion select. The desktop app learns of the change on its own."
+          }
+        ]
+      },
+      {
+        "id": "personalidad",
+        "title": "Name and tone",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Coach name: how it introduces itself in the overlay and in chat (`!coach`). Put whatever you like: Jarvis, Sensei, Coach…",
+              "Tone: Analyst (calm, concrete, useful), Hype (energetic caster, short phrases) or Troll (sarcastic, teases fondly; never toxic to others).",
+              "Your champ pool: your champions separated by commas. Empty, it uses the most played of your last 20 games.",
+              "Notes for the coach: free text that goes into the prompt as is, for example “I hate playing tanks” or “do not recommend Yasuo”."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "estado",
+        "title": "Right now",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The same page shows in real time your client's phase (in the client, lobby, searching, champion select, in game, end), your team, the enemy, the bans, “¡Te toca elegir!”, the result and “Lo último que dijo” the coach."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Without credits the coach does not speak until you have balance. The page tells you with a link to buy credits."
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "title": "LoL Coach: what it says and how it speaks",
+    "subtitle": "Comments, voice, chat and the coach's credits",
+    "sections": [
+      {
+        "id": "comentarios",
+        "title": "What it comments on",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Briefing on opening the client",
+                "Once a day: your rank and LP, how yesterday went, your best champion of the week, streak and today's goal.",
+                "On"
+              ],
+              [
+                "Comment on the lobby",
+                "When someone joins: your record playing with that person, their public rank, their form over the last 20 games and their top champions.",
+                "On"
+              ],
+              [
+                "Tilt check",
+                "After 3 losses in a row in the session, it asks whether you continue or stop.",
+                "Off"
+              ],
+              [
+                "Comment on every pick and ban",
+                "Up to 8 comments per champion select. Off, it only speaks on your turn and at the end.",
+                "On"
+              ],
+              [
+                "Opinion when the game ends",
+                "An automatic summary. Off, none is generated.",
+                "On"
+              ],
+              [
+                "Today's goal",
+                "For example “Reach Gold I” or “3 wins”. It lasts up to 18 hours and the coach remembers it in the briefing and after each game. It can also be set with `!meta` in chat.",
+                "No goal"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "In the overlay",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "“Mostrar lo que dice en el overlay” shows the “Coach dice” blocks of the Live match overlay. If you turn it off, only you see it in the app and with the commands."
+          },
+          {
+            "t": "link",
+            "to": "live-overlay"
+          }
+        ]
+      },
+      {
+        "id": "chat",
+        "title": "In chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "“Publicar en el chat de tu stream” repeats in your chat what the overlay shows, at the moments you choose: runes and build when champion select closes and a summary when the game ends (by default), plus the briefing, the lobby, your turn, the tilt check or each pick. A long text is split into several consecutive messages (1/2, 2/2). It costs nothing extra and never posts during the game."
+          }
+        ]
+      },
+      {
+        "id": "voz",
+        "title": "Voice in Decatron Desktop",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The coach can speak through your speakers or headphones; the device is chosen in the app. If you do not turn on voice, it works the same in text: app, overlay and chat. You choose the voice and when it speaks: on your turn, with the final plan, at the end, in the briefing, in the lobby, in the tilt check or on each pick (very noisy). By default it speaks on your turn, with the final plan and at the end."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Voice engine",
+              "How it works"
+            ],
+            "rows": [
+              [
+                "Standard (Decatron)",
+                "Free. Uses no credits; takes a little longer to start speaking."
+              ],
+              [
+                "Premium",
+                "More natural voice. Charges credits per phrase; if you cannot afford the voice, that phrase comes out with the standard voice."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "creditos",
+        "title": "Credits",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each AI comment uses credits, and there is a maximum of 8 calls per champion select. The overlay blocks that do not use AI (picks, time, result, prediction) cost nothing. The current rates are on the credits page."
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "LoL Coach: commands and predictions",
+    "subtitle": "The coach's chat commands and the chat predictions",
+    "sections": [
+      {
+        "id": "activar",
+        "title": "Turning them on",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The coach commands are default commands and are turned on in Commands → Games."
+          }
+        ]
+      },
+      {
+        "id": "comandos",
+        "title": "Coach commands",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`!matchup`",
+                "The current game's matchup according to the coach."
+              ],
+              [
+                "`!build` (`!runas`)",
+                "The runes, spells and first items the coach suggested."
+              ],
+              [
+                "`!coach`",
+                "The last thing the coach said or the summary of the game that just ended. It is for everyone, with 30 seconds between uses, except moderators."
+              ],
+              [
+                "`!vs <champion>`",
+                "How the streamer does against a champion (direct opponent, last 60 games)."
+              ],
+              [
+                "`!duo`",
+                "The streamer's record with their lobby duo, with a specific person (`!duo Name`) or their most frequent duos."
+              ],
+              [
+                "`!pool`",
+                "The streamer's champ pool with winrate."
+              ],
+              [
+                "`!meta`",
+                "See the day's goal (everyone) or set it (moderators): `!meta <text>` and `!meta off`."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "predicciones",
+        "title": "Chat predictions",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When each game starts, the bot opens a prediction: do you win or lose? Your viewers bet channel prediction points (free, not DecaCoins) and those who guess right share the pot. It resolves on its own with the real result and shows in the overlay with the “Predicción del chat” widget. It does not need the AI coach."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Setting",
+              "What it does",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Chat predictions",
+                "Turns the feature on or off.",
+                "Off"
+              ],
+              [
+                "Starting points per viewer",
+                "The points each viewer starts with.",
+                "1,000"
+              ],
+              [
+                "Closes at (game minutes)",
+                "How many game minutes pass before bets close.",
+                "5"
+              ]
+            ]
+          },
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`!pred win 200`, `!pred loss`",
+                "Bets that you win or lose, with an amount (100 by default). The minimum is 10 points."
+              ],
+              [
+                "`!pred`",
+                "Shows your points."
+              ],
+              [
+                "`!predtop`",
+                "The channel's top 5 prediction points."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

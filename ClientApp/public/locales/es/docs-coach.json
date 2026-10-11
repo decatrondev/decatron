@@ -1,0 +1,357 @@
+{
+  "overview": {
+    "title": "Coach de LoL",
+    "subtitle": "Un coach con IA que comenta tu selección de campeón y tu partida de League of Legends",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El Coach de LoL comenta la selección de campeón, te da runas, hechizos y build al bloquear tu campeón y una opinión al terminar la partida. Habla en el overlay de tu stream, en el chat si quieres y, si lo activas, también en voz por tu PC. En partida se calla, siguiendo las reglas de Riot."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Necesita Decatron Desktop abierto en la PC donde juegas. La IA del coach consume créditos; el resto del overlay de Partida en vivo es gratis."
+          }
+        ]
+      },
+      {
+        "id": "hace",
+        "title": "Qué hace",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Comenta los picks y bans de la selección y te sugiere el tuyo en tu turno.",
+              "Al cerrar la selección, da el plan final: runas, hechizos y primeros ítems.",
+              "Un briefing al abrir el cliente, un comentario del lobby y un tilt check opcional.",
+              "Una opinión al terminar la partida, con el resultado de la predicción.",
+              "Predicciones del chat: tus espectadores apuestan si ganas o pierdes."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, la puesta en marcha está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "coach-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Coach de LoL: puesta en marcha",
+    "subtitle": "Requisitos, activación, nombre y tono del coach",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Requisitos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Funciones → Decatron Coach (`/features/lol-coach`), el panel muestra tres requisitos con su estado; los tres deben estar en verde:"
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Cuenta de LoL vinculada: se vincula en Overlays → Game Overlays → Cuentas.",
+              "Decatron Desktop conectado: instálalo y vincúlalo en la PC donde juegas.",
+              "Cliente de LoL abierto: abre League of Legends con la app corriendo."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "accounts-riot"
+          },
+          {
+            "t": "p",
+            "x": "Configurar el coach pide el nivel Control total en el panel. Si el servidor no tiene la IA configurada, el panel avisa «La IA no está configurada en el servidor»."
+          }
+        ]
+      },
+      {
+        "id": "activar",
+        "title": "Activar el coach",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Enciende «Coach activo» y guarda. Viene apagado: empieza a comentar en la próxima selección de campeón. La app de escritorio se entera del cambio sola."
+          }
+        ]
+      },
+      {
+        "id": "personalidad",
+        "title": "Nombre y tono",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Nombre del coach: así se presenta en el overlay y en el chat (`!coach`). Pon el que quieras: Jarvis, Sensei, Coach…",
+              "Tono: Analista (tranquilo, concreto, útil), Hype (caster con energía, frases cortas) o Troll (sarcástico, se burla con cariño; nunca tóxico con otros).",
+              "Tu champ pool: tus campeones separados por comas. Vacío, usa los más jugados de tus últimas 20 partidas.",
+              "Notas para el coach: texto libre que va al prompt tal cual, por ejemplo «odio jugar tanques» o «no me recomiendes Yasuo»."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "estado",
+        "title": "Ahora mismo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La misma página muestra en tiempo real la fase de tu cliente (en el cliente, lobby, buscando partida, selección, en partida, fin), tu equipo, el rival, los bans, «¡Te toca elegir!», el resultado y «Lo último que dijo» el coach."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Sin créditos el coach no habla hasta que tengas saldo. La página lo avisa con un enlace para comprar créditos."
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "title": "Coach de LoL: qué dice y cómo habla",
+    "subtitle": "Comentarios, voz, chat y créditos del coach",
+    "sections": [
+      {
+        "id": "comentarios",
+        "title": "Qué comenta",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué hace",
+              "Por defecto"
+            ],
+            "rows": [
+              [
+                "Briefing al abrir el cliente",
+                "Una vez por día: tu rango y LP, cómo te fue ayer, tu mejor campeón de la semana, racha y objetivo de hoy.",
+                "Activo"
+              ],
+              [
+                "Comentar el lobby",
+                "Cuando entra alguien: tu récord jugando con esa persona, su rango público, su forma en las últimas 20 partidas y sus campeones principales.",
+                "Activo"
+              ],
+              [
+                "Tilt check",
+                "A las 3 derrotas seguidas de la sesión te pregunta si sigues o cortas.",
+                "Apagado"
+              ],
+              [
+                "Comentar cada pick y ban",
+                "Hasta 8 comentarios por selección. Apagado, solo habla en tu turno y al final.",
+                "Activo"
+              ],
+              [
+                "Opinión al terminar la partida",
+                "Un resumen automático. Apagado, no se genera.",
+                "Activo"
+              ],
+              [
+                "Objetivo de hoy",
+                "Por ejemplo «Subir a Oro I» o «3 wins». Vale hasta 18 horas y el coach lo recuerda en el briefing y al terminar cada partida. También se fija con `!meta` en el chat.",
+                "Sin objetivo"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "En el overlay",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "«Mostrar lo que dice en el overlay» muestra los bloques «Coach dice» del overlay de Partida en vivo. Si lo apagas, solo lo ves tú en la app y con los comandos."
+          },
+          {
+            "t": "link",
+            "to": "live-overlay"
+          }
+        ]
+      },
+      {
+        "id": "chat",
+        "title": "En el chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "«Publicar en el chat de tu stream» repite lo que muestra el overlay en tu chat, en los momentos que marques: runas y build al cerrar la selección y resumen al terminar (por defecto), más el briefing, el lobby, tu turno, el tilt check o cada pick. Un texto largo se reparte en varios mensajes seguidos (1/2, 2/2). No cuesta nada extra y nunca publica durante la partida."
+          }
+        ]
+      },
+      {
+        "id": "voz",
+        "title": "Voz en Decatron Desktop",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El coach puede hablar por tus altavoces o auriculares; el dispositivo se elige en la app. Si no activas la voz, funciona igual en texto: app, overlay y chat. Eliges la voz y cuándo habla: en tu turno, con el plan final, al terminar, en el briefing, en el lobby, en el tilt check o en cada pick (mucho ruido). Por defecto habla en tu turno, con el plan final y al terminar."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Motor de voz",
+              "Cómo funciona"
+            ],
+            "rows": [
+              [
+                "Estándar (Decatron)",
+                "Gratis. No gasta créditos; tarda un poco más en empezar a hablar."
+              ],
+              [
+                "Premium",
+                "Voz más natural. Cobra créditos por cada frase; si no te alcanza para la voz, esa frase sale con la voz estándar."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "creditos",
+        "title": "Créditos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada comentario de la IA consume créditos, y hay un máximo de 8 llamadas por selección de campeón. Los bloques del overlay que no usan IA (picks, tiempo, resultado, predicción) no gastan nada. Las tarifas vigentes están en la página de créditos."
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Coach de LoL: comandos y predicciones",
+    "subtitle": "Los comandos de chat del coach y las predicciones del chat",
+    "sections": [
+      {
+        "id": "activar",
+        "title": "Activarlos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los comandos del coach son comandos por defecto y se activan en Comandos → Juegos."
+          }
+        ]
+      },
+      {
+        "id": "comandos",
+        "title": "Comandos del coach",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "`!matchup`",
+                "El matchup de la partida actual según el coach."
+              ],
+              [
+                "`!build` (`!runas`)",
+                "Las runas, hechizos y primeros ítems que sugirió el coach."
+              ],
+              [
+                "`!coach`",
+                "Lo último que dijo el coach o el resumen de la partida que acaba de terminar. Es para todos, con 30 segundos de espera entre usos, salvo los moderadores."
+              ],
+              [
+                "`!vs <campeón>`",
+                "Cómo le va al streamer contra un campeón (rival directo, últimas 60 partidas)."
+              ],
+              [
+                "`!duo`",
+                "El récord del streamer con su dúo del lobby, con alguien concreto (`!duo Nombre`) o sus dúos más frecuentes."
+              ],
+              [
+                "`!pool`",
+                "El champ pool del streamer con su winrate."
+              ],
+              [
+                "`!meta`",
+                "Ver el objetivo del día (todos) o fijarlo (moderadores): `!meta <texto>` y `!meta off`."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "predicciones",
+        "title": "Predicciones del chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Al empezar cada partida, el bot abre una predicción: ¿ganas o pierdes? Tus espectadores apuestan puntos de predicción del canal (gratis, no son DecaCoins) y quienes aciertan se reparten el pozo. Se resuelve sola con el resultado real y se ve en el overlay con el widget «Predicción del chat». No necesita el coach con IA."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Ajuste",
+              "Qué hace",
+              "Por defecto"
+            ],
+            "rows": [
+              [
+                "Predicciones del chat",
+                "Enciende o apaga la función.",
+                "Apagado"
+              ],
+              [
+                "Puntos iniciales por viewer",
+                "Los puntos con que empieza cada espectador.",
+                "1 000"
+              ],
+              [
+                "Cierra a los (min de partida)",
+                "Cuántos minutos de partida pasan antes de cerrar las apuestas.",
+                "5"
+              ]
+            ]
+          },
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "`!pred win 200`, `!pred loss`",
+                "Apuesta a que ganas o pierdes, con una cantidad (100 por defecto). El mínimo es 10 puntos."
+              ],
+              [
+                "`!pred`",
+                "Muestra tus puntos."
+              ],
+              [
+                "`!predtop`",
+                "El top 5 de puntos de predicción del canal."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

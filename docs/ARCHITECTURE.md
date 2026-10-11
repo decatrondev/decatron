@@ -940,6 +940,15 @@ Linked game accounts live in `linked_game_accounts` and belong to the `Account` 
 - **Epic.** `GET /api/me/epic/status`, `GET /api/me/epic/login-url` and `GET /api/auth/epic/callback` run the official Epic OAuth, exchange the code, read the account id and display name and save a verified `epic` account; without Epic OAuth available, Fortnite accounts are added by name through `POST /api/me/game-accounts` and stay unverified.
 - **Other endpoints.** `GET /api/me/game-accounts` (with the game catalog), `PUT` to set a manual rank, `DELETE` to unlink. Tournaments only offer verified accounts of the edition's region (`TournamentMeController`).
 
+### LoL coach
+
+The coach (`lol-coach` channel of the Desktop WebSocket, `LolCoachDesktopChannel`) reads the League client through Decatron Desktop and turns the match flow into comments. It lives in `Decatron.Services/GameData/LolLive`.
+
+- **State.** The app sends the client phase, lobby, champion select and result; `LolLiveStateStore` keeps the per-channel state and feeds the Live match overlay in real time. Settings are one row per channel in `lol_coach_settings` (`GET`/`PUT /api/lol-coach/settings`, `control_total`; `GET /api/lol-coach/state`).
+- **AI.** `LolCoachBrain` asks the model through OpenRouter and charges credits per call through `AiCreditGate`; without balance it does not speak. A champion select allows at most `MaxCallsPerChampSelect` (8) calls. Lobby scouting (`LolLobbyScoutService`) and history (`LolHistoryService`) provide the data of the briefing, the lobby comment and the `!vs`, `!duo` and `!pool` commands.
+- **Output.** Comments go to the overlay (`Coach dice` blocks), optionally to chat (kinds `final`, `postgame`, `briefing`, `lobby`, `my_turn`, `tilt`, `pick`, split in numbered messages) and optionally to voice on the Desktop through `LolCoachVoice` (standard voice or premium, which falls back to standard without credits). Nothing is posted during the game.
+- **Predictions.** `LolPredictionService` opens a prediction per game with channel prediction points (not DecaCoins), accepts `!pred` bets until the configured minute and resolves with the real result.
+
 ## 8. External Integrations
 
 ```mermaid

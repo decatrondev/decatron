@@ -148,6 +148,7 @@ import { CreditsDoc } from './pages/docs/private/features/CreditsDoc';
 import { PlansDoc } from './pages/docs/private/features/PlansDoc';
 import { KickDoc } from './pages/docs/private/features/KickDoc';
 import { AccountsDoc } from './pages/docs/private/features/AccountsDoc';
+import { CoachDoc } from './pages/docs/private/features/CoachDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
@@ -310,6 +311,7 @@ function App() {
                     <Route path="plans" element={<PlansDoc page="overview" scope="public" />} />
                     <Route path="kick" element={<KickDoc page="overview" scope="public" />} />
                     <Route path="game-accounts" element={<AccountsDoc page="overview" scope="public" />} />
+                    <Route path="lol-coach" element={<CoachDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -525,6 +527,9 @@ function App() {
                         <Route path="kick/features" element={<KickDoc page="features" scope="private" />} />
                         <Route path="game-accounts/riot" element={<AccountsDoc page="riot" scope="private" />} />
                         <Route path="game-accounts/epic" element={<AccountsDoc page="epic" scope="private" />} />
+                        <Route path="lol-coach/setup" element={<CoachDoc page="setup" scope="private" />} />
+                        <Route path="lol-coach/behavior" element={<CoachDoc page="behavior" scope="private" />} />
+                        <Route path="lol-coach/commands" element={<CoachDoc page="commands" scope="private" />} />
                         <Route path="features/analytics" element={<AnalyticsDoc />} />
                         <Route path="features/followers" element={<FollowersDoc />} />
                         <Route path="features/ai" element={<AIDoc />} />

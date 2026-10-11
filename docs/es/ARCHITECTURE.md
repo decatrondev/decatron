@@ -941,6 +941,15 @@ Las cuentas de juego vinculadas están en `linked_game_accounts` y pertenecen a 
 - **Epic.** `GET /api/me/epic/status`, `GET /api/me/epic/login-url` y `GET /api/auth/epic/callback` ejecutan el OAuth oficial de Epic, canjean el código, leen el id de cuenta y el nombre visible y guardan una cuenta `epic` verificada; sin OAuth de Epic disponible, las cuentas de Fortnite se agregan por nombre con `POST /api/me/game-accounts` y quedan sin verificar.
 - **Otros endpoints.** `GET /api/me/game-accounts` (con el catálogo de juegos), `PUT` para fijar un rango manual y `DELETE` para desvincular. Los torneos solo ofrecen cuentas verificadas de la región de la edición (`TournamentMeController`).
 
+### Coach de LoL
+
+El coach (canal `lol-coach` del WebSocket de Desktop, `LolCoachDesktopChannel`) lee el cliente de League mediante Decatron Desktop y convierte el desarrollo de la partida en comentarios. Vive en `Decatron.Services/GameData/LolLive`.
+
+- **Estado.** La app envía la fase del cliente, el lobby, la selección de campeón y el resultado; `LolLiveStateStore` guarda el estado por canal y alimenta en tiempo real el overlay de Partida en vivo. Los ajustes son una fila por canal en `lol_coach_settings` (`GET`/`PUT /api/lol-coach/settings`, `control_total`; `GET /api/lol-coach/state`).
+- **IA.** `LolCoachBrain` consulta al modelo mediante OpenRouter y cobra créditos por llamada con `AiCreditGate`; sin saldo no habla. Una selección de campeón admite como máximo `MaxCallsPerChampSelect` (8) llamadas. La exploración del lobby (`LolLobbyScoutService`) y el historial (`LolHistoryService`) aportan los datos del briefing, del comentario del lobby y de los comandos `!vs`, `!duo` y `!pool`.
+- **Salida.** Los comentarios van al overlay (bloques `Coach dice`), opcionalmente al chat (tipos `final`, `postgame`, `briefing`, `lobby`, `my_turn`, `tilt` y `pick`, repartidos en mensajes numerados) y opcionalmente a voz en el Desktop mediante `LolCoachVoice` (voz estándar o premium, que cae a la estándar sin créditos). Nada se publica durante la partida.
+- **Predicciones.** `LolPredictionService` abre una predicción por partida con puntos de predicción del canal (no DecaCoins), acepta apuestas `!pred` hasta el minuto configurado y se resuelve con el resultado real.
+
 ## 8. Integraciones externas
 
 ```mermaid

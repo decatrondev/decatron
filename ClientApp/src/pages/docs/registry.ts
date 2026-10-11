@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
     Clock, Bell, Gift, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
-    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic,
+    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Bot,
 } from 'lucide-react';
 
 // REGISTRO ÚNICO de las páginas de documentación. De aquí salen el menú lateral, las tarjetas de
@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'credits' | 'plans' | 'kick' | 'accounts' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'speak' | 'credits' | 'plans' | 'kick' | 'accounts' | 'coach' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'credits', 'plans', 'kick', 'accounts', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'speak', 'credits', 'plans', 'kick', 'accounts', 'coach', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -112,6 +112,8 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'kick-overview', scopes: pub, group: 'modules', path: 'kick', icon: Radio, color: 'green' },
 
     { id: 'accounts-overview', scopes: pub, group: 'modules', path: 'game-accounts', icon: Gamepad2, color: 'blue' },
+
+    { id: 'coach-overview', scopes: pub, group: 'modules', path: 'lol-coach', icon: Bot, color: 'purple' },
 
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
@@ -190,6 +192,11 @@ export const DOC_PAGES: DocPage[] = [
     // — Cuentas de juego: manual con cuenta —
     { id: 'accounts-riot', scopes: priv, group: 'accounts', path: 'game-accounts/riot', icon: Gamepad2, color: 'blue' },
     { id: 'accounts-epic', scopes: priv, group: 'accounts', path: 'game-accounts/epic', icon: Crosshair, color: 'blue' },
+
+    // — Coach de LoL: manual con cuenta —
+    { id: 'coach-setup', scopes: priv, group: 'coach', path: 'lol-coach/setup', icon: PlayCircle, color: 'purple' },
+    { id: 'coach-behavior', scopes: priv, group: 'coach', path: 'lol-coach/behavior', icon: Volume2, color: 'purple' },
+    { id: 'coach-commands', scopes: priv, group: 'coach', path: 'lol-coach/commands', icon: Terminal, color: 'purple' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

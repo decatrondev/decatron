@@ -68,7 +68,8 @@
     "credits": "Credits and purchases",
     "plans": "Plans and support",
     "kick": "Kick",
-    "accounts": "Game accounts"
+    "accounts": "Game accounts",
+    "coach": "LoL Coach"
   },
   "layout": {
     "documentation": "Documentation",
@@ -552,6 +553,22 @@
     "accounts-epic": {
       "title": "Epic and other games",
       "description": "Fortnite and the other accounts"
+    },
+    "coach-overview": {
+      "title": "LoL Coach",
+      "description": "An AI coach for your champion select and game"
+    },
+    "coach-setup": {
+      "title": "Getting started",
+      "description": "Requirements, activation and personality"
+    },
+    "coach-behavior": {
+      "title": "What it says and how it speaks",
+      "description": "Comments, voice, chat and credits"
+    },
+    "coach-commands": {
+      "title": "Commands and predictions",
+      "description": "!coach, !build, !pred and more"
     }
   },
   "microCommands": {

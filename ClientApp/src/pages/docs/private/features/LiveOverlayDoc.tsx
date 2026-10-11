@@ -62,9 +62,9 @@ export default function LiveOverlayDoc() {
                 </DocAlert>
             </DocSection>
 
-            <DocSection title="Coach y planes">
-                <p>El overlay es <b>gratis para todos</b>. Lo único que depende del plan es la parte con IA (comentario del coach, tips, sugerencia de pick),
-                    limitada por las llamadas diarias del Coach. Si se agota el cupo, el bloque "Coach dice" no se muestra y el resto de la pantalla
+            <DocSection title="Coach y créditos">
+                <p>El overlay es <b>gratis para todos</b>. Lo único que cuesta es la parte con IA (comentario del coach, tips, sugerencia de pick), que se paga con
+                    tus créditos. Si no te queda saldo, el bloque "Coach dice" no se muestra y el resto de la pantalla
                     (picks, tiempo, resultado, predicción) sigue igual, porque no usa IA.</p>
             </DocSection>
 
@@ -78,7 +78,7 @@ export default function LiveOverlayDoc() {
             <DocSection title="Problemas comunes">
                 <ul className="list-disc pl-5 space-y-1">
                     <li><b>No cambia de pantalla</b>: revisa en Decatron Coach que la app figure conectada y que el cliente de LoL esté abierto con la cuenta vinculada.</li>
-                    <li><b>No aparece el coach</b>: en Decatron Coach debe estar activo "Mostrar lo que dice en el overlay" y quedar cupo de llamadas del día.</li>
+                    <li><b>No aparece el coach</b>: en Decatron Coach debe estar activo "Mostrar lo que dice en el overlay" y debes tener créditos disponibles.</li>
                     <li><b>Se recorta algo</b>: pasa el tamaño a automático en Diseño, o agranda la caja en modo manual.</li>
                 </ul>
             </DocSection>
