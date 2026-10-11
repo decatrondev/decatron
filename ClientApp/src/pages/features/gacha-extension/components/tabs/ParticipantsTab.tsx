@@ -206,6 +206,10 @@ export const ParticipantsTab: React.FC = () => {
                 )}
             </div>
 
+            <datalist id="gacha-participant-names">
+                {participants.map(p => <option key={p.id} value={p.name} />)}
+            </datalist>
+
             {/* Donation Form */}
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
                 <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
@@ -220,7 +224,7 @@ export const ParticipantsTab: React.FC = () => {
                 <div className="flex gap-3 items-end flex-wrap">
                     <div className="flex-1 min-w-[180px]">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Nombre del participante</label>
-                        <input type="text" value={donationName} onChange={e => setDonationName(e.target.value)} placeholder="usuario de twitch" className="ds-input w-full" />
+                        <input type="text" list="gacha-participant-names" autoComplete="off" value={donationName} onChange={e => setDonationName(e.target.value)} placeholder="usuario de twitch" className="ds-input w-full" />
                     </div>
                     <div className="w-32">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Monto ($)</label>
@@ -247,7 +251,7 @@ export const ParticipantsTab: React.FC = () => {
                 <div className="flex gap-3 items-end flex-wrap">
                     <div className="flex-1 min-w-[180px]">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Nombre del participante</label>
-                        <input type="text" value={bonusName} onChange={e => setBonusName(e.target.value)} placeholder="usuario de twitch" className="ds-input w-full" />
+                        <input type="text" list="gacha-participant-names" autoComplete="off" value={bonusName} onChange={e => setBonusName(e.target.value)} placeholder="usuario de twitch" className="ds-input w-full" />
                     </div>
                     <div className="w-32">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Tiros</label>

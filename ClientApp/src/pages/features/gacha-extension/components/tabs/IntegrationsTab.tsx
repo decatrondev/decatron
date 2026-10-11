@@ -118,7 +118,7 @@ export const IntegrationsTab: React.FC = () => {
                         </div>
                         <div className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">7</span>
-                            <span><strong className="text-ds-text">Tiros bonus</strong> — los que vienen de la Rueda de la Suerte o que regalas a mano. No cuentan como donacion</span>
+                            <span><strong className="text-ds-text">Tiros bonus</strong> — los que vienen de la Rueda de la Suerte o que regalas a mano. No cuentan como donacion, no avanzan hitos y no desbloquean cartas con donacion minima</span>
                         </div>
                         <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
                             <strong className="text-ds-text">Tip:</strong> Puedes activar o desactivar cada integracion individualmente. Los tiros se dan automaticamente cuando ocurre el evento.

@@ -138,7 +138,7 @@ export const RarityTab: React.FC = () => {
                             <span>Si dejas los coins vacios, usaran las mismas probabilidades de donacion</span>
                         </div>
                         <div className="mt-2 p-3 rounded-lg bg-ds-raised text-xs">
-                            <strong className="text-ds-text">Tip:</strong> Los valores por defecto (50/25/15/7/3) son un buen punto de partida. Ajusta segun cuantas cartas tengas de cada rareza.
+                            <strong className="text-ds-text">Tip:</strong> Los valores por defecto (50/25/15/7/3) son un buen punto de partida. El porcentaje se aplica a cada carta de la rareza, no a la rareza entera: con muchas cartas comunes, las raras salen menos de lo que parece. Ajusta segun cuantas cartas tengas de cada rareza.
                         </div>
                     </div>
                 )}

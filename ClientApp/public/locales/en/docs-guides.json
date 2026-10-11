@@ -1963,44 +1963,143 @@
             "t": "ul",
             "items": [
               "Items: create and edit cards with a name, image and rarity level. Each card belongs to a rarity that defines its chance of appearing.",
-              "Restrictions: required minimum donation, unique cards (no repeats), cooldown between pulls, milestones (pity system) and enabled pull types.",
+              "Restrictions: per-card rules (minimum donation, total quantity, unique, cooldown, pull type), milestones and their order. See «Restrictions for each card».",
               "Preferences: override rarity probabilities for a specific user or globally. Useful for special events.",
-              "Probabilities: base percentage per rarity (must add up to 100 %). It also sets separate percentages for DecaCoin pulls.",
-              "Rarity limits: pull interval and time interval between appearances of each rarity. Controls how often rare cards show up.",
+              "Probabilities: base percentage of each card by rarity (the panel asks them to add up to 100% to save, though on a pull they apply per card). It also allows separate percentages for DecaCoins pulls. See «How the card is chosen».",
+              "Rarity Limits: pull interval and time interval between appearances of each rarity, per viewer. Counted separately for donation, coin and bonus pulls.",
               "Banners: upload images for the header of your channel's public collection page.",
-              "Participants: see donors, their card inventory, milestone progress and the cards the community wants most.",
+              "Participants: donors, inventory, history, milestone progress and most wished cards. Here you register donations, gift bonus pulls and set the forced pull.",
               "Overlay: size presets, animation speed and the overlay URL to add as a browser source in OBS.",
               "Sounds: 9 sound events (drum roll, flash, 5 reveals by rarity, win, ambient). Individual volume and custom file upload.",
-              "Integrations: tips ($), bits, subs (per tier), gift subs and DecaCoins (price per pull + daily limit).",
+              "Integrations: tips ($), bits, subs (by tier), gift subs and DecaCoins (price per pull + daily limit). Also the expiry of bonus pulls.",
               "Commands: per-command permissions, cooldowns, custom aliases and multi-pull settings."
             ]
           }
         ]
       },
       {
-        "id": "milestones",
-        "title": "Milestone system",
+        "id": "pool",
+        "title": "How the card is chosen",
         "blocks": [
           {
             "t": "p",
-            "x": "Milestones are restrictions that control when a viewer can receive cards. They are configured in the Restrictions tab and can be reordered with drag & drop."
+            "x": "On every pull, the system builds the list of cards that viewer can win right then and draws one. A card is left out of the list if it fails any of its restrictions: minimum donation, quantity used up, unique card already owned, cooldown, pull type not allowed or rarity limit."
           },
           {
-            "t": "ol",
+            "t": "p",
+            "x": "Each card left in the list gets the chance of its rarity, and then all of them are scaled to add up to 100%. Important: a rarity's percentage applies to each card, not to the whole rarity. With 10 common cards at 50% and 1 legendary at 3%, the total is 503: the legendary comes up 0.6% of the time (3 out of 503), not 3%."
+          },
+          {
+            "t": "ul",
             "items": [
-              "Gate (minimum donation): a permanent donation threshold. The viewer must have donated at least this amount in total to take part. The total donated is never lost or deducted.",
-              "Coins gate (minimum coins spent): the same as the Gate but for DecaCoins. The viewer must have spent at least X coins in total to unlock the gacha.",
-              "Donation milestone (pity system): an accumulation system by donations. Each donation adds to the viewer's counter. When it reaches the threshold, a guaranteed pull is triggered and the threshold value is deducted from the counter (the excess is kept for the next cycle).",
-              "Coins milestone: independent of the donation milestone. Same accumulation and deduction logic, but using DecaCoins.",
-              "Collection cycle: prioritizes the cheapest available card. It keeps track of the cards the viewer has won and resets automatically when they have won them all.",
-              "Priority and order: restrictions are evaluated in order. Use drag & drop in the Restrictions tab to reorder the evaluation priority."
+              "More cards in a rarity means more weight for that rarity.",
+              "A card blocked for a viewer is removed from the count and the others gain weight.",
+              "The panel asks the percentages in the Probabilities tab to add up to 100% to save, but that total is only a reference: on each pull they apply per card and the system scales them by itself."
             ]
           },
           {
             "t": "note",
             "kind": "tip",
-            "x": "The milestone is hidden from viewers. Only you see it in the dashboard. Viewers do not know how far they are from the pity.",
-            "title": "Hidden milestone"
+            "x": "Test with a moderator account: check which cards a viewer with no donations can get. That is the real list of what anyone can win.",
+            "title": "Before going live"
+          }
+        ]
+      },
+      {
+        "id": "restr",
+        "title": "Restrictions for each card",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Restrictions tab, each card can have these rules. They all apply per card: the viewer can still pull, but that card cannot come up until the rules are met."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Minimum donation ($): the viewer must have donated at least that amount in total, across their whole history. It applies to donation pulls and bonus pulls. Bonus pulls add no money, so a viewer with no donations never wins a card with a minimum donation using bonus pulls alone.",
+              "Total quantity: how many times it can come up across the whole channel. It drops by one each time it comes up and the card stops appearing at zero. It is not refilled by itself: if you cancel a prize, raise it by hand. Empty means unlimited.",
+              "Unique per participant: each viewer wins it only once. It counts even if they already redeemed it.",
+              "Cooldown: time that must pass since that viewer last won that card.",
+              "Allowed pull type: All pulls, Donation only (does not come up with coins) or Coins only (does not come up with donation or bonus pulls).",
+              "Minimum coins spent: only for coin pulls. The viewer must have spent that many coins in total for the card to be able to come up."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "If a card is a prize that costs money (a key, a pass, a gift), give it a minimum donation and a total quantity. That way nobody wins it with gifted pulls and the real stock never runs over.",
+            "title": "Prizes with real value"
+          }
+        ]
+      },
+      {
+        "id": "milestones",
+        "title": "Milestones (guarantee by accumulation)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A milestone guarantees a card once the viewer reaches a given amount. It is set in the Restrictions tab, inside the card, with «Donation accumulated» or «Coins accumulated»."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Each donation adds to the viewer's counter. Coins spent add to the coins counter. It is a separate counter from the total donated.",
+              "When the counter reaches the threshold and the card can come up for them, their next pull is that card. With «Guaranteed» it comes up for sure; without it, the «Special probability» is used.",
+              "When it is won, the threshold is taken off the counter and the excess is kept for the next cycle.",
+              "If several milestones are ready at once, the first in the order you set by dragging in «Milestone order» wins. With no order, the lowest threshold goes first.",
+              "When the viewer has won every card with a milestone, the cycle restarts."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "If a card's milestone is lower than its minimum donation (for example a $14 milestone and a $15 minimum), the milestone does not trigger until the viewer has donated the minimum. Always set the milestone equal to or higher than the minimum.",
+            "title": "Milestone lower than the minimum donation"
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Bonus pulls neither use nor advance milestones. The milestone is hidden: only you see the progress in Participants.",
+            "title": "Bonus pulls do not count"
+          }
+        ]
+      },
+      {
+        "id": "bonus",
+        "title": "Bonus pulls",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Bonus pulls are a separate wallet from the donation and coins ones. They are not money."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Where they come from: the Wheel of Luck, the ones you give by hand in Participants → Gift Bonus Pulls (the name autocompletes with existing participants), and cards with the «Roll again» or «Extra pulls» effect.",
+              "They do not count as a donation, do not advance milestones and do not unlock cards with a minimum donation.",
+              "In chat, !gcpull spends bonus pulls first if there are enough. You can choose with !gcpull bonus, !gcpull coins or !gcpull donation.",
+              "They can expire when the stream ends: turn it on in Integrations («Bonus pulls expire when the stream ends»). It is off by default, and donation and coin pulls never expire."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "A bonus pull can give any card the viewer could win with no donations. If you want someone to win a specific card, use the forced pull.",
+            "title": "Gifting pulls is gifting prizes"
+          },
+          {
+            "t": "p",
+            "x": "Forced pull: in Participants you can set a card that will come up for sure on that viewer's next pull. It is used once and ignores the other restrictions, but it does use up the card's quantity."
+          },
+          {
+            "t": "p",
+            "x": "Card effects: Roll again adds a bonus pull that is spent instantly. Extra pulls adds the amount you set. Timer time adds or removes time on the timer, and only if it is running or paused; otherwise the effect is lost. A consumable card is used when it comes up and does not stay in the collection."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The history stores how many pulls were gifted and when, but not who gifted them.",
+            "title": "Who gifted"
           }
         ]
       },
@@ -2130,14 +2229,14 @@
           {
             "t": "note",
             "kind": "warning",
-            "x": "Changes to restrictions and milestones affect all viewers. Plan before modifying active thresholds. For example, if you lower a milestone from $50 to $20, viewers who already had more than $20 accumulated could receive pulls immediately.",
-            "title": "Changes to restrictions"
+            "x": "Changing a restriction or a milestone affects every viewer instantly: if you lower a milestone from $50 to $20, those who already have more than $20 can get the card on their next pull. The same goes for raising or lowering the total quantity and the minimum donation.",
+            "title": "Changes while live"
           },
           {
             "t": "note",
             "kind": "tip",
-            "x": "Before going live with the gacha, set up all the tabs and test with a moderator's account. Check that the overlay works and the sounds play correctly.",
-            "title": "Recommendation"
+            "x": "Set up every tab and test with a moderator account. Check that the overlay works, the sounds play and a viewer with no donations cannot win your expensive prizes.",
+            "title": "Before going live"
           }
         ]
       }
@@ -2187,7 +2286,7 @@
             "t": "ol",
             "items": [
               "Create cards: in the Items tab, upload images for each card and assign them a rarity. You can create as many cards as you want at each rarity level.",
-              "Set probabilities: in the Probabilities tab, adjust the probability percentages for each level (they must add up to 100 %).",
+              "Set probabilities: in the Probabilities tab, adjust the percentage of each level (the panel asks them to add up to 100 % to save; on a pull it applies to each card of that level).",
               "Add integrations: in the Integrations tab, set how many pulls each type of action grants: tips (by amount), bits (by quantity), subscriptions, gift subs and DecaCoins (price per pull).",
               "Set up the overlay: in the Sounds tab, customize the reveal sounds by rarity. Size and animation are adjusted in the Overlay tab.",
               "Add it to OBS: copy the overlay URL from the dashboard and add it as a browser source in OBS, with a transparent background and the recommended dimensions."
@@ -2213,7 +2312,8 @@
               "Donate: each donation grants pulls according to the amount the streamer set.",
               "Bits: use bits in the channel to receive pulls automatically.",
               "Subscribe: subscriptions and gift subs grant pulls.",
-              "DecaCoins: buy pulls with your DecaCoins using `!gcbuy`."
+              "DecaCoins: buy pulls with your DecaCoins using `!gcbuy`.",
+              "Bonus pulls: the ones the Wheel of Luck gives or the streamer gifts you. They are spent with `!gcpull` and do not unlock prizes that require a minimum donation."
             ]
           },
           {

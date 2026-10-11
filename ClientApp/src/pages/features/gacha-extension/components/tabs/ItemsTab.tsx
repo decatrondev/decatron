@@ -9,6 +9,7 @@ const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
 const inputClass = 'w-full px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
 const labelClass = 'text-sm font-bold text-ds-text ';
 
+const PAGE_SIZE = 20;
 const RARITIES: RarityType[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 interface ItemForm {
@@ -46,6 +47,7 @@ export const ItemsTab: React.FC = () => {
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [timeUnit, setTimeUnit] = useState<TimeUnit>('m');
+    const [page, setPage] = useState(1);
 
     const loadItems = async () => {
         try {
@@ -108,6 +110,9 @@ export const ItemsTab: React.FC = () => {
         return <div className={cardClass}><p className="text-center text-ds-soft py-8">Cargando items...</p></div>;
     }
 
+    const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages);
+
     return (
         <div className="space-y-4">
             {/* Header */}
@@ -161,7 +166,7 @@ export const ItemsTab: React.FC = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {items.map(item => {
+                    {items.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE).map(item => {
                         const rc = RARITY_CONFIG[item.rarity];
                         return (
                             <div key={item.id} className="rounded-lg overflow-hidden border-2 transition-all hover:scale-[1.03] group" style={{ borderColor: rc.border, background: `linear-gradient(180deg, ${rc.bg} 0%, transparent 100%)` }}>
@@ -208,6 +213,14 @@ export const ItemsTab: React.FC = () => {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {items.length > PAGE_SIZE && (
+                <div className="flex items-center justify-center gap-3">
+                    <button onClick={() => setPage(safePage - 1)} disabled={safePage <= 1} className="ds-btn disabled:opacity-40">Anterior</button>
+                    <span className="text-sm font-bold text-ds-soft">Pagina {safePage} de {totalPages} · {items.length} items</span>
+                    <button onClick={() => setPage(safePage + 1)} disabled={safePage >= totalPages} className="ds-btn disabled:opacity-40">Siguiente</button>
                 </div>
             )}
 

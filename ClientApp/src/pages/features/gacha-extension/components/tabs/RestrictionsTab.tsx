@@ -171,7 +171,7 @@ export const RestrictionsTab: React.FC = () => {
                         </div>
                         <div className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
-                            <span><strong className="text-ds-text">Min Donado</strong> — el viewer debe haber donado al menos esta cantidad en total para que la carta aparezca</span>
+                            <span><strong className="text-ds-text">Min Donado</strong> — el viewer debe haber donado al menos esta cantidad en total para que la carta pueda salirle. Tambien aplica a los tiros bonus: sin donaciones, un bonus nunca da esta carta</span>
                         </div>
                         <div className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-ds-raised text-ds-text text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>

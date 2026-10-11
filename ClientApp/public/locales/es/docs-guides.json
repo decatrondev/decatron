@@ -1963,44 +1963,143 @@
             "t": "ul",
             "items": [
               "Items: crea y edita cartas con nombre, imagen y nivel de rareza. Cada carta pertenece a una rareza que define su probabilidad de salir.",
-              "Restricciones: donación mínima requerida, cartas únicas (no repetidas), cooldown entre pulls, milestones (pity system) y tipos de pull habilitados.",
+              "Restricciones: reglas por carta (donación mínima, cantidad total, única, cooldown, tipo de tiro), hitos y su orden. Mira «Restricciones de cada carta».",
               "Preferencias: sobrescribe probabilidades de rareza por usuario específico o de forma global. Útil para eventos especiales.",
-              "Probabilidades: porcentaje base por rareza (deben sumar 100 %). También configura porcentajes separados para pulls con DecaCoins.",
-              "Límites Rareza: intervalo de pulls e intervalo de tiempo entre apariciones de cada rareza. Controla la frecuencia de cartas raras.",
+              "Probabilidades: porcentaje base de cada carta según su rareza (el panel pide que sumen 100 % para guardar, aunque en el tiro se aplican por carta). También permite porcentajes separados para tiros con DecaCoins. Mira «Cómo se decide qué carta sale».",
+              "Límites Rareza: intervalo de tiros e intervalo de tiempo entre apariciones de cada rareza, por viewer. Se cuenta por separado para tiros de donación, coins y bonus.",
               "Banners: sube imágenes para el header de la página de colección pública de tu canal.",
-              "Participantes: visualiza donantes, su inventario de cartas, progreso de milestones y cartas más deseadas por la comunidad.",
+              "Participantes: donantes, inventario, historial, progreso de hitos y cartas más deseadas. Aquí registras donaciones, regalas tiros bonus y fijas el tiro forzado.",
               "Overlay: presets de tamaño, velocidad de animación y URL del overlay para agregar como fuente de navegador en OBS.",
               "Sonidos: 9 eventos de sonido (redoble, flash, 5 reveals por rareza, victoria, ambiente). Volumen individual y subida de archivos personalizados.",
-              "Integraciones: tips ($), bits, subs (por tier), gift subs y DecaCoins (precio por pull + límite diario).",
+              "Integraciones: tips ($), bits, subs (por tier), gift subs y DecaCoins (precio por pull + límite diario). También el vencimiento de los tiros bonus.",
               "Comandos: permisos por comando, cooldowns, aliases personalizados y configuración de multi-pull."
             ]
           }
         ]
       },
       {
-        "id": "milestones",
-        "title": "Sistema de milestones",
+        "id": "pool",
+        "title": "Cómo se decide qué carta sale",
         "blocks": [
           {
             "t": "p",
-            "x": "Los milestones son restricciones que controlan cuándo un viewer puede recibir cartas. Se configuran en la pestaña Restricciones y se pueden reordenar con drag & drop."
+            "x": "En cada tiro, el sistema arma la lista de cartas que ese viewer puede ganar en ese momento y sortea una. Una carta queda fuera de la lista si no cumple alguna de sus restricciones: donación mínima, cupo agotado, carta única que ya tiene, cooldown, tipo de tiro no permitido o límite de rareza."
           },
           {
-            "t": "ol",
+            "t": "p",
+            "x": "Las cartas que quedan en la lista tienen cada una la probabilidad de su rareza, y luego todas se ajustan para sumar 100 %. Importante: el porcentaje de una rareza es el de cada carta, no el de la rareza completa. Si tienes 10 cartas comunes al 50 % y 1 legendaria al 3 %, el total es 503: la legendaria sale un 0,6 % de las veces (3 de 503), no un 3 %."
+          },
+          {
+            "t": "ul",
             "items": [
-              "Gate (donación mínima): umbral permanente de donación. El viewer debe haber donado al menos esta cantidad en total para poder participar. El total donado nunca se pierde ni se descuenta.",
-              "Gate coins (mínimo de coins gastados): igual que el Gate pero para DecaCoins. El viewer debe haber gastado al menos X coins en total para desbloquear el gacha.",
-              "Milestone de donación (pity system): sistema de acumulación por donaciones. Cada donación suma al contador del viewer. Cuando alcanza el umbral, se dispara un pull garantizado y se descuenta el valor del umbral del contador (el excedente se conserva para el siguiente ciclo).",
-              "Milestone de coins: independiente del milestone de donación. Misma lógica de acumulación y descuento, pero usando DecaCoins.",
-              "Ciclo de colección: prioriza la carta más barata disponible. Lleva registro de las cartas ganadas por el viewer y se reinicia automáticamente cuando ha ganado todas.",
-              "Prioridad y orden: las restricciones se evalúan en orden. Usa drag & drop en la pestaña de Restricciones para reordenar la prioridad de evaluación."
+              "Más cartas de una rareza significa más peso para esa rareza.",
+              "Una carta bloqueada para un viewer se saca de la cuenta y las demás ganan peso.",
+              "El panel pide que los porcentajes de la pestaña Probabilidades sumen 100 % para guardar, pero ese total es solo una referencia: en cada tiro se aplican por carta y el sistema los ajusta solo."
             ]
           },
           {
             "t": "note",
             "kind": "tip",
-            "x": "El milestone es oculto para los viewers. Solo tú lo ves en el dashboard. Los viewers no saben cuánto les falta para el pity.",
-            "title": "Milestone oculto"
+            "x": "Prueba con la cuenta de un moderador: mira qué cartas pueden salirle a un viewer sin donaciones. Esa es la lista real de lo que puede ganar cualquiera.",
+            "title": "Antes de ir live"
+          }
+        ]
+      },
+      {
+        "id": "restr",
+        "title": "Restricciones de cada carta",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Restricciones, cada carta puede tener estas reglas. Todas son por carta: el viewer sigue pudiendo tirar, pero esa carta no puede salirle hasta cumplirlas."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Donación mínima ($): el viewer debe haber donado al menos esa cantidad en total, contando toda su historia. Aplica a los tiros de donación y a los tiros bonus. Los tiros bonus no suman dinero, así que un viewer sin donaciones nunca gana una carta con donación mínima usando solo bonus.",
+              "Cantidad total: cuántas veces puede salir en todo el canal. Baja uno cada vez que sale y al llegar a cero la carta deja de salir. No se repone sola: si anulas un premio, súbela tú a mano. Vacío significa ilimitada.",
+              "Único por participante: cada viewer la gana una sola vez. Cuenta aunque ya la haya canjeado.",
+              "Cooldown: tiempo que debe pasar desde la última vez que ese viewer ganó esa carta.",
+              "Tipo de tiro permitido: Todos los tiros, Solo donación (no sale con coins) o Solo coins (no sale con tiros de donación ni bonus).",
+              "Mínimo de coins gastados: solo para tiros con coins. El viewer debe haber gastado ese total de coins para que la carta pueda salirle."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Si una carta es un premio que cuesta dinero (una key, un pase, un regalo), ponle donación mínima y cantidad total. Así nadie la gana con tiros regalados y el stock real nunca se pasa.",
+            "title": "Premios con valor real"
+          }
+        ]
+      },
+      {
+        "id": "milestones",
+        "title": "Hitos (garantía por acumulado)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Un hito garantiza una carta cuando el viewer acumula cierta cantidad. Se configura en la pestaña Restricciones, dentro de la carta, con «Acumulado donación» o «Acumulado coins»."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Cada donación suma al contador del viewer. Los coins gastados suman al contador de coins. Es otro contador, distinto del total donado.",
+              "Cuando el contador llega al umbral y la carta puede salirle, el siguiente tiro es esa carta. Con «Garantizado» sale seguro; sin él, usa la «Probabilidad especial».",
+              "Al ganarla se descuenta el umbral del contador y el excedente se conserva para el siguiente ciclo.",
+              "Si varios hitos están listos a la vez, gana el primero del orden que definas arrastrando en «Orden de Milestones». Si no hay orden, el de umbral más bajo.",
+              "Cuando el viewer gana todas las cartas con hito, el ciclo se reinicia."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Si el hito de una carta es menor que su donación mínima (por ejemplo hito de $14 y mínimo de $15), el hito no se activa hasta que el viewer haya donado el mínimo. Pon siempre el hito igual o mayor que el mínimo.",
+            "title": "Hito menor que la donación mínima"
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los tiros bonus no usan ni avanzan los hitos. El hito es oculto: solo tú ves el progreso en Participantes.",
+            "title": "Los bonus no cuentan"
+          }
+        ]
+      },
+      {
+        "id": "bonus",
+        "title": "Tiros bonus",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los tiros bonus son una billetera aparte de la de donación y la de coins. No son dinero."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "De dónde salen: la Rueda de la Suerte, los que regalas a mano en Participantes → Regalar Tiros Bonus (el nombre se autocompleta con los participantes que ya existen), y las cartas con efecto «Tirar de nuevo» o «Tiros extra».",
+              "No cuentan como donación, no avanzan hitos y no desbloquean cartas con donación mínima.",
+              "En el chat, !gcpull gasta primero los bonus si alcanzan. Se puede elegir con !gcpull bonus, !gcpull coins o !gcpull donation.",
+              "Pueden vencer al terminar el stream: actívalo en Integraciones («Tiros bonus vencen al terminar el stream»). Viene apagado, y los tiros de donación y coins nunca vencen."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Un tiro bonus puede dar cualquier carta que el viewer pueda ganar sin donaciones. Si quieres que alguien gane una carta específica, usa el tiro forzado.",
+            "title": "Regalar tiros es regalar premios"
+          },
+          {
+            "t": "p",
+            "x": "Tiro forzado: en Participantes puedes fijar una carta que saldrá sí o sí en el próximo tiro de ese viewer. Se usa una sola vez e ignora las demás restricciones, salvo que gasta el cupo de la carta."
+          },
+          {
+            "t": "p",
+            "x": "Efectos de las cartas: Tirar de nuevo suma un tiro bonus que se gasta al instante. Tiros extra suma la cantidad que definas. Tiempo al timer suma o resta tiempo al timer, y solo si está corriendo o en pausa; si no, el efecto se pierde. Una carta consumible se usa al salir y no queda en la colección."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El historial guarda cuántos tiros se regalaron y cuándo, pero no quién los regaló.",
+            "title": "Quién regaló"
           }
         ]
       },
@@ -2130,14 +2229,14 @@
           {
             "t": "note",
             "kind": "warning",
-            "x": "Los cambios en restricciones y milestones afectan a todos los viewers. Planifica antes de modificar thresholds activos. Por ejemplo, si reduces un milestone de $50 a $20, los viewers que ya tenían acumulado más de $20 podrían recibir pulls inmediatamente.",
-            "title": "Cambios en restricciones"
+            "x": "Cambiar una restricción o un hito afecta a todos los viewers al instante: si bajas un hito de $50 a $20, quienes ya acumulan más de $20 pueden recibir la carta en su siguiente tiro. Lo mismo vale para subir o bajar la cantidad total y la donación mínima.",
+            "title": "Cambios con el stream activo"
           },
           {
             "t": "note",
             "kind": "tip",
-            "x": "Antes de ir live con el gacha, configura todas las pestañas y haz pruebas con la cuenta de un moderador. Revisa que el overlay funcione y los sonidos se escuchen correctamente.",
-            "title": "Recomendación"
+            "x": "Configura todas las pestañas y haz pruebas con la cuenta de un moderador. Revisa que el overlay funcione, que los sonidos se escuchen y que un viewer sin donaciones no pueda ganar tus premios caros.",
+            "title": "Antes de ir live"
           }
         ]
       }
@@ -2187,7 +2286,7 @@
             "t": "ol",
             "items": [
               "Crear cartas: en la pestaña Items, sube imágenes para cada carta y asígnales una rareza. Puedes crear tantas cartas como quieras en cada nivel de rareza.",
-              "Configurar probabilidades: en la pestaña Probabilidades, ajusta los porcentajes de probabilidad para cada nivel (deben sumar 100 %).",
+              "Configurar probabilidades: en la pestaña Probabilidades, ajusta el porcentaje de cada nivel (el panel pide que sumen 100 % para guardar; en el tiro se aplica a cada carta de ese nivel).",
               "Agregar integraciones: en la pestaña Integraciones, configura cuántos pulls otorga cada tipo de acción: tips (por monto), bits (por cantidad), suscripciones, gift subs y DecaCoins (precio por pull).",
               "Configurar el overlay: en la pestaña Sonidos, personaliza los sonidos de revelación por rareza. El tamaño y la animación se ajustan en la pestaña Overlay.",
               "Agregar a OBS: copia la URL del overlay desde el dashboard y agrégala como fuente de navegador en OBS, con fondo transparente y las dimensiones recomendadas."
@@ -2213,7 +2312,8 @@
               "Donar: cada donación otorga pulls según el monto configurado por el streamer.",
               "Bits: usa bits en el canal para recibir pulls automáticamente.",
               "Suscribirse: las suscripciones y los gift subs otorgan pulls.",
-              "DecaCoins: compra pulls con tus DecaCoins usando `!gcbuy`."
+              "DecaCoins: compra pulls con tus DecaCoins usando `!gcbuy`.",
+              "Tiros bonus: los que da la Rueda de la Suerte o que el streamer te regala. Se gastan con `!gcpull` y no dan acceso a premios que piden una donación mínima."
             ]
           },
           {

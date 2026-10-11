@@ -2015,8 +2015,8 @@ namespace Decatron.Services
 
             if (restriction != null)
             {
-                // Min donation check (only for donation pulls) — uses total historical, not available pulls
-                if (pullType == "donation" && participant.DonationAmount < restriction.MinDonationRequired)
+                // Min donation check (donation y bonus; los coins usan coin_min_spent) — uses total historical, not available pulls
+                if (pullType != "coins" && participant.DonationAmount < restriction.MinDonationRequired)
                     return false;
 
                 // Total quantity exhausted
