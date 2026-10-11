@@ -2713,5 +2713,403 @@
         ]
       }
     ]
+  },
+  "customCommands": {
+    "title": "Custom commands",
+    "subtitle": "Create unique commands tailored to your channel's needs",
+    "sections": [
+      {
+        "id": "que",
+        "title": "What are custom commands?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Custom commands let you create unique automatic replies for your channel. You can use system variables to make your commands dynamic and interactive."
+          },
+          {
+            "t": "p",
+            "x": "Unlike default commands, you have full control over these: create, edit or delete them whenever you want."
+          },
+          {
+            "t": "link",
+            "to": "variables"
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Creating a command",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "From the dashboard:"
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Go to Commands → Custom in the side menu.",
+              "Click the \"Create command\" button.",
+              "Type the name (the panel adds the \"!\" automatically) and the reply.",
+              "Choose the restriction (who can use it) and the initial status (active or inactive).",
+              "Press \"Create\": your command is ready."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "From the chat, the streamer and moderators can use:"
+          },
+          {
+            "t": "code",
+            "x": "!crear <command_name> <reply> [restriction] [activo/inactivo]\n\n# Examples:\n!crear !discord Join our Discord! https://discord.gg/example\n!crear !socials Follow me on: Twitter @example | Instagram @example mod\n!crear !schedule Stream 18:00 to 22:00 (GMT-5) all inactivo"
+          },
+          {
+            "t": "p",
+            "x": "The restriction and the status go at the end and are optional: the restriction is `all`, `mod`, `vip` or `sub`; the status, `activo` (active) or `inactivo` (inactive). Without them, the command is for everyone and stays active."
+          },
+          {
+            "t": "p",
+            "x": "To modify a command from the chat use `!editcom <command_name> <new reply> [restriction] [activo/inactivo]`, and to delete it `!delcom <command_name>`."
+          }
+        ]
+      },
+      {
+        "id": "ejemplos",
+        "title": "Examples",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "What for",
+              "Command",
+              "Reply"
+            ],
+            "rows": [
+              [
+                "Social networks",
+                "`!socials`",
+                "Follow me on all my networks: Twitter @example | Instagram @example 🎮"
+              ],
+              [
+                "Discord",
+                "`!discord`",
+                "Join our community! 👉 https://discord.gg/example"
+              ],
+              [
+                "Custom greeting",
+                "`!hi`",
+                "Hi $(user)! 👋 Welcome to $(channel)'s stream"
+              ],
+              [
+                "Schedule",
+                "`!schedule`",
+                "📅 Stream every Monday, Wednesday and Friday from 18:00 to 22:00 (GMT-5)"
+              ],
+              [
+                "Death counter",
+                "`!deaths`",
+                "Deaths in today's stream: $(count)"
+              ],
+              [
+                "Custom 8Ball",
+                "`!ask`",
+                "🎱 $(user) asks... The magic ball says: $(8ball)"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "gestionar",
+        "title": "Managing commands",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Edit: change the reply, restriction or status of any command. The name cannot be changed.",
+              "Delete: permanently removes commands you no longer need. Moderation access level or higher is required.",
+              "Enable or disable: the inactive status turns the command off without deleting it; useful for special events.",
+              "Import and export: export the commands you choose to a JSON file, or import one; those that already exist are skipped."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "To view or create commands you need the Commands access level or higher."
+          }
+        ]
+      },
+      {
+        "id": "opciones",
+        "title": "Restrictions",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Restriction",
+              "Who can use it"
+            ],
+            "rows": [
+              [
+                "Everyone (`all`)",
+                "Any user"
+              ],
+              [
+                "Subscribers (`sub`)",
+                "Subscribers"
+              ],
+              [
+                "VIPs (`vip`)",
+                "VIPs"
+              ],
+              [
+                "Moderators (`mod`)",
+                "Moderators"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Tips",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Use system variables like $(user), $(channel) or $(count) for dynamic commands.",
+              "Command names start with ! and contain no spaces.",
+              "Keep replies concise: very long messages may be truncated by the chat."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "variables": {
+    "title": "Variables system",
+    "subtitle": "Dynamic placeholders for interactive commands",
+    "sections": [
+      {
+        "id": "usuario",
+        "title": "User variables",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "What it is",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`$(user)`",
+                "Name of the user who ran the command",
+                "`Hi $(user)!` → Hi Anthonydeca!"
+              ],
+              [
+                "`$(touser)`",
+                "User mentioned in the command (recipient). If nobody is mentioned, it uses the sender.",
+                "`!slap @pepito` with `$(user) slaps $(touser) 👋` → Anthonydeca slaps pepito 👋"
+              ],
+              [
+                "`$(ruser)`",
+                "A random chat user at that moment (uses the Twitch API)",
+                "`🎁 $(ruser) won today's gift!` → 🎁 randomviewer123 won today's gift!"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "canal",
+        "title": "Channel variables",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "What it is",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`$(channel)`",
+                "Current channel name",
+                "`You are watching $(channel)'s channel`"
+              ],
+              [
+                "`$(game)`",
+                "Current game or category of the stream",
+                "`We are playing $(game)` → We are playing League of Legends"
+              ],
+              [
+                "`$(uptime)`",
+                "How long the stream has been live",
+                "`Live for $(uptime)` → Live for 2 hours, 30 minutes"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "twitch",
+        "title": "Twitch information variables",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "They are \"smart\": they take the command's first argument, or the sender if there are no arguments."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "What it is",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`$(followage)`",
+                "How long they have followed the channel",
+                "`!followage` → 2 years, 3 months, 15 days · `!followage pepito` · `!followage @deca`"
+              ],
+              [
+                "`$(accountage)`",
+                "How old the Twitch account is",
+                "`!accountage` → 5 years, 8 months, 22 days · `!accountage pepito`"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "contadores",
+        "title": "Counter variables",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "What it is",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`$(count)`",
+                "Advanced counter with operations. Everyone can view and increment; only moderators and the channel owner can use set and reset.",
+                "`!deaths` → Deaths: 42 · `!deaths +` → 43 · `!deaths -5` → 38 · `!deaths set 100` · `!deaths reset`"
+              ],
+              [
+                "`$(uses)`",
+                "A simple counter that increments by itself each time the command is used",
+                "`This command has been used $(uses) times` → … 125 times"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "utilidad",
+        "title": "Utility variables",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "What it is",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`$(roll)`",
+                "Random number. 1-100 by default, or a range with `$(roll:min-max)`",
+                "`$(roll)` → 42 · `$(roll:1-6)` → 4"
+              ],
+              [
+                "`$(flip)`",
+                "Flips a coin (the result comes out in Spanish: Cara or Cruz)",
+                "`Result: $(flip)` → Result: Cara"
+              ],
+              [
+                "`$(8ball)`",
+                "Magic 8 ball with random answers in Spanish",
+                "`The ball says: $(8ball)` → The ball says: Es muy probable"
+              ],
+              [
+                "`$(choice:options)`",
+                "Picks at random among options separated by comma or |",
+                "`$(choice:Pizza,Tacos,Burger)` → Tacos · `$(choice:Yes|No|Maybe)`"
+              ],
+              [
+                "`$(percent)`",
+                "Random percentage from 0 to 100",
+                "`Your vibes today: $(percent)%` → 87%"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tiempo",
+        "title": "Time variables",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "What it is",
+              "Example"
+            ],
+            "rows": [
+              [
+                "`$(time)`",
+                "Current time. With `$(time:format)` you choose the format.",
+                "`$(time)` → 15:30:45 · `$(time:HH:mm)` → 15:30 · `$(time:hh:mm tt)` → 03:30 PM"
+              ],
+              [
+                "`$(date)`",
+                "Current date. With `$(date:format)` you choose the format.",
+                "`$(date:dd/MM/yyyy)` → 10/11/2025 · `$(date:yyyy-MM-dd)` → 2025-11-10"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "completos",
+        "title": "Full command examples",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Creating commands with variables:"
+          },
+          {
+            "t": "code",
+            "x": "# Custom greeting command\n!crear !hello Hi $(user)! Welcome to $(channel)'s stream\n\n# Stream information\n!crear !info $(channel) is playing $(game) | Live for $(uptime)\n\n# Smart followage\n!crear !followage $(user) has followed for $(followage)\n\n# Full stats\n!crear !stats $(user) | Following: $(followage) | Account: $(accountage) | Game: $(game)"
+          },
+          {
+            "t": "p",
+            "x": "Running commands:"
+          },
+          {
+            "t": "code",
+            "x": "# Command without arguments\n!followage\n→ Anthonydeca has followed for 2 years, 3 months, 15 days\n\n# Command with an argument\n!followage pepito\n→ Anthonydeca has followed for 1 year, 2 months, 5 days\n\n# With @ (cleaned automatically)\n!followage @deca\n→ Anthonydeca has followed for 5 years, 1 month"
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Tips",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Variables are resolved in real time when the command runs.",
+              "You can combine several variables in a single reply.",
+              "Smart variables like $(followage) detect arguments automatically.",
+              "$(count) only allows set and reset for moderators and the channel owner."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

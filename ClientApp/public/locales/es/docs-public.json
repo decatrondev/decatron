@@ -275,7 +275,7 @@
           },
           {
             "q": "¿Qué variables puedo usar en los comandos?",
-            "a": "Decatron tiene muchas variables disponibles como $(user), $(game), $(title), $(uptime), $(followage) y más. Cada variable se reemplaza automáticamente por su valor en tiempo real.",
+            "a": "Decatron tiene muchas variables disponibles como $(user), $(game), $(uptime), $(followage) y más. Cada variable se reemplaza automáticamente por su valor en tiempo real.",
             "link": {
               "to": "/docs/variables",
               "label": "Ver todas las variables"

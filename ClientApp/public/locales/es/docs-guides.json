@@ -2713,5 +2713,403 @@
         ]
       }
     ]
+  },
+  "customCommands": {
+    "title": "Comandos personalizados",
+    "subtitle": "Crea comandos únicos adaptados a las necesidades de tu canal",
+    "sections": [
+      {
+        "id": "que",
+        "title": "¿Qué son los comandos personalizados?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los comandos personalizados te permiten crear respuestas automáticas únicas para tu canal. Puedes usar variables del sistema para hacer tus comandos dinámicos e interactivos."
+          },
+          {
+            "t": "p",
+            "x": "A diferencia de los comandos por defecto, tú tienes control total sobre estos comandos: crearlos, editarlos o eliminarlos cuando quieras."
+          },
+          {
+            "t": "link",
+            "to": "variables"
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Crear un comando",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Desde el dashboard:"
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Ve a Comandos → Personalizados en el menú lateral.",
+              "Haz clic en el botón «Crear comando».",
+              "Escribe el nombre (el panel agrega el «!» automáticamente) y la respuesta.",
+              "Elige la restricción (quién puede usarlo) y el estado inicial (activo o inactivo).",
+              "Pulsa «Crear»: tu comando queda listo."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Desde el chat, el streamer y los moderadores pueden usar:"
+          },
+          {
+            "t": "code",
+            "x": "!crear <nombre_comando> <respuesta> [restricción] [activo/inactivo]\n\n# Ejemplos:\n!crear !discord ¡Únete a nuestro Discord! https://discord.gg/ejemplo\n!crear !redes Sígueme en: Twitter @ejemplo | Instagram @ejemplo mod\n!crear !horario Stream de 18:00 a 22:00 (GMT-5) all inactivo"
+          },
+          {
+            "t": "p",
+            "x": "La restricción y el estado van al final y son opcionales: la restricción es `all`, `mod`, `vip` o `sub`; el estado, `activo` o `inactivo`. Sin ellos, el comando es para todos y queda activo."
+          },
+          {
+            "t": "p",
+            "x": "Para modificar un comando desde el chat usa `!editcom <nombre_comando> <nueva respuesta> [restricción] [activo/inactivo]`, y para borrarlo `!delcom <nombre_comando>`."
+          }
+        ]
+      },
+      {
+        "id": "ejemplos",
+        "title": "Ejemplos",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Para qué",
+              "Comando",
+              "Respuesta"
+            ],
+            "rows": [
+              [
+                "Redes sociales",
+                "`!redes`",
+                "Sígueme en todas mis redes: Twitter @ejemplo | Instagram @ejemplo 🎮"
+              ],
+              [
+                "Discord",
+                "`!discord`",
+                "¡Únete a nuestra comunidad! 👉 https://discord.gg/ejemplo"
+              ],
+              [
+                "Saludo personalizado",
+                "`!hola`",
+                "¡Hola $(user)! 👋 Bienvenido al stream de $(channel)"
+              ],
+              [
+                "Horario",
+                "`!horario`",
+                "📅 Stream todos los lunes, miércoles y viernes de 18:00 a 22:00 (GMT-5)"
+              ],
+              [
+                "Contador de muertes",
+                "`!muertes`",
+                "Muertes en el stream de hoy: $(count)"
+              ],
+              [
+                "8Ball personalizada",
+                "`!pregunta`",
+                "🎱 $(user) pregunta... La bola mágica dice: $(8ball)"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "gestionar",
+        "title": "Gestionar comandos",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Editar: modifica la respuesta, la restricción o el estado de cualquier comando. El nombre no se puede cambiar.",
+              "Eliminar: borra permanentemente comandos que ya no necesites. Se necesita nivel de acceso Moderación o superior.",
+              "Activar o desactivar: el estado inactivo apaga el comando sin eliminarlo; útil para eventos especiales.",
+              "Importar y exportar: exporta los comandos que elijas a un archivo JSON, o importa uno; los que ya existen se omiten."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Para ver o crear comandos necesitas nivel de acceso Comandos o superior."
+          }
+        ]
+      },
+      {
+        "id": "opciones",
+        "title": "Restricciones",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Restricción",
+              "Quién puede usarlo"
+            ],
+            "rows": [
+              [
+                "Todos (`all`)",
+                "Cualquier usuario"
+              ],
+              [
+                "Suscriptores (`sub`)",
+                "Suscriptores"
+              ],
+              [
+                "VIPs (`vip`)",
+                "VIPs"
+              ],
+              [
+                "Moderadores (`mod`)",
+                "Moderadores"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Consejos",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Usa variables del sistema como $(user), $(channel) o $(count) para comandos dinámicos.",
+              "Los nombres de comandos empiezan con ! y no contienen espacios.",
+              "Mantén las respuestas concisas: los mensajes muy largos pueden ser truncados por el chat."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "variables": {
+    "title": "Sistema de variables",
+    "subtitle": "Placeholders dinámicos para comandos interactivos",
+    "sections": [
+      {
+        "id": "usuario",
+        "title": "Variables de usuario",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Qué es",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`$(user)`",
+                "Nombre del usuario que ejecutó el comando",
+                "`Hola $(user)!` → Hola Anthonydeca!"
+              ],
+              [
+                "`$(touser)`",
+                "Usuario mencionado en el comando (destinatario). Si no se menciona a nadie, usa el ejecutor.",
+                "`!slap @pepito` con `$(user) le da una cachetada a $(touser) 👋` → Anthonydeca le da una cachetada a pepito 👋"
+              ],
+              [
+                "`$(ruser)`",
+                "Usuario aleatorio del chat en ese momento (usa la API de Twitch)",
+                "`🎁 $(ruser) ha ganado el regalo de hoy!` → 🎁 randomviewer123 ha ganado el regalo de hoy!"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "canal",
+        "title": "Variables de canal",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Qué es",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`$(channel)`",
+                "Nombre del canal actual",
+                "`Estás viendo el canal de $(channel)`"
+              ],
+              [
+                "`$(game)`",
+                "Juego o categoría actual del stream",
+                "`Estamos jugando $(game)` → Estamos jugando League of Legends"
+              ],
+              [
+                "`$(uptime)`",
+                "Tiempo que lleva el stream en vivo",
+                "`Stream en vivo por $(uptime)` → Stream en vivo por 2 horas, 30 minutos"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "twitch",
+        "title": "Variables de información de Twitch",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Son «inteligentes»: toman el primer argumento del comando, o al ejecutor si no hay argumentos."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Qué es",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`$(followage)`",
+                "Cuánto tiempo lleva siguiendo el canal",
+                "`!followage` → 2 años, 3 meses, 15 días · `!followage pepito` · `!followage @deca`"
+              ],
+              [
+                "`$(accountage)`",
+                "Cuánto tiempo tiene la cuenta de Twitch",
+                "`!accountage` → 5 años, 8 meses, 22 días · `!accountage pepito`"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "contadores",
+        "title": "Variables de contadores",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Qué es",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`$(count)`",
+                "Contador avanzado con operaciones. Todos pueden ver e incrementar; solo los moderadores y el dueño del canal pueden usar set y reset.",
+                "`!muertes` → Muertes: 42 · `!muertes +` → 43 · `!muertes -5` → 38 · `!muertes set 100` · `!muertes reset`"
+              ],
+              [
+                "`$(uses)`",
+                "Contador simple que se incrementa solo cada vez que se usa el comando",
+                "`Este comando se ha usado $(uses) veces` → … 125 veces"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "utilidad",
+        "title": "Variables de utilidad",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Qué es",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`$(roll)`",
+                "Número aleatorio. Por defecto 1-100, o un rango con `$(roll:min-max)`",
+                "`$(roll)` → 42 · `$(roll:1-6)` → 4"
+              ],
+              [
+                "`$(flip)`",
+                "Lanza una moneda (Cara o Cruz)",
+                "`Resultado: $(flip)` → Resultado: Cara"
+              ],
+              [
+                "`$(8ball)`",
+                "Bola mágica 8 con respuestas aleatorias en español",
+                "`La bola dice: $(8ball)` → La bola dice: Es muy probable"
+              ],
+              [
+                "`$(choice:opciones)`",
+                "Elige al azar entre opciones separadas por coma o |",
+                "`$(choice:Pizza,Tacos,Hamburguesa)` → Tacos · `$(choice:Sí|No|Tal vez)`"
+              ],
+              [
+                "`$(percent)`",
+                "Porcentaje aleatorio de 0 a 100",
+                "`Tus vibes de hoy: $(percent)%` → 87%"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tiempo",
+        "title": "Variables de tiempo",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Qué es",
+              "Ejemplo"
+            ],
+            "rows": [
+              [
+                "`$(time)`",
+                "Hora actual. Con `$(time:formato)` eliges el formato.",
+                "`$(time)` → 15:30:45 · `$(time:HH:mm)` → 15:30 · `$(time:hh:mm tt)` → 03:30 PM"
+              ],
+              [
+                "`$(date)`",
+                "Fecha actual. Con `$(date:formato)` eliges el formato.",
+                "`$(date:dd/MM/yyyy)` → 10/11/2025 · `$(date:yyyy-MM-dd)` → 2025-11-10"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "completos",
+        "title": "Ejemplos de comandos completos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Crear comandos con variables:"
+          },
+          {
+            "t": "code",
+            "x": "# Comando de saludo personalizado\n!crear !hola Hola $(user)! Bienvenido al stream de $(channel)\n\n# Información del stream\n!crear !info $(channel) está jugando $(game) | En vivo por $(uptime)\n\n# Followage inteligente\n!crear !followage $(user) sigue desde hace $(followage)\n\n# Estadísticas completas\n!crear !stats $(user) | Sigue: $(followage) | Cuenta: $(accountage) | Juego: $(game)"
+          },
+          {
+            "t": "p",
+            "x": "Ejecutar comandos:"
+          },
+          {
+            "t": "code",
+            "x": "# Comando sin argumentos\n!followage\n→ Anthonydeca sigue desde hace 2 años, 3 meses, 15 días\n\n# Comando con argumento\n!followage pepito\n→ Anthonydeca sigue desde hace 1 año, 2 meses, 5 días\n\n# Con @ (se limpia automáticamente)\n!followage @deca\n→ Anthonydeca sigue desde hace 5 años, 1 mes"
+          }
+        ]
+      },
+      {
+        "id": "tips",
+        "title": "Consejos",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Las variables se resuelven en tiempo real cuando se ejecuta el comando.",
+              "Puedes combinar múltiples variables en una sola respuesta.",
+              "Las variables inteligentes como $(followage) detectan argumentos automáticamente.",
+              "$(count) solo permite set y reset a moderadores y al dueño del canal."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }
