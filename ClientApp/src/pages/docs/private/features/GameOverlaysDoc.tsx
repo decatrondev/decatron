@@ -49,6 +49,7 @@ export default function GameOverlaysDoc() {
                 <ol className="list-decimal pl-5 space-y-2">
                     <li><b>Cuentas</b>: vincula tu cuenta (para Riot: nombre, tag y región). Te pedimos que pongas un ícono de invocador concreto para verificar que es tuya.</li>
                     <li><b>Juegos</b>: activa el juego, marca qué cuentas mostrar y cómo rotar.</li>
+                    <li><b>Detección</b>: elige si el juego se detecta por la categoría del stream o si es siempre el mismo, qué hacer cuando no hay juego (por ejemplo, Just Chatting: ocultar el overlay) y, si hace falta, fuerza un juego de forma temporal. Esa pestaña muestra la categoría que llega y el juego detectado.</li>
                     <li><b>Diseño</b>: arrastra la tarjeta a donde la quieras y ajusta layout, fuentes y colores. Lo que ves es lo que sale en OBS. En LoL hay además widgets de estadísticas (winrate, KDA y CS por minuto, racha, top campeones, maestría, gráfico de LP de la sesión e íconos de campeón en las últimas partidas) y presets <i>Minimal</i> / <i>Stats</i> / <i>Completo</i> para activarlos de un clic. Vienen apagados por defecto para no cambiar overlays que ya tengas en OBS.</li>
                     <li><b>Overlay</b>: copia la URL y agrégala en OBS como fuente de navegador con el tamaño del lienzo (por defecto 1920×1080).</li>
                 </ol>

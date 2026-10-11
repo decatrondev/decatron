@@ -36,7 +36,7 @@ export default function PetsDoc() {
 
             <DocSection title="Paso a paso">
                 <ol className="list-decimal pl-5 space-y-2">
-                    <li><b>Mascota</b>: elige el modelo, ponle nombre y decide si se muestra encima. Ahí mismo eliges la fuente y el color del nombre y de las burbujas.</li>
+                    <li><b>Mascota</b>: elige el modelo y su color (Original, Naranja, Gris, Negro, Blanco o Café), ponle nombre y decide si se muestra encima. Ahí mismo eliges la fuente y el color del nombre y de las burbujas.</li>
                     <li><b>Comportamiento</b>: cada cuánto hace algo, qué tan rápido camina, por qué zona del overlay se mueve, cuánto se queda sentada y tras cuánto tiempo sin actividad se duerme.</li>
                     <li><b>Overlay</b>: tamaño de la fuente de OBS, alto real de la mascota en píxeles, a qué altura del borde inferior apoya las patas, inclinación de cámara y sombra. Copia la URL.</li>
                     <li><b>Probar</b>: elige qué hace y qué dice, y mándalo a la vista previa o directo al overlay que ya tienes en OBS.</li>
@@ -48,7 +48,7 @@ export default function PetsDoc() {
 
             <DocSection title="En OBS">
                 <p>
-                    Agrega una <b>fuente de navegador</b> con la URL del panel y el mismo ancho y alto que pusiste en la pestaña Overlay (por defecto 1920×320).
+                    Agrega una <b>fuente de navegador</b> con la URL del panel y el mismo ancho y alto que pusiste en la pestaña Overlay (por defecto 1920×420).
                     El fondo es transparente. Colócala donde quieras que camine: lo normal es a lo ancho del borde inferior, encima de tu cámara o de la barra del chat.
                 </p>
                 <DocAlert type="info" title="Rendimiento">

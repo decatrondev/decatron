@@ -1,6 +1,5 @@
-import { BarChart3, TrendingUp, Clock, Shield, Users, ArrowRight, Calendar, Download } from 'lucide-react';
+import { BarChart3, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import DocAlert from '../../../../components/docs/DocAlert';
 import DocSection from '../../../../components/docs/DocSection';
 
 export default function AnalyticsDoc() {
@@ -9,223 +8,63 @@ export default function AnalyticsDoc() {
             {/* Header */}
             <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                    <div className="w-16 h-16 bg-ds-raised border border-ds-border rounded-lg flex items-center justify-center">
                         <BarChart3 className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-ds-text">
-                            Analiticas
-                        </h1>
-                        <p className="text-ds-soft">
-                            Estadisticas y metricas de tu canal
-                        </p>
+                        <h1 className="text-3xl font-black text-ds-text">Analytics</h1>
+                        <p className="text-ds-soft">Estadísticas y registros de tu canal</p>
                     </div>
                 </div>
                 <Link
                     to="/analytics"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
-                    Ver analiticas
+                    Ver analytics
                     <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
 
-            {/* Dashboard */}
-            <DocSection title="Dashboard de estadisticas">
-                <p className="mb-4">
-                    El dashboard de analiticas te muestra un resumen de la actividad de tu canal:
+            {/* Rango */}
+            <DocSection title="Periodo">
+                <p>
+                    Todas las pestañas muestran el periodo que elijas arriba: los últimos 7, 30 o 90 días, o un rango personalizado
+                    con fecha de inicio y de fin. Al abrir la página se muestran los últimos 7 días. El botón <strong>Actualizar</strong> vuelve a cargar los datos.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard
-                        icon={<Users className="w-5 h-5" />}
-                        title="Seguidores"
-                        value="1,234"
-                        change="+12"
-                    />
-                    <StatCard
-                        icon={<Clock className="w-5 h-5" />}
-                        title="Tiempo de stream"
-                        value="24h 30m"
-                        change="Esta semana"
-                    />
-                    <StatCard
-                        icon={<TrendingUp className="w-5 h-5" />}
-                        title="Comandos usados"
-                        value="5,678"
-                        change="+234"
-                    />
-                    <StatCard
-                        icon={<Shield className="w-5 h-5" />}
-                        title="Acciones de mod"
-                        value="45"
-                        change="Este mes"
-                    />
-                </div>
             </DocSection>
 
-            {/* Eventos del timer */}
-            <DocSection title="Eventos del Timer">
-                <p className="mb-4">
-                    Registra todos los eventos relacionados con el timer:
-                </p>
-                <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Inicio y fin de sesiones
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Pausas y reanudaciones
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Extensiones de tiempo (y quien las provoco)
-                    </li>
+            {/* Pestañas */}
+            <DocSection title="Pestañas">
+                <ul className="space-y-3">
+                    <DocItem label="Resumen">Cantidad de eventos del Timer, tiempo agregado, acciones de moderación y cambios de juego en el periodo, además de los tipos de evento más frecuentes y los eventos por día.</DocItem>
+                    <DocItem label="Eventos Timer">El historial de eventos que sumaron tiempo al timer: fecha, tipo (follow, sub, Prime, bits, raid, regalo de subs, tip, comando o hype train), usuario, tiempo y detalles.</DocItem>
+                    <DocItem label="Moderación">Total de acciones, cuántas fueron severas, palabras únicas y las palabras más detectadas, con el historial de cada acción: fecha, usuario, palabra, severidad, acción y strike.</DocItem>
+                    <DocItem label="Historial Stream">Los cambios de categoría y de título del stream, con quién los hizo. Se puede filtrar por categoría o por título.</DocItem>
+                    <DocItem label="Chat">Total de mensajes y usuarios únicos, con el historial del chat y una búsqueda por usuario o por mensaje.</DocItem>
+                    <DocItem label="Actividad">Nuevos followers y total de tips, con los followers y los tips por día y los principales supporters.</DocItem>
                 </ul>
-                <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
-                    <h4 className="font-bold text-ds-text mb-3">Ejemplo de evento</h4>
-                    <div className="flex items-center gap-4 text-sm">
-                        <span className="text-ds-soft">14:32</span>
-                        <span className="px-2 py-0.5 bg-ds-ok/10 text-ds-ok rounded text-xs">+5 min</span>
-                        <span className="text-ds-text">StreamerPro regalo 5 subs</span>
-                    </div>
-                </div>
+                <p className="text-ds-soft mt-3">Las listas largas se paginan, y puedes elegir cuántos registros ver por página.</p>
             </DocSection>
 
-            {/* Moderacion */}
-            <DocSection title="Historial de moderacion">
-                <p className="mb-4">
-                    Ve todas las acciones de moderacion ejecutadas:
-                </p>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-ds-bg border-b border-ds-border">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Fecha</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Usuario</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Accion</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Razon</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-ds-border">
-                            <tr>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Hoy 14:30</td>
-                                <td className="px-4 py-3 text-sm text-ds-text">user123</td>
-                                <td className="px-4 py-3"><span className="px-2 py-0.5 bg-ds-raised text-ds-accent-text text-xs rounded">Timeout 5m</span></td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Spam</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </DocSection>
-
-            {/* Historial de streams */}
-            <DocSection title="Historial de streams">
-                <p className="mb-4">
-                    Informacion de tus sesiones de streaming:
-                </p>
+            {/* Exportar */}
+            <DocSection title="Exportar a CSV">
+                <p className="mb-4">El botón <strong>Exportar CSV</strong> descarga los datos del periodo elegido. Incluye:</p>
                 <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Fecha y duracion de cada stream
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Pico de viewers
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Nuevos seguidores
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Suscripciones recibidas
-                    </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Bits y donaciones
-                    </li>
+                    <DocItem label="Eventos del Timer">Follows, subs, bits y el resto de eventos.</DocItem>
+                    <DocItem label="Acciones de moderación">Las del periodo.</DocItem>
+                    <DocItem label="Historial de juegos y títulos">Los cambios del stream.</DocItem>
+                    <DocItem label="Mensajes de chat">Los del periodo.</DocItem>
                 </ul>
             </DocSection>
-
-            {/* Exportar datos */}
-            <DocSection title="Exportar datos">
-                <p className="mb-4">
-                    Exporta tus datos de analiticas en diferentes formatos:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <ExportOption format="CSV" description="Para hojas de calculo" />
-                    <ExportOption format="JSON" description="Para desarrollo" />
-                    <ExportOption format="PDF" description="Para reportes" />
-                </div>
-                <DocAlert type="info" title="Rango de fechas">
-                    Puedes seleccionar el rango de fechas antes de exportar.
-                </DocAlert>
-            </DocSection>
-
-            {/* Filtros */}
-            <DocSection title="Filtros disponibles">
-                <p className="mb-4">
-                    Filtra los datos por diferentes criterios:
-                </p>
-                <div className="flex flex-wrap gap-3">
-                    <FilterChip label="Hoy" />
-                    <FilterChip label="Esta semana" />
-                    <FilterChip label="Este mes" />
-                    <FilterChip label="Ultimos 3 meses" />
-                    <FilterChip label="Este año" />
-                    <FilterChip label="Personalizado" />
-                </div>
-            </DocSection>
         </div>
     );
 }
 
-interface StatCardProps {
-    icon: React.ReactNode;
-    title: string;
-    value: string;
-    change: string;
-}
-
-function StatCard({ icon, title, value, change }: StatCardProps) {
+function DocItem({ label, children }: { label: string; children: React.ReactNode }) {
     return (
-        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
-            <div className="flex items-center gap-2 text-ds-soft mb-2">
-                {icon}
-                <span className="text-sm">{title}</span>
-            </div>
-            <div className="text-2xl font-black text-ds-text">{value}</div>
-            <div className="text-sm text-ds-ok">{change}</div>
-        </div>
-    );
-}
-
-interface ExportOptionProps {
-    format: string;
-    description: string;
-}
-
-function ExportOption({ format, description }: ExportOptionProps) {
-    return (
-        <div className="flex items-center gap-3 bg-ds-surface rounded-lg p-4 border border-ds-border cursor-pointer hover:border-ds-accent transition-colors">
-            <Download className="w-5 h-5 text-ds-accent-text" />
-            <div>
-                <div className="font-bold text-ds-text">{format}</div>
-                <div className="text-sm text-ds-soft">{description}</div>
-            </div>
-        </div>
-    );
-}
-
-interface FilterChipProps {
-    label: string;
-}
-
-function FilterChip({ label }: FilterChipProps) {
-    return (
-        <button className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg hover:bg-ds-accent-hover hover:text-white transition-colors text-sm font-medium">
-            {label}
-        </button>
+        <li className="flex items-start gap-2 text-ds-soft">
+            <span className="text-ds-accent-text">•</span>
+            <span><strong className="text-ds-text">{label}:</strong> {children}</span>
+        </li>
     );
 }
