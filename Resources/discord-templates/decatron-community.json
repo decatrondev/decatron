@@ -1,0 +1,3699 @@
+{
+  "$comment": "Plantilla del servidor de Discord de Decatron. Ver .dev/plans/DISCORD_SERVIDOR_PLAN.md. Claves estables: nunca se renombran; lo que se cambia es `name`. El cargador (por escribir) crea lo que falta y no borra nada.",
+  "schemaVersion": 1,
+  "template": {
+    "key": "decatron-community",
+    "name": "Decatron",
+    "version": "1.0.0",
+    "description": {
+      "es": "Comunidad de herramientas para streamers de Twitch y Kick.",
+      "en": "Community for Twitch and Kick streamer tools."
+    },
+    "defaultLanguage": "en",
+    "authoritativeRulesLanguage": "es"
+  },
+  "design": {
+    "source": "ClientApp/src/components/ds/tokens.ts (tema oscuro)",
+    "palette": {
+      "accent": "#3161d8",
+      "accentHover": "#2653c5",
+      "accentText": "#6e94ed",
+      "soft": "#8b93a3",
+      "faint": "#7a8394",
+      "text": "#e6e9ef"
+    },
+    "boosts": {
+      "enhancedRoleStylesNeed": 3,
+      "roleIconsNeedLevel": 2,
+      "vanityUrlNeedLevel": 3
+    },
+    "note": "Los estilos con degradado u holográfico (`styleWhenBoosted`, `styleHint`) se aplican solo con los boosts necesarios; hasta entonces el rol usa color sólido."
+  },
+  "guild": {
+    "name": "Decatron",
+    "verificationLevel": "medium",
+    "explicitContentFilter": "all_members",
+    "defaultMessageNotifications": "only_mentions",
+    "preferredLocale": "en-US",
+    "community": {
+      "enabled": true,
+      "rulesChannel": "rules",
+      "updatesChannel": "announcements",
+      "safetyAlertsChannel": "automod-alerts"
+    },
+    "afk": {
+      "channel": "afk",
+      "timeoutSeconds": 300
+    },
+    "systemChannel": {
+      "channel": "general",
+      "suppressJoinNotifications": true,
+      "suppressSetupTips": true
+    }
+  },
+  "languages": [
+    {
+      "code": "es",
+      "nativeName": "Español",
+      "enabled": true,
+      "roleKey": "lang.es",
+      "categoryKey": "cat.lang.es",
+      "reviewed": true
+    },
+    {
+      "code": "en",
+      "nativeName": "English",
+      "enabled": true,
+      "roleKey": "lang.en",
+      "categoryKey": "cat.lang.en",
+      "reviewed": true
+    },
+    {
+      "code": "pt",
+      "nativeName": "Português",
+      "enabled": false,
+      "roleKey": "lang.pt",
+      "categoryKey": "cat.lang.pt",
+      "reviewed": false
+    },
+    {
+      "code": "fr",
+      "nativeName": "Français",
+      "enabled": false,
+      "roleKey": "lang.fr",
+      "categoryKey": "cat.lang.fr",
+      "reviewed": false
+    },
+    {
+      "code": "de",
+      "nativeName": "Deutsch",
+      "enabled": false,
+      "roleKey": "lang.de",
+      "categoryKey": "cat.lang.de",
+      "reviewed": false
+    },
+    {
+      "code": "it",
+      "nativeName": "Italiano",
+      "enabled": false,
+      "roleKey": "lang.it",
+      "categoryKey": "cat.lang.it",
+      "reviewed": false
+    },
+    {
+      "code": "ja",
+      "nativeName": "日本語",
+      "enabled": false,
+      "roleKey": "lang.ja",
+      "categoryKey": "cat.lang.ja",
+      "reviewed": false
+    },
+    {
+      "code": "ko",
+      "nativeName": "한국어",
+      "enabled": false,
+      "roleKey": "lang.ko",
+      "categoryKey": "cat.lang.ko",
+      "reviewed": false
+    },
+    {
+      "code": "ru",
+      "nativeName": "Русский",
+      "enabled": false,
+      "roleKey": "lang.ru",
+      "categoryKey": "cat.lang.ru",
+      "reviewed": false
+    },
+    {
+      "code": "ar",
+      "nativeName": "العربية",
+      "enabled": false,
+      "roleKey": "lang.ar",
+      "categoryKey": "cat.lang.ar",
+      "reviewed": false
+    }
+  ],
+  "permissions": {
+    "memberBase": [
+      "SEND_MESSAGES",
+      "SEND_MESSAGES_IN_THREADS",
+      "CREATE_PUBLIC_THREADS",
+      "READ_MESSAGE_HISTORY",
+      "ADD_REACTIONS",
+      "ATTACH_FILES",
+      "EMBED_LINKS",
+      "USE_EXTERNAL_EMOJIS",
+      "USE_APPLICATION_COMMANDS",
+      "CONNECT",
+      "SPEAK",
+      "STREAM",
+      "USE_VAD",
+      "CHANGE_NICKNAME"
+    ],
+    "modTools": [
+      "MANAGE_MESSAGES",
+      "MANAGE_THREADS",
+      "MANAGE_NICKNAMES",
+      "MODERATE_MEMBERS",
+      "MOVE_MEMBERS",
+      "MUTE_MEMBERS",
+      "DEAFEN_MEMBERS"
+    ],
+    "roleGroups": {
+      "staff": [
+        "team.admin",
+        "team.senior_mod",
+        "team.moderator",
+        "team.trial_mod"
+      ],
+      "team": [
+        "team.admin",
+        "team.senior_mod",
+        "team.moderator",
+        "team.trial_mod",
+        "team.support",
+        "team.developer"
+      ]
+    },
+    "principals": {
+      "member": "community.member",
+      "bot": "bot.decatron",
+      "staffGroup": "staff",
+      "teamGroup": "team"
+    },
+    "presets": {
+      "read_only": {
+        "viewers": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS",
+            "ADD_REACTIONS"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "note": "Se puede leer; escribe el equipo con permiso y el bot"
+      },
+      "announce": {
+        "viewers": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ],
+          "allow": [
+            "ADD_REACTIONS"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "note": "Solo lectura con reacciones; publica el equipo o el bot"
+      },
+      "members_write": {
+        "viewers": {
+          "allow": [
+            "SEND_MESSAGES",
+            "READ_MESSAGE_HISTORY",
+            "ATTACH_FILES",
+            "EMBED_LINKS",
+            "ADD_REACTIONS"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "SEND_MESSAGES",
+            "READ_MESSAGE_HISTORY",
+            "ATTACH_FILES",
+            "EMBED_LINKS",
+            "ADD_REACTIONS"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        }
+      },
+      "forum_members": {
+        "viewers": {
+          "allow": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS",
+            "ATTACH_FILES",
+            "EMBED_LINKS",
+            "ADD_REACTIONS"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS",
+            "ATTACH_FILES",
+            "EMBED_LINKS",
+            "ADD_REACTIONS"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ]
+        }
+      },
+      "bot_only": {
+        "viewers": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ]
+        },
+        "staff": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "note": "Solo escribe el bot"
+      },
+      "bot_only_staff": {
+        "viewers": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ]
+        },
+        "staff": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "note": "Privado: lo ve el equipo y solo escribe el bot"
+      },
+      "verify_gate": {
+        "viewers": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "note": "Se ve antes de ser Member; no se escribe (se usa el botón o el comando de verificación)"
+      },
+      "ticket_gate": {
+        "viewers": {
+          "deny": [
+            "SEND_MESSAGES",
+            "CREATE_PUBLIC_THREADS",
+            "SEND_MESSAGES_IN_THREADS"
+          ],
+          "allow": [
+            "USE_APPLICATION_COMMANDS"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "USE_APPLICATION_COMMANDS"
+          ]
+        },
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "note": "Se abre con el botón del bot, que crea un hilo privado con Support"
+      },
+      "staff_only": {
+        "viewers": {},
+        "staff": {},
+        "bot": {
+          "allow": [
+            "SEND_MESSAGES",
+            "EMBED_LINKS",
+            "ATTACH_FILES"
+          ]
+        },
+        "note": "Solo el equipo (la visibilidad la fija la categoría)"
+      },
+      "voice_members": {
+        "viewers": {
+          "allow": [
+            "CONNECT",
+            "SPEAK",
+            "STREAM",
+            "USE_VAD"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "CONNECT",
+            "SPEAK",
+            "STREAM",
+            "USE_VAD"
+          ]
+        },
+        "bot": {}
+      },
+      "stage_members": {
+        "viewers": {
+          "allow": [
+            "CONNECT",
+            "REQUEST_TO_SPEAK"
+          ],
+          "deny": [
+            "SPEAK"
+          ]
+        },
+        "staff": {
+          "allow": [
+            "CONNECT",
+            "SPEAK"
+          ]
+        },
+        "bot": {},
+        "note": "Habla quien el equipo invita al escenario"
+      }
+    },
+    "rules": [
+      "@everyone casi sin permisos: ve solo START (solo lectura)",
+      "Ver un canal lo dan las categorías (roles y grupos de visibility) y, si hace falta, visibilityRoles del canal; escribir lo da el preset del canal aplicado a Member, a los roles del equipo que no son staff, a staff y al bot",
+      "Member NO lleva VIEW_CHANNEL en su base: la vista siempre es explícita",
+      "El cargador escribe todos los permisos de cada canal de forma explícita (no depende de sincronizar con la categoría)",
+      "El rol Decatron (bot) va por encima de los roles que asigna y siempre ve todo"
+    ]
+  },
+  "roles": [
+    {
+      "key": "sep.team",
+      "kind": "separator",
+      "name": "──── TEAM ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "team.creator",
+      "kind": "role",
+      "name": "Creator",
+      "style": {
+        "type": "solid",
+        "color": "#3161d8"
+      },
+      "permissions": [
+        "ADMINISTRATOR"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true,
+      "styleWhenBoosted": {
+        "type": "gradient",
+        "colors": [
+          "#3161d8",
+          "#6e94ed"
+        ]
+      }
+    },
+    {
+      "key": "team.admin",
+      "kind": "role",
+      "name": "Admin",
+      "style": {
+        "type": "solid",
+        "color": "#3161d8"
+      },
+      "permissions": [
+        "MANAGE_GUILD",
+        "MANAGE_ROLES",
+        "MANAGE_CHANNELS",
+        "MANAGE_EVENTS",
+        "KICK_MEMBERS",
+        "BAN_MEMBERS",
+        "VIEW_AUDIT_LOG",
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MANAGE_NICKNAMES",
+        "MODERATE_MEMBERS",
+        "MOVE_MEMBERS",
+        "MUTE_MEMBERS",
+        "DEAFEN_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "team.senior_mod",
+      "kind": "role",
+      "name": "Senior Moderator",
+      "style": {
+        "type": "solid",
+        "color": "#2653c5"
+      },
+      "permissions": [
+        "KICK_MEMBERS",
+        "BAN_MEMBERS",
+        "VIEW_AUDIT_LOG",
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MANAGE_NICKNAMES",
+        "MODERATE_MEMBERS",
+        "MOVE_MEMBERS",
+        "MUTE_MEMBERS",
+        "DEAFEN_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "team.moderator",
+      "kind": "role",
+      "name": "Moderator",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "KICK_MEMBERS",
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MANAGE_NICKNAMES",
+        "MODERATE_MEMBERS",
+        "MOVE_MEMBERS",
+        "MUTE_MEMBERS",
+        "DEAFEN_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "team.trial_mod",
+      "kind": "role",
+      "name": "Trial Moderator",
+      "style": {
+        "type": "solid",
+        "color": "#8b93a3"
+      },
+      "permissions": [
+        "MODERATE_MEMBERS",
+        "MANAGE_MESSAGES",
+        "MEMBER_BASE"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Se activa cuando haya voluntarios (decisión 6)"
+    },
+    {
+      "key": "team.support",
+      "kind": "role",
+      "name": "Support",
+      "style": {
+        "type": "solid",
+        "color": "#8b93a3"
+      },
+      "permissions": [
+        "MANAGE_THREADS",
+        "MANAGE_MESSAGES",
+        "MEMBER_BASE"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "team.developer",
+      "kind": "role",
+      "name": "Developer",
+      "style": {
+        "type": "solid",
+        "color": "#8b93a3"
+      },
+      "permissions": [
+        "MEMBER_BASE"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "team.ambassador",
+      "kind": "role",
+      "name": "Ambassador",
+      "style": {
+        "type": "solid",
+        "color": "#7a8394"
+      },
+      "permissions": [
+        "MEMBER_BASE"
+      ],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "team.mod.es",
+      "kind": "role",
+      "name": "Mod · ES",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.en",
+      "kind": "role",
+      "name": "Mod · EN",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.pt",
+      "kind": "role",
+      "name": "Mod · PT",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.fr",
+      "kind": "role",
+      "name": "Mod · FR",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.de",
+      "kind": "role",
+      "name": "Mod · DE",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.it",
+      "kind": "role",
+      "name": "Mod · IT",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.ja",
+      "kind": "role",
+      "name": "Mod · JA",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.ko",
+      "kind": "role",
+      "name": "Mod · KO",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.ru",
+      "kind": "role",
+      "name": "Mod · RU",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "team.mod.ar",
+      "kind": "role",
+      "name": "Mod · AR",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [
+        "MANAGE_MESSAGES",
+        "MANAGE_THREADS",
+        "MODERATE_MEMBERS",
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "note": "Subrango de moderación por idioma: se activa cuando el idioma tenga moderador"
+    },
+    {
+      "key": "sep.bots",
+      "kind": "separator",
+      "name": "──── BOTS ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "bot.decatron",
+      "kind": "role",
+      "name": "Decatron",
+      "style": {
+        "type": "solid",
+        "color": "#2653c5"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "kind_override": "bot",
+      "existing": true,
+      "note": "Lo crea Discord al invitar al bot; la plantilla solo lo coloca por encima de los roles que gestiona"
+    },
+    {
+      "key": "bot.others",
+      "kind": "role",
+      "name": "Bots",
+      "style": {
+        "type": "solid",
+        "color": "#7a8394"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "sep.support",
+      "kind": "separator",
+      "name": "──── SUPPORTERS ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "tier.fundador",
+      "kind": "role",
+      "name": "Fundador",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true,
+      "styleHint": "Holográfico cuando haya boosts; mientras tanto dorado apagado #b8963e",
+      "fallbackColor": "#b8963e",
+      "syncSource": {
+        "decatronTier": "fundador"
+      }
+    },
+    {
+      "key": "tier.premium",
+      "kind": "role",
+      "name": "Premium",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true,
+      "styleHint": "Degradado cuando haya boosts",
+      "fallbackColor": "#6e94ed",
+      "syncSource": {
+        "decatronTier": "premium"
+      }
+    },
+    {
+      "key": "tier.supporter",
+      "kind": "role",
+      "name": "Supporter",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "fallbackColor": "#8b93a3",
+      "syncSource": {
+        "decatronTier": "supporter"
+      }
+    },
+    {
+      "key": "sep.community",
+      "kind": "separator",
+      "name": "──── COMMUNITY ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "community.verified_streamer",
+      "kind": "role",
+      "name": "Verified Streamer",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [],
+      "hoist": true,
+      "mentionable": false,
+      "enabled": true,
+      "syncSource": {
+        "verification": "decatron-account"
+      }
+    },
+    {
+      "key": "community.tournament_champion",
+      "kind": "role",
+      "name": "Tournament Champion",
+      "style": {
+        "type": "solid",
+        "color": "#6e94ed"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "syncSource": {
+        "module": "tournaments"
+      }
+    },
+    {
+      "key": "community.beta_tester",
+      "kind": "role",
+      "name": "Beta Tester",
+      "style": {
+        "type": "solid",
+        "color": "#8b93a3"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "community.contributor",
+      "kind": "role",
+      "name": "Contributor",
+      "style": {
+        "type": "solid",
+        "color": "#8b93a3"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "community.member",
+      "kind": "role",
+      "name": "Member",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [
+        "MEMBER_BASE"
+      ],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "note": "Base de todo acceso: se obtiene al aceptar las reglas"
+    },
+    {
+      "key": "sep.levels",
+      "kind": "separator",
+      "name": "──── LEVELS ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "level.100",
+      "kind": "role",
+      "name": "Mythic",
+      "style": {
+        "type": "solid",
+        "color": "#e6e9ef"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 100,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.90",
+      "kind": "role",
+      "name": "Grandmaster",
+      "style": {
+        "type": "solid",
+        "color": "#7194e6"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 90,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.80",
+      "kind": "role",
+      "name": "Master",
+      "style": {
+        "type": "solid",
+        "color": "#7394e0"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 80,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.65",
+      "kind": "role",
+      "name": "Champion",
+      "style": {
+        "type": "solid",
+        "color": "#7694d9"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 65,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.50",
+      "kind": "role",
+      "name": "Legend",
+      "style": {
+        "type": "solid",
+        "color": "#7994d2"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 50,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.40",
+      "kind": "role",
+      "name": "Elite",
+      "style": {
+        "type": "solid",
+        "color": "#7b94cb"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 40,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.30",
+      "kind": "role",
+      "name": "Veteran",
+      "style": {
+        "type": "solid",
+        "color": "#7e93c5"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 30,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.20",
+      "kind": "role",
+      "name": "Dedicated",
+      "style": {
+        "type": "solid",
+        "color": "#8093be"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 20,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.15",
+      "kind": "role",
+      "name": "Active",
+      "style": {
+        "type": "solid",
+        "color": "#8393b7"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 15,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.10",
+      "kind": "role",
+      "name": "Regular",
+      "style": {
+        "type": "solid",
+        "color": "#8693b0"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 10,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.5",
+      "kind": "role",
+      "name": "Chatter",
+      "style": {
+        "type": "solid",
+        "color": "#8893aa"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 5,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "level.1",
+      "kind": "role",
+      "name": "Newcomer",
+      "style": {
+        "type": "solid",
+        "color": "#8b93a3"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "xpLevelMin": 1,
+      "managedBy": "decatron-xp"
+    },
+    {
+      "key": "sep.language",
+      "kind": "separator",
+      "name": "──── LANGUAGE ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "lang.es",
+      "kind": "role",
+      "name": "ES",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "labels": {
+        "native": "Español"
+      }
+    },
+    {
+      "key": "lang.en",
+      "kind": "role",
+      "name": "EN",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true,
+      "labels": {
+        "native": "English"
+      }
+    },
+    {
+      "key": "lang.pt",
+      "kind": "role",
+      "name": "PT",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "Português"
+      }
+    },
+    {
+      "key": "lang.fr",
+      "kind": "role",
+      "name": "FR",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "Français"
+      }
+    },
+    {
+      "key": "lang.de",
+      "kind": "role",
+      "name": "DE",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "Deutsch"
+      }
+    },
+    {
+      "key": "lang.it",
+      "kind": "role",
+      "name": "IT",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "Italiano"
+      }
+    },
+    {
+      "key": "lang.ja",
+      "kind": "role",
+      "name": "JA",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "日本語"
+      }
+    },
+    {
+      "key": "lang.ko",
+      "kind": "role",
+      "name": "KO",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "한국어"
+      }
+    },
+    {
+      "key": "lang.ru",
+      "kind": "role",
+      "name": "RU",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "Русский"
+      }
+    },
+    {
+      "key": "lang.ar",
+      "kind": "role",
+      "name": "AR",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": false,
+      "labels": {
+        "native": "العربية"
+      }
+    },
+    {
+      "key": "sep.notify",
+      "kind": "separator",
+      "name": "──── NOTIFICATIONS ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "notify.updates",
+      "kind": "role",
+      "name": "Updates",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "notify.events",
+      "kind": "role",
+      "name": "Events",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "notify.tournaments",
+      "kind": "role",
+      "name": "Tournaments",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "notify.live",
+      "kind": "role",
+      "name": "Community Live",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "notify.beta",
+      "kind": "role",
+      "name": "Beta",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "notify.status",
+      "kind": "role",
+      "name": "Service Status",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "notify.giveaways",
+      "kind": "role",
+      "name": "Giveaways",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "sep.games",
+      "kind": "separator",
+      "name": "──── GAMES ────",
+      "permissions": [],
+      "hoist": false,
+      "mentionable": false,
+      "enabled": true
+    },
+    {
+      "key": "game.fortnite",
+      "kind": "role",
+      "name": "Fortnite",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "game.lol",
+      "kind": "role",
+      "name": "League of Legends",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "game.valorant",
+      "kind": "role",
+      "name": "Valorant",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "game.minecraft",
+      "kind": "role",
+      "name": "Minecraft",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "game.apex",
+      "kind": "role",
+      "name": "Apex Legends",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "game.cs2",
+      "kind": "role",
+      "name": "CS2",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "game.gta",
+      "kind": "role",
+      "name": "GTA",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    },
+    {
+      "key": "game.other",
+      "kind": "role",
+      "name": "Other Games",
+      "style": {
+        "type": "none"
+      },
+      "permissions": [],
+      "hoist": false,
+      "mentionable": true,
+      "enabled": true
+    }
+  ],
+  "categories": [
+    {
+      "key": "cat.start",
+      "name": "START",
+      "visibility": {
+        "mode": "everyone"
+      },
+      "channels": [
+        {
+          "key": "welcome",
+          "name": "welcome",
+          "type": "text",
+          "access": "read_only",
+          "topic": "Start here / Empieza aquí",
+          "seed": "welcome"
+        },
+        {
+          "key": "rules",
+          "name": "rules",
+          "type": "text",
+          "access": "read_only",
+          "topic": "Server rules / Reglas del servidor",
+          "seed": "@rules",
+          "role": "rules_channel"
+        },
+        {
+          "key": "guide",
+          "name": "guide",
+          "type": "text",
+          "access": "read_only",
+          "topic": "What is Decatron and where to go / Qué es Decatron y adónde ir",
+          "seed": "guide"
+        },
+        {
+          "key": "verify",
+          "name": "verify",
+          "type": "text",
+          "access": "verify_gate",
+          "topic": "Link your Twitch or Kick account / Vincula tu cuenta",
+          "seed": "verify",
+          "slowmodeSeconds": 30
+        },
+        {
+          "key": "pick-roles",
+          "name": "pick-roles",
+          "type": "text",
+          "access": "read_only",
+          "topic": "Choose your language, notifications and games / Elige idioma, avisos y juegos",
+          "seed": "pick_roles"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.news",
+      "name": "NEWS",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.member"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "announcements",
+          "name": "announcements",
+          "type": "announcement",
+          "access": "announce",
+          "topic": "Official news / Novedades oficiales",
+          "role": "updates_channel",
+          "crosspost": true
+        },
+        {
+          "key": "changelog",
+          "name": "changelog",
+          "type": "text",
+          "access": "announce",
+          "topic": "What changed in each version / Qué cambió en cada versión"
+        },
+        {
+          "key": "service-status",
+          "name": "service-status",
+          "type": "text",
+          "access": "announce",
+          "topic": "Service status (automatic) / Estado del servicio (automático)",
+          "feed": "service-status"
+        },
+        {
+          "key": "roadmap",
+          "name": "roadmap",
+          "type": "text",
+          "access": "announce",
+          "topic": "What we are building / Lo que estamos construyendo"
+        },
+        {
+          "key": "releases",
+          "name": "releases",
+          "type": "text",
+          "access": "announce",
+          "topic": "Release feed / Feed de lanzamientos",
+          "feed": "github-releases"
+        },
+        {
+          "key": "events",
+          "name": "events",
+          "type": "text",
+          "access": "announce",
+          "topic": "Events calendar / Calendario de eventos",
+          "linkedTo": "discord-events"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.community",
+      "name": "COMMUNITY",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.member"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "general",
+          "name": "general",
+          "type": "text",
+          "access": "members_write",
+          "topic": "General chat (English) / Charla general"
+        },
+        {
+          "key": "introductions",
+          "name": "introductions",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Say hi / Preséntate"
+        },
+        {
+          "key": "streamer-showcase",
+          "name": "streamer-showcase",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Show your channel / Muestra tu canal",
+          "tags": [
+            {
+              "name": "Twitch",
+              "moderated": false
+            },
+            {
+              "name": "Kick",
+              "moderated": true
+            },
+            {
+              "name": "Other",
+              "moderated": true
+            }
+          ],
+          "guidelines": "showcase"
+        },
+        {
+          "key": "clips",
+          "name": "clips",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Your best clips / Tus mejores clips",
+          "tags": [
+            {
+              "name": "Funny",
+              "moderated": false
+            },
+            {
+              "name": "Epic",
+              "moderated": true
+            },
+            {
+              "name": "Fail",
+              "moderated": true
+            },
+            {
+              "name": "Tutorial",
+              "moderated": true
+            }
+          ]
+        },
+        {
+          "key": "art-and-creations",
+          "name": "art-and-creations",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Art, overlays and creations / Arte, overlays y creaciones",
+          "tags": [
+            {
+              "name": "Art",
+              "moderated": false
+            },
+            {
+              "name": "Overlay",
+              "moderated": true
+            },
+            {
+              "name": "Emote",
+              "moderated": true
+            },
+            {
+              "name": "Video",
+              "moderated": true
+            }
+          ]
+        },
+        {
+          "key": "memes",
+          "name": "memes",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Memes"
+        },
+        {
+          "key": "off-topic",
+          "name": "off-topic",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Anything else (SFW) / Lo demás (apto para todos)"
+        },
+        {
+          "key": "bot-commands",
+          "name": "bot-commands",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Use bot commands here / Usa los comandos del bot aquí"
+        },
+        {
+          "key": "partnerships",
+          "name": "partnerships",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "The only place for promotion and partnerships, with staff review / Único lugar para promoción y alianzas, con revisión del equipo",
+          "tags": [
+            {
+              "name": "Pending review",
+              "moderated": false
+            },
+            {
+              "name": "Approved",
+              "moderated": true
+            },
+            {
+              "name": "Partnership",
+              "moderated": true
+            },
+            {
+              "name": "Event",
+              "moderated": true
+            }
+          ],
+          "guidelines": "partnerships",
+          "slowmodeSeconds": 86400
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.levels",
+      "name": "LEVELS & STORE",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.member"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "levels",
+          "name": "levels",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Check your rank / Consulta tu rango"
+        },
+        {
+          "key": "leaderboard",
+          "name": "leaderboard",
+          "type": "text",
+          "access": "bot_only",
+          "topic": "Top members (bot) / Mejores miembros (bot)"
+        },
+        {
+          "key": "achievements",
+          "name": "achievements",
+          "type": "text",
+          "access": "bot_only",
+          "topic": "Unlocked achievements (bot) / Logros desbloqueados (bot)"
+        },
+        {
+          "key": "store",
+          "name": "store",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Spend your XP / Gasta tu XP"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.support",
+      "name": "SUPPORT",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.member"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "help-bot",
+          "name": "help-bot",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Help with the chat bot / Ayuda con el bot de chat",
+          "tags": [
+            {
+              "name": "Open",
+              "moderated": false
+            },
+            {
+              "name": "In review",
+              "moderated": true
+            },
+            {
+              "name": "Resolved",
+              "moderated": true
+            },
+            {
+              "name": "No reply",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "help-desktop",
+          "name": "help-desktop",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Help with the desktop app / Ayuda con la app de escritorio",
+          "tags": [
+            {
+              "name": "Open",
+              "moderated": false
+            },
+            {
+              "name": "In review",
+              "moderated": true
+            },
+            {
+              "name": "Resolved",
+              "moderated": true
+            },
+            {
+              "name": "No reply",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "help-extension",
+          "name": "help-extension",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Help with the extension / Ayuda con la extensión",
+          "tags": [
+            {
+              "name": "Open",
+              "moderated": false
+            },
+            {
+              "name": "In review",
+              "moderated": true
+            },
+            {
+              "name": "Resolved",
+              "moderated": true
+            },
+            {
+              "name": "No reply",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "help-overlays",
+          "name": "help-overlays",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Help with overlays and alerts / Ayuda con overlays y alertas",
+          "tags": [
+            {
+              "name": "Open",
+              "moderated": false
+            },
+            {
+              "name": "In review",
+              "moderated": true
+            },
+            {
+              "name": "Resolved",
+              "moderated": true
+            },
+            {
+              "name": "No reply",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "help-account-and-plans",
+          "name": "help-account-and-plans",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Account, linking and plans / Cuenta, vinculación y planes",
+          "tags": [
+            {
+              "name": "Open",
+              "moderated": false
+            },
+            {
+              "name": "In review",
+              "moderated": true
+            },
+            {
+              "name": "Resolved",
+              "moderated": true
+            },
+            {
+              "name": "No reply",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "faq",
+          "name": "faq",
+          "type": "text",
+          "access": "read_only",
+          "topic": "Frequently asked questions / Preguntas frecuentes"
+        },
+        {
+          "key": "open-ticket",
+          "name": "open-ticket",
+          "type": "text",
+          "access": "ticket_gate",
+          "topic": "Open a private ticket with the team / Abre un ticket privado con el equipo",
+          "behavior": "tickets"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.product",
+      "name": "PRODUCT",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.member"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "suggestions",
+          "name": "suggestions",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Ideas for Decatron / Ideas para Decatron",
+          "tags": [
+            {
+              "name": "Under review",
+              "moderated": false
+            },
+            {
+              "name": "Planned",
+              "moderated": true
+            },
+            {
+              "name": "In progress",
+              "moderated": true
+            },
+            {
+              "name": "Done",
+              "moderated": true
+            },
+            {
+              "name": "Declined",
+              "moderated": true
+            }
+          ],
+          "guidelines": "suggestions",
+          "voting": true
+        },
+        {
+          "key": "bug-reports",
+          "name": "bug-reports",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Report a bug / Reporta un error",
+          "tags": [
+            {
+              "name": "New",
+              "moderated": false
+            },
+            {
+              "name": "Confirmed",
+              "moderated": true
+            },
+            {
+              "name": "Fixing",
+              "moderated": true
+            },
+            {
+              "name": "Fixed",
+              "moderated": true
+            },
+            {
+              "name": "Cannot reproduce",
+              "moderated": true
+            }
+          ],
+          "guidelines": "bugs"
+        },
+        {
+          "key": "preview",
+          "name": "preview",
+          "type": "text",
+          "access": "read_only",
+          "topic": "Early previews for beta testers / Avances para beta testers",
+          "visibilityRoles": [
+            "community.beta_tester"
+          ]
+        },
+        {
+          "key": "docs-feedback",
+          "name": "docs-feedback",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Feedback on the documentation / Opiniones sobre la documentación"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.games",
+      "name": "GAMES",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.member"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "find-a-team",
+          "name": "find-a-team",
+          "type": "forum",
+          "access": "forum_members",
+          "topic": "Looking for a group / Buscar equipo",
+          "tags": [
+            {
+              "name": "Fortnite",
+              "moderated": false
+            },
+            {
+              "name": "League of Legends",
+              "moderated": true
+            },
+            {
+              "name": "Valorant",
+              "moderated": true
+            },
+            {
+              "name": "Minecraft",
+              "moderated": true
+            },
+            {
+              "name": "Apex Legends",
+              "moderated": true
+            },
+            {
+              "name": "CS2",
+              "moderated": true
+            },
+            {
+              "name": "GTA",
+              "moderated": true
+            },
+            {
+              "name": "Other Games",
+              "moderated": true
+            }
+          ],
+          "guidelines": "lfg"
+        },
+        {
+          "key": "tournament-announcements",
+          "name": "tournament-announcements",
+          "type": "text",
+          "access": "announce",
+          "topic": "Tournament news / Novedades de torneos",
+          "feed": "tournaments"
+        },
+        {
+          "key": "tournament-signups",
+          "name": "tournament-signups",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Sign up for tournaments / Inscripciones a torneos",
+          "feed": "tournaments"
+        },
+        {
+          "key": "tournament-results",
+          "name": "tournament-results",
+          "type": "text",
+          "access": "announce",
+          "topic": "Results / Resultados",
+          "feed": "tournaments"
+        },
+        {
+          "key": "fortnite",
+          "name": "fortnite",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Fortnite chat",
+          "visibilityRoles": [
+            "game.fortnite"
+          ]
+        },
+        {
+          "key": "league-of-legends",
+          "name": "league-of-legends",
+          "type": "text",
+          "access": "members_write",
+          "topic": "League of Legends chat",
+          "visibilityRoles": [
+            "game.lol"
+          ]
+        },
+        {
+          "key": "valorant",
+          "name": "valorant",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Valorant chat",
+          "visibilityRoles": [
+            "game.valorant"
+          ]
+        },
+        {
+          "key": "minecraft",
+          "name": "minecraft",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Minecraft chat",
+          "visibilityRoles": [
+            "game.minecraft"
+          ]
+        },
+        {
+          "key": "apex",
+          "name": "apex",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Apex Legends chat",
+          "visibilityRoles": [
+            "game.apex"
+          ]
+        },
+        {
+          "key": "cs2",
+          "name": "cs2",
+          "type": "text",
+          "access": "members_write",
+          "topic": "CS2 chat",
+          "visibilityRoles": [
+            "game.cs2"
+          ]
+        },
+        {
+          "key": "gta",
+          "name": "gta",
+          "type": "text",
+          "access": "members_write",
+          "topic": "GTA chat",
+          "visibilityRoles": [
+            "game.gta"
+          ]
+        },
+        {
+          "key": "fortnite-spirits",
+          "name": "fortnite-spirits",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Fortnite Spirits collections / Colecciones de Fortnite Spirits",
+          "visibilityRoles": [
+            "game.fortnite"
+          ]
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.streamers",
+      "name": "STREAMERS",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.verified_streamer"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "streamer-lounge",
+          "name": "streamer-lounge",
+          "type": "text",
+          "access": "members_write",
+          "topic": "For verified streamers / Para streamers verificados"
+        },
+        {
+          "key": "live-now",
+          "name": "live-now",
+          "type": "text",
+          "access": "bot_only",
+          "topic": "Live alerts from the community (bot) / Directos de la comunidad (bot)",
+          "feed": "live-alerts"
+        },
+        {
+          "key": "collabs",
+          "name": "collabs",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Find collaborations / Busca colaboraciones"
+        },
+        {
+          "key": "streaming-tips",
+          "name": "streaming-tips",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Tips and gear / Consejos y equipo"
+        },
+        {
+          "key": "overlay-design",
+          "name": "overlay-design",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Overlay and alert design / Diseño de overlays y alertas"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.developers",
+      "name": "DEVELOPERS",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "team.developer",
+          "community.contributor"
+        ],
+        "groups": [
+          "staff"
+        ]
+      },
+      "channels": [
+        {
+          "key": "api",
+          "name": "api",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Public API / API pública"
+        },
+        {
+          "key": "extension-and-desktop",
+          "name": "extension-and-desktop",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Browser extension and desktop app / Extensión y app de escritorio"
+        },
+        {
+          "key": "github",
+          "name": "github",
+          "type": "text",
+          "access": "bot_only",
+          "topic": "GitHub feed / Feed de GitHub",
+          "feed": "github"
+        },
+        {
+          "key": "bot-sandbox",
+          "name": "bot-sandbox",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Try the bot here / Prueba el bot aquí"
+        },
+        {
+          "key": "open-source",
+          "name": "open-source",
+          "type": "text",
+          "access": "members_write",
+          "topic": "Contributing / Cómo contribuir"
+        }
+      ],
+      "enabled": true,
+      "note": "Quien lo pida y sea aprobado recibe el rol Contributor"
+    },
+    {
+      "key": "cat.voice",
+      "name": "VOICE",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "community.member"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "lobby",
+          "name": "lobby",
+          "type": "voice",
+          "access": "voice_members"
+        },
+        {
+          "key": "create-room",
+          "name": "create-room",
+          "type": "voice",
+          "access": "voice_members",
+          "behavior": "temp_voice_creator",
+          "note": "Al entrar crea una sala temporal propia (la construye el bot)"
+        },
+        {
+          "key": "general-1",
+          "name": "general-1",
+          "type": "voice",
+          "access": "voice_members"
+        },
+        {
+          "key": "general-2",
+          "name": "general-2",
+          "type": "voice",
+          "access": "voice_members"
+        },
+        {
+          "key": "game-1",
+          "name": "game-1",
+          "type": "voice",
+          "access": "voice_members"
+        },
+        {
+          "key": "game-2",
+          "name": "game-2",
+          "type": "voice",
+          "access": "voice_members"
+        },
+        {
+          "key": "voice-help",
+          "name": "voice-help",
+          "type": "voice",
+          "access": "voice_members",
+          "visibilityGroupsOnly": false
+        },
+        {
+          "key": "stage",
+          "name": "stage",
+          "type": "stage",
+          "access": "stage_members"
+        },
+        {
+          "key": "afk",
+          "name": "afk",
+          "type": "voice",
+          "access": "voice_members",
+          "role": "afk_channel"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.lang.es",
+      "name": "ESPAÑOL",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.es"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "es.news",
+          "name": "novedades",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "es.chat",
+          "name": "charla",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "es.help",
+          "name": "ayuda",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "Abierto",
+              "moderated": false
+            },
+            {
+              "name": "En revisión",
+              "moderated": true
+            },
+            {
+              "name": "Resuelto",
+              "moderated": true
+            },
+            {
+              "name": "Sin respuesta",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "es.share",
+          "name": "compartir",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.lang.en",
+      "name": "ENGLISH",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.en"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "en.news",
+          "name": "news",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "en.chat",
+          "name": "chat",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "en.help",
+          "name": "help",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "Open",
+              "moderated": false
+            },
+            {
+              "name": "In review",
+              "moderated": true
+            },
+            {
+              "name": "Resolved",
+              "moderated": true
+            },
+            {
+              "name": "No reply",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "en.share",
+          "name": "share",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "key": "cat.lang.pt",
+      "name": "PORTUGUÊS",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.pt"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "pt.news",
+          "name": "novidades",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "pt.chat",
+          "name": "conversa",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "pt.help",
+          "name": "ajuda",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "Aberto",
+              "moderated": false
+            },
+            {
+              "name": "Em análise",
+              "moderated": true
+            },
+            {
+              "name": "Resolvido",
+              "moderated": true
+            },
+            {
+              "name": "Sem resposta",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "pt.share",
+          "name": "compartilhar",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.lang.fr",
+      "name": "FRANÇAIS",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.fr"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "fr.news",
+          "name": "nouveautes",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "fr.chat",
+          "name": "discussion",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "fr.help",
+          "name": "aide",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "Ouvert",
+              "moderated": false
+            },
+            {
+              "name": "En cours d'examen",
+              "moderated": true
+            },
+            {
+              "name": "Résolu",
+              "moderated": true
+            },
+            {
+              "name": "Sans réponse",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "fr.share",
+          "name": "partage",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.lang.de",
+      "name": "DEUTSCH",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.de"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "de.news",
+          "name": "neuigkeiten",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "de.chat",
+          "name": "chat",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "de.help",
+          "name": "hilfe",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "Offen",
+              "moderated": false
+            },
+            {
+              "name": "In Prüfung",
+              "moderated": true
+            },
+            {
+              "name": "Gelöst",
+              "moderated": true
+            },
+            {
+              "name": "Keine Antwort",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "de.share",
+          "name": "teilen",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.lang.it",
+      "name": "ITALIANO",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.it"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "it.news",
+          "name": "novita",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "it.chat",
+          "name": "chiacchiere",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "it.help",
+          "name": "aiuto",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "Aperto",
+              "moderated": false
+            },
+            {
+              "name": "In revisione",
+              "moderated": true
+            },
+            {
+              "name": "Risolto",
+              "moderated": true
+            },
+            {
+              "name": "Senza risposta",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "it.share",
+          "name": "condividi",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.lang.ja",
+      "name": "日本語",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.ja"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "ja.news",
+          "name": "お知らせ",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "ja.chat",
+          "name": "雑談",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "ja.help",
+          "name": "ヘルプ",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "未解決",
+              "moderated": false
+            },
+            {
+              "name": "確認中",
+              "moderated": true
+            },
+            {
+              "name": "解決済み",
+              "moderated": true
+            },
+            {
+              "name": "返信なし",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "ja.share",
+          "name": "共有",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.lang.ko",
+      "name": "한국어",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.ko"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "ko.news",
+          "name": "소식",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "ko.chat",
+          "name": "잡담",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "ko.help",
+          "name": "도움",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "열림",
+              "moderated": false
+            },
+            {
+              "name": "검토 중",
+              "moderated": true
+            },
+            {
+              "name": "해결됨",
+              "moderated": true
+            },
+            {
+              "name": "답변 없음",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "ko.share",
+          "name": "공유",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.lang.ru",
+      "name": "РУССКИЙ",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.ru"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "ru.news",
+          "name": "новости",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "ru.chat",
+          "name": "чат",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "ru.help",
+          "name": "помощь",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "Открыто",
+              "moderated": false
+            },
+            {
+              "name": "На рассмотрении",
+              "moderated": true
+            },
+            {
+              "name": "Решено",
+              "moderated": true
+            },
+            {
+              "name": "Нет ответа",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "ru.share",
+          "name": "поделиться",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.lang.ar",
+      "name": "العربية",
+      "visibility": {
+        "mode": "roles",
+        "roles": [
+          "lang.ar"
+        ],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "ar.news",
+          "name": "الأخبار",
+          "type": "announcement",
+          "access": "announce",
+          "crosspost": false,
+          "feed": null
+        },
+        {
+          "key": "ar.chat",
+          "name": "الدردشة",
+          "type": "text",
+          "access": "members_write"
+        },
+        {
+          "key": "ar.help",
+          "name": "المساعدة",
+          "type": "forum",
+          "access": "forum_members",
+          "tags": [
+            {
+              "name": "مفتوح",
+              "moderated": false
+            },
+            {
+              "name": "قيد المراجعة",
+              "moderated": true
+            },
+            {
+              "name": "تم الحل",
+              "moderated": true
+            },
+            {
+              "name": "لا رد",
+              "moderated": true
+            }
+          ],
+          "guidelines": "help",
+          "requireTag": true
+        },
+        {
+          "key": "ar.share",
+          "name": "المشاركة",
+          "type": "text",
+          "access": "members_write"
+        }
+      ],
+      "enabled": false,
+      "note": "Traducción de nombres y etiquetas pendiente de revisión por una persona nativa"
+    },
+    {
+      "key": "cat.team",
+      "name": "TEAM",
+      "visibility": {
+        "mode": "roles",
+        "roles": [],
+        "groups": [
+          "team"
+        ]
+      },
+      "channels": [
+        {
+          "key": "team-general",
+          "name": "team-general",
+          "type": "text",
+          "access": "staff_only"
+        },
+        {
+          "key": "decisions",
+          "name": "decisions",
+          "type": "text",
+          "access": "staff_only"
+        },
+        {
+          "key": "cases",
+          "name": "cases",
+          "type": "text",
+          "access": "staff_only"
+        },
+        {
+          "key": "appeals",
+          "name": "appeals",
+          "type": "text",
+          "access": "staff_only"
+        },
+        {
+          "key": "audit-log",
+          "name": "audit-log",
+          "type": "text",
+          "access": "bot_only_staff",
+          "feed": "audit-log"
+        },
+        {
+          "key": "message-log",
+          "name": "message-log",
+          "type": "text",
+          "access": "bot_only_staff",
+          "feed": "message-log"
+        },
+        {
+          "key": "mod-log",
+          "name": "mod-log",
+          "type": "text",
+          "access": "bot_only_staff",
+          "feed": "mod-log"
+        },
+        {
+          "key": "automod-alerts",
+          "name": "automod-alerts",
+          "type": "text",
+          "access": "bot_only_staff",
+          "feed": "automod"
+        },
+        {
+          "key": "announcement-drafts",
+          "name": "announcement-drafts",
+          "type": "text",
+          "access": "staff_only",
+          "behavior": "announcement-preview"
+        },
+        {
+          "key": "internal-support",
+          "name": "internal-support",
+          "type": "text",
+          "access": "staff_only"
+        },
+        {
+          "key": "bot-tests",
+          "name": "bot-tests",
+          "type": "text",
+          "access": "staff_only"
+        },
+        {
+          "key": "team-voice",
+          "name": "team-voice",
+          "type": "voice",
+          "access": "staff_only"
+        }
+      ],
+      "enabled": true
+    }
+  ],
+  "content": {
+    "texts": {
+      "welcome": {
+        "es": "Bienvenido a **Decatron**, la comunidad de herramientas para streamers de Twitch y Kick.\n1) Elige tu idioma.\n2) Acepta las reglas.\n3) Si ya usas Decatron, verifica tu cuenta en #verify.\nCualquier duda, en #guide.",
+        "en": "Welcome to **Decatron**, the community for Twitch and Kick streamer tools.\n1) Choose your language.\n2) Accept the rules.\n3) If you already use Decatron, verify your account in #verify.\nQuestions? Check #guide."
+      },
+      "guide": {
+        "es": "**Qué es Decatron:** una plataforma de herramientas para streamers: bot de chat, overlays y alertas, aplicación de escritorio y extensión.\n**Cómo moverte:** #announcements para novedades; los foros de SUPPORT para pedir ayuda (usa las etiquetas); tu categoría de idioma para charlar.\n**Verificación:** #verify explica cómo vincular tu cuenta de Twitch o Kick para recibir el rol Verified Streamer y tu rango.",
+        "en": "**What Decatron is:** a platform of tools for streamers: chat bot, overlays and alerts, desktop app and extension.\n**Where to go:** #announcements for news; the SUPPORT forums to ask for help (use the tags); your language category to chat.\n**Verification:** #verify explains how to link your Twitch or Kick account to get the Verified Streamer role and your rank."
+      },
+      "verify": {
+        "es": "Para recibir el rol **Verified Streamer**, vincula tu cuenta de Twitch o Kick a tu cuenta de Decatron.\n*(Próximamente el comando `/verificar` lo hace automáticamente. Por ahora, abre una publicación en #help-account-and-plans y el equipo te lo asigna.)*",
+        "en": "To get the **Verified Streamer** role, link your Twitch or Kick account to your Decatron account.\n*(Coming soon: the `/verificar` command will do it automatically. For now, open a post in #help-account-and-plans and the team will assign it.)*"
+      },
+      "pick_roles": {
+        "es": "Elige tu idioma, los avisos que quieres recibir y tus juegos desde la guía de bienvenida de Discord (Canales y roles).",
+        "en": "Choose your language, the notifications you want and your games from Discord's welcome guide (Channels & Roles)."
+      }
+    },
+    "forumGuidelines": {
+      "help": {
+        "es": "Describe el problema, qué esperabas que pasara y qué pasó. Adjunta capturas si puedes y elige la etiqueta del producto.",
+        "en": "Describe the problem, what you expected and what happened. Attach screenshots if you can and pick the product tag."
+      },
+      "suggestions": {
+        "es": "Una idea por publicación. Explica el problema que resuelve. Vota con 👍 las que te interesen.",
+        "en": "One idea per post. Explain the problem it solves. Vote with 👍 on the ones you like."
+      },
+      "bugs": {
+        "es": "Pasos para reproducirlo, resultado esperado y resultado real. Indica el producto y la versión.",
+        "en": "Steps to reproduce, expected result and actual result. Say which product and version."
+      },
+      "lfg": {
+        "es": "Indica el juego (etiqueta), tu región y horario, y qué buscas.",
+        "en": "Say the game (tag), your region and schedule, and what you are looking for."
+      },
+      "showcase": {
+        "es": "Una publicación por canal. Cuenta qué haces y cada cuánto transmites.",
+        "en": "One post per channel. Tell us what you do and how often you stream."
+      },
+      "partnerships": {
+        "es": "Describe la propuesta o el servidor. El equipo la revisa antes de aprobarla. Una publicación por persona cada 24 horas.",
+        "en": "Describe the proposal or server. The team reviews it before approving. One post per person every 24 hours."
+      }
+    },
+    "rules": [
+      {
+        "key": "rule.1",
+        "title": {
+          "es": "Respeto",
+          "en": "Respect"
+        },
+        "text": {
+          "es": "Trata bien a todo el mundo. No se tolera el acoso, los insultos, la discriminación ni el discurso de odio.",
+          "en": "Treat everyone well. Harassment, insults, discrimination and hate speech are not tolerated."
+        }
+      },
+      {
+        "key": "rule.2",
+        "title": {
+          "es": "Edad mínima: 13 años",
+          "en": "Minimum age: 13"
+        },
+        "text": {
+          "es": "Es la edad mínima de Discord. Si sabes que alguien es menor, avisa al equipo abriendo un ticket.",
+          "en": "This is Discord's minimum age. If you know someone is younger, tell the team by opening a ticket."
+        }
+      },
+      {
+        "key": "rule.3",
+        "title": {
+          "es": "Sin contenido para adultos",
+          "en": "No adult content"
+        },
+        "text": {
+          "es": "No se permite contenido para adultos, violento o impactante en ningún canal.",
+          "en": "Adult, violent or shocking content is not allowed in any channel."
+        }
+      },
+      {
+        "key": "rule.4",
+        "title": {
+          "es": "Sin spam",
+          "en": "No spam"
+        },
+        "text": {
+          "es": "No repitas mensajes, no hagas menciones masivas ni envíes enlaces sospechosos.",
+          "en": "Do not repeat messages, mass-mention or send suspicious links."
+        }
+      },
+      {
+        "key": "rule.5",
+        "title": {
+          "es": "Publicidad solo donde se indique",
+          "en": "Promotion only where allowed"
+        },
+        "text": {
+          "es": "No promociones tu canal, servidor o producto fuera de los canales destinados a ello (#streamer-showcase, #live-now y #partnerships).",
+          "en": "Do not promote your channel, server or product outside the channels meant for it (#streamer-showcase, #live-now and #partnerships)."
+        }
+      },
+      {
+        "key": "rule.6",
+        "title": {
+          "es": "Cada canal, su tema",
+          "en": "Each channel has its topic"
+        },
+        "text": {
+          "es": "Usa tu idioma en tu categoría y las etiquetas en los foros de ayuda.",
+          "en": "Use your language in your category and the tags in the help forums."
+        }
+      },
+      {
+        "key": "rule.7",
+        "title": {
+          "es": "Privacidad",
+          "en": "Privacy"
+        },
+        "text": {
+          "es": "No compartas datos personales tuyos ni de otras personas. El bot de Decatron guarda tu identificador de Discord, tu XP, tu nivel y el historial de movimientos de XP; puedes pedir que se borren abriendo un ticket.",
+          "en": "Do not share personal data about yourself or others. The Decatron bot stores your Discord ID, your XP, your level and the history of XP movements; you can ask for them to be deleted by opening a ticket."
+        }
+      },
+      {
+        "key": "rule.8",
+        "title": {
+          "es": "Legalidad",
+          "en": "Legality"
+        },
+        "text": {
+          "es": "Cumple las Condiciones de Discord y las normas de Twitch y Kick. Nada ilegal ni que infrinja derechos de autor.",
+          "en": "Follow Discord's Terms and the rules of Twitch and Kick. Nothing illegal or that infringes copyright."
+        }
+      },
+      {
+        "key": "rule.9",
+        "title": {
+          "es": "Decisiones del equipo",
+          "en": "Team decisions"
+        },
+        "text": {
+          "es": "Las normas las aplica el equipo de moderación. Si no estás de acuerdo, apela por ticket, no en público.",
+          "en": "The moderation team applies the rules. If you disagree, appeal through a ticket, not in public."
+        }
+      },
+      {
+        "key": "rule.10",
+        "title": {
+          "es": "Sanciones",
+          "en": "Sanctions"
+        },
+        "text": {
+          "es": "Según la gravedad: aviso, silencio temporal, expulsión o baneo.",
+          "en": "Depending on severity: warning, timeout, kick or ban."
+        }
+      }
+    ],
+    "rulesScreening": {
+      "requireAcceptance": true,
+      "grants": [
+        "community.member"
+      ]
+    }
+  },
+  "onboarding": {
+    "enabled": true,
+    "mode": "default",
+    "defaultChannels": [
+      "welcome",
+      "rules",
+      "guide",
+      "verify",
+      "announcements",
+      "general",
+      "help-bot"
+    ],
+    "prompts": [
+      {
+        "key": "language",
+        "title": {
+          "es": "¿En qué idioma quieres usar el servidor?",
+          "en": "Which language do you want to use?"
+        },
+        "required": true,
+        "multiple": true,
+        "inOnboarding": true,
+        "options": [
+          {
+            "label": "Español",
+            "roles": [
+              "lang.es"
+            ],
+            "channels": [
+              "cat.lang.es"
+            ]
+          },
+          {
+            "label": "English",
+            "roles": [
+              "lang.en"
+            ],
+            "channels": [
+              "cat.lang.en"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "notifications",
+        "title": {
+          "es": "¿Qué avisos quieres recibir?",
+          "en": "Which notifications do you want?"
+        },
+        "required": false,
+        "multiple": true,
+        "options": [
+          {
+            "label": "Updates",
+            "roles": [
+              "notify.updates"
+            ]
+          },
+          {
+            "label": "Events",
+            "roles": [
+              "notify.events"
+            ]
+          },
+          {
+            "label": "Tournaments",
+            "roles": [
+              "notify.tournaments"
+            ]
+          },
+          {
+            "label": "Community Live",
+            "roles": [
+              "notify.live"
+            ]
+          },
+          {
+            "label": "Beta",
+            "roles": [
+              "notify.beta"
+            ]
+          },
+          {
+            "label": "Service Status",
+            "roles": [
+              "notify.status"
+            ]
+          },
+          {
+            "label": "Giveaways",
+            "roles": [
+              "notify.giveaways"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "games",
+        "title": {
+          "es": "¿A qué juegas?",
+          "en": "What do you play?"
+        },
+        "required": false,
+        "multiple": true,
+        "options": [
+          {
+            "label": "Fortnite",
+            "roles": [
+              "game.fortnite"
+            ]
+          },
+          {
+            "label": "League of Legends",
+            "roles": [
+              "game.lol"
+            ]
+          },
+          {
+            "label": "Valorant",
+            "roles": [
+              "game.valorant"
+            ]
+          },
+          {
+            "label": "Minecraft",
+            "roles": [
+              "game.minecraft"
+            ]
+          },
+          {
+            "label": "Apex Legends",
+            "roles": [
+              "game.apex"
+            ]
+          },
+          {
+            "label": "CS2",
+            "roles": [
+              "game.cs2"
+            ]
+          },
+          {
+            "label": "GTA",
+            "roles": [
+              "game.gta"
+            ]
+          },
+          {
+            "label": "Other Games",
+            "roles": [
+              "game.other"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "about",
+        "title": {
+          "es": "¿Qué te trae por aquí?",
+          "en": "What brings you here?"
+        },
+        "required": false,
+        "multiple": false,
+        "options": [
+          {
+            "label": {
+              "es": "Soy streamer",
+              "en": "I'm a streamer"
+            },
+            "channels": [
+              "verify",
+              "help-bot",
+              "streamer-showcase"
+            ]
+          },
+          {
+            "label": {
+              "es": "Veo streams",
+              "en": "I watch streams"
+            },
+            "channels": [
+              "general",
+              "clips"
+            ]
+          },
+          {
+            "label": {
+              "es": "Juego",
+              "en": "I play games"
+            },
+            "channels": [
+              "find-a-team"
+            ]
+          },
+          {
+            "label": {
+              "es": "Desarrollo",
+              "en": "I develop"
+            },
+            "channels": [
+              "github",
+              "api"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "automod": [
+    {
+      "key": "spam",
+      "type": "spam",
+      "actions": [
+        "block_message",
+        "alert:automod-alerts"
+      ],
+      "exemptRoles": [
+        "team.creator",
+        "team.admin"
+      ]
+    },
+    {
+      "key": "mentions",
+      "type": "mention_spam",
+      "limit": 5,
+      "actions": [
+        "block_message",
+        "alert:automod-alerts"
+      ],
+      "exemptRoles": [
+        "team.creator",
+        "team.admin"
+      ]
+    },
+    {
+      "key": "presets",
+      "type": "keyword_preset",
+      "presets": [
+        "profanity",
+        "sexual_content",
+        "slurs"
+      ],
+      "actions": [
+        "block_message",
+        "alert:automod-alerts"
+      ],
+      "exemptRoles": [
+        "team.creator",
+        "team.admin"
+      ]
+    },
+    {
+      "key": "invites",
+      "type": "keyword",
+      "patterns": [
+        "discord.gg/*",
+        "discord.com/invite/*",
+        "discordapp.com/invite/*"
+      ],
+      "allow": [],
+      "actions": [
+        "block_message",
+        "alert:automod-alerts"
+      ],
+      "exemptRoles": [
+        "team.creator",
+        "team.admin"
+      ],
+      "exemptChannels": [
+        "partnerships",
+        "streamer-showcase"
+      ],
+      "note": "Se añadirá aquí la invitación propia del servidor a la lista de permitidos"
+    },
+    {
+      "key": "keywords_by_language",
+      "type": "keyword",
+      "patterns": [],
+      "actions": [
+        "block_message",
+        "alert:automod-alerts"
+      ],
+      "note": "Listas de palabras por idioma: se llenan al abrir cada idioma"
+    }
+  ],
+  "integrations": {
+    "decatronBot": {
+      "inviteAdministrator": false,
+      "permissionsInteger": 328833821776,
+      "modules": {
+        "welcome": {
+          "channel": "welcome"
+        },
+        "xp": {
+          "levelupChannel": "levels",
+          "achievementChannel": "achievements",
+          "levelRolesFrom": "role.level.*"
+        },
+        "liveAlerts": {
+          "channel": "live-now"
+        },
+        "tournaments": {
+          "channels": [
+            "tournament-announcements",
+            "tournament-signups",
+            "tournament-results"
+          ]
+        },
+        "tickets": {
+          "channel": "open-ticket",
+          "privateThreadsWith": "team.support"
+        },
+        "tempVoice": {
+          "creatorChannel": "create-room"
+        },
+        "tiersSync": {
+          "mapping": {
+            "fundador": "tier.fundador",
+            "premium": "tier.premium",
+            "supporter": "tier.supporter",
+            "free": null
+          }
+        },
+        "verification": {
+          "channel": "verify",
+          "grants": [
+            "community.verified_streamer",
+            "community.member"
+          ]
+        },
+        "announcements": {
+          "channels": [
+            "announcements"
+          ],
+          "perLanguage": "{lang}.news",
+          "mentionRole": "notify.updates"
+        }
+      }
+    },
+    "feeds": {
+      "github-releases": "releases",
+      "github": "github",
+      "service-status": "service-status",
+      "audit-log": "audit-log",
+      "message-log": "message-log",
+      "mod-log": "mod-log",
+      "automod": "automod-alerts",
+      "tournaments": [
+        "tournament-announcements",
+        "tournament-results"
+      ],
+      "live-alerts": "live-now"
+    }
+  },
+  "manualSteps": [
+    "Crear el servidor «Decatron» con la cuenta personal (la API no entrega servidores a un bot de forma segura) y activar el doble factor.",
+    "Invitar al bot: con Administrador para la primera carga (activar Comunidad lo exige) y, después, quitarle ese permiso al rol del bot o usar el enlace de permisos mínimos (integrations.decatronBot.permissionsInteger).",
+    "Subir icono, banner (nivel 2 de boost) y descripción; la URL personalizada necesita nivel 3.",
+    "Revisar con una persona nativa los nombres y etiquetas de los idiomas con `reviewed: false` antes de activarlos.",
+    "Vincular el servidor al panel de Decatron (Configuración → Integraciones → Discord) y enlazar los roles de nivel por nombre con los del bot de XP.",
+    "Activar el Onboarding y las reglas con aceptación a mano (ver los dos pasos manuales anteriores) y comprobar el flujo con una cuenta de prueba."
+  ]
+}

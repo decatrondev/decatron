@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck, Clapperboard } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck, Clapperboard, MessagesSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -52,6 +52,14 @@ export default function AdminHub() {
             description: 'Disco, uso por canal y tope mensual de descargas del comando !clip',
             icon: <Clapperboard className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/clip-command',
+            ready: true
+        },
+        {
+            id: 'discord-server',
+            name: 'Servidor de Discord',
+            description: 'Vista previa y carga de la plantilla del servidor de Decatron en Discord',
+            icon: <MessagesSquare className="w-6 h-6 text-ds-accent-text" />,
+            route: '/admin/discord-server',
             ready: true
         },
         {

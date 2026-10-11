@@ -52,6 +52,7 @@ namespace Decatron.Data
         public DbSet<GameAlias> GameAliases { get; set; }
         public DbSet<KickCategoryCache> KickCategoryCache { get; set; }
         public DbSet<TitleGameSyncSetting> TitleGameSyncSettings { get; set; }
+        public DbSet<Decatron.Discord.Models.DiscordTemplateBinding> DiscordTemplateBindings { get; set; }
         public DbSet<CommandCounter> CommandCounters { get; set; }
         public DbSet<CommandUses> CommandUses { get; set; }
         public DbSet<ShoutoutConfig> ShoutoutConfigs { get; set; }

@@ -338,6 +338,9 @@ try
     builder.Services.AddScoped<IKickApiService, Decatron.Services.Platforms.Kick.KickApiService>();
     builder.Services.AddScoped<Decatron.Services.Platforms.Kick.KickCategoryService>();
     builder.Services.AddSingleton<Decatron.Services.Platforms.ChannelSyncService>();
+    builder.Services.AddSingleton<Decatron.Services.DiscordServer.IDiscordRest, Decatron.Services.DiscordServer.DiscordRest>();
+    builder.Services.AddSingleton<Decatron.Services.DiscordServer.IBindingStore, Decatron.Services.DiscordServer.DbBindingStore>();
+    builder.Services.AddSingleton<Decatron.Services.DiscordServer.ServerTemplateService>();
     builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickTitleCategoryHandler>();
     builder.Services.AddScoped<ISoundAlertTriggerService, Decatron.Services.SoundAlertTriggerService>();
     builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickOAuthClient>();

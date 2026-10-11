@@ -19,6 +19,7 @@ import WatchtimeConfig from './pages/commands/WatchtimeConfig';
 import RuletaConfig from './pages/commands/RuletaConfig';
 import ClipCommandConfig from './pages/commands/ClipCommandConfig';
 import ClipCommandAdmin from './pages/admin/ClipCommandAdmin';
+import DiscordServerAdmin from './pages/admin/DiscordServerAdmin';
 import PublicCommandsConfig from './pages/commands/PublicCommandsConfig';
 import FeaturesHub from './pages/features/FeaturesHub';
 import ModerationHub from './pages/features/ModerationHub';
@@ -375,6 +376,7 @@ function App() {
                     <Route path="admin/estilo" element={<SafeRoute name="Design Guide"><DesignGuide /></SafeRoute>} />
                     <Route path="admin/finance" element={<SafeRoute name="Finanzas"><Finance /></SafeRoute>} />
                     <Route path="admin/clip-command" element={<SafeRoute name="Clip Admin"><ClipCommandAdmin /></SafeRoute>} />
+                    <Route path="admin/discord-server" element={<SafeRoute name="Discord Server"><DiscordServerAdmin /></SafeRoute>} />
                     <Route path="admin/tts-credits" element={<SafeRoute name="TTS Credits"><TtsCreditsAdmin /></SafeRoute>} />
                     <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />
                     {/* Absorbido por Finanzas → Costos (plan FINANZAS_PLAN.md fase 5); la ruta vieja sigue viva para enlaces guardados. */}
