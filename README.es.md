@@ -43,6 +43,7 @@ Lo usan tres tipos de personas:
 | Chat con IA (`!ia`) | Google Gemini y OpenRouter con respaldo, configuración por canal y tiempos de espera |
 | Chat privado con IA | Conversaciones con IA dentro del panel, con auditoría de administración |
 | Speak chat | Mensajes del chat y canjes de puntos del canal leídos en voz alta con texto a voz |
+| Clip (`!clip`) | Crea un clip del directo desde el chat (Twitch): rangos, cooldowns, duración y título, mensajes editables e historial |
 | Ruleta (`!ruleta`) | Minijuego de chat: probabilidad configurable de un timeout aleatorio, con listas de protegidos y bloqueados |
 | Lista de bots | Catálogo global de bots conocidos con cambios por canal, usado para reconocer bots en el chat |
 

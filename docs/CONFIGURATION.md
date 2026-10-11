@@ -69,6 +69,7 @@ This file contains non-sensitive settings that are safe to share. These are the 
 | `EventSubSettings` | `ShardCount` | Number of WebSocket shards of the EventSub conduit (default 1) |
 | `LiveTranslation` | `SttModel`, `GeminiFallbackModel`, `SttCreditsPerSecond`, `MaxConcurrentChannels`, `MaxLanguagesPerChannel`, `LinkCodeMinutes`, `SmartSegmentation`, ..., `ClientTuning` | Live translation pipeline limits and client timing (hot-reloaded) |
 | `WheelOfLuck` | `Enabled` | Master switch of the Wheel module |
+| `ClipCommand` | `Enabled`, `MinFreeDiskGb`, `ConfirmTimeoutSeconds`, `ConfirmPollSeconds` | `!clip` master switch; free disk space (GB) under which the optional clip download pauses (10 by default, 0 turns the check off); how long (60 s) and how often (3 s) the bot waits for Twitch to finish a clip (hot-reloaded) |
 | `Fortnite` | `CurrentSeason` | Season used by the Fortnite modules |
 | `DecatronApi` | `BaseUrl`, `Enabled` | Optional link to the invoicing API |
 | `TtsCredits` | `TransitionEndsAt` | End date of the TTS credits transition |

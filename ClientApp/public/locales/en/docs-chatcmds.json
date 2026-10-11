@@ -195,5 +195,212 @@
         ]
       }
     ]
+  },
+  "clip": {
+    "title": "Clip (!clip)",
+    "subtitle": "Create a clip of the live stream from chat",
+    "cta": {
+      "to": "/commands/clip",
+      "label": "Go to settings"
+    },
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`!clip` creates a clip of what just happened on the live stream and posts the link in chat. Anyone the channel allows can type it. It is off by default: the streamer turns it on in Commands → Clip."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "It only works on Twitch. Kick doesn't let a bot create clips; there the command says it isn't available or stays silent, depending on what the streamer chose."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The clip is created with the streamer's own account, so on Twitch it shows as created by them. Who asked for it is recorded in Decatron's history."
+          }
+        ]
+      },
+      {
+        "id": "uso",
+        "title": "How to use it",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "You type",
+              "Result"
+            ],
+            "rows": [
+              [
+                "`!clip`",
+                "A clip with the channel's default duration (30 seconds unless they changed it)"
+              ],
+              [
+                "`!clip 20`, `!clip 20s` or `!clip 20 sec`",
+                "A 20-second clip"
+              ],
+              [
+                "`!clip 20 a great play`",
+                "A 20-second clip with that title"
+              ],
+              [
+                "`!clip a great play`",
+                "A clip with the default duration and that title"
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "If the first thing you type is a number, it is read as the duration. So `!clip 2024 recap` is read as a duration of 2024 seconds and the bot says it is out of range.",
+              "The duration goes from 5 to 60 seconds, which is what Twitch allows. The streamer can narrow it further.",
+              "The title can be up to 100 characters, and Twitch checks it with AutoMod.",
+              "The bot waits for Twitch to finish creating the clip (up to 60 seconds) and then writes the link. If it isn't ready in time, it says so and you can try again."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "quien",
+        "title": "Who can use it",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The streamer picks the minimum rank. Higher ranks can always use it."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Everyone (default), followers, subscribers, VIPs, moderators, lead moderators or the streamer only.",
+              "For «followers» the bot asks Twitch on every use; subscribers, VIPs and moderators pass without a check.",
+              "Blocked users can't use it, whatever their rank."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Cooldowns and limits",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Limit",
+              "Default",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "Channel cooldown",
+                "30 seconds",
+                "Minimum time between one clip and the next, from anyone. It also applies to moderators and the streamer"
+              ],
+              [
+                "Per-user cooldown",
+                "120 seconds",
+                "Each person waits that long before creating another clip. Moderators and above skip it, unless the streamer turns that off"
+              ],
+              [
+                "Limit per user and stream",
+                "No limit",
+                "How many clips each person can create in a single stream"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cooldowns are only spent when the request passes the checks and the channel is live. They are kept in memory: if the bot restarts, they start from zero."
+          }
+        ]
+      },
+      {
+        "id": "fallos",
+        "title": "When it can't be created",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The bot answers with a message depending on the reason:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "The channel isn't live: Twitch only allows clips during the stream.",
+              "The channel has clips turned off, or limited them to followers or subscribers.",
+              "The category being played doesn't allow clips.",
+              "The title didn't pass Twitch's filter.",
+              "The linked account is missing the clips permission: the streamer must link their Decatron account again.",
+              "Twitch is limiting clips right now or didn't respond; you can try again.",
+              "Duration out of range, duration or title not allowed, rank too low, blocked user, cooldown or stream limit."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Settings",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It's in Commands → Clip. Anyone with permission to configure the channel can see and change it."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Tab",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "General",
+                "Command switch, reply language (Spanish or English) and other names for the command (aliases). Minimum, default and maximum duration, and whether anyone can choose the duration. Whether a title is allowed and its length. What it does on Kick. Whether the video is also downloaded and how many days the history is kept"
+              ],
+              [
+                "Permissions",
+                "Minimum rank and list of blocked users"
+              ],
+              [
+                "Cooldowns",
+                "Channel cooldown, per-user cooldown, whether staff skip it, and the limit per user and stream"
+              ],
+              [
+                "Messages",
+                "The 21 texts the bot writes, in Spanish and English. An empty field uses Decatron's text. Each message shows the variables it accepts"
+              ],
+              [
+                "History",
+                "Every attempt, created or failed: who asked, with what rank, title, duration and link. You can filter it and remove records"
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Aliases are saved in lowercase and without «!», with letters, numbers and underscores, up to 10. The name `clip` always works.",
+              "While `!clip` is turned on in the channel, it answers that name before any custom command: if you already had one called `!clip`, it stops responding.",
+              "Moderators and above can choose the duration even if the channel doesn't allow it for everyone else. The title, on the other hand, is allowed or not for everybody."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardado",
+        "title": "Saving the clips",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "By default only the link and the history are saved. No video is downloaded.",
+              "If the streamer turns on «Also download the video», every clip created is downloaded to the platform archive. If the server is low on free space, downloads pause by themselves and the link keeps being saved. The administrator can set a monthly download limit per channel.",
+              "The history is kept for 90 days by default; you can change that or keep it forever. After that time the rows are deleted automatically, but downloaded videos are not.",
+              "When you remove a record from the history, the downloaded video is only deleted if the streamer confirms it and no other record uses it."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

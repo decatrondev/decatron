@@ -1,5 +1,6 @@
-import { Zap, MessageSquare, Code, Terminal, Settings, Clock, Globe, Crosshair } from 'lucide-react';
+import { Zap, MessageSquare, Code, Terminal, Settings, Clock, Globe, Crosshair, Clapperboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface CommandCard {
     id: string;
@@ -11,6 +12,7 @@ interface CommandCard {
 
 export default function CommandsHub() {
     const navigate = useNavigate();
+    const { t: tClip } = useTranslation('clipcommand');
 
     const cards: CommandCard[] = [
         {
@@ -54,6 +56,13 @@ export default function CommandsHub() {
             description: 'Ruleta rusa con timeout — probabilidad, duración y mensajes configurables',
             icon: <Crosshair className="w-6 h-6 text-ds-accent-text" />,
             route: '/commands/ruleta'
+        },
+        {
+            id: 'clip',
+            name: tClip('hub.name'),
+            description: tClip('hub.description'),
+            icon: <Clapperboard className="w-6 h-6 text-ds-accent-text" />,
+            route: '/commands/clip'
         },
         {
             id: 'public',

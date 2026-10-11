@@ -195,5 +195,212 @@
         ]
       }
     ]
+  },
+  "clip": {
+    "title": "Clip (!clip)",
+    "subtitle": "Crea un clip del directo desde el chat",
+    "cta": {
+      "to": "/commands/clip",
+      "label": "Ir a la configuración"
+    },
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`!clip` crea un clip de lo que acaba de pasar en el directo y publica el enlace en el chat. Lo puede escribir cualquier persona que el canal autorice. Por defecto está apagado: el streamer lo activa en Comandos → Clip."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Solo funciona en Twitch. Kick no permite crear clips desde un bot; allí el comando avisa que no está disponible o no responde, según lo que elija el streamer."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El clip se crea con la cuenta del propio streamer, así que en Twitch figura como creado por él. Quién lo pidió queda anotado en el historial de Decatron."
+          }
+        ]
+      },
+      {
+        "id": "uso",
+        "title": "Cómo se usa",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Escribes",
+              "Resultado"
+            ],
+            "rows": [
+              [
+                "`!clip`",
+                "Clip con la duración por defecto del canal (30 segundos si no la cambiaron)"
+              ],
+              [
+                "`!clip 20`, `!clip 20s` o `!clip 20 sec`",
+                "Clip de 20 segundos"
+              ],
+              [
+                "`!clip 20 una gran jugada`",
+                "Clip de 20 segundos con ese título"
+              ],
+              [
+                "`!clip una gran jugada`",
+                "Clip de duración por defecto con ese título"
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Si lo primero que escribes es un número, se lee como duración. Por eso `!clip 2024 recap` se interpreta como una duración de 2024 segundos y el bot avisa que está fuera de rango.",
+              "La duración va de 5 a 60 segundos, que es lo que permite Twitch. El streamer puede acotarla más.",
+              "El título puede tener hasta 100 caracteres, y Twitch lo revisa con AutoMod.",
+              "El bot espera a que Twitch termine de crear el clip (hasta 60 segundos) y entonces escribe el enlace. Si no está listo a tiempo, avisa y se puede intentar de nuevo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "quien",
+        "title": "Quién puede usarlo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El streamer elige el rango mínimo. Los rangos superiores siempre pueden usarlo."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Todos (por defecto), seguidores, suscriptores, VIP, moderadores, moderadores líderes o solo el streamer.",
+              "Para «seguidores» el bot consulta a Twitch en cada uso; los suscriptores, VIP y moderadores pasan sin consulta.",
+              "Los usuarios bloqueados no pueden usarlo, sin importar su rango."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Cooldowns y límites",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Límite",
+              "Por defecto",
+              "Detalle"
+            ],
+            "rows": [
+              [
+                "Cooldown del canal",
+                "30 segundos",
+                "Tiempo mínimo entre un clip y el siguiente, de cualquier persona. Vale también para moderadores y para el streamer"
+              ],
+              [
+                "Cooldown por usuario",
+                "120 segundos",
+                "Cada persona espera ese tiempo para volver a crear un clip. Los moderadores y superiores se lo saltan, salvo que el streamer lo desactive"
+              ],
+              [
+                "Tope por usuario y stream",
+                "Sin tope",
+                "Cuántos clips puede crear cada persona en un mismo directo"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los cooldowns solo se gastan cuando el pedido pasa las validaciones y el canal está en vivo. Se guardan en memoria: si el bot se reinicia, empiezan de cero."
+          }
+        ]
+      },
+      {
+        "id": "fallos",
+        "title": "Cuando no se puede crear",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El bot responde con un mensaje según el motivo:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "El canal no está en vivo: Twitch solo permite clips durante el directo.",
+              "El canal tiene los clips desactivados, o los limitó a seguidores o suscriptores.",
+              "La categoría que se está jugando no permite clips.",
+              "El título no pasó el filtro de Twitch.",
+              "Falta el permiso de clips en la cuenta vinculada: el streamer debe volver a vincular su cuenta de Decatron.",
+              "Twitch limita los clips en ese momento o no respondió; se puede intentar de nuevo.",
+              "Duración fuera de rango, duración o título no permitidos, rango insuficiente, usuario bloqueado, cooldown o tope por stream."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Configuración",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Está en Comandos → Clip. Lo ve y lo cambia quien tenga permiso para configurar el canal."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Pestaña",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "General",
+                "Interruptor del comando, idioma de las respuestas (español o inglés) y otros nombres del comando (alias). Duración mínima, por defecto y máxima, y si cualquiera puede elegir la duración. Si se permite título y su largo. Qué hace en Kick. Si se descarga también el video y cuántos días se conserva el historial"
+              ],
+              [
+                "Permisos",
+                "Rango mínimo y lista de usuarios bloqueados"
+              ],
+              [
+                "Cooldowns",
+                "Cooldown del canal, cooldown por usuario, si el staff se lo salta y el tope por usuario y stream"
+              ],
+              [
+                "Mensajes",
+                "Los 21 textos que escribe el bot, en español e inglés. Un campo vacío usa el texto de Decatron. Cada mensaje muestra las variables que acepta"
+              ],
+              [
+                "Historial",
+                "Cada intento, creado o fallido: quién lo pidió, con qué rango, título, duración y enlace. Se puede filtrar y quitar registros"
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Los alias se guardan en minúsculas y sin «!», con letras, números y guion bajo, hasta 10. El nombre `clip` siempre funciona.",
+              "Mientras `!clip` esté activado en el canal, atiende ese nombre antes que cualquier comando personalizado: si ya tenías uno llamado `!clip`, deja de responder.",
+              "Los moderadores y superiores pueden elegir la duración aunque el canal no se lo permita al resto. El título, en cambio, lo permite o no para todos."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "guardado",
+        "title": "Guardado de los clips",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Por defecto solo se guarda el enlace y el historial. No se baja ningún video.",
+              "Si el streamer activa «Descargar también el video», cada clip creado se descarga al archivo de la plataforma. Si queda poco espacio libre en el servidor, la descarga se pausa sola y se sigue guardando el enlace. El administrador puede fijar un tope mensual de descargas por canal.",
+              "El historial se conserva 90 días por defecto; se puede cambiar o conservar para siempre. Al pasar ese tiempo las filas se borran solas, pero los videos descargados no.",
+              "Al quitar un registro del historial, el video descargado solo se borra si el streamer lo confirma y ningún otro registro lo usa."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

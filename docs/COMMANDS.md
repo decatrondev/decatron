@@ -16,6 +16,7 @@ Reference for the Decatron bot commands: the built-in commands, custom commands,
 - [Song Request Commands](#song-request-commands)
 - [Wheel and Raffle Commands](#wheel-and-raffle-commands)
 - [Roulette Command](#roulette-command)
+- [Clip Command](#clip-command)
 - [Moderation Commands and System](#moderation-commands-and-system)
 - [Giveaway Commands](#giveaway-commands)
 - [Gacha, Spirits and Other Commands](#gacha-spirits-and-other-commands)
@@ -413,6 +414,34 @@ Credits come from bits, gifted subs, donations, channel point rewards or deca co
 | Targets | Allow aiming at yourself; allow aiming at moderators (the bot removes the mod role, applies the timeout and restores it automatically) |
 | Special users | Protected users can never be targeted; blocked users cannot use the command. The streamer is always immune |
 | Messages | Several hit/miss messages (and separate self-target ones) with `{shooter}`, `{target}` and `{seconds}` |
+
+---
+
+## Clip Command
+
+`!clip` creates a clip of what just happened on the live stream and posts the link in chat. It only works on Twitch (Kick has no public endpoint to create clips; there it says it is not available or stays silent, per channel). It is off until the streamer turns it on in Commands → Clip. The clip is created with the streamer's own Twitch account (scope `clips:edit`), so it shows as created by them; who asked is stored in the history.
+
+| You type | Result |
+|----------|--------|
+| `!clip` | Clip with the channel's default duration (30 s) |
+| `!clip 20`, `!clip 20s`, `!clip 20 sec` | 20-second clip |
+| `!clip 20 a great play` | 20-second clip with that title |
+| `!clip a great play` | Default duration with that title |
+
+If the first word is a number it is read as the duration (`!clip 2024 recap` is out of range). Twitch accepts 5 to 60 seconds and titles of up to 100 characters (checked by AutoMod). The bot waits up to 60 s for Twitch to finish the clip before posting the link.
+
+| Setting | Description |
+|---------|-------------|
+| Minimum rank | Everyone (default), followers, subscribers, VIPs, moderators, lead moderators or streamer only. Higher ranks always pass. "Followers" asks Twitch on every use |
+| Blocked users | Cannot use the command, whatever their rank |
+| Cooldowns | Channel (30 s) and per user (120 s); moderators and above skip the per-user one unless turned off. Optional limit per user and stream. Kept in memory: a bot restart resets them |
+| Duration and title | Minimum, default and maximum duration; whether viewers can choose the duration (moderators and above always can) and set a title; title length |
+| Aliases | Up to 10 extra names. While the command is on it answers before any custom command with the same name |
+| Messages | 21 texts in Spanish and English, editable per channel; empty = Decatron's text |
+| Download | Off by default (only the link is saved). When on, each clip is downloaded to the platform archive; it pauses by itself when the server is low on free space, and an admin can set a monthly cap per channel |
+| History | Every attempt (created or failed), kept 90 days by default or forever. Removing a record can also delete the downloaded video, only if no other record uses it |
+
+The channel panel talks to `/api/clipcommand/*` (permission `settings`); the admin summary and the monthly download cap are under `/api/admin/clipcommand/*`.
 
 ---
 

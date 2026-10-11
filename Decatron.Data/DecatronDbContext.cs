@@ -153,6 +153,9 @@ namespace Decatron.Data
         public DbSet<Core.Models.Brand.BrandSlot> BrandSlots { get; set; }
         public DbSet<Core.Models.Design.DesignVersion> DesignVersions { get; set; }
         public DbSet<Core.Models.SongRequest.SongTrack> SongTracks { get; set; }
+        public DbSet<Core.Models.ClipCommand.ClipCommandConfig> ClipCommandConfigs { get; set; }
+        public DbSet<Core.Models.ClipCommand.ClipCommandBlock> ClipCommandBlocks { get; set; }
+        public DbSet<Core.Models.ClipCommand.ClipCommandHistoryItem> ClipCommandHistory { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestConfig> SongRequestConfigs { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestQueueItem> SongRequestQueue { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestHistoryItem> SongRequestHistory { get; set; }
@@ -900,6 +903,14 @@ namespace Decatron.Data
                 entity.HasIndex(e => new { e.Source, e.SourceId })
                     .IsUnique()
                     .HasDatabaseName("uq_song_request_tracks_source");
+            });
+            modelBuilder.Entity<Core.Models.ClipCommand.ClipCommandConfig>(entity =>
+            {
+                entity.HasIndex(e => e.UserId).IsUnique().HasDatabaseName("uq_clip_command_configs_user");
+            });
+            modelBuilder.Entity<Core.Models.ClipCommand.ClipCommandBlock>(entity =>
+            {
+                entity.HasIndex(e => new { e.UserId, e.TwitchUserId }).IsUnique().HasDatabaseName("uq_clip_command_blocks");
             });
             modelBuilder.Entity<Core.Models.SongRequest.SongRequestConfig>(entity =>
             {

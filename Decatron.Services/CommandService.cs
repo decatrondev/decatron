@@ -31,6 +31,7 @@ namespace Decatron.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Dictionary<string, ICommand> _commands;
         private readonly Decatron.Services.SongRequest.SongRequestChatHandler _songRequestHandler;
+        private readonly Decatron.Services.ClipCommand.ClipCommandService _clipCommand;
         private readonly Dictionary<string, Dictionary<string, string>> _microCommandsCache;
         private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
         private readonly IBotListService _botList;
@@ -44,9 +45,11 @@ namespace Decatron.Services
             IServiceScopeFactory serviceScopeFactory,
             Decatron.Services.Pets.PetEventBridge petEventBridge,
             Decatron.Services.SongRequest.SongRequestChatHandler songRequestHandler,
-            IBotListService botList)
+            IBotListService botList,
+            Decatron.Services.ClipCommand.ClipCommandService clipCommand)
         {
             _botList = botList;
+            _clipCommand = clipCommand;
             _songRequestHandler = songRequestHandler;
             _instanceId = ++_instanceCount;
             _petEventBridge = petEventBridge;
@@ -694,6 +697,15 @@ namespace Decatron.Services
                 {
                     var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
                     if (await _songRequestHandler.TryHandleAsync(ctx, _messageSender))
+                        return;
+                }
+
+                // 1f. !clip — solo si el canal lo activó (con sus alias); si no, sigue de largo
+                // (un !clip propio del streamer no se pierde por no usar el módulo)
+                if (commandName.StartsWith("!") && channelUserId != null)
+                {
+                    var clipCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                    if (await _clipCommand.TryHandleAsync(clipCtx, _messageSender))
                         return;
                 }
 

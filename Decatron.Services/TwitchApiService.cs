@@ -409,6 +409,94 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Un clip por su id (usa App Access Token). null si todavía no existe o falla.
+        /// </summary>
+        public async Task<TwitchClipData?> GetClipByIdAsync(string clipId)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"{TwitchApiBaseUrl}/clips?id={Uri.EscapeDataString(clipId)}");
+                var response = await SendWithAppTokenAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Error in GetClipByIdAsync ({StatusCode}) for {ClipId}", response.StatusCode, clipId);
+                    return null;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<TwitchApiResponse<TwitchClipData>>(json)?.data?.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetClipByIdAsync: {ClipId}", clipId);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Crea un clip del directo de un canal con el token del propio streamer (scope clips:edit).
+        /// Twitch responde 202 con el id y el clip se termina de crear después: hay que confirmarlo con
+        /// <see cref="GetClipByIdAsync"/>. Los códigos de error se traducen a los de <see cref="TwitchCreateClipResult"/>.
+        /// </summary>
+        public async Task<TwitchCreateClipResult> CreateClipAsync(string broadcasterId, string? title, decimal? durationSeconds)
+        {
+            try
+            {
+                var accessToken = await GetUserAccessTokenAsync(broadcasterId);
+                if (string.IsNullOrEmpty(accessToken))
+                    return TwitchCreateClipResult.Fail("no_token", 401);
+
+                var query = $"broadcaster_id={Uri.EscapeDataString(broadcasterId)}";
+                if (!string.IsNullOrWhiteSpace(title))
+                    query += $"&title={Uri.EscapeDataString(title)}";
+                if (durationSeconds.HasValue)
+                    query += $"&duration={durationSeconds.Value.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}";
+
+                var request = new HttpRequestMessage(HttpMethod.Post, $"{TwitchApiBaseUrl}/clips?{query}");
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+                var response = await _httpClient.SendAsync(request);
+                var body = await response.Content.ReadAsStringAsync();
+                var status = (int)response.StatusCode;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var created = JsonSerializer.Deserialize<TwitchApiResponse<TwitchCreatedClip>>(body)?.data?.FirstOrDefault();
+                    if (created == null || string.IsNullOrEmpty(created.id))
+                        return TwitchCreateClipResult.Fail("twitch_unavailable", status);
+                    return new TwitchCreateClipResult { Success = true, ClipId = created.id, EditUrl = created.edit_url, StatusCode = status };
+                }
+
+                var message = "";
+                try { message = JsonDocument.Parse(body).RootElement.GetProperty("message").GetString() ?? ""; } catch { }
+                var code = MapCreateClipError(status, message.ToLowerInvariant());
+                _logger.LogWarning("CreateClip falló en {BroadcasterId}: {Status} {Code} ({Message})", broadcasterId, status, code, message);
+                return TwitchCreateClipResult.Fail(code, status);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateClipAsync: {BroadcasterId}", broadcasterId);
+                return TwitchCreateClipResult.Fail("twitch_unavailable", 0);
+            }
+        }
+
+        private static string MapCreateClipError(int status, string message) => status switch
+        {
+            401 => "no_scope",
+            404 => "offline",
+            429 => "rate_limited",
+            403 when message.Contains("banned") || message.Contains("timed out") => "token_user_banned",
+            403 when message.Contains("follower") || message.Contains("subscriber") => "clips_restricted",
+            403 => "clips_disabled",
+            400 when message.Contains("automod") => "automod_title",
+            400 when message.Contains("categor") => "not_clippable",
+            400 => "bad_request",
+            >= 500 => "twitch_unavailable",
+            _ => "unknown"
+        };
+
+        /// <summary>
         /// Obtiene el canal actual (stream) para saber qué juego está jugando (usa App Access Token)
         /// </summary>
         public async Task<TwitchChannelData?> GetChannelAsync(string broadcasterId)
@@ -1296,6 +1384,37 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// ¿El usuario sigue el canal? Usa el token del streamer (moderator:read:followers). null si no se pudo saber.
+        /// </summary>
+        public async Task<bool?> IsFollowerAsync(string broadcasterId, string userId)
+        {
+            try
+            {
+                var token = await GetUserAccessTokenAsync(broadcasterId);
+                if (string.IsNullOrEmpty(token)) return null;
+
+                var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"{TwitchApiBaseUrl}/channels/followers?broadcaster_id={broadcasterId}&user_id={userId}");
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {token}");
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("IsFollowerAsync: {Status} en {BroadcasterId}", (int)response.StatusCode, broadcasterId);
+                    return null;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                return (JsonSerializer.Deserialize<TwitchFollowersResponse>(json)?.data?.Count ?? 0) > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in IsFollowerAsync: {BroadcasterId}", broadcasterId);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Obtiene todos los seguidores de un canal de Twitch con paginación
         /// </summary>
         public async Task<List<TwitchFollowerData>> GetChannelFollowersAsync(string broadcasterId)
@@ -1407,6 +1526,25 @@ namespace Decatron.Services
         public string created_at { get; set; } = "";
         public string thumbnail_url { get; set; } = "";
         public double duration { get; set; }
+    }
+
+    public class TwitchCreatedClip
+    {
+        public string id { get; set; } = "";
+        public string edit_url { get; set; } = "";
+    }
+
+    /// <summary>Resultado de pedir un clip a Twitch. ErrorCode: no_token, no_scope, offline, clips_disabled, clips_restricted, token_user_banned, automod_title, not_clippable, bad_request, rate_limited, twitch_unavailable, unknown.</summary>
+    public class TwitchCreateClipResult
+    {
+        public bool Success { get; set; }
+        public string? ClipId { get; set; }
+        public string? EditUrl { get; set; }
+        public string? ErrorCode { get; set; }
+        public int StatusCode { get; set; }
+
+        public static TwitchCreateClipResult Fail(string code, int status) =>
+            new() { Success = false, ErrorCode = code, StatusCode = status };
     }
 
     public class TwitchChannelData

@@ -121,6 +121,7 @@ try
     builder.Services.Configure<Decatron.Discord.Models.DiscordSettings>(builder.Configuration.GetSection("DiscordSettings"));
     builder.Services.Configure<KickSettings>(builder.Configuration.GetSection("KickSettings"));
     builder.Services.Configure<Decatron.Core.Settings.WheelOfLuckSettings>(builder.Configuration.GetSection(Decatron.Core.Settings.WheelOfLuckSettings.SectionName));
+    builder.Services.Configure<Decatron.Core.Settings.ClipCommandSettings>(builder.Configuration.GetSection(Decatron.Core.Settings.ClipCommandSettings.SectionName));
 
     // PostgreSQL DbContext
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -511,6 +512,8 @@ try
     builder.Services.AddSingleton<TwitchApiService>();
     builder.Services.AddSingleton<ShoutoutService>();
     builder.Services.AddSingleton<ClipDownloadService>();
+    builder.Services.AddSingleton<Decatron.Services.ClipCommand.ClipCommandService>();
+    builder.Services.AddHostedService<Decatron.Services.ClipCommand.ClipHistoryCleanupService>();
     builder.Services.AddSingleton<TwitchBotService>();
     builder.Services.AddSingleton<Lazy<TwitchBotService>>(provider =>
         new Lazy<TwitchBotService>(() => provider.GetRequiredService<TwitchBotService>()));

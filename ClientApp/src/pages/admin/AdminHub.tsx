@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck, Clapperboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -44,6 +44,14 @@ export default function AdminHub() {
             description: 'Ingresos, costos y beneficio de la plataforma',
             icon: <Wallet className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/finance',
+            ready: true
+        },
+        {
+            id: 'clip-command',
+            name: 'Comando !clip',
+            description: 'Disco, uso por canal y tope mensual de descargas del comando !clip',
+            icon: <Clapperboard className="w-6 h-6 text-ds-accent-text" />,
+            route: '/admin/clip-command',
             ready: true
         },
         {

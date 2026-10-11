@@ -156,6 +156,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 **Access** reflects the attributes declared on each route: `Public` means no attribute restricts it, `JWT` an authenticated user, `JWT + section` an authenticated user with the permission level that section requires (see [CONFIGURATION.md](CONFIGURATION.md#permission-system)). Some endpoints make extra checks in code, for example owner-only actions. Routes restricted to platform administrators (`RequireSystemOwner`) are not listed.
 
 <!-- BEGIN GENERATED ENDPOINTS -->
+
 ### Analytics
 
 | Method | Route | Access |
@@ -268,6 +269,19 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/chat-overlay/resolve/{channel}` | JWT |
 | `GET` | `/api/chat-overlay/status` | JWT + `moderation` |
 | `POST` | `/api/chat-overlay/test` | JWT + `moderation` |
+
+### Clip Command
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/clipcommand/blocks` | JWT + `settings` |
+| `POST` | `/api/clipcommand/blocks` | JWT + `settings` |
+| `DELETE` | `/api/clipcommand/blocks/{id}` | JWT + `settings` |
+| `GET` | `/api/clipcommand/config` | JWT + `settings` |
+| `PUT` | `/api/clipcommand/config` | JWT + `settings` |
+| `GET` | `/api/clipcommand/history` | JWT + `settings` |
+| `DELETE` | `/api/clipcommand/history/{id}` | JWT + `settings` |
+| `PUT` | `/api/clipcommand/messages` | JWT + `settings` |
 
 ### Coin
 
@@ -944,12 +958,12 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 | Method | Route | Access |
 |---|---|---|
-| `GET` | `/api/speakchat/config` | JWT |
-| `POST` | `/api/speakchat/config` | JWT |
+| `GET` | `/api/speakchat/config` | JWT + `overlays` |
+| `POST` | `/api/speakchat/config` | JWT + `overlays` |
 | `GET` | `/api/speakchat/config/overlay/{channelName}` | JWT |
-| `POST` | `/api/speakchat/overlay/reload` | JWT |
-| `POST` | `/api/speakchat/test` | JWT |
-| `GET` | `/api/speakchat/usage` | JWT |
+| `POST` | `/api/speakchat/overlay/reload` | JWT + `overlays` |
+| `POST` | `/api/speakchat/test` | JWT + `overlays` |
+| `GET` | `/api/speakchat/usage` | JWT + `overlays` |
 
 ### Spotify
 
@@ -1393,6 +1407,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/wheel/wheels/{id}/spins` | JWT + `overlays` |
 | `GET` | `/api/wheel/wheels/{id}/spins/export` | JWT + `overlays` |
 | `POST` | `/api/wheel/wheels/{id}/test-spin` | JWT + `overlays` |
+
 <!-- END GENERATED ENDPOINTS -->
 
 ---

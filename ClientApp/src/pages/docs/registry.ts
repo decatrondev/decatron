@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
     Clock, Bell, Gift, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
-    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Bot, UserCircle, Globe,
+    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Bot, UserCircle, Globe, Clapperboard,
 } from 'lucide-react';
 
 // REGISTRO ÚNICO de las páginas de documentación. De aquí salen el menú lateral, las tarjetas de
@@ -62,6 +62,7 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'commands-scripting', scopes: both, group: 'commands', path: 'commands/scripting', icon: Code, color: 'purple' },
     { id: 'commands-watchtime', scopes: priv, group: 'commands', path: 'commands/watchtime', icon: Clock, color: 'blue' },
     { id: 'commands-public', scopes: priv, group: 'commands', path: 'commands/public', icon: Globe, color: 'green' },
+    { id: 'commands-clip', scopes: both, group: 'commands', path: 'commands/clip', icon: Clapperboard, color: 'orange' },
     { id: 'ruleta', scopes: priv, group: 'commands', path: 'commands/ruleta', icon: Crosshair, color: 'red' },
 
     // — Referencia —

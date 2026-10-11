@@ -597,6 +597,10 @@
     "language": {
       "title": "Language",
       "description": "Interface and bot, Spanish or English"
+    },
+    "commands-clip": {
+      "title": "Clip",
+      "description": "Create a clip of the live stream from chat with !clip"
     }
   },
   "microCommands": {

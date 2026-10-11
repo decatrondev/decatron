@@ -16,6 +16,7 @@ Referencia de los comandos del bot de Decatron: los comandos por defecto, los co
 - [Comandos de Song Request](#comandos-de-song-request)
 - [Comandos de rueda y sorteo](#comandos-de-rueda-y-sorteo)
 - [Comando de ruleta](#comando-de-ruleta)
+- [Comando de clip](#comando-de-clip)
 - [Comandos y sistema de moderación](#comandos-y-sistema-de-moderación)
 - [Comandos de sorteo (giveaway)](#comandos-de-sorteo-giveaway)
 - [Gacha, Spirits y otros comandos](#gacha-spirits-y-otros-comandos)
@@ -413,6 +414,34 @@ Los créditos vienen de bits, subs regaladas, donaciones, recompensas de puntos 
 | Objetivos | Permitir apuntarse a uno mismo; permitir apuntar a moderadores (el bot quita el rol de moderador, aplica el timeout y lo restaura automáticamente) |
 | Usuarios especiales | Los protegidos nunca pueden ser objetivo; los bloqueados no pueden usar el comando. El streamer siempre es inmune |
 | Mensajes | Varios mensajes de acierto y fallo (y otros para cuando se apunta a sí mismo) con `{shooter}`, `{target}` y `{seconds}` |
+
+---
+
+## Comando de clip
+
+`!clip` crea un clip de lo que acaba de pasar en el directo y publica el enlace en el chat. Solo funciona en Twitch (Kick no tiene un endpoint público para crear clips; allí avisa que no está disponible o no responde, según el canal). Está apagado hasta que el streamer lo activa en Comandos → Clip. El clip se crea con la cuenta de Twitch del propio streamer (scope `clips:edit`), así que figura como creado por él; quién lo pidió queda en el historial.
+
+| Escribes | Resultado |
+|----------|-----------|
+| `!clip` | Clip con la duración por defecto del canal (30 s) |
+| `!clip 20`, `!clip 20s`, `!clip 20 sec` | Clip de 20 segundos |
+| `!clip 20 una gran jugada` | Clip de 20 segundos con ese título |
+| `!clip una gran jugada` | Duración por defecto con ese título |
+
+Si la primera palabra es un número, se lee como duración (`!clip 2024 recap` queda fuera de rango). Twitch acepta de 5 a 60 segundos y títulos de hasta 100 caracteres (los revisa AutoMod). El bot espera hasta 60 s a que Twitch termine el clip antes de publicar el enlace.
+
+| Ajuste | Descripción |
+|--------|-------------|
+| Rango mínimo | Todos (por defecto), seguidores, suscriptores, VIP, moderadores, moderadores líderes o solo el streamer. Los rangos superiores siempre pasan. «Seguidores» consulta a Twitch en cada uso |
+| Usuarios bloqueados | No pueden usar el comando, sin importar su rango |
+| Cooldowns | Del canal (30 s) y por usuario (120 s); los moderadores y superiores se saltan el de usuario salvo que se desactive. Tope opcional por usuario y stream. Están en memoria: reiniciar el bot los pone a cero |
+| Duración y título | Duración mínima, por defecto y máxima; si el viewer puede elegir la duración (los moderadores y superiores siempre pueden) y poner título; largo del título |
+| Alias | Hasta 10 nombres extra. Mientras el comando está activo, responde antes que cualquier comando personalizado con el mismo nombre |
+| Mensajes | 21 textos en español e inglés, editables por canal; vacío = texto de Decatron |
+| Descarga | Apagada por defecto (solo se guarda el enlace). Si se activa, cada clip se descarga al archivo de la plataforma; se pausa sola si queda poco espacio libre en el servidor y un administrador puede fijar un tope mensual por canal |
+| Historial | Cada intento (creado o fallido), 90 días por defecto o para siempre. Quitar un registro puede borrar también el video descargado, solo si ningún otro registro lo usa |
+
+El panel del canal usa `/api/clipcommand/*` (permiso `settings`); el resumen de administración y el tope mensual de descargas están en `/api/admin/clipcommand/*`.
 
 ---
 

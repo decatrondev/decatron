@@ -17,6 +17,8 @@ import ScriptingList from './pages/commands/ScriptingList';
 import ScriptingEditor from './pages/commands/ScriptingEditor';
 import WatchtimeConfig from './pages/commands/WatchtimeConfig';
 import RuletaConfig from './pages/commands/RuletaConfig';
+import ClipCommandConfig from './pages/commands/ClipCommandConfig';
+import ClipCommandAdmin from './pages/admin/ClipCommandAdmin';
 import PublicCommandsConfig from './pages/commands/PublicCommandsConfig';
 import FeaturesHub from './pages/features/FeaturesHub';
 import ModerationHub from './pages/features/ModerationHub';
@@ -296,6 +298,7 @@ function App() {
                     <Route path="variables" element={<VariablesDoc />} />
                     <Route path="commands/default" element={<DefaultCommandsDoc />} />
                     <Route path="commands/custom" element={<CustomCommandsDoc />} />
+                    <Route path="commands/clip" element={<ChatCommandsDoc page="clip" scope="public" />} />
                     <Route path="commands/microcommands" element={<MicrocommandsDoc />} />
                     <Route path="commands/scripting" element={<ScriptingCommandsDoc />} />
                     <Route path="overlays/shoutout" element={<ShoutoutOverlayDoc />} />
@@ -337,6 +340,7 @@ function App() {
                     <Route path="commands/scripting/edit/:id" element={<SafeRoute name="Script Editor"><ScriptingEditor /></SafeRoute>} />
                     <Route path="commands/watchtime" element={<SafeRoute name="Watchtime"><WatchtimeConfig /></SafeRoute>} />
                     <Route path="commands/ruleta" element={<SafeRoute name="Ruleta"><RuletaConfig /></SafeRoute>} />
+                    <Route path="commands/clip" element={<SafeRoute name="Clip"><ClipCommandConfig /></SafeRoute>} />
                     <Route path="commands/public" element={<SafeRoute name="Public Commands"><PublicCommandsConfig /></SafeRoute>} />
 
                     {/* Rutas de Gestión */}
@@ -370,6 +374,7 @@ function App() {
                     <Route path="admin/tts-lab" element={<SafeRoute name="TTS Lab"><TtsLab /></SafeRoute>} />
                     <Route path="admin/estilo" element={<SafeRoute name="Design Guide"><DesignGuide /></SafeRoute>} />
                     <Route path="admin/finance" element={<SafeRoute name="Finanzas"><Finance /></SafeRoute>} />
+                    <Route path="admin/clip-command" element={<SafeRoute name="Clip Admin"><ClipCommandAdmin /></SafeRoute>} />
                     <Route path="admin/tts-credits" element={<SafeRoute name="TTS Credits"><TtsCreditsAdmin /></SafeRoute>} />
                     <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />
                     {/* Absorbido por Finanzas → Costos (plan FINANZAS_PLAN.md fase 5); la ruta vieja sigue viva para enlaces guardados. */}
@@ -460,6 +465,7 @@ function App() {
                         <Route path="commands/microcommands" element={<MicrocommandsDoc />} />
                         <Route path="commands/scripting" element={<ScriptingCommandsDoc />} />
                         <Route path="commands/watchtime" element={<ChatCommandsDoc page="watchtime" scope="private" />} />
+                        <Route path="commands/clip" element={<ChatCommandsDoc page="clip" scope="private" />} />
                         <Route path="commands/public" element={<ChatCommandsDoc page="public" scope="private" />} />
                     {/* Overlays */}
                         <Route path="overlays" element={<OverlaysGuide />} />

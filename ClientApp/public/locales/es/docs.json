@@ -597,6 +597,10 @@
     "language": {
       "title": "Idioma",
       "description": "Interfaz y bot, español o inglés"
+    },
+    "commands-clip": {
+      "title": "Clip",
+      "description": "Crea un clip del directo desde el chat con !clip"
     }
   },
   "microCommands": {

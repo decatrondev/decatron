@@ -111,7 +111,7 @@ Decatron/
 |   +-- Models/                         # EF Core entities
 |   +-- OAuth/                          # OAuthBearerHandler, RequireScopeAttribute, DecatronScopes
 |   +-- Hubs/                           # OverlayHub, TranslationHub
-|   +-- Settings/                       # POCOs: Jwt, Twitch, Kick, Gacha, AwsPolly, Email, WheelOfLuck
+|   +-- Settings/                       # POCOs: Jwt, Twitch, Kick, Gacha, AwsPolly, Email, WheelOfLuck, ClipCommand
 |   +-- Services/                       # ModerationService, FollowersService, Moderation/
 |   +-- Scripting/                      # ScriptParser, ScriptValidator, ScriptExecutor, AST models
 |   +-- Functions/, Resolvers/          # Script functions and template variables
@@ -901,6 +901,7 @@ Modules 01-21 come from the original codebase audit; later modules are appended 
 | 37 | **Bot list** | Global catalog of known bots (kept by the platform owner) with per-channel changes, used to recognise bots in chat | `BotListController`, `BotListService` | `features/BotList.tsx` |
 | 38 | **Brand and design system** | Logo management and the live-editable design tokens used by the dashboard and public site | `BrandController`, `DesignController`, `BrandService`, `DesignService` | `src/brand/`, `src/design/`, `components/ds/` |
 | 39 | **Platform administration** | Admin-only controllers and pages (users, mods, AI costs, finance, e-mail, dev docs, project analysis). Documented here at architecture level only | `Admin*Controller`, `FinanceAdminController`, `EmailAdminController`, `DevDocsController`, `ProjectAnalysisController`, all protected by `RequireSystemOwner` | `pages/admin/*` |
+| 40 | **Clip command** | `!clip` creates a clip of the live stream from chat (Twitch only; Kick has no public endpoint for it). Per-channel settings: minimum rank, blocked users, channel and per-user cooldowns, per-stream limit, duration and title rules, aliases, 21 editable messages in Spanish and English. The clip is created with the streamer's token and confirmed against Get Clips (up to 60 s). History of every attempt with a daily cleanup by retention days; optional download to the platform archive that pauses when free disk space drops below a threshold. Admin summary and monthly download cap | `ClipCommandService` (also the chat entry point `TryHandleAsync`, step 1f of `CommandService`), `ClipHistoryCleanupService`, `ClipCommandController`, `ClipCommandAdminController`, `TwitchApiService` (`CreateClipAsync`, `GetClipByIdAsync`, `IsFollowerAsync`), `ClipArgsParser`, `ClipMessages`, `ClipCommandSettings` | `commands/ClipCommandConfig.tsx`, `commands/clip/`, `admin/ClipCommandAdmin.tsx` |
 
 ---
 
@@ -1147,6 +1148,7 @@ graph TD
 | `WatchTimeBackgroundService` | 60 s | Updates viewer watch times |
 | `WatchtimeLurkerTrackingService` | 90 s | Tracks lurkers by polling the chatters list |
 | `RuletaBackgroundService` | 10 s | Restores the moderator when a `!ruleta` timeout against a moderator expires |
+| `ClipHistoryCleanupService` | 24 h | Deletes `!clip` history rows older than each channel's retention days (never the downloaded videos) |
 | `PanicModeBackgroundService` | 15 s | Ends expired panic modes and reloads active ones on startup |
 | `SongListenStatsCleanupService` | Periodic | Cleans Song Request listening statistics |
 | `GameDataPollingService` | Per plan limits | Polls game data for the game and live overlays |

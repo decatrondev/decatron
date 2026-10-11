@@ -43,6 +43,7 @@ Three kinds of people use it:
 | AI chat (`!ia`) | Google Gemini and OpenRouter with fallback, per-channel configuration and cooldowns |
 | Private AI chat | AI conversations inside the dashboard, with admin audit |
 | Speak chat | Chat messages and channel point redemptions read aloud with text-to-speech |
+| Clip (`!clip`) | Creates a clip of the live stream from chat (Twitch): ranks, cooldowns, duration and title, editable messages and history |
 | Roulette (`!ruleta`) | Chat mini-game: a configurable chance of a random timeout, with protected and blocked lists |
 | Bot list | Global catalog of known bots with per-channel changes, used to recognise bots in chat |
 
