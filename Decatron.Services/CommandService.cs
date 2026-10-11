@@ -52,6 +52,8 @@ namespace Decatron.Services
         {
             _botList = botList;
             _kickTitleCategory = kickTitleCategory;
+            // Tras un !g set / !g remove en Kick, el caché de micro comandos se recarga (el handler no puede depender de CommandService)
+            _kickTitleCategory.OnMicroCommandsChanged = RefreshMicroCommandsForChannelAsync;
             _clipCommand = clipCommand;
             _songRequestHandler = songRequestHandler;
             _instanceId = ++_instanceCount;
@@ -752,6 +754,19 @@ namespace Decatron.Services
                     _logger.LogInformation($"Ejecutando comando !g por {username} en {channel}");
                     await ProcessGCommand(username, channel, chatMessage);
                     return;
+                }
+
+                // 3a. MICRO COMANDOS EN KICK: se guardan por cuenta (login de la fila principal), no por el id numérico del chat de Kick
+                if (platform == "kick" && commandName.StartsWith("!") && channelUserId != null)
+                {
+                    var microOwner = await _kickTitleCategory.MicroOwnerLoginAsync(channelUserId.Value);
+                    if (microOwner != null && _microCommandsCache.TryGetValue(microOwner, out var kickMicros)
+                        && kickMicros.TryGetValue(commandName.Substring(1), out var kickCategory))
+                    {
+                        var microCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                        await _kickTitleCategory.RunMicroAsync(microCtx, _messageSender, commandName, kickCategory);
+                        return;
+                    }
                 }
 
                 // 3. MICRO COMANDOS (requieren !)

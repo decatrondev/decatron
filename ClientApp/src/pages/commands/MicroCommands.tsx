@@ -1,7 +1,7 @@
-import { Plus, Pencil, Trash2, Save, Zap, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import GameAutocomplete, { type GameOption } from '../../components/GameAutocomplete';
@@ -10,7 +10,6 @@ import PageHeader from '../../components/dashboard/PageHeader';
 import ModalShell from '../../components/dashboard/ModalShell';
 import { AccessDenied, LoadingText, PermissionNotice } from '../../components/dashboard/Notices';
 import { ToastHost, useToast } from '../../components/dashboard/toast';
-import { parseJwtClaims } from '../../utils/jwt';
 
 interface MicroCommand {
     id: number;
@@ -27,16 +26,6 @@ export default function MicroCommands() {
     const navigate = useNavigate();
     const [commands, setCommands] = useState<MicroCommand[]>([]);
     const [loading, setLoading] = useState(true);
-    // Los micro comandos son, en el fondo, atajos para GameUtils.UpdateCategoryAsync
-    // (ver CommandService.cs:775 — TODOS pasan por el mismo handler que cambia la
-    // categoria del stream) — misma API que !game, que Kick ya soporta pero que
-    // todavia no conectamos de nuestro lado. Es una sola feature, no comandos
-    // individuales, asi que se opaca la pagina entera en vez de item por item
-    // como en Default Commands. Ver plan, seccion 8.17/8.18.
-    const isKickSession = useMemo(() => {
-        const claims = parseJwtClaims(localStorage.getItem('token'));
-        return (claims.AuthProvider || 'twitch') === 'kick';
-    }, []);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingCommand, setEditingCommand] = useState<MicroCommand | null>(null);
@@ -49,10 +38,6 @@ export default function MicroCommands() {
     const canDelete = hasMinimumLevel('moderation');
 
     useEffect(() => {
-        if (isKickSession) {
-            setLoading(false);
-            return;
-        }
         if (!permissionsLoading && hasMinimumLevel('commands')) {
             loadMicroCommands();
         }
@@ -165,22 +150,6 @@ export default function MicroCommands() {
                 backLabel={t('microCommands.accessDenied.backButton')}
                 onBack={() => navigate('/dashboard')}
             />
-        );
-    }
-
-    if (isKickSession) {
-        return (
-            <div className="flex flex-col items-center justify-center py-16">
-                <div className="bg-ds-surface border border-ds-border rounded-lg p-8 max-w-md text-center">
-                    <Clock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
-                    <h2 className="text-2xl font-black text-ds-text mb-2">
-                        {t('microCommands.header.title')} — Próximamente en Kick
-                    </h2>
-                    <p className="text-ds-soft">
-                        Kick ya soporta cambiar la categoría del stream por API, pero todavía no lo conectamos de nuestro lado. Vas a poder crear micro comandos aquí apenas esté listo.
-                    </p>
-                </div>
-            </div>
         );
     }
 

@@ -122,7 +122,8 @@
     "success": "¡Categoría cambiada a: {0}! (usando {1})",
     "error_change": "Error al cambiar la categoría usando {0}.",
     "error_generic": "Error al procesar el micro comando.",
-    "error_channel_info": "Error: No se pudo obtener información del canal."
+    "error_channel_info": "Error: No se pudo obtener información del canal.",
+    "relink": "El streamer debe volver a vincular su cuenta de Kick para permitir este cambio."
   },
   "dtimer_cmd": {
     "usage": "⏱️ Uso: !dtimer 5m | !dtimer 1h30m | !dtimer add 1h | !dtimer remove 30s",

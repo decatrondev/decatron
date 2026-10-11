@@ -82,6 +82,37 @@ namespace Decatron.Services.Platforms.Kick
             }
         }
 
+        /// <summary>Para el autocompletado del panel: coincidencias del caché y de la API, la exacta y las que empiezan igual primero.</summary>
+        public async Task<List<KickCategory>> SearchAsync(string query, string accessToken, int limit = 10)
+        {
+            query = (query ?? "").Trim();
+            if (query.Length < 2) return new List<KickCategory>();
+            try
+            {
+                var t = query.ToLowerInvariant();
+                var results = (await _db.KickCategoryCache.AsNoTracking().Where(c => c.Name.ToLower().Contains(t))
+                    .OrderByDescending(c => c.UsageCount).Take(limit).ToListAsync())
+                    .Select(c => new KickCategory(c.CategoryId, c.Name, c.Thumbnail)).ToList();
+
+                if (results.Count < limit)
+                {
+                    var api = await _kick.SearchCategoriesAsync(accessToken, query);
+                    if (api.Count > 0) await SaveAsync(api);
+                    foreach (var r in api.Where(a => results.All(x => x.Id != a.Id))) results.Add(r);
+                }
+
+                var n = Normalize(query);
+                return results
+                    .OrderBy(r => Normalize(r.Name) == n ? 0 : r.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
+                    .Take(limit).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Kick] Error buscando categorías '{Query}'", query);
+                return new List<KickCategory>();
+            }
+        }
+
         private async Task<KickCategoryCache?> FindInCacheAsync(string term, bool includeContains)
         {
             var t = term.Trim().ToLowerInvariant();

@@ -37,7 +37,7 @@ Los registra `CommandService` al iniciar; están disponibles cuando el bot está
 | `!game` | `!g` | Cambia o consulta la categoría/juego del stream | Consultar: todos. Cambiar: streamer y moderadores | `!game`, `!game Just Chatting` |
 | `!g` | | Gestión de categorías y microcomandos (ver abajo) | | `!g`, `!g Just Chatting` |
 
-En Kick, `!title`/`!t` y `!game`/`!g` también funcionan, con las mismas reglas que en Twitch (cualquiera puede consultar; cambiar requiere al streamer, a un moderador o el permiso de moderación del panel). El bot usa la cuenta de Kick del streamer (permiso `channel:write`, que ya se pide al entrar; si falta, el bot le pide al streamer volver a vincular Kick). Kick solo devuelve el título y la categoría actuales mientras el canal está en vivo, así que consultarlos sin directo responde eso. La categoría se busca en la API de Kick con los mismos alias que en Twitch (`lol`, `chatting`...) y un caché local, y el bot responde con el nombre real que dejó. Los micro comandos todavía no funcionan en Kick.
+En Kick, `!title`/`!t` y `!game`/`!g` también funcionan, con las mismas reglas que en Twitch (cualquiera puede consultar; cambiar requiere al streamer, a un moderador o el permiso de moderación del panel). El bot usa la cuenta de Kick del streamer (permiso `channel:write`, que ya se pide al entrar; si falta, el bot le pide al streamer volver a vincular Kick). Kick solo devuelve el título y la categoría actuales mientras el canal está en vivo, así que consultarlos sin directo responde eso. La categoría se busca en la API de Kick con los mismos alias que en Twitch (`lol`, `chatting`...) y un caché local, y el bot responde con el nombre real que dejó. Los micro comandos también funcionan en Kick (ver más abajo).
 
 #### Subcomandos de `!g`
 
@@ -259,7 +259,7 @@ En el panel (Comandos > Scripting) el editor ofrece resaltado de sintaxis, valid
 
 ## Microcomandos
 
-Los microcomandos son atajos de cada canal que cambian la categoría del stream.
+Los microcomandos son atajos de cada canal que cambian la categoría del stream. Son de la cuenta: un microcomando creado en un canal con Twitch y Kick vinculados funciona en los dos chats (cada plataforma cambia su propia categoría), y `!g set`, `!g remove`, `!g list` y `!g help` también funcionan en el chat de Kick.
 
 1. Un moderador o el streamer asigna un `!comando` a un nombre de juego/categoría.
 2. Cuando alguien con permiso lo escribe, el bot cambia la categoría.
@@ -282,7 +282,7 @@ Estos nombres no pueden usarse como microcomandos: `!g`, `!game`, `!set`, `!remo
 
 ### Búsqueda de juegos
 
-Los nombres de juegos se resuelven con una búsqueda híbrida: primero los alias locales, luego la tabla `game_cache` y después la API de Twitch (y el resultado se guarda en caché local).
+Los nombres de juegos se resuelven con una búsqueda híbrida: primero los alias locales, luego la tabla `game_cache` y después la API de Twitch (y el resultado se guarda en caché local). En Kick los mismos alias dan el nombre, que luego se busca en la tabla `kick_category_cache` y en la API de categorías de Kick (también con caché). Para una cuenta que solo tiene Kick, el autocompletado del panel busca en las categorías de Kick.
 
 ### API de microcomandos
 

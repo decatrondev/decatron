@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -503,6 +504,23 @@ namespace Decatron.Default.Controllers
                         success = true,
                         games = new List<object>(),
                         message = "Query debe tener al menos 2 caracteres"
+                    });
+                }
+
+                // Cuenta solo de Kick (sin Twitch): las categorías salen de la API de Kick
+                var owner = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == GetChannelOwnerId());
+                if (owner != null && string.IsNullOrEmpty(owner.TwitchId) && !string.IsNullOrEmpty(owner.KickId))
+                {
+                    var kickToken = await Decatron.Services.Platforms.Kick.KickChannelTokens.GetValidAsync(HttpContext.RequestServices, owner, _logger);
+                    var kickCategories = string.IsNullOrEmpty(kickToken)
+                        ? new List<Decatron.Core.Models.KickCategory>()
+                        : await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Platforms.Kick.KickCategoryService>().SearchAsync(q, kickToken, limit);
+                    return Ok(new
+                    {
+                        success = true,
+                        games = kickCategories.Select(c => new { id = c.Id.ToString(), name = c.Name, boxArtUrl = c.Thumbnail, source = "kick" }),
+                        query = q,
+                        total = kickCategories.Count
                     });
                 }
 

@@ -37,7 +37,7 @@ Registered at startup by `CommandService`; they are available when the bot is en
 | `!game` | `!g` | Change or check the stream category/game | Check: everyone. Change: streamer and moderators | `!game`, `!game Just Chatting` |
 | `!g` | | Category and micro command management (see below) | | `!g`, `!g Just Chatting` |
 
-On Kick, `!title`/`!t` and `!game`/`!g` work too, with the same rules as Twitch (anyone can check; changing needs the streamer, a moderator or the moderation permission from the panel). The bot uses the streamer's Kick account (permission `channel:write`, already requested at login; if it is missing the bot asks the streamer to link Kick again). Kick only returns the current title and category while the channel is live, so checking them offline answers that. The category is searched through Kick's API with the same aliases as Twitch (`lol`, `chatting`...) plus a local cache, and the bot replies with the real name it set. Micro commands do not work on Kick yet.
+On Kick, `!title`/`!t` and `!game`/`!g` work too, with the same rules as Twitch (anyone can check; changing needs the streamer, a moderator or the moderation permission from the panel). The bot uses the streamer's Kick account (permission `channel:write`, already requested at login; if it is missing the bot asks the streamer to link Kick again). Kick only returns the current title and category while the channel is live, so checking them offline answers that. The category is searched through Kick's API with the same aliases as Twitch (`lol`, `chatting`...) plus a local cache, and the bot replies with the real name it set. Micro commands work on Kick too (see below).
 
 #### `!g` subcommands
 
@@ -259,7 +259,7 @@ In the dashboard (Commands > Scripting) the editor offers syntax highlighting, l
 
 ## Micro Commands
 
-Micro commands are channel-specific shortcuts that change the stream category.
+Micro commands are channel-specific shortcuts that change the stream category. They belong to the account: a micro command created for a channel with Twitch and Kick linked works in both chats (each platform changes its own category), and `!g set`, `!g remove`, `!g list` and `!g help` also work in Kick chat.
 
 1. A moderator or the streamer maps a `!command` to a game/category name.
 2. When someone with permission types it, the bot changes the category.
@@ -282,7 +282,7 @@ These names cannot be used as micro commands: `!g`, `!game`, `!set`, `!remove`, 
 
 ### Game search
 
-Game names are resolved with a hybrid search: local aliases first, then the `game_cache` table, then the Twitch API (and the result is cached locally).
+Game names are resolved with a hybrid search: local aliases first, then the `game_cache` table, then the Twitch API (and the result is cached locally). On Kick the same aliases give the name, which is then looked up in the `kick_category_cache` table and Kick's category API (cached as well). For an account that only has Kick, the dashboard autocomplete searches Kick's categories.
 
 ### Micro Commands API
 
