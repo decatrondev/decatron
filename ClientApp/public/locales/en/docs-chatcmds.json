@@ -1,0 +1,199 @@
+{
+  "watchtime": {
+    "title": "Watchtime (!watchtime)",
+    "subtitle": "How long each person has been watching the current stream",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`!watchtime` answers in the chat how long the person who types it has been watching today's stream. The counter is per broadcast: it resets when the stream ends."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "It only works on Twitch. On Kick the command answers that watch time is not available on that platform yet."
+          }
+        ]
+      },
+      {
+        "id": "como-cuenta",
+        "title": "How it is counted",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "It counts the time of whoever writes in the chat while the channel is live.",
+              "With Count lurkers on (it is by default) it also counts people watching without writing, using the list of viewers connected to the Twitch chat. The bots in your bot list do not add time."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "That time is also used by other modules: the \"watch time\" requirement and weight of Giveaways, and the Wheel and Raffle weights."
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Settings",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It is in Commands → Watchtime."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Enabled",
+                "Turns the command on or off."
+              ],
+              [
+                "Name / alias",
+                "The command can be renamed to anything you want (for example `!tiempo`)."
+              ],
+              [
+                "Global cooldown",
+                "Seconds between uses in the whole chat, from 0 to 60 (default 5)."
+              ],
+              [
+                "Per-user cooldown",
+                "Seconds each person must wait, from 0 to 300 (default 30)."
+              ],
+              [
+                "Permissions",
+                "Minimum level to use it: everyone, subscribers, VIPs, moderators, Lead Moderators or the streamer only. Higher levels can always use it."
+              ],
+              [
+                "Count lurkers",
+                "Also records people who do not write."
+              ],
+              [
+                "Only when live",
+                "If the channel is not live it does not answer. Off by default. Before answering it checks Twitch in real time."
+              ],
+              [
+                "Show position",
+                "Adds the person's place in the ranking of the current stream (on by default)."
+              ],
+              [
+                "Minimum time to answer",
+                "From 0 to 30 minutes; with 0 it always answers."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Messages and variables",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "There are four messages. The last three can be turned on or off:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Main message: the one sent normally. By default: \"@{user} you have been watching the stream for {hours} hour(s) {minutes} minute(s)\" (the default text is in Spanish; edit it to your language).",
+              "First time: if the person has not accumulated even a minute yet.",
+              "Not enough time: if they have not reached the minimum time to answer.",
+              "Stream offline: what is answered if you turned on \"Only when live\" and the channel is not streaming."
+            ]
+          },
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Replaced by"
+            ],
+            "rows": [
+              [
+                "{user}",
+                "The user who typed the command."
+              ],
+              [
+                "{hours}, {minutes}, {seconds}",
+                "The hours, minutes and seconds of the accumulated time (minutes and seconds go from 0 to 59)."
+              ],
+              [
+                "{total_minutes}",
+                "The accumulated time, in minutes."
+              ],
+              [
+                "{position}",
+                "The place in the ranking, like #3."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "public": {
+    "title": "Public commands page and !commands",
+    "subtitle": "A page with your commands for people who do not know which ones exist",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Your channel has a public page with the list of its commands, with no sign-in needed: `decatron.net/commands/your-channel`. It is meant to go in your channel's info panel or in a chat link."
+          },
+          {
+            "t": "p",
+            "x": "In the chat, `!commands` answers with that link. It has a 10-second wait per channel."
+          }
+        ]
+      },
+      {
+        "id": "contiene",
+        "title": "What it shows",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "The default commands you have enabled.",
+              "Your active custom commands, with their restriction.",
+              "Your micro commands and your scripts.",
+              "The Song Request commands, if that module is active."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Each command is shown with its name and a description; custom and Song Request commands also say who can use them."
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Choosing what is shown",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Commands → Public view you see your link (with a button to copy it) and the list of commands. For each one you can:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Hide it from the public page.",
+              "Write a public description different from the one it has."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Press save to publish the changes."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -367,5 +367,167 @@
         ]
       }
     ]
+  },
+  "coinsOverview": {
+    "title": "DecaCoins",
+    "subtitle": "La moneda de la plataforma, para el juego de cartas, la Rueda y el Gacha",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué son",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las DecaCoins son la moneda de Decatron. Son distintas de los créditos (que pagan la IA, la voz premium y la traducción) y de los puntos del canal de Twitch. Las vende Decatron: ninguna función de un canal puede regalarlas."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Se obtienen",
+              "Se gastan en"
+            ],
+            "rows": [
+              [
+                "Comprándolas con tarjeta, en paquetes o por una cantidad que elijas.",
+                "Sobres y mejoras de cartas del juego de coleccionables."
+              ],
+              [
+                "Por el sistema de referidos.",
+                "Créditos de la Rueda, con `!dcomprar`."
+              ],
+              [
+                "Recibiéndolas de otra cuenta, o como regalo del equipo.",
+                "Pulls del Gacha, con `!gcbuy`."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con cuenta, el manual de compra, transferencias y referidos está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "coins"
+          }
+        ]
+      }
+    ]
+  },
+  "coins": {
+    "title": "DecaCoins: compra, transferencias y referidos",
+    "subtitle": "Tu saldo, cómo comprar, enviar a otra cuenta e invitar amigos",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Dónde está",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Entra a Mi cuenta → DecaCoins (`/me/coins`). Arriba está tu balance."
+          }
+        ]
+      },
+      {
+        "id": "comprar",
+        "title": "Comprar",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Paquetes: los que muestra la página, con su precio en dólares.",
+              "Cantidad personalizada: de 100 a 5 000 coins por compra; 100 coins equivalen a US$1.",
+              "Código de descuento: si tienes uno, escríbelo antes de comprar para ver los precios rebajados."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "El pago es con tarjeta, en el formulario de Culqi. El precio en dólares se cobra en soles al tipo de cambio del momento. Antes de pagar confirmas tus datos de facturación y, al terminar, recibes tu comprobante electrónico en Mi cuenta → Mis comprobantes."
+          },
+          {
+            "t": "link",
+            "to": "credits-billing"
+          }
+        ]
+      },
+      {
+        "id": "transferir",
+        "title": "Transferir a otra cuenta",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Transferir Coins buscas a la persona por su usuario, escribes la cantidad y, si quieres, un mensaje. Hay límites definidos por la plataforma: una cantidad mínima por transferencia, una antigüedad mínima de la cuenta que envía y de la que recibe, y un máximo de transferencias y de monto por día."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Una cuenta con la economía suspendida no puede transferir ni recibir."
+          }
+        ]
+      },
+      {
+        "id": "referidos",
+        "title": "Referidos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada cuenta tiene un código de referido y un enlace para compartir. Cuando alguien entra con tu código y cumple la actividad mínima que fija la plataforma, el referido se completa y ambas cuentas reciben un bonus en coins."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Si alguien te invitó, escribe su código en Aplicar código de referido (solo se puede aplicar uno).",
+              "La página muestra cuántas personas invitaste, cuántos referidos están completados o pendientes y el bonus que ganaste."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "Historial",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El Historial de transacciones lista cada movimiento con su fecha, el tipo (compra, recibido, enviado, referido, regalo o ajuste del equipo), el monto, el balance que quedó y una descripción."
+          }
+        ]
+      },
+      {
+        "id": "usos",
+        "title": "En qué se gastan",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Dónde",
+              "Cómo"
+            ],
+            "rows": [
+              [
+                "Juego de coleccionables (Mi cuenta → TCG)",
+                "Compras sobres en la tienda y pagas las mejoras de nivel de tus cartas."
+              ],
+              [
+                "Rueda y Sorteo",
+                "Con `!dcomprar <coins>` cambias coins por créditos de la rueda de un canal."
+              ],
+              [
+                "Gacha",
+                "Con `!gcbuy [n]` compras pulls con coins."
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "wheel-credits"
+          }
+        ]
+      }
+    ]
   }
 }

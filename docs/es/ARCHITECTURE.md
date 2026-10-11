@@ -923,6 +923,23 @@ Los planes (tiers `free`, `supporter`, `premium` y `fundador`) los asigna `Suppo
 - **Vencimiento.** Los planes mensuales son períodos prepagados, no suscripciones: cuando pasa `tier_expires_at`, el usuario vuelve a resolverse como `free` y no se cobra nada. Los permanentes no tienen fecha de fin.
 - **Perfil de facturación y comprobantes.** `GET`/`PUT /api/supporters/billing-profile`, `GET /api/supporters/billing-profile/ruc/{ruc}` (consulta a SUNAT) y `GET /api/supporters/my-invoices` con `.../download/{pdf|xml|cdr}`; el mismo perfil lo usan las compras de créditos.
 
+### Cuentas, canales e idioma
+
+Una cuenta de Decatron puede unir varias identidades de plataforma. El JWT lleva `AuthProvider`, `TwitchId`, `KickId` y `DiscordId`; las sesiones de Twitch y de Kick reciben el panel completo y una sesión solo de Discord recibe el perfil, las tarjetas de rango y las DecaCoins (sin bot ni gestión de accesos).
+
+- **Vinculación.** `POST /api/auth/link-twitch-start` (desde una sesión de Discord), `POST /api/auth/link-account-start` (desde una sesión de Kick; vincula sin fusionar filas, así que cada canal conserva su propia configuración), `POST /api/auth/kick/link-start` y `POST /api/auth/discord/link-start`. Para desvincular están `unlink-twitch`, `unlink-account`, `kick/unlink` y `discord/unlink`. Solo el propietario vincula o desvincula; un editor con Control total ve las cuentas del propietario en solo lectura.
+- **Cambio de canal.** Entre los canales propios de la cuenta, `POST /api/auth/switch-channel` devuelve un JWT nuevo para el elegido. Para los canales donde se le dio acceso, `ChannelSwitchController` expone `GET /api/channel/available`, `POST /api/channel/switch` y `GET /api/channel/context`.
+- **Idioma.** `users.preferred_language` (`es` o `en`) es un solo ajuste: `GET`/`PUT /api/language` y `GET /api/language/supported` (`LanguageService`) gobiernan la interfaz, y las respuestas de los comandos usan el idioma del dueño del canal a través de `CommandMessagesService`. La lista de idiomas está en `ClientApp/src/i18n/languages.ts` y en `LanguageService`; el texto que escribe el streamer nunca se traduce.
+
+### DecaCoins
+
+Las DecaCoins son una moneda a nivel de cuenta guardada en `user_coins`, con un libro de movimientos solo de adición en `coin_transactions`. `CoinService` es el único lugar que otorga o gasta (`GiveCoinsAsync`, `SpendCoinsAsync`, `RemoveCoinsAsync`, `TransferCoinsAsync`).
+
+- **Compra.** `CoinController` (`/api/coins`): `packages`, `validate-code` (códigos de descuento), `billing-preview`, `buy`, `balance`, `history` y `my-invoices`. Una compra es un paquete o una cantidad libre de 100 a 5 000 coins a 100 coins por US$1; el precio en dólares se cobra en soles al tipo de cambio de la plataforma a través de Culqi, y el comprobante sigue el mismo perfil de facturación y la misma facturación electrónica que los créditos y los planes.
+- **Transferencias.** `search-users` y `transfer`. Los límites (monto mínimo, antigüedad mínima de la cuenta para enviar y para recibir, cantidad y monto diarios) viven en `coin_settings`; una cuenta con la economía suspendida no puede enviar ni recibir.
+- **Referidos.** `referral` y `referral/apply`: cada usuario tiene un código, el referido se completa cuando la cuenta invitada cumple la actividad mínima de `coin_settings` y ambas reciben el bonus configurado.
+- **Gasto.** Las compras de sobres y los pagos de mejoras del juego de coleccionables (`TcgCardsService`), el cambio por créditos de la Rueda (`WheelService`, `!dcomprar`) y los pulls del Gacha (`!gcbuy`) gastan coins; los dos primeros reembolsan solos si la entrega falla después del cobro. Los regalos y ajustes son endpoints de administración aparte, en `/api/admin/coins`, y ninguna función pensada para streamers crea coins.
+
 ### Plataforma Kick
 
 Kick es una segunda plataforma junto a Twitch. Un canal de Kick es su propia fila en `users` (`KickId`, tokens), y un canal de Twitch y uno de Kick de la misma persona se agrupan bajo una `Account`; los overlays usan la fila principal de la cuenta (la de Twitch si existe) para que ambas plataformas compartan un enlace y una configuración (ver el patrón de overlays multiplataforma en `.dev`).

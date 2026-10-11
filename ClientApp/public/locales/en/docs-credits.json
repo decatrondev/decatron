@@ -367,5 +367,167 @@
         ]
       }
     ]
+  },
+  "coinsOverview": {
+    "title": "DecaCoins",
+    "subtitle": "The platform's currency, for the card game, the Wheel and the Gacha",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What they are",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "DecaCoins are Decatron's currency. They are different from credits (which pay for AI, premium voice and translation) and from Twitch channel points. Decatron sells them: no channel feature can give them away."
+          },
+          {
+            "t": "table",
+            "head": [
+              "How you get them",
+              "What you spend them on"
+            ],
+            "rows": [
+              [
+                "Buying them by card, in packages or in an amount you choose.",
+                "Packs and card upgrades in the collectible game."
+              ],
+              [
+                "Through the referral system.",
+                "Wheel credits, with `!dcomprar`."
+              ],
+              [
+                "Receiving them from another account, or as a gift from the team.",
+                "Gacha pulls, with `!gcbuy`."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "With an account, the manual for buying, transfers and referrals is in the help panel:"
+          },
+          {
+            "t": "link",
+            "to": "coins"
+          }
+        ]
+      }
+    ]
+  },
+  "coins": {
+    "title": "DecaCoins: buying, transfers and referrals",
+    "subtitle": "Your balance, how to buy, send to another account and invite friends",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Where it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Go to My account → DecaCoins (`/me/coins`). Your balance is at the top."
+          }
+        ]
+      },
+      {
+        "id": "comprar",
+        "title": "Buying",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Packages: the ones the page shows, with their price in dollars.",
+              "Custom amount: from 100 to 5,000 coins per purchase; 100 coins equal US$1.",
+              "Discount code: if you have one, type it before buying to see the reduced prices."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Payment is by card, in the Culqi form. The price in dollars is charged in soles at the exchange rate of the moment. Before paying you confirm your billing details and, when done, you get your electronic receipt in My account → My receipts."
+          },
+          {
+            "t": "link",
+            "to": "credits-billing"
+          }
+        ]
+      },
+      {
+        "id": "transferir",
+        "title": "Transferring to another account",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Under Transfer Coins you look the person up by username, type the amount and, if you want, a message. There are limits set by the platform: a minimum amount per transfer, a minimum age of the sending and receiving accounts, and a maximum number of transfers and amount per day."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "An account with a suspended economy cannot transfer or receive."
+          }
+        ]
+      },
+      {
+        "id": "referidos",
+        "title": "Referrals",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each account has a referral code and a link to share. When someone signs up with your code and meets the minimum activity the platform sets, the referral is completed and both accounts receive a coin bonus."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "If someone invited you, type their code under Apply referral code (only one can be applied).",
+              "The page shows how many people you invited, how many referrals are completed or pending and the bonus you earned."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "History",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Transaction history lists each movement with its date, the type (purchase, received, sent, referral, gift or team adjustment), the amount, the resulting balance and a description."
+          }
+        ]
+      },
+      {
+        "id": "usos",
+        "title": "What they are spent on",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Where",
+              "How"
+            ],
+            "rows": [
+              [
+                "Collectible game (My account → TCG)",
+                "You buy packs in the shop and pay for your cards' level upgrades."
+              ],
+              [
+                "Wheel and Raffle",
+                "With `!dcomprar <coins>` you exchange coins for a channel's wheel credits."
+              ],
+              [
+                "Gacha",
+                "With `!gcbuy [n]` you buy pulls with coins."
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "wheel-credits"
+          }
+        ]
+      }
+    ]
   }
 }

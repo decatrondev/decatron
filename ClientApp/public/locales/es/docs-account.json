@@ -1,0 +1,353 @@
+{
+  "overview": {
+    "title": "Cuenta, canales e idioma",
+    "subtitle": "Cómo inicias sesión, cómo se unen tus canales y en qué idioma habla Decatron",
+    "sections": [
+      {
+        "id": "sesion",
+        "title": "Una cuenta para todo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "No hay contraseña de Decatron: inicias sesión con tu cuenta de Twitch, de Kick o de Discord (autenticación OAuth) y Decatron nunca guarda tu contraseña."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Entrar con",
+              "Qué abre"
+            ],
+            "rows": [
+              [
+                "Twitch",
+                "Acceso completo: el bot, los overlays y los comandos de tu canal, además del perfil."
+              ],
+              [
+                "Kick",
+                "Acceso completo: el bot, los overlays y los comandos de tu canal, además del perfil."
+              ],
+              [
+                "Discord",
+                "El perfil, las tarjetas de rango, el marketplace y las DecaCoins. Para usar el bot hay que vincular también Twitch o Kick."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Una sola cuenta de Decatron puede unir tu canal de Twitch, el de Kick y tu Discord. Se vinculan desde Ajustes después de iniciar sesión."
+          }
+        ]
+      },
+      {
+        "id": "canales",
+        "title": "Tus canales",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada canal tiene sus propios comandos, timers y overlays. Si unes Twitch y Kick en la misma cuenta, eliges cuál de los dos estás configurando y cambias entre ellos sin cerrar sesión. Si otra persona te dio acceso a su canal, también puedes entrar a configurarlo, con el nivel que ella te dio."
+          }
+        ]
+      },
+      {
+        "id": "idioma",
+        "title": "Idioma",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La interfaz está en español e inglés. El mismo ajuste decide en qué idioma escribe el bot en el chat de tu canal: en el idioma de la cuenta del dueño del canal, no en el de cada espectador."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con cuenta, el manual está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "platforms"
+          },
+          {
+            "t": "link",
+            "to": "language"
+          },
+          {
+            "t": "link",
+            "to": "settings"
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "title": "Configuración de la cuenta",
+    "subtitle": "Qué hay en Ajustes y para qué sirve cada pestaña",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Dónde está",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Entra a Ajustes (`/settings`) desde el selector de canal de la barra superior. Se necesita nivel de acceso Control total; con un nivel menor la página muestra «Acceso denegado»."
+          },
+          {
+            "t": "p",
+            "x": "Arriba verás tu nombre, tu plan, el canal que estás configurando y tus plataformas unidas como fichas: Twitch, Kick, Discord, Riot y Epic, encendidas las que tienen una cuenta vinculada. Si entraste con acceso delegado a un canal ajeno, aparece la etiqueta «Control total» y las cuentas se ven en solo lectura."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Las pestañas",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Pestaña",
+              "Qué contiene"
+            ],
+            "rows": [
+              [
+                "Mi cuenta",
+                "Las plataformas vinculadas (vincular y desvincular), tu plan y el idioma de la interfaz."
+              ],
+              [
+                "Canal y bot",
+                "Tus canales (para cambiar entre ellos), el interruptor del bot, la información del sistema y tu nivel de acceso."
+              ],
+              [
+                "Accesos",
+                "Quién más puede entrar a tu panel. No aparece en cuentas que solo tienen Discord."
+              ],
+              [
+                "Juegos",
+                "Tus cuentas de Riot y de Epic."
+              ],
+              [
+                "Integraciones",
+                "Tu servidor de Discord y la app de escritorio de Decatron."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bot",
+        "title": "El interruptor del bot",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Canal y bot puedes activar o desactivar por completo el bot en tu canal. En una cuenta que solo tiene Discord el interruptor aparece apagado y bloqueado con el aviso «Vincula tu cuenta de Twitch para activar el bot»."
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Si necesitas hacer una pausa larga, apagar el bot es más simple que desactivar los módulos uno por uno."
+          }
+        ]
+      },
+      {
+        "id": "sistema",
+        "title": "Información del sistema",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Versión: la del bot.",
+              "ID Único: tu identificador en Decatron. Es lo que le pasas a alguien para darle acceso a tu panel, y lo que te piden si necesitas soporte.",
+              "Canal: tu usuario.",
+              "Miembro desde y Última actualización: las fechas de tu cuenta."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Debajo, Tu nivel de acceso indica si eres el propietario o tienes Control total sobre ese canal."
+          }
+        ]
+      },
+      {
+        "id": "mas",
+        "title": "Más guías relacionadas",
+        "blocks": [
+          {
+            "t": "link",
+            "to": "platforms"
+          },
+          {
+            "t": "link",
+            "to": "language"
+          },
+          {
+            "t": "link",
+            "to": "permissions"
+          },
+          {
+            "t": "link",
+            "to": "accounts-riot"
+          },
+          {
+            "t": "link",
+            "to": "accounts-epic"
+          },
+          {
+            "t": "link",
+            "to": "discord-setup"
+          },
+          {
+            "t": "link",
+            "to": "translation-desktop"
+          }
+        ]
+      }
+    ]
+  },
+  "platforms": {
+    "title": "Iniciar sesión, plataformas y cambio de canal",
+    "subtitle": "Vincular Twitch, Kick y Discord, y pasar de un canal a otro",
+    "sections": [
+      {
+        "id": "login",
+        "title": "Iniciar sesión",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la página de inicio de sesión eliges Continuar con Twitch, Continuar con Kick o Continuar con Discord. YouTube aparece como «Próximamente». Al continuar aceptas los términos y la política de privacidad."
+          },
+          {
+            "t": "p",
+            "x": "Si tienes más de una plataforma, no hace falta repetir el proceso: vincúlalas después desde Ajustes."
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "Vincular y desvincular",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Entra a Ajustes → Mi cuenta → Plataformas. Qué botón ves depende de con qué entraste:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Plataforma",
+              "Cómo se vincula",
+              "Al desvincular"
+            ],
+            "rows": [
+              [
+                "Twitch",
+                "Si entraste con Discord o con Kick, el botón «Vincular» de la fila de Twitch.",
+                "Si entraste con Kick, el canal de Twitch sigue existiendo y solo deja de estar agrupado con esta cuenta. Si entraste con Discord, pierdes el acceso al bot y al panel del streamer."
+              ],
+              [
+                "Kick",
+                "Si no entraste con Kick, el botón «Vincular Kick».",
+                "El canal de Kick sigue existiendo y solo deja de estar agrupado con esta cuenta."
+              ],
+              [
+                "Discord",
+                "Si entraste con Twitch, el botón «Vincular Discord».",
+                "Se pide confirmación y la sesión se renueva."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Solo el propietario vincula y desvincula. Quien entra a un canal ajeno con Control total ve las cuentas del propietario en solo lectura."
+          },
+          {
+            "t": "p",
+            "x": "Las cuentas de Riot y de Epic se vinculan en la pestaña Juegos; mira la guía de cuentas de juego."
+          }
+        ]
+      },
+      {
+        "id": "cambiar",
+        "title": "Cambiar de canal",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Hay dos selectores, según a qué canal quieras ir:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Tus propios canales (Twitch y Kick): en Ajustes → Canal y bot aparece «Tus canales» cuando tienes más de uno. Pulsa «Configurar este» junto al canal que quieras; el canal activo dice «Configurando ahora». También hay un atajo «Cambiar de canal» en la cabecera de Ajustes. Al cambiar, el panel se recarga y cada canal mantiene sus propios comandos, timers y overlays.",
+              "El canal de otra persona: si alguien te dio acceso, su canal aparece en el selector de canal de la barra superior, con tu nivel debajo de su nombre. Elegirlo cambia todo el panel a ese canal. Consulta la guía de accesos y permisos."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "permissions"
+          }
+        ]
+      },
+      {
+        "id": "salir",
+        "title": "Cerrar sesión",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Está en el mismo menú de la barra superior donde eliges canal («Cerrar sesión»). Cierra la sesión en ese navegador; tus datos y tu configuración no se tocan."
+          }
+        ]
+      }
+    ]
+  },
+  "language": {
+    "title": "Idioma de la interfaz y del bot",
+    "subtitle": "Español o inglés, con un solo ajuste",
+    "sections": [
+      {
+        "id": "disponibles",
+        "title": "Idiomas disponibles",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron está disponible en español e inglés. Por defecto se usa español, o el idioma de tu navegador si es uno de esos dos."
+          }
+        ]
+      },
+      {
+        "id": "cambiar",
+        "title": "Cómo cambiarlo",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Entra a Ajustes → Mi cuenta.",
+              "En Idioma de la interfaz elige Español o English.",
+              "El cambio se aplica al instante, sin recargar la página, y queda guardado en tu cuenta."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Si no has iniciado sesión (por ejemplo, en la documentación o en las páginas públicas), usa el selector de idioma del encabezado; se recuerda en ese navegador."
+          }
+        ]
+      },
+      {
+        "id": "bot",
+        "title": "El idioma del bot",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El mismo ajuste decide en qué idioma responde el bot en el chat: los avisos de espera, los errores y las respuestas de los comandos salen en el idioma de la cuenta del dueño del canal, no en el de cada espectador."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Lo que escribes tú no se traduce: los comandos personalizados y los mensajes que configuras en los módulos se envían tal como los redactaste. Si quieres que tu comunidad lo reciba en dos idiomas, escribe el texto en los dos."
+          }
+        ]
+      }
+    ]
+  }
+}

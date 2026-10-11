@@ -922,6 +922,23 @@ Plans (tiers `free`, `supporter`, `premium`, `fundador`) are assigned by `Suppor
 - **Expiry.** Monthly plans are prepaid periods, not subscriptions: when `tier_expires_at` passes, the user resolves to `free` again and nothing is charged. Permanent plans have no expiry date.
 - **Billing profile and receipts.** `GET`/`PUT /api/supporters/billing-profile`, `GET /api/supporters/billing-profile/ruc/{ruc}` (SUNAT lookup), and `GET /api/supporters/my-invoices` with `.../download/{pdf|xml|cdr}`; the same profile is used by credit purchases.
 
+### Accounts, channels and language
+
+One Decatron account can join several platform identities. The JWT carries `AuthProvider`, `TwitchId`, `KickId` and `DiscordId`; Twitch and Kick sessions get the full panel, a Discord-only session gets the profile, rank cards and DecaCoins (no bot, no access management).
+
+- **Linking.** `POST /api/auth/link-twitch-start` (from a Discord session), `POST /api/auth/link-account-start` (from a Kick session; it links without merging rows, so each channel keeps its own configuration), `POST /api/auth/kick/link-start` and `POST /api/auth/discord/link-start`. Unlinking is `unlink-twitch`, `unlink-account`, `kick/unlink` and `discord/unlink`. Only the owner links or unlinks; an editor with Full control sees the owner's accounts read-only.
+- **Switching channels.** Between the account's own channels, `POST /api/auth/switch-channel` returns a new JWT for the chosen one. For channels where the user was granted access, `ChannelSwitchController` exposes `GET /api/channel/available`, `POST /api/channel/switch` and `GET /api/channel/context`.
+- **Language.** `users.preferred_language` (`es` or `en`) is a single setting: `GET`/`PUT /api/language` and `GET /api/language/supported` (`LanguageService`) drive the interface, and command responses use the channel owner's language through `CommandMessagesService`. The list of languages is in `ClientApp/src/i18n/languages.ts` and in `LanguageService`; text written by the streamer is never translated.
+
+### DecaCoins
+
+DecaCoins are an account-level currency stored in `user_coins` with an append-only `coin_transactions` ledger. `CoinService` is the only place that grants or spends (`GiveCoinsAsync`, `SpendCoinsAsync`, `RemoveCoinsAsync`, `TransferCoinsAsync`).
+
+- **Buying.** `CoinController` (`/api/coins`): `packages`, `validate-code` (discount codes), `billing-preview`, `buy`, `balance`, `history` and `my-invoices`. A purchase is a package or a custom amount of 100 to 5,000 coins at 100 coins per US$1; the USD price is charged in PEN at the platform exchange rate through Culqi, and the receipt follows the same billing profile and e-invoicing path as credits and plans.
+- **Transfers.** `search-users` and `transfer`. The limits (minimum amount, minimum account age to send and to receive, daily count and daily amount) live in `coin_settings`; an account with a suspended economy can neither send nor receive.
+- **Referrals.** `referral` and `referral/apply`: each user has a code, a referral completes once the referred account meets the minimum activity in `coin_settings`, and both sides receive the configured bonus.
+- **Spending.** Pack purchases and upgrade payments in the collectible game (`TcgCardsService`), the wheel-credit exchange (`WheelService`, `!dcomprar`) and Gacha pulls (`!gcbuy`) spend coins; the first two refund automatically if delivery fails after charging. Gifts and adjustments are separate admin endpoints under `/api/admin/coins`, and no feature meant for streamers mints coins.
+
 ### Kick platform
 
 Kick is a second platform next to Twitch. A Kick channel is its own row in `users` (`KickId`, tokens), and a Twitch and a Kick channel owned by the same person are grouped under one `Account`; overlays use the account's primary row (Twitch if it exists) so both platforms share one link and one configuration (see the multi-platform overlay pattern in `.dev`).

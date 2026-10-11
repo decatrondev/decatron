@@ -33,8 +33,10 @@ export default function GiveawayDoc() {
                     <code className="mx-1">!join</code> en el chat. Al terminar, el bot elige a los ganadores al azar (con más
                     probabilidad para quienes tengan más peso) y los anuncia en el chat.
                 </p>
-                <DocAlert type="info" title="Solo desde el panel">
-                    El sorteo se inicia, se termina, se cancela y se vuelve a sortear desde el panel. El único comando del chat es <code>!join</code>, para participar.
+                <DocAlert type="info" title="Se controla desde el panel">
+                    El giveaway se inicia, se termina, se cancela y se vuelve a sortear desde el panel. En el chat solo se usa <code>!join</code>, para participar.
+                    El comando <code>!raffle</code> (con <code>!raffle create</code>, <code>join</code>, <code>close</code> y <code>draw</code>) es un sistema de sorteo rápido distinto,
+                    sin panel ni requisitos; está en la lista de <Link to="/dashboard/docs/commands/default" className="underline">comandos por defecto</Link>.
                 </DocAlert>
             </DocSection>
 

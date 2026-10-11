@@ -1,0 +1,199 @@
+{
+  "watchtime": {
+    "title": "Watchtime (!watchtime)",
+    "subtitle": "Cuánto tiempo lleva cada persona viendo el stream actual",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`!watchtime` responde en el chat cuánto tiempo lleva la persona que lo escribe viendo el stream de hoy. El contador es por transmisión: se reinicia cuando el stream termina."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Solo funciona en Twitch. En Kick el comando responde que el tiempo de visualización todavía no está disponible en esa plataforma."
+          }
+        ]
+      },
+      {
+        "id": "como-cuenta",
+        "title": "Cómo se cuenta",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Cuenta el tiempo de quien escribe en el chat, solo mientras el canal está en vivo.",
+              "Con Contar lurkers activado (lo está por defecto) también cuenta a quienes miran sin escribir, usando la lista de espectadores conectados al chat de Twitch. Los bots de tu lista de bots no suman tiempo."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Ese tiempo lo usan también otros módulos: el requisito y el peso de «tiempo viendo» de los Giveaways y los pesos de la Rueda y Sorteo."
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Configuración",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Está en Comandos → Watchtime."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Activado",
+                "Prende o apaga el comando."
+              ],
+              [
+                "Nombre / alias",
+                "El comando se puede renombrar a lo que quieras (por ejemplo `!tiempo`)."
+              ],
+              [
+                "Cooldown global",
+                "Segundos entre usos en todo el chat, de 0 a 60 (por defecto 5)."
+              ],
+              [
+                "Cooldown por usuario",
+                "Segundos que debe esperar cada persona, de 0 a 300 (por defecto 30)."
+              ],
+              [
+                "Permisos",
+                "Nivel mínimo para usarlo: todos, suscriptores, VIPs, moderadores, Lead Moderators o solo el streamer. Los niveles superiores siempre pueden."
+              ],
+              [
+                "Contar lurkers",
+                "Registra también a quienes no escriben."
+              ],
+              [
+                "Solo en stream en vivo",
+                "Si el canal no está en vivo no responde. Apagado por defecto. Antes de responder, consulta a Twitch en tiempo real."
+              ],
+              [
+                "Mostrar posición",
+                "Agrega el puesto de la persona en el ranking del stream actual (activado por defecto)."
+              ],
+              [
+                "Tiempo mínimo para responder",
+                "De 0 a 30 minutos; con 0 responde siempre."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Mensajes y variables",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Hay cuatro mensajes. Los tres últimos se pueden encender o apagar:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Mensaje principal: el que se envía normalmente. Por defecto: «@{user} llevas {hours} hora(s) {minutes} minuto(s) viendo el stream».",
+              "Primera vez: si la persona todavía no acumula ni un minuto.",
+              "Tiempo insuficiente: si no llegó al tiempo mínimo para responder.",
+              "Stream offline: lo que se responde si activaste «Solo en vivo» y el canal no está transmitiendo."
+            ]
+          },
+          {
+            "t": "table",
+            "head": [
+              "Variable",
+              "Se reemplaza por"
+            ],
+            "rows": [
+              [
+                "{user}",
+                "El usuario que escribió el comando."
+              ],
+              [
+                "{hours}, {minutes}, {seconds}",
+                "Las horas, los minutos y los segundos del tiempo acumulado (minutos y segundos van de 0 a 59)."
+              ],
+              [
+                "{total_minutes}",
+                "El tiempo acumulado, en minutos."
+              ],
+              [
+                "{position}",
+                "El puesto en el ranking, como #3."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "public": {
+    "title": "Vista pública de comandos y !commands",
+    "subtitle": "Una página con tus comandos para quien no sabe cuáles existen",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tu canal tiene una página pública con la lista de sus comandos, sin necesidad de iniciar sesión: `decatron.net/commands/tu-canal`. Está pensada para ponerla en el panel de información de tu canal o en un enlace del chat."
+          },
+          {
+            "t": "p",
+            "x": "En el chat, `!commands` responde con ese enlace. Tiene una espera de 10 segundos por canal."
+          }
+        ]
+      },
+      {
+        "id": "contiene",
+        "title": "Qué muestra",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Los comandos por defecto que tienes activados.",
+              "Tus comandos personalizados activos, con su restricción.",
+              "Tus microcomandos y tus scripts.",
+              "Los comandos de Song Request, si ese módulo está activo."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cada comando se muestra con su nombre y una descripción; los personalizados y los de Song Request indican además quién puede usarlos."
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Elegir qué se ve",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Comandos → Vista Pública ves tu enlace (con un botón para copiarlo) y la lista de comandos. Para cada uno puedes:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Ocultarlo de la página pública.",
+              "Escribir una descripción pública distinta de la que tiene."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Pulsa guardar para publicar los cambios."
+          }
+        ]
+      }
+    ]
+  }
+}

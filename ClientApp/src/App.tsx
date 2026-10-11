@@ -160,6 +160,8 @@ import DecatronChatDoc from './pages/docs/private/features/DecatronChatDoc';
 import DeveloperPortalDoc from './pages/docs/private/features/DeveloperPortalDoc';
 import GachaDoc from './pages/docs/private/features/GachaDoc';
 import SettingsDoc from './pages/docs/private/settings/SettingsDoc';
+import { AccountDoc } from './pages/docs/private/settings/AccountDoc';
+import { ChatCommandsDoc } from './pages/docs/private/features/ChatCommandsDoc';
 import PermissionsDoc from './pages/docs/private/settings/PermissionsDoc';
 import GachaLogin from './pages/gacha/GachaLogin';
 import GachaTerms from "./pages/gacha/GachaTerms";
@@ -312,6 +314,8 @@ function App() {
                     <Route path="kick" element={<KickDoc page="overview" scope="public" />} />
                     <Route path="game-accounts" element={<AccountsDoc page="overview" scope="public" />} />
                     <Route path="lol-coach" element={<CoachDoc page="overview" scope="public" />} />
+                    <Route path="account" element={<AccountDoc page="overview" scope="public" />} />
+                    <Route path="coins" element={<CreditsDoc page="coinsOverview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -455,6 +459,8 @@ function App() {
                         <Route path="commands/custom" element={<CustomCommandsDoc />} />
                         <Route path="commands/microcommands" element={<MicrocommandsDoc />} />
                         <Route path="commands/scripting" element={<ScriptingCommandsDoc />} />
+                        <Route path="commands/watchtime" element={<ChatCommandsDoc page="watchtime" scope="private" />} />
+                        <Route path="commands/public" element={<ChatCommandsDoc page="public" scope="private" />} />
                     {/* Overlays */}
                         <Route path="overlays" element={<OverlaysGuide />} />
                         <Route path="overlays/shoutout" element={<ShoutoutOverlayDoc />} />
@@ -521,6 +527,7 @@ function App() {
                         <Route path="credits/balance" element={<CreditsDoc page="balance" scope="private" />} />
                         <Route path="credits/buy" element={<CreditsDoc page="buy" scope="private" />} />
                         <Route path="credits/billing" element={<CreditsDoc page="billing" scope="private" />} />
+                        <Route path="credits/coins" element={<CreditsDoc page="coins" scope="private" />} />
                         <Route path="plans/buy" element={<PlansDoc page="buy" scope="private" />} />
                         <Route path="plans/plans" element={<PlansDoc page="plans" scope="private" />} />
                         <Route path="kick/connect" element={<KickDoc page="connect" scope="private" />} />
@@ -542,6 +549,8 @@ function App() {
                         <Route path="features/gacha" element={<GachaDoc />} />
                     {/* Settings */}
                         <Route path="settings" element={<SettingsDoc />} />
+                        <Route path="platforms" element={<AccountDoc page="platforms" scope="private" />} />
+                        <Route path="language" element={<AccountDoc page="language" scope="private" />} />
                         <Route path="permissions" element={<PermissionsDoc />} />
                     </Route>
                 </Route>

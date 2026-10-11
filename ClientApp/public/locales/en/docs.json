@@ -251,8 +251,8 @@
       "description": "How to add Decatron overlays to your stream"
     },
     "settings": {
-      "title": "Bot settings",
-      "description": "Customize how the bot behaves"
+      "title": "Account settings",
+      "description": "What is in Settings and what each tab is for"
     },
     "permissions": {
       "title": "Access and permissions",
@@ -569,6 +569,34 @@
     "coach-commands": {
       "title": "Commands and predictions",
       "description": "!coach, !build, !pred and more"
+    },
+    "commands-watchtime": {
+      "title": "Watchtime",
+      "description": "How long each person has been watching the stream"
+    },
+    "commands-public": {
+      "title": "Public view and !commands",
+      "description": "The page with your commands and the chat link"
+    },
+    "account-overview": {
+      "title": "Account, channels and language",
+      "description": "How you sign in and how your channels join"
+    },
+    "coins-overview": {
+      "title": "DecaCoins",
+      "description": "The platform's currency"
+    },
+    "coins": {
+      "title": "DecaCoins",
+      "description": "Buying, transfers and referrals"
+    },
+    "platforms": {
+      "title": "Platforms and switching channels",
+      "description": "Link Twitch, Kick and Discord and switch channels"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Interface and bot, Spanish or English"
     }
   },
   "microCommands": {

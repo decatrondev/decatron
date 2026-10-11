@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
     Clock, Bell, Gift, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
-    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Bot,
+    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Bot, UserCircle, Globe,
 } from 'lucide-react';
 
 // REGISTRO ÚNICO de las páginas de documentación. De aquí salen el menú lateral, las tarjetas de
@@ -60,6 +60,8 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'commands-custom', scopes: both, group: 'commands', path: 'commands/custom', icon: MessageSquare, color: 'green' },
     { id: 'commands-micro', scopes: both, group: 'commands', path: 'commands/microcommands', icon: Zap, color: 'yellow' },
     { id: 'commands-scripting', scopes: both, group: 'commands', path: 'commands/scripting', icon: Code, color: 'purple' },
+    { id: 'commands-watchtime', scopes: priv, group: 'commands', path: 'commands/watchtime', icon: Clock, color: 'blue' },
+    { id: 'commands-public', scopes: priv, group: 'commands', path: 'commands/public', icon: Globe, color: 'green' },
     { id: 'ruleta', scopes: priv, group: 'commands', path: 'commands/ruleta', icon: Crosshair, color: 'red' },
 
     // — Referencia —
@@ -114,6 +116,10 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'accounts-overview', scopes: pub, group: 'modules', path: 'game-accounts', icon: Gamepad2, color: 'blue' },
 
     { id: 'coach-overview', scopes: pub, group: 'modules', path: 'lol-coach', icon: Bot, color: 'purple' },
+
+    { id: 'account-overview', scopes: pub, group: 'modules', path: 'account', icon: UserCircle, color: 'blue' },
+
+    { id: 'coins-overview', scopes: pub, group: 'modules', path: 'coins', icon: Coins, color: 'yellow' },
 
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
@@ -180,6 +186,7 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'credits-balance', scopes: priv, group: 'credits', path: 'credits/balance', icon: Coins, color: 'yellow' },
     { id: 'credits-buy', scopes: priv, group: 'credits', path: 'credits/buy', icon: DollarSign, color: 'yellow' },
     { id: 'credits-billing', scopes: priv, group: 'credits', path: 'credits/billing', icon: Book, color: 'yellow' },
+    { id: 'coins', scopes: priv, group: 'credits', path: 'credits/coins', icon: Coins, color: 'yellow' },
 
     // — Planes y apoyo: manual con cuenta —
     { id: 'plans-buy', scopes: priv, group: 'plans', path: 'plans/buy', icon: DollarSign, color: 'yellow' },
@@ -209,6 +216,8 @@ export const DOC_PAGES: DocPage[] = [
     // — Overlays y configuración (solo con cuenta) —
     { id: 'overlays-guide', scopes: priv, group: 'overlays', path: 'overlays', icon: Monitor, color: 'purple' },
     { id: 'settings', scopes: priv, group: 'settings', path: 'settings', icon: Settings, color: 'blue' },
+    { id: 'platforms', scopes: priv, group: 'settings', path: 'platforms', icon: UserCircle, color: 'blue' },
+    { id: 'language', scopes: priv, group: 'settings', path: 'language', icon: Languages, color: 'blue' },
     { id: 'permissions', scopes: priv, group: 'settings', path: 'permissions', icon: Lock, color: 'red' },
 ];
 

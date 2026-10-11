@@ -1,0 +1,353 @@
+{
+  "overview": {
+    "title": "Account, channels and language",
+    "subtitle": "How you sign in, how your channels join together and which language Decatron speaks",
+    "sections": [
+      {
+        "id": "sesion",
+        "title": "One account for everything",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "There is no Decatron password: you sign in with your Twitch, Kick or Discord account (OAuth) and Decatron never stores your password."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Sign in with",
+              "What it opens"
+            ],
+            "rows": [
+              [
+                "Twitch",
+                "Full access: the bot, the overlays and the commands of your channel, plus your profile."
+              ],
+              [
+                "Kick",
+                "Full access: the bot, the overlays and the commands of your channel, plus your profile."
+              ],
+              [
+                "Discord",
+                "Your profile, rank cards, the marketplace and DecaCoins. To use the bot you also need to link Twitch or Kick."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "A single Decatron account can join your Twitch channel, your Kick channel and your Discord. You link them from Settings after signing in."
+          }
+        ]
+      },
+      {
+        "id": "canales",
+        "title": "Your channels",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each channel has its own commands, timers and overlays. If you join Twitch and Kick in the same account, you choose which one you are configuring and switch between them without signing out. If someone gave you access to their channel, you can also go in and configure it, with the level they gave you."
+          }
+        ]
+      },
+      {
+        "id": "idioma",
+        "title": "Language",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The interface is in Spanish and English. The same setting decides which language the bot writes in your channel's chat: the language of the channel owner's account, not each viewer's."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "With an account, the manual is in the help panel:"
+          },
+          {
+            "t": "link",
+            "to": "platforms"
+          },
+          {
+            "t": "link",
+            "to": "language"
+          },
+          {
+            "t": "link",
+            "to": "settings"
+          }
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "title": "Account settings",
+    "subtitle": "What is in Settings and what each tab is for",
+    "sections": [
+      {
+        "id": "donde",
+        "title": "Where it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Open Settings (`/settings`) from the channel selector in the top bar. You need the Full control access level; with a lower level the page shows \"Access denied\"."
+          },
+          {
+            "t": "p",
+            "x": "At the top you see your name, your plan, the channel you are configuring and your joined platforms as tiles: Twitch, Kick, Discord, Riot and Epic, lit up when an account is linked. If you came in with delegated access to someone else's channel, the \"Full control\" label appears and the accounts are read-only."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "The tabs",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tab",
+              "What it contains"
+            ],
+            "rows": [
+              [
+                "My account",
+                "The linked platforms (link and unlink), your plan and the interface language."
+              ],
+              [
+                "Channel and bot",
+                "Your channels (to switch between them), the bot switch, the system information and your access level."
+              ],
+              [
+                "Access",
+                "Who else can enter your panel. It does not appear on accounts that only have Discord."
+              ],
+              [
+                "Games",
+                "Your Riot and Epic accounts."
+              ],
+              [
+                "Integrations",
+                "Your Discord server and the Decatron desktop app."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bot",
+        "title": "The bot switch",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Channel and bot you can turn the bot on or off completely in your channel. On an account that only has Discord the switch appears off and locked, with the notice \"Link your Twitch account to activate the bot\"."
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "If you need a long break, turning the bot off is simpler than disabling the modules one by one."
+          }
+        ]
+      },
+      {
+        "id": "sistema",
+        "title": "System information",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Version: the bot's.",
+              "Unique ID: your identifier in Decatron. It is what you give someone to grant them access to your panel, and what support asks for.",
+              "Channel: your username.",
+              "Member since and Last update: your account dates."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Below, Your access level tells you whether you are the owner or have Full control over that channel."
+          }
+        ]
+      },
+      {
+        "id": "mas",
+        "title": "Related guides",
+        "blocks": [
+          {
+            "t": "link",
+            "to": "platforms"
+          },
+          {
+            "t": "link",
+            "to": "language"
+          },
+          {
+            "t": "link",
+            "to": "permissions"
+          },
+          {
+            "t": "link",
+            "to": "accounts-riot"
+          },
+          {
+            "t": "link",
+            "to": "accounts-epic"
+          },
+          {
+            "t": "link",
+            "to": "discord-setup"
+          },
+          {
+            "t": "link",
+            "to": "translation-desktop"
+          }
+        ]
+      }
+    ]
+  },
+  "platforms": {
+    "title": "Signing in, platforms and switching channels",
+    "subtitle": "Linking Twitch, Kick and Discord, and moving from one channel to another",
+    "sections": [
+      {
+        "id": "login",
+        "title": "Signing in",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On the sign-in page you choose Continue with Twitch, Continue with Kick or Continue with Discord. YouTube appears as \"Coming soon\". By continuing you accept the terms and the privacy policy."
+          },
+          {
+            "t": "p",
+            "x": "If you use more than one platform you do not need to repeat the process: link them afterwards from Settings."
+          }
+        ]
+      },
+      {
+        "id": "vincular",
+        "title": "Linking and unlinking",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Go to Settings → My account → Platforms. Which button you see depends on what you signed in with:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Platform",
+              "How it is linked",
+              "When you unlink"
+            ],
+            "rows": [
+              [
+                "Twitch",
+                "If you signed in with Discord or Kick, the \"Link\" button on the Twitch row.",
+                "If you signed in with Kick, the Twitch channel keeps existing and is only no longer grouped with this account. If you signed in with Discord, you lose access to the bot and the streamer panel."
+              ],
+              [
+                "Kick",
+                "If you did not sign in with Kick, the \"Link Kick\" button.",
+                "The Kick channel keeps existing and is only no longer grouped with this account."
+              ],
+              [
+                "Discord",
+                "If you signed in with Twitch, the \"Link Discord\" button.",
+                "A confirmation is asked and the session is renewed."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Only the owner links and unlinks. Someone who enters another person's channel with Full control sees the owner's accounts read-only."
+          },
+          {
+            "t": "p",
+            "x": "Riot and Epic accounts are linked in the Games tab; see the game accounts guide."
+          }
+        ]
+      },
+      {
+        "id": "cambiar",
+        "title": "Switching channels",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "There are two selectors, depending on which channel you want to go to:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Your own channels (Twitch and Kick): in Settings → Channel and bot, \"Your channels\" appears when you have more than one. Press \"Configure this one\" next to the channel you want; the active channel says \"Configuring now\". There is also a \"Switch channel\" shortcut in the Settings header. When you switch, the panel reloads and each channel keeps its own commands, timers and overlays.",
+              "Someone else's channel: if someone gave you access, their channel appears in the channel selector in the top bar, with your level under their name. Choosing it switches the whole panel to that channel. See the access and permissions guide."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "permissions"
+          }
+        ]
+      },
+      {
+        "id": "salir",
+        "title": "Signing out",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It is in the same top-bar menu where you choose a channel (\"Sign out\"). It signs you out in that browser; your data and settings are not touched."
+          }
+        ]
+      }
+    ]
+  },
+  "language": {
+    "title": "Interface and bot language",
+    "subtitle": "Spanish or English, with a single setting",
+    "sections": [
+      {
+        "id": "disponibles",
+        "title": "Available languages",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron is available in Spanish and English. Spanish is used by default, or your browser's language if it is one of those two."
+          }
+        ]
+      },
+      {
+        "id": "cambiar",
+        "title": "How to change it",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Go to Settings → My account.",
+              "Under Interface language choose Español or English.",
+              "The change applies instantly, without reloading the page, and is saved in your account."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "If you have not signed in (for example in the documentation or on the public pages), use the language selector in the header; it is remembered in that browser."
+          }
+        ]
+      },
+      {
+        "id": "bot",
+        "title": "The bot's language",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The same setting decides the language the bot answers in the chat: cooldown notices, errors and command replies come out in the language of the channel owner's account, not each viewer's."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "What you write yourself is not translated: custom commands and the messages you set in the modules are sent exactly as you wrote them. If you want your community to receive them in two languages, write the text in both."
+          }
+        ]
+      }
+    ]
+  }
+}
