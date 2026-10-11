@@ -134,7 +134,7 @@ export default function ApiDocs() {
                         <p className="text-sm text-ds-soft mb-3">
                             Redirige al usuario a la pagina de autorizacion:
                         </p>
-                        <CodeBlock language="url" code={`https://twitch.decatron.net/oauth/authorize?
+                        <CodeBlock language="url" code={`https://decatron.net/oauth/authorize?
   client_id=TU_CLIENT_ID
   &redirect_uri=https://tuapp.com/callback
   &response_type=code
@@ -146,7 +146,7 @@ export default function ApiDocs() {
                         <p className="text-sm text-ds-soft mb-3">
                             Cuando el usuario autorice, sera redirigido a tu redirect_uri con un codigo:
                         </p>
-                        <CodeBlock language="bash" code={`curl -X POST https://twitch.decatron.net/oauth/token \\
+                        <CodeBlock language="bash" code={`curl -X POST https://decatron.net/api/oauth/token \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d "grant_type=authorization_code" \\
   -d "code=CODIGO_RECIBIDO" \\
@@ -167,7 +167,7 @@ export default function ApiDocs() {
                         <p className="text-sm text-ds-soft mb-3">
                             Incluye el token en el header Authorization:
                         </p>
-                        <CodeBlock language="bash" code={`curl https://twitch.decatron.net/api/v1/timer \\
+                        <CodeBlock language="bash" code={`curl https://decatron.net/api/v1/timer \\
   -H "Authorization: Bearer TU_ACCESS_TOKEN"`} />
                     </StepCard>
                 </div>
@@ -187,7 +187,7 @@ export default function ApiDocs() {
                             'Tu app redirige al usuario a /oauth/authorize',
                             'El usuario ve los permisos solicitados y aprueba o deniega',
                             'Decatron redirige al usuario de vuelta con un codigo temporal',
-                            'Tu servidor intercambia el codigo por tokens en /oauth/token',
+                            'Tu servidor intercambia el codigo por tokens en /api/oauth/token',
                             'Usa el access_token para llamar a la API',
                         ].map((step, i) => (
                             <div key={i} className="flex items-start gap-3">
@@ -214,7 +214,7 @@ const hash = await crypto.subtle.digest('SHA-256', data);
 const codeChallenge = base64UrlEncode(hash);
 
 // Incluir en la URL de autorizacion
-const authUrl = \`https://twitch.decatron.net/oauth/authorize?
+const authUrl = \`https://decatron.net/oauth/authorize?
   client_id=\${clientId}
   &code_challenge=\${codeChallenge}
   &code_challenge_method=S256
@@ -228,7 +228,7 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                     <p className="text-sm text-ds-soft mb-3">
                         Los access tokens expiran en 1 hora. Usa el refresh token para obtener uno nuevo:
                     </p>
-                    <CodeBlock language="bash" code={`curl -X POST https://twitch.decatron.net/oauth/token \\
+                    <CodeBlock language="bash" code={`curl -X POST https://decatron.net/api/oauth/token \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d "grant_type=refresh_token" \\
   -d "refresh_token=TU_REFRESH_TOKEN" \\
@@ -240,7 +240,7 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                     <p className="text-sm text-ds-soft mb-3">
                         Para invalidar un token (ej: cuando el usuario cierra sesion):
                     </p>
-                    <CodeBlock language="bash" code={`curl -X POST https://twitch.decatron.net/oauth/revoke \\
+                    <CodeBlock language="bash" code={`curl -X POST https://decatron.net/api/oauth/revoke \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d "token=TOKEN_A_REVOCAR"`} />
                 </CollapsibleSection>
@@ -299,9 +299,9 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                 <CollapsibleSection title="OAuth Endpoints" defaultOpen>
                     <div className="space-y-3">
                         <EndpointCard method="GET" path="/oauth/authorize" description="Inicia el flujo de autorizacion" />
-                        <EndpointCard method="POST" path="/oauth/token" description="Intercambia codigo por tokens o refresca tokens" />
-                        <EndpointCard method="POST" path="/oauth/revoke" description="Revoca un token" />
-                        <EndpointCard method="GET" path="/oauth/userinfo" description="Informacion del usuario autenticado" scope="read:profile" />
+                        <EndpointCard method="POST" path="/api/oauth/token" description="Intercambia codigo por tokens o refresca tokens" />
+                        <EndpointCard method="POST" path="/api/oauth/revoke" description="Revoca un token" />
+                        <EndpointCard method="GET" path="/api/oauth/userinfo" description="Informacion del usuario autenticado" scope="read:profile" />
                     </div>
                 </CollapsibleSection>
 
@@ -310,6 +310,7 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                         <EndpointCard method="GET" path="/api/v1/timer" description="Obtiene el estado actual del timer" scope="read:timer" />
                         <EndpointCard method="POST" path="/api/v1/timer/start" description="Inicia el timer" scope="action:timer" />
                         <EndpointCard method="POST" path="/api/v1/timer/pause" description="Pausa el timer" scope="action:timer" />
+                        <EndpointCard method="POST" path="/api/v1/timer/resume" description="Reanuda el timer" scope="action:timer" />
                         <EndpointCard method="POST" path="/api/v1/timer/stop" description="Detiene el timer" scope="action:timer" />
                         <EndpointCard method="POST" path="/api/v1/timer/add" description="Agrega tiempo al timer" scope="action:timer" />
                     </div>
@@ -318,6 +319,23 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                 <CollapsibleSection title="Alerts API">
                     <div className="space-y-3">
                         <EndpointCard method="POST" path="/api/v1/alerts/trigger" description="Dispara una alerta personalizada" scope="action:alerts" />
+                    </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Twitch API">
+                    <div className="space-y-3">
+                        <EndpointCard method="GET" path="/api/v1/twitch/games/search" description="Busca categorias de juegos" scope="read:games" />
+                        <EndpointCard method="POST" path="/api/v1/twitch/category" description="Cambia la categoria del stream" scope="action:category" />
+                        <EndpointCard method="POST" path="/api/v1/twitch/title" description="Cambia el titulo del stream" scope="action:title" />
+                        <EndpointCard method="POST" path="/api/v1/twitch/marker" description="Crea un marcador en el stream" scope="action:marker" />
+                        <EndpointCard method="GET" path="/api/v1/twitch/live-info" description="Informacion del stream en vivo" scope="read:stream" />
+                    </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Sounds API">
+                    <div className="space-y-3">
+                        <EndpointCard method="GET" path="/api/v1/sounds" description="Lista los sonidos disponibles" scope="read:sounds" />
+                        <EndpointCard method="POST" path="/api/v1/sounds/play" description="Reproduce un sonido en el overlay" scope="action:sounds" />
                     </div>
                 </CollapsibleSection>
 

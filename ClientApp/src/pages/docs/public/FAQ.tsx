@@ -27,11 +27,11 @@ export default function FAQ() {
             <FAQSection title="General">
                 <FAQItem
                     question="Que es Decatron?"
-                    answer="Decatron es un bot de Twitch todo-en-uno que te permite gestionar comandos, overlays, alertas, sorteos y mucho mas. Esta diseñado para ser facil de usar pero con opciones avanzadas para streamers experimentados."
+                    answer="Decatron es un bot para Twitch y Kick todo-en-uno que te permite gestionar comandos, overlays, alertas, sorteos y mucho mas. Esta diseñado para ser facil de usar pero con opciones avanzadas para streamers experimentados."
                 />
                 <FAQItem
                     question="Es gratis?"
-                    answer="Si, Decatron es completamente gratuito. Todas las features principales estan disponibles sin costo. En el futuro podrian agregarse features premium opcionales, pero el core del bot siempre sera gratis."
+                    answer="El bot, los comandos y los overlays son gratis. Las funciones que tienen un costo real para la plataforma (IA, voz premium, traduccion en vivo, coach de LoL) se pagan con creditos, y los planes de apoyo solo amplian cantidades (mas cuentas, mas variantes, mas refresco); nunca bloquean funciones."
                 />
                 <FAQItem
                     question="Que navegadores son compatibles?"
@@ -48,7 +48,7 @@ export default function FAQ() {
                     </p>
                     <ol className="list-decimal ml-4 space-y-2">
                         <li>Haz clic en "Iniciar Sesion" en la pagina principal</li>
-                        <li>Autoriza a Decatron con tu cuenta de Twitch</li>
+                        <li>Autoriza a Decatron con tu cuenta de Twitch o de Kick</li>
                         <li>El bot se conectara automaticamente a tu canal</li>
                     </ol>
                     <div className="mt-4">
@@ -63,11 +63,7 @@ export default function FAQ() {
                 </FAQItem>
                 <FAQItem
                     question="Puedo usar el bot en multiples canales?"
-                    answer="Actualmente Decatron esta diseñado para un canal por cuenta. Si necesitas gestionar multiples canales, tendras que iniciar sesion con cada cuenta por separado."
-                />
-                <FAQItem
-                    question="Como cambio el prefijo de comandos?"
-                    answer="Ve a Configuracion en el dashboard y busca la opcion 'Prefijo de comandos'. Por defecto es '!' pero puedes cambiarlo a cualquier caracter como '$', '?', etc."
+                    answer="Una cuenta de Decatron puede unir tu canal de Twitch y el de Kick y cambiar entre ellos desde Ajustes. Si otra persona te da acceso a su canal, tambien puedes configurarlo desde tu cuenta con el nivel que ella te asigne."
                 />
             </FAQSection>
 
@@ -83,7 +79,7 @@ export default function FAQ() {
                         <li>Revisa que no haya un cooldown activo</li>
                     </ol>
                     <DocAlert type="tip" title="Consejo">
-                        Prueba el comando !title en el chat. Si no funciona, hay un problema de conexion.
+                        Prueba el comando !title en el chat (si eres moderador o el streamer). Si no responde, hay un problema de conexion.
                     </DocAlert>
                 </FAQItem>
                 <FAQItem
@@ -112,7 +108,7 @@ export default function FAQ() {
                 </FAQItem>
                 <FAQItem
                     question="Que variables puedo usar en los comandos?"
-                    answer="Decatron tiene muchas variables disponibles como {user}, {game}, {title}, {uptime}, {followage} y mas. Cada variable se reemplaza automaticamente por su valor en tiempo real."
+                    answer="Decatron tiene muchas variables disponibles como $(user), $(game), $(title), $(uptime), $(followage) y mas. Cada variable se reemplaza automaticamente por su valor en tiempo real."
                 >
                     <div className="mt-4">
                         <Link

@@ -12,7 +12,7 @@ export default function GettingStarted() {
                     Como empezar con Decatron
                 </h1>
                 <p className="text-xl text-ds-soft">
-                    En solo 5 minutos tendras tu bot configurado y funcionando en tu canal de Twitch.
+                    En solo 5 minutos tendras tu bot configurado y funcionando en tu canal de Twitch o de Kick.
                 </p>
             </div>
 
@@ -22,7 +22,7 @@ export default function GettingStarted() {
                     Requisitos previos
                 </h2>
                 <ul className="space-y-3">
-                    <Requirement text="Una cuenta de Twitch (streamer o creador)" />
+                    <Requirement text="Una cuenta de Twitch o de Kick (streamer o creador)" />
                     <Requirement text="Navegador web moderno (Chrome, Firefox, Edge, Safari)" />
                     <Requirement text="OBS Studio o similar (para overlays)" optional />
                 </ul>
@@ -68,8 +68,8 @@ export default function GettingStarted() {
                             description="Activa o desactiva comandos como !game, !title, !so"
                         />
                         <ConfigItem
-                            title="Prefijo del bot"
-                            description="Cambia el prefijo ! por otro caracter si lo prefieres"
+                            title="Interruptor del bot"
+                            description="Activa o apaga el bot en tu canal desde Ajustes → Canal y bot"
                         />
                         <ConfigItem
                             title="Idioma"
@@ -86,7 +86,7 @@ export default function GettingStarted() {
                 <Step
                     number={3}
                     title="Prueba el comando !title"
-                    description="Ve a tu chat de Twitch y escribe el comando para verificar que el bot esta funcionando."
+                    description="Ve a tu chat de Twitch y escribe el comando para verificar que el bot esta funcionando (cambiar el titulo todavia no esta disponible en Kick)."
                 >
                     <div className="mt-4">
                         <CommandExample command="!title" response="Título actual: Mi primer stream con Decatron" />

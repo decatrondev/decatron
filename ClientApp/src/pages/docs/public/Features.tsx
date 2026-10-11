@@ -29,7 +29,7 @@ export default function Features() {
                 <FeatureCard
                     icon={<MessageSquare className="w-6 h-6" />}
                     title="Comandos Personalizados"
-                    description="Crea tus propios comandos con variables dinamicas. Usa {user}, {game}, {uptime} y mas para respuestas inteligentes."
+                    description="Crea tus propios comandos con variables dinamicas. Usa $(user), $(game), $(uptime) y mas para respuestas inteligentes."
                     link="/docs/commands/custom"
                     color="green"
                 />
@@ -70,7 +70,7 @@ export default function Features() {
                 <FeatureCard
                     icon={<Gift className="w-6 h-6" />}
                     title="Sorteos / Giveaways"
-                    description="Sistema completo de sorteos con requisitos de participacion, sistema de peso para subs y historial."
+                    description="Sorteos con requisitos de participacion, pesos que suben la probabilidad de ganar e historial."
                     link="/dashboard/docs/features/giveaway"
                     color="pink"
                     requiresAuth
@@ -78,7 +78,7 @@ export default function Features() {
                 <FeatureCard
                     icon={<Volume2 className="w-6 h-6" />}
                     title="Sound Alerts"
-                    description="Conecta Channel Points de Twitch para reproducir alertas de sonido y video en tu stream."
+                    description="Asigna un sonido, video o imagen a cada recompensa de puntos del canal (Twitch y Kick)."
                     link="/dashboard/docs/features/sound-alerts"
                     color="orange"
                     requiresAuth
@@ -112,7 +112,7 @@ export default function Features() {
                 <FeatureCard
                     icon={<Sparkles className="w-6 h-6" />}
                     title="Decatron AI"
-                    description="Inteligencia artificial para respuestas contextuales, moderacion inteligente y asistencia en vivo."
+                    description="El comando !ia responde preguntas en tu chat, y Decatron Chat te deja conversar con la IA desde el dashboard."
                     link="/dashboard/docs/features/ai"
                     color="purple"
                     requiresAuth
@@ -120,7 +120,7 @@ export default function Features() {
                 <FeatureCard
                     icon={<BarChart3 className="w-6 h-6" />}
                     title="Analiticas"
-                    description="Dashboard de estadisticas, eventos del timer, historial de moderacion y datos de streams."
+                    description="Eventos del timer, acciones de moderacion, cambios de juego y titulo, mensajes del chat, followers y tips, con exportacion a CSV."
                     link="/dashboard/docs/features/analytics"
                     color="blue"
                     requiresAuth
@@ -128,7 +128,7 @@ export default function Features() {
                 <FeatureCard
                     icon={<Users className="w-6 h-6" />}
                     title="Seguidores"
-                    description="Lista de seguidores recientes, busqueda y gestion de la comunidad."
+                    description="Lista de seguidores sincronizada con Twitch, con unfollows, retornados, busqueda y filtros."
                     link="/dashboard/docs/features/followers"
                     color="cyan"
                     requiresAuth
@@ -139,7 +139,7 @@ export default function Features() {
             <div className="bg-ds-surface border border-ds-border rounded-lg p-8 text-ds-text text-center">
                 <h2 className="text-2xl font-black mb-4">Listo para probar Decatron?</h2>
                 <p className="text-ds-soft mb-6 max-w-xl mx-auto">
-                    Conecta tu cuenta de Twitch y empieza a usar todas estas features en minutos.
+                    Conecta tu cuenta de Twitch o de Kick y empieza a usar todas estas features en minutos.
                 </p>
                 <Link
                     to="/login"

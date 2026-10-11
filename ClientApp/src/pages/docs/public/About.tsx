@@ -13,7 +13,7 @@ export default function About() {
                     <div>
                         <h1 className="text-4xl md:text-5xl font-black mb-2">Decatron</h1>
                         <p className="text-xl text-ds-soft">
-                            El bot de Twitch mas completo para streamers
+                            El bot para Twitch y Kick mas completo para streamers
                         </p>
                     </div>
                 </div>
@@ -44,7 +44,7 @@ export default function About() {
                     Para quien es Decatron?
                 </h2>
                 <p className="text-ds-soft mb-6">
-                    Decatron esta diseñado para streamers de Twitch que buscan:
+                    Decatron esta diseñado para streamers de Twitch y Kick que buscan:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <TargetAudience
@@ -105,7 +105,7 @@ export default function About() {
                     <FeatureCard
                         icon={<Sparkles className="w-6 h-6" />}
                         title="Decatron AI"
-                        description="Inteligencia artificial para respuestas contextuales y moderacion"
+                        description="Pregunta a la IA con !ia en el chat, y conversa con ella desde tu dashboard"
                     />
                 </div>
             </div>
@@ -116,8 +116,8 @@ export default function About() {
                     Listo para empezar?
                 </h2>
                 <p className="text-ds-soft mb-6 max-w-xl mx-auto">
-                    Conecta tu cuenta de Twitch y comienza a usar Decatron en minutos.
-                    Es gratis y no requiere tarjeta de credito.
+                    Conecta tu cuenta de Twitch o de Kick y comienza a usar Decatron en minutos.
+                    El bot, los comandos y los overlays son gratis, sin tarjeta de credito.
                 </p>
                 <Link
                     to="/login"
