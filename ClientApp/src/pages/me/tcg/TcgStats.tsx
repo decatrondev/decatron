@@ -133,7 +133,7 @@ export default function TcgStats() {
                             </div>
                         </div>
                     ) : (
-                        <p className="text-sm text-ds-soft">Todavía no tenés cartas.</p>
+                        <p className="text-sm text-ds-soft">Todavía no tienes cartas.</p>
                     )}
                 </div>
             </div>

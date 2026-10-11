@@ -66,7 +66,7 @@ namespace Decatron.Services.Tournament
             {
                 var toAdd = teamSize - remainder;
                 return $"No se pueden crear las llaves: con {totalPlayers} jugadores y equipos de {teamSize} quedarían {remainder} sin equipo. " +
-                       $"Agregá {toAdd} jugador(es) más (para llegar a {totalPlayers + toAdd}) o dejá {remainder} afuera (para quedar en {totalPlayers - remainder}).";
+                       $"Agrega {toAdd} jugador(es) más (para llegar a {totalPlayers + toAdd}) o deja {remainder} afuera (para quedar en {totalPlayers - remainder}).";
             }
 
             var teamCount = totalPlayers / teamSize;
@@ -78,7 +78,7 @@ namespace Decatron.Services.Tournament
                 var lower = HighestPowerOfTwoAtMost(teamCount);
                 var upper = lower * 2;
                 return $"No se pueden crear las llaves: {teamCount} equipos no es potencia de 2 (única forma de que ningún equipo avance de ronda sin jugar). " +
-                       $"Agregá {(upper - teamCount) * teamSize} jugador(es) más para llegar a {upper} equipos, o esperá a que queden {lower} equipos.";
+                       $"Agrega {(upper - teamCount) * teamSize} jugador(es) más para llegar a {upper} equipos, o espera a que queden {lower} equipos.";
             }
 
             return null;

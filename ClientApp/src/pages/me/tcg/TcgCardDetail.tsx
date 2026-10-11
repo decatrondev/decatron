@@ -103,7 +103,7 @@ export default function TcgCardDetail() {
         setActing(true);
         try {
             await api.post(`/tcg/cards/${instanceId}/upgrade/attempt`);
-            setToast({ type: 'success', text: 'Gradeo resuelto — mirá el resultado abajo.' });
+            setToast({ type: 'success', text: 'Gradeo resuelto — mira el resultado abajo.' });
             load();
         } catch (err: any) {
             setToast({ type: 'error', text: err?.response?.data?.error || 'Error al intentar el upgrade.' });
@@ -228,7 +228,7 @@ export default function TcgCardDetail() {
                             <div className="space-y-3">
                                 <p className="text-sm text-ds-soft">
                                     Esta carta todavía no usó su único intento de gradeo. El resultado sale al instante:
-                                    o se destruye, o sale con un grado del 1 al 10. Si sale con grado, tenés 24 horas
+                                    o se destruye, o sale con un grado del 1 al 10. Si sale con grado, tienes 24 horas
                                     para confirmarlo pagando; si no pagás, se destruye igual.
                                 </p>
                                 <button
@@ -252,7 +252,7 @@ export default function TcgCardDetail() {
                                 <div className="font-bold text-ds-warn">¡Sacaste un 10!</div>
                                 <p className="text-sm text-ds-soft">
                                     El grado más alto lleva una ilustración exclusiva que se está preparando a mano.
-                                    Suele estar lista en unas 24 horas. Cuando esté, vas a poder confirmarla acá.
+                                    Suele estar lista en unas 24 horas. Cuando esté, vas a poder confirmarla aquí.
                                 </p>
                                 {card.attemptStartedAt && (
                                     <div className="text-xs text-ds-soft pt-1">

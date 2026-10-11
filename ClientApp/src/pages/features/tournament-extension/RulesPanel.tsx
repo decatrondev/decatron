@@ -41,7 +41,7 @@ Jugando bien: rachas de victorias, partidas muy buenas, KDA alto. El detalle exa
 - Tenes que tener al menos una ${edition.shellItemName.toLowerCase()} en el inventario.
 - No se puede lanzar en los minutos siguientes a terminar una partida.
 - Cuanto mas arriba estes en la tabla, mas facil es que te llegue una — y mas rapido podes recibir otra despues de cumplir la anterior.
-- Existe una probabilidad de que el lanzamiento rebote y te toque a vos en cambio: es mas baja cuanto mejor este posicionado quien la tira.
+- Existe una probabilidad de que el lanzamiento rebote y te toque a ti en cambio: es mas baja cuanto mejor este posicionado quien la tira.
 
 ## Cumplimiento
 El staff marca manualmente cuando un castigo se dio por cumplido. Si jugas ignorando un castigo pendiente, se considera incumplimiento de las normas generales.

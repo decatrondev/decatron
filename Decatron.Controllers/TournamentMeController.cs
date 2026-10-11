@@ -255,7 +255,7 @@ namespace Decatron.Controllers
             if (edition.Mode == "aram_teams")
             {
                 if (request.UserRiotAccountId == null)
-                    return BadRequest(new { success = false, message = "Elegí una cuenta de Riot verificada para inscribirte" });
+                    return BadRequest(new { success = false, message = "Elige una cuenta de Riot verificada para inscribirte" });
 
                 var chosen = await LolAccounts.FirstOrDefaultAsync(a => a.Id == request.UserRiotAccountId && a.AccountId == effectiveAccountId);
                 if (chosen == null)

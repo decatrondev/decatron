@@ -217,7 +217,7 @@ export default function ParticipantsPanel({
             <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
                 El botón "Agregar" es alta manual — entra directo como aprobado. Las inscripciones que llegan del formulario público quedan abajo, pendientes de
                 tu aprobación. Desde esta sesión, cada participante se inscribe con su propia cuenta y vincula/verifica su Riot y genera su overlay desde su
-                propio panel ("Mi inscripción" en la web pública) — el overlay que armás acá abajo sigue funcionando como respaldo para quien lo necesite.
+                propio panel ("Mi inscripción" en la web pública) — el overlay que armas aquí abajo sigue funcionando como respaldo para quien lo necesite.
             </p>
             )}
 

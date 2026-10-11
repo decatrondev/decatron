@@ -51,7 +51,7 @@ namespace Decatron.Services.Tournament
             var itemName = string.IsNullOrWhiteSpace(edition.ShellItemName) ? "ficha" : edition.ShellItemName;
 
             if (sourceParticipantId == targetParticipantId)
-                return new ThrowShellResult { Success = false, Error = $"No te podes tirar una {itemName} a vos mismo" };
+                return new ThrowShellResult { Success = false, Error = $"No te puedes lanzar una {itemName} a ti mismo" };
 
             // Auditoria de aislamiento cross-tenant (Milestone 3, 15-08-2026): sin esto,
             // cualquiera con acceso a este endpoint podia pasar el ID de un participante
@@ -69,7 +69,7 @@ namespace Decatron.Services.Tournament
             var inventory = await db.TournamentShellInventories
                 .FirstOrDefaultAsync(i => i.TournamentParticipantId == sourceParticipantId, ct);
             if (inventory == null || inventory.Count <= 0)
-                return new ThrowShellResult { Success = false, Error = $"No tenes {itemName}s en el inventario" };
+                return new ThrowShellResult { Success = false, Error = $"No tienes {itemName}s en el inventario" };
 
             var rules = await db.TournamentBlueShellRules.FirstOrDefaultAsync(r => r.TournamentEditionId == edition.Id, ct);
             if (rules == null)

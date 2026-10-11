@@ -119,7 +119,7 @@ export default function BrandAdmin() {
     };
 
     const reset = async () => {
-        if (!confirm(`¿Volver "${slot.name}" al diseño original del código? Se borra lo que configuraste acá.`)) return;
+        if (!confirm(`¿Volver "${slot.name}" al diseño original del código? Se borra lo que configuraste aquí.`)) return;
         setSaving(true); setError(null);
         try {
             await api.delete(`/admin/brand/slots/${slotKey}`);
@@ -221,7 +221,7 @@ export default function BrandAdmin() {
                                 <div className="min-w-0">
                                     <h2 className="text-lg 3xl:text-xl font-bold text-[#1e293b] dark:text-[#f8fafc]">{slot.name}</h2>
                                     <p className={muted}>{slot.description}</p>
-                                    <p className={muted + ' mt-1'}>{saved ? 'Personalizado: el sitio usa lo guardado acá.' : 'Sin personalizar: el sitio usa el diseño original del código.'}</p>
+                                    <p className={muted + ' mt-1'}>{saved ? 'Personalizado: el sitio usa lo guardado aquí.' : 'Sin personalizar: el sitio usa el diseño original del código.'}</p>
                                 </div>
                                 <div className="ml-auto flex flex-wrap items-center gap-2">
                                     {slot.previewUrl && <a href={slot.previewUrl} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-sm font-semibold flex items-center gap-1.5 hover:border-[#2563eb] text-[#1e293b] dark:text-[#f8fafc]"><ExternalLink className="w-4 h-4" />Ver en el sitio</a>}
@@ -270,7 +270,7 @@ export default function BrandAdmin() {
                                             </div>
                                         )}
                                         {slot.variants.length > 1 && (
-                                            <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs 3xl:text-sm font-semibold cursor-pointer ${linked ? 'border-[#2563eb] bg-[#2563eb]/10 text-[#2563eb]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`} title="Lo que cambies acá se aplica a todas las pantallas, en proporción a sus medidas">
+                                            <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs 3xl:text-sm font-semibold cursor-pointer ${linked ? 'border-[#2563eb] bg-[#2563eb]/10 text-[#2563eb]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`} title="Lo que cambies aquí se aplica a todas las pantallas, en proporción a sus medidas">
                                                 <input type="checkbox" checked={linked} onChange={e => setLinked(e.target.checked)} className="sr-only" />
                                                 <Link2 className="w-3.5 h-3.5" />Aplicar a todas las pantallas
                                             </label>
@@ -295,7 +295,7 @@ export default function BrandAdmin() {
                                             resolve={resolve}
                                         />
                                     </div>
-                                    {linked && <p className="panel-scale text-xs rounded-lg px-3 py-2 bg-[#2563eb]/10 text-[#2563eb]">Editando todas las pantallas a la vez: las medidas cambian en proporción a las de cada una (si acá algo crece ×1.5, en las demás también crece ×1.5 sobre su propio tamaño). Imágenes, textos, colores y elementos nuevos o quitados se copian igual. Desactívalo para ajustar una sola.</p>}
+                                    {linked && <p className="panel-scale text-xs rounded-lg px-3 py-2 bg-[#2563eb]/10 text-[#2563eb]">Editando todas las pantallas a la vez: las medidas cambian en proporción a las de cada una (si aquí algo crece ×1.5, en las demás también crece ×1.5 sobre su propio tamaño). Imágenes, textos, colores y elementos nuevos o quitados se copian igual. Desactívalo para ajustar una sola.</p>}
                                     <p className={muted + ' panel-scale'}>Arrastra cualquier elemento para moverlo (se pegan a los bordes y al centro; Shift para soltarlos libres). Las esquinas cambian el tamaño y el cuadrado naranja cambia la caja. Con una parte elegida, las flechas la mueven de a 1 px (Shift: 10).</p>
 
                                     {slot.variants.length > 1 && (

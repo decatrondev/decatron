@@ -64,7 +64,7 @@ export default function RiotConfigPanel() {
                 <p>
                     <strong className="text-[#1e293b] dark:text-[#f8fafc]">¿Para qué sirve?</strong> Con esta key el sistema consulta a Riot los datos reales
                     de las partidas de tus participantes: LP actual (SoloQ Climb) o el resultado de cada partida ARAM para declarar ganadores solos y armar el
-                    ranking/bracket sin que vos tengas que cargar nada a mano.
+                    ranking/bracket sin que tengas que cargar nada a mano.
                 </p>
                 <p>
                     <strong className="text-[#1e293b] dark:text-[#f8fafc]">¿Por qué la necesito yo?</strong> Cada canal usa su propia key — Riot no permite
@@ -86,7 +86,7 @@ export default function RiotConfigPanel() {
                         <li>
                             Una vez adentro, copiá la <strong>Development API Key</strong> que te muestra en el dashboard (empieza con "RGAPI-...").
                         </li>
-                        <li>Pegala acá abajo y guardá — esa key dura 24 horas, después Riot la vence y hay que volver a copiar una nueva.</li>
+                        <li>Pégala aquí abajo y guarda — esa key dura 24 horas, después Riot la vence y hay que volver a copiar una nueva.</li>
                     </ol>
                 </div>
                 <p className="text-xs text-[#94a3b8]">

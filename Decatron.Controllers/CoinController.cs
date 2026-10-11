@@ -425,7 +425,7 @@ namespace Decatron.Controllers
                 .GetAccountOwnerIdAsync(_db, receiverId.Value);
 
             if (receiverAccountId == userId)
-                return BadRequest(new { error = "No podés transferirte coins a vos mismo" });
+                return BadRequest(new { error = "No puedes transferirte coins a ti mismo" });
 
             try
             {

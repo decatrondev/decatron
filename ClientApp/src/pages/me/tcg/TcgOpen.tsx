@@ -99,7 +99,7 @@ export default function TcgOpen() {
 
             {packs.length === 0 ? (
                 <div className="bg-ds-bg border border-ds-border rounded-lg p-10 text-center">
-                    <p className="text-ds-soft">No tenés sobres sin abrir.</p>
+                    <p className="text-ds-soft">No tienes sobres sin abrir.</p>
                     <button
                         onClick={() => navigate('/me/tcg/shop')}
                         className="ds-btn ds-btn--primary mt-4"

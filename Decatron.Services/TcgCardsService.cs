@@ -246,7 +246,7 @@ namespace Decatron.Services
                 .FirstOrDefaultAsync();
 
             if (pack == null)
-                throw new InvalidOperationException("No tenes ningun sobre de ese tipo sin abrir");
+                throw new InvalidOperationException("No tienes ningún sobre de ese tipo sin abrir");
 
             var tier = await _db.CardSobreTiers.FirstOrDefaultAsync(t => t.Id == sobreTierId);
             if (tier == null)
@@ -466,7 +466,7 @@ namespace Decatron.Services
                 userId, sobreTierId, now, tier.FreeCooldownHours.Value);
 
             if (claimed == 0)
-                throw new InvalidOperationException($"Todavia no podes reclamar el sobre {tier.Name} gratis");
+                throw new InvalidOperationException($"Todavía no puedes reclamar el sobre {tier.Name} gratis");
 
             var pack = new PlayerPackInventory
             {
@@ -519,7 +519,7 @@ namespace Decatron.Services
         {
             var availableAt = await GetClaimAvailableAtAsync(userId);
             if (availableAt != null)
-                throw new InvalidOperationException("Todavia no podes reclamar tu carta gratis");
+                throw new InvalidOperationException("Todavía no puedes reclamar tu carta gratis");
 
             var now = DateTime.UtcNow;
             var activeEventIds = await _db.CardEventBanners

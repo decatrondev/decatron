@@ -177,7 +177,7 @@ export default function MicroCommands() {
                         {t('microCommands.header.title')} — Próximamente en Kick
                     </h2>
                     <p className="text-ds-soft">
-                        Kick ya soporta cambiar la categoría del stream por API, pero todavía no lo conectamos de nuestro lado. Vas a poder crear micro comandos acá apenas esté listo.
+                        Kick ya soporta cambiar la categoría del stream por API, pero todavía no lo conectamos de nuestro lado. Vas a poder crear micro comandos aquí apenas esté listo.
                     </p>
                 </div>
             </div>

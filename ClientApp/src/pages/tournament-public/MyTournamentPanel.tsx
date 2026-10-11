@@ -397,7 +397,7 @@ function RegisterForm({
                     </select>
                 </div>
             )}
-            {!needsRiotAccount && !isFortnite && <p className="text-xs text-[color:var(--t-muted)]">Después de inscribirte podrás vincular tu cuenta de Riot desde acá mismo.</p>}
+            {!needsRiotAccount && !isFortnite && <p className="text-xs text-[color:var(--t-muted)]">Después de inscribirte podrás vincular tu cuenta de Riot desde aquí mismo.</p>}
             {result && !result.ok && <p className="text-sm text-[color:var(--t-live)]">{result.text}</p>}
             <button
                 type="submit"

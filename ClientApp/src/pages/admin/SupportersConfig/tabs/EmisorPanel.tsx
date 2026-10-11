@@ -275,7 +275,7 @@ export function EmisorPanel() {
                     El modo beta o producción es de la empresa y <span className="font-bold">no se puede cambiar</span>:
                     una vez que emitió aunque sea un comprobante, su correlativo le pertenece, y cambiarle el entorno
                     dejaría la serie con un salto que SUNAT observa. Para pasar a producción se crea una empresa nueva
-                    — con su certificado digital real y su clave SOL — y se elige acá.
+                    — con su certificado digital real y su clave SOL — y se elige aquí.
                     {' '}
                     <a
                         href={API_EMPRESAS}

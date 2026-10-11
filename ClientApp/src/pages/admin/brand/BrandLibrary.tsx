@@ -138,7 +138,7 @@ export function BrandLibrary({ assets, usage, onChanged, onError }: {
         >
             <div className="flex flex-wrap items-center gap-3 mb-4">
                 <UploadButton onUploaded={a => onChanged([...assets, ...a])} onError={onError} />
-                <span className={muted}>PNG, WebP, JPG, GIF, SVG o ICO hasta 5 MB. También puedes arrastrarlas acá. Las incorporadas son las que ya usa el sitio y no se pueden borrar.</span>
+                <span className={muted}>PNG, WebP, JPG, GIF, SVG o ICO hasta 5 MB. También puedes arrastrarlas aquí. Las incorporadas son las que ya usa el sitio y no se pueden borrar.</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 3xl:grid-cols-6 4xl:grid-cols-8 gap-4">
                 {items.map(item => (

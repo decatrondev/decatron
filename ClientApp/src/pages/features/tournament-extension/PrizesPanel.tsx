@@ -33,7 +33,7 @@ const SCOPE_LABELS: Record<string, string> = {
     by_rank: 'Por puesto',
     by_role: 'Por rol',
     by_metric: 'Por metrica',
-    custom: 'Libre (vos decidís)',
+    custom: 'Libre (tú decides)',
 };
 
 const ROLES = [
@@ -322,7 +322,7 @@ function PrizeForm({
                 )}
                 {scope === 'custom' && (
                     <div className="flex items-center">
-                        <p className="text-xs text-[#94a3b8]">Sin seguimiento automático — vos marcás quién lo ganó cuando corresponda.</p>
+                        <p className="text-xs text-[#94a3b8]">Sin seguimiento automático — tú marcas quién lo ganó cuando corresponda.</p>
                     </div>
                 )}
 

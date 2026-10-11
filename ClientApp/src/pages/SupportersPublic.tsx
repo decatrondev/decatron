@@ -213,7 +213,7 @@ function TierCards() {
     /*
         Compra en dos pasos: primero la vista previa del comprobante, después Culqi.
 
-        Los datos NO se piden acá. Salen del perfil de facturación del usuario, que se
+        Los datos NO se piden aquí. Salen del perfil de facturación del usuario, que se
         completa una sola vez en /me/billing. Pedirlos en medio del pago era el error de
         antes: un comprobante se emite sobre un cobro ya hecho, y si el dato está mal
         cuando llega a SUNAT ya no hay a quién preguntarle.
@@ -511,7 +511,7 @@ function TierCards() {
                     Vista previa del comprobante, antes de pagar.
 
                     No pide datos: los muestra. Salen del perfil de facturación, que se
-                    completa una sola vez en /me/billing. Lo único que se decide acá es si
+                    completa una sola vez en /me/billing. Lo único que se decide aquí es si
                     quien tiene RUC quiere factura o boleta.
                 */}
                 {checkoutTier && (

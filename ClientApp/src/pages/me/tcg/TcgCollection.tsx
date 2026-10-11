@@ -220,7 +220,7 @@ export default function TcgCollection() {
             ) : items.length === 0 ? (
                 <p className="text-ds-soft">
                     {totalCount === 0 && !rarity && !status && !search
-                        ? 'Todavía no tenés cartas. Andá a la tienda y abrí un sobre.'
+                        ? 'Todavía no tienes cartas. Ve a la tienda y abre un sobre.'
                         : 'Ninguna carta coincide con estos filtros.'}
                 </p>
             ) : (

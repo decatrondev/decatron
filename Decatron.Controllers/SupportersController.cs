@@ -1394,7 +1394,7 @@ namespace Decatron.Controllers
             var esBeta = estado.Activa?.EsBeta;
             string? advertencia = null;
             if (modo.EsTest && esBeta == false)
-                advertencia = "Estás cobrando con llaves de PRUEBA pero emitiendo con una empresa de PRODUCCIÓN. Las compras de prueba no emiten comprobante, pero revisá que sea lo que querés.";
+                advertencia = "Estás cobrando con llaves de PRUEBA pero emitiendo con una empresa de PRODUCCIÓN. Las compras de prueba no emiten comprobante, pero revisá que sea lo que quieres.";
             else if (!modo.EsTest && esBeta == true)
                 advertencia = "Estás cobrando DINERO REAL pero la empresa emisora es de BETA: esos cobros no generan comprobante válido ante SUNAT.";
 

@@ -28,14 +28,14 @@ const CARDS: TcgCard[] = [
     {
         id: 'shop',
         name: 'Tienda de sobres',
-        description: 'Comprá sobres con tus DecaCoins',
+        description: 'Compra sobres con tus DecaCoins',
         icon: <ShoppingBag className="w-6 h-6 text-ds-accent-text" />,
         route: '/me/tcg/shop',
     },
     {
         id: 'open',
         name: 'Abrir sobres',
-        description: 'Abrí los sobres que ya compraste',
+        description: 'Abre los sobres que ya compraste',
         icon: <PackageOpen className="w-6 h-6 text-ds-accent-text" />,
         route: '/me/tcg/open',
     },
@@ -131,7 +131,7 @@ export default function TcgHub() {
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-ds-text">TCG — Cards Coleccionables</h1>
-                    <p className="text-ds-soft mt-2">Abrí sobres, armá tu colección y gradeá tus cartas.</p>
+                    <p className="text-ds-soft mt-2">Abre sobres, arma tu colección y grada tus cartas.</p>
                 </div>
                 {balance != null && (
                     <div className="flex items-center gap-2 bg-ds-bg border border-ds-border rounded-lg px-4 py-2">

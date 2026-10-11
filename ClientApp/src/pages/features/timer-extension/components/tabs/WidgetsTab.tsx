@@ -104,7 +104,7 @@ function WidgetEditor({ widget, onChange, label, hideLabelField = false, hideEna
                             label="Color de fondo"
                             value={widget.backgroundColor ?? 'rgba(0, 0, 0, 0)'}
                             onChange={v => onChange({ backgroundColor: v })}
-                            hint="Dejalo en Sin fondo si solo querés el texto sobre tu stream."
+                            hint="Déjalo en Sin fondo si solo quieres el texto sobre tu stream."
                         />
                     </div>
                     <div>
@@ -354,7 +354,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                 {[
                                     { value: 'wallclock' as const, titulo: 'Desde que arrancó', detalle: 'Cuántos días lleva el subathon, corriendo de corrido aunque el timer esté pausado. Es lo que pregunta el chat.' },
                                     { value: 'active' as const, titulo: 'Timer en marcha', detalle: 'Solo el tiempo que el timer estuvo corriendo, sin contar las pausas. El mismo número que el "Transcurrido".' },
-                                    { value: 'customDate' as const, titulo: 'Desde una fecha', detalle: 'Vos elegís el día de arranque. Sirve si reseteaste el timer sin querer o venís de otra herramienta.' },
+                                    { value: 'customDate' as const, titulo: 'Desde una fecha', detalle: 'Tú eliges el día de arranque. Sirve si reseteaste el timer sin querer o vienes de otra herramienta.' },
                                 ].map(op => (
                                     <button
                                         key={op.value}
@@ -389,7 +389,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
 
                         {/* Unidades */}
                         <div>
-                            <label className={labelClass}>Unidades que querés mostrar</label>
+                            <label className={labelClass}>Unidades que quieres mostrar</label>
                             <div className="flex flex-wrap gap-2">
                                 {TIME_UNIT_ORDER.map(unit => (
                                     <button
@@ -421,8 +421,8 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                     className={inputClass}
                                 />
                                 <p className="text-[10px] text-ds-soft mt-1">
-                                    Escribí lo que quieras y poné <span className="font-mono">{'{tiempo}'}</span> donde va la cuenta.
-                                    También podés usar <span className="font-mono">{'{calendario}'}</span> (desde que arrancó) y <span className="font-mono">{'{activo}'}</span> (timer en marcha) para mostrar las dos juntas.
+                                    Escribe lo que quieras y pon <span className="font-mono">{'{tiempo}'}</span> donde va la cuenta.
+                                    También puedes usar <span className="font-mono">{'{calendario}'}</span> (desde que arrancó) y <span className="font-mono">{'{activo}'}</span> (timer en marcha) para mostrar las dos juntas.
                                 </p>
                             </div>
                             <div>

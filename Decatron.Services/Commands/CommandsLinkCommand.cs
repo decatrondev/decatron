@@ -51,7 +51,7 @@ namespace Decatron.Services.Commands
                     return;
                 }
 
-                var message = $"@{context.Username} mira todos mis comandos acá: https://twitch.decatron.net/commands/{channelInfo.Login}";
+                var message = $"@{context.Username} mira todos mis comandos aquí: https://twitch.decatron.net/commands/{channelInfo.Login}";
                 await messageSender.SendMessageAsync(context.Channel, message);
             }
             catch (Exception ex)

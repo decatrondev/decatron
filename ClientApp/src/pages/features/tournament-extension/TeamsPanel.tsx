@@ -299,7 +299,7 @@ export default function TeamsPanel({
                             </div>
                         ))}
                     {/* ARAM: los equipos se sortean solos al generar el bracket y ya se ven ahi
-                        mismo con nombre — mostrar de nuevo la grilla acá (a veces 20+ tarjetas)
+                        mismo con nombre — mostrar de nuevo la grilla aquí (a veces 20+ tarjetas)
                         solo alarga la pagina sin sumar informacion nueva. */}
 
                     <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">

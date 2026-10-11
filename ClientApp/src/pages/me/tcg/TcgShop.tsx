@@ -183,7 +183,7 @@ export default function TcgShop() {
 
             <TcgPageHeader
                 title="Tienda de sobres"
-                subtitle="Comprá sobres con tus DecaCoins. Los abrís cuando quieras."
+                subtitle="Compra sobres con tus DecaCoins. Los abres cuando quieras."
                 balance={balance}
                 right={
                     unopenedTotal > 0 ? (

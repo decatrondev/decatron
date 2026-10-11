@@ -192,7 +192,7 @@ export default function LogoGuide() {
         setState(s => ({ ...s, directionKey: key, description: dir.full }));
     };
 
-    const description = state.description || '[Todavía no elegiste una dirección en el paso 1 — volvé y elegí A o B primero.]';
+    const description = state.description || '[Todavía no elegiste una dirección en el paso 1 — vuelve y elige A o B primero.]';
 
     const downloadAll = () => {
         const parts = [
@@ -243,7 +243,7 @@ export default function LogoGuide() {
                         <Palette className="w-7 h-7 text-[#2563eb]" />
                         <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Logo de Decatron</h1>
                     </div>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">Elegís, copiás, generás afuera, volvés y seguís — 8 pasos.</p>
+                    <p className="text-[#64748b] dark:text-[#94a3b8]">Eliges, copias, generas afuera, vuelves y sigues — 8 pasos.</p>
                 </div>
             </div>
 
@@ -284,9 +284,9 @@ export default function LogoGuide() {
 
                     {step.id === 'direction' && (
                         <>
-                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-3">Elegí la dirección del personaje</h2>
+                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-3">Elige la dirección del personaje</h2>
                             <p className="text-[#64748b] dark:text-[#94a3b8] max-w-2xl mb-6">
-                                Generá los dos afuera si querés, y cuando tengas uno que te convenza más, marcalo acá — queda guardado como la descripción base para los otros seis prompts.
+                                Genera los dos afuera si quieres, y cuando tengas uno que te convenza más, márcalo aquí — queda guardado como la descripción base para los otros seis prompts.
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 {DIRECTIONS.map(d => (
@@ -346,7 +346,7 @@ export default function LogoGuide() {
                                 {step.id === 'hero' && 'Hero de la landing'}
                             </h2>
                             <p className="text-[#64748b] dark:text-[#94a3b8] max-w-2xl mb-6">
-                                {step.id === 'master' && 'Pegá esto en tu IA de imágenes y generá hasta que salga una versión que te convenza. Esa imagen es tu referencia oficial para todo lo demás.'}
+                                {step.id === 'master' && 'Pega esto en tu IA de imágenes y genera hasta que salga una versión que te convenza. Esa imagen es tu referencia oficial para todo lo demás.'}
                                 {step.id === 'wordmark' && 'No depende del personaje — es la tipografía del nombre "DECATRON" sola.'}
                                 {step.id === 'lockup' && 'El personaje y el wordmark juntos, en una composición horizontal.'}
                                 {step.id === 'favicon' && 'Reducida a lo esencial para que se lea bien a 16-32px.'}
@@ -359,15 +359,15 @@ export default function LogoGuide() {
 
                             {step.id === 'master' && (
                                 <>
-                                    <Hint><span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip Midjourney:</strong> agregá <code>--ar 1:1 --style raw --v 6</code> al final.</span></Hint>
+                                    <Hint><span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip Midjourney:</strong> agrega <code>--ar 1:1 --style raw --v 6</code> al final.</span></Hint>
                                     <Hint><span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Guardá esta imagen</strong> — en los próximos pasos la subís como referencia para que el personaje no varíe de un formato a otro.</span></Hint>
                                 </>
                             )}
                             {(step.id === 'lockup' || step.id === 'favicon' || step.id === 'avatar') && (
-                                <Hint>Si tu herramienta soporta imagen de referencia, subí el resultado del paso 2 antes de generar este.</Hint>
+                                <Hint>Si tu herramienta soporta imagen de referencia, sube el resultado del paso 2 antes de generar este.</Hint>
                             )}
                             {step.id === 'hero' && (
-                                <Hint><span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip Midjourney:</strong> agregá <code>--ar 16:9 --style raw --v 6</code>.</span></Hint>
+                                <Hint><span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip Midjourney:</strong> agrega <code>--ar 16:9 --style raw --v 6</code>.</span></Hint>
                             )}
 
                             <div className="flex gap-3 mt-6">
@@ -389,9 +389,9 @@ export default function LogoGuide() {
 
                     {step.id === 'done' && (
                         <>
-                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-3">Listo — tenés las siete piezas</h2>
+                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-3">Listo — tienes las siete piezas</h2>
                             <p className="text-[#64748b] dark:text-[#94a3b8] max-w-2xl mb-6">
-                                Repasá qué generaste. Si algo no te convenció, volvé al paso con el riel de la izquierda y regenerá solo esa pieza.
+                                Repasa qué generaste. Si algo no te convenció, vuelve al paso con el riel de la izquierda y regenera solo esa pieza.
                             </p>
                             <ul className="space-y-2 mb-6">
                                 {STEPS.filter(s => s.id !== 'direction' && s.id !== 'done').map(s => {
@@ -408,7 +408,7 @@ export default function LogoGuide() {
                             </ul>
 
                             <Hint>
-                                <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Para que las siete piezas se sientan la misma marca:</strong> subí la imagen del paso 2 como referencia al generar cada una de las demás, en vez de confiar solo en el texto.</span>
+                                <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Para que las siete piezas se sientan la misma marca:</strong> sube la imagen del paso 2 como referencia al generar cada una de las demás, en vez de confiar solo en el texto.</span>
                             </Hint>
 
                             <div className="flex gap-3 mt-6">
