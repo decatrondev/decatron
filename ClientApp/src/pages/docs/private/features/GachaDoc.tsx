@@ -268,44 +268,49 @@ export default function GachaDoc() {
             {/* Comandos */}
             <DocSection title="Comandos">
                 <p className="mb-4">
-                    Comandos disponibles del bot para el sistema Gacha. Los permisos, cooldowns y aliases
+                    Comandos del bot para el sistema Gacha; todos son atajos de !gacha (por ejemplo, !gacha pull). Los permisos, cooldowns y aliases
                     se configuran en la pestana <strong>Comandos</strong>.
                 </p>
                 <div className="space-y-3">
                     <CommandCard
-                        command="!gcpull"
-                        description="Abre una carta aleatoria (si el viewer tiene pulls disponibles)"
+                        command="!gcpull [n]"
+                        description="Abre una o varias cartas si el viewer tiene pulls disponibles"
                         permission="Todos"
                     />
                     <CommandCard
-                        command="!gcbuy"
-                        description="Compra un pull con DecaCoins"
+                        command="!gcpulls"
+                        description="Muestra cuántos pulls tiene disponibles"
                         permission="Todos"
                     />
                     <CommandCard
-                        command="!gcinventory"
-                        description="Muestra el inventario de cartas del viewer"
+                        command="!gccol"
+                        description="Muestra un resumen de la colección en el chat"
                         permission="Todos"
                     />
                     <CommandCard
-                        command="!gcwish"
-                        description="Agrega una carta a la lista de deseados"
+                        command="!gctop"
+                        description="Muestra el ranking de coleccionistas"
                         permission="Todos"
                     />
                     <CommandCard
-                        command="!gcstats"
-                        description="Muestra estadisticas del viewer (pulls totales, rarezas, etc.)"
+                        command="!gcpause / !gcresume"
+                        description="Pausa o reanuda un multi-pull en curso"
                         permission="Todos"
                     />
                     <CommandCard
-                        command="!gcgive"
-                        description="Otorga pulls a un viewer manualmente"
+                        command="!gcbuy [n]"
+                        description="Compra pulls con DecaCoins"
+                        permission="Todos"
+                    />
+                    <CommandCard
+                        command="!gcprice"
+                        description="Muestra las formas de conseguir pulls y sus precios"
+                        permission="Todos"
+                    />
+                    <CommandCard
+                        command="!gcdonar <usuario> <monto>"
+                        description="Registra una donación manual a un usuario para darle pulls"
                         permission="Streamer / Mods"
-                    />
-                    <CommandCard
-                        command="!gcreset"
-                        description="Reinicia el progreso de un viewer"
-                        permission="Streamer"
                     />
                 </div>
                 <DocAlert type="info" title="Aliases">

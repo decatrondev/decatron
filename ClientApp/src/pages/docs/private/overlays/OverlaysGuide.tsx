@@ -62,7 +62,7 @@ export default function OverlaysGuide() {
                     <StepCard
                         number={5}
                         title="Ajustar dimensiones"
-                        description="Configura el ancho y alto. Recomendamos 1920x1080 para pantalla completa."
+                        description="Configura el ancho y alto. Usa el tamaño que indica el panel de ese overlay (1920x1080 en la mayoría)."
                     />
                     <StepCard
                         number={6}
@@ -91,24 +91,30 @@ export default function OverlaysGuide() {
                         </thead>
                         <tbody className="divide-y divide-ds-border">
                             <tr>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Timer</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Sound Alerts</td>
                                 <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
                                 <td className="px-4 py-3 text-sm text-ds-soft">1080</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Pantalla completa</td>
-                            </tr>
-                            <tr>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Alertas</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">1080</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Pantalla completa</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Lienzo completo</td>
                             </tr>
                             <tr>
                                 <td className="px-4 py-3 text-sm text-ds-soft">Shoutout</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">1080</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Pantalla completa</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1000</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">300</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Por defecto; cambia si eliges otro diseño</td>
                             </tr>
-                        </tbody>
+                            <tr>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Mascota</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">420</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Por defecto; se cambia en la pestaña Overlay</td>
+                            </tr>
+                            <tr>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Los demás</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">—</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">—</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">El panel de cada overlay indica el tamaño exacto; usa ese</td>
+                            </tr>
+                            </tbody>
                     </table>
                 </div>
             </DocSection>
@@ -116,8 +122,8 @@ export default function OverlaysGuide() {
             {/* URLs de overlays */}
             <DocSection title="URLs de Overlays">
                 <p className="mb-4">
-                    Cada overlay tiene una URL unica que incluye tu token de autenticacion.
-                    Puedes encontrar las URLs en la seccion correspondiente del dashboard.
+                    Cada overlay tiene una URL propia de tu canal. La encuentras en la pestaña Guía u Overlay
+                    del panel correspondiente, lista para copiar.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <OverlayCard
@@ -155,6 +161,48 @@ export default function OverlaysGuide() {
                         title="Shoutout"
                         description="Promocion de canales"
                         configPath="/overlays/shoutout"
+                    />
+                    <OverlayCard
+                        icon={<Monitor className="w-5 h-5" />}
+                        title="Chat en pantalla"
+                        description="Mensajes del chat y emotes"
+                        configPath="/overlays/chat"
+                    />
+                    <OverlayCard
+                        icon={<Monitor className="w-5 h-5" />}
+                        title="Now Playing"
+                        description="La canción que suena"
+                        configPath="/overlays/now-playing"
+                    />
+                    <OverlayCard
+                        icon={<Monitor className="w-5 h-5" />}
+                        title="Song Request"
+                        description="Cola de canciones"
+                        configPath="/overlays/song-request"
+                    />
+                    <OverlayCard
+                        icon={<Monitor className="w-5 h-5" />}
+                        title="Mascota"
+                        description="Un gato 3D en tu stream"
+                        configPath="/overlays/pets"
+                    />
+                    <OverlayCard
+                        icon={<Monitor className="w-5 h-5" />}
+                        title="Rueda"
+                        description="Rueda de premios y sorteo"
+                        configPath="/overlays/rueda"
+                    />
+                    <OverlayCard
+                        icon={<Monitor className="w-5 h-5" />}
+                        title="Game Overlays"
+                        description="Rango y partidas del juego activo"
+                        configPath="/overlays/games"
+                    />
+                    <OverlayCard
+                        icon={<Monitor className="w-5 h-5" />}
+                        title="Partida en vivo"
+                        description="Fases de tu partida de LoL"
+                        configPath="/overlays/live"
                     />
                 </div>
             </DocSection>
