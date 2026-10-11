@@ -913,6 +913,15 @@ A channel has one credit balance (`tts_credit_balances`) and an append-only ledg
 - **Buying.** `GET /api/tts-credits/packages` lists `credit_packages`; `POST /api/tts-credits/billing-preview` shows the receipt that would be issued; `POST /api/tts-credits/buy` charges the package price converted to PEN at the platform exchange rate through Culqi (`/v2/charges`, keys from `PaymentModeService`, test or live), records a `credit_purchases` row with the billing data frozen, and grants the credits. Only the channel owner can buy, and the billing profile must exist first. A charge confirmed without a charge id is logged for manual review, and a charge that was not credited is logged as well.
 - **Receipts.** `BillingProfileService` validates the profile (document type by country, RUC/DNI/CE/passport formats, RUC lookup against SUNAT) and builds the preview: boleta with IGV included (18 %), factura with IGV for a RUC holder who asks for it, or an export invoice without IGV for a foreign address. Issuing is asynchronous (`PENDING` to `ACCEPTED`); `GET /api/tts-credits/purchases` lists purchases with their receipt state and `.../download/{pdf|xml|cdr}` returns the files.
 
+### Plans and supporters
+
+Plans (tiers `free`, `supporter`, `premium`, `fundador`) are assigned by `SupportersService` and resolved everywhere through `TierResolver`; every module reads its own limits from the effective tier, so a plan only changes quantities.
+
+- **Public page.** `GET /api/supporters/public-config` (title, goal, flags), `GET /api/supporters/list-public` (active supporters for the wall) and `GET /api/supporters/tier-limits`, which builds the "what changes in each plan" table from the same limit classes the bot applies (`-1` means unlimited).
+- **Purchase.** The page asks `POST /api/supporters/billing-preview` first, which also runs `EvaluarCompraAsync`: a purchase may never leave the buyer with less than they had (renewing adds time from the current expiry, moving up is immediate, going down or buying over a permanent plan is blocked before charging, and monthly to permanent is an upgrade). Then `POST /api/supporters/create-culqi-charge` charges through Culqi (session and billing profile required), records the payment (`supporter_payments`), assigns the tier with the payment reference and queues the receipt. Discount codes are checked with `GET /api/supporters/validate-code` (percent or fixed amount). The PayPal order endpoints are still in the controller, but the page only uses Culqi. Free donations (`POST /api/supporters/create-culqi-donation`, from US$ 1) assign nothing.
+- **Expiry.** Monthly plans are prepaid periods, not subscriptions: when `tier_expires_at` passes, the user resolves to `free` again and nothing is charged. Permanent plans have no expiry date.
+- **Billing profile and receipts.** `GET`/`PUT /api/supporters/billing-profile`, `GET /api/supporters/billing-profile/ruc/{ruc}` (SUNAT lookup), and `GET /api/supporters/my-invoices` with `.../download/{pdf|xml|cdr}`; the same profile is used by credit purchases.
+
 ## 8. External Integrations
 
 ```mermaid

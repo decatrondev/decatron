@@ -129,7 +129,7 @@
   "purchaseDoneInvoice": "Tu comprobante se está emitiendo. Tarda un par de minutos porque se genera aparte del cobro — cuando esté, lo vas a encontrar en Mis comprobantes para descargarlo en PDF.",
   "purchaseDoneGoToInvoices": "Ver mis comprobantes",
   "purchaseDoneClose": "Cerrar",
-  "tierChangeExtends": "Ya tenés {{tier}} hasta el {{hasta}}. Esta compra no reinicia nada: te lo extiende hasta el {{nueva}}.",
+  "tierChangeExtends": "Ya tienes {{tier}} hasta el {{hasta}}. Esta compra no reinicia nada: te lo extiende hasta el {{nueva}}.",
   "tierChangeUpgrades": "Vas a pasar de {{actual}} a {{nuevo}}. El cambio es inmediato.",
   "heroTag": "apoya a Decatron",
   "heroTitleLine": "Apoya a Decatron",

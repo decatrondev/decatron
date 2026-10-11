@@ -318,7 +318,7 @@ namespace Decatron.Services
             if (actual.EsPermanente && !(isPermanent && rangoNuevo > rangoActual))
             {
                 return new EvaluacionCompra(false, TierAccion.YaPermanente,
-                    $"Ya tenés {actual.Tier} permanente, que no vence. Esta compra le pondría " +
+                    $"Ya tienes {actual.Tier} permanente, que no vence. Esta compra le pondría " +
                     "fecha de fin a un acceso que hoy es para siempre.",
                     actual, null);
             }
@@ -342,7 +342,7 @@ namespace Decatron.Services
                 return new EvaluacionCompra(true, TierAccion.Sube, null, actual, vencimientoNuevo);
 
             return new EvaluacionCompra(false, TierAccion.Baja,
-                $"Ya tenés {actual.Tier}, que es superior a {tier}. Esta compra te dejaría con " +
+                $"Ya tienes {actual.Tier}, que es superior a {tier}. Esta compra te dejaría con " +
                 "menos beneficios y perderías el tiempo que te queda del actual.",
                 actual, null);
         }

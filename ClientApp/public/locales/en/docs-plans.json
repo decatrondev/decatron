@@ -1,0 +1,301 @@
+{
+  "overview": {
+    "title": "Plans and supporting Decatron",
+    "subtitle": "Decatron is free; plans are voluntary and raise the quantities",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron is free for all Twitch and Kick streamers, with all its features. Anyone who wants to support the project can choose a supporter plan or donate freely from the `/supporters` page."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Plans never lock a feature: all of them are available on the free plan. A plan only raises quantities, such as how many playlists, wheels or emotes you can have."
+          }
+        ]
+      },
+      {
+        "id": "planes",
+        "title": "The plans",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Plan",
+              "Current price",
+              "Who it is for"
+            ],
+            "rows": [
+              [
+                "Supporter ⚡",
+                "US$ 5 per month",
+                "More quantities than the free plan."
+              ],
+              [
+                "Premium 💎",
+                "US$ 15 per month",
+                "Even more quantities and more monthly credits."
+              ],
+              [
+                "Fundador 🌟",
+                "US$ 25 per month or US$ 100 permanent",
+                "The highest limits (some uncapped), suggestions with priority on the roadmap and a section of their own on the page."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Prices are the ones the page shows today and may change. The “Qué cambia en cada plan” table on `/supporters` is read from the same limits the bot applies, so it is always up to date."
+          }
+        ]
+      },
+      {
+        "id": "pagos",
+        "title": "How it is paid",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "By card or Yape, processed by Culqi. Decatron never sees or stores your card details. The charge is made in soles and you receive an electronic receipt or invoice."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the manual to buy and manage your plan is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "plans-buy"
+          }
+        ]
+      }
+    ]
+  },
+  "buy": {
+    "title": "Plans: buying and renewing",
+    "subtitle": "Step by step, discount codes and what happens when buying with an active plan",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Before buying",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Sign in with your Twitch account: that is how we know whom to credit the benefits to and in whose name to issue the receipt.",
+              "Have your billing data complete (asked for only once). If it is missing, the preview offers to complete it."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "How to buy",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "On `/supporters`, choose Monthly or Permanent (only the Fundador plan has the permanent option).",
+              "If you have a discount code, type it under “¿Tienes un código de descuento?” and press “Aplicar”: you will see the discount as a percentage or in dollars.",
+              "Press “Tarjeta / Yape” on the chosen plan. “Así saldrá tu comprobante” appears: check the type, name, document and total. If you have a RUC you can choose Boleta or Factura.",
+              "Press “Continuar al pago” and pay in the Culqi window.",
+              "Once the payment is confirmed the plan is active and “¡Listo, ya está activo!” appears. The receipt is issued separately and takes a couple of minutes."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "After the charge, a receipt can only be corrected by voiding it. That is why the preview comes before payment: check it."
+          }
+        ]
+      },
+      {
+        "id": "reglas",
+        "title": "If you already have a plan",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A purchase can never leave you with less than you already had. Before charging, the preview tells you what will happen:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Situation",
+              "Result"
+            ],
+            "rows": [
+              [
+                "Renewing the same monthly plan",
+                "The time is added to the end of what is already paid, not from today: the days you have left are not lost."
+              ],
+              [
+                "Moving to a higher plan",
+                "The change is immediate."
+              ],
+              [
+                "Going from monthly to permanent",
+                "Improves the plan: it stops expiring."
+              ],
+              [
+                "Buying one lower than you have",
+                "Blocked before charging, because you would lose benefits and the time you have left on the current one."
+              ],
+              [
+                "Buying anything if you have a permanent plan",
+                "Blocked, except for a higher-level permanent plan: anything else would put an end date on something that is forever."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vencimiento",
+        "title": "What happens on expiry",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Monthly plans do not renew on their own: they are paid for one period and no additional charge is made. When it ends, your account returns to the free plan; what you already created is not deleted, you just cannot add above the free cap. Purchased credits are not lost."
+          },
+          {
+            "t": "p",
+            "x": "Your Credits page shows the date your plan expires."
+          }
+        ]
+      },
+      {
+        "id": "comprobantes",
+        "title": "Receipts and refunds",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Your receipt appears in My account → My receipts, to download as PDF, XML or CDR.",
+              "Contributions are voluntary and there are no refunds. Only a duplicate charge caused by a technical error or an unauthorized transaction is returned: write to support@decatron.net.",
+              "If the payment was made and the benefits do not appear, the assignment is corrected; contact support."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "credits-billing"
+          }
+        ]
+      },
+      {
+        "id": "donar",
+        "title": "Donate freely",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On `/supporters` you can also donate any amount you want, from US$ 1, with no tier or benefits. It is only to support the project."
+          }
+        ]
+      }
+    ]
+  },
+  "plans": {
+    "title": "Plans: what each one includes",
+    "subtitle": "Quantities, credits and extras of Supporter, Premium and Fundador",
+    "sections": [
+      {
+        "id": "idea",
+        "title": "The idea",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The free plan includes every feature; paid plans raise the quantities and give more credits and standard voice quota each month."
+          }
+        ]
+      },
+      {
+        "id": "tabla",
+        "title": "What changes",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Item",
+              "Free",
+              "Supporter",
+              "Premium",
+              "Fundador"
+            ],
+            "rows": [
+              [
+                "Monthly credits",
+                "0",
+                "150,000",
+                "500,000",
+                "1,500,000"
+              ],
+              [
+                "Standard voice per month (characters)",
+                "1,000,000",
+                "3,000,000",
+                "6,000,000",
+                "10,000,000"
+              ],
+              [
+                "Active own emotes",
+                "150",
+                "400",
+                "1,000",
+                "3,000"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mas",
+        "title": "The remaining limits",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Song Request playlists and songs, wheels and segments, game overlays and accounts, histories, media storage and Polly voice characters also grow with the plan. Their exact values are in the public “Qué cambia en cada plan” table on `/supporters`, which is read from the same limits the bot applies (“Sin tope” means unlimited)."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Credits are spent on premium voice, live translation, the LoL coach and AI. Purchased ones do not expire."
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      },
+      {
+        "id": "extras",
+        "title": "Extras of each plan",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Supporter and Premium: a badge (⚡ and 💎) next to your name on the public `/supporters` page.",
+              "Fundador: an exclusive 🌟 badge, a Founders section on the page, and suggestions with priority on the roadmap. With the permanent plan, your name stays as a Founder.",
+              "All paid plans allow hiding the Decatron card in the Song Request overlay and game overlays."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pagina",
+        "title": "The public page",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`/supporters` shows, besides the plans, the monthly goal with its progress, the list of active supporters with their photo and name, the Founders section and the frequently asked questions. Whoever supports appears in the list while their plan is active."
+          }
+        ]
+      }
+    ]
+  }
+}

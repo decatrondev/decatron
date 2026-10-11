@@ -1,0 +1,301 @@
+{
+  "overview": {
+    "title": "Planes y apoyo a Decatron",
+    "subtitle": "Decatron es gratis; los planes son voluntarios y amplían las cantidades",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron es gratuito para todos los streamers de Twitch y Kick, con todas sus funciones. Quien quiere apoyar el proyecto puede elegir un plan de supporter o donar libremente desde la página `/supporters`."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Los planes nunca bloquean una función: todas están disponibles en el plan gratuito. El plan solo amplía cantidades, como cuántas playlists, ruedas o emotes puedes tener."
+          }
+        ]
+      },
+      {
+        "id": "planes",
+        "title": "Los planes",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Plan",
+              "Precio actual",
+              "Para quién"
+            ],
+            "rows": [
+              [
+                "Supporter ⚡",
+                "US$ 5 al mes",
+                "Más cantidades que el plan gratuito."
+              ],
+              [
+                "Premium 💎",
+                "US$ 15 al mes",
+                "Aún más cantidades y más créditos mensuales."
+              ],
+              [
+                "Fundador 🌟",
+                "US$ 25 al mes o US$ 100 permanente",
+                "Los límites más altos (algunos sin tope), sugerencias con prioridad en el roadmap y una sección propia en la página."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los precios son los que muestra hoy la página y pueden cambiar. La tabla «Qué cambia en cada plan» de `/supporters` se lee de los mismos límites que aplica el bot, así que siempre está al día."
+          }
+        ]
+      },
+      {
+        "id": "pagos",
+        "title": "Cómo se paga",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con tarjeta o Yape, procesado por Culqi. Decatron nunca ve ni guarda los datos de tu tarjeta. El cobro se hace en soles y recibes una boleta o factura electrónica."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, el manual para comprar y gestionar tu plan está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "plans-buy"
+          }
+        ]
+      }
+    ]
+  },
+  "buy": {
+    "title": "Planes: comprar y renovar",
+    "subtitle": "Paso a paso, códigos de descuento y qué pasa al comprar con un plan activo",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Antes de comprar",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Iniciar sesión con tu cuenta de Twitch: así se sabe a quién acreditar los beneficios y a nombre de quién emitir el comprobante.",
+              "Tener completos tus datos de facturación (se piden una sola vez). Si faltan, la vista previa te ofrece completarlos."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Cómo comprar",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "En `/supporters`, elige Mensual o Permanente (solo el plan Fundador tiene la opción permanente).",
+              "Si tienes un código de descuento, escríbelo en «¿Tienes un código de descuento?» y pulsa «Aplicar»: verás el descuento en porcentaje o en dólares.",
+              "Pulsa «Tarjeta / Yape» en el plan elegido. Aparece «Así saldrá tu comprobante»: revisa el tipo, el nombre, el documento y el total. Si tienes RUC puedes elegir Boleta o Factura.",
+              "Pulsa «Continuar al pago» y paga en la ventana de Culqi.",
+              "Al confirmarse el pago el plan queda activo y aparece «¡Listo, ya está activo!». El comprobante se emite aparte y tarda un par de minutos."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Después del cobro, un comprobante solo se corrige anulándolo. Por eso la vista previa va antes del pago: revísala."
+          }
+        ]
+      },
+      {
+        "id": "reglas",
+        "title": "Si ya tienes un plan",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Una compra nunca puede dejarte con menos de lo que ya tenías. Antes de cobrar, la vista previa te dice qué pasará:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Situación",
+              "Resultado"
+            ],
+            "rows": [
+              [
+                "Renovar el mismo plan mensual",
+                "El tiempo se suma al final de lo ya pagado, no desde hoy: los días que te quedan no se pierden."
+              ],
+              [
+                "Subir a un plan mayor",
+                "El cambio es inmediato."
+              ],
+              [
+                "Pasar de mensual a permanente",
+                "Mejora el plan: deja de vencer."
+              ],
+              [
+                "Comprar uno menor al que tienes",
+                "Se bloquea antes de cobrar, porque perderías beneficios y el tiempo que te queda del actual."
+              ],
+              [
+                "Comprar algo si tienes un plan permanente",
+                "Se bloquea, salvo un plan permanente de mayor nivel: lo demás le pondría fecha de fin a algo que es para siempre."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vencimiento",
+        "title": "Qué pasa al vencer",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los planes mensuales no se renuevan solos: se pagan por un período y no se hace ningún cargo adicional. Cuando vence, tu cuenta vuelve al plan gratuito; lo que ya tenías creado no se borra, solo no podrás agregar por encima del tope gratuito. Los créditos comprados no se pierden."
+          },
+          {
+            "t": "p",
+            "x": "Tu página de Créditos muestra la fecha en que vence tu plan."
+          }
+        ]
+      },
+      {
+        "id": "comprobantes",
+        "title": "Comprobantes y devoluciones",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Tu comprobante aparece en Mi cuenta → Mis comprobantes, para descargarlo en PDF, XML o CDR.",
+              "Los aportes son voluntarios y no hay reembolsos. Solo se devuelve un cobro duplicado por un error técnico o una transacción no autorizada: escribe a support@decatron.net.",
+              "Si el pago se hizo y los beneficios no aparecen, se corrige la asignación; contacta a soporte."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "credits-billing"
+          }
+        ]
+      },
+      {
+        "id": "donar",
+        "title": "Donar libremente",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En `/supporters` también puedes donar el monto que quieras, desde US$ 1, sin tier ni beneficios. Es solo para apoyar el proyecto."
+          }
+        ]
+      }
+    ]
+  },
+  "plans": {
+    "title": "Planes: qué incluye cada uno",
+    "subtitle": "Cantidades, créditos y extras de Supporter, Premium y Fundador",
+    "sections": [
+      {
+        "id": "idea",
+        "title": "La idea",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El plan gratuito incluye todas las funciones; los planes de pago amplían las cantidades y dan más créditos y cuota de voz estándar cada mes."
+          }
+        ]
+      },
+      {
+        "id": "tabla",
+        "title": "Lo que cambia",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Concepto",
+              "Gratis",
+              "Supporter",
+              "Premium",
+              "Fundador"
+            ],
+            "rows": [
+              [
+                "Créditos mensuales",
+                "0",
+                "150 000",
+                "500 000",
+                "1 500 000"
+              ],
+              [
+                "Voz estándar al mes (caracteres)",
+                "1 000 000",
+                "3 000 000",
+                "6 000 000",
+                "10 000 000"
+              ],
+              [
+                "Emotes propios activos",
+                "150",
+                "400",
+                "1 000",
+                "3 000"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mas",
+        "title": "El resto de límites",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Playlists y canciones de Song Request, ruedas y gajos, overlays y cuentas de juegos, historiales, almacenamiento de medios y caracteres de voz Polly también crecen con el plan. Sus valores exactos están en la tabla pública «Qué cambia en cada plan» de `/supporters`, que se lee de los mismos límites que aplica el bot («Sin tope» significa ilimitado)."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los créditos se gastan en la voz premium, la traducción en vivo, el coach de LoL y la IA. Los comprados no vencen."
+          },
+          {
+            "t": "link",
+            "to": "credits-balance"
+          }
+        ]
+      },
+      {
+        "id": "extras",
+        "title": "Extras de cada plan",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Supporter y Premium: una insignia (⚡ y 💎) junto a tu nombre en la página pública `/supporters`.",
+              "Fundador: insignia 🌟 exclusiva, una sección de Fundadores en la página, y sugerencias con prioridad en el roadmap. Con el plan permanente, tu nombre queda como Fundador.",
+              "Todos los planes de pago permiten ocultar la tarjeta de Decatron en el overlay de Song Request y en los overlays de juegos."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pagina",
+        "title": "La página pública",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "`/supporters` muestra, además de los planes, el objetivo mensual con su progreso, la lista de supporters activos con su foto y nombre, la sección de Fundadores y las preguntas frecuentes. Quien apoya aparece en la lista mientras su plan esté vigente."
+          }
+        ]
+      }
+    ]
+  }
+}

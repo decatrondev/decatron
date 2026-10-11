@@ -65,7 +65,8 @@
     "spirits": "Fortnite Spirits",
     "chat": "Chat y emotes",
     "speak": "Speak Chat",
-    "credits": "Créditos y compras"
+    "credits": "Créditos y compras",
+    "plans": "Planes y apoyo"
   },
   "layout": {
     "documentation": "Documentación",
@@ -513,6 +514,18 @@
     "credits-billing": {
       "title": "Facturación y comprobantes",
       "description": "Datos, boleta o factura y descargas"
+    },
+    "plans-overview": {
+      "title": "Planes y apoyo",
+      "description": "Decatron es gratis; los planes son voluntarios"
+    },
+    "plans-buy": {
+      "title": "Comprar y renovar",
+      "description": "Paso a paso, descuentos y cambios de plan"
+    },
+    "plans-plans": {
+      "title": "Qué incluye cada plan",
+      "description": "Cantidades, créditos y extras"
     }
   },
   "microCommands": {

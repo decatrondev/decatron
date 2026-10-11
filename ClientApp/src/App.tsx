@@ -145,6 +145,7 @@ import { SpiritsDoc } from './pages/docs/private/features/SpiritsDoc';
 import { ChatEmotesDoc } from './pages/docs/private/features/ChatEmotesDoc';
 import { SpeakChatDoc } from './pages/docs/private/features/SpeakChatDoc';
 import { CreditsDoc } from './pages/docs/private/features/CreditsDoc';
+import { PlansDoc } from './pages/docs/private/features/PlansDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
@@ -304,6 +305,7 @@ function App() {
                     <Route path="chat" element={<ChatEmotesDoc page="overview" scope="public" />} />
                     <Route path="speak-chat" element={<SpeakChatDoc page="overview" scope="public" />} />
                     <Route path="credits" element={<CreditsDoc page="overview" scope="public" />} />
+                    <Route path="plans" element={<PlansDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -513,6 +515,8 @@ function App() {
                         <Route path="credits/balance" element={<CreditsDoc page="balance" scope="private" />} />
                         <Route path="credits/buy" element={<CreditsDoc page="buy" scope="private" />} />
                         <Route path="credits/billing" element={<CreditsDoc page="billing" scope="private" />} />
+                        <Route path="plans/buy" element={<PlansDoc page="buy" scope="private" />} />
+                        <Route path="plans/plans" element={<PlansDoc page="plans" scope="private" />} />
                         <Route path="features/analytics" element={<AnalyticsDoc />} />
                         <Route path="features/followers" element={<FollowersDoc />} />
                         <Route path="features/ai" element={<AIDoc />} />
