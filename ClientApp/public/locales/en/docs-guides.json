@@ -1540,5 +1540,387 @@
         ]
       }
     ]
+  },
+  "pets": {
+    "title": "Pet",
+    "subtitle": "A 3D cat that lives on your stream",
+    "cta": {
+      "to": "/overlays/pets",
+      "label": "Go to settings"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "What is it?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A 3D pet (a cat for now) that walks around your overlay, sits and goes to sleep when the channel is quiet. It is a real 3D model drawn in your OBS browser, not a gif: you can resize it, name it and decide how much it moves. It is free for all channels."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Lives on its own: it walks, sits and sleeps with the timings you set.",
+              "Talks: name above it and text bubbles in your style.",
+              "One URL: a transparent browser source, nothing else to install."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Step by step",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Pet: choose the model and its color (Original, Orange, Grey, Black, White or Brown), name it and decide whether the name shows above it. There you also choose the font and color of the name and the bubbles.",
+              "Behavior: how often it does something, how fast it walks, which area of the overlay it moves in, how long it stays seated and after how much time without activity it falls asleep.",
+              "Overlay: OBS source size, the pet's real height in pixels, how high above the bottom edge its paws rest, camera tilt and shadow. Copy the URL.",
+              "Test: choose what it does and says, and send it to the preview or straight to the overlay you already have in OBS."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "What you see in the panel is exactly the same scene drawn in OBS, scaled to fit on screen. Save to apply the changes.",
+            "title": "The preview is the overlay"
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "In OBS",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Add a browser source with the panel's URL and the same width and height you set in the Overlay tab (1920×420 by default). The background is transparent. Place it where you want it to walk: usually across the bottom edge, over your camera or the chat bar."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The model is light (about 7,600 triangles) and meant to run at 30–60 fps in OBS's browser source without affecting the game. If you notice drops, turn off the shadow in the Overlay tab.",
+            "title": "Performance"
+          }
+        ]
+      },
+      {
+        "id": "reacciones",
+        "title": "Reactions, commands and greeting",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Reactions: with each alert (follow, bits, sub, resub, gifted subs, raid, Hype Train) the pet plays the animation you choose and shows a bubble with your text. Variables: {user}, {amount}, {months}, {viewers}, {level}, {tier}, {pet}. Bits, gifted subs and raids accept a minimum.",
+              "Greeting new people: the first time someone writes in your chat, the pet greets them (\"Hello {user}\"). It counts from when you turned the pet on.",
+              "Commands: create whatever you want (`!pet`, `!sleep`…): animation, bubble, optional chat reply, cooldown and who can use it (everyone, subs, VIPs, mods or only you)."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If the pet fails for any reason, your alerts, the timer and the other commands carry on as usual: it runs on a separate path.",
+            "title": "It never gets in the way"
+          }
+        ]
+      },
+      {
+        "id": "creditos",
+        "title": "Credits",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The cat is \"Somali Cat Animated ver 1.2\" by DreamNoms (sketchfab.com/DreamNoms), licensed CC-BY-4.0."
+          }
+        ]
+      }
+    ]
+  },
+  "gameOverlays": {
+    "title": "Game Overlays",
+    "subtitle": "Your rank, session and latest matches on screen, for the game you are playing",
+    "cta": {
+      "to": "/overlays/games",
+      "label": "Go to settings"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "What is it?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A single OBS overlay that shows your rank, the points won or lost on today's stream, your wins and losses and your latest matches. It detects the game from your stream's category: if you set League of Legends it appears with your LoL data; if you switch to Just Chatting it hides. There is a demo at `/demo/game-overlay`."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Automatic detection: by the stream category, on Twitch and Kick.",
+              "Several accounts: main and smurfs, with rotation.",
+              "Visual editor: layout, fonts, colors and position, free."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "juegos",
+        "title": "Games",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "League of Legends has automatic data (rank, LP, matches, live game). The other games in the catalog (TFT, VALORANT, Marvel Rivals, CS2, Fortnite, Rocket League and Warzone) work today with a manual rank: you set it on the account or with `!setrango`, and the overlay shows it just as nicely. As their APIs get connected they become automatic without reconfiguring anything."
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Step by step",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Accounts: link your account (for Riot: name, tag and region). We ask you to set a specific summoner icon to verify it is yours.",
+              "Games: turn on the game, mark which accounts to show and how to rotate.",
+              "Detection: choose whether the game is detected by the stream category or is always the same, what to do when there is no game (for example, Just Chatting: hide the overlay) and, if needed, force a game temporarily. That tab shows the category received and the detected game.",
+              "Design: drag the card where you want it and adjust layout, fonts and colors. What you see is what shows in OBS. In LoL there are also stat widgets (winrate, KDA and CS per minute, streak, top champions, mastery, a session LP chart and champion icons in the latest matches) and Minimal / Stats / Full presets to turn them on with one click. They come off by default so overlays you already have in OBS do not change.",
+              "Overlay: copy the URL and add it in OBS as a browser source with the canvas size (1920×1080 by default)."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The card has a fixed size: the box does not change when rotating accounts or views. In automatic mode it is sized by the largest view; in manual mode you choose width and height and the editor warns if something does not fit. If a piece of data is missing (no LP, no matches today) a placeholder is shown in its place."
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "You do not need one source per game: the same URL changes by itself according to what you are playing.",
+            "title": "Only one source in OBS"
+          }
+        ]
+      },
+      {
+        "id": "vivo",
+        "title": "Live match (Desktop)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Champion select, \"Coach says\" and the chat prediction are not on this card: they have their own overlay, Live match, with one screen per phase of the game. Only the status line (\"In game · Jinx · 12:30\") remains here, which with Decatron Desktop connected shows the real phase and without it uses the Riot API."
+          },
+          {
+            "t": "link",
+            "to": "live-overlay"
+          },
+          {
+            "t": "p",
+            "x": "Decatron announcements that appear from time to time are managed by the platform; depending on your plan you can turn them off in Design."
+          }
+        ]
+      },
+      {
+        "id": "cmds",
+        "title": "Chat commands",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`!rango` (`!rank`)",
+                "Rank of your accounts in the active game. `!rango valorant` checks another game."
+              ],
+              [
+                "`!lp` (`!puntos`)",
+                "Points won/lost today and W-L of the visible account."
+              ],
+              [
+                "`!sesion` (`!session`)",
+                "Today's W-L, summed across all your accounts."
+              ],
+              [
+                "`!ultimas` (`!recent`)",
+                "Last 5 matches with KDA."
+              ],
+              [
+                "`!cuentas` (`!accounts`)",
+                "Your accounts with Riot ID, region and rank."
+              ],
+              [
+                "`!juego lol` / `!juego auto` (mods)",
+                "Forces the overlay's game or goes back to automatic."
+              ],
+              [
+                "`!setrango Champion II` (mods)",
+                "Sets the visible account's manual rank."
+              ],
+              [
+                "`!rankup` / `!rankdown` (mods)",
+                "Raises or lowers the manual rank by one division."
+              ],
+              [
+                "`!win` / `!loss` (mods)",
+                "Adds a result to today's session."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "All of them can be turned off from Commands → Default commands."
+          }
+        ]
+      },
+      {
+        "id": "planes",
+        "title": "Plans",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Customization, detection, commands and the eight games are free for everyone. What grows with the plan is quantity: accounts per game (1 / 3 / 5 / 10), overlays (1 / 2 / 4 / unlimited), data refresh (3 / 2 / 1 / 1 min), matches shown (5 / 10 / 20) and advanced rotation (by interval from Supporter, \"the one in game\" from Premium)."
+          }
+        ]
+      },
+      {
+        "id": "priv",
+        "title": "Privacy",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Only the streamer's own verified accounts are shown. Data is queried only while the channel is live (and once when the overlay opens), with a shared cache so the APIs are not abused."
+          }
+        ]
+      },
+      {
+        "id": "prob",
+        "title": "Common problems",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Nothing appears: check that the game is turned on, has accounts marked and that the stream category is the game's (or use `!juego lol`).",
+              "It shows the previous game: Twitch's category takes a few seconds to arrive; the overlay refreshes by itself.",
+              "Estimated rank (≈): in games without exact points from the API the last known rank is shown; you can correct it with `!setrango`.",
+              "On Kick: detection uses Kick's category; the URL carries `platform=kick`."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "liveOverlay": {
+    "title": "Live match",
+    "subtitle": "What is happening in your game right now: lobby, champion select, game and result",
+    "cta": {
+      "to": "/overlays/live",
+      "label": "Go to settings"
+    },
+    "sections": [
+      {
+        "id": "que",
+        "title": "What is it?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "An OBS overlay that reads your League of Legends client through Decatron Desktop and draws a different screen depending on the phase of the game. It is independent of Game Overlays: the rank card says who you are and how you are doing (and rotates between your accounts); Live match says what is happening now, with the account that has the client open."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "One screen per phase: lobby, searching, champion select, in game and end, in the same box.",
+              "Coach says: pick suggestion and a summary at the end, if you have the Coach on.",
+              "Chat prediction: live `!pred win` / `loss` pool and winners at the end."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "coach-setup"
+          }
+        ]
+      },
+      {
+        "id": "pantallas",
+        "title": "Screens",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Lobby: queue and teammates. Scouting of your friends (rank, winrate, streak, top champions) comes off; you turn it on per element if you want to expose it.",
+              "Searching: queue and search time.",
+              "Champion select: your team's picks (yours highlighted), the enemy's, bans, timer and \"Your turn!\". The coach speaks here.",
+              "In game: champion, role and time, with the chat prediction strip.",
+              "End: victory or defeat, KDA, CS/damage/vision, ±LP, the coach's summary and the prediction result."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Each screen can be turned off entirely (for example Lobby, to avoid showing who you play with) and inside each one you choose which elements show, with their font and color."
+          }
+        ]
+      },
+      {
+        "id": "pasos",
+        "title": "Step by step",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Link Decatron Desktop from Features → Decatron Coach and open it on the PC where you play.",
+              "In Overlays → Live match create an instance (you can have up to 5, for example a side one and a top bar).",
+              "Design: choose a layout (panel, compact or bar), go through the phases with the buttons and adjust elements, fonts and colors. The box sizes itself by the largest screen, so it never changes size when moving from one phase to another.",
+              "Overlay: copy the URL and add it in OBS as a browser source with the canvas size."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "If the app is not connected or you are in no phase, the overlay draws nothing. You can leave it always on in OBS.",
+            "title": "Without Desktop, transparent"
+          }
+        ]
+      },
+      {
+        "id": "coach",
+        "title": "Coach and credits",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The overlay is free for everyone. The only thing that costs is the AI part (coach comment, tips, pick suggestion), which is paid with your credits. If you have no balance left, the \"Coach says\" block is not shown and the rest of the screen (picks, time, result, prediction) stays the same, because it does not use AI."
+          }
+        ]
+      },
+      {
+        "id": "priv",
+        "title": "Privacy",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Only what your own LoL client reports is shown. The public data of your lobby teammates (Riot API) is only drawn if you turn on scouting."
+          }
+        ]
+      },
+      {
+        "id": "prob",
+        "title": "Common problems",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "It does not change screen: check in Decatron Coach that the app shows as connected and that the LoL client is open with the linked account.",
+              "The coach does not appear: in Decatron Coach \"Show what it says on the overlay\" must be on and you must have credits available.",
+              "Something is cut off: switch the size to automatic in Design, or enlarge the box in manual mode."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "OBS source size: the canvas's (1920×1080 by default)."
+          },
+          {
+            "t": "link",
+            "to": "game-overlays"
+          }
+        ]
+      }
+    ]
   }
 }
