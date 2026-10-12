@@ -52,13 +52,22 @@ export default function ChatPanel({ slots }: { slots: Slot[] }) {
     }, [moderate, t]);
     const loginUrl = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
     const [tab, setTab] = useState(ALL);
-    const [official, setOfficial] = useState(false);
+    // El chat oficial se recuerda por canal y, una vez abierto, el iframe queda montado (oculto) al cambiar de pestaña:
+    // cerrarlo haría perder la sesión de Twitch, el saldo de puntos y el estado del chat cada vez.
+    const [officialBy, setOfficialBy] = useState<Record<string, boolean>>({});
+    const [mounted, setMounted] = useState<string[]>([]);
+    const setOfficialFor = (id: string, on: boolean) => {
+        setOfficialBy(prev => ({ ...prev, [id]: on }));
+        if (on) setMounted(prev => (prev.includes(id) ? prev : [...prev, id]));
+    };
     const list = useRef<HTMLDivElement>(null);
     const stick = useRef(true);
     const [unread, setUnread] = useState(0);
 
     // Si la pestaña elegida ya no existe (se quitó la casilla), se vuelve a «Todos».
-    useEffect(() => { if (tab !== ALL && !keys.includes(tab)) { setTab(ALL); setOfficial(false); } }, [keys, tab]);
+    useEffect(() => { if (tab !== ALL && !keys.includes(tab)) { setTab(ALL); } }, [keys, tab]);
+    // Al quitar una casilla se descarta su chat oficial
+    useEffect(() => { setMounted(prev => (prev.every(id => keys.includes(id)) ? prev : prev.filter(id => keys.includes(id)))); }, [keys]);
 
     const shown = useMemo(() => (tab === ALL ? messages : messages.filter(m => m.key === tab)), [messages, tab]);
 
@@ -85,20 +94,20 @@ export default function ChatPanel({ slots }: { slots: Slot[] }) {
     };
 
     const selected = slots.find(s => s.id === tab);
-    const officialUrl = selected && official
-        ? (selected.platform === 'twitch'
-            ? `https://www.twitch.tv/embed/${encodeURIComponent(selected.channel)}/chat?parent=${window.location.hostname}&darkpopout`
-            : `https://kick.com/popout/${encodeURIComponent(selected.channel)}/chat`)
-        : null;
+    const official = !!selected && !!officialBy[selected.id];
+    const officialUrlOf = (s: (typeof slots)[number]) => (s.platform === 'twitch'
+        ? `https://www.twitch.tv/embed/${encodeURIComponent(s.channel)}/chat?parent=${window.location.hostname}&darkpopout`
+        : `https://kick.com/popout/${encodeURIComponent(s.channel)}/chat`);
+    const mountedSlots = slots.filter(s => mounted.includes(s.id));
 
     const tabBtn = (active: boolean) => `flex-none whitespace-nowrap rounded px-2.5 py-1.5 text-[13px] font-semibold ${active ? 'bg-pub-accent text-white' : 'text-[#a1a1aa] hover:text-white'}`;
 
     return (
         <aside className="flex h-[70dvh] min-h-0 flex-col border-t border-pub-border bg-pub-surface md:h-auto md:w-[340px] md:flex-none md:border-l md:border-t-0 3xl:w-[420px] 4xl:w-[520px]" aria-label={t('chat.title')}>
             <div className="flex items-center gap-1 overflow-x-auto border-b border-pub-border p-1.5" role="tablist">
-                <button role="tab" aria-selected={tab === ALL} className={tabBtn(tab === ALL)} onClick={() => { setTab(ALL); setOfficial(false); }}>{t('chat.all')}</button>
+                <button role="tab" aria-selected={tab === ALL} className={tabBtn(tab === ALL)} onClick={() => setTab(ALL)}>{t('chat.all')}</button>
                 {slots.map(s => (
-                    <button key={s.id} role="tab" aria-selected={tab === s.id} className={tabBtn(tab === s.id)} onClick={() => { setTab(s.id); setOfficial(false); }} title={s.platform === 'twitch' ? 'Twitch' : 'Kick'}>
+                    <button key={s.id} role="tab" aria-selected={tab === s.id} className={tabBtn(tab === s.id)} onClick={() => setTab(s.id)} title={s.platform === 'twitch' ? 'Twitch' : 'Kick'}>
                         {s.channel}{roles[s.id] && <ShieldCheck className="ml-1 inline h-3.5 w-3.5 align-text-bottom" aria-label={t('chat.mod.youMod')} />}
                     </button>
                 ))}
@@ -108,15 +117,21 @@ export default function ChatPanel({ slots }: { slots: Slot[] }) {
                 <div className="flex items-center justify-between gap-2 border-b border-pub-border px-2 py-1 text-[12px] text-[#a1a1aa]">
                     <span className="truncate">{selected.platform === 'twitch' ? 'Twitch' : 'Kick'} · {selected.channel}{roles[selected.id] && <span className="ml-1.5 text-pub-accent-hi">· {t('chat.mod.youMod')}</span>}</span>
                     <div className="inline-flex rounded-md border border-pub-border p-0.5" role="group">
-                        <button type="button" aria-pressed={!official} onClick={() => setOfficial(false)} className={`rounded px-2 py-0.5 ${!official ? 'bg-pub-accent text-white' : 'hover:text-white'}`}>{t('chat.decatron')}</button>
-                        <button type="button" aria-pressed={official} onClick={() => setOfficial(true)} className={`rounded px-2 py-0.5 ${official ? 'bg-pub-accent text-white' : 'hover:text-white'}`} title={t('chat.officialHint')}>{t('chat.official')}</button>
+                        <button type="button" aria-pressed={!official} onClick={() => setOfficialFor(selected.id, false)} className={`rounded px-2 py-0.5 ${!official ? 'bg-pub-accent text-white' : 'hover:text-white'}`}>{t('chat.decatron')}</button>
+                        <button type="button" aria-pressed={official} onClick={() => setOfficialFor(selected.id, true)} className={`rounded px-2 py-0.5 ${official ? 'bg-pub-accent text-white' : 'hover:text-white'}`} title={t('chat.officialHint')}>{t('chat.official')}</button>
                     </div>
                 </div>
             )}
 
-            {officialUrl ? (
-                <iframe key={tab + OFFICIAL_SUFFIX} title={t('chat.official')} src={officialUrl} className="min-h-0 w-full flex-1 border-0" />
-            ) : (
+            {mountedSlots.length > 0 && (
+                <div className={official ? 'relative min-h-0 flex-1' : 'hidden'}>
+                    {mountedSlots.map(s => (
+                        <iframe key={s.id + OFFICIAL_SUFFIX + s.channel} title={`${t('chat.official')} · ${s.channel}`} src={officialUrlOf(s)}
+                            className={`absolute inset-0 h-full w-full border-0 ${s.id === tab ? '' : 'invisible'}`} />
+                    ))}
+                </div>
+            )}
+            {!official && (
                 <div className="relative min-h-0 flex-1">
                     <div ref={list} onScroll={onScroll} className="absolute inset-0 overflow-y-auto overscroll-contain py-1">
                         {shown.length === 0 && (
@@ -145,7 +160,7 @@ export default function ChatPanel({ slots }: { slots: Slot[] }) {
                 </div>
             )}
 
-            {!officialUrl && (
+            {!official && (
                 <ChatComposer
                     slots={slots} activeKey={tab === ALL ? null : tab} me={me} loginUrl={loginUrl}
                     present={present} onPresent={changePresent} reply={reply} onClearReply={() => setReply(null)} send={send}
