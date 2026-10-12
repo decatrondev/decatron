@@ -2,12 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, PauseCircle, PlayCircle, Save, ShieldCheck, Users } from 'lucide-react';
 import api from '../../../services/api';
-import type { AccessSettings, AccessView } from './types';
+import type { AccessMode, AccessSettings, AccessView } from './types';
 
 const card = 'bg-ds-surface rounded-lg p-6 border border-ds-border';
 const label = 'text-sm font-semibold text-ds-text';
 const muted = 'text-sm text-ds-soft';
 const input = 'w-full px-3 py-2 rounded-lg bg-ds-surface border border-ds-border text-ds-text text-sm';
+const MODES: AccessMode[] = ['everyone', 'logged_in', 'followers', 'subscribers', 'vip', 'mods', 'list'];
+const TWITCH_MODES: AccessMode[] = ['followers', 'subscribers', 'vip', 'mods'];
 
 type Preset = 'recommended' | 'open' | 'strict';
 
@@ -40,17 +42,24 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
     const c = view.ceilings;
     const set = (patch: Partial<AccessSettings>) => setForm(prev => prev ? { ...prev, ...patch } : prev);
 
+    // Un nivel que se comprueba con Twitch solo está disponible si hay Twitch vinculado y el token del streamer tiene el permiso
+    const available = (m: AccessMode) => !TWITCH_MODES.includes(m) || (view.levels.hasTwitch && view.levels.tokenValid && (view.levels.missing[m]?.length ?? 1) === 0);
+
     const preset = (p: Preset) => {
-        if (p === 'recommended') set({ maxListenersTotal: null, maxListenersPerLanguage: null, maxActiveLanguages: Math.min(2, c.maxLanguages), maxConnectionsPerIp: 3 });
-        if (p === 'open') set({ maxListenersTotal: c.maxListeners, maxListenersPerLanguage: null, maxActiveLanguages: c.maxLanguages, maxConnectionsPerIp: 5 });
+        // Recomendado: seguidores desde hace 7 días si se puede comprobar; si no, queda abierto con los topes puestos
+        if (p === 'recommended') set({ maxListenersTotal: null, maxListenersPerLanguage: null, maxActiveLanguages: Math.min(2, c.maxLanguages), maxConnectionsPerIp: 3, mode: available('followers') ? 'followers' : 'everyone', minFollowDays: 7 });
+        if (p === 'open') set({ maxListenersTotal: c.maxListeners, maxListenersPerLanguage: null, maxActiveLanguages: c.maxLanguages, maxConnectionsPerIp: 5, mode: 'everyone' });
         // Estricto: la mitad del valor recomendado de tu plan (máximo 20), un idioma a la vez y 2 conexiones por IP
-        if (p === 'strict') set({ maxListenersTotal: Math.max(1, Math.min(20, Math.floor(c.defaultListeners / 2))), maxListenersPerLanguage: null, maxActiveLanguages: 1, maxConnectionsPerIp: 2 });
+        if (p === 'strict') set({ maxListenersTotal: Math.max(1, Math.min(20, Math.floor(c.defaultListeners / 2))), maxListenersPerLanguage: null, maxActiveLanguages: 1, maxConnectionsPerIp: 2, mode: available('subscribers') ? 'subscribers' : available('followers') ? 'followers' : 'logged_in', minFollowDays: 30, minSubTier: 1 });
     };
 
     const save = async (next: AccessSettings = form) => {
         setSaving(true); setMessage(null);
         try { apply((await api.put('/live-translation/access', next)).data as AccessView); setMessage({ text: t('liveTranslation.access.saved') }); }
-        catch { setMessage({ text: t('liveTranslation.access.saveError'), error: true }); }
+        catch (e: unknown) {
+            const data = (e as { response?: { data?: { error?: string } } }).response?.data;
+            setMessage({ text: data?.error === 'unavailable' ? t('liveTranslation.access.who.unavailableSave') : t('liveTranslation.access.saveError'), error: true });
+        }
         finally { setSaving(false); }
     };
 
@@ -76,6 +85,74 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
                     {canEdit && <button type="button" onClick={() => void togglePause()} className="ds-btn ds-btn--primary"><PlayCircle className="w-4 h-4" /> {t('liveTranslation.access.resume')}</button>}
                 </div>
             )}
+
+            <div className={card}>
+                <h2 className="text-xl font-black text-ds-text">{t('liveTranslation.access.who.title')}</h2>
+                <p className={`${muted} mb-4`}>{t('liveTranslation.access.who.subtitle')}</p>
+
+                <div className="grid gap-2" role="radiogroup" aria-label={t('liveTranslation.access.who.title')}>
+                    {MODES.map(m => {
+                        const ok = available(m);
+                        const selected = form.mode === m;
+                        return (
+                            <label key={m} className={`flex items-start gap-3 rounded-lg border p-3 ${selected ? 'border-ds-accent bg-ds-accent/5' : 'border-ds-border'} ${ok && canEdit ? 'cursor-pointer' : 'opacity-60'}`}>
+                                <input type="radio" name="lt-mode" className="mt-1 accent-ds-accent" checked={selected} disabled={!ok || !canEdit} onChange={() => set({ mode: m })} />
+                                <span className="min-w-0 flex-1">
+                                    <span className={label}>{t(`liveTranslation.access.who.mode.${m}`)}</span>
+                                    <span className={`${muted} block`}>{t(`liveTranslation.access.who.modeHint.${m}`)}</span>
+                                    {!ok && TWITCH_MODES.includes(m) && (
+                                        <span className="mt-1 block text-sm text-ds-warn">
+                                            {!view.levels.hasTwitch
+                                                ? t('liveTranslation.access.who.noTwitch')
+                                                : t('liveTranslation.access.who.missing', { scopes: (view.levels.missing[m] ?? []).join(', ') })}
+                                            {view.levels.hasTwitch && (
+                                                <> <a className="underline" href={`/api/auth/login?redirect=${encodeURIComponent('/features/live-translation')}`}>{t('liveTranslation.access.who.reauth')}</a></>
+                                            )}
+                                        </span>
+                                    )}
+                                </span>
+                            </label>
+                        );
+                    })}
+                </div>
+
+                {(form.mode === 'followers' || form.mode === 'subscribers') && (
+                    <div className="mt-4 grid md:grid-cols-2 gap-6">
+                        {form.mode === 'followers' && (
+                            <label className="block">
+                                <span className={label}>{t('liveTranslation.access.who.days')}</span>
+                                <p className={`${muted} mb-2`}>{t('liveTranslation.access.who.daysHint')}</p>
+                                <input type="number" min={0} max={365} className={input} disabled={!canEdit} value={form.minFollowDays}
+                                       onChange={e => set({ minFollowDays: Math.max(0, Math.min(365, Math.floor(Number(e.target.value) || 0))) })} />
+                            </label>
+                        )}
+                        {form.mode === 'subscribers' && (
+                            <label className="block">
+                                <span className={label}>{t('liveTranslation.access.who.tier')}</span>
+                                <p className={`${muted} mb-2`}>{t('liveTranslation.access.who.tierHint')}</p>
+                                <select className={input} disabled={!canEdit} value={form.minSubTier} onChange={e => set({ minSubTier: Number(e.target.value) })}>
+                                    {[1, 2, 3].map(n => <option key={n} value={n}>{t('liveTranslation.access.who.tierN', { n })}</option>)}
+                                </select>
+                            </label>
+                        )}
+                    </div>
+                )}
+
+                <div className="mt-6 grid md:grid-cols-2 gap-6">
+                    <label className="block">
+                        <span className={label}>{t('liveTranslation.access.who.allow')}</span>
+                        <p className={`${muted} mb-2`}>{t('liveTranslation.access.who.allowHint')}</p>
+                        <textarea className={`${input} h-28 font-mono`} disabled={!canEdit} value={form.allowList} spellCheck={false}
+                                  placeholder={t('liveTranslation.access.who.listPlaceholder')} onChange={e => set({ allowList: e.target.value })} />
+                    </label>
+                    <label className="block">
+                        <span className={label}>{t('liveTranslation.access.who.block')}</span>
+                        <p className={`${muted} mb-2`}>{t('liveTranslation.access.who.blockHint')}</p>
+                        <textarea className={`${input} h-28 font-mono`} disabled={!canEdit} value={form.blockList} spellCheck={false}
+                                  placeholder={t('liveTranslation.access.who.listPlaceholder')} onChange={e => set({ blockList: e.target.value })} />
+                    </label>
+                </div>
+            </div>
 
             <div className={card}>
                 <div className="flex flex-wrap items-start justify-between gap-3 mb-4">

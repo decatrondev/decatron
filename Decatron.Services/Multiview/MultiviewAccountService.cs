@@ -17,7 +17,14 @@ namespace Decatron.Services.Multiview
     /// Qué cuentas de Twitch y de Kick tiene vinculadas quien mira el Multi-view y con qué token actúa en cada una.
     /// Los tokens salen de la base de datos y se refrescan si están por vencer; nunca llegan al navegador.
     /// </summary>
-    public sealed class MultiviewAccountService
+    /// <summary>Lo que otros servicios necesitan del token de Twitch de una persona (se separa para poder probarlos sin tokens reales).</summary>
+    public interface IStreamerTwitchAccess
+    {
+        Task<TwitchIdentity?> GetTwitchAsync(long userId);
+        Task<LinkedAccounts> GetLinkedAsync(long userId);
+    }
+
+    public sealed class MultiviewAccountService : IStreamerTwitchAccess
     {
         private readonly IServiceScopeFactory _scopes;
         private readonly AccountChannelResolver _accounts;

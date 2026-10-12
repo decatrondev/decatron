@@ -359,7 +359,57 @@
         "blocks": [
           {
             "t": "p",
-            "x": "La pestaña Acceso del módulo decide cuánta gente y cuántos idiomas pueden gastar tus créditos. El costo de la traducción lo marcan los idiomas encendidos, no la cantidad de oyentes: un idioma con un solo oyente ya enciende su traducción y su voz, y veinte oyentes en el mismo idioma cuestan lo mismo que uno."
+            "x": "La pestaña Acceso del módulo decide quién puede escuchar tu traducción y cuánta gente y cuántos idiomas pueden gastar tus créditos. El costo de la traducción lo marcan los idiomas encendidos, no la cantidad de oyentes: un idioma con un solo oyente ya enciende su traducción y su voz, y veinte oyentes en el mismo idioma cuestan lo mismo que uno."
+          },
+          {
+            "t": "h3",
+            "x": "Quién puede escuchar"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Nivel",
+              "Quién entra"
+            ],
+            "rows": [
+              [
+                "Todos",
+                "Cualquiera, con o sin cuenta. Solo rigen los límites."
+              ],
+              [
+                "Con sesión",
+                "Quien haya iniciado sesión en Decatron (en la extensión o en el Multi-view)."
+              ],
+              [
+                "Seguidores",
+                "Seguidores de tu canal en Twitch desde hace un mínimo de días que tú eliges. También entran suscriptores, VIPs y moderadores."
+              ],
+              [
+                "Suscriptores",
+                "Suscriptores con un nivel mínimo (1, 2 o 3). También entran VIPs y moderadores."
+              ],
+              [
+                "VIPs",
+                "Tus VIPs y tus moderadores."
+              ],
+              [
+                "Moderadores",
+                "Solo tus moderadores."
+              ],
+              [
+                "Solo mi lista",
+                "Solo las personas de «Siempre permitidos»."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Tú siempre entras. Las personas de «Siempre permitidos» entran en cualquier nivel, y las de «Bloqueados» no entran nunca, aunque cumplan el nivel. Cada usuario va en una línea.",
+              "Los niveles de Seguidores, Suscriptores, VIPs y Moderadores se comprueban con Twitch usando el token de TU cuenta, y necesitan un permiso de tu cuenta de Twitch y que la persona tenga su cuenta de Twitch vinculada. Si falta el permiso, el nivel sale desactivado con un enlace para volver a autorizar con Twitch.",
+              "Si no se puede comprobar (por ejemplo, Twitch no responde), la entrada se niega: nunca se abre de más.",
+              "Mientras alguien escucha se vuelve a comprobar cada pocos minutos: si deja de seguir el canal, pierde la suscripción o lo agregas a bloqueados, sale. Al guardar un cambio, quien ya no cumple sale al instante."
+            ]
           },
           {
             "t": "table",
@@ -388,7 +438,7 @@
           },
           {
             "t": "p",
-            "x": "Los botones Recomendado, Abierto y Estricto rellenan esos valores; después se guardan con el botón Guardar."
+            "x": "Los botones Recomendado, Abierto y Estricto rellenan esos valores y el nivel (Recomendado: seguidores desde hace 7 días, si tu cuenta de Twitch tiene el permiso); después se guardan con el botón Guardar."
           },
           {
             "t": "limits",
@@ -405,6 +455,7 @@
             "items": [
               "Solo se acepta un idioma de los que ofreces: pedir otros no enciende nada ni ocupa cupos.",
               "Hay un máximo de conexiones por IP en todos los canales y un máximo de intentos de entrada por minuto por IP.",
+              "Una misma persona con sesión tiene un máximo de conexiones a tu canal.",
               "Hay un tope de conexiones en todo el servidor."
             ]
           },
@@ -415,11 +466,6 @@
           {
             "t": "p",
             "x": "«Pausar para espectadores» saca al instante a quien está escuchando y no deja entrar a nadie hasta que pulses Reanudar. Tu sesión de voz sigue activa y sigue gastando créditos: si no quieres gastar, detén también la sesión."
-          },
-          {
-            "t": "note",
-            "kind": "info",
-            "x": "Por ahora el acceso es abierto para cualquier espectador, con estos límites. Elegir quién puede escuchar (seguidores, suscriptores, VIPs, moderadores o una lista) llega en una fase siguiente."
           }
         ]
       },
@@ -810,6 +856,30 @@
               [
                 "Demasiados intentos seguidos",
                 "Espera un minuto."
+              ],
+              [
+                "Este canal pide iniciar sesión",
+                "El streamer limitó quién escucha: inicia sesión en la extensión (Cuenta › Iniciar sesión) o en el Multi-view."
+              ],
+              [
+                "Este canal pide una cuenta de Twitch",
+                "El nivel se comprueba con Twitch: vincula tu cuenta de Twitch a tu cuenta de Decatron."
+              ],
+              [
+                "Este canal es para seguidores / suscriptores / VIPs / moderadores",
+                "No cumples el nivel que eligió el streamer; el aviso dice qué piden (por ejemplo, los días siguiendo el canal)."
+              ],
+              [
+                "Este canal es solo para una lista de personas",
+                "Solo entran las personas que el streamer eligió."
+              ],
+              [
+                "No tienes acceso a la traducción de este canal",
+                "El streamer te bloqueó."
+              ],
+              [
+                "No se pudo comprobar si puedes escuchar",
+                "Twitch no respondió; intenta de nuevo en un momento."
               ]
             ]
           }
@@ -821,7 +891,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Puedes escuchar la traducción sin cuenta, pero con tu sesión la extensión puede identificarte ante el canal. Los canales que limiten quién escucha podrán reconocerte (eso llega en una fase siguiente) y se cuenta cuántas conexiones tienes a la vez, en lugar de solo las de tu red."
+            "x": "Puedes escuchar la traducción sin cuenta, pero con tu sesión la extensión puede identificarte ante el canal. Los canales que limiten quién escucha podrán reconocerte y se cuenta cuántas conexiones tienes a la vez, en lugar de solo las de tu red."
           },
           {
             "t": "ol",

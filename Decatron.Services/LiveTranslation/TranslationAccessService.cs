@@ -16,7 +16,8 @@ namespace Decatron.Services.LiveTranslation
     public sealed record AccessPolicy(
         long UserId, string Login, string Tier, bool Paused,
         int MaxListenersTotal, int MaxListenersPerLanguage, int MaxActiveLanguages, int MaxConnectionsPerIp, int MaxConnectionsPerUser,
-        IReadOnlyList<string> Languages);
+        IReadOnlyList<string> Languages,
+        string Mode, int MinFollowDays, int MinSubTier, IReadOnlySet<string> AllowList, IReadOnlySet<string> BlockList);
 
     public sealed class TranslationAccessService : Decatron.Hubs.ITranslationAccessGate
     {
@@ -27,9 +28,11 @@ namespace Decatron.Services.LiveTranslation
         private readonly IMemoryCache _cache;
         private readonly IOptionsMonitor<LiveTranslationOptions> _options;
         private readonly ILogger<TranslationAccessService> _logger;
+        private readonly StreamerRoleService _roles;
 
-        public TranslationAccessService(IServiceScopeFactory scopes, IMemoryCache cache, IOptionsMonitor<LiveTranslationOptions> options, ILogger<TranslationAccessService> logger)
+        public TranslationAccessService(IServiceScopeFactory scopes, IMemoryCache cache, IOptionsMonitor<LiveTranslationOptions> options, ILogger<TranslationAccessService> logger, StreamerRoleService roles)
         {
+            _roles = roles;
             _scopes = scopes;
             _cache = cache;
             _options = options;
@@ -37,6 +40,17 @@ namespace Decatron.Services.LiveTranslation
         }
 
         public void Invalidate(string login) => _cache.Remove(Key(login));
+
+        /// <summary>
+        /// ¿Puede esta persona escuchar el canal? Aplica el nivel que eligió el streamer, las listas y el bloqueo. Un canal sin la traducción
+        /// encendida no limita a nadie aquí (no hay nada que escuchar). El rol de Twitch se consulta con el token del streamer y se guarda.
+        /// </summary>
+        public async Task<Decatron.Hubs.ViewerCheckResult> CheckViewerAsync(string login, Decatron.Hubs.ViewerIdentity? who)
+        {
+            var policy = await GetPolicyAsync(login);
+            if (policy == null) return Decatron.Hubs.ViewerCheckResult.Allowed;
+            return await AccessEvaluator.EvaluateAsync(policy, who, () => _roles.GetRoleAsync(policy.UserId, policy.Mode, who!.TwitchId!));
+        }
 
         public async Task<Decatron.Hubs.TranslationLimits?> GetLimitsAsync(string login)
         {
@@ -91,7 +105,10 @@ namespace Decatron.Services.LiveTranslation
             var langs = Math.Clamp(a?.MaxActiveLanguages ?? 2, 1, Math.Max(1, systemMaxLanguages));
             var perIp = Math.Clamp(a?.MaxConnectionsPerIp ?? 3, 1, MaxConnectionsPerIpCeiling);
             var perUser = Math.Clamp(a?.MaxConnectionsPerUser ?? 2, 1, MaxConnectionsPerIpCeiling);
-            return new AccessPolicy(userId, login, tier, a?.Paused ?? false, total, perLang, langs, perIp, perUser, languages);
+            var mode = a != null && AccessEvaluator.Modes.Contains(a.Mode) ? a.Mode : "everyone";
+            return new AccessPolicy(userId, login, tier, a?.Paused ?? false, total, perLang, langs, perIp, perUser, languages,
+                mode, Math.Clamp(a?.MinFollowDays ?? 7, 0, 3650), Math.Clamp(a?.MinSubTier ?? 1, 1, 3),
+                AccessEvaluator.ParseList(a?.AllowList), AccessEvaluator.ParseList(a?.BlockList));
         }
     }
 }

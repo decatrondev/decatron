@@ -183,7 +183,16 @@
       "language": "This channel doesn't offer that language.",
       "rate_limited": "Too many attempts in a row. Wait a minute.",
       "busy": "The service is full right now.",
-      "user_limit": "You already have this translation open in other browsers or tabs."
+      "user_limit": "You already have this translation open in other browsers or tabs.",
+      "login": "This channel asks you to sign in to listen.",
+      "link_twitch": "This channel asks for a linked Twitch account.",
+      "follow": "This channel is for followers ({{days}} days or more).",
+      "sub": "This channel is for subscribers (tier {{tier}} or higher).",
+      "vip": "This channel is for VIPs and moderators.",
+      "mod": "This channel is for moderators only.",
+      "list": "This channel is for a list of people only.",
+      "blocked": "You do not have access to this channel's translation.",
+      "check_failed": "Could not check whether you can listen."
     }
   }
 }

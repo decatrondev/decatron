@@ -50,7 +50,7 @@ export function useTileCaptions(login: string, lang: string | null) {
     const [caption, setCaption] = useState<TrCaption | null>(null);
     const [active, setActive] = useState<boolean | null>(null);
     /** Motivo por el que el canal no deja escuchar (límites de acceso): paused, full, ip_limit, languages_full, language, rate_limited, busy */
-    const [denied, setDenied] = useState<string | null>(null);
+    const [denied, setDenied] = useState<{ reason: string; minFollowDays?: number | null; minSubTier?: number | null } | null>(null);
 
     useEffect(() => {
         setCaption(null);
@@ -74,11 +74,11 @@ export function useTileCaptions(login: string, lang: string | null) {
         });
         c.on('Status', (st: { active?: boolean }) => setActive(!!st?.active));
         // El servidor saca a quien escucha (por ejemplo, el streamer usó el botón de pánico)
-        c.on('Denied', (m: { reason?: string }) => { setDenied(m?.reason ?? 'paused'); setCaption(null); void c.stop(); });
+        c.on('Denied', (m: { reason?: string; minFollowDays?: number | null; minSubTier?: number | null }) => { setDenied({ reason: m?.reason ?? 'paused', minFollowDays: m?.minFollowDays, minSubTier: m?.minSubTier }); setCaption(null); void c.stop(); });
 
         const join = () => c.invoke('Join', login, lang)
-            .then((st: { ok?: boolean; reason?: string; active?: boolean } | null) => {
-                if (st && st.ok === false) { setDenied(st.reason ?? 'paused'); void c.stop(); return; }
+            .then((st: { ok?: boolean; reason?: string; minFollowDays?: number | null; minSubTier?: number | null; active?: boolean } | null) => {
+                if (st && st.ok === false) { setDenied({ reason: st.reason ?? 'paused', minFollowDays: st.minFollowDays, minSubTier: st.minSubTier }); void c.stop(); return; }
                 setDenied(null);
                 setActive(!!st?.active);
             })

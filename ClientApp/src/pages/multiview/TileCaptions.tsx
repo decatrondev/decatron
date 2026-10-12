@@ -13,7 +13,7 @@ export default function TileCaptions({ login, lang }: { login: string; lang: str
                 </div>
             )}
             {denied && (
-                <p className="pointer-events-none absolute inset-x-0 bottom-3 z-10 mx-auto w-fit max-w-[90%] rounded bg-black/75 px-2.5 py-1 text-center text-[12px] text-ds-warn" role="status">{t(`tr.denied.${denied}`, { defaultValue: t('tr.denied.paused') })}</p>
+                <p className="pointer-events-none absolute inset-x-0 bottom-3 z-10 mx-auto w-fit max-w-[90%] rounded bg-black/75 px-2.5 py-1 text-center text-[12px] text-ds-warn" role="status">{t(`tr.denied.${denied.reason}`, { defaultValue: t('tr.denied.paused'), days: denied.minFollowDays ?? 0, tier: denied.minSubTier ?? 1 })}</p>
             )}
             {!denied && active === false && !caption && (
                 <p className="pointer-events-none absolute inset-x-0 bottom-3 z-10 mx-auto w-fit max-w-[90%] rounded bg-black/60 px-2.5 py-1 text-center text-[11px] text-[#d4d4d8]">{t('tr.notLive')}</p>

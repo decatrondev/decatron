@@ -359,7 +359,57 @@
         "blocks": [
           {
             "t": "p",
-            "x": "The module's Access tab decides how many people and how many languages can spend your credits. The cost of translation depends on the languages that are on, not on how many people listen: a language with a single listener already turns on its translation and voice, and twenty listeners in the same language cost the same as one."
+            "x": "The module's Access tab decides who can listen to your translation and how many people and how many languages can spend your credits. The cost of translation depends on the languages that are on, not on how many people listen: a language with a single listener already turns on its translation and voice, and twenty listeners in the same language cost the same as one."
+          },
+          {
+            "t": "h3",
+            "x": "Who can listen"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Level",
+              "Who gets in"
+            ],
+            "rows": [
+              [
+                "Everyone",
+                "Anyone, with or without an account. Only the limits apply."
+              ],
+              [
+                "Signed in",
+                "Anyone who has logged in to Decatron (in the extension or in Multi-view)."
+              ],
+              [
+                "Followers",
+                "Followers of your Twitch channel for a minimum number of days that you choose. Subscribers, VIPs and moderators also get in."
+              ],
+              [
+                "Subscribers",
+                "Subscribers with a minimum tier (1, 2 or 3). VIPs and moderators also get in."
+              ],
+              [
+                "VIPs",
+                "Your VIPs and your moderators."
+              ],
+              [
+                "Moderators",
+                "Only your moderators."
+              ],
+              [
+                "Only my list",
+                "Only the people in «Always allowed»."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "You always get in. People in «Always allowed» get in at any level, and those in «Blocked» never get in, even if they meet the level. Each user goes on its own line.",
+              "The Followers, Subscribers, VIPs and Moderators levels are checked with Twitch using YOUR account's token, and need a permission from your Twitch account and the person to have their Twitch account linked. If the permission is missing, the level shows as disabled with a link to authorize with Twitch again.",
+              "If it cannot be checked (for example, Twitch does not respond), joining is refused: it never opens more than it should.",
+              "While someone listens it is rechecked every few minutes: if they stop following the channel, lose the subscription or you add them to blocked, they leave. When you save a change, whoever no longer qualifies leaves instantly."
+            ]
           },
           {
             "t": "table",
@@ -388,7 +438,7 @@
           },
           {
             "t": "p",
-            "x": "The Recommended, Open and Strict buttons fill in those values; then you save them with the Save button."
+            "x": "The Recommended, Open and Strict buttons fill in those values and the level (Recommended: followers of 7 days, if your Twitch account has the permission); then you save them with the Save button."
           },
           {
             "t": "limits",
@@ -405,6 +455,7 @@
             "items": [
               "Only a language you offer is accepted: asking for others turns nothing on and takes no slots.",
               "There is a maximum of connections per IP across all channels and a maximum of join attempts per minute per IP.",
+              "A single signed-in person has a maximum of connections to your channel.",
               "There is a cap on connections across the whole server."
             ]
           },
@@ -415,11 +466,6 @@
           {
             "t": "p",
             "x": "«Pause for viewers» instantly removes whoever is listening and lets no one in until you press Resume. Your voice session stays active and keeps spending credits: if you do not want to spend, stop the session too."
-          },
-          {
-            "t": "note",
-            "kind": "info",
-            "x": "For now access is open to any viewer, within these limits. Choosing who can listen (followers, subscribers, VIPs, moderators or a list) comes in a later phase."
           }
         ]
       },
@@ -810,6 +856,30 @@
               [
                 "Too many attempts in a row",
                 "Wait a minute."
+              ],
+              [
+                "This channel asks you to sign in to listen",
+                "The streamer limited who listens: sign in in the extension (Account › Sign in) or in Multi-view."
+              ],
+              [
+                "This channel asks for a Twitch account",
+                "The level is checked with Twitch: link your Twitch account to your Decatron account."
+              ],
+              [
+                "This channel is for followers / subscribers / VIPs / moderators",
+                "You do not meet the level the streamer chose; the notice says what is asked (for example, the days following the channel)."
+              ],
+              [
+                "This channel is for a list of people only",
+                "Only the people the streamer chose get in."
+              ],
+              [
+                "You do not have access to this channel's translation",
+                "The streamer blocked you."
+              ],
+              [
+                "Could not check whether you can listen",
+                "Twitch did not respond; try again in a moment."
               ]
             ]
           }
@@ -821,7 +891,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "You can listen to translation without an account, but with your session the extension can identify you to the channel. Channels that limit who listens will be able to recognize you (that comes in a later phase) and the number of connections you have at once is counted, instead of only those from your network."
+            "x": "You can listen to translation without an account, but with your session the extension can identify you to the channel. Channels that limit who listens will be able to recognize you and the number of connections you have at once is counted, instead of only those from your network."
           },
           {
             "t": "ol",

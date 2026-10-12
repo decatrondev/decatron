@@ -33,12 +33,12 @@ export default function GuideTab({ onNavigate }: { onNavigate: (tab: LtTab) => v
                 <div className={card}>
                     <h3 className="font-black text-ds-text flex items-center gap-2 mb-2"><ShieldCheck className="w-5 h-5 text-ds-accent-text" /> {t('liveTranslation.guide.protectTitle')}</h3>
                     <p className="text-sm text-ds-soft mb-3">{t('liveTranslation.guide.protectIntro')}</p>
-                    <ul className="list-disc pl-5 space-y-1.5 text-sm text-ds-text">{items('protect', 4)}</ul>
+                    <ul className="list-disc pl-5 space-y-1.5 text-sm text-ds-text">{items('protect', 5)}</ul>
                 </div>
 
                 <div className={card}>
                     <h3 className="font-black text-ds-text flex items-center gap-2 mb-2"><Languages className="w-5 h-5 text-ds-accent-text" /> {t('liveTranslation.guide.recoTitle')}</h3>
-                    <ul className="list-disc pl-5 space-y-1.5 text-sm text-ds-text">{items('reco', 4)}</ul>
+                    <ul className="list-disc pl-5 space-y-1.5 text-sm text-ds-text">{items('reco', 5)}</ul>
                 </div>
 
                 <div className={card}>

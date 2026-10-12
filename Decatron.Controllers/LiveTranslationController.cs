@@ -37,6 +37,8 @@ namespace Decatron.Controllers
         private readonly Microsoft.Extensions.Options.IOptionsMonitor<LiveTranslationOptions> _optsMonitor;
         private readonly TranslationAccessService _access;
         private readonly IHubContext<Decatron.Hubs.TranslationHub> _hub;
+        private readonly StreamerRoleService _roles;
+        private readonly TranslationAccessRecheckService _recheck;
 
         public LiveTranslationController(
             DecatronDbContext db,
@@ -47,8 +49,11 @@ namespace Decatron.Controllers
             ILogger<LiveTranslationController> logger,
             Microsoft.Extensions.Options.IOptionsMonitor<LiveTranslationOptions> optsMonitor,
             TranslationAccessService access,
-            IHubContext<Decatron.Hubs.TranslationHub> hub)
+            IHubContext<Decatron.Hubs.TranslationHub> hub,
+            StreamerRoleService roles,
+            TranslationAccessRecheckService recheck)
         {
+            _roles = roles; _recheck = recheck;
             _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _aiSettings = aiSettings; _logger = logger; _optsMonitor = optsMonitor;
             _access = access; _hub = hub;
         }
@@ -205,6 +210,13 @@ namespace Decatron.Controllers
             public int MaxActiveLanguages { get; set; } = 2;
             public int MaxConnectionsPerIp { get; set; } = 3;
             public bool Paused { get; set; }
+            /// <summary>everyone | logged_in | followers | subscribers | vip | mods | list</summary>
+            public string Mode { get; set; } = "everyone";
+            public int MinFollowDays { get; set; } = 7;
+            public int MinSubTier { get; set; } = 1;
+            /// <summary>Usuarios separados por coma, espacio o línea</summary>
+            public string? AllowList { get; set; }
+            public string? BlockList { get; set; }
         }
 
         private async Task<object> AccessViewAsync(long userId, LiveTranslationAccess? a)
@@ -214,6 +226,7 @@ namespace Decatron.Controllers
             var login = await _db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Login).FirstOrDefaultAsync() ?? "";
             var eff = TranslationAccessService.Resolve(userId, login, tier, a, _mgr.Options.MaxLanguagesPerChannel, Array.Empty<string>());
             var current = Decatron.Hubs.TranslationHub.ListenersByLanguage(login);
+            var availability = await _roles.GetAvailabilityAsync(userId);
             return new
             {
                 tier,
@@ -224,7 +237,14 @@ namespace Decatron.Controllers
                     maxActiveLanguages = a?.MaxActiveLanguages ?? 2,
                     maxConnectionsPerIp = a?.MaxConnectionsPerIp ?? 3,
                     paused = a?.Paused ?? false,
+                    mode = eff.Mode,
+                    minFollowDays = eff.MinFollowDays,
+                    minSubTier = eff.MinSubTier,
+                    allowList = string.Join("\n", eff.AllowList.OrderBy(x => x, StringComparer.Ordinal)),
+                    blockList = string.Join("\n", eff.BlockList.OrderBy(x => x, StringComparer.Ordinal)),
                 },
+                // Qué niveles se pueden comprobar hoy con el token del streamer y qué permiso le falta a cada uno
+                levels = new { availability.HasTwitch, availability.TokenValid, missing = availability.Missing },
                 effective = new { eff.MaxListenersTotal, eff.MaxListenersPerLanguage, eff.MaxActiveLanguages, eff.MaxConnectionsPerIp, eff.Paused },
                 ceilings = new { maxListeners = limits.MaxListeners, defaultListeners = limits.DefaultListeners, maxLanguages = _mgr.Options.MaxLanguagesPerChannel, maxConnectionsPerIp = TranslationAccessService.MaxConnectionsPerIpCeiling },
                 now = new { listeners = current.Values.Sum(), byLanguage = current },
@@ -237,6 +257,7 @@ namespace Decatron.Controllers
         public async Task<IActionResult> GetAccess()
         {
             var userId = GetChannelOwnerId();
+            _roles.Invalidate(userId); // al abrir el panel se vuelven a validar los permisos (por si acaba de volver a autorizar con Twitch)
             var a = await _db.LiveTranslationAccess.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
             return Ok(await AccessViewAsync(userId, a));
         }
@@ -255,6 +276,16 @@ namespace Decatron.Controllers
             int? total = dto.MaxListenersTotal.HasValue ? Math.Clamp(dto.MaxListenersTotal.Value, 1, limits.MaxListeners) : null;
             int? perLang = dto.MaxListenersPerLanguage.HasValue ? Math.Clamp(dto.MaxListenersPerLanguage.Value, 1, total ?? limits.MaxListeners) : null;
 
+            // Nivel de acceso: solo uno de los conocidos, y los que se comprueban con Twitch solo si el token del streamer tiene el permiso
+            // (si no, los espectadores se quedarían fuera sin poder entrar: se avisa en lugar de guardarlo).
+            var mode = AccessEvaluator.Modes.Contains(dto.Mode) ? dto.Mode : "everyone";
+            if (AccessEvaluator.NeedsTwitch(mode))
+            {
+                var availability = await _roles.GetAvailabilityAsync(userId);
+                if (!availability.HasTwitch || availability.Missing.GetValueOrDefault(mode)?.Length > 0 || !availability.TokenValid)
+                    return BadRequest(new { error = "unavailable", mode, hasTwitch = availability.HasTwitch, missing = availability.Missing.GetValueOrDefault(mode) ?? Array.Empty<string>() });
+            }
+
             var a = await _db.LiveTranslationAccess.FirstOrDefaultAsync(x => x.UserId == userId);
             var wasPaused = a?.Paused ?? false;
             if (a == null) { a = new LiveTranslationAccess { UserId = userId }; _db.LiveTranslationAccess.Add(a); }
@@ -263,6 +294,11 @@ namespace Decatron.Controllers
             a.MaxActiveLanguages = Math.Clamp(dto.MaxActiveLanguages, 1, maxLangs);
             a.MaxConnectionsPerIp = Math.Clamp(dto.MaxConnectionsPerIp, 1, TranslationAccessService.MaxConnectionsPerIpCeiling);
             a.Paused = dto.Paused;
+            a.Mode = mode;
+            a.MinFollowDays = Math.Clamp(dto.MinFollowDays, 0, 3650);
+            a.MinSubTier = Math.Clamp(dto.MinSubTier, 1, 3);
+            a.AllowList = AccessEvaluator.NormalizeList(dto.AllowList);
+            a.BlockList = AccessEvaluator.NormalizeList(dto.BlockList);
             a.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
@@ -270,6 +306,8 @@ namespace Decatron.Controllers
             _access.Invalidate(login);
             // El botón de pánico también saca a quien ya escuchaba
             if (a.Paused && !wasPaused) await Decatron.Hubs.TranslationHub.EvictChannelAsync(_hub, login, "paused");
+            // Quien ya escuchaba y no cumple el nivel nuevo (o quedó en bloqueados) sale ahora, sin esperar a la revisión periódica
+            else await _recheck.RecheckAsync(login);
             _logger.LogInformation("[LiveTranslation] Acceso de {Login} actualizado (pausa: {Paused})", login, a.Paused);
             return Ok(await AccessViewAsync(userId, a));
         }

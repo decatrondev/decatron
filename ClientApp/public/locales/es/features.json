@@ -1445,7 +1445,9 @@
       "credits3": "Si no alcanzan para reconocer tu voz, la sesión se corta y tus espectadores dejan de recibir la traducción.",
       "panicTitle": "Botón de pánico",
       "panicBody": "En la pestaña Acceso puedes pausar la traducción para tus espectadores: nadie nuevo entra y los que escuchan salen al instante. Tu sesión de voz sigue activa, así que si no quieres gastar créditos, detén también la sesión.",
-      "docs": "Ver la documentación"
+      "docs": "Ver la documentación",
+      "protect5": "Tú decides quién puede escuchar (todos, con sesión, seguidores, suscriptores, VIPs, moderadores o una lista) y puedes bloquear personas. El nivel se comprueba con tu cuenta de Twitch y se vuelve a revisar mientras escuchan.",
+      "reco5": "Quién escucha: seguidores desde hace 7 días. Necesita un permiso de tu cuenta de Twitch; la pestaña Acceso te avisa si falta."
     },
     "access": {
       "title": "Acceso y protección",
@@ -1484,7 +1486,43 @@
       "pausedBody": "Nadie nuevo puede entrar. Reanúdala cuando quieras.",
       "saved": "Acceso guardado.",
       "saveError": "No se pudo guardar el acceso.",
-      "loadError": "No se pudo cargar el acceso."
+      "loadError": "No se pudo cargar el acceso.",
+      "who": {
+        "title": "Quién puede escuchar",
+        "subtitle": "Elige quién puede escuchar tu traducción. Cada nivel incluye a los de más abajo en la lista de Twitch (los suscriptores y VIPs también entran en «Seguidores»).",
+        "mode": {
+          "everyone": "Todos",
+          "logged_in": "Con sesión",
+          "followers": "Seguidores",
+          "subscribers": "Suscriptores",
+          "vip": "VIPs",
+          "mods": "Moderadores",
+          "list": "Solo mi lista"
+        },
+        "modeHint": {
+          "everyone": "Cualquiera, con o sin cuenta. Solo rigen los límites de abajo.",
+          "logged_in": "Cualquier persona que haya iniciado sesión en Decatron.",
+          "followers": "Seguidores de tu canal en Twitch (con un tiempo mínimo). También entran suscriptores, VIPs y moderadores.",
+          "subscribers": "Suscriptores de tu canal (con un nivel mínimo). También entran VIPs y moderadores.",
+          "vip": "Tus VIPs. También entran los moderadores.",
+          "mods": "Solo tus moderadores.",
+          "list": "Solo las personas de «Siempre permitidos»."
+        },
+        "noTwitch": "Necesitas una cuenta de Twitch vinculada para usar este nivel.",
+        "missing": "Falta un permiso de Twitch ({{scopes}}).",
+        "reauth": "Volver a autorizar con Twitch",
+        "unavailableSave": "Ese nivel no está disponible: falta un permiso de tu cuenta de Twitch. Vuelve a autorizar y reintenta.",
+        "days": "Días siguiendo el canal",
+        "daysHint": "Mínimo de días que lleva siguiéndote. 0 = cualquier seguidor.",
+        "tier": "Nivel de suscripción mínimo",
+        "tierHint": "Los suscriptores de un nivel menor no entran.",
+        "tierN": "Nivel {{n}}",
+        "allow": "Siempre permitidos",
+        "allowHint": "Entran aunque no cumplan el nivel. Un usuario por línea.",
+        "block": "Bloqueados",
+        "blockHint": "Nunca entran, ni aunque cumplan el nivel. Un usuario por línea.",
+        "listPlaceholder": "usuario1\nusuario2"
+      }
     }
   },
   "credits": {
