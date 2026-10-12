@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { loadTwitchEmbed, pickQuality, type TwitchPlayerApi } from './twitchEmbed';
 import { mvLog } from './debug';
 import type { QualityChoice } from './types';
@@ -21,11 +21,28 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
     const ready = useRef(false);
     const resumes = useRef<number[]>([]);
     const online = useRef(true);
+    // Mientras reproduce, el ratón no llega al iframe de Twitch: al pasar por encima el player reacciona (se detiene y carga de
+    // nuevo) y aquí no hay controles que usar. Si se pausa o falla, vuelve a recibir el ratón (botón de play, avisos de Twitch).
+    const [playing, setPlaying] = useState(false);
+    // Reanudaciones automáticas: con límite y espera, para no interrumpir un anuncio o la carga del player con play() repetidos.
+    const lastPlay = useRef(0);
+    const playTries = useRef(0);
+    const autoPlay = (why: string) => {
+        const p = player.current;
+        if (!p || !ready.current || document.hidden || !online.current) return;
+        const now = Date.now();
+        if (now - lastPlay.current < 12_000 || playTries.current >= 3) return;
+        try {
+            if (p.isPaused()) { lastPlay.current = now; playTries.current += 1; p.play(); mvLog(`${channel} play (${why})`); }
+        } catch { /* el player aún no responde */ }
+    };
     // Antes del primer gesto del usuario el navegador solo permite autoplay en silencio. Después, una casilla sin
     // audio queda con el sonido activo pero en volumen 0: un video «silenciado» es el que Chrome pausa al salir de
     // vista o al cambiar de pestaña.
     const muted = !unlocked;
-    const effVolume = hasAudio ? volume : 0;
+    // Las casillas sin audio quedan en un volumen casi inaudible (1%) en lugar de 0: con 0 el player de Twitch las trata como
+    // silenciadas y las pausa al cambiar de pestaña.
+    const effVolume = hasAudio ? volume : 0.01;
     const latest = useRef({ muted, volume: effVolume, quality });
     latest.current = { muted, volume: effVolume, quality };
     const onLiveRef = useRef(onLive);
@@ -59,17 +76,13 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
             player.current = p;
             p.addEventListener(T.Player.READY, () => { ready.current = true; p.setMuted(latest.current.muted); p.setVolume(latest.current.volume); });
             p.addEventListener(T.Player.ONLINE, () => { online.current = true; onLiveRef.current(true); });
-            p.addEventListener(T.Player.OFFLINE, () => { online.current = false; onLiveRef.current(false); });
-            p.addEventListener(T.Player.PLAYING, () => { onLiveRef.current(true); applyQuality(); mvLog(`${channel} PLAYING (${document.visibilityState})`); });
-            // Nadie pausa a mano (no hay botón de pausa): si Twitch pausa con la pestaña a la vista, se reanuda.
-            // Tope de 5 por medio minuto para no pelear con el player si insiste.
+            p.addEventListener(T.Player.OFFLINE, () => { online.current = false; setPlaying(false); onLiveRef.current(false); });
+            p.addEventListener(T.Player.PLAYING, () => { playTries.current = 0; setPlaying(true); onLiveRef.current(true); applyQuality(); mvLog(`${channel} PLAYING (${document.visibilityState})`); });
+            // Nadie pausa a mano (no hay botón de pausa): si Twitch pausa con la pestaña a la vista, se reanuda con calma.
             p.addEventListener(T.Player.PAUSE, () => {
                 mvLog(`${channel} PAUSE (${document.visibilityState})`);
-                const now = Date.now();
-                resumes.current = resumes.current.filter(t => now - t < 30_000);
-                if (document.hidden || resumes.current.length >= 5) return;
-                resumes.current.push(now);
-                window.setTimeout(() => { try { if (!document.hidden && player.current?.isPaused()) { player.current.play(); mvLog(`${channel} reanudada`); } } catch { /* sin respuesta */ } }, 400);
+                setPlaying(false);
+                window.setTimeout(() => autoPlay('pausa'), 1500);
             });
         }).catch(() => { /* sin script de Twitch: la casilla queda vacía y el aviso lo da la barra */ });
         return () => {
@@ -90,11 +103,7 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
 
     // El player de Twitch puede quedarse detenido sin avisar (autoplay bloqueado: se ve borroso con un botón de play,
     // o pausado por el navegador). Un vigilante lo arranca si la pestaña está a la vista y el canal está en vivo.
-    const kick = (why: string) => {
-        const p = player.current;
-        if (!p || !ready.current || document.hidden || !online.current) return;
-        try { if (p.isPaused()) { p.play(); mvLog(`${channel} play (${why})`); } } catch { /* el player aún no responde */ }
-    };
+    const kick = autoPlay;
     useEffect(() => { if (unlocked) kick('primer gesto'); }, [unlocked]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         const id = window.setInterval(() => kick('vigilante'), 4000);
@@ -105,7 +114,9 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
     useEffect(() => {
         const resume = () => {
             if (document.hidden || !ready.current) return;
-            try { if (player.current?.isPaused()) player.current.play(); } catch { /* el player aún no responde */ }
+            // Al volver a la pestaña se da un momento a que el player (y un posible anuncio) se acomoden antes de pedir play
+            playTries.current = 0;
+            window.setTimeout(() => autoPlay('volvió a la vista'), 2000);
         };
         document.addEventListener('visibilitychange', resume);
         window.addEventListener('focus', resume);
@@ -113,5 +124,5 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
     }, []);
     useEffect(() => { applyQuality(); }, [quality]);
 
-    return <div id={domId} className="absolute inset-0 [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full" />;
+    return <div id={domId} className={`absolute inset-0 [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full ${playing ? '[&>iframe]:pointer-events-none' : ''}`} />;
 }
