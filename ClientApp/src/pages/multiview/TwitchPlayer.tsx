@@ -20,6 +20,7 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
     const player = useRef<TwitchPlayerApi | null>(null);
     const ready = useRef(false);
     const resumes = useRef<number[]>([]);
+    const hiddenResumes = useRef<number[]>([]);
     const enforceSoundRef = useRef<(why: string) => void>(() => undefined);
     const online = useRef(true);
     // Mientras reproduce, el ratón no llega al iframe de Twitch: al pasar por encima el player reacciona (se detiene y carga de
@@ -82,6 +83,19 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
             p.addEventListener(T.Player.PAUSE, () => {
                 mvLog(`${channel} PAUSE (${document.visibilityState})`);
                 setPlaying(false);
+                if (document.hidden) {
+                    // Con la pestaña oculta Twitch pausa algunas casillas aunque tengan sonido y el audio se corta. Se intenta reanudar
+                    // igual (con tope, por si Twitch insiste); el resultado queda en el registro de depuración.
+                    const now = Date.now();
+                    hiddenResumes.current = hiddenResumes.current.filter(t => now - t < 30_000);
+                    if (latest.current.volume > 0 && online.current && hiddenResumes.current.length < 4) {
+                        hiddenResumes.current.push(now);
+                        window.setTimeout(() => {
+                            try { if (player.current?.isPaused()) { player.current.play(); mvLog(`${channel} play con la pestaña oculta`); } } catch { /* sin respuesta */ }
+                        }, 300);
+                    }
+                    return;
+                }
                 window.setTimeout(() => autoPlay('pausa'), 1500);
             });
         }).catch(() => { /* sin script de Twitch: la casilla queda vacía y el aviso lo da la barra */ });
