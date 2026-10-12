@@ -24,6 +24,8 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
     // Mientras reproduce, el ratón no llega al iframe de Twitch: al pasar por encima el player reacciona (se detiene y carga de
     // nuevo) y aquí no hay controles que usar. Si se pausa o falla, vuelve a recibir el ratón (botón de play, avisos de Twitch).
     const [playing, setPlaying] = useState(false);
+    // Subir este número recrea el player: es la salida cuando Twitch lo deja pausado o borroso y play() no lo despierta.
+    const [reloadKey, setReloadKey] = useState(0);
     // Reanudaciones automáticas: con límite y espera, para no interrumpir un anuncio o la carga del player con play() repetidos.
     const lastPlay = useRef(0);
     const playTries = useRef(0);
@@ -40,9 +42,7 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
     // audio queda con el sonido activo pero en volumen 0: un video «silenciado» es el que Chrome pausa al salir de
     // vista o al cambiar de pestaña.
     const muted = !unlocked;
-    // Las casillas sin audio quedan en un volumen casi inaudible (1%) en lugar de 0: con 0 el player de Twitch las trata como
-    // silenciadas y las pausa al cambiar de pestaña.
-    const effVolume = hasAudio ? volume : 0.01;
+    const effVolume = hasAudio ? volume : 0;
     const latest = useRef({ muted, volume: effVolume, quality });
     latest.current = { muted, volume: effVolume, quality };
     const onLiveRef = useRef(onLive);
@@ -93,7 +93,7 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
             if (el) el.innerHTML = '';
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [channel, domId]);
+    }, [channel, domId, reloadKey]);
 
     useEffect(() => {
         if (!ready.current) return;
@@ -114,9 +114,18 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
     useEffect(() => {
         const resume = () => {
             if (document.hidden || !ready.current) return;
-            // Al volver a la pestaña se da un momento a que el player (y un posible anuncio) se acomoden antes de pedir play
+            // Al volver a la pestaña Twitch suele dejar las casillas pausadas o borrosas (las pausa mientras estaba oculta). Se da un
+            // momento a que el player (y un posible anuncio) se acomoden, se pide play y, si sigue detenido, se recrea el player.
             playTries.current = 0;
-            window.setTimeout(() => autoPlay('volvió a la vista'), 2000);
+            lastPlay.current = 0;
+            const stuck = () => { try { return !!player.current && online.current && !!player.current.isPaused(); } catch { return false; } };
+            window.setTimeout(() => { if (!document.hidden && stuck()) autoPlay('volvió a la vista'); }, 2000);
+            window.setTimeout(() => {
+                if (document.hidden || !stuck()) return;
+                mvLog(`${channel} sigue detenida al volver: se recrea el player`);
+                setPlaying(false);
+                setReloadKey(k => k + 1);
+            }, 7000);
         };
         document.addEventListener('visibilitychange', resume);
         window.addEventListener('focus', resume);
