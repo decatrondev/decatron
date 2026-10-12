@@ -1387,6 +1387,13 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/user/channel-users` | JWT + `user_management` |
 | `GET` | `/api/user/permissions` | JWT |
 
+### Viewer Token
+
+| Method | Route | Access |
+|---|---|---|
+| `POST` | `/api/viewer-token` | JWT |
+| `POST` | `/api/viewer-token/revoke` | JWT |
+
 ### Watchtime
 
 | Method | Route | Access |
