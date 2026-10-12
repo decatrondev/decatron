@@ -120,13 +120,13 @@
           },
           {
             "t": "p",
-            "x": "Por eso la extensión de Decatron (versión 0.9.0) tiene un modo lurk: por cada canal de Twitch que tengas en el Multi-view abre una pestaña normal de Twitch, silenciada, en calidad mínima y en una ventana aparte minimizada. Tú sigues viendo todo en el Multi-view. Se elige con el selector del ojo en la barra superior, que solo aparece si tienes la extensión:"
+            "x": "Por eso la extensión de Decatron (versión 0.9.0 o más nueva) tiene un modo lurk: por cada canal de Twitch que tengas en el Multi-view abre una pestaña normal de Twitch, silenciada, en calidad mínima y en una ventana aparte minimizada. Tú sigues viendo todo en el Multi-view. Se elige con el selector del ojo en la barra superior, que solo aparece si tienes la extensión:"
           },
           {
             "t": "ul",
             "items": [
               "Apagado (como viene): no abre nada.",
-              "Solo racha: abre la pestaña de cada canal en vivo una vez por directo, unos 10 minutos, y la cierra sola. Abre hasta 3 a la vez; el resto espera su turno.",
+              "Solo racha: abre la pestaña de cada canal en vivo una vez por directo. La extensión lee la racha del menú de puntos del canal (la tarjeta «Racha de visualizaciones … 0/2») y cierra la pestaña apenas sube; si no la ve subir, la cierra a los 30 minutos. Abre hasta 3 a la vez; el resto espera su turno.",
               "Completo: la pestaña queda abierta mientras el canal esté en vivo y en el Multi-view, así suma también los puntos y, con el módulo de puntos de la extensión encendido, reclama los cofres."
             ]
           },
@@ -135,18 +135,22 @@
             "x": "Cada casilla de Twitch muestra un ojo con un punto de estado (verde: pestaña abierta o racha cubierta en este directo; ámbar: esperando turno; gris: apagado o canal sin directo). Al pulsarlo eliges el ajuste de ese canal: como el resto, apagado, solo racha o completo."
           },
           {
+            "t": "p",
+            "x": "El botón del reloj, al lado del selector, abre la ventana del modo lurk con tres pestañas: Ahora (cada canal con su estado, si el video de la pestaña de Twitch avanza, la racha leída y hace cuánto se abrió), Historial (todo lo que hizo la extensión: cuándo abrió y cerró cada pestaña y por qué, si Twitch pausó el video, si falta la sesión de Twitch y cuándo subió la racha) y Guía (los pasos para dejarlo funcionando)."
+          },
+          {
             "t": "ul",
             "items": [
               "Si cierras a mano una de esas pestañas, no se vuelve a abrir en ese directo.",
               "Al cerrar el Multi-view se cierran todas las pestañas del modo lurk.",
               "En esas pestañas solo corre el módulo de puntos de la extensión (nada de traducción ni emotes).",
-              "Necesitas tener la sesión de Twitch iniciada en ese navegador: las pestañas cuentan para la cuenta con la que entras a twitch.tv."
+              "Necesitas tener la sesión de Twitch iniciada en ese navegador: las pestañas cuentan para la cuenta con la que entras a twitch.tv. Si no la hay, el estado y el historial lo dicen."
             ]
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "Twitch no publica cuántos minutos hacen falta para la racha. Por ahora la pestaña de solo racha se cierra a los 10 minutos; en las pruebas la racha contó antes de eso."
+            "x": "Twitch no publica cuántos minutos hacen falta para la racha. Por eso la extensión no espera un tiempo fijo: lee la racha y cierra la pestaña cuando sube."
           }
         ]
       },
@@ -185,6 +189,10 @@
           {
             "t": "p",
             "x": "A la derecha de la página (debajo de los videos en el móvil) está el chat de todos los canales abiertos. Se lee sin iniciar sesión."
+          },
+          {
+            "t": "p",
+            "x": "Por defecto se ve el chat oficial de cada canal (el de Twitch o Kick), en la pestaña del primer canal: ahí está tu saldo de puntos y, con el módulo de puntos de la extensión, se reclaman los cofres. Los chats oficiales de todos los canales de Twitch quedan cargados aunque mires otro. El botón Decatron de cada canal cambia al chat combinado de Decatron, y la última elección se recuerda."
           },
           {
             "t": "ul",

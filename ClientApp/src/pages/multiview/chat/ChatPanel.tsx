@@ -51,13 +51,23 @@ export default function ChatPanel({ slots }: { slots: Slot[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [moderate, t]);
     const loginUrl = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-    const [tab, setTab] = useState(ALL);
+    // Por defecto se ve el chat OFICIAL de cada canal (es el que muestra el saldo de puntos y donde la extensión reclama los cofres) y
+    // se abre en la pestaña del primer canal. La última elección (oficial o el de Decatron) queda como la de siempre.
+    const [defaultOfficial, setDefaultOfficial] = useState(() => { try { return localStorage.getItem('mv-chat-mode') !== 'decatron'; } catch { return true; } });
+    const [tab, setTab] = useState(() => (defaultOfficial && slots[0] ? slots[0].id : ALL));
+    const picked = useRef(false);
+    const pickTab = (id: string) => { picked.current = true; setTab(id); };
+    useEffect(() => { if (!picked.current && defaultOfficial && tab === ALL && slots[0]) setTab(slots[0].id); }, [slots, defaultOfficial, tab]);
     // El chat oficial se recuerda por canal y, una vez abierto, el iframe queda montado (oculto) al cambiar de pestaña:
-    // cerrarlo haría perder la sesión de Twitch, el saldo de puntos y el estado del chat cada vez.
+    // cerrarlo haría perder la sesión de Twitch, el saldo de puntos y el estado del chat cada vez. Con el oficial por defecto, los de
+    // todos los canales de Twitch quedan montados desde el inicio (así se reclaman los cofres de todos, no solo del que se mira).
     const [officialBy, setOfficialBy] = useState<Record<string, boolean>>({});
     const [mounted, setMounted] = useState<string[]>([]);
+    const isOfficial = (id: string) => officialBy[id] ?? defaultOfficial;
     const setOfficialFor = (id: string, on: boolean) => {
         setOfficialBy(prev => ({ ...prev, [id]: on }));
+        setDefaultOfficial(on);
+        try { localStorage.setItem('mv-chat-mode', on ? 'official' : 'decatron'); } catch { /* sin almacenamiento */ }
         if (on) setMounted(prev => (prev.includes(id) ? prev : [...prev, id]));
     };
     const list = useRef<HTMLDivElement>(null);
@@ -94,20 +104,20 @@ export default function ChatPanel({ slots }: { slots: Slot[] }) {
     };
 
     const selected = slots.find(s => s.id === tab);
-    const official = !!selected && !!officialBy[selected.id];
+    const official = !!selected && isOfficial(selected.id);
     const officialUrlOf = (s: (typeof slots)[number]) => (s.platform === 'twitch'
         ? `https://www.twitch.tv/embed/${encodeURIComponent(s.channel)}/chat?parent=${window.location.hostname}&darkpopout`
         : `https://kick.com/popout/${encodeURIComponent(s.channel)}/chat`);
-    const mountedSlots = slots.filter(s => mounted.includes(s.id));
+    const mountedSlots = slots.filter(s => mounted.includes(s.id) || isOfficial(s.id) || (s.platform === 'twitch' && defaultOfficial));
 
     const tabBtn = (active: boolean) => `flex-none whitespace-nowrap rounded px-2.5 py-1.5 text-[13px] font-semibold ${active ? 'bg-pub-accent text-white' : 'text-[#a1a1aa] hover:text-white'}`;
 
     return (
         <aside className="flex h-[70dvh] min-h-0 flex-col border-t border-pub-border bg-pub-surface md:h-auto md:w-[340px] md:flex-none md:border-l md:border-t-0 3xl:w-[420px] 4xl:w-[520px]" aria-label={t('chat.title')}>
             <div className="flex items-center gap-1 overflow-x-auto border-b border-pub-border p-1.5" role="tablist">
-                <button role="tab" aria-selected={tab === ALL} className={tabBtn(tab === ALL)} onClick={() => setTab(ALL)}>{t('chat.all')}</button>
+                <button role="tab" aria-selected={tab === ALL} className={tabBtn(tab === ALL)} onClick={() => pickTab(ALL)}>{t('chat.all')}</button>
                 {slots.map(s => (
-                    <button key={s.id} role="tab" aria-selected={tab === s.id} className={tabBtn(tab === s.id)} onClick={() => setTab(s.id)} title={s.platform === 'twitch' ? 'Twitch' : 'Kick'}>
+                    <button key={s.id} role="tab" aria-selected={tab === s.id} className={tabBtn(tab === s.id)} onClick={() => pickTab(s.id)} title={s.platform === 'twitch' ? 'Twitch' : 'Kick'}>
                         {s.channel}{roles[s.id] && <ShieldCheck className="ml-1 inline h-3.5 w-3.5 align-text-bottom" aria-label={t('chat.mod.youMod')} />}
                     </button>
                 ))}

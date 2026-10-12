@@ -4,23 +4,45 @@ import type { Slot } from './types';
 // Modo lurk: el player embebido de /multi NO suma puntos de canal ni rachas para Twitch (verificado con cuenta real). Lo que sí
 // cuenta es una pestaña normal de twitch.tv, aunque esté silenciada y en segundo plano. La extensión de Decatron abre esas pestañas
 // (silenciadas, en calidad mínima, en una ventana aparte) por los canales de Twitch de esta página, según lo que elija quien mira:
-//   streak → la pestaña se abre una vez por directo unos minutos (para la racha) y se cierra sola
+//   streak → la pestaña se abre una vez por directo y se cierra cuando la racha sube (la extensión la lee del menú de puntos)
+//            o a los 30 minutos si no la ve subir
 //   full   → la pestaña queda abierta mientras el canal esté en vivo y en /multi (puntos, cofres y racha)
 // La página y la extensión hablan con eventos del DOM con texto JSON (viven en mundos de JavaScript separados).
 
 export type LurkMode = 'streak' | 'full';
 export type LurkChannelMode = 'default' | 'off' | LurkMode;
-/** off: el canal no tiene lurk · offline: no está en vivo · queued: espera turno · open: pestaña abierta · done: racha cubierta en este directo · closed: la persona cerró la pestaña */
-export type LurkStatus = 'off' | 'offline' | 'queued' | 'open' | 'done' | 'closed';
+/** off: el canal no tiene lurk · offline: no está en vivo · queued: espera turno · open: pestaña abierta · done: la racha subió en este
+ *  directo · timeout: se cerró por tiempo sin ver subir la racha · closed: la persona cerró la pestaña */
+export type LurkStatus = 'off' | 'offline' | 'queued' | 'open' | 'done' | 'timeout' | 'closed';
+/** Lo que ve la pestaña de Twitch: el video avanza, Twitch lo dejó pausado o no hay sesión de Twitch en el navegador */
+export type LurkHealth = 'playing' | 'paused' | 'nosession' | null;
+
+export interface LurkChannel {
+    mode: LurkChannelMode;
+    effective: 'off' | LurkMode;
+    status: LurkStatus;
+    openedAt?: number;
+    streak?: { have: number; need: number } | null;
+    health?: LurkHealth;
+}
+
+/** Una línea del historial. `code` se traduce con lurk.log.<code>; `p` son sus datos (minutos, racha, motivo…). */
+export interface LurkLogEntry { at: number; login: string; code: string; p: Record<string, string | number | boolean | null | { have: number; need: number }> }
 
 export interface LurkState {
     enabled: boolean;
     mode: LurkMode;
-    channels: Record<string, { mode: LurkChannelMode; effective: 'off' | LurkMode; status: LurkStatus; openedAt?: number }>;
+    channels: Record<string, LurkChannel>;
+    log?: LurkLogEntry[];
+    maxMinutes?: number;
 }
 
 const extVersion = () => document.documentElement.dataset.decatronExt || null;
 const extHasLurk = () => document.documentElement.dataset.decatronLurk === '1';
+
+export function clearLurkLog() {
+    window.dispatchEvent(new CustomEvent('decatron-lurk-clear-log'));
+}
 
 export function sendLurk(patch: { enabled?: boolean; mode?: LurkMode; login?: string; channelMode?: LurkChannelMode }) {
     window.dispatchEvent(new CustomEvent('decatron-lurk-set', { detail: JSON.stringify(patch) }));

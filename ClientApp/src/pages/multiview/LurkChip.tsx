@@ -7,18 +7,23 @@ interface Props {
     info: LurkState['channels'][string] | null;
 }
 
-// Punto de estado: verde = la pestaña real está abierta o la racha ya quedó cubierta; ámbar = esperando turno; gris = nada abierto.
-const DOT: Record<string, string> = { open: 'bg-ds-ok', done: 'bg-ds-ok', queued: 'bg-ds-warn' };
+// Punto de estado: verde = la pestaña real está abierta o la racha ya subió; ámbar = esperando turno o cerrada por tiempo; rojo = sin
+// sesión de Twitch en el navegador (no cuenta nada); gris = nada abierto.
+const DOT: Record<string, string> = { open: 'bg-ds-ok', done: 'bg-ds-ok', queued: 'bg-ds-warn', timeout: 'bg-ds-warn' };
 
 /** Estado del modo lurk de una casilla y su ajuste propio (por defecto, apagado, solo racha o completo). */
 export default function LurkChip({ channel, info }: Props) {
     const { t } = useTranslation('multiview');
     const status = info?.status ?? 'queued';
-    const label = t(`lurk.status.${status}`);
+    const extra = [
+        info?.streak ? `${t('lurk.panel.col.streak')} ${info.streak.have}/${info.streak.need}` : null,
+        info?.health ? t(`lurk.health.${info.health}`) : null,
+    ].filter(Boolean).join(' · ');
+    const label = t(`lurk.status.${status}`) + (extra ? ` · ${extra}` : '');
     return (
         <label className="relative hidden h-8 items-center gap-1 rounded-md px-1.5 text-white/90 hover:bg-white/15 sm:flex" title={`${t('lurk.channelLabel')}: ${label}`}>
             <Eye className="h-4 w-4" aria-hidden />
-            <span className={`h-2 w-2 rounded-full ${DOT[status] ?? 'bg-[#52525b]'}`} aria-hidden />
+            <span className={`h-2 w-2 rounded-full ${info?.health === 'nosession' ? 'bg-ds-danger' : DOT[status] ?? 'bg-[#52525b]'}`} aria-hidden />
             <span className="sr-only">{t('lurk.channelLabel')} ({label})</span>
             <select
                 value={info?.mode ?? 'default'}

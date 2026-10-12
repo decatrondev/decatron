@@ -204,7 +204,7 @@
     "off": "Lurk: off",
     "streak": "Lurk: streak only",
     "full": "Lurk: full",
-    "hint": "The video on this page does not earn channel points or watch streaks on Twitch. Lurk mode opens regular Twitch tabs (muted, lowest quality, in a separate window) that do count. Streak only: a few minutes per stream. Full: the whole stream.",
+    "hint": "The video on this page does not earn channel points or watch streaks on Twitch. Lurk mode opens regular Twitch tabs (muted, lowest quality, in a separate window) that do count. Streak only: until the streak goes up. Full: the whole stream.",
     "tip": {
       "noExt": "The video on this page does not earn channel points or watch streaks on Twitch. With the Decatron extension, lurk mode opens Twitch tabs that do count.",
       "oldExt": "Your Decatron extension does not have lurk mode yet: update it to earn points and streaks from here.",
@@ -224,8 +224,68 @@
       "offline": "the channel is not live",
       "queued": "waiting for its turn",
       "open": "Twitch tab open",
-      "done": "streak covered for this stream",
-      "closed": "you closed the tab: it will not reopen this stream"
+      "done": "the streak went up this stream",
+      "closed": "you closed the tab: it will not reopen this stream",
+      "timeout": "closed on time without seeing the streak go up"
+    },
+    "howItWorks": "How it works",
+    "health": {
+      "playing": "video playing",
+      "paused": "video paused by Twitch",
+      "nosession": "not signed in to Twitch in this browser"
+    },
+    "panel": {
+      "open": "Lurk mode: status, history and guide",
+      "title": "Lurk mode",
+      "now": "Now",
+      "log": "History",
+      "guide": "Guide",
+      "waiting": "Waiting for the extension status…",
+      "modeIs": "Chosen mode: {{mode}}.",
+      "isOff": "Lurk mode is off: pick it in the eye selector above.",
+      "noTwitch": "There are no Twitch channels in this Multi-view.",
+      "col": {
+        "channel": "Channel",
+        "status": "Status",
+        "video": "Twitch tab",
+        "streak": "Streak",
+        "time": "Open"
+      },
+      "minutes": "{{n}} min ago",
+      "nowNote": "The streak is read from the channel points menu in the Twitch tab. In streak only, the tab closes when the streak goes up or after {{max}} minutes.",
+      "logEmpty": "Nothing in the history yet.",
+      "clearLog": "Clear history",
+      "docs": "Multi-view documentation",
+      "mutedVideo": "(video muted)"
+    },
+    "log": {
+      "opened": "its Twitch tab opened ({{mode}})",
+      "playing": "the tab video is playing at {{height}} {{muted}}",
+      "resumed": "Twitch had paused the video; it was resumed {{muted}}",
+      "paused": "Twitch left the video paused and it could not be resumed: it does not count like this",
+      "nosession": "the tab is not signed in to Twitch: sign in on twitch.tv in this browser, otherwise it does not count",
+      "streak_read": "streak read: {{have}}/{{need}}",
+      "streak_up": "the streak went up: {{from}} → {{have}}/{{need}}",
+      "streak_unreadable": "the streak could not be read from the points menu ({{reason}})",
+      "closed_earned": "closed: the streak already counted this stream (open {{minutes}} min)",
+      "closed_timeout": "closed after {{minutes}} min without seeing the streak go up (streak: {{streak}})",
+      "closed_user": "you closed the tab after {{minutes}} min: it does not reopen this stream",
+      "closed_offline": "closed: the channel ended its stream (open {{minutes}} min)",
+      "closed_off": "closed: lurk was turned off for this channel (open {{minutes}} min)",
+      "closed_removed": "closed: the channel left the Multi-view or the Multi-view was closed (open {{minutes}} min)"
+    },
+    "guide": {
+      "step1": "Install the Decatron extension (version 0.9.0 or newer) in this browser.",
+      "step2": "Sign in on twitch.tv in this same browser: the tabs count for that account.",
+      "step3": "Add your channels to the Multi-view and pick «Lurk: streak only» or «Lurk: full» above. Each tile also has its own setting in the eye on its bar.",
+      "step4": "The extension opens a separate, minimized window with a regular Twitch tab for each live channel, muted and at the lowest quality. Leave it open (it can stay minimized).",
+      "step5": "Keep watching here. «Now» shows each channel (whether the tab video is moving and the streak it read) and «History» everything that happened.",
+      "streak": "Streak only: the tab closes as soon as the streak goes up (the extension reads it from the channel points menu) or after {{max}} minutes if it does not see it go up. Once per stream.",
+      "full": "Full: the tab stays open the whole stream; it earns points and, with the extension channel points module on, claims the chests.",
+      "nosession": "If it says «not signed in to Twitch in this browser», sign in on twitch.tv: without it nothing counts.",
+      "paused": "If it says «video paused by Twitch», the extension tries to resume it; if it cannot, the history says so.",
+      "chat": "The official chat of each channel is on by default in the Multi-view: it shows your points balance and the extension claims the chests there.",
+      "close": "If you close a lurk tab yourself, it does not reopen this stream. Closing the Multi-view closes them all."
     }
   }
 }

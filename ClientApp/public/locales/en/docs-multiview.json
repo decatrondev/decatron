@@ -120,13 +120,13 @@
           },
           {
             "t": "p",
-            "x": "That is why the Decatron extension (version 0.9.0) has a lurk mode: for each Twitch channel in your Multi-view it opens a regular Twitch tab, muted, at the lowest quality, in a separate minimized window. You keep watching everything in the Multi-view. Choose it with the eye selector in the top bar, which only shows up when you have the extension:"
+            "x": "That is why the Decatron extension (version 0.9.0 or newer) has a lurk mode: for each Twitch channel in your Multi-view it opens a regular Twitch tab, muted, at the lowest quality, in a separate minimized window. You keep watching everything in the Multi-view. Choose it with the eye selector in the top bar, which only shows up when you have the extension:"
           },
           {
             "t": "ul",
             "items": [
               "Off (the default): opens nothing.",
-              "Streak only: opens each live channel's tab once per stream, for about 10 minutes, and closes it. Up to 3 open at a time; the rest wait their turn.",
+              "Streak only: opens each live channel's tab once per stream. The extension reads the streak from the channel points menu (the «Watch Streak … 0/2» card) and closes the tab as soon as it goes up; if it does not see it go up, it closes it after 30 minutes. Up to 3 open at a time; the rest wait their turn.",
               "Full: the tab stays open while the channel is live and in the Multi-view, so it also earns points and, with the extension's channel points module on, claims the bonus chests."
             ]
           },
@@ -135,18 +135,22 @@
             "x": "Each Twitch tile shows an eye with a status dot (green: tab open or streak covered for this stream; amber: waiting for its turn; grey: off or channel not live). Press it to choose that channel's setting: same as the rest, off, streak only or full."
           },
           {
+            "t": "p",
+            "x": "The clock button next to the selector opens the lurk mode window with three tabs: Now (each channel with its status, whether the Twitch tab video is moving, the streak it read and how long ago it opened), History (everything the extension did: when it opened and closed each tab and why, whether Twitch paused the video, whether the Twitch session is missing and when the streak went up) and Guide (the steps to get it working)."
+          },
+          {
             "t": "ul",
             "items": [
               "If you close one of those tabs yourself, it does not reopen during that stream.",
               "Closing the Multi-view closes all the lurk tabs.",
               "Only the extension's channel points module runs in those tabs (no translation or emotes).",
-              "You need to be signed in to Twitch in that browser: the tabs count for the account you use on twitch.tv."
+              "You need to be signed in to Twitch in that browser: the tabs count for the account you use on twitch.tv. If you are not, the status and the history say so."
             ]
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "Twitch does not publish how many minutes a streak needs. For now the streak-only tab closes after 10 minutes; in testing the streak counted before that."
+            "x": "Twitch does not publish how many minutes a streak needs. That is why the extension does not wait a fixed time: it reads the streak and closes the tab when it goes up."
           }
         ]
       },
@@ -185,6 +189,10 @@
           {
             "t": "p",
             "x": "On the right of the page (below the videos on mobile) is the chat of every open channel. You can read it without logging in."
+          },
+          {
+            "t": "p",
+            "x": "By default you see each channel's official chat (Twitch's or Kick's), on the first channel's tab: it shows your points balance and, with the extension's channel points module, the chests get claimed there. The official chats of all Twitch channels stay loaded even while you look at another one. Each channel's Decatron button switches to Decatron's combined chat, and your last choice is remembered."
           },
           {
             "t": "ul",

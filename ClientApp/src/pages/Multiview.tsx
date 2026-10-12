@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, BellOff, Check, Eye, Gauge, Keyboard, LayoutGrid, Link2, Maximize, MessageSquare, PanelLeft, Plus, Rows3, Tv2, X } from 'lucide-react';
+import { Bell, BellOff, Check, Eye, History, Gauge, Keyboard, LayoutGrid, Link2, Maximize, MessageSquare, PanelLeft, Plus, Rows3, Tv2, X } from 'lucide-react';
 import { BrandMark } from '../brand/BrandMark';
 import { isTokenExpired } from '../utils/jwt';
 import SlotFrame from './multiview/SlotFrame';
 import ChatPanel from './multiview/chat/ChatPanel';
 import LayoutsMenu from './multiview/LayoutsMenu';
 import ShortcutsHelp from './multiview/ShortcutsHelp';
+import LurkPanel from './multiview/LurkPanel';
 import { mvLines, mvLog } from './multiview/debug';
 import { planLayout } from './multiview/layouts';
 import { useKickStatus, useLiveAlerts, useSlotLimit, useStruggling } from './multiview/hooks';
@@ -60,6 +61,7 @@ export default function Multiview() {
     const [copied, setCopied] = useState(false);
     const [unlocked, setUnlocked] = useState(false);
     const [helpOpen, setHelpOpen] = useState(false);
+    const [lurkOpen, setLurkOpen] = useState(false);
     const [notifyOn, setNotifyOn] = useState(() => { try { return localStorage.getItem('mv-notify') === '1'; } catch { return false; } });
     const addRef = useRef<HTMLInputElement>(null);
     const [chatOpen, setChatOpen] = useState(() => { try { return localStorage.getItem('mv-chat') !== '0'; } catch { return true; } });
@@ -295,6 +297,11 @@ export default function Multiview() {
                                 </select>
                             </label>
                         )}
+                        {hasTwitch && (
+                            <button type="button" className={`${btnGhost} !px-2.5`} onClick={() => setLurkOpen(true)} aria-label={t('lurk.panel.open')} title={t('lurk.panel.open')}>
+                                <History className="h-4 w-4" />
+                            </button>
+                        )}
                         <LayoutsMenu slots={slots} layout={layout} loggedIn={loggedIn} loginUrl={loginUrl} className={btnGhost}
                             onApply={(sl, ly) => { try { localStorage.setItem('mv-layout', ly); } catch { /* sin almacenamiento */ } go(sl.slice(0, maxSlots), ly); }} />
                         <button type="button" className={btnGhost} onClick={copyLink} disabled={!slots.length}>
@@ -333,6 +340,7 @@ export default function Multiview() {
                                 <Eye className="h-4 w-4 flex-none text-pub-accent-hi" aria-hidden />
                                 <span>{t(`lurk.tip.${lurkTipKind}`)}</span>
                                 {lurkTipKind !== 'off' && <Link to="/translate" className="font-semibold text-pub-accent-hi underline">{t('lurk.install')}</Link>}
+                                <button type="button" className="font-semibold text-pub-accent-hi underline" onClick={() => setLurkOpen(true)}>{t('lurk.howItWorks')}</button>
                                 <button type="button" className="underline hover:text-white" onClick={hideLurkTip}>{t('lurk.dismiss')}</button>
                             </p>
                         )}
@@ -407,6 +415,7 @@ export default function Multiview() {
                 </div>
             )}
             {helpOpen && <ShortcutsHelp onClose={() => setHelpOpen(false)} />}
+            {lurkOpen && <LurkPanel slots={slots} state={lurk.state} ext={lurk.ext} supported={lurk.supported} onClose={() => setLurkOpen(false)} />}
             {debug && (
                 <pre className="fixed bottom-2 left-2 z-50 max-h-60 max-w-[90vw] overflow-auto rounded-md bg-black/85 p-2 font-mono text-[11px] leading-snug text-[#d4d4d8]">
                     {mvLines().join('\n') || 'diagnóstico activo: esperando eventos'}
