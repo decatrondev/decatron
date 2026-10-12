@@ -1,0 +1,415 @@
+{
+  "overview": {
+    "title": "Multi-view",
+    "subtitle": "Varios canales de Twitch y Kick en una sola pantalla, con su chat",
+    "cta": {
+      "to": "/multi",
+      "label": "Abrir el Multi-view"
+    },
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El Multi-view está en decatron.net/multi. Muestra varios canales de Twitch y Kick a la vez, cada uno en su casilla, y se puede usar sin iniciar sesión."
+          },
+          {
+            "t": "p",
+            "x": "Los videos son los players oficiales de Twitch y de Kick: Decatron solo los acomoda en la página y te da los controles para ordenarlos."
+          }
+        ]
+      },
+      {
+        "id": "agregar",
+        "title": "Agregar canales",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Elige la plataforma (Twitch o Kick) en la barra de arriba.",
+              "Escribe el nombre del canal, o pega un enlace de twitch.tv o kick.com, y pulsa Agregar.",
+              "Para quitar una casilla, usa la X que aparece al pasar el cursor sobre ella."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Estas formas de escribir el canal funcionan:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Escribes",
+              "Resultado"
+            ],
+            "rows": [
+              [
+                "nombre",
+                "Canal de Twitch (o de la plataforma que tengas elegida)"
+              ],
+              [
+                "kick:nombre",
+                "Canal de Kick"
+              ],
+              [
+                "twitch.tv/nombre o kick.com/nombre",
+                "El canal de ese enlace, en su plataforma"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los canales también van en la dirección de la página, así que puedes armar el enlace a mano:"
+          },
+          {
+            "t": "code",
+            "x": "decatron.net/multi/canal1/canal2/k:canal3"
+          },
+          {
+            "t": "p",
+            "x": "Sin prefijo es Twitch; con k: es Kick."
+          }
+        ]
+      },
+      {
+        "id": "distribucion",
+        "title": "Distribución y orden",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Cuadrícula: reparte las casillas de forma pareja según cuántas haya abiertas.",
+              "Uno grande y los demás al lado: la primera casilla es la grande y el resto va en una columna.",
+              "En columna: una casilla debajo de otra; la página se desplaza.",
+              "Arrastra el nombre de una casilla sobre otra para intercambiarlas de lugar.",
+              "El botón «Ponerla como principal» intercambia esa casilla con la primera.",
+              "Cada casilla y la página entera se pueden ver en pantalla completa."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "En el móvil las casillas se apilan una debajo de otra."
+          }
+        ]
+      },
+      {
+        "id": "audio",
+        "title": "Audio",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Todas las casillas empiezan en silencio. Pulsa el altavoz de una casilla para escucharla; solo una puede sonar a la vez y al elegir otra, la anterior se silencia."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "En las casillas de Twitch aparece además un control de volumen mientras esa casilla suena.",
+              "Kick no permite controlar el volumen desde fuera: su casilla solo se silencia o se activa, y al cambiar el audio esa casilla se vuelve a cargar."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "calidad",
+        "title": "Calidad y rendimiento",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El selector de calidad de la barra aplica la misma calidad (Auto, 720p, 480p, 360p o 160p) a todas las casillas de Twitch. Bajarla ayuda cuando hay muchas casillas abiertas."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Kick no permite fijar la calidad desde aquí: sus casillas se quedan como las decida su player.",
+              "Si con 3 o más casillas la página va entrecortada, aparece un aviso que sugiere bajar todo a 360p. Es una señal aproximada: mide la página, no el video de cada player."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "estado",
+        "title": "Estado de cada canal",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada casilla muestra el nombre, la plataforma y un punto: rojo si el canal está en vivo, gris si no. Si está sin conexión lo indica con una etiqueta. En los canales de Kick en vivo también se ve el número de espectadores."
+          }
+        ]
+      },
+      {
+        "id": "chat",
+        "title": "Chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A la derecha de la página (debajo de los videos en el móvil) está el chat de todos los canales abiertos. Se lee sin iniciar sesión."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "La pestaña Todos mezcla los mensajes de todos los canales y marca de cuál viene cada uno. Cada canal tiene además su propia pestaña.",
+              "Se ven los emotes de la plataforma, los de 7TV, BTTV y FFZ y los emotes propios de Decatron, con los colores y las insignias de cada persona.",
+              "Al entrar a un canal se muestran sus últimos mensajes para que el chat no empiece vacío.",
+              "Si te desplazas hacia arriba el chat deja de seguir los mensajes nuevos y aparece un botón para volver al final.",
+              "Los mensajes que la plataforma elimina o los de quien recibe una sanción se muestran como «mensaje eliminado».",
+              "El botón de chat de la barra lo muestra u oculta."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "En la pestaña de un canal puedes cambiar de Chat a Oficial: es el chat oficial de Twitch o de Kick, útil para lo que este panel no muestra, como las predicciones, los bits o el canje de puntos."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Sin sesión, el chat es de solo lectura. Para escribir, inicia sesión (más abajo)."
+          }
+        ]
+      },
+      {
+        "id": "escribir",
+        "title": "Escribir en el chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con la sesión iniciada puedes escribir desde la parte de abajo del chat, como en el chat normal de la plataforma. El mensaje sale con tu propia cuenta."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Elige en el selector a qué canal escribes. Si tienes una pestaña de canal abierta, es el destino por defecto.",
+              "Para escribir en Twitch o en Kick necesitas tener esa cuenta vinculada en Ajustes; si falta, el campo te lo indica.",
+              "Pasa el cursor sobre un mensaje y pulsa Responder para contestarle. El mensaje sale como respuesta en la plataforma.",
+              "Al escribir una palabra aparecen sugerencias de emotes de 7TV, BTTV, FFZ y de Decatron del canal elegido; con Tab se acepta la primera.",
+              "Un mensaje puede tener hasta 500 caracteres. Hay un tope de 15 mensajes cada 30 segundos."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Si el canal está en modo solo seguidores o lento, o la plataforma te impide escribir, el mensaje no sale y se te explica el motivo. Si tu sesión con la plataforma venció, se te pide iniciar sesión otra vez."
+          },
+          {
+            "t": "h3",
+            "x": "Aparecer como conectado"
+          },
+          {
+            "t": "p",
+            "x": "Mientras tengas la página abierta, tu cuenta de Twitch se conecta al chat de los canales de Twitch que tienes abiertos, igual que cuando los ves en twitch.tv, y apareces en su lista de conectados. Esa conexión no lee ni envía mensajes y se cierra al cerrar la página. Puedes apagarla con la casilla «Aparecer como conectado en el chat de Twitch» debajo del campo de escribir."
+          },
+          {
+            "t": "p",
+            "x": "Esto solo ocurre en Twitch: Kick no tiene una lista pública de conectados."
+          }
+        ]
+      },
+      {
+        "id": "moderar",
+        "title": "Moderar desde el Multi-view",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si eres moderador (o dueño) de un canal abierto, al pasar el cursor sobre un mensaje de ese canal aparecen las acciones de moderación. Solo se ofrecen en los canales donde la plataforma te reconoce ese rol; en los demás no aparece nada. La pestaña del canal muestra un escudo y la cabecera dice «Moderas aquí»."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Eliminar mensaje: borra ese mensaje del chat.",
+              "Timeout: 1 minuto, 10 minutos, 1 hora o 24 horas.",
+              "Banear: pide una confirmación antes de aplicarse.",
+              "Tras un timeout o un ban aparece un aviso con el botón Deshacer, que quita la sanción.",
+              "Esas acciones no se ofrecen sobre moderadores ni sobre el dueño del canal: la plataforma las rechaza."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Funciona en Twitch y en Kick, con tu propia cuenta y con los mismos permisos que tienes en cada canal. Cada acción queda en el registro del servidor y, además, en el registro de moderación de la propia plataforma."
+          },
+          {
+            "t": "h3",
+            "x": "Permisos"
+          },
+          {
+            "t": "p",
+            "x": "En Twitch el inicio de sesión normal no incluye permisos para moderar. La primera vez que intentes moderar, el aviso te ofrece «Autorizar moderación»: es un inicio de sesión de Twitch que además pide borrar mensajes y sancionar usuarios. Solo hace falta una vez y solo quienes moderan lo necesitan. En Kick, si la acción falla por permisos, el mismo aviso te lleva a iniciar sesión de nuevo."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "En Twitch tu rol se conoce porque tu cuenta se conecta al chat del canal. Si apagas la casilla «Aparecer como conectado en el chat de Twitch», no se detecta el rol y las acciones de moderación no se muestran."
+          }
+        ]
+      },
+      {
+        "id": "compartir",
+        "title": "Compartir tu distribución",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El botón Copiar enlace copia la dirección de la página. Ese enlace guarda qué canales hay, en qué orden y la distribución elegida. El audio y la calidad no viajan en el enlace."
+          },
+          {
+            "t": "p",
+            "x": "La última distribución que elegiste se recuerda en tu navegador."
+          }
+        ]
+      },
+      {
+        "id": "traduccion",
+        "title": "Subtítulos traducidos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si un canal de Twitch de tu lista ofrece la traducción en vivo de Decatron, su casilla muestra un botón de idiomas. Elige un idioma y los subtítulos traducidos aparecen sobre el video de esa casilla, una frase a la vez."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Cada casilla tiene su propio idioma y puedes tener subtítulos en varias a la vez.",
+              "Si el streamer aún no encendió la traducción, el botón sigue disponible y los subtítulos arrancan solos cuando la encienda.",
+              "Para quitarlos, abre el mismo menú y elige «Sin subtítulos».",
+              "Por ahora son solo subtítulos y solo en Twitch. El audio doblado se escucha en twitch.tv con la extensión de Decatron."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "extension",
+        "title": "Con la extensión de Decatron",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La extensión de Decatron para Chrome y Firefox (versión 0.4.0) tiene un módulo Multi-view. En twitch.tv, abre el panel del botón de Decatron, entra en Multi-view y pulsa «Agregar [canal] al Multi-view»."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Si no tienes un Multi-view abierto, se abre uno nuevo con ese canal.",
+              "Si ya tienes uno abierto, el canal se agrega ahí mismo sin recargar la página, así que los videos no se cortan. Si el Multi-view está lleno según tu plan, la extensión te lo dice.",
+              "El botón «Abrir el Multi-view» lleva a tu Multi-view abierto o abre uno vacío."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "layouts",
+        "title": "Layouts guardados",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con la sesión iniciada, el botón del marcador de la barra guarda en tu cuenta el conjunto de canales y la distribución que tienes abiertos, con el nombre que elijas. Los layouts son de tu cuenta, así que los ves igual entrando con Twitch o con Kick."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Para guardar: escribe un nombre y pulsa Guardar. Si ya tienes uno con ese nombre, puedes reemplazarlo.",
+              "Para usar uno: pulsa su nombre y se abren sus canales con su distribución.",
+              "Para borrar uno: pulsa la papelera y confirma.",
+              "Tu plan define cuántos layouts puedes guardar (ver más abajo). Si bajas de plan no se borra ninguno: solo no podrás guardar más hasta liberar espacio."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "atajos",
+        "title": "Atajos de teclado",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tecla",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "1 a 9",
+                "Escuchar la casilla con ese número (otra vez, silenciarla)"
+              ],
+              [
+                "0",
+                "Silenciar todas"
+              ],
+              [
+                "L",
+                "Cambiar la distribución"
+              ],
+              [
+                "C",
+                "Mostrar u ocultar el chat"
+              ],
+              [
+                "F",
+                "Pantalla completa"
+              ],
+              [
+                "A o /",
+                "Ir al campo de agregar canal"
+              ],
+              [
+                "N",
+                "Activar o desactivar los avisos de canal en vivo"
+              ],
+              [
+                "?",
+                "Mostrar la ayuda de atajos"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los atajos no funcionan mientras escribes en un campo ni con Ctrl, Alt o Cmd pulsados."
+          }
+        ]
+      },
+      {
+        "id": "avisos",
+        "title": "Avisos de canal en vivo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si un canal de tu lista estaba sin conexión y empieza a transmitir, aparece una etiqueta en la esquina de la página. Con el botón de la campana puedes pedir además una notificación del navegador, útil con la pestaña en segundo plano; el navegador te pide permiso la primera vez."
+          },
+          {
+            "t": "p",
+            "x": "Un canal que ya estaba en vivo al abrir la página no avisa. El estado de los canales de Kick se revisa cada minuto."
+          }
+        ]
+      },
+      {
+        "id": "accesos",
+        "title": "Abrir el Multi-view desde otros sitios",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "En el panel hay una entrada «Multi-view» en la barra lateral.",
+              "En la pestaña Jugadores de la página pública de un torneo, el botón «Ver en Multi-view» abre los canales de Twitch (o de Kick, si no tienen Twitch) que dejaron los jugadores. Si son más de los que permite tu plan, se muestran los primeros."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Cuántas casillas puedes abrir",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Todas las funciones son gratis; el plan solo cambia cuántas casillas puedes tener abiertas a la vez. Sin sesión se aplica el plan gratis; con sesión, el de tu cuenta."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "multiviewSlots",
+              "multiviewLayouts"
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Si abres un enlace con más canales de los que permite tu plan, se muestran los primeros y un aviso indica cuántos quedaron fuera."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -179,5 +179,8 @@
   "bStorage": "{{size}} of media storage",
   "bVoice": "{{n}} voice characters per month",
   "bHidePromo": "Hide the Decatron card in your overlays",
-  "creatorLabel": "Creator of Decatron"
+  "creatorLabel": "Creator of Decatron",
+  "tGroupMultiview": "Multi-view",
+  "rMultiviewSlots": "Tiles at once",
+  "rMultiviewLayouts": "Saved layouts"
 }

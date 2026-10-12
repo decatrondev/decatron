@@ -49,15 +49,19 @@ namespace Decatron.Services
             _usernameUpdateService = usernameUpdateService;
         }
 
-        public string GetLoginUrl(string? redirect = null)
+        /// <summary>Permisos extra para moderar el chat desde el Multi-view; solo se piden a quien los necesita.</summary>
+        public const string ModerationScopes = "moderator:manage:chat_messages moderator:manage:banned_users";
+
+        public string GetLoginUrl(string? redirect = null, bool withModeration = false)
         {
             var state = GenerateSignedOAuthState(redirect);
+            var scopes = withModeration ? $"{_twitchSettings.Scopes} {ModerationScopes}" : _twitchSettings.Scopes;
 
             var loginUrl = $"https://id.twitch.tv/oauth2/authorize" +
                 $"?client_id={_twitchSettings.ClientId}" +
                 $"&redirect_uri={Uri.EscapeDataString(_twitchSettings.RedirectUri)}" +
                 $"&response_type=code" +
-                $"&scope={Uri.EscapeDataString(_twitchSettings.Scopes)}" +
+                $"&scope={Uri.EscapeDataString(scopes)}" +
                 $"&state={Uri.EscapeDataString(state)}";
 
             _logger.LogInformation("Generated login URL for Twitch (redirect: {Redirect})", redirect ?? "none");

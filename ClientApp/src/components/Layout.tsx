@@ -1,4 +1,4 @@
-﻿import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins } from 'lucide-react';
+﻿import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins, Tv2 } from 'lucide-react';
 import decatronLockup from '../assets/decatron-lockup.png';
 import { BrandMark } from '../brand/BrandMark';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
@@ -131,6 +131,7 @@ export default function Layout() {
                                 "Proximamente en Kick" hasta verificarse. */}
                             <NavLink to="/features" icon={<Target />} label={t('layout:navigation.features.title')} active={location.pathname === '/features'} />
                             <NavLink to="/credits" icon={<Coins />} label={t('layout:navigation.credits')} active={location.pathname.startsWith('/credits')} />
+                            <NavLink to="/multi" icon={<Tv2 />} label={t('layout:navigation.multiview', 'Multi-view')} active={false} />
 
                             {hasTwitchAccess && (
                                 <>

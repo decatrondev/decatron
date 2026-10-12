@@ -166,6 +166,14 @@ try
                     },
                     OnMessageReceived = context =>
                     {
+                        // El hub del Multi-view es público pero reconoce a quien inició sesión: SignalR manda el token en la
+                        // dirección porque un WebSocket del navegador no puede llevar cabeceras.
+                        if (context.Request.Path.StartsWithSegments("/hubs/multiview")
+                            && context.Request.Query.TryGetValue("access_token", out var hubToken) && !string.IsNullOrEmpty(hubToken))
+                        {
+                            context.Token = hubToken;
+                            return Task.CompletedTask;
+                        }
                         var token = context.Request.Headers["Authorization"].ToString();
                         if (!string.IsNullOrEmpty(token))
                         {
@@ -536,6 +544,14 @@ try
     // Modulo de Torneos (Milestone 0) — cliente de Riot API, la key la trae cada
     // canal-tenant, ver .dev/torneos/03-riot-api-integracion.md.
     builder.Services.AddHttpClient<Decatron.Services.GameData.Riot.RiotApiClient>();
+    builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewStatusService>();
+    builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewChatMapper>();
+    builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewAccountService>();
+    builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewSendService>();
+    builder.Services.AddSingleton<Decatron.Services.Multiview.TwitchPresenceService>();
+    builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewModerationService>();
+    builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewChatService>();
+    builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Services.Multiview.MultiviewChatService>());
     builder.Services.AddSingleton<Decatron.Services.GameData.Riot.RiotApiKeys>();
     builder.Services.AddSingleton<Decatron.Services.GameData.Riot.RiotRateLimitGate>();
     // Game Overlays (.dev/plans/GAME_OVERLAYS_PLAN.md) — proveedores por juego +
@@ -769,6 +785,7 @@ try
     app.MapHub<Decatron.Hubs.OverlayHub>("/hubs/overlay");
     app.MapHub<Decatron.Hubs.TranslationHub>("/hubs/translation"); // extensión del espectador
     app.MapHub<Decatron.Hubs.EmotesHub>("/hubs/emotes"); // aviso en vivo de cambios de emotes a la extensión del espectador
+    app.MapHub<Decatron.Services.Multiview.MultiviewChatHub>("/hubs/multiview"); // chat de lectura del Multi-view (anónimo)
     app.MapHub<Decatron.Services.SongRequest.SongRequestHub>("/hubs/songrequest"); // song request: reproductor, overlays, dashboard y cola pública
 
     Log.Information("API ready on https://localhost:7264");

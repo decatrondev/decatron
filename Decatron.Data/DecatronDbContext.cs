@@ -71,6 +71,7 @@ namespace Decatron.Data
         public DbSet<ChannelEmoteUploader> ChannelEmoteUploaders { get; set; }
         public DbSet<ChannelEmote> ChannelEmotes { get; set; }
         public DbSet<ChannelEmoteReport> ChannelEmoteReports { get; set; }
+        public DbSet<Decatron.Core.Models.Multiview.MultiviewLayout> MultiviewLayouts { get; set; }
         public DbSet<GlobalEmote> GlobalEmotes { get; set; }
         public DbSet<GlobalEmoteManager> GlobalEmoteManagers { get; set; }
         public DbSet<GlobalEmoteLog> GlobalEmoteLogs { get; set; }

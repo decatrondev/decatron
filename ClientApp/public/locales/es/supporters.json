@@ -179,5 +179,8 @@
   "bStorage": "{{size}} de almacenamiento de medios",
   "bVoice": "{{n}} caracteres de voz por mes",
   "bHidePromo": "Oculta la tarjeta de Decatron en tus overlays",
-  "creatorLabel": "Creador de Decatron"
+  "creatorLabel": "Creador de Decatron",
+  "tGroupMultiview": "Multi-view",
+  "rMultiviewSlots": "Casillas a la vez",
+  "rMultiviewLayouts": "Layouts guardados"
 }

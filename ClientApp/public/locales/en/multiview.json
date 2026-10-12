@@ -1,0 +1,179 @@
+{
+  "title": "Multi-view",
+  "fullscreen": "Full screen",
+  "add": {
+    "platform": "Platform",
+    "label": "Channel to add",
+    "placeholder": "Channel or link",
+    "button": "Add",
+    "invalid": "Enter a valid channel (letters, numbers, hyphen or underscore) or paste a Twitch or Kick link.",
+    "duplicate": "That channel is already open.",
+    "limit": "Your plan allows {{max}} tiles at a time."
+  },
+  "limit": {
+    "hint": "Open tiles and your plan's maximum ({{tier}})",
+    "upgrade": "See plans",
+    "trimmed": "Showing {{shown}} of {{total}} channels: your plan allows {{max}} tiles at a time."
+  },
+  "layout": {
+    "label": "Layout",
+    "grid": "Grid",
+    "focus": "One large with the rest beside it",
+    "stack": "Single column"
+  },
+  "quality": {
+    "label": "Quality of all tiles",
+    "hint": "Video quality for every Twitch tile. Kick does not let us set it from here.",
+    "auto": "Auto"
+  },
+  "share": {
+    "copy": "Copy link",
+    "copied": "Copied"
+  },
+  "account": {
+    "login": "Log in",
+    "panel": "My dashboard"
+  },
+  "perf": {
+    "suggest": "The page is running choppy. Lowering the quality of all tiles helps.",
+    "apply": "Lower to 360p",
+    "dismiss": "Not now"
+  },
+  "slot": {
+    "listen": "Listen to this tile",
+    "mute": "Mute",
+    "volume": "Volume",
+    "makeMain": "Make it the main tile",
+    "fullscreen": "Full screen for this tile",
+    "remove": "Remove",
+    "drag": "Drag to swap places",
+    "dropHere": "Drop here to swap",
+    "offline": "Offline"
+  },
+  "empty": {
+    "title": "Watch several channels at once",
+    "body": "Add Twitch and Kick channels above. Your plan opens up to {{max}} tiles, with one audio at a time, and you can share the link with your layout.",
+    "example": "Examples: a channel name, kick:name or a twitch.tv or kick.com link"
+  },
+  "hint": {
+    "click": "Click anywhere on the page so the videos start."
+  },
+  "chat": {
+    "toggle": "Show or hide the chat",
+    "title": "Chat",
+    "all": "All",
+    "decatron": "Chat",
+    "official": "Official",
+    "officialHint": "The platform's official chat: use it for what this panel does not show (predictions, bits, channel point redemptions).",
+    "deleted": "message deleted",
+    "waiting": "Waiting for messages…",
+    "connecting": "Connecting to chat…",
+    "off": "No connection to chat",
+    "reconnecting": "Reconnecting chat…",
+    "newMessages": "New messages",
+    "reply": "Reply",
+    "replyingTo": "Replying to {{user}}",
+    "cancelReply": "Cancel the reply",
+    "target": "Channel to write in",
+    "placeholder": "Write in {{channel}}",
+    "send": "Send",
+    "loginToWrite": "Log in to write in the chat",
+    "notLinked": "Link your {{platform}} account to write",
+    "linkAccount": "Link my {{platform}} account",
+    "presence": "Appear as connected in Twitch chat",
+    "presenceHint": "While this page is open, your account connects to the chat of the open Twitch channels and shows in their connected list, as when watching on twitch.tv.",
+    "err": {
+      "not_logged": "Log in to write.",
+      "not_linked": "That platform is not linked to your account.",
+      "reauth": "Your session with that platform expired. Log in again.",
+      "too_long": "The message is too long.",
+      "empty": "Write a message.",
+      "rate_limited": "You are sending too fast. Wait a few seconds.",
+      "not_ready": "That channel is still connecting. Try again in a few seconds.",
+      "forbidden": "The platform won't let you write in that channel",
+      "dropped": "The message was not sent",
+      "failed": "The message could not be sent",
+      "offline": "No connection to chat."
+    },
+    "mod": {
+      "youMod": "You moderate here",
+      "delete": "Delete message",
+      "timeout": "Timeout",
+      "ban": "Ban",
+      "banAsk": "Ban {{user}}?",
+      "banConfirm": "Yes, ban",
+      "cancel": "Cancel",
+      "t60": "1 minute",
+      "t600": "10 minutes",
+      "t3600": "1 hour",
+      "t86400": "24 hours",
+      "undo": "Undo",
+      "authorize": "Authorize moderation",
+      "done": {
+        "delete": "Message deleted.",
+        "timeout": "{{user}} got a timeout.",
+        "ban": "{{user}} was banned.",
+        "unban": "{{user}} is no longer sanctioned."
+      },
+      "err": {
+        "not_logged": "Log in to moderate.",
+        "not_linked": "That platform is not linked to your account.",
+        "not_moderator": "You are not a moderator of that channel.",
+        "reauth": "Your session with that platform expired. Authorize it again.",
+        "reauth_mod": "The moderation permission is missing. Authorize it once.",
+        "not_ready": "That channel is still connecting. Try again in a few seconds.",
+        "forbidden": "The platform won't let you do this",
+        "dropped": "That person had no sanction left",
+        "failed": "The action could not be completed",
+        "offline": "No connection to chat."
+      }
+    }
+  },
+  "layouts": {
+    "title": "My layouts",
+    "name": "Layout name",
+    "save": "Save",
+    "saved": "«{{name}}» saved.",
+    "exists": "You already have a layout called «{{name}}».",
+    "replace": "Replace it",
+    "limit": "Your plan allows {{max}} saved layouts.",
+    "loginToSave": "Log in to save your layouts",
+    "needChannels": "Open at least one channel to save it.",
+    "empty": "You haven't saved any yet.",
+    "apply": "Open this layout",
+    "delete": "Delete «{{name}}»",
+    "confirmDelete": "Delete",
+    "cancel": "Cancel",
+    "error": "Could not complete. Try again."
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "button": "Keyboard shortcuts",
+    "close": "Close",
+    "audio": "Listen to tile 1 to 9",
+    "mute": "Mute all",
+    "layout": "Change the layout",
+    "chat": "Show or hide the chat",
+    "fullscreen": "Full screen",
+    "add": "Go to the add channel field",
+    "notify": "Live channel alerts",
+    "help": "Show this help",
+    "note": "They don't work while you type in a field."
+  },
+  "notify": {
+    "toggle": "Alert me when a channel goes live",
+    "live": "{{channel}} started streaming",
+    "close": "Dismiss alert",
+    "denied": "The browser didn't allow notifications. Check the site permission."
+  },
+  "tournament": {
+    "watch": "Watch in Multi-view ({{count}})",
+    "watchHint": "Opens these players' channels in Multi-view"
+  },
+  "tr": {
+    "title": "Translated subtitles",
+    "subtitles": "Subtitles in",
+    "off": "No subtitles",
+    "notLive": "The streamer hasn't turned translation on yet: subtitles start by themselves once it is on."
+  }
+}

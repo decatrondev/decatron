@@ -174,6 +174,8 @@ namespace Decatron.Controllers
                 Add("gamesRecent",       t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).MaxRecentMatches));
                 Add("gamesHistoryDays",  t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).SessionHistoryDays));
                 Add("gamesHidePromo",    t => Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).CanHidePromo ? 1 : 0);
+                Add("multiviewSlots",    t => Decatron.Services.Multiview.MultiviewTierLimits.ForTier(t).MaxSlots);
+                Add("multiviewLayouts",  t => Decatron.Services.Multiview.MultiviewTierLimits.ForTier(t).MaxLayouts);
 
                 return Ok(new { tiers, rows });
             }

@@ -1,0 +1,415 @@
+{
+  "overview": {
+    "title": "Multi-view",
+    "subtitle": "Several Twitch and Kick channels on a single screen, with their chat",
+    "cta": {
+      "to": "/multi",
+      "label": "Open Multi-view"
+    },
+    "sections": [
+      {
+        "id": "what",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Multi-view lives at decatron.net/multi. It shows several Twitch and Kick channels at once, each in its own tile, and works without logging in."
+          },
+          {
+            "t": "p",
+            "x": "The videos are the official Twitch and Kick players: Decatron only arranges them on the page and gives you the controls to order them."
+          }
+        ]
+      },
+      {
+        "id": "add",
+        "title": "Adding channels",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Choose the platform (Twitch or Kick) in the top bar.",
+              "Type the channel name, or paste a twitch.tv or kick.com link, and press Add.",
+              "To remove a tile, use the X that appears when you hover over it."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "These ways of typing the channel work:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "You type",
+              "Result"
+            ],
+            "rows": [
+              [
+                "name",
+                "A Twitch channel (or on whichever platform you have selected)"
+              ],
+              [
+                "kick:name",
+                "A Kick channel"
+              ],
+              [
+                "twitch.tv/name or kick.com/name",
+                "The channel from that link, on its platform"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Channels also go in the page address, so you can build the link by hand:"
+          },
+          {
+            "t": "code",
+            "x": "decatron.net/multi/channel1/channel2/k:channel3"
+          },
+          {
+            "t": "p",
+            "x": "No prefix means Twitch; k: means Kick."
+          }
+        ]
+      },
+      {
+        "id": "layout",
+        "title": "Layout and order",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Grid: spreads the tiles evenly depending on how many are open.",
+              "One large with the rest beside it: the first tile is the large one and the others go in a column.",
+              "Single column: one tile below another; the page scrolls.",
+              "Drag a tile's name onto another tile to swap their places.",
+              "The «Make it the main tile» button swaps that tile with the first one.",
+              "Each tile and the whole page can go full screen."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "On mobile the tiles stack one below another."
+          }
+        ]
+      },
+      {
+        "id": "audio",
+        "title": "Audio",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every tile starts muted. Press a tile's speaker to listen to it; only one can play at a time, and choosing another one mutes the previous one."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Twitch tiles also show a volume control while that tile is playing.",
+              "Kick does not allow volume control from outside: its tile can only be muted or unmuted, and changing the audio reloads that tile."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "quality",
+        "title": "Quality and performance",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The quality selector in the bar applies the same quality (Auto, 720p, 480p, 360p or 160p) to every Twitch tile. Lowering it helps when many tiles are open."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Kick does not let us set quality from here: its tiles stay as its player decides.",
+              "If the page runs choppy with 3 or more tiles, a notice suggests lowering everything to 360p. It is an approximate signal: it measures the page, not each player's video."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "status",
+        "title": "Status of each channel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each tile shows the name, the platform and a dot: red if the channel is live, gray if not. If it is offline it says so with a label. For live Kick channels the viewer count is also shown."
+          }
+        ]
+      },
+      {
+        "id": "chat",
+        "title": "Chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On the right of the page (below the videos on mobile) is the chat of every open channel. You can read it without logging in."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "The All tab mixes the messages from every channel and marks which one each comes from. Each channel also has its own tab.",
+              "You see the platform's emotes, those from 7TV, BTTV and FFZ, and Decatron's own emotes, with each person's colors and badges.",
+              "When you enter a channel its latest messages are shown so the chat does not start empty.",
+              "If you scroll up the chat stops following new messages and a button appears to jump back to the end.",
+              "Messages the platform deletes, or those from someone who gets a sanction, are shown as «message deleted».",
+              "The chat button in the bar shows or hides it."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "In a channel's tab you can switch from Chat to Official: it is the official Twitch or Kick chat, useful for what this panel does not show, such as predictions, bits or channel point redemptions."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Without logging in the chat is read-only. To write, log in (see below)."
+          }
+        ]
+      },
+      {
+        "id": "write",
+        "title": "Writing in the chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When logged in you can write from the bottom of the chat, as in the platform's normal chat. The message goes out with your own account."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Use the selector to choose which channel you write to. If you have a channel tab open, it is the default target.",
+              "To write on Twitch or Kick you need that account linked in Settings; if it is missing, the field tells you.",
+              "Hover a message and press Reply to answer it. The message goes out as a reply on the platform.",
+              "When you type a word, suggestions appear for 7TV, BTTV, FFZ and Decatron emotes of the chosen channel; Tab accepts the first one.",
+              "A message can have up to 500 characters. There is a limit of 15 messages every 30 seconds."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "If the channel is in followers-only or slow mode, or the platform stops you from writing, the message does not go out and you are told why. If your session with the platform expired, you are asked to log in again."
+          },
+          {
+            "t": "h3",
+            "x": "Appearing as connected"
+          },
+          {
+            "t": "p",
+            "x": "While the page is open, your Twitch account connects to the chat of the Twitch channels you have open, just as when you watch them on twitch.tv, and you show in their connected list. That connection does not read or send messages and closes when you close the page. You can turn it off with the «Appear as connected in Twitch chat» checkbox below the writing field."
+          },
+          {
+            "t": "p",
+            "x": "This only happens on Twitch: Kick has no public connected list."
+          }
+        ]
+      },
+      {
+        "id": "moderate",
+        "title": "Moderating from Multi-view",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you are a moderator (or the owner) of an open channel, moderation actions appear when you hover a message from that channel. They are only offered in channels where the platform recognizes that role for you; elsewhere nothing shows. The channel's tab shows a shield and the header says «You moderate here»."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Delete message: removes that message from the chat.",
+              "Timeout: 1 minute, 10 minutes, 1 hour or 24 hours.",
+              "Ban: asks for confirmation before it is applied.",
+              "After a timeout or ban a notice appears with an Undo button that lifts the sanction.",
+              "These actions are not offered on moderators or the channel owner: the platform rejects them."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "It works on Twitch and Kick, with your own account and the same permissions you have in each channel. Every action is recorded in the server log and also in the platform's own moderation log."
+          },
+          {
+            "t": "h3",
+            "x": "Permissions"
+          },
+          {
+            "t": "p",
+            "x": "On Twitch the normal login does not include permissions to moderate. The first time you try to moderate, the notice offers «Authorize moderation»: a Twitch login that also asks to delete messages and sanction users. It is needed only once and only moderators need it. On Kick, if an action fails because of permissions, the same notice takes you to log in again."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "On Twitch your role is known because your account connects to the channel's chat. If you turn off the «Appear as connected in Twitch chat» checkbox, the role is not detected and moderation actions are not shown."
+          }
+        ]
+      },
+      {
+        "id": "share",
+        "title": "Sharing your layout",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Copy link button copies the page address. That link stores which channels are open, in what order and the chosen layout. Audio and quality are not part of the link."
+          },
+          {
+            "t": "p",
+            "x": "The last layout you chose is remembered in your browser."
+          }
+        ]
+      },
+      {
+        "id": "translation",
+        "title": "Translated subtitles",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If a Twitch channel in your list offers Decatron live translation, its tile shows a languages button. Choose a language and the translated subtitles appear over that tile's video, one phrase at a time."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Each tile has its own language and you can have subtitles on several at once.",
+              "If the streamer has not turned translation on yet, the button is still available and subtitles start by themselves once it is on.",
+              "To remove them, open the same menu and choose «No subtitles».",
+              "For now they are subtitles only and only on Twitch. The dubbed audio is heard on twitch.tv with the Decatron extension."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "extension",
+        "title": "With the Decatron extension",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Decatron extension for Chrome and Firefox (version 0.4.0) has a Multi-view module. On twitch.tv, open the Decatron button's panel, go to Multi-view and press «Add [channel] to Multi-view»."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "If you have no Multi-view open, a new one opens with that channel.",
+              "If you already have one open, the channel is added right there without reloading the page, so the videos do not cut. If the Multi-view is full on your plan, the extension tells you.",
+              "The «Open Multi-view» button takes you to your open Multi-view or opens an empty one."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "layouts",
+        "title": "Saved layouts",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When logged in, the bookmark button in the bar saves to your account the set of channels and the layout you have open, under the name you choose. Layouts belong to your account, so you see the same ones when logging in with Twitch or Kick."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "To save: type a name and press Save. If you already have one with that name, you can replace it.",
+              "To use one: press its name and its channels open with its layout.",
+              "To delete one: press the trash can and confirm.",
+              "Your plan sets how many layouts you can save (see below). If you move to a lower plan none is deleted: you just cannot save more until you free up space."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "shortcuts",
+        "title": "Keyboard shortcuts",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Key",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "1 to 9",
+                "Listen to the tile with that number (again, mute it)"
+              ],
+              [
+                "0",
+                "Mute all"
+              ],
+              [
+                "L",
+                "Change the layout"
+              ],
+              [
+                "C",
+                "Show or hide the chat"
+              ],
+              [
+                "F",
+                "Full screen"
+              ],
+              [
+                "A or /",
+                "Go to the add channel field"
+              ],
+              [
+                "N",
+                "Turn live channel alerts on or off"
+              ],
+              [
+                "?",
+                "Show the shortcuts help"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Shortcuts do not work while you type in a field or with Ctrl, Alt or Cmd pressed."
+          }
+        ]
+      },
+      {
+        "id": "alerts",
+        "title": "Live channel alerts",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If a channel in your list was offline and starts streaming, a label appears in the corner of the page. With the bell button you can also ask for a browser notification, useful with the tab in the background; the browser asks for permission the first time."
+          },
+          {
+            "t": "p",
+            "x": "A channel that was already live when you opened the page does not alert. The state of Kick channels is checked every minute."
+          }
+        ]
+      },
+      {
+        "id": "entry",
+        "title": "Opening Multi-view from other places",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "In the dashboard there is a «Multi-view» entry in the sidebar.",
+              "In the Players tab of a tournament's public page, the «Watch in Multi-view» button opens the Twitch channels (or Kick, if they have no Twitch) that the players left. If there are more than your plan allows, the first ones are shown."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "limits",
+        "title": "How many tiles you can open",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every feature is free; your plan only changes how many tiles you can have open at once. Without logging in the free plan applies; when logged in, your account's plan applies."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "multiviewSlots",
+              "multiviewLayouts"
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If you open a link with more channels than your plan allows, the first ones are shown and a notice says how many were left out."
+          }
+        ]
+      }
+    ]
+  }
+}

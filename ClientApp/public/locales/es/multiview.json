@@ -1,0 +1,179 @@
+{
+  "title": "Multi-view",
+  "fullscreen": "Pantalla completa",
+  "add": {
+    "platform": "Plataforma",
+    "label": "Canal para agregar",
+    "placeholder": "Canal o enlace",
+    "button": "Agregar",
+    "invalid": "Escribe un canal válido (letras, números, guion o guion bajo) o pega un enlace de Twitch o Kick.",
+    "duplicate": "Ese canal ya está abierto.",
+    "limit": "Tu plan permite {{max}} casillas a la vez."
+  },
+  "limit": {
+    "hint": "Casillas abiertas y máximo de tu plan ({{tier}})",
+    "upgrade": "Ver planes",
+    "trimmed": "Se muestran {{shown}} de {{total}} canales: tu plan permite {{max}} casillas a la vez."
+  },
+  "layout": {
+    "label": "Distribución",
+    "grid": "Cuadrícula",
+    "focus": "Uno grande y los demás al lado",
+    "stack": "En columna"
+  },
+  "quality": {
+    "label": "Calidad de todas las casillas",
+    "hint": "Calidad de video de todas las casillas de Twitch. Kick no permite fijarla desde aquí.",
+    "auto": "Auto"
+  },
+  "share": {
+    "copy": "Copiar enlace",
+    "copied": "Copiado"
+  },
+  "account": {
+    "login": "Iniciar sesión",
+    "panel": "Mi panel"
+  },
+  "perf": {
+    "suggest": "La página va entrecortada. Bajar la calidad de todas las casillas ayuda.",
+    "apply": "Bajar a 360p",
+    "dismiss": "Ahora no"
+  },
+  "slot": {
+    "listen": "Escuchar esta casilla",
+    "mute": "Silenciar",
+    "volume": "Volumen",
+    "makeMain": "Ponerla como principal",
+    "fullscreen": "Pantalla completa de la casilla",
+    "remove": "Quitar",
+    "drag": "Arrastra para cambiar de lugar",
+    "dropHere": "Soltar aquí para intercambiar",
+    "offline": "Sin conexión"
+  },
+  "empty": {
+    "title": "Mira varios canales a la vez",
+    "body": "Agrega canales de Twitch y Kick arriba. Puedes abrir hasta {{max}} casillas con tu plan, escuchar una sola a la vez y compartir el enlace con tu distribución.",
+    "example": "Ejemplos: un nombre de canal, kick:nombre o un enlace de twitch.tv o kick.com"
+  },
+  "hint": {
+    "click": "Haz clic en cualquier parte de la página para que arranquen los videos."
+  },
+  "chat": {
+    "toggle": "Mostrar u ocultar el chat",
+    "title": "Chat",
+    "all": "Todos",
+    "decatron": "Chat",
+    "official": "Oficial",
+    "officialHint": "El chat oficial de la plataforma: sirve para lo que este panel no muestra (predicciones, bits, canje de puntos).",
+    "deleted": "mensaje eliminado",
+    "waiting": "Esperando mensajes…",
+    "connecting": "Conectando al chat…",
+    "off": "Sin conexión con el chat",
+    "reconnecting": "Reconectando el chat…",
+    "newMessages": "Mensajes nuevos",
+    "reply": "Responder",
+    "replyingTo": "Respondiendo a {{user}}",
+    "cancelReply": "Cancelar la respuesta",
+    "target": "Canal donde escribir",
+    "placeholder": "Escribe en {{channel}}",
+    "send": "Enviar",
+    "loginToWrite": "Inicia sesión para escribir en el chat",
+    "notLinked": "Vincula tu cuenta de {{platform}} para escribir",
+    "linkAccount": "Vincular mi cuenta de {{platform}}",
+    "presence": "Aparecer como conectado en el chat de Twitch",
+    "presenceHint": "Mientras tengas esta página abierta, tu cuenta se conecta al chat de los canales de Twitch abiertos y sales en su lista de conectados, como al verlos en twitch.tv.",
+    "err": {
+      "not_logged": "Inicia sesión para escribir.",
+      "not_linked": "Esa plataforma no está vinculada a tu cuenta.",
+      "reauth": "Tu sesión con esa plataforma venció. Vuelve a iniciar sesión.",
+      "too_long": "El mensaje es demasiado largo.",
+      "empty": "Escribe un mensaje.",
+      "rate_limited": "Estás enviando demasiado rápido. Espera unos segundos.",
+      "not_ready": "Ese canal aún se está conectando. Intenta de nuevo en unos segundos.",
+      "forbidden": "La plataforma no te deja escribir en ese canal",
+      "dropped": "El mensaje no se envió",
+      "failed": "No se pudo enviar el mensaje",
+      "offline": "Sin conexión con el chat."
+    },
+    "mod": {
+      "youMod": "Moderas aquí",
+      "delete": "Eliminar mensaje",
+      "timeout": "Timeout",
+      "ban": "Banear",
+      "banAsk": "¿Banear a {{user}}?",
+      "banConfirm": "Sí, banear",
+      "cancel": "Cancelar",
+      "t60": "1 minuto",
+      "t600": "10 minutos",
+      "t3600": "1 hora",
+      "t86400": "24 horas",
+      "undo": "Deshacer",
+      "authorize": "Autorizar moderación",
+      "done": {
+        "delete": "Mensaje eliminado.",
+        "timeout": "{{user}} recibió un timeout.",
+        "ban": "{{user}} fue baneado.",
+        "unban": "Se quitó la sanción a {{user}}."
+      },
+      "err": {
+        "not_logged": "Inicia sesión para moderar.",
+        "not_linked": "Esa plataforma no está vinculada a tu cuenta.",
+        "not_moderator": "No eres moderador de ese canal.",
+        "reauth": "Tu sesión con esa plataforma venció. Autorízala de nuevo.",
+        "reauth_mod": "Falta el permiso para moderar. Autorízalo una vez.",
+        "not_ready": "Ese canal aún se está conectando. Intenta de nuevo en unos segundos.",
+        "forbidden": "La plataforma no te deja hacer esto",
+        "dropped": "Esa persona ya no tenía una sanción",
+        "failed": "No se pudo completar la acción",
+        "offline": "Sin conexión con el chat."
+      }
+    }
+  },
+  "layouts": {
+    "title": "Mis layouts",
+    "name": "Nombre del layout",
+    "save": "Guardar",
+    "saved": "«{{name}}» guardado.",
+    "exists": "Ya tienes un layout llamado «{{name}}».",
+    "replace": "Reemplazarlo",
+    "limit": "Tu plan permite {{max}} layouts guardados.",
+    "loginToSave": "Inicia sesión para guardar tus layouts",
+    "needChannels": "Abre al menos un canal para guardarlo.",
+    "empty": "Aún no guardas ninguno.",
+    "apply": "Abrir este layout",
+    "delete": "Borrar «{{name}}»",
+    "confirmDelete": "Borrar",
+    "cancel": "Cancelar",
+    "error": "No se pudo completar. Intenta de nuevo."
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado",
+    "button": "Atajos de teclado",
+    "close": "Cerrar",
+    "audio": "Escuchar la casilla 1 a 9",
+    "mute": "Silenciar todas",
+    "layout": "Cambiar la distribución",
+    "chat": "Mostrar u ocultar el chat",
+    "fullscreen": "Pantalla completa",
+    "add": "Ir al campo de agregar canal",
+    "notify": "Avisos de canal en vivo",
+    "help": "Mostrar esta ayuda",
+    "note": "No funcionan mientras escribes en un campo."
+  },
+  "notify": {
+    "toggle": "Avisarme cuando un canal se conecte",
+    "live": "{{channel}} empezó a transmitir",
+    "close": "Cerrar aviso",
+    "denied": "El navegador no dejó activar las notificaciones. Revisa el permiso del sitio."
+  },
+  "tournament": {
+    "watch": "Ver en Multi-view ({{count}})",
+    "watchHint": "Abre en el Multi-view los canales de estos jugadores"
+  },
+  "tr": {
+    "title": "Subtítulos traducidos",
+    "subtitles": "Subtítulos en",
+    "off": "Sin subtítulos",
+    "notLive": "El streamer aún no encendió la traducción: los subtítulos arrancan solos cuando la encienda."
+  }
+}

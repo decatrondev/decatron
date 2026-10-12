@@ -601,6 +601,14 @@
     "commands-clip": {
       "title": "Clip",
       "description": "Crea un clip del directo desde el chat con !clip"
+    },
+    "multiview": {
+      "title": "Multi-view",
+      "description": "Mira varios canales de Twitch y Kick a la vez en una sola página"
+    },
+    "multiview-guide": {
+      "title": "Multi-view",
+      "description": "Cómo usar el Multi-view y cuántas casillas permite cada plan"
     }
   },
   "microCommands": {
@@ -688,7 +696,9 @@
       "songHidePromo": "Ocultar la tarjeta de Decatron",
       "wheels": "Ruedas encendidas",
       "wheelSegments": "Gajos por rueda",
-      "wheelHistoryDays": "Días de historial de la rueda"
+      "wheelHistoryDays": "Días de historial de la rueda",
+      "multiviewSlots": "Casillas a la vez",
+      "multiviewLayouts": "Layouts guardados"
     },
     "unlimited": "Sin tope",
     "yes": "Sí",

@@ -601,6 +601,14 @@
     "commands-clip": {
       "title": "Clip",
       "description": "Create a clip of the live stream from chat with !clip"
+    },
+    "multiview": {
+      "title": "Multi-view",
+      "description": "Watch several Twitch and Kick channels at once on a single page"
+    },
+    "multiview-guide": {
+      "title": "Multi-view",
+      "description": "How to use Multi-view and how many tiles each plan allows"
     }
   },
   "microCommands": {
@@ -688,7 +696,9 @@
       "songHidePromo": "Hide the Decatron card",
       "wheels": "Wheels turned on",
       "wheelSegments": "Segments per wheel",
-      "wheelHistoryDays": "Wheel history days"
+      "wheelHistoryDays": "Wheel history days",
+      "multiviewSlots": "Tiles at once",
+      "multiviewLayouts": "Saved layouts"
     },
     "unlimited": "No limit",
     "yes": "Yes",

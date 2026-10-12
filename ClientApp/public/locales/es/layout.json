@@ -47,7 +47,8 @@
       "apiReference": "API Reference"
     },
     "logout": "Cerrar Sesión",
-    "credits": "Créditos"
+    "credits": "Créditos",
+    "multiview": "Multi-view"
   },
   "comingSoon": "Pronto",
   "tokenExpiration": {

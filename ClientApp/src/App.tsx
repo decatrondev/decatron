@@ -199,6 +199,8 @@ import TcgStats from './pages/me/tcg/TcgStats';
 import MeBilling from './pages/me/MeBilling';
 import MeInvoices from './pages/me/MeInvoices';
 import SpritesGallery from './pages/SpritesGallery';
+import Multiview from './pages/Multiview';
+import { MultiviewDoc } from './pages/docs/MultiviewDoc';
 import SpiritCollection from './pages/SpiritCollection';
 import MySpiritCollection from './pages/me/MySpiritCollection';
 import { PermissionsProvider } from './contexts/PermissionsContext';
@@ -254,6 +256,9 @@ function App() {
                 <Route path="/sprites" element={<SafeRoute name="Sprites Gallery"><SpritesGallery /></SafeRoute>} />
                 <Route path="/sprites/:username" element={<SafeRoute name="Spirit Collection"><SpiritCollection /></SafeRoute>} />
 
+                {/* Multi-view público - sin sesión para ver; chat y moderación con cuenta (fases siguientes) */}
+                <Route path="/multi/*" element={<SafeRoute name="Multi-view"><Multiview /></SafeRoute>} />
+
                 {/* Public Supporters Page - No authentication required */}
                 <Route path="/supporters" element={<SupportersPublic />} />
 
@@ -306,6 +311,7 @@ function App() {
                     <Route path="overlays/gacha" element={<GachaOverlayDoc />} />
                     <Route path="song-request" element={<SongRequestDoc page="overview" scope="public" />} />
                     <Route path="wheel" element={<WheelDoc page="overview" scope="public" />} />
+                    <Route path="multiview" element={<MultiviewDoc scope="public" />} />
                     <Route path="tournaments" element={<TournamentDoc page="overview" scope="public" />} />
                     <Route path="moderation" element={<ModerationDoc page="overview" scope="public" />} />
                     <Route path="translation" element={<TranslationDoc page="overview" scope="public" />} />
@@ -479,6 +485,7 @@ function App() {
                         <Route path="song-request/commands" element={<SongRequestDoc page="commands" scope="private" />} />
                         <Route path="song-request/overlay" element={<SongRequestDoc page="overlay" scope="private" />} />
                         <Route path="song-request/library" element={<SongRequestDoc page="library" scope="private" />} />
+                        <Route path="multiview" element={<MultiviewDoc scope="private" />} />
                         <Route path="wheel/setup" element={<WheelDoc page="setup" scope="private" />} />
                         <Route path="wheel/prizes" element={<WheelDoc page="prizes" scope="private" />} />
                         <Route path="wheel/credits" element={<WheelDoc page="credits" scope="private" />} />

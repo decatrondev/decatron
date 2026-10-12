@@ -55,11 +55,12 @@ namespace Decatron.Controllers
         }
 
         [HttpGet("login")]
-        public IActionResult Login([FromQuery] string? redirect = null)
+        public IActionResult Login([FromQuery] string? redirect = null, [FromQuery] string? mod = null)
         {
             try
             {
-                var loginUrl = _authService.GetLoginUrl(redirect);
+                // mod=1: además de los permisos de siempre, los de moderar el chat (Multi-view).
+                var loginUrl = _authService.GetLoginUrl(redirect, withModeration: mod is "1" or "true");
                 _logger.LogInformation("Redirecting to Twitch login (redirect: {Redirect})", redirect ?? "none");
                 return Redirect(loginUrl);
             }

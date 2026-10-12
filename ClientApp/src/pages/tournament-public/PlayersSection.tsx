@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { ShieldCheck, Tv2 } from 'lucide-react';
 import api from '../../services/api';
 import { NameAvatar, RoleBadge } from './shared';
 import { SectionTitle, EmptyBlock } from './broadcast';
@@ -25,6 +27,7 @@ interface Player {
 }
 
 export default function PlayersSection({ channelName, editionSlug }: { channelName: string; editionSlug: string }) {
+    const { t } = useTranslation('multiview');
     const [players, setPlayers] = useState<Player[] | null>(null);
 
     useEffect(() => {
@@ -35,9 +38,20 @@ export default function PlayersSection({ channelName, editionSlug }: { channelNa
 
     if (players == null) return null;
 
+    // Abrir en el Multi-view a quienes dejaron su canal (Twitch, o Kick si no tienen Twitch); el plan de quien mira recorta si son muchos.
+    const streams = players.flatMap(p => p.twitchChannel ? [p.twitchChannel] : p.kickChannel ? [`k:${p.kickChannel}`] : []);
+
     return (
         <section>
-            <SectionTitle meta={players.length > 0 ? `${players.length} ${players.length === 1 ? 'jugador' : 'jugadores'}` : undefined}>Jugadores</SectionTitle>
+            <SectionTitle
+                meta={players.length > 0 ? `${players.length} ${players.length === 1 ? 'jugador' : 'jugadores'}` : undefined}
+                action={streams.length > 0 ? (
+                    <Link to={`/multi/${streams.map(encodeURIComponent).join('/')}`} className="inline-flex items-center gap-2 px-3 py-1.5 font-scoreboard font-extrabold text-base 4xl:text-lg"
+                        style={{ background: 'var(--t-ink)', color: 'var(--t-bg)' }} title={t('tournament.watchHint')}>
+                        <Tv2 className="w-4 h-4" />{t('tournament.watch', { count: streams.length })}
+                    </Link>
+                ) : undefined}
+            >Jugadores</SectionTitle>
             {players.length === 0 ? (
                 <EmptyBlock>Los jugadores aparecen aquí cuando el organizador aprueba su inscripción.</EmptyBlock>
             ) : (
