@@ -51,25 +51,43 @@ namespace Decatron.Services.LiveTranslation
         {
             if (!_voices.Any(v => v.Id == voiceId)) voiceId = _voices[0].Id;
 
-            using var req = new HttpRequestMessage(HttpMethod.Post,
-                $"https://api.deepgram.com/v1/speak?model={voiceId}&encoding=mp3")
+            // Una conexión reutilizada que Deepgram ya cerró hace fallar el envío con «The response ended prematurely» antes de recibir
+            // un solo byte (se vio en producción el 2026-10-11). Eso es seguro de repetir una vez: no se entregó nada y el cobro ya se
+            // hizo antes de sintetizar. Un fallo a mitad del audio no se reintenta (ya salieron trozos).
+            HttpResponseMessage res;
+            for (var attempt = 1; ; attempt++)
             {
-                Content = new StringContent(JsonSerializer.Serialize(new { text }), Encoding.UTF8, "application/json")
-            };
-            req.Headers.Authorization = new AuthenticationHeaderValue("Token", _apiKey);
-
-            using var res = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
-            if (!res.IsSuccessStatusCode)
-            {
-                var body = await res.Content.ReadAsStringAsync(ct);
-                throw new InvalidOperationException($"Deepgram TTS {(int)res.StatusCode}: {Truncate(body)}");
+                using var req = new HttpRequestMessage(HttpMethod.Post,
+                    $"https://api.deepgram.com/v1/speak?model={voiceId}&encoding=mp3")
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(new { text }), Encoding.UTF8, "application/json")
+                };
+                req.Headers.Authorization = new AuthenticationHeaderValue("Token", _apiKey);
+                try
+                {
+                    res = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+                    break;
+                }
+                catch (HttpRequestException ex) when (attempt < 2 && ex.InnerException is System.IO.IOException)
+                {
+                    await Task.Delay(250, ct);
+                }
             }
 
-            await using var stream = await res.Content.ReadAsStreamAsync(ct);
-            var buf = new byte[8192];
-            int n;
-            while ((n = await stream.ReadAsync(buf, ct)) > 0)
-                yield return buf.AsMemory(0, n).ToArray();
+            using (res)
+            {
+                if (!res.IsSuccessStatusCode)
+                {
+                    var body = await res.Content.ReadAsStringAsync(ct);
+                    throw new InvalidOperationException($"Deepgram TTS {(int)res.StatusCode}: {Truncate(body)}");
+                }
+
+                await using var stream = await res.Content.ReadAsStreamAsync(ct);
+                var buf = new byte[8192];
+                int n;
+                while ((n = await stream.ReadAsync(buf, ct)) > 0)
+                    yield return buf.AsMemory(0, n).ToArray();
+            }
         }
 
         private static string Truncate(string s) => s.Length > 200 ? s[..200] : s;
