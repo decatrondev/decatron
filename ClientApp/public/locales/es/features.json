@@ -1447,7 +1447,16 @@
       "panicBody": "En la pestaña Acceso puedes pausar la traducción para tus espectadores: nadie nuevo entra y los que escuchan salen al instante. Tu sesión de voz sigue activa, así que si no quieres gastar créditos, detén también la sesión.",
       "docs": "Ver la documentación",
       "protect5": "Tú decides quién puede escuchar (todos, con sesión, seguidores, suscriptores, VIPs, moderadores o una lista) y puedes bloquear personas. El nivel se comprueba con tu cuenta de Twitch y se vuelve a revisar mientras escuchan.",
-      "reco5": "Quién escucha: seguidores desde hace 7 días. Necesita un permiso de tu cuenta de Twitch; la pestaña Acceso te avisa si falta."
+      "reco5": "Quién escucha: seguidores desde hace 7 días. Necesita un permiso de tu cuenta de Twitch; la pestaña Acceso te avisa si falta.",
+      "protect6": "Si alguien prueba tu canal con decenas de intentos en un minuto, el canal pasa a pedir sesión durante 30 minutos. Lo que guardaste no cambia.",
+      "protect7": "En «Escuchando ahora» ves quién escucha y puedes sacarlo o bloquearlo.",
+      "reco6": "Tope de créditos por transmisión: calcula las horas que piensas hablar por lo que gasta una hora (el panel te lo muestra) y suma un margen del 20%.",
+      "credits4": "Pon un tope de créditos por transmisión para que una sesión larga nunca gaste más de lo que decidiste: al 80% te avisamos y al 100% se corta.",
+      "credits5": "Si tu saldo alcanza para 15 minutos o menos al ritmo actual, te avisamos antes de que se corte.",
+      "exampleTitle": "Ejemplo: un canal pequeño",
+      "example1": "Quién escucha: seguidores desde hace 7 días. Idiomas a la vez: 2. Conexiones por IP: 3.",
+      "example2": "Hablas unas 3 horas por transmisión: si una hora cuesta unos 200 000 créditos, un tope de 720 000 cubre las 3 horas con margen.",
+      "example3": "Si un día quieres abrirlo a todos para un evento, cambia a «Todos» y baja el tope de oyentes; después vuelve a «Recomendado»."
     },
     "access": {
       "title": "Acceso y protección",

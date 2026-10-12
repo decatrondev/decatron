@@ -1447,7 +1447,16 @@
       "panicBody": "In the Access tab you can pause translation for your viewers: no one new gets in and those listening leave instantly. Your voice session stays active, so if you do not want to spend credits, stop the session too.",
       "docs": "See the documentation",
       "protect5": "You decide who can listen (everyone, signed in, followers, subscribers, VIPs, moderators or a list) and you can block people. The level is checked with your Twitch account and rechecked while they listen.",
-      "reco5": "Who listens: followers of 7 days or more. It needs a permission of your Twitch account; the Access tab tells you if it is missing."
+      "reco5": "Who listens: followers of 7 days or more. It needs a permission of your Twitch account; the Access tab tells you if it is missing.",
+      "protect6": "If someone probes your channel with dozens of attempts in a minute, the channel asks for sign-in for 30 minutes. What you saved does not change.",
+      "protect7": "In “Listening now” you see who is listening and can remove or block them.",
+      "reco6": "Credit cap per broadcast: multiply the hours you plan to speak by what an hour costs (the panel shows it) and add a 20% margin.",
+      "credits4": "Set a credit cap per broadcast so a long session never spends more than you decided: we warn you at 80% and it stops at 100%.",
+      "credits5": "If your balance lasts 15 minutes or less at the current pace, we warn you before it cuts out.",
+      "exampleTitle": "Example: a small channel",
+      "example1": "Who listens: followers of 7 days or more. Simultaneous languages: 2. Connections per IP: 3.",
+      "example2": "You speak about 3 hours per broadcast: if an hour costs about 200,000 credits, a cap of 720,000 covers the 3 hours with margin.",
+      "example3": "If one day you want to open it to everyone for an event, switch to “Everyone” and lower the listener cap; then go back to “Recommended”."
     },
     "access": {
       "title": "Access and protection",
