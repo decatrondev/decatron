@@ -104,9 +104,49 @@
           {
             "t": "ul",
             "items": [
-              "Una casilla sin sonido probablemente no cuenta como visualización y Twitch la pausa cuando cambias de pestaña; por eso Decatron no silencia ninguna por ti. Con sonido, siguen reproduciéndose como en cualquier otra pestaña.",
+              "Con la pestaña oculta, Twitch pausa casillas por su cuenta (suele dejar sonando una sola) e ignora la orden de seguir. Al volver a la pestaña, Decatron las reanuda solas y, si alguna no despierta, recarga su player.",
               "Kick no permite controlar el volumen desde fuera: su casilla solo se silencia o se activa, y al cambiar eso esa casilla se vuelve a cargar."
             ]
+          }
+        ]
+      },
+      {
+        "id": "lurk",
+        "title": "Puntos de canal y rachas (modo lurk)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El video de las casillas es el player embebido de Twitch, y Twitch no le suma a tu cuenta puntos de canal ni rachas de visualización, aunque tengas la sesión de Twitch iniciada y la casilla esté sonando. Lo que sí cuenta es una pestaña normal de twitch.tv, aunque esté silenciada y en segundo plano."
+          },
+          {
+            "t": "p",
+            "x": "Por eso la extensión de Decatron (versión 0.9.0) tiene un modo lurk: por cada canal de Twitch que tengas en el Multi-view abre una pestaña normal de Twitch, silenciada, en calidad mínima y en una ventana aparte minimizada. Tú sigues viendo todo en el Multi-view. Se elige con el selector del ojo en la barra superior, que solo aparece si tienes la extensión:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Apagado (como viene): no abre nada.",
+              "Solo racha: abre la pestaña de cada canal en vivo una vez por directo, unos 10 minutos, y la cierra sola. Abre hasta 3 a la vez; el resto espera su turno.",
+              "Completo: la pestaña queda abierta mientras el canal esté en vivo y en el Multi-view, así suma también los puntos y, con el módulo de puntos de la extensión encendido, reclama los cofres."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cada casilla de Twitch muestra un ojo con un punto de estado (verde: pestaña abierta o racha cubierta en este directo; ámbar: esperando turno; gris: apagado o canal sin directo). Al pulsarlo eliges el ajuste de ese canal: como el resto, apagado, solo racha o completo."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Si cierras a mano una de esas pestañas, no se vuelve a abrir en ese directo.",
+              "Al cerrar el Multi-view se cierran todas las pestañas del modo lurk.",
+              "En esas pestañas solo corre el módulo de puntos de la extensión (nada de traducción ni emotes).",
+              "Necesitas tener la sesión de Twitch iniciada en ese navegador: las pestañas cuentan para la cuenta con la que entras a twitch.tv."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Twitch no publica cuántos minutos hacen falta para la racha. Por ahora la pestaña de solo racha se cierra a los 10 minutos; en las pruebas la racha contó antes de eso."
           }
         ]
       },
@@ -121,6 +161,7 @@
           {
             "t": "ul",
             "items": [
+              "Al cambiar la calidad, las casillas cambian de una en una, con unos segundos entre cada una: así no se recargan todas a la vez ni se traban juntas. Las que ya están en esa calidad no se tocan.",
               "Kick no permite fijar la calidad desde aquí: sus casillas se quedan como las decida su player.",
               "Si con 3 o más casillas la página va entrecortada, aparece un aviso que sugiere bajar todo a 360p. Es una señal aproximada: mide la página, no el video de cada player."
             ]
@@ -241,6 +282,20 @@
         ]
       },
       {
+        "id": "sesion",
+        "title": "Sesión en el Multi-view",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La sesión de Decatron dura una hora. Mientras el Multi-view está abierto se renueva sola unos minutos antes de vencer, sin límite de horas, así que puedes dejarlo abierto todo lo que quieras sin que te saque."
+          },
+          {
+            "t": "p",
+            "x": "Si aun así vence (por ejemplo, la computadora se suspendió más de una hora o se cortó internet), la página no se cierra: los videos y el chat de lectura siguen, y un aviso te ofrece volver a entrar para escribir, moderar o guardar layouts."
+          }
+        ]
+      },
+      {
         "id": "compartir",
         "title": "Compartir tu distribución",
         "blocks": [
@@ -279,7 +334,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "La extensión de Decatron para Chrome y Firefox (versión 0.4.0) tiene un módulo Multi-view. En twitch.tv, abre el panel del botón de Decatron, entra en Multi-view y pulsa «Agregar [canal] al Multi-view»."
+            "x": "La extensión de Decatron para Chrome y Firefox tiene un módulo Multi-view (desde la versión 0.4.0) y el modo lurk (desde la 0.9.0, ver «Puntos de canal y rachas»). En twitch.tv, abre el panel del botón de Decatron, entra en Multi-view y pulsa «Agregar [canal] al Multi-view»."
           },
           {
             "t": "ul",

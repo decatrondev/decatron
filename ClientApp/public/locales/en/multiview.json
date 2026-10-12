@@ -194,5 +194,38 @@
       "blocked": "You do not have access to this channel's translation.",
       "check_failed": "Could not check whether you can listen."
     }
+  },
+  "session": {
+    "expired": "Your session expired (the page could not renew it in time). Videos keep playing; sign in again to chat, moderate or save layouts.",
+    "login": "Sign in again"
+  },
+  "lurk": {
+    "label": "Lurk mode",
+    "off": "Lurk: off",
+    "streak": "Lurk: streak only",
+    "full": "Lurk: full",
+    "hint": "The video on this page does not earn channel points or watch streaks on Twitch. Lurk mode opens regular Twitch tabs (muted, lowest quality, in a separate window) that do count. Streak only: a few minutes per stream. Full: the whole stream.",
+    "tip": {
+      "noExt": "The video on this page does not earn channel points or watch streaks on Twitch. With the Decatron extension, lurk mode opens Twitch tabs that do count.",
+      "oldExt": "Your Decatron extension does not have lurk mode yet: update it to earn points and streaks from here.",
+      "off": "The video on this page does not earn channel points or watch streaks on Twitch. Turn on lurk mode (above) so the extension opens Twitch tabs that do count."
+    },
+    "install": "Get the extension",
+    "dismiss": "Got it",
+    "channelLabel": "Lurk for this channel",
+    "channel": {
+      "default": "Same as the rest",
+      "off": "Off for this channel",
+      "streak": "Streak only",
+      "full": "Full"
+    },
+    "status": {
+      "off": "off",
+      "offline": "the channel is not live",
+      "queued": "waiting for its turn",
+      "open": "Twitch tab open",
+      "done": "streak covered for this stream",
+      "closed": "you closed the tab: it will not reopen this stream"
+    }
   }
 }

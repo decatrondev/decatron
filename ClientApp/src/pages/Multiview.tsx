@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, BellOff, Check, Gauge, Keyboard, LayoutGrid, Link2, Maximize, MessageSquare, PanelLeft, Plus, Rows3, Tv2, X } from 'lucide-react';
+import { Bell, BellOff, Check, Eye, Gauge, Keyboard, LayoutGrid, Link2, Maximize, MessageSquare, PanelLeft, Plus, Rows3, Tv2, X } from 'lucide-react';
 import { BrandMark } from '../brand/BrandMark';
 import { isTokenExpired } from '../utils/jwt';
 import SlotFrame from './multiview/SlotFrame';
@@ -12,6 +12,8 @@ import { mvLines, mvLog } from './multiview/debug';
 import { planLayout } from './multiview/layouts';
 import { useKickStatus, useLiveAlerts, useSlotLimit, useStruggling } from './multiview/hooks';
 import { useTranslationInfo } from './multiview/translation';
+import { useMultiviewSession } from './multiview/session';
+import { sendLurk, useLurk, type LurkMode } from './multiview/lurk';
 import {
     LAYOUTS, QUALITIES, parseChannelInput, pathFromSlots, slotKey, slotsFromPath,
     type LayoutId, type Platform, type QualityChoice, type Slot,
@@ -95,7 +97,17 @@ export default function Multiview() {
         try { localStorage.setItem('mv-notify', '1'); } catch { /* sin almacenamiento */ }
     };
 
-    const loggedIn = (() => { try { const k = localStorage.getItem('token'); return !!k && !isTokenExpired(k, 60); } catch { return false; } })();
+    // La sesión se renueva sola mientras /multi está abierto; si vence igual, la página sigue y se avisa (nunca se sale de aquí).
+    const session = useMultiviewSession();
+    const loggedIn = session === 'active' && (() => { try { const k = localStorage.getItem('token'); return !!k && !isTokenExpired(k, 60); } catch { return false; } })();
+
+    // Modo lurk (extensión): el video embebido no suma puntos ni rachas; las pestañas reales de Twitch sí.
+    const lurk = useLurk(slots);
+    const hasTwitch = slots.some(s => s.platform === 'twitch');
+    const [lurkTip, setLurkTip] = useState(() => { try { return localStorage.getItem('mv-lurk-tip') !== '0'; } catch { return true; } });
+    const hideLurkTip = () => { setLurkTip(false); try { localStorage.setItem('mv-lurk-tip', '0'); } catch { /* sin almacenamiento */ } };
+    const lurkValue: 'off' | LurkMode = lurk.state?.enabled ? lurk.state.mode : 'off';
+    const lurkTipKind = !hasTwitch || !lurkTip ? null : !lurk.ext ? 'noExt' : !lurk.supported ? 'oldExt' : lurkValue === 'off' ? 'off' : null;
 
     // El primer clic o tecla en la página habilita el audio activo (las casillas sin audio pasan a volumen 0).
     useEffect(() => {
@@ -268,6 +280,21 @@ export default function Multiview() {
                                 {QUALITIES.map(q => <option key={q} value={q}>{q === 'auto' ? t('quality.auto') : `${q}p`}</option>)}
                             </select>
                         </label>
+                        {lurk.supported && (
+                            <label className="flex items-center gap-1.5 text-sm text-[#a1a1aa]" title={t('lurk.hint')}>
+                                <Eye className="h-4 w-4" aria-hidden />
+                                <span className="sr-only">{t('lurk.label')}</span>
+                                <select
+                                    value={lurkValue}
+                                    onChange={e => { const v = e.target.value; sendLurk(v === 'off' ? { enabled: false } : { enabled: true, mode: v as LurkMode }); }}
+                                    className={`${field} !px-2 [&>option]:bg-pub-raised`} aria-label={t('lurk.label')}
+                                >
+                                    <option value="off">{t('lurk.off')}</option>
+                                    <option value="streak">{t('lurk.streak')}</option>
+                                    <option value="full">{t('lurk.full')}</option>
+                                </select>
+                            </label>
+                        )}
                         <LayoutsMenu slots={slots} layout={layout} loggedIn={loggedIn} loginUrl={loginUrl} className={btnGhost}
                             onApply={(sl, ly) => { try { localStorage.setItem('mv-layout', ly); } catch { /* sin almacenamiento */ } go(sl.slice(0, maxSlots), ly); }} />
                         <button type="button" className={btnGhost} onClick={copyLink} disabled={!slots.length}>
@@ -285,7 +312,7 @@ export default function Multiview() {
                     </div>
                 </div>
 
-                {(message || trimmed > 0 || struggling) && (
+                {(message || trimmed > 0 || struggling || session === 'expired' || lurkTipKind) && (
                     <div className="space-y-1 px-3 pb-2 text-sm sm:px-4" role="status">
                         {message && (
                             <p className={message.tone === 'warn' ? 'text-ds-warn' : 'text-[#a1a1aa]'}>
@@ -296,6 +323,18 @@ export default function Multiview() {
                         {trimmed > 0 && (
                             <p className="text-ds-warn">{t('limit.trimmed', { shown: slots.length, total: urlSlots.length, max: maxSlots })}{' '}
                                 <Link to="/supporters" className="font-semibold text-pub-accent-hi underline">{t('limit.upgrade')}</Link></p>
+                        )}
+                        {session === 'expired' && (
+                            <p className="text-ds-warn">{t('session.expired')}{' '}
+                                <a href={loginUrl} className="font-semibold text-pub-accent-hi underline">{t('session.login')}</a></p>
+                        )}
+                        {lurkTipKind && (
+                            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[#a1a1aa]">
+                                <Eye className="h-4 w-4 flex-none text-pub-accent-hi" aria-hidden />
+                                <span>{t(`lurk.tip.${lurkTipKind}`)}</span>
+                                {lurkTipKind !== 'off' && <Link to="/translate" className="font-semibold text-pub-accent-hi underline">{t('lurk.install')}</Link>}
+                                <button type="button" className="underline hover:text-white" onClick={hideLurkTip}>{t('lurk.dismiss')}</button>
+                            </p>
                         )}
                         {struggling && (
                             <p className="flex flex-wrap items-center gap-2 text-ds-warn">
@@ -338,6 +377,7 @@ export default function Multiview() {
                             stack={layout === 'stack'}
                             unlocked={unlocked}
                             tr={s.platform === 'twitch' ? trInfo[s.channel] : undefined}
+                            lurk={s.platform === 'twitch' && lurk.supported && lurk.state?.enabled ? lurk.state.channels[s.channel] ?? null : undefined}
                             trLang={trLangs[s.id] ?? null}
                             onTrLang={lang => setTrLang(s.id, lang)}
                             dragging={dragId !== null && dragId !== s.id}

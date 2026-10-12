@@ -5,6 +5,8 @@ import TwitchPlayer from './TwitchPlayer';
 import KickPlayer from './KickPlayer';
 import TranslationMenu from './TranslationMenu';
 import TileCaptions from './TileCaptions';
+import LurkChip from './LurkChip';
+import type { LurkState } from './lurk';
 import type { TrInfo } from './translation';
 import type { QualityChoice, Slot } from './types';
 
@@ -23,6 +25,8 @@ interface Props {
     /** Traducción en vivo del canal (solo Twitch) y el idioma elegido para los subtítulos */
     tr?: TrInfo;
     trLang: string | null;
+    /** Modo lurk de este canal (solo Twitch, con la extensión y el modo encendido); null mientras la extensión no informa */
+    lurk?: LurkState['channels'][string] | null;
     onTrLang: (lang: string | null) => void;
     dragging: boolean;
     onToggleSound: () => void;
@@ -87,6 +91,7 @@ export default function SlotFrame(p: Props) {
                             className="mx-1 h-1 w-14 accent-[#6e94ed] sm:w-20"
                         />
                     )}
+                    {isTwitch && p.lurk !== undefined && <LurkChip channel={p.slot.channel} info={p.lurk} />}
                     {isTwitch && p.tr?.enabled && p.tr.languages.length > 0 && <TranslationMenu info={p.tr} lang={p.trLang} onLang={p.onTrLang} btn={iconBtn} />}
                     <button type="button" className={iconBtn} onClick={p.onToggleSound} aria-pressed={!p.silenced} aria-label={p.silenced ? t('slot.listen') : t('slot.mute')} title={p.silenced ? t('slot.listen') : t('slot.mute')}>
                         {p.silenced ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-pub-accent-hi" />}

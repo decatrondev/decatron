@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { loadTwitchEmbed, pickQuality, type TwitchPlayerApi } from './twitchEmbed';
+import { dropQuality, loadTwitchEmbed, pickQuality, queueQuality, type TwitchPlayerApi } from './twitchEmbed';
 import { mvLog } from './debug';
 import type { QualityChoice } from './types';
 
@@ -49,20 +49,40 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
     const onLiveRef = useRef(onLive);
     onLiveRef.current = onLive;
 
+    // Twitch pide casillas de al menos 400x300 y a la vista para reproducir solo; el registro lo muestra para descartar ese motivo.
+    const tileSize = () => {
+        const el = document.getElementById(domId);
+        if (!el) return 'sin casilla';
+        const r = el.getBoundingClientRect();
+        const small = r.width < 400 || r.height < 300 ? ' CHICA' : '';
+        const off = r.bottom <= 0 || r.top >= window.innerHeight || r.right <= 0 || r.left >= window.innerWidth ? ' FUERA DE PANTALLA' : '';
+        return `${Math.round(r.width)}x${Math.round(r.height)}${small}${off}`;
+    };
+
+    // La calidad se aplica una vez por player (al primer PLAYING) y cuando la persona la cambia; no en cada reanudación, porque cada
+    // setQuality recarga el video. Si el player ya está en la calidad pedida no se toca, y el cambio va a la cola común (de a una casilla).
+    const qualityDone = useRef(false);
     const applyQuality = () => {
         const p = player.current;
         if (!p || !ready.current) return;
-        try {
-            const q = latest.current.quality;
-            if (q === 'auto') { p.setQuality('auto'); return; }
-            const name = pickQuality(p.getQualities(), Number(q));
-            if (name) p.setQuality(name);
-        } catch { /* el player aún no tiene la lista de calidades */ }
+        queueQuality(domId, () => {
+            const cur = player.current;
+            if (!cur || !ready.current) return;
+            try {
+                const q = latest.current.quality;
+                const target = q === 'auto' ? 'auto' : pickQuality(cur.getQualities(), Number(q));
+                if (!target) return;
+                if (cur.getQuality() === target) return;
+                cur.setQuality(target);
+                mvLog(`${channel} calidad → ${target}`);
+            } catch { /* el player aún no tiene la lista de calidades */ }
+        });
     };
 
     useEffect(() => {
         let cancelled = false;
         ready.current = false;
+        qualityDone.current = false;
         loadTwitchEmbed().then(T => {
             if (cancelled) return;
             const p = new T.Player(domId, {
@@ -78,10 +98,13 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
             p.addEventListener(T.Player.READY, () => { ready.current = true; p.setMuted(latest.current.muted); p.setVolume(latest.current.volume); });
             p.addEventListener(T.Player.ONLINE, () => { online.current = true; onLiveRef.current(true); });
             p.addEventListener(T.Player.OFFLINE, () => { online.current = false; setPlaying(false); onLiveRef.current(false); });
-            p.addEventListener(T.Player.PLAYING, () => { enforceSoundRef.current('PLAYING'); playTries.current = 0; setPlaying(true); onLiveRef.current(true); applyQuality(); mvLog(`${channel} PLAYING (${document.visibilityState})`); });
+            p.addEventListener(T.Player.PLAYING, () => { enforceSoundRef.current('PLAYING'); playTries.current = 0; setPlaying(true); onLiveRef.current(true); if (!qualityDone.current) { qualityDone.current = true; applyQuality(); } mvLog(`${channel} PLAYING (${document.visibilityState}, ${tileSize()})`); });
             // Nadie pausa a mano (no hay botón de pausa): si Twitch pausa con la pestaña a la vista, se reanuda con calma.
+            // Twitch avisa cuando bloquea la reproducción (autoplay con sonido sin gesto, casilla chica u oculta): se anota con el tamaño.
+            p.addEventListener(T.Player.PLAYBACK_BLOCKED, () => { mvLog(`${channel} PLAYBACK_BLOCKED (${document.visibilityState}, ${tileSize()})`); });
+            p.addEventListener(T.Player.PLAY, () => { mvLog(`${channel} PLAY (${document.visibilityState})`); });
             p.addEventListener(T.Player.PAUSE, () => {
-                mvLog(`${channel} PAUSE (${document.visibilityState})`);
+                mvLog(`${channel} PAUSE (${document.visibilityState}, ${tileSize()})`);
                 setPlaying(false);
                 if (document.hidden) {
                     // Con la pestaña oculta Twitch pausa algunas casillas aunque tengan sonido y el audio se corta. Se intenta reanudar
@@ -101,6 +124,7 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
         }).catch(() => { /* sin script de Twitch: la casilla queda vacía y el aviso lo da la barra */ });
         return () => {
             cancelled = true;
+            dropQuality(domId);
             try { player.current?.destroy?.(); } catch { /* ya destruido */ }
             player.current = null;
             const el = document.getElementById(domId);
@@ -165,7 +189,7 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
         window.addEventListener('focus', resume);
         return () => { document.removeEventListener('visibilitychange', resume); window.removeEventListener('focus', resume); };
     }, []);
-    useEffect(() => { applyQuality(); }, [quality]);
+    useEffect(() => { if (qualityDone.current) applyQuality(); }, [quality]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return <div id={domId} className={`absolute inset-0 [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full ${playing ? '[&>iframe]:pointer-events-none' : ''}`} />;
 }

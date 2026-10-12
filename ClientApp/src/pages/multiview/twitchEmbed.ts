@@ -6,6 +6,7 @@ export interface TwitchPlayerApi {
     setMuted(v: boolean): void;
     setVolume(v: number): void;
     setQuality(q: string): void;
+    getQuality(): string;
     play(): void;
     isPaused(): boolean;
     getMuted(): boolean;
@@ -18,7 +19,7 @@ export interface TwitchPlayerApi {
 interface TwitchGlobal {
     Player: {
         new (el: string | HTMLElement, opts: Record<string, unknown>): TwitchPlayerApi;
-        READY: string; ONLINE: string; OFFLINE: string; PLAYING: string; PAUSE: string;
+        READY: string; ONLINE: string; OFFLINE: string; PLAYING: string; PAUSE: string; PLAY: string; PLAYBACK_BLOCKED: string;
     };
 }
 
@@ -39,6 +40,32 @@ export function loadTwitchEmbed(): Promise<TwitchGlobal> {
         });
     }
     return loading;
+}
+
+// Cambiar la calidad recarga el video de esa casilla. Si todas cambian en el mismo segundo se pelean por la conexión y se traban
+// juntas: los cambios se hacen de a uno, con un respiro entre cada casilla.
+const QUALITY_GAP_MS = 2500;
+const qualityQueue: Array<{ key: string; run: () => void }> = [];
+let qualityBusy = false;
+
+/** Encola el cambio de calidad de una casilla (si ya había uno pendiente para la misma, se reemplaza). */
+export function queueQuality(key: string, run: () => void) {
+    const i = qualityQueue.findIndex(q => q.key === key);
+    if (i >= 0) qualityQueue[i] = { key, run }; else qualityQueue.push({ key, run });
+    if (!qualityBusy) nextQuality();
+}
+
+export function dropQuality(key: string) {
+    const i = qualityQueue.findIndex(q => q.key === key);
+    if (i >= 0) qualityQueue.splice(i, 1);
+}
+
+function nextQuality() {
+    const job = qualityQueue.shift();
+    if (!job) { qualityBusy = false; return; }
+    qualityBusy = true;
+    try { job.run(); } catch { /* el player ya no existe */ }
+    window.setTimeout(nextQuality, QUALITY_GAP_MS);
 }
 
 /** Elige la calidad más cercana por debajo (o igual) a la alturas pedida; con 60 fps y 30 fps prefiere 30 para ahorrar. */

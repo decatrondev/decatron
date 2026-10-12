@@ -104,9 +104,49 @@
           {
             "t": "ul",
             "items": [
-              "A tile without sound probably does not count as a view and Twitch pauses it when you switch tabs, so Decatron never mutes any of them for you. With sound they keep playing like any other tab.",
+              "With the tab hidden, Twitch pauses tiles on its own (it usually leaves only one playing) and ignores the request to keep going. When you return to the tab, Decatron resumes them and, if one does not wake up, reloads its player.",
               "Kick does not let the volume be controlled from outside: its tile can only be muted or unmuted, and changing that reloads that tile."
             ]
+          }
+        ]
+      },
+      {
+        "id": "lurk",
+        "title": "Channel points and watch streaks (lurk mode)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The video in the tiles is Twitch's embedded player, and Twitch does not credit your account with channel points or watch streaks for it, even if you are signed in to Twitch and the tile is playing sound. What does count is a regular twitch.tv tab, even muted and in the background."
+          },
+          {
+            "t": "p",
+            "x": "That is why the Decatron extension (version 0.9.0) has a lurk mode: for each Twitch channel in your Multi-view it opens a regular Twitch tab, muted, at the lowest quality, in a separate minimized window. You keep watching everything in the Multi-view. Choose it with the eye selector in the top bar, which only shows up when you have the extension:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Off (the default): opens nothing.",
+              "Streak only: opens each live channel's tab once per stream, for about 10 minutes, and closes it. Up to 3 open at a time; the rest wait their turn.",
+              "Full: the tab stays open while the channel is live and in the Multi-view, so it also earns points and, with the extension's channel points module on, claims the bonus chests."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Each Twitch tile shows an eye with a status dot (green: tab open or streak covered for this stream; amber: waiting for its turn; grey: off or channel not live). Press it to choose that channel's setting: same as the rest, off, streak only or full."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "If you close one of those tabs yourself, it does not reopen during that stream.",
+              "Closing the Multi-view closes all the lurk tabs.",
+              "Only the extension's channel points module runs in those tabs (no translation or emotes).",
+              "You need to be signed in to Twitch in that browser: the tabs count for the account you use on twitch.tv."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Twitch does not publish how many minutes a streak needs. For now the streak-only tab closes after 10 minutes; in testing the streak counted before that."
           }
         ]
       },
@@ -121,6 +161,7 @@
           {
             "t": "ul",
             "items": [
+              "When you change the quality, tiles switch one at a time, a few seconds apart, so they do not all reload at once and stutter together. Tiles already at that quality are left alone.",
               "Kick does not let us set quality from here: its tiles stay as its player decides.",
               "If the page runs choppy with 3 or more tiles, a notice suggests lowering everything to 360p. It is an approximate signal: it measures the page, not each player's video."
             ]
@@ -241,6 +282,20 @@
         ]
       },
       {
+        "id": "session",
+        "title": "Session in the Multi-view",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A Decatron session lasts one hour. While the Multi-view is open it renews itself a few minutes before it expires, with no hour limit, so you can leave it open as long as you like without being signed out."
+          },
+          {
+            "t": "p",
+            "x": "If it still expires (for example, the computer slept for more than an hour or the internet dropped), the page does not close: the videos and the read-only chat keep going, and a notice offers to sign in again to chat, moderate or save layouts."
+          }
+        ]
+      },
+      {
         "id": "share",
         "title": "Sharing your layout",
         "blocks": [
@@ -279,7 +334,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "The Decatron extension for Chrome and Firefox (version 0.4.0) has a Multi-view module. On twitch.tv, open the Decatron button's panel, go to Multi-view and press «Add [channel] to Multi-view»."
+            "x": "The Decatron extension for Chrome and Firefox has a Multi-view module (since version 0.4.0) and lurk mode (since 0.9.0, see «Channel points and watch streaks»). On twitch.tv, open the Decatron button's panel, go to Multi-view and press «Add [channel] to Multi-view»."
           },
           {
             "t": "ul",

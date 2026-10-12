@@ -12,6 +12,14 @@ const api = axios.create({
     },
 });
 
+// En /multi una sesión vencida nunca saca de la página (se cortarían todos los videos): se borra la sesión, la página lo
+// muestra con un aviso y sigue como anónima. La renovación mientras está abierta la hace useMultiviewSession.
+const staysOnPage = () => window.location.pathname === '/multi' || window.location.pathname.startsWith('/multi/');
+const toLogin = () => {
+    if (staysOnPage()) return;
+    if (window.location.pathname !== '/login') window.location.href = '/login';
+};
+
 // Interceptor para agregar token JWT Y verificar expiración
 api.interceptors.request.use(
     (config) => {
@@ -23,9 +31,8 @@ api.interceptors.request.use(
                 console.error('🔴 Token con estructura inválida, limpiando...');
                 localStorage.removeItem('token');
                 notifyTokenRemoved();
-                if (window.location.pathname !== '/login') {
-                    window.location.href = '/login';
-                }
+                toLogin();
+                if (staysOnPage()) return config;
                 return Promise.reject(new Error('Token inválido'));
             }
 
@@ -34,9 +41,8 @@ api.interceptors.request.use(
                 console.warn('🔴 Token expirado detectado, redirigiendo al login...');
                 localStorage.removeItem('token');
                 notifyTokenRemoved();
-                if (window.location.pathname !== '/login') {
-                    window.location.href = '/login';
-                }
+                toLogin();
+                if (staysOnPage()) return config;
                 return Promise.reject(new Error('Token expirado'));
             }
 
@@ -69,10 +75,8 @@ api.interceptors.response.use(
             // Token inválido o expirado
             localStorage.removeItem('token');
             notifyTokenRemoved();
-            // Asegurarnos de no estar en un bucle si ya estamos en /login
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
-            }
+            // Asegurarnos de no estar en un bucle si ya estamos en /login (y en /multi no se sale de la página)
+            toLogin();
         }
         return Promise.reject(error);
     }

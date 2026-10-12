@@ -698,9 +698,9 @@ The endpoints below are the rest of the routes of the backend, generated from th
 |---|---|---|
 | `GET` | `/api/live-translation/access` | JWT + `settings` |
 | `PUT` | `/api/live-translation/access` | JWT + `settings` |
-| `GET` | `/api/live-translation/access/listeners` | JWT + `settings` |
-| `POST` | `/api/live-translation/access/kick` | JWT + `settings` |
 | `POST` | `/api/live-translation/access/abuse/clear` | JWT + `settings` |
+| `POST` | `/api/live-translation/access/kick` | JWT + `settings` |
+| `GET` | `/api/live-translation/access/listeners` | JWT + `settings` |
 | `GET` | `/api/live-translation/admin/active` | JWT |
 | `GET` | `/api/live-translation/admin/overview` | JWT |
 | `GET` | `/api/live-translation/admin/sessions` | JWT |
@@ -772,6 +772,12 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `POST` | `/api/multiview/layouts` | JWT |
 | `DELETE` | `/api/multiview/layouts/{id}` | JWT |
 | `PUT` | `/api/multiview/layouts/{id}` | JWT |
+
+### Multiview Session
+
+| Method | Route | Access |
+|---|---|---|
+| `POST` | `/api/multiview/session/renew` | JWT |
 
 ### Now Playing
 

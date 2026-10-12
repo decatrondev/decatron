@@ -194,5 +194,38 @@
       "blocked": "No tienes acceso a la traducción de este canal.",
       "check_failed": "No se pudo comprobar si puedes escuchar."
     }
+  },
+  "session": {
+    "expired": "Tu sesión venció (la página no pudo renovarla a tiempo). Los videos siguen; para escribir, moderar o guardar layouts vuelve a entrar.",
+    "login": "Volver a entrar"
+  },
+  "lurk": {
+    "label": "Modo lurk",
+    "off": "Lurk: apagado",
+    "streak": "Lurk: solo racha",
+    "full": "Lurk: completo",
+    "hint": "El video de esta página no suma puntos de canal ni rachas en Twitch. El modo lurk abre pestañas normales de Twitch (silenciadas, en calidad mínima, en una ventana aparte) que sí cuentan. Solo racha: unos minutos por directo. Completo: todo el directo.",
+    "tip": {
+      "noExt": "El video de esta página no suma puntos de canal ni rachas en Twitch. Con la extensión de Decatron, el modo lurk abre pestañas de Twitch que sí cuentan.",
+      "oldExt": "Tu extensión de Decatron no trae el modo lurk todavía: actualízala para sumar puntos y rachas desde aquí.",
+      "off": "El video de esta página no suma puntos de canal ni rachas en Twitch. Activa el modo lurk (arriba) para que la extensión abra pestañas de Twitch que sí cuentan."
+    },
+    "install": "Instalar la extensión",
+    "dismiss": "Entendido",
+    "channelLabel": "Lurk de este canal",
+    "channel": {
+      "default": "Como el resto",
+      "off": "Apagado en este canal",
+      "streak": "Solo racha",
+      "full": "Completo"
+    },
+    "status": {
+      "off": "apagado",
+      "offline": "el canal no está en vivo",
+      "queued": "esperando turno",
+      "open": "pestaña de Twitch abierta",
+      "done": "racha cubierta en este directo",
+      "closed": "cerraste la pestaña: no se vuelve a abrir en este directo"
+    }
   }
 }
