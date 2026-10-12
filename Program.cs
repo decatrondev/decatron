@@ -560,6 +560,9 @@ try
     builder.Services.AddSingleton<Decatron.Services.Multiview.TwitchPresenceService>();
     builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewModerationService>();
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.StreamerRoleService>();
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.TranslationAbuseGuard>();
+    builder.Services.AddSingleton<Decatron.Hubs.ITranslationAbuseGuard>(sp => sp.GetRequiredService<Decatron.Services.LiveTranslation.TranslationAbuseGuard>());
+    builder.Services.AddHostedService<Decatron.Services.LiveTranslation.LiveTranslationOrphanCleaner>();
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.TranslationAccessService>();
     builder.Services.AddSingleton<Decatron.Hubs.ITranslationAccessGate>(sp => sp.GetRequiredService<Decatron.Services.LiveTranslation.TranslationAccessService>());
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.TranslationAccessRecheckService>();

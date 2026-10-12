@@ -29,9 +29,11 @@ namespace Decatron.Services.LiveTranslation
         private readonly IOptionsMonitor<LiveTranslationOptions> _options;
         private readonly ILogger<TranslationAccessService> _logger;
         private readonly StreamerRoleService _roles;
+        private readonly TranslationAbuseGuard _abuse;
 
-        public TranslationAccessService(IServiceScopeFactory scopes, IMemoryCache cache, IOptionsMonitor<LiveTranslationOptions> options, ILogger<TranslationAccessService> logger, StreamerRoleService roles)
+        public TranslationAccessService(IServiceScopeFactory scopes, IMemoryCache cache, IOptionsMonitor<LiveTranslationOptions> options, ILogger<TranslationAccessService> logger, StreamerRoleService roles, TranslationAbuseGuard abuse)
         {
+            _abuse = abuse;
             _roles = roles;
             _scopes = scopes;
             _cache = cache;
@@ -49,6 +51,8 @@ namespace Decatron.Services.LiveTranslation
         {
             var policy = await GetPolicyAsync(login);
             if (policy == null) return Decatron.Hubs.ViewerCheckResult.Allowed;
+            // Endurecimiento automático por abuso: un canal abierto pide sesión mientras dura. No cambia lo que el streamer guardó.
+            if (policy.Mode == "everyone" && _abuse.Active(login) != null) policy = policy with { Mode = "logged_in" };
             return await AccessEvaluator.EvaluateAsync(policy, who, () => _roles.GetRoleAsync(policy.UserId, policy.Mode, who!.TwitchId!));
         }
 

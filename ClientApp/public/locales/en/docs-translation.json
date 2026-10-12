@@ -461,6 +461,20 @@
           },
           {
             "t": "h3",
+            "x": "Credit cap and automatic protection"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Credit cap per broadcast: an optional number. When the session reaches that spend, translation stops by itself; at 80% you get a warning in the panel and in the app. The panel shows what an hour of speech costs based on your last broadcasts, so you can pick a number that makes sense.",
+              "Low-credits warning: if at the current pace your balance lasts 15 minutes or less, the panel and the desktop app warn you before it cuts out.",
+              "Automatic protection: if someone probes your channel with dozens of attempts in a minute (for example, with many tabs), the channel asks for sign-in for 30 minutes. Your saved settings do not change, and a notice in the tab lets you turn the protection off.",
+              "Listening now: the list of listeners, with their username (or “Not signed in”), language, join time and a partly hidden address. “Remove” disconnects them; “Block” adds the person to Blocked, or bans their connection for one hour if they are not signed in.",
+              "Sessions left open by a server restart are closed automatically on startup."
+            ]
+          },
+          {
+            "t": "h3",
             "x": "Panic button"
           },
           {

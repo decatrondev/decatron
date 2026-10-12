@@ -698,6 +698,9 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 |---|---|---|
 | `GET` | `/api/live-translation/access` | JWT + `settings` |
 | `PUT` | `/api/live-translation/access` | JWT + `settings` |
+| `GET` | `/api/live-translation/access/listeners` | JWT + `settings` |
+| `POST` | `/api/live-translation/access/kick` | JWT + `settings` |
+| `POST` | `/api/live-translation/access/abuse/clear` | JWT + `settings` |
 | `GET` | `/api/live-translation/admin/active` | JWT |
 | `GET` | `/api/live-translation/admin/overview` | JWT |
 | `GET` | `/api/live-translation/admin/sessions` | JWT |

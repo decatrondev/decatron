@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, PauseCircle, PlayCircle, Save, ShieldCheck, Users } from 'lucide-react';
+import { Ban, Coins, Loader2, LogOut, PauseCircle, PlayCircle, Save, ShieldAlert, ShieldCheck, Users } from 'lucide-react';
 import api from '../../../services/api';
-import type { AccessMode, AccessSettings, AccessView } from './types';
+import type { AccessMode, AccessSettings, AccessView, ListenerRow } from './types';
 
 const card = 'bg-ds-surface rounded-lg p-6 border border-ds-border';
 const label = 'text-sm font-semibold text-ds-text';
@@ -21,6 +21,8 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
+    const [listeners, setListeners] = useState<ListenerRow[]>([]);
+
     const apply = (v: AccessView) => { setView(v); setForm(v.settings); };
 
     const load = useCallback(async () => {
@@ -32,9 +34,17 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
     // Quién escucha ahora, cada 5 s
     useEffect(() => {
         const id = window.setInterval(async () => {
-            try { const v = (await api.get('/live-translation/access')).data as AccessView; setView(prev => prev ? { ...prev, now: v.now } : v); } catch { /* sin cambios */ }
+            try {
+                const v = (await api.get('/live-translation/access')).data as AccessView;
+                setView(prev => prev ? { ...prev, now: v.now, abuse: v.abuse } : v);
+                setListeners(((await api.get('/live-translation/access/listeners')).data as { listeners: ListenerRow[] }).listeners);
+            } catch { /* sin cambios */ }
         }, 5000);
         return () => window.clearInterval(id);
+    }, []);
+
+    useEffect(() => {
+        void api.get('/live-translation/access/listeners').then(r => setListeners((r.data as { listeners: ListenerRow[] }).listeners)).catch(() => undefined);
     }, []);
 
     if (!view || !form) return <div className="text-center py-8 text-ds-soft">{message?.text ?? t('liveTranslation.loading')}</div>;
@@ -69,6 +79,24 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
         await save({ ...form, paused: pausing });
     };
 
+    const kick = async (row: ListenerRow, ban: boolean) => {
+        if (ban && !window.confirm(t(row.login ? 'liveTranslation.access.live.blockConfirm' : 'liveTranslation.access.live.banConfirm', { who: row.login ?? row.ip }))) return;
+        try {
+            await api.post('/live-translation/access/kick', { id: row.id, ban });
+            setListeners(prev => prev.filter(x => x.id !== row.id));
+            if (ban && row.login) await load();
+        } catch { setMessage({ text: t('liveTranslation.access.live.error'), error: true }); }
+    };
+
+    const clearAbuse = async () => {
+        try { await api.post('/live-translation/access/abuse/clear'); setView(prev => prev ? { ...prev, abuse: null } : prev); }
+        catch { setMessage({ text: t('liveTranslation.access.live.error'), error: true }); }
+    };
+
+    const minutesAgo = (iso: string) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+    const fmt = (n: number) => n.toLocaleString();
+    const hours = (credits: number | null) => (credits && view.cost.perSpeechHour ? Math.round((credits / view.cost.perSpeechHour) * 10) / 10 : null);
+
     const num = (v: number | null) => (v == null ? '' : String(v));
     const parse = (s: string) => (s.trim() === '' ? null : Math.max(1, Math.floor(Number(s) || 1)));
 
@@ -83,6 +111,16 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
                         <p className={muted}>{t('liveTranslation.access.pausedBody')}</p>
                     </div>
                     {canEdit && <button type="button" onClick={() => void togglePause()} className="ds-btn ds-btn--primary"><PlayCircle className="w-4 h-4" /> {t('liveTranslation.access.resume')}</button>}
+                </div>
+            )}
+
+            {view.abuse && (
+                <div className="p-4 rounded-lg bg-ds-warn/10 border border-ds-warn/40 flex flex-wrap items-center justify-between gap-3">
+                    <div className="min-w-0">
+                        <div className="font-black text-ds-warn flex items-center gap-2"><ShieldAlert className="w-5 h-5" /> {t('liveTranslation.access.abuse.title')}</div>
+                        <p className={muted}>{t(`liveTranslation.access.abuse.body_${view.abuse.reason}`, { attempts: view.abuse.attempts, rejections: view.abuse.rejections, minutes: Math.max(1, Math.ceil((new Date(view.abuse.until).getTime() - Date.now()) / 60000)) })}</p>
+                    </div>
+                    {canEdit && <button type="button" onClick={() => void clearAbuse()} className="ds-btn ds-btn--secondary">{t('liveTranslation.access.abuse.undo')}</button>}
                 </div>
             )}
 
@@ -200,6 +238,21 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
                     </label>
                 </div>
 
+                <div className="mt-6 pt-6 border-t border-ds-border">
+                    <label className="block max-w-xl">
+                        <span className={`${label} flex items-center gap-2`}><Coins className="w-4 h-4 text-ds-accent-text" /> {t('liveTranslation.access.budget.title')}</span>
+                        <p className={`${muted} mb-2`}>{t('liveTranslation.access.budget.hint')}</p>
+                        <input className={input} type="number" min={1} inputMode="numeric" disabled={!canEdit} placeholder={t('liveTranslation.access.budget.none')}
+                            value={form.creditBudgetPerSession ?? ''} onChange={e => set({ creditBudgetPerSession: e.target.value.trim() === '' ? null : Math.max(1, Math.floor(Number(e.target.value) || 1)) })} />
+                    </label>
+                    <p className={`${muted} mt-2`}>
+                        {view.cost.perSpeechHour
+                            ? t('liveTranslation.access.budget.cost', { perHour: fmt(view.cost.perSpeechHour), sessions: view.cost.sessions })
+                            : t('liveTranslation.access.budget.noCost')}
+                        {hours(form.creditBudgetPerSession) != null && ` ${t('liveTranslation.access.budget.equals', { hours: hours(form.creditBudgetPerSession) })}`}
+                    </p>
+                </div>
+
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
                     <p className={muted}>{t('liveTranslation.access.effective', { total: view.effective.maxListenersTotal, languages: view.effective.maxActiveLanguages, ip: view.effective.maxConnectionsPerIp })}</p>
                     {canEdit && (
@@ -232,6 +285,31 @@ export default function AccessTab({ canEdit, langNames }: { canEdit: boolean; la
                         <li>{t('liveTranslation.access.always3')}</li>
                     </ul>
                 </div>
+            </div>
+
+            <div className={card}>
+                <h3 className="font-black text-ds-text flex items-center gap-2 mb-1"><Users className="w-5 h-5 text-ds-accent-text" /> {t('liveTranslation.access.live.title')}</h3>
+                <p className={`${muted} mb-3`}>{t('liveTranslation.access.live.hint')}</p>
+                {listeners.length === 0
+                    ? <p className={muted}>{t('liveTranslation.access.nowEmpty')}</p>
+                    : (
+                        <ul className="divide-y divide-ds-border">
+                            {listeners.map(row => (
+                                <li key={row.id} className="py-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                                    <span className="min-w-0 flex-1 text-sm text-ds-text truncate">
+                                        <span className="font-semibold">{row.login ?? t('liveTranslation.access.live.anonymous')}</span>
+                                        <span className="text-ds-soft"> · {langNames[row.lang] || row.lang.toUpperCase()} · {row.ip} · {t('liveTranslation.access.live.since', { minutes: minutesAgo(row.since) })}</span>
+                                    </span>
+                                    {canEdit && (
+                                        <span className="flex gap-2">
+                                            <button type="button" onClick={() => void kick(row, false)} className="ds-btn ds-btn--secondary"><LogOut className="w-4 h-4" /> {t('liveTranslation.access.live.kick')}</button>
+                                            <button type="button" onClick={() => void kick(row, true)} className="ds-btn ds-btn--danger"><Ban className="w-4 h-4" /> {t(row.login ? 'liveTranslation.access.live.block' : 'liveTranslation.access.live.banIp')}</button>
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
             </div>
 
             {canEdit && !form.paused && (

@@ -27,6 +27,7 @@ namespace Decatron.Hubs
         private readonly ITranslationListenerNotifier _notifier;
         private readonly ITranslationAccessGate _gate;
         private readonly IViewerIdentityResolver _viewers;
+        private readonly ITranslationAbuseGuard _abuse;
 
         private static readonly ConcurrentDictionary<string, (string Login, string Lang)> _connections = new();
         // IP de cada conexión que escucha, y los intentos de entrada recientes por IP (límites contra abuso)
@@ -35,6 +36,8 @@ namespace Decatron.Hubs
         private static readonly ConcurrentDictionary<string, long> _users = new();
         // La identidad completa de cada conexión que escucha (para volver a comprobar el nivel de acceso mientras escucha)
         private static readonly ConcurrentDictionary<string, ViewerIdentity> _identities = new();
+        // Desde cuándo escucha cada conexión (para la lista de «escuchando ahora» del panel)
+        private static readonly ConcurrentDictionary<string, DateTime> _since = new();
         private static readonly ConcurrentDictionary<string, Queue<DateTime>> _attempts = new();
 
         /// <summary>Intentos de Join por IP por minuto.</summary>
@@ -56,8 +59,9 @@ namespace Decatron.Hubs
             _connections.Values.Where(v => v.Login == login.ToLowerInvariant())
                 .GroupBy(v => v.Lang).ToDictionary(g => g.Key, g => g.Count());
 
-        public TranslationHub(ILogger<TranslationHub> logger, ITranslationListenerNotifier notifier, ITranslationAccessGate gate, IViewerIdentityResolver viewers)
+        public TranslationHub(ILogger<TranslationHub> logger, ITranslationListenerNotifier notifier, ITranslationAccessGate gate, IViewerIdentityResolver viewers, ITranslationAbuseGuard abuse)
         {
+            _abuse = abuse;
             _logger = logger;
             _notifier = notifier;
             _gate = gate;
@@ -115,6 +119,15 @@ namespace Decatron.Hubs
         public static IReadOnlyList<(string ConnectionId, string Login, string Lang, ViewerIdentity? Who)> SnapshotListeners() =>
             _connections.Select(kv => (kv.Key, kv.Value.Login, kv.Value.Lang, _identities.TryGetValue(kv.Key, out var w) ? w : null)).ToList();
 
+        /// <summary>Lo mismo con la IP y el momento de entrada de cada conexión (para que el streamer vea quién escucha y pueda sacar a alguien).</summary>
+        public static IReadOnlyList<(string ConnectionId, string Lang, ViewerIdentity? Who, string Ip, DateTime Since)> SnapshotChannel(string login)
+        {
+            login = login.ToLowerInvariant();
+            return _connections.Where(kv => kv.Value.Login == login)
+                .Select(kv => (kv.Key, kv.Value.Lang, _identities.TryGetValue(kv.Key, out var w) ? w : null, _ips.TryGetValue(kv.Key, out var ip) ? ip : "unknown", _since.TryGetValue(kv.Key, out var t) ? t : DateTime.UtcNow))
+                .OrderBy(x => x.Item5).ToList();
+        }
+
         /// <summary>Saca a una conexión concreta (dejó de cumplir el nivel del canal) y le explica el motivo.</summary>
         public static async Task EvictConnectionAsync(IHubContext<TranslationHub> hub, string connectionId, ViewerCheckResult why)
         {
@@ -122,6 +135,7 @@ namespace Decatron.Hubs
             _ips.TryRemove(connectionId, out _);
             _users.TryRemove(connectionId, out _);
             _identities.TryRemove(connectionId, out _);
+            _since.TryRemove(connectionId, out _);
             try
             {
                 await hub.Groups.RemoveFromGroupAsync(connectionId, GroupName(cur.Login, cur.Lang));
@@ -136,8 +150,10 @@ namespace Decatron.Hubs
         /// y las conexiones por IP. Devuelve el motivo del rechazo o null si puede entrar.
         /// </summary>
         /// <summary>Primera fase: límites que no dependen de quién es la persona (IP, tope global, pausa, idioma ofrecido).</summary>
-        private static string? CheckBasic(TranslationLimits? limits, string lang, string ip)
+        private string? CheckBasic(TranslationLimits? limits, string login, string lang, string ip)
         {
+            // El streamer sacó esta IP de su canal hace poco
+            if (_abuse.IsIpBanned(login, ip)) return "blocked";
             var ipAll = _ips.Count(kv => kv.Value == ip && _connections.ContainsKey(kv.Key));
             if (ipAll >= MaxConnectionsPerIpGlobal) return "ip_limit";
             if (_connections.Count >= MaxListeningConnections) return "busy";
@@ -178,6 +194,7 @@ namespace Decatron.Hubs
                 _ips.TryRemove(connId, out _);
                 _users.TryRemove(connId, out _);
                 _identities.TryRemove(connId, out _);
+                _since.TryRemove(connId, out _);
                 try
                 {
                     await hub.Groups.RemoveFromGroupAsync(connId, GroupName(cur.Login, cur.Lang));
@@ -202,10 +219,11 @@ namespace Decatron.Hubs
 
             var who = Context.Items["viewer"] as ViewerIdentity;
             var limits = await _gate.GetLimitsAsync(login);
-            var reason = CheckBasic(limits, lang, ip);
+            var reason = CheckBasic(limits, login, lang, ip);
             if (reason != null)
             {
                 _logger.LogInformation("[LiveTranslation] Entrada rechazada a {Login}/{Lang}: {Reason}", login, lang, reason);
+                _abuse.Record(login, false, reason, limits?.MaxListenersTotal ?? 0);
                 return Denied(reason);
             }
             if (limits != null)
@@ -215,20 +233,24 @@ namespace Decatron.Hubs
                 if (viewer.Reason != null)
                 {
                     _logger.LogInformation("[LiveTranslation] Entrada rechazada a {Login}/{Lang} por el nivel de acceso: {Reason}", login, lang, viewer.Reason);
+                    _abuse.Record(login, false, viewer.Reason, limits.MaxListenersTotal);
                     return Denied(viewer);
                 }
                 reason = CheckCapacity(limits, login, lang, ip, who?.UserId);
                 if (reason != null)
                 {
                     _logger.LogInformation("[LiveTranslation] Entrada rechazada a {Login}/{Lang}: {Reason}", login, lang, reason);
+                    _abuse.Record(login, false, reason, limits.MaxListenersTotal);
                     return Denied(reason);
                 }
+                _abuse.Record(login, true, null, limits.MaxListenersTotal);
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(login, lang));
             _connections[Context.ConnectionId] = (login, lang);
             _ips[Context.ConnectionId] = ip;
             if (who != null) { _users[Context.ConnectionId] = who.UserId; _identities[Context.ConnectionId] = who; }
+            _since[Context.ConnectionId] = DateTime.UtcNow;
 
             var status = await _notifier.OnListenerChangedAsync(login, lang, CountListeners(login, lang), joined: true);
             _logger.LogDebug("[LiveTranslation] {Conn} escucha {Login}/{Lang} ({N})", Context.ConnectionId, login, lang, CountListeners(login, lang));
@@ -248,6 +270,7 @@ namespace Decatron.Hubs
             _ips.TryRemove(Context.ConnectionId, out _);
             _users.TryRemove(Context.ConnectionId, out _);
             _identities.TryRemove(Context.ConnectionId, out _);
+            _since.TryRemove(Context.ConnectionId, out _);
             if (!_connections.TryRemove(Context.ConnectionId, out var cur)) return;
             try { await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(cur.Login, cur.Lang)); } catch { }
             await _notifier.OnListenerChangedAsync(cur.Login, cur.Lang, CountListeners(cur.Login, cur.Lang), joined: false);

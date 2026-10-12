@@ -117,6 +117,7 @@ namespace Decatron.Services.LiveTranslation
             LiveTranslationSettings settings;
             string login;
             long sessionId;
+            long? budget;
             using (var scope = _scopes.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
@@ -134,13 +135,15 @@ namespace Decatron.Services.LiveTranslation
                 if (!balance.IsUnlimited && balance.TotalAvailable <= 0)
                     throw new InvalidOperationException("Sin créditos. Compra un paquete en el dashboard para traducir en vivo");
 
+                budget = await db.LiveTranslationAccess.AsNoTracking().Where(a => a.UserId == userId).Select(a => a.CreditBudgetPerSession).FirstOrDefaultAsync(ct);
+
                 var row = new LiveTranslationSession { UserId = userId, DeviceId = deviceId };
                 db.LiveTranslationSessions.Add(row);
                 await db.SaveChangesAsync(ct);
                 sessionId = row.Id;
             }
 
-            var session = new ChannelSession(this, userId, login, sessionId, settings);
+            var session = new ChannelSession(this, userId, login, sessionId, settings) { Budget = budget };
             if (!_byUser.TryAdd(userId, session))
                 throw new InvalidOperationException("Dos apps intentaron iniciar a la vez; vuelve a pulsar Iniciar");
             _byLogin[login] = session;
@@ -208,6 +211,18 @@ namespace Decatron.Services.LiveTranslation
         internal ILogger Logger => _logger;
 
         /// <summary>Cobra créditos. Devuelve false si no alcanzó (no descuenta nada). El motor "standard" (Piper) va a la bolsa estándar.</summary>
+        /// <summary>Saldo total del streamer (null si es ilimitado o no se pudo leer).</summary>
+        internal async Task<long?> BalanceAsync(long userId)
+        {
+            try
+            {
+                using var scope = _scopes.CreateScope();
+                var b = await scope.ServiceProvider.GetRequiredService<ITtsCreditService>().GetBalanceAsync(userId);
+                return b.IsUnlimited ? null : b.TotalAvailable;
+            }
+            catch { return null; }
+        }
+
         internal async Task<(bool ok, long charged)> ChargeAsync(long userId, int units, string engine, string? voice, string? language, bool byUnit = false)
         {
             using var scope = _scopes.CreateScope();
@@ -315,6 +330,52 @@ namespace Decatron.Services.LiveTranslation
         public double SpeechSeconds => _speechSeconds;
         public int Segments => _segments;
         public long CreditsUsed => Interlocked.Read(ref _creditsUsed);
+        /// <summary>Tope de créditos de esta transmisión que fijó el streamer (null = sin tope).</summary>
+        public long? Budget { get; init; }
+        private bool _budgetWarned;
+        private int _stopRequested;
+        private DateTime _lastBalanceCheckUtc = DateTime.UtcNow;
+        private int _checkingBalance;
+
+        /// <summary>Se llama tras cada cobro: avisa al 80% del tope y corta al llegar al 100%.</summary>
+        private void CheckBudget()
+        {
+            var state = CreditBudgetEvaluator.Evaluate(CreditsUsed, Budget);
+            if (state == CreditBudgetEvaluator.State.Exceeded)
+            {
+                if (Interlocked.Exchange(ref _stopRequested, 1) == 0)
+                {
+                    _lastError = "Se llegó al tope de créditos de esta transmisión";
+                    _mgr.Logger.LogInformation("[LiveTranslation] {Login}: tope de {Budget} créditos alcanzado, se corta la sesión", Login, Budget);
+                    _mgr.RequestStop(this, "budget");
+                }
+            }
+            else if (state == CreditBudgetEvaluator.State.Warn && !_budgetWarned)
+            {
+                _budgetWarned = true;
+                SetNotice($"Llevas el 80% del tope de créditos de esta transmisión ({CreditsUsed:N0} de {Budget:N0}). Al llegar al 100% la traducción se corta.");
+            }
+            else if (state == CreditBudgetEvaluator.State.None && _notice == null) CheckLowCredits();
+        }
+
+        /// <summary>Cada ~60 s calcula cuánto dura el saldo al ritmo actual; si alcanza para 15 min o menos, lo avisa.</summary>
+        private void CheckLowCredits()
+        {
+            if ((DateTime.UtcNow - _lastBalanceCheckUtc).TotalSeconds < 60 || Interlocked.Exchange(ref _checkingBalance, 1) != 0) return;
+            _lastBalanceCheckUtc = DateTime.UtcNow;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var balance = await _mgr.BalanceAsync(UserId);
+                    if (balance is null) return;
+                    var left = CreditBudgetEvaluator.MinutesLeft(balance.Value, CreditsUsed, (DateTime.UtcNow - StartedAt).TotalMinutes);
+                    if (left is { } m && m <= CreditBudgetEvaluator.LowCreditsMinutes)
+                        SetNotice($"Te quedan créditos para unos {Math.Max(1, (int)Math.Round(m))} min de traducción al ritmo actual. Recarga para que no se corte.");
+                }
+                finally { Interlocked.Exchange(ref _checkingBalance, 0); }
+            });
+        }
 
         internal ChannelSession(LiveTranslationSessionManager mgr, long userId, string login, long sessionId, LiveTranslationSettings settings)
         {
@@ -373,6 +434,7 @@ namespace Decatron.Services.LiveTranslation
                 }
                 Interlocked.Add(ref _audioBytesCharged, pending);
                 Interlocked.Add(ref _creditsUsed, charged);
+                CheckBudget();
             }
             catch (Exception ex)
             {
@@ -443,6 +505,7 @@ namespace Decatron.Services.LiveTranslation
         {
             _charsByLang.AddOrUpdate(lang, chars, (_, c) => c + chars);
             Interlocked.Add(ref _creditsUsed, credits);
+            CheckBudget();
         }
 
         internal void SetError(string msg) => _lastError = msg;

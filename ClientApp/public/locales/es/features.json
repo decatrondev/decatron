@@ -1522,6 +1522,32 @@
         "block": "Bloqueados",
         "blockHint": "Nunca entran, ni aunque cumplan el nivel. Un usuario por línea.",
         "listPlaceholder": "usuario1\nusuario2"
+      },
+      "budget": {
+        "title": "Tope de créditos por transmisión",
+        "hint": "Si la sesión gasta este total, la traducción se corta sola. Te avisamos al llegar al 80%. Déjalo vacío para no poner tope.",
+        "none": "Sin tope",
+        "cost": "Según tus últimas {{sessions}} transmisiones, cada hora hablando gasta unos {{perHour}} créditos.",
+        "noCost": "Aún no hay transmisiones suficientes para estimar cuánto gasta una hora.",
+        "equals": "Ese tope alcanza para unas {{hours}} h hablando."
+      },
+      "abuse": {
+        "title": "Protección automática activada",
+        "body_probe": "Detectamos {{rejections}} intentos rechazados en un minuto, típico de alguien probando con muchas pestañas. Por {{minutes}} min solo entra quien tenga sesión. Tu configuración guardada no cambió.",
+        "body_flood": "Detectamos {{attempts}} intentos de entrada en un minuto. Por {{minutes}} min solo entra quien tenga sesión. Tu configuración guardada no cambió.",
+        "undo": "Desactivar protección"
+      },
+      "live": {
+        "title": "Escuchando ahora",
+        "hint": "Puedes sacar a alguien o bloquearlo. Con sesión se bloquea su usuario; sin sesión se bloquea su conexión por una hora. La dirección se muestra incompleta.",
+        "anonymous": "Sin sesión",
+        "since": "hace {{minutes}} min",
+        "kick": "Sacar",
+        "block": "Bloquear",
+        "banIp": "Bloquear 1 h",
+        "blockConfirm": "¿Bloquear a {{who}}? Saldrá ahora y no podrá volver hasta que lo quites de la lista de bloqueados.",
+        "banConfirm": "¿Bloquear la conexión de {{who}} por una hora?",
+        "error": "No se pudo completar la acción"
       }
     }
   },

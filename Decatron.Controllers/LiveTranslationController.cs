@@ -39,6 +39,7 @@ namespace Decatron.Controllers
         private readonly IHubContext<Decatron.Hubs.TranslationHub> _hub;
         private readonly StreamerRoleService _roles;
         private readonly TranslationAccessRecheckService _recheck;
+        private readonly TranslationAbuseGuard _abuse;
 
         public LiveTranslationController(
             DecatronDbContext db,
@@ -51,9 +52,10 @@ namespace Decatron.Controllers
             TranslationAccessService access,
             IHubContext<Decatron.Hubs.TranslationHub> hub,
             StreamerRoleService roles,
-            TranslationAccessRecheckService recheck)
+            TranslationAccessRecheckService recheck,
+            TranslationAbuseGuard abuse)
         {
-            _roles = roles; _recheck = recheck;
+            _roles = roles; _recheck = recheck; _abuse = abuse;
             _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _aiSettings = aiSettings; _logger = logger; _optsMonitor = optsMonitor;
             _access = access; _hub = hub;
         }
@@ -217,6 +219,8 @@ namespace Decatron.Controllers
             /// <summary>Usuarios separados por coma, espacio o línea</summary>
             public string? AllowList { get; set; }
             public string? BlockList { get; set; }
+            /// <summary>Tope de créditos por transmisión; null = sin tope</summary>
+            public long? CreditBudgetPerSession { get; set; }
         }
 
         private async Task<object> AccessViewAsync(long userId, LiveTranslationAccess? a)
@@ -227,15 +231,26 @@ namespace Decatron.Controllers
             var eff = TranslationAccessService.Resolve(userId, login, tier, a, _mgr.Options.MaxLanguagesPerChannel, Array.Empty<string>());
             var current = Decatron.Hubs.TranslationHub.ListenersByLanguage(login);
             var availability = await _roles.GetAvailabilityAsync(userId);
+
+            // Cuánto cuesta una hora de voz según las últimas transmisiones reales (para que el tope se ponga con un número que se entienda)
+            var recent = await _db.LiveTranslationSessions.AsNoTracking()
+                .Where(x => x.UserId == userId && x.EndedAt != null && x.SpeechSeconds >= 120 && x.CreditsUsed > 0)
+                .OrderByDescending(x => x.Id).Take(8).Select(x => new { x.SpeechSeconds, x.CreditsUsed }).ToListAsync();
+            long? perSpeechHour = recent.Count >= 2 ? (long)Math.Round(recent.Sum(x => (double)x.CreditsUsed) / (recent.Sum(x => x.SpeechSeconds) / 3600.0)) : null;
+            var hardened = _abuse.Active(login);
+
             return new
             {
                 tier,
+                cost = new { perSpeechHour, sessions = recent.Count },
+                abuse = hardened == null ? null : new { since = hardened.Since, until = hardened.Until, reason = hardened.Reason, attempts = hardened.Attempts, rejections = hardened.Rejections },
                 settings = new
                 {
                     maxListenersTotal = a?.MaxListenersTotal,
                     maxListenersPerLanguage = a?.MaxListenersPerLanguage,
                     maxActiveLanguages = a?.MaxActiveLanguages ?? 2,
                     maxConnectionsPerIp = a?.MaxConnectionsPerIp ?? 3,
+                    creditBudgetPerSession = a?.CreditBudgetPerSession,
                     paused = a?.Paused ?? false,
                     mode = eff.Mode,
                     minFollowDays = eff.MinFollowDays,
@@ -299,6 +314,7 @@ namespace Decatron.Controllers
             a.MinSubTier = Math.Clamp(dto.MinSubTier, 1, 3);
             a.AllowList = AccessEvaluator.NormalizeList(dto.AllowList);
             a.BlockList = AccessEvaluator.NormalizeList(dto.BlockList);
+            a.CreditBudgetPerSession = dto.CreditBudgetPerSession is > 0 ? Math.Min(dto.CreditBudgetPerSession.Value, 1_000_000_000L) : null;
             a.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
@@ -311,6 +327,71 @@ namespace Decatron.Controllers
             _logger.LogInformation("[LiveTranslation] Acceso de {Login} actualizado (pausa: {Paused})", login, a.Paused);
             return Ok(await AccessViewAsync(userId, a));
         }
+
+        /// <summary>Quién está escuchando ahora: la IP va enmascarada y el id es opaco (no sirve fuera de este canal).</summary>
+        [HttpGet("access/listeners")]
+        [Authorize]
+        [RequirePermission("settings")]
+        public async Task<IActionResult> GetListeners()
+        {
+            var login = await LoginOfAsync(GetChannelOwnerId());
+            var list = Decatron.Hubs.TranslationHub.SnapshotChannel(login).Select(x => new
+            {
+                id = TranslationAbuseGuard.ListenerId(x.ConnectionId),
+                lang = x.Lang,
+                login = x.Who?.Login,
+                ip = TranslationAbuseGuard.MaskIp(x.Ip),
+                since = x.Since,
+            });
+            return Ok(new { listeners = list });
+        }
+
+        public class KickDto { public string? Id { get; set; } public bool Ban { get; set; } }
+
+        /// <summary>Saca a un oyente. Con <c>ban</c>: si tiene sesión, entra en la lista de bloqueados; si es anónimo, se veta su IP 60 min.</summary>
+        [HttpPost("access/kick")]
+        [Authorize]
+        [RequirePermission("settings", "control_total")]
+        public async Task<IActionResult> KickListener([FromBody] KickDto dto)
+        {
+            var userId = GetChannelOwnerId();
+            var login = await LoginOfAsync(userId);
+            var target = Decatron.Hubs.TranslationHub.SnapshotChannel(login).FirstOrDefault(x => TranslationAbuseGuard.ListenerId(x.ConnectionId) == dto.Id);
+            if (target.ConnectionId == null) return NotFound(new { error = "gone" });
+
+            string how;
+            if (dto.Ban && target.Who != null)
+            {
+                var a = await _db.LiveTranslationAccess.FirstOrDefaultAsync(x => x.UserId == userId);
+                if (a == null) { a = new LiveTranslationAccess { UserId = userId }; _db.LiveTranslationAccess.Add(a); }
+                a.BlockList = AccessEvaluator.NormalizeList(a.BlockList + "\n" + target.Who.Login);
+                a.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                _access.Invalidate(login);
+                how = "blocked";
+            }
+            else if (dto.Ban && target.Ip != "unknown") { _abuse.BanIp(login, target.Ip); how = "ip_banned"; }
+            else how = "kicked";
+
+            await Decatron.Hubs.TranslationHub.EvictConnectionAsync(_hub, target.ConnectionId, new Decatron.Hubs.ViewerCheckResult("blocked"));
+            // Si se bloqueó a alguien con sesión, también salen sus otras pestañas
+            if (how == "blocked") await _recheck.RecheckAsync(login);
+            _logger.LogInformation("[LiveTranslation] {Login}: oyente {Id} sacado ({How})", login, dto.Id, how);
+            return Ok(new { how });
+        }
+
+        /// <summary>Quita el endurecimiento automático: el canal vuelve al acceso que el streamer guardó.</summary>
+        [HttpPost("access/abuse/clear")]
+        [Authorize]
+        [RequirePermission("settings", "control_total")]
+        public async Task<IActionResult> ClearAbuse()
+        {
+            _abuse.Clear(await LoginOfAsync(GetChannelOwnerId()));
+            return Ok(new { ok = true });
+        }
+
+        private async Task<string> LoginOfAsync(long userId) =>
+            (await _db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Login).FirstOrDefaultAsync() ?? "").ToLowerInvariant();
 
         /// <summary>Estado en vivo de la sesión actual (si hay) + saldo de créditos.</summary>
         [HttpGet("status")]

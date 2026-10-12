@@ -461,6 +461,20 @@
           },
           {
             "t": "h3",
+            "x": "Tope de créditos y protección automática"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Tope de créditos por transmisión: un número opcional. Si la sesión llega a ese gasto, la traducción se corta sola; al 80% te avisa en el panel y en la app. El panel te dice cuánto gasta una hora de voz según tus últimas transmisiones, para que elijas un número que se entienda.",
+              "Aviso de créditos bajos: si al ritmo actual tu saldo alcanza para 15 minutos o menos, el panel y la app de escritorio lo avisan antes de que se corte.",
+              "Protección automática: si alguien prueba tu canal con decenas de intentos en un minuto (por ejemplo, con muchas pestañas), el canal pasa a pedir sesión durante 30 minutos. Tu configuración guardada no cambia, y un aviso en la pestaña te deja desactivar la protección.",
+              "Escuchando ahora: la lista de quienes escuchan, con su usuario (o «Sin sesión»), idioma, hora de entrada y la dirección parcialmente oculta. «Sacar» los desconecta; «Bloquear» agrega a la persona a Bloqueados, o veta su conexión por una hora si no tiene sesión.",
+              "Las sesiones que quedan abiertas por un reinicio del servidor se cierran solas al arrancar."
+            ]
+          },
+          {
+            "t": "h3",
             "x": "Botón de pánico"
           },
           {

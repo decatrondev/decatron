@@ -1522,6 +1522,32 @@
         "block": "Blocked",
         "blockHint": "They never get in, even if they meet the level. One user per line.",
         "listPlaceholder": "user1\nuser2"
+      },
+      "budget": {
+        "title": "Credit cap per broadcast",
+        "hint": "If the session spends this total, translation stops by itself. We warn you at 80%. Leave it empty for no cap.",
+        "none": "No cap",
+        "cost": "Based on your last {{sessions}} broadcasts, each hour of speech spends about {{perHour}} credits.",
+        "noCost": "There are not enough broadcasts yet to estimate what an hour costs.",
+        "equals": "That cap covers about {{hours}} h of speech."
+      },
+      "abuse": {
+        "title": "Automatic protection is on",
+        "body_probe": "We saw {{rejections}} rejected attempts in one minute, typical of someone testing with many tabs. For {{minutes}} min only signed-in people can join. Your saved settings did not change.",
+        "body_flood": "We saw {{attempts}} join attempts in one minute. For {{minutes}} min only signed-in people can join. Your saved settings did not change.",
+        "undo": "Turn protection off"
+      },
+      "live": {
+        "title": "Listening now",
+        "hint": "You can remove or block anyone. Signed-in people are blocked by account; anonymous ones by connection for one hour. The address is shown partly hidden.",
+        "anonymous": "Not signed in",
+        "since": "{{minutes}} min ago",
+        "kick": "Remove",
+        "block": "Block",
+        "banIp": "Block 1 h",
+        "blockConfirm": "Block {{who}}? They will leave now and cannot come back until you remove them from the blocked list.",
+        "banConfirm": "Block {{who}}'s connection for one hour?",
+        "error": "The action could not be completed"
       }
     }
   },
