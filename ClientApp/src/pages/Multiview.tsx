@@ -352,10 +352,6 @@ export default function Multiview() {
                     ))}
                 </main>
                 {chatOpen && <ChatPanel slots={slots} />}
-                {/* Flotante y sin eventos de puntero: si ocupara espacio, al desaparecer movería la página y el primer clic se perdería. */}
-                {!unlocked && slots.some(x => x.platform === 'twitch') && (
-                    <p className="pointer-events-none absolute left-1/2 top-3 z-30 max-w-[90%] -translate-x-1/2 rounded-full bg-black/80 px-4 py-1.5 text-center text-sm text-white shadow-lg">{t('hint.click')}</p>
-                )}
                 </div>
             )}
             {liveAlerts.length > 0 && (

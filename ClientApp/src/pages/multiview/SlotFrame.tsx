@@ -53,27 +53,12 @@ export default function SlotFrame(p: Props) {
         <div
             ref={box}
             style={p.style}
-            className={`group relative aspect-video overflow-hidden rounded-md border border-pub-border bg-black md:[grid-column:var(--mv-col)] md:[grid-row:var(--mv-row)] ${p.stack ? '' : 'md:aspect-auto'}`}
+            className="group relative flex min-h-0 flex-col overflow-hidden rounded-md border border-pub-border bg-black md:[grid-column:var(--mv-col)] md:[grid-row:var(--mv-row)]"
             data-slot={p.slot.id}
         >
-            {isTwitch
-                ? <TwitchPlayer channel={p.slot.channel} hasAudio={p.hasAudio} volume={p.volume} unlocked={p.unlocked} quality={p.quality} onLive={p.onLive} />
-                : <KickPlayer channel={p.slot.channel} muted={!p.hasAudio} />}
-
-            {isTwitch && p.trLang && <TileCaptions login={p.slot.channel} lang={p.trLang} />}
-
-            {/* Mientras se arrastra, una capa recibe el soltar: los iframes se tragarían el evento. */}
-            {p.dragging && (
-                <div
-                    className="absolute inset-0 z-20 flex items-center justify-center bg-pub-accent/20 text-sm font-bold text-white"
-                    onDragOver={e => e.preventDefault()}
-                    onDrop={e => { e.preventDefault(); p.onDropOn(); }}
-                >
-                    {t('slot.dropHere')}
-                </div>
-            )}
-
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 bg-gradient-to-b from-black/75 to-transparent p-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+            {/* Nada se dibuja SOBRE el player: el de Twitch desactiva el autoplay y se pausa si algo lo tapa (barra, avisos, subtítulos).
+                Por eso la barra de la casilla es una franja propia encima del video y los subtítulos van en otra debajo. */}
+            <div className="relative flex min-w-0 flex-none items-center justify-between gap-2 border-b border-pub-border bg-[#0b0b0d] px-1.5 py-1">
                 <div
                     className="pointer-events-auto flex min-w-0 items-center gap-1.5 rounded-md bg-black/55 px-2 py-1 md:cursor-grab"
                     draggable
@@ -88,6 +73,10 @@ export default function SlotFrame(p: Props) {
                     {p.live === false && <span className="flex-none rounded bg-white/15 px-1.5 text-[11px] font-semibold text-white/80">{t('slot.offline')}</span>}
                     {p.live && p.viewers != null && <span className="flex-none text-[11px] tabular-nums text-white/70">{p.viewers.toLocaleString()}</span>}
                 </div>
+
+                {p.index === 0 && !p.unlocked && isTwitch
+                    ? <span className="pointer-events-none hidden min-w-0 flex-1 truncate text-center text-xs text-white/70 sm:block">{t('hint.click')}</span>
+                    : <span className="flex-1" />}
 
                 <div className="pointer-events-auto flex flex-none items-center gap-0.5 rounded-md bg-black/55 p-0.5">
                     {isTwitch && p.hasAudio && (
@@ -115,6 +104,24 @@ export default function SlotFrame(p: Props) {
                     </button>
                 </div>
             </div>
+            <div className={`relative min-h-0 w-full bg-black ${p.stack ? 'aspect-video' : 'aspect-video md:aspect-auto md:flex-1'}`}>
+            {isTwitch
+                ? <TwitchPlayer channel={p.slot.channel} hasAudio={p.hasAudio} volume={p.volume} unlocked={p.unlocked} quality={p.quality} onLive={p.onLive} />
+                : <KickPlayer channel={p.slot.channel} muted={!p.hasAudio} />}
+
+            {/* Mientras se arrastra, una capa recibe el soltar: los iframes se tragarían el evento. */}
+            {p.dragging && (
+                <div
+                    className="absolute inset-0 z-20 flex items-center justify-center bg-pub-accent/20 text-sm font-bold text-white"
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={e => { e.preventDefault(); p.onDropOn(); }}
+                >
+                    {t('slot.dropHere')}
+                </div>
+            )}
+
+            </div>
+            {isTwitch && p.trLang && <div className="flex-none empty:hidden"><TileCaptions login={p.slot.channel} lang={p.trLang} /></div>}
         </div>
     );
 }
