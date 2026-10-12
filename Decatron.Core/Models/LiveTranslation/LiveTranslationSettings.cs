@@ -61,6 +61,13 @@ namespace Decatron.Core.Models.LiveTranslation
         [Column("background_volume")]
         public int BackgroundVolume { get; set; } = 15;
 
+        /// <summary>
+        /// Modo de pruebas: deja en el log del servidor el texto original, la traducción y los tiempos de cada etapa de cada frase,
+        /// para comparar pruebas con números. Apagado por defecto: el texto de las frases es contenido del streamer.
+        /// </summary>
+        [Column("record_phrases")]
+        public bool RecordPhrases { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

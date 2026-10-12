@@ -121,7 +121,8 @@ namespace Decatron.Controllers
             Dictionary<string, string>? Voices,
             bool AnnounceInChat,
             [MaxLength(400)] string? AnnounceMessage,
-            [Range(0, 100)] int BackgroundVolume);
+            [Range(0, 100)] int BackgroundVolume,
+            bool RecordPhrases = false);
 
         [HttpGet("settings")]
         [Authorize]
@@ -179,6 +180,7 @@ namespace Decatron.Controllers
             s.AnnounceInChat = dto.AnnounceInChat;
             s.AnnounceMessage = string.IsNullOrWhiteSpace(dto.AnnounceMessage) ? null : dto.AnnounceMessage.Trim();
             s.BackgroundVolume = Math.Clamp(dto.BackgroundVolume, 0, 100);
+            s.RecordPhrases = dto.RecordPhrases;
             s.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
@@ -448,6 +450,7 @@ namespace Decatron.Controllers
                 s.AnnounceInChat,
                 s.AnnounceMessage,
                 s.BackgroundVolume,
+                s.RecordPhrases,
                 s.UpdatedAt,
             };
         }

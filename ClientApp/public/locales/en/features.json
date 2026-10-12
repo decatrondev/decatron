@@ -1384,7 +1384,9 @@
       "backgroundHint": "Suggested volume of your voice while the translation plays. Each viewer can change it.",
       "enginePiper": "Standard voice (Piper, free)",
       "enginePremium": "premium, uses credits",
-      "engineHint": "The standard voice runs on our server and costs no credits; it takes a bit longer to start speaking. Premium voices sound better and respond sooner, but charge credits per character. If you run out of credits mid-stream, the voice falls back to standard on its own and nothing stops."
+      "engineHint": "The standard voice runs on our server and costs no credits; it takes a bit longer to start speaking. Premium voices sound better and respond sooner, but charge credits per character. If you run out of credits mid-stream, the voice falls back to standard on its own and nothing stops.",
+      "record": "Test mode: record each phrase",
+      "recordHint": "Leaves the original text, the translation and the timings of each phrase in the server log, to compare tests. Use it only for testing: the text of what you say stays in the log for up to 30 days. Off by default."
     },
     "history": {
       "title": "Past sessions",

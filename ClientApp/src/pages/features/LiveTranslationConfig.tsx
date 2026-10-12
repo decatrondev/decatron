@@ -18,6 +18,7 @@ interface Settings {
     announceInChat: boolean;
     announceMessage: string | null;
     backgroundVolume: number;
+    recordPhrases?: boolean;
 }
 
 interface Voice { id: string; name: string; language: string; gender: string }
@@ -343,6 +344,16 @@ export default function LiveTranslationConfig() {
                         <input type="range" min={0} max={60} value={settings.backgroundVolume} disabled={!canEdit} className="w-full accent-ds-accent"
                                onChange={e => update({ backgroundVolume: Number(e.target.value) })} />
                     </div>
+                </div>
+
+                {/* Modo de pruebas */}
+                <div className="mt-6 pt-6 border-t border-ds-border">
+                    <label className="flex items-center justify-between gap-3">
+                        <span className={label}>{t('liveTranslation.config.record')}</span>
+                        <input type="checkbox" className="w-5 h-5 accent-ds-accent" checked={!!settings.recordPhrases} disabled={!canEdit}
+                               onChange={e => update({ recordPhrases: e.target.checked })} />
+                    </label>
+                    <p className={`${muted} mt-1`}>{t('liveTranslation.config.recordHint')}</p>
                 </div>
             </div>
 

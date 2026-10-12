@@ -656,12 +656,30 @@ namespace Decatron.Services.LiveTranslation
             {
                 // El texto ya salió (SegmentStart) así que el espectador al menos lee el subtítulo.
                 await Notify("SegmentEnd", new { seq = q.Seq, bytes, error = true });
+                LogPhrase(item, u, speakStart, firstChunkMs, endToEndMs, bytes, error: true);
                 throw;
             }
             await Notify("SegmentEnd", new { seq = q.Seq, bytes, error = false });
+            LogPhrase(item, u, speakStart, firstChunkMs, endToEndMs, bytes, error: false);
 
             if (firstChunkMs != null)
                 _latency.Add(item.QueueWaitMs, item.TranslateMs, (speakStart - item.ReadyUtc).TotalMilliseconds, firstChunkMs.Value, endToEndMs!.Value);
+        }
+
+        /// <summary>
+        /// Modo de pruebas (ajuste del streamer, apagado por defecto): una línea por frase con el texto y los tiempos de cada etapa,
+        /// para comparar pruebas con números (<c>.dev/tools/lt_report.py</c> la lee). Tiempos en ms: STT→cola (esperó antes de
+        /// traducir), traducción, espera para hablar, primer audio y total desde que el STT cerró la frase.
+        /// </summary>
+        private void LogPhrase(SpeakItem item, Utterance u, DateTime speakStart, double? firstChunkMs, double? endToEndMs, long bytes, bool error)
+        {
+            if (!_session.Settings.RecordPhrases) return;
+            _mgr.Logger.LogInformation(
+                "[LT-PHRASE] sesion={Session} idioma={Lang} seq={Seq} voz={T0:F1}-{T1:F1}s cola={Queue:F0}ms traduccion={Translate:F0}ms espera={Wait:F0}ms audio1={First}ms total={Total}ms bytes={Bytes} error={Error} | original=«{Source}» | traduccion=«{Text}»",
+                _session.SessionId, _lang, item.Q.Seq, u.StartSec, u.EndSec, item.QueueWaitMs, item.TranslateMs,
+                (speakStart - item.ReadyUtc).TotalMilliseconds,
+                firstChunkMs?.ToString("F0") ?? "-", endToEndMs?.ToString("F0") ?? "-", bytes, error,
+                u.Text.Replace('\n', ' '), item.Text.Replace('\n', ' '));
         }
 
         private Task Notify(string method, object payload) =>

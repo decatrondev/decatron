@@ -1384,7 +1384,9 @@
       "backgroundHint": "Volumen sugerido de tu voz mientras suena la traducción. Cada viewer puede cambiarlo.",
       "enginePiper": "Voz estándar (Piper, gratis)",
       "enginePremium": "premium, usa créditos",
-      "engineHint": "La voz estándar corre en nuestro servidor y no gasta créditos; tarda un poco más en empezar a hablar. Las premium suenan mejor y responden antes, pero descuentan créditos por carácter. Si se te acaban los créditos en medio del stream, la voz pasa sola a estándar y no se corta."
+      "engineHint": "La voz estándar corre en nuestro servidor y no gasta créditos; tarda un poco más en empezar a hablar. Las premium suenan mejor y responden antes, pero descuentan créditos por carácter. Si se te acaban los créditos en medio del stream, la voz pasa sola a estándar y no se corta.",
+      "record": "Modo de pruebas: registrar cada frase",
+      "recordHint": "Deja en el registro del servidor el texto original, la traducción y los tiempos de cada frase, para comparar pruebas. Úsalo solo para probar: el texto de lo que dices queda guardado en el registro hasta 30 días. Apagado por defecto."
     },
     "history": {
       "title": "Sesiones anteriores",
