@@ -99,13 +99,13 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Every tile starts muted. Press a tile's speaker to listen to it; only one can play at a time, and choosing another one mutes the previous one."
+            "x": "Every tile plays, each with its own volume: adjust it with the control in each tile's bar. Before your first click on the page the browser only allows silent playback; after you click, all of them start playing sound. Nothing is muted on its own: you mute with the tile's speaker."
           },
           {
             "t": "ul",
             "items": [
-              "Twitch tiles also show a volume control while that tile is playing.",
-              "Kick does not allow volume control from outside: its tile can only be muted or unmuted, and changing the audio reloads that tile."
+              "A tile without sound probably does not count as a view and Twitch pauses it when you switch tabs, so Decatron never mutes any of them for you. With sound they keep playing like any other tab.",
+              "Kick does not let the volume be controlled from outside: its tile can only be muted or unmuted, and changing that reloads that tile."
             ]
           }
         ]
@@ -323,11 +323,11 @@
             "rows": [
               [
                 "1 to 9",
-                "Listen to the tile with that number (again, mute it)"
+                "Mute or unmute the tile with that number"
               ],
               [
                 "0",
-                "Mute all"
+                "Mute or unmute all (if all are muted, it unmutes them)"
               ],
               [
                 "L",

@@ -99,13 +99,13 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Todas las casillas empiezan en silencio. Pulsa el altavoz de una casilla para escucharla; solo una puede sonar a la vez y al elegir otra, la anterior se silencia."
+            "x": "Todas las casillas suenan, cada una con su propio volumen: ajústalo con el control de la barra de cada casilla. Antes de tu primer clic en la página el navegador solo permite reproducir en silencio; al hacer clic, todas pasan a sonar. Nada se silencia por su cuenta: lo silencias tú con el altavoz de la casilla."
           },
           {
             "t": "ul",
             "items": [
-              "En las casillas de Twitch aparece además un control de volumen mientras esa casilla suena.",
-              "Kick no permite controlar el volumen desde fuera: su casilla solo se silencia o se activa, y al cambiar el audio esa casilla se vuelve a cargar."
+              "Una casilla sin sonido probablemente no cuenta como visualización y Twitch la pausa cuando cambias de pestaña; por eso Decatron no silencia ninguna por ti. Con sonido, siguen reproduciéndose como en cualquier otra pestaña.",
+              "Kick no permite controlar el volumen desde fuera: su casilla solo se silencia o se activa, y al cambiar eso esa casilla se vuelve a cargar."
             ]
           }
         ]
@@ -323,11 +323,11 @@
             "rows": [
               [
                 "1 a 9",
-                "Escuchar la casilla con ese número (otra vez, silenciarla)"
+                "Silenciar o activar el sonido de la casilla con ese número"
               ],
               [
                 "0",
-                "Silenciar todas"
+                "Silenciar o activar todas (si todas están silenciadas, las activa)"
               ],
               [
                 "L",

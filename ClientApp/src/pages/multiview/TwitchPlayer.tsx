@@ -5,8 +5,8 @@ import type { QualityChoice } from './types';
 
 interface Props {
     channel: string;
-    /** Si esta casilla tiene el audio. Las demás no se silencian: se dejan en volumen 0 (ver `unlocked`). */
-    hasAudio: boolean;
+    /** La persona silenció esta casilla (nunca se silencia por su cuenta: una casilla sin sonido no cuenta como visualización). */
+    silenced: boolean;
     volume: number;
     /** El usuario ya tocó la página: desde ahí el navegador deja reproducir con audio activo. */
     unlocked: boolean;
@@ -15,7 +15,7 @@ interface Props {
 }
 
 /** Player de Twitch con la API oficial: silencio, volumen y calidad se controlan desde la barra de la casilla. */
-export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, quality, onLive }: Props) {
+export default function TwitchPlayer({ channel, silenced, volume, unlocked, quality, onLive }: Props) {
     const domId = 'mv-tw-' + useId().replace(/:/g, '');
     const player = useRef<TwitchPlayerApi | null>(null);
     const ready = useRef(false);
@@ -38,11 +38,10 @@ export default function TwitchPlayer({ channel, hasAudio, volume, unlocked, qual
             if (p.isPaused()) { lastPlay.current = now; playTries.current += 1; p.play(); mvLog(`${channel} play (${why})`); }
         } catch { /* el player aún no responde */ }
     };
-    // Antes del primer gesto del usuario el navegador solo permite autoplay en silencio. Después, una casilla sin
-    // audio queda con el sonido activo pero en volumen 0: un video «silenciado» es el que Chrome pausa al salir de
-    // vista o al cambiar de pestaña.
+    // Antes del primer gesto del usuario el navegador solo permite autoplay en silencio. Después todas suenan a su volumen
+    // (cada casilla tiene el suyo); solo se silencia lo que la persona silencia.
     const muted = !unlocked;
-    const effVolume = hasAudio ? volume : 0;
+    const effVolume = silenced ? 0 : volume;
     const latest = useRef({ muted, volume: effVolume, quality });
     latest.current = { muted, volume: effVolume, quality };
     const onLiveRef = useRef(onLive);

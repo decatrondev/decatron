@@ -14,7 +14,7 @@ interface Props {
     style: React.CSSProperties;
     live: boolean | null;
     viewers: number | null;
-    hasAudio: boolean;
+    silenced: boolean;
     volume: number;
     quality: QualityChoice;
     isMain: boolean;
@@ -25,7 +25,7 @@ interface Props {
     trLang: string | null;
     onTrLang: (lang: string | null) => void;
     dragging: boolean;
-    onAudio: () => void;
+    onToggleSound: () => void;
     onVolume: (v: number) => void;
     onLive: (live: boolean) => void;
     onMakeMain: () => void;
@@ -79,17 +79,17 @@ export default function SlotFrame(p: Props) {
                     : <span className="flex-1" />}
 
                 <div className="pointer-events-auto flex flex-none items-center gap-0.5 rounded-md bg-black/55 p-0.5">
-                    {isTwitch && p.hasAudio && (
+                    {isTwitch && (
                         <input
-                            type="range" min={0} max={100} value={Math.round(p.volume * 100)}
-                            onChange={e => p.onVolume(Number(e.target.value) / 100)}
+                            type="range" min={0} max={100} value={p.silenced ? 0 : Math.round(p.volume * 100)}
+                            onChange={e => { const v = Number(e.target.value) / 100; p.onVolume(v); if (p.silenced && v > 0) p.onToggleSound(); }}
                             aria-label={t('slot.volume')}
-                            className="mx-1 hidden h-1 w-20 accent-[#6e94ed] md:block"
+                            className="mx-1 h-1 w-14 accent-[#6e94ed] sm:w-20"
                         />
                     )}
                     {isTwitch && p.tr?.enabled && p.tr.languages.length > 0 && <TranslationMenu info={p.tr} lang={p.trLang} onLang={p.onTrLang} btn={iconBtn} />}
-                    <button type="button" className={iconBtn} onClick={p.onAudio} aria-pressed={p.hasAudio} aria-label={p.hasAudio ? t('slot.mute') : t('slot.listen')} title={p.hasAudio ? t('slot.mute') : t('slot.listen')}>
-                        {p.hasAudio ? <Volume2 className="h-4 w-4 text-pub-accent-hi" /> : <VolumeX className="h-4 w-4" />}
+                    <button type="button" className={iconBtn} onClick={p.onToggleSound} aria-pressed={!p.silenced} aria-label={p.silenced ? t('slot.listen') : t('slot.mute')} title={p.silenced ? t('slot.listen') : t('slot.mute')}>
+                        {p.silenced ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-pub-accent-hi" />}
                     </button>
                     {!p.isMain && (
                         <button type="button" className={iconBtn} onClick={p.onMakeMain} aria-label={t('slot.makeMain')} title={t('slot.makeMain')}>
@@ -106,8 +106,8 @@ export default function SlotFrame(p: Props) {
             </div>
             <div className={`relative min-h-0 w-full bg-black ${p.stack ? 'aspect-video' : 'aspect-video md:aspect-auto md:flex-1'}`}>
             {isTwitch
-                ? <TwitchPlayer channel={p.slot.channel} hasAudio={p.hasAudio} volume={p.volume} unlocked={p.unlocked} quality={p.quality} onLive={p.onLive} />
-                : <KickPlayer channel={p.slot.channel} muted={!p.hasAudio} />}
+                ? <TwitchPlayer channel={p.slot.channel} silenced={p.silenced} volume={p.volume} unlocked={p.unlocked} quality={p.quality} onLive={p.onLive} />
+                : <KickPlayer channel={p.slot.channel} muted={p.silenced} />}
 
             {/* Mientras se arrastra, una capa recibe el soltar: los iframes se tragarían el evento. */}
             {p.dragging && (

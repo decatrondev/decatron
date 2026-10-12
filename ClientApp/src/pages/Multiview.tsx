@@ -48,7 +48,9 @@ export default function Multiview() {
     const [platform, setPlatform] = useState<Platform>('twitch');
     const [text, setText] = useState('');
     const [message, setMessage] = useState<{ tone: 'warn' | 'info'; text: string; upgrade?: boolean } | null>(null);
-    const [audioId, setAudioId] = useState<string | null>(null);
+    // Cada casilla tiene su volumen; «silenciada» es una decisión de la persona, nunca automática (una casilla sin sonido deja de contar
+    // como visualización y Twitch la pausa al cambiar de pestaña).
+    const [silenced, setSilenced] = useState<Record<string, boolean>>({});
     const [volumes, setVolumes] = useState<Record<string, number>>({});
     const [quality, setQuality] = useState<QualityChoice>('auto');
     const [liveMap, setLiveMap] = useState<Record<string, boolean>>({});
@@ -158,7 +160,6 @@ export default function Multiview() {
     }, []);
 
     const remove = (id: string) => {
-        if (audioId === id) setAudioId(null);
         go(slots.filter(s => s.id !== id));
     };
 
@@ -195,17 +196,17 @@ export default function Multiview() {
     };
 
     // Atajos de teclado (no actúan mientras se escribe en un campo ni con Ctrl, Alt o Cmd).
-    const keys = useRef({ slots, audioId, layout });
-    keys.current = { slots, audioId, layout };
+    const keys = useRef({ slots, silenced, layout });
+    keys.current = { slots, silenced, layout };
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.ctrlKey || e.metaKey || e.altKey) return;
             const el = e.target as HTMLElement | null;
             if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
-            const { slots: sl, audioId: au, layout: ly } = keys.current;
+            const { slots: sl, silenced: si, layout: ly } = keys.current;
             const k = e.key.toLowerCase();
-            if (/^[1-9]$/.test(k)) { const slot = sl[Number(k) - 1]; if (slot) { e.preventDefault(); setAudioId(au === slot.id ? null : slot.id); } }
-            else if (k === '0') setAudioId(null);
+            if (/^[1-9]$/.test(k)) { const slot = sl[Number(k) - 1]; if (slot) { e.preventDefault(); setSilenced(prev => ({ ...prev, [slot.id]: !si[slot.id] })); } }
+            else if (k === '0') setSilenced(sl.every(x => si[x.id]) ? {} : Object.fromEntries(sl.map(x => [x.id, true])));
             else if (k === 'l') { const i = LAYOUTS.indexOf(ly); const next = LAYOUTS[(i + 1) % LAYOUTS.length]; try { localStorage.setItem('mv-layout', next); } catch { /* sin almacenamiento */ } go(sl, next); }
             else if (k === 'c') toggleChat();
             else if (k === 'f') fullscreenPage();
@@ -330,7 +331,7 @@ export default function Multiview() {
                             style={plan.item(i)}
                             live={liveOf(s)}
                             viewers={s.platform === 'kick' ? kick[s.channel]?.viewers ?? null : null}
-                            hasAudio={audioId === s.id}
+                            silenced={!!silenced[s.id]}
                             volume={volumes[s.id] ?? 1}
                             quality={quality}
                             isMain={i === 0}
@@ -340,7 +341,7 @@ export default function Multiview() {
                             trLang={trLangs[s.id] ?? null}
                             onTrLang={lang => setTrLang(s.id, lang)}
                             dragging={dragId !== null && dragId !== s.id}
-                            onAudio={() => setAudioId(audioId === s.id ? null : s.id)}
+                            onToggleSound={() => setSilenced(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
                             onVolume={v => setVolumes(prev => ({ ...prev, [s.id]: v }))}
                             onLive={live => setLiveMap(prev => (prev[s.id] === live ? prev : { ...prev, [s.id]: live }))}
                             onMakeMain={() => makeMain(s.id)}
