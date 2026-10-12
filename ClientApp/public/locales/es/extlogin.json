@@ -1,0 +1,15 @@
+{
+  "eyebrow": "Extensión",
+  "title": "Iniciar sesión en la extensión",
+  "intro": "Con tu sesión, la extensión de Decatron puede reconocerte en la traducción en vivo. Este inicio de sesión solo sirve para eso: no da acceso a tu panel.",
+  "needLogin": "Primero inicia sesión con tu cuenta.",
+  "login": "Iniciar sesión",
+  "working": "Conectando con la extensión…",
+  "ok": "Listo, {{login}}: la extensión ya tiene tu sesión. Puedes cerrar esta pestaña.",
+  "noext": "No detecté la extensión. Instálala (o actívala) en este navegador y pulsa Reintentar.",
+  "retry": "Reintentar",
+  "error": "No se pudo completar el inicio de sesión. Intenta de nuevo.",
+  "revokeHint": "Si perdiste un navegador o quieres empezar de cero, puedes cerrar la sesión de la extensión en todos tus navegadores.",
+  "revoke": "Cerrar sesión en todas las extensiones",
+  "revoked": "Listo: los navegadores con la sesión anterior ya no te reconocen."
+}

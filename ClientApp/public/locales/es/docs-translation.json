@@ -424,6 +424,21 @@
         ]
       },
       {
+        "id": "pruebas",
+        "title": "Modo de pruebas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Traducción, el interruptor «Modo de pruebas: registrar cada frase» deja en el registro del servidor el texto original, la traducción y los tiempos de cada etapa de cada frase (cola, traducción, espera y primer audio). Sirve para comparar pruebas con números."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Úsalo solo para probar: el texto de lo que dices queda en el registro hasta 30 días. Viene apagado."
+          }
+        ]
+      },
+      {
         "id": "apagar",
         "title": "Si apagas la función",
         "blocks": [
@@ -797,6 +812,44 @@
                 "Espera un minuto."
               ]
             ]
+          }
+        ]
+      },
+      {
+        "id": "sesion",
+        "title": "Iniciar sesión en la extensión",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Puedes escuchar la traducción sin cuenta, pero con tu sesión la extensión puede identificarte ante el canal. Los canales que limiten quién escucha podrán reconocerte (eso llega en una fase siguiente) y se cuenta cuántas conexiones tienes a la vez, en lugar de solo las de tu red."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Abre el panel de Decatron en twitch.tv y entra en Traducción.",
+              "En la sección Cuenta pulsa Iniciar sesión: se abre decatron.net/extension/login.",
+              "Entra con tu cuenta de Twitch o de Kick. La página entrega tu sesión a la extensión y te avisa; puedes cerrar la pestaña."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Qué se guarda"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "La extensión guarda en tu navegador un token de espectador (tu nombre y un identificador). Dura 30 días y no se sincroniza entre navegadores.",
+              "Ese token solo sirve para identificarte ante la traducción en vivo: no da acceso a tu panel ni a tus datos, y está firmado con una clave distinta a la de tu sesión normal.",
+              "No se guarda qué canales escuchas ni qué dices."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Cerrar sesión"
+          },
+          {
+            "t": "p",
+            "x": "El botón Cerrar sesión del panel borra el token de ese navegador. Para cerrarlo en todos tus navegadores a la vez (por ejemplo, si perdiste uno), entra en decatron.net/extension/login y usa «Cerrar sesión en todas las extensiones»."
           }
         ]
       }

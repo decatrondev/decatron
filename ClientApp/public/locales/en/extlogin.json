@@ -1,0 +1,15 @@
+{
+  "eyebrow": "Extension",
+  "title": "Log in to the extension",
+  "intro": "With your session, the Decatron extension can recognize you in live translation. This login only serves that purpose: it does not give access to your dashboard.",
+  "needLogin": "First log in with your account.",
+  "login": "Log in",
+  "working": "Connecting with the extension…",
+  "ok": "Done, {{login}}: the extension now has your session. You can close this tab.",
+  "noext": "I did not detect the extension. Install (or enable) it in this browser and press Retry.",
+  "retry": "Retry",
+  "error": "The login could not be completed. Try again.",
+  "revokeHint": "If you lost a browser or want to start over, you can log out of the extension in all your browsers.",
+  "revoke": "Log out of all extensions",
+  "revoked": "Done: browsers with the previous session no longer recognize you."
+}

@@ -182,7 +182,8 @@
       "languages_full": "That language isn't available right now: other languages are already on.",
       "language": "This channel doesn't offer that language.",
       "rate_limited": "Too many attempts in a row. Wait a minute.",
-      "busy": "The service is full right now."
+      "busy": "The service is full right now.",
+      "user_limit": "You already have this translation open in other browsers or tabs."
     }
   }
 }

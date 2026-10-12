@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 import api from '../../services/api';
+import { isTokenExpired } from '../../utils/jwt';
 import type { Slot } from './types';
 
 export interface TrInfo { enabled: boolean; live: boolean; languages: string[] }
@@ -56,7 +57,10 @@ export function useTileCaptions(login: string, lang: string | null) {
         setActive(null);
         setDenied(null);
         if (!lang) return;
-        const c = new signalR.HubConnectionBuilder().withUrl('/hubs/translation').withAutomaticReconnect([0, 2000, 5000, 15000, 30000]).configureLogging(signalR.LogLevel.None).build();
+        // Con la sesión iniciada el hub reconoce a la persona (límites por persona y, más adelante, los niveles de acceso del canal).
+        const c = new signalR.HubConnectionBuilder().withUrl('/hubs/translation', {
+            accessTokenFactory: () => { try { const k = localStorage.getItem('token'); return k && !isTokenExpired(k, 60) ? k : ''; } catch { return ''; } },
+        }).withAutomaticReconnect([0, 2000, 5000, 15000, 30000]).configureLogging(signalR.LogLevel.None).build();
         let timer: number | null = null;
         let n = 0;
 

@@ -41,7 +41,7 @@ namespace Decatron.Services.LiveTranslation
         public async Task<Decatron.Hubs.TranslationLimits?> GetLimitsAsync(string login)
         {
             var p = await GetPolicyAsync(login);
-            return p == null ? null : new Decatron.Hubs.TranslationLimits(p.Paused, p.MaxListenersTotal, p.MaxListenersPerLanguage, p.MaxActiveLanguages, p.MaxConnectionsPerIp, p.Languages);
+            return p == null ? null : new Decatron.Hubs.TranslationLimits(p.Paused, p.MaxListenersTotal, p.MaxListenersPerLanguage, p.MaxActiveLanguages, p.MaxConnectionsPerIp, p.MaxConnectionsPerUser, p.Languages);
         }
         private static string Key(string login) => "lt-access:" + login.ToLowerInvariant();
 

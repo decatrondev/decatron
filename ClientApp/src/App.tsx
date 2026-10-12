@@ -200,6 +200,7 @@ import MeBilling from './pages/me/MeBilling';
 import MeInvoices from './pages/me/MeInvoices';
 import SpritesGallery from './pages/SpritesGallery';
 import Multiview from './pages/Multiview';
+import ExtensionLogin from './pages/ExtensionLogin';
 import { MultiviewDoc } from './pages/docs/MultiviewDoc';
 import SpiritCollection from './pages/SpiritCollection';
 import MySpiritCollection from './pages/me/MySpiritCollection';
@@ -258,6 +259,9 @@ function App() {
 
                 {/* Multi-view público - sin sesión para ver; chat y moderación con cuenta (fases siguientes) */}
                 <Route path="/multi/*" element={<SafeRoute name="Multi-view"><Multiview /></SafeRoute>} />
+
+                {/* Inicio de sesión de la extensión de Decatron (entrega el token de espectador) */}
+                <Route path="/extension/login" element={<SafeRoute name="Extension Login"><ExtensionLogin /></SafeRoute>} />
 
                 {/* Public Supporters Page - No authentication required */}
                 <Route path="/supporters" element={<SupportersPublic />} />

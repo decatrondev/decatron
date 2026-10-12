@@ -424,6 +424,21 @@
         ]
       },
       {
+        "id": "testing",
+        "title": "Test mode",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Translation tab, the «Test mode: record each phrase» switch leaves the original text, the translation and the timings of each stage of each phrase (queue, translation, wait and first audio) in the server log. It is useful to compare tests with numbers."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Use it only for testing: the text of what you say stays in the log for up to 30 days. It is off by default."
+          }
+        ]
+      },
+      {
         "id": "apagar",
         "title": "If you turn the feature off",
         "blocks": [
@@ -797,6 +812,44 @@
                 "Wait a minute."
               ]
             ]
+          }
+        ]
+      },
+      {
+        "id": "signin",
+        "title": "Signing in to the extension",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "You can listen to translation without an account, but with your session the extension can identify you to the channel. Channels that limit who listens will be able to recognize you (that comes in a later phase) and the number of connections you have at once is counted, instead of only those from your network."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Open the Decatron panel on twitch.tv and go to Translation.",
+              "In the Account section press Sign in: decatron.net/extension/login opens.",
+              "Log in with your Twitch or Kick account. The page hands your session to the extension and tells you; you can close the tab."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "What is stored"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "The extension stores a viewer token in your browser (your name and an identifier). It lasts 30 days and is not synced between browsers.",
+              "That token only serves to identify you to live translation: it gives no access to your dashboard or your data, and it is signed with a different key than your normal session.",
+              "Which channels you listen to and what you say are not stored."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Signing out"
+          },
+          {
+            "t": "p",
+            "x": "The panel's Sign out button deletes the token from that browser. To sign out of all your browsers at once (for example, if you lost one), go to decatron.net/extension/login and use «Log out of all extensions»."
           }
         ]
       }

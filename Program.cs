@@ -174,6 +174,14 @@ try
                             context.Token = hubToken;
                             return Task.CompletedTask;
                         }
+                        // Traducción en vivo: la sesión normal (Multi-view) se valida aquí; el token de espectador de la extensión NO (está
+                        // firmado con otra clave y lo valida el propio hub), así no llena el log de fallos de autenticación.
+                        if (context.Request.Path.StartsWithSegments("/hubs/translation")
+                            && context.Request.Query.TryGetValue("access_token", out var trToken) && !string.IsNullOrEmpty(trToken))
+                        {
+                            if (!Decatron.Services.LiveTranslation.ViewerTokenService.LooksLikeViewerToken(trToken)) context.Token = trToken;
+                            return Task.CompletedTask;
+                        }
                         var token = context.Request.Headers["Authorization"].ToString();
                         if (!string.IsNullOrEmpty(token))
                         {
@@ -552,6 +560,8 @@ try
     builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewModerationService>();
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.TranslationAccessService>();
     builder.Services.AddSingleton<Decatron.Hubs.ITranslationAccessGate>(sp => sp.GetRequiredService<Decatron.Services.LiveTranslation.TranslationAccessService>());
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.ViewerTokenService>();
+    builder.Services.AddSingleton<Decatron.Hubs.IViewerIdentityResolver>(sp => sp.GetRequiredService<Decatron.Services.LiveTranslation.ViewerTokenService>());
     builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewChatService>();
     builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Services.Multiview.MultiviewChatService>());
     builder.Services.AddSingleton<Decatron.Services.GameData.Riot.RiotApiKeys>();

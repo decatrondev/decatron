@@ -26,10 +26,13 @@ namespace Decatron.Hubs
         private readonly ILogger<TranslationHub> _logger;
         private readonly ITranslationListenerNotifier _notifier;
         private readonly ITranslationAccessGate _gate;
+        private readonly IViewerIdentityResolver _viewers;
 
         private static readonly ConcurrentDictionary<string, (string Login, string Lang)> _connections = new();
         // IP de cada conexión que escucha, y los intentos de entrada recientes por IP (límites contra abuso)
         private static readonly ConcurrentDictionary<string, string> _ips = new();
+        // Quién es (si inició sesión) cada conexión que escucha: permite topar las conexiones por persona
+        private static readonly ConcurrentDictionary<string, long> _users = new();
         private static readonly ConcurrentDictionary<string, Queue<DateTime>> _attempts = new();
 
         /// <summary>Intentos de Join por IP por minuto.</summary>
@@ -51,12 +54,33 @@ namespace Decatron.Hubs
             _connections.Values.Where(v => v.Login == login.ToLowerInvariant())
                 .GroupBy(v => v.Lang).ToDictionary(g => g.Key, g => g.Count());
 
-        public TranslationHub(ILogger<TranslationHub> logger, ITranslationListenerNotifier notifier, ITranslationAccessGate gate)
+        public TranslationHub(ILogger<TranslationHub> logger, ITranslationListenerNotifier notifier, ITranslationAccessGate gate, IViewerIdentityResolver viewers)
         {
             _logger = logger;
             _notifier = notifier;
             _gate = gate;
+            _viewers = viewers;
         }
+
+        /// <summary>
+        /// Al conectar se reconoce a quien inició sesión: con la sesión normal de decatron.net (Multi-view) o con el token de espectador
+        /// de la extensión (<c>?access_token=</c>). Un token vencido, revocado o inválido no es un error: la conexión sigue como anónima.
+        /// </summary>
+        public override async Task OnConnectedAsync()
+        {
+            try
+            {
+                var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+                var who = await _viewers.ResolveAsync(token, Context.User);
+                if (who != null) Context.Items["viewer"] = who;
+            }
+            catch (Exception ex) { _logger.LogDebug(ex, "[LiveTranslation] No se pudo reconocer al espectador"); }
+            await base.OnConnectedAsync();
+        }
+
+        /// <summary>Quién ve el servidor al otro lado: sirve para saber si la sesión de la extensión sigue valiendo.</summary>
+        public object Whoami() =>
+            Context.Items["viewer"] is ViewerIdentity v ? new { identified = true, login = v.Login } : new { identified = false, login = (string?)null };
 
         /// <summary>La IP real de quien se conecta (nginx la pasa en X-Forwarded-For).</summary>
         private string ClientIp()
@@ -87,7 +111,7 @@ namespace Decatron.Hubs
         /// voz y traducción del streamer), no el número de oyentes, así que además de topar oyentes se topean los idiomas a la vez
         /// y las conexiones por IP. Devuelve el motivo del rechazo o null si puede entrar.
         /// </summary>
-        private static string? CheckLimits(TranslationLimits? limits, string login, string lang, string ip)
+        private static string? CheckLimits(TranslationLimits? limits, string login, string lang, string ip, long? userId)
         {
             var mine = _connections.Where(kv => kv.Value.Login == login).Select(kv => kv.Value.Lang).ToList();
             var ipAll = _ips.Count(kv => kv.Value == ip && _connections.ContainsKey(kv.Key));
@@ -99,6 +123,12 @@ namespace Decatron.Hubs
             if (!limits.Languages.Contains(lang, StringComparer.OrdinalIgnoreCase)) return "language";
             var ipHere = _ips.Count(kv => kv.Value == ip && _connections.TryGetValue(kv.Key, out var c) && c.Login == login);
             if (ipHere >= limits.MaxConnectionsPerIp) return "ip_limit";
+            // Una misma persona (con sesión) tiene un máximo de conexiones escuchando el canal, en el navegador que sea
+            if (userId != null)
+            {
+                var userHere = _users.Count(kv => kv.Value == userId && _connections.TryGetValue(kv.Key, out var c) && c.Login == login);
+                if (userHere >= limits.MaxConnectionsPerUser) return "user_limit";
+            }
             if (mine.Count >= limits.MaxListenersTotal) return "full";
             if (mine.Count(l => l == lang) >= limits.MaxListenersPerLanguage) return "full";
             // Un idioma nuevo solo se enciende si hay lugar entre los idiomas activos.
@@ -115,6 +145,7 @@ namespace Decatron.Hubs
             {
                 if (!_connections.TryRemove(connId, out _)) continue;
                 _ips.TryRemove(connId, out _);
+                _users.TryRemove(connId, out _);
                 try
                 {
                     await hub.Groups.RemoveFromGroupAsync(connId, GroupName(cur.Login, cur.Lang));
@@ -137,7 +168,8 @@ namespace Decatron.Hubs
 
             await LeaveCurrentAsync();
 
-            var reason = CheckLimits(await _gate.GetLimitsAsync(login), login, lang, ip);
+            var who = Context.Items["viewer"] as ViewerIdentity;
+            var reason = CheckLimits(await _gate.GetLimitsAsync(login), login, lang, ip, who?.UserId);
             if (reason != null)
             {
                 _logger.LogInformation("[LiveTranslation] Entrada rechazada a {Login}/{Lang}: {Reason}", login, lang, reason);
@@ -147,6 +179,7 @@ namespace Decatron.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(login, lang));
             _connections[Context.ConnectionId] = (login, lang);
             _ips[Context.ConnectionId] = ip;
+            if (who != null) _users[Context.ConnectionId] = who.UserId;
 
             var status = await _notifier.OnListenerChangedAsync(login, lang, CountListeners(login, lang), joined: true);
             _logger.LogDebug("[LiveTranslation] {Conn} escucha {Login}/{Lang} ({N})", Context.ConnectionId, login, lang, CountListeners(login, lang));
@@ -164,6 +197,7 @@ namespace Decatron.Hubs
         private async Task LeaveCurrentAsync()
         {
             _ips.TryRemove(Context.ConnectionId, out _);
+            _users.TryRemove(Context.ConnectionId, out _);
             if (!_connections.TryRemove(Context.ConnectionId, out var cur)) return;
             try { await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(cur.Login, cur.Lang)); } catch { }
             await _notifier.OnListenerChangedAsync(cur.Login, cur.Lang, CountListeners(cur.Login, cur.Lang), joined: false);

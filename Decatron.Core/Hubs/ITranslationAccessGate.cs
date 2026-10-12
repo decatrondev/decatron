@@ -1,7 +1,7 @@
 namespace Decatron.Hubs
 {
     /// <summary>Los límites de acceso de un canal que el hub aplica al entrar un oyente (los resuelve el servicio de acceso).</summary>
-    public sealed record TranslationLimits(bool Paused, int MaxListenersTotal, int MaxListenersPerLanguage, int MaxActiveLanguages, int MaxConnectionsPerIp, IReadOnlyList<string> Languages);
+    public sealed record TranslationLimits(bool Paused, int MaxListenersTotal, int MaxListenersPerLanguage, int MaxActiveLanguages, int MaxConnectionsPerIp, int MaxConnectionsPerUser, IReadOnlyList<string> Languages);
 
     public interface ITranslationAccessGate
     {
