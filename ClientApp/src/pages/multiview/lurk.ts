@@ -14,8 +14,9 @@ export type LurkChannelMode = 'default' | 'off' | LurkMode;
 /** off: el canal no tiene lurk · offline: no está en vivo · queued: espera turno · open: pestaña abierta · done: la racha subió en este
  *  directo · timeout: se cerró por tiempo sin ver subir la racha · closed: la persona cerró la pestaña */
 export type LurkStatus = 'off' | 'offline' | 'queued' | 'open' | 'done' | 'timeout' | 'closed';
-/** Lo que ve la pestaña de Twitch: el video avanza, Twitch lo dejó pausado o no hay sesión de Twitch en el navegador */
-export type LurkHealth = 'playing' | 'paused' | 'nosession' | null;
+/** Lo que ve la pestaña de Twitch: arrancando (la ventana se muestra hasta que arranca el video), el video avanza, Twitch lo dejó
+ *  pausado, no arrancó a tiempo o no hay sesión de Twitch en el navegador */
+export type LurkHealth = 'starting' | 'playing' | 'paused' | 'stalled' | 'nosession' | null;
 
 export interface LurkChannel {
     mode: LurkChannelMode;

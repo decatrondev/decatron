@@ -232,7 +232,9 @@
     "health": {
       "playing": "video reproduciendo",
       "paused": "video pausado por Twitch",
-      "nosession": "sin sesión de Twitch en este navegador"
+      "nosession": "sin sesión de Twitch en este navegador",
+      "starting": "arrancando el video (la ventana de lurk se muestra unos segundos)",
+      "stalled": "el video no arrancó: abre la ventana de lurk"
     },
     "panel": {
       "open": "Modo lurk: estado, historial y guía",
@@ -256,13 +258,15 @@
       "logEmpty": "Todavía no hay nada en el historial.",
       "clearLog": "Borrar historial",
       "docs": "Documentación del Multi-view",
-      "mutedVideo": "(video sin sonido)"
+      "mutedVideo": "(video sin sonido)",
+      "menuText": "texto del menú de puntos",
+      "wasHidden": "la pestaña de Twitch estaba minimizada al leer"
     },
     "log": {
       "opened": "se abrió su pestaña de Twitch ({{mode}})",
-      "playing": "el video de la pestaña está reproduciendo a {{height}} {{muted}}",
-      "resumed": "Twitch había pausado el video; se reanudó {{muted}}",
-      "paused": "Twitch dejó el video pausado y no se pudo reanudar: así no cuenta",
+      "playing": "el video arrancó a {{height}} ({{seconds}} s después de abrir)",
+      "resumed": "Twitch había pausado el video; se reanudó",
+      "paused": "Twitch pausó el video; se intenta reanudar",
       "nosession": "la pestaña no tiene sesión de Twitch: inicia sesión en twitch.tv en este navegador, si no, no cuenta",
       "streak_read": "racha leída: {{have}}/{{need}}",
       "streak_up": "la racha subió: {{from}} → {{have}}/{{need}}",
@@ -272,13 +276,16 @@
       "closed_user": "cerraste la pestaña a los {{minutes}} min: no se reabre en este directo",
       "closed_offline": "se cerró: el canal terminó su directo ({{minutes}} min abierta)",
       "closed_off": "se cerró: el lurk de este canal se apagó ({{minutes}} min abierta)",
-      "closed_removed": "se cerró: el canal salió del Multi-view o se cerró el Multi-view ({{minutes}} min abierta)"
+      "closed_removed": "se cerró: el canal salió del Multi-view o se cerró el Multi-view ({{minutes}} min abierta)",
+      "playing_again": "el video volvió a reproducir",
+      "warm_failed": "el video no arrancó en {{seconds}} s: abre la ventana de lurk (está minimizada) para que arranque",
+      "streak_share": "Twitch avisó en el chat que la racha subió"
     },
     "guide": {
       "step1": "Instala la extensión de Decatron (versión 0.9.0 o más nueva) en este navegador.",
       "step2": "Inicia sesión en twitch.tv en este mismo navegador: las pestañas cuentan para esa cuenta.",
       "step3": "Agrega tus canales al Multi-view y elige arriba «Lurk: solo racha» o «Lurk: completo». Cada casilla tiene además su propio ajuste en el ojo de su barra.",
-      "step4": "La extensión abre una ventana aparte, minimizada, con una pestaña normal de Twitch por cada canal en vivo, silenciada y en calidad mínima. Déjala abierta (puede quedar minimizada).",
+      "step4": "La extensión abre una ventana chica en una esquina con una pestaña normal de Twitch por cada canal en vivo, silenciada y en calidad mínima. Se muestra unos segundos hasta que el video arranca (el navegador no arranca video en una pestaña que nunca se vio) y luego se minimiza sola. Déjala abierta.",
       "step5": "Sigue mirando aquí. En «Ahora» ves cada canal (si el video de la pestaña avanza y la racha leída) y en «Historial» todo lo que pasó.",
       "streak": "Solo racha: la pestaña se cierra apenas la racha sube (la extensión la lee del menú de puntos del canal) o a los {{max}} minutos si no la ve subir. Una vez por directo.",
       "full": "Completo: la pestaña queda abierta todo el directo; suma puntos y, con el módulo de puntos de la extensión encendido, reclama los cofres.",

@@ -232,7 +232,9 @@
     "health": {
       "playing": "video playing",
       "paused": "video paused by Twitch",
-      "nosession": "not signed in to Twitch in this browser"
+      "nosession": "not signed in to Twitch in this browser",
+      "starting": "starting the video (the lurk window shows for a few seconds)",
+      "stalled": "the video did not start: open the lurk window"
     },
     "panel": {
       "open": "Lurk mode: status, history and guide",
@@ -256,13 +258,15 @@
       "logEmpty": "Nothing in the history yet.",
       "clearLog": "Clear history",
       "docs": "Multi-view documentation",
-      "mutedVideo": "(video muted)"
+      "mutedVideo": "(video muted)",
+      "menuText": "points menu text",
+      "wasHidden": "the Twitch tab was minimized when reading"
     },
     "log": {
       "opened": "its Twitch tab opened ({{mode}})",
-      "playing": "the tab video is playing at {{height}} {{muted}}",
-      "resumed": "Twitch had paused the video; it was resumed {{muted}}",
-      "paused": "Twitch left the video paused and it could not be resumed: it does not count like this",
+      "playing": "the video started at {{height}} ({{seconds}} s after opening)",
+      "resumed": "Twitch had paused the video; it was resumed",
+      "paused": "Twitch paused the video; trying to resume it",
       "nosession": "the tab is not signed in to Twitch: sign in on twitch.tv in this browser, otherwise it does not count",
       "streak_read": "streak read: {{have}}/{{need}}",
       "streak_up": "the streak went up: {{from}} → {{have}}/{{need}}",
@@ -272,13 +276,16 @@
       "closed_user": "you closed the tab after {{minutes}} min: it does not reopen this stream",
       "closed_offline": "closed: the channel ended its stream (open {{minutes}} min)",
       "closed_off": "closed: lurk was turned off for this channel (open {{minutes}} min)",
-      "closed_removed": "closed: the channel left the Multi-view or the Multi-view was closed (open {{minutes}} min)"
+      "closed_removed": "closed: the channel left the Multi-view or the Multi-view was closed (open {{minutes}} min)",
+      "playing_again": "the video is playing again",
+      "warm_failed": "the video did not start within {{seconds}} s: open the lurk window (it is minimized) so it starts",
+      "streak_share": "Twitch announced in chat that the streak went up"
     },
     "guide": {
       "step1": "Install the Decatron extension (version 0.9.0 or newer) in this browser.",
       "step2": "Sign in on twitch.tv in this same browser: the tabs count for that account.",
       "step3": "Add your channels to the Multi-view and pick «Lurk: streak only» or «Lurk: full» above. Each tile also has its own setting in the eye on its bar.",
-      "step4": "The extension opens a separate, minimized window with a regular Twitch tab for each live channel, muted and at the lowest quality. Leave it open (it can stay minimized).",
+      "step4": "The extension opens a small window in a corner with a regular Twitch tab for each live channel, muted and at the lowest quality. It shows for a few seconds until the video starts (the browser does not start video in a tab that was never seen) and then minimizes itself. Leave it open.",
       "step5": "Keep watching here. «Now» shows each channel (whether the tab video is moving and the streak it read) and «History» everything that happened.",
       "streak": "Streak only: the tab closes as soon as the streak goes up (the extension reads it from the channel points menu) or after {{max}} minutes if it does not see it go up. Once per stream.",
       "full": "Full: the tab stays open the whole stream; it earns points and, with the extension channel points module on, claims the chests.",

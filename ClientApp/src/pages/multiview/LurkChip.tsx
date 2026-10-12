@@ -23,7 +23,7 @@ export default function LurkChip({ channel, info }: Props) {
     return (
         <label className="relative hidden h-8 items-center gap-1 rounded-md px-1.5 text-white/90 hover:bg-white/15 sm:flex" title={`${t('lurk.channelLabel')}: ${label}`}>
             <Eye className="h-4 w-4" aria-hidden />
-            <span className={`h-2 w-2 rounded-full ${info?.health === 'nosession' ? 'bg-ds-danger' : DOT[status] ?? 'bg-[#52525b]'}`} aria-hidden />
+            <span className={`h-2 w-2 rounded-full ${info?.health === 'nosession' || info?.health === 'stalled' ? 'bg-ds-danger' : DOT[status] ?? 'bg-[#52525b]'}`} aria-hidden />
             <span className="sr-only">{t('lurk.channelLabel')} ({label})</span>
             <select
                 value={info?.mode ?? 'default'}

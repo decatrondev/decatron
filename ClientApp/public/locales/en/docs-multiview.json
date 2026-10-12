@@ -120,7 +120,7 @@
           },
           {
             "t": "p",
-            "x": "That is why the Decatron extension (version 0.9.0 or newer) has a lurk mode: for each Twitch channel in your Multi-view it opens a regular Twitch tab, muted, at the lowest quality, in a separate minimized window. You keep watching everything in the Multi-view. Choose it with the eye selector in the top bar, which only shows up when you have the extension:"
+            "x": "That is why the Decatron extension (version 0.9.0 or newer) has a lurk mode: for each Twitch channel in your Multi-view it opens a regular Twitch tab, muted, at the lowest quality, in a small separate window. That window shows in a corner for a few seconds until the video starts (browsers do not start video in a tab that was never seen) and then minimizes itself. You keep watching everything in the Multi-view. Choose it with the eye selector in the top bar, which only shows up when you have the extension:"
           },
           {
             "t": "ul",

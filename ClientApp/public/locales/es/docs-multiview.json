@@ -120,7 +120,7 @@
           },
           {
             "t": "p",
-            "x": "Por eso la extensión de Decatron (versión 0.9.0 o más nueva) tiene un modo lurk: por cada canal de Twitch que tengas en el Multi-view abre una pestaña normal de Twitch, silenciada, en calidad mínima y en una ventana aparte minimizada. Tú sigues viendo todo en el Multi-view. Se elige con el selector del ojo en la barra superior, que solo aparece si tienes la extensión:"
+            "x": "Por eso la extensión de Decatron (versión 0.9.0 o más nueva) tiene un modo lurk: por cada canal de Twitch que tengas en el Multi-view abre una pestaña normal de Twitch, silenciada, en calidad mínima y en una ventana chica aparte. Esa ventana se muestra unos segundos en una esquina hasta que arranca el video (el navegador no arranca video en una pestaña que nunca se vio) y luego se minimiza sola. Tú sigues viendo todo en el Multi-view. Se elige con el selector del ojo en la barra superior, que solo aparece si tienes la extensión:"
           },
           {
             "t": "ul",

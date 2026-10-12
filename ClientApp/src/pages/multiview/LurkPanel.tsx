@@ -16,7 +16,7 @@ interface Props {
 type Tab = 'now' | 'log' | 'guide';
 const fmtTime = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 const STATUS_TONE: Record<string, string> = { open: 'text-ds-ok', done: 'text-ds-ok', queued: 'text-ds-warn', timeout: 'text-ds-warn' };
-const HEALTH_TONE: Record<string, string> = { playing: 'text-ds-ok', paused: 'text-ds-warn', nosession: 'text-ds-danger' };
+const HEALTH_TONE: Record<string, string> = { playing: 'text-ds-ok', starting: 'text-ds-warn', paused: 'text-ds-warn', stalled: 'text-ds-danger', nosession: 'text-ds-danger' };
 
 /** Modo lurk: qué pasa ahora con cada canal, el historial de lo que hizo la extensión y la guía de uso. */
 export default function LurkPanel({ slots, state, ext, supported, onClose }: Props) {
@@ -42,7 +42,7 @@ export default function LurkPanel({ slots, state, ext, supported, onClose }: Pro
             defaultValue: e.code,
             minutes: p.minutes ?? 0, have: p.have ?? '', need: p.need ?? '', from: p.from ?? '', streak: st,
             mode: p.mode ? t(`lurk.${p.mode}`) : '', reason: p.reason ?? '', height: p.height ? `${p.height}p` : '?',
-            muted: p.muted ? t('lurk.panel.mutedVideo') : '',
+            muted: p.muted ? t('lurk.panel.mutedVideo') : '', seconds: p.seconds ?? '',
         });
     };
 
@@ -104,7 +104,12 @@ export default function LurkPanel({ slots, state, ext, supported, onClose }: Pro
                                         <li key={`${e.at}-${i}`} className="flex gap-2">
                                             <span className="flex-none font-mono text-xs leading-5 text-[#71717a]">{fmtTime(e.at)}</span>
                                             <span className="flex-none font-semibold text-white">{e.login}</span>
-                                            <span className="min-w-0">{logText(e)}{typeof e.p?.raw === 'string' && e.p.raw && <span className="block truncate text-xs text-[#71717a]" title={e.p.raw}>«{e.p.raw}»</span>}</span>
+                                            <span className="min-w-0">
+                                                {logText(e)}{Number(e.p?.n) > 1 && <span className="ml-1 text-[#71717a]">(×{String(e.p.n)})</span>}
+                                                {typeof e.p?.raw === 'string' && e.p.raw && <span className="block break-words text-xs text-[#71717a]">«{e.p.raw}»</span>}
+                                                {typeof e.p?.menu === 'string' && e.p.menu && <span className="block break-words text-xs text-[#71717a]">{t('lurk.panel.menuText')}: «{e.p.menu}»</span>}
+                                                {e.p?.hidden === true && <span className="block text-xs text-[#71717a]">{t('lurk.panel.wasHidden')}</span>}
+                                            </span>
                                         </li>
                                     ))}
                                 </ol>
