@@ -60,6 +60,7 @@ Three kinds of people use it:
 | Gacha and trading cards | Collectible pulls and trading cards for viewers |
 | Pets | A pet on the channel overlay that reacts to alerts, chat and commands |
 | Emotes | Channel emotes and platform-wide global emotes, with public pages |
+| Multi-view | Public page (`/multi`) to watch several Twitch and Kick channels at once, with one audio at a time, quality control and a tile limit per plan |
 
 ### Overlays
 

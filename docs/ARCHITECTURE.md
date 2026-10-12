@@ -318,13 +318,14 @@ graph TD
 
 ## 4. Real-time Communication
 
-Real-time communication uses three SignalR hubs plus one raw WebSocket:
+Real-time communication uses several SignalR hubs plus one raw WebSocket:
 
 | Endpoint | Class | Clients | Join method(s) |
 |----------|-------|---------|----------------|
 | `/hubs/overlay` | `OverlayHub` (`Decatron.Core/Hubs`) | OBS browser sources and dashboard previews | `JoinChannel(channel)` (group `overlay_{channel}`), `RegisterOverlay`, `SetOverlayVariant`, `LeaveChannel` |
 | `/hubs/translation` | `TranslationHub` | Browser extension used by viewers for live translation | `Join(login, lang)`, `Leave()` (one group per channel and language) |
 | `/hubs/songrequest` | `SongRequestHub` | Song Request player, overlays, dashboard and public queue | `Watch(channel)`, `RegisterPlayer(channel, key)`, plus player reports (`PlayerIdle`, `PlayerEnded`, `PlayerError`, `PlayerProgress`) |
+| `/hubs/multiview` | `MultiviewChatHub` (`Decatron.Services/Multiview`) | Public Multi-view page (`/multi`), anonymous and read-only | `Follow(keys, present)` with up to 12 keys such as `twitch:channel` or `kick:channel`; receives `History`, `Message` and `Deleted`. Logged-in users (JWT in the `access_token` query) can also call `Me()`, `Moderate(request)` (delete, timeout, ban, unban through `MultiviewModerationService`, only for moderators and owners; the role comes from Twitch `USERSTATE` or Kick's channel-user endpoint and arrives as the `Role` event) and `Send(key, text, replyTo)`, which writes as the user with their own Twitch (`user:write:chat`) or Kick (`chat:write`) token, and with `present` get a Twitch IRC presence connection (`TwitchPresenceService`) so they show in the channel's connected list. `MultiviewChatService` reads Twitch chat anonymously over IRC and Kick chat through its public Pusher socket (not the official API), and maps each message to the on-screen chat format |
 | `/api/desktop/ws` | `DesktopWsMiddleware` (raw WebSocket) | Decatron Desktop companion app, one connection multiplexed by channel (`IDesktopChannel` per module) | Linked with a code from the dashboard |
 
 ### Live translation pipeline

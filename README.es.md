@@ -60,6 +60,7 @@ Lo usan tres tipos de personas:
 | Gacha y cartas | Tiradas coleccionables y cartas coleccionables para los espectadores |
 | Mascotas | Una mascota en el overlay del canal que reacciona a alertas, chat y comandos |
 | Emotes | Emotes del canal y emotes globales de la plataforma, con páginas públicas |
+| Multi-view | Página pública (`/multi`) para ver varios canales de Twitch y Kick a la vez, con un solo audio, control de calidad y un límite de casillas por plan |
 
 ### Overlays
 

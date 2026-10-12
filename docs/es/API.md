@@ -156,7 +156,6 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 **Acceso** refleja los atributos declarados en cada ruta: `Público` significa que ningún atributo la restringe, `JWT` un usuario autenticado, `JWT + sección` un usuario autenticado con el nivel de permiso que requiere esa sección (consulta [CONFIGURATION.md](CONFIGURATION.md#sistema-de-permisos)). Algunos endpoints hacen comprobaciones adicionales en el código, por ejemplo acciones solo para el dueño. Las rutas restringidas a administradores de la plataforma (`RequireSystemOwner`) no se listan.
 
 <!-- BEGIN GENERATED ENDPOINTS -->
-
 ### Analytics
 
 | Método | Ruta | Acceso |
@@ -751,6 +750,23 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `POST` | `/api/Moderation/panic/{mode}` | JWT + `moderation` |
 | `GET` | `/api/Moderation/stats` | JWT + `moderation` |
 | `POST` | `/api/Moderation/test-message` | JWT + `moderation` |
+
+### Multiview
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/public/multiview/emotes` | Público |
+| `GET` | `/api/public/multiview/kick-status` | Público |
+| `GET` | `/api/public/multiview/limits` | Público |
+
+### Multiview Layouts
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/multiview/layouts` | JWT |
+| `POST` | `/api/multiview/layouts` | JWT |
+| `DELETE` | `/api/multiview/layouts/{id}` | JWT |
+| `PUT` | `/api/multiview/layouts/{id}` | JWT |
 
 ### Now Playing
 
@@ -1414,7 +1430,6 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/wheel/wheels/{id}/spins` | JWT + `overlays` |
 | `GET` | `/api/wheel/wheels/{id}/spins/export` | JWT + `overlays` |
 | `POST` | `/api/wheel/wheels/{id}/test-spin` | JWT + `overlays` |
-
 <!-- END GENERATED ENDPOINTS -->
 
 ---

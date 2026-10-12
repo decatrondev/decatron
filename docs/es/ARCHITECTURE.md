@@ -320,13 +320,14 @@ graph TD
 ---
 ## 4. Comunicación en tiempo real
 
-La comunicación en tiempo real usa tres hubs de SignalR y un WebSocket directo:
+La comunicación en tiempo real usa varios hubs de SignalR y un WebSocket directo:
 
 | Endpoint | Clase | Clientes | Método(s) para unirse |
 |----------|-------|----------|-----------------------|
 | `/hubs/overlay` | `OverlayHub` (`Decatron.Core/Hubs`) | Fuentes de navegador de OBS y vistas previas del panel | `JoinChannel(channel)` (grupo `overlay_{channel}`), `RegisterOverlay`, `SetOverlayVariant`, `LeaveChannel` |
 | `/hubs/translation` | `TranslationHub` | Extensión de navegador que usan los espectadores para la traducción en vivo | `Join(login, lang)`, `Leave()` (un grupo por canal e idioma) |
 | `/hubs/songrequest` | `SongRequestHub` | Reproductor, overlays, panel y cola pública de Song Request | `Watch(channel)`, `RegisterPlayer(channel, key)`, además de los reportes del reproductor (`PlayerIdle`, `PlayerEnded`, `PlayerError`, `PlayerProgress`) |
+| `/hubs/multiview` | `MultiviewChatHub` (`Decatron.Services/Multiview`) | Página pública del Multi-view (`/multi`), anónimo y de solo lectura | `Follow(keys, present)` con hasta 12 claves como `twitch:canal` o `kick:canal`; recibe `History`, `Message` y `Deleted`. Quien inició sesión (JWT en el parámetro `access_token`) también puede llamar `Me()`, `Moderate(request)` (borrar, timeout, ban y quitar sanción con `MultiviewModerationService`, solo para moderadores y dueños; el rol sale del `USERSTATE` de Twitch o del endpoint de usuario del canal de Kick y llega como el evento `Role`) y `Send(key, text, replyTo)`, que escribe como esa persona con su propio token de Twitch (`user:write:chat`) o de Kick (`chat:write`), y con `present` mantiene una conexión de presencia por IRC de Twitch (`TwitchPresenceService`) para que aparezca en la lista de conectados del canal. `MultiviewChatService` lee el chat de Twitch de forma anónima por IRC y el de Kick por su socket público de Pusher (no la API oficial), y convierte cada mensaje al formato del chat en pantalla |
 | `/api/desktop/ws` | `DesktopWsMiddleware` (WebSocket directo) | App de escritorio Decatron Desktop, una conexión multiplexada por canal (un `IDesktopChannel` por módulo) | Vinculada con un código desde el panel |
 
 ### Pipeline de traducción en vivo
