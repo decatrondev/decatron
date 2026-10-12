@@ -354,6 +354,76 @@
         ]
       },
       {
+        "id": "acceso",
+        "title": "Acceso y protección",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Acceso del módulo decide cuánta gente y cuántos idiomas pueden gastar tus créditos. El costo de la traducción lo marcan los idiomas encendidos, no la cantidad de oyentes: un idioma con un solo oyente ya enciende su traducción y su voz, y veinte oyentes en el mismo idioma cuestan lo mismo que uno."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Ajuste",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Oyentes simultáneos",
+                "Máximo de personas escuchando a la vez. Tu plan fija el techo; vacío usa el valor recomendado de tu plan."
+              ],
+              [
+                "Oyentes por idioma",
+                "Opcional. Máximo en un mismo idioma (por defecto, el del total)."
+              ],
+              [
+                "Idiomas a la vez",
+                "Cuántos idiomas pueden estar encendidos a la vez (hasta el máximo de idiomas por canal)."
+              ],
+              [
+                "Conexiones por IP",
+                "Cuántas conexiones puede tener una misma IP escuchando tu canal."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los botones Recomendado, Abierto y Estricto rellenan esos valores; después se guardan con el botón Guardar."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "translationListeners"
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Lo que siempre está activo"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Solo se acepta un idioma de los que ofreces: pedir otros no enciende nada ni ocupa cupos.",
+              "Hay un máximo de conexiones por IP en todos los canales y un máximo de intentos de entrada por minuto por IP.",
+              "Hay un tope de conexiones en todo el servidor."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Botón de pánico"
+          },
+          {
+            "t": "p",
+            "x": "«Pausar para espectadores» saca al instante a quien está escuchando y no deja entrar a nadie hasta que pulses Reanudar. Tu sesión de voz sigue activa y sigue gastando créditos: si no quieres gastar, detén también la sesión."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Por ahora el acceso es abierto para cualquier espectador, con estos límites. Elegir quién puede escuchar (seguidores, suscriptores, VIPs, moderadores o una lista) llega en una fase siguiente."
+          }
+        ]
+      },
+      {
         "id": "apagar",
         "title": "Si apagas la función",
         "blocks": [
@@ -684,6 +754,49 @@
           {
             "t": "p",
             "x": "La extensión no tiene cuentas, anuncios ni rastreo. Para la traducción envía a decatron.net el nombre del canal que miras y el idioma elegido. El texto de tu chat se lee solo en tu navegador, para dibujar los emotes, y nunca se envía. La política completa está en `/translate#privacy`."
+          }
+        ]
+      },
+      {
+        "id": "no-puedo",
+        "title": "Si no puedes escuchar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El streamer puede limitar cuánta gente escucha su traducción. Si la entrada se rechaza, la extensión y los subtítulos del Multi-view te dicen el motivo:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Mensaje",
+              "Qué significa"
+            ],
+            "rows": [
+              [
+                "El streamer pausó la traducción por ahora",
+                "El streamer usó su botón de pánico; vuelve a intentarlo más tarde."
+              ],
+              [
+                "El canal alcanzó su máximo de oyentes",
+                "Hay demasiada gente escuchando; reintenta en unos minutos."
+              ],
+              [
+                "Demasiadas conexiones desde tu red",
+                "Tienes varias pestañas con la traducción abiertas; cierra algunas."
+              ],
+              [
+                "Ese idioma no está disponible ahora",
+                "Ya hay otros idiomas encendidos y el streamer limita cuántos a la vez."
+              ],
+              [
+                "Este canal no ofrece ese idioma",
+                "Elige uno de los idiomas de la lista."
+              ],
+              [
+                "Demasiados intentos seguidos",
+                "Espera un minuto."
+              ]
+            ]
           }
         ]
       }

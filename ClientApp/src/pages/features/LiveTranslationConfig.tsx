@@ -5,6 +5,9 @@ import { useDesktopDownload } from '../../hooks/useDesktopDownload';
 import { ArrowLeft, Languages, Loader2, Save, Square, Monitor, Chrome, Download, Radio, Users, Coins, Clock } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
+import GuideTab from './live-translation/GuideTab';
+import AccessTab from './live-translation/AccessTab';
+import type { LtTab } from './live-translation/types';
 
 interface Settings {
     enabled: boolean;
@@ -58,6 +61,9 @@ export default function LiveTranslationConfig() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
+    // La «Guía» es la primera pestaña y la que se abre por defecto (DOCUMENTACION_REGLAS.md §9)
+    const [tab, setTab] = useState<LtTab>(() => { try { return (sessionStorage.getItem('lt-tab') as LtTab) || 'guide'; } catch { return 'guide'; } });
+    useEffect(() => { try { sessionStorage.setItem('lt-tab', tab); } catch { /* sin almacenamiento */ } }, [tab]);
 
     const load = useCallback(async () => {
         try {
@@ -144,7 +150,7 @@ export default function LiveTranslationConfig() {
                         <p className={`${muted} mt-1`}>{t('liveTranslation.subtitle')}</p>
                     </div>
                 </div>
-                {canEdit && (
+                {canEdit && tab === 'general' && (
                     <button onClick={save} disabled={saving}
                             className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-semibold flex items-center gap-2 disabled:opacity-50">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('liveTranslation.save')}
@@ -152,16 +158,26 @@ export default function LiveTranslationConfig() {
                 )}
             </div>
 
-            {message && (
+            <div role="tablist" className="ds-tabs">
+                {(['guide', 'general', 'access'] as LtTab[]).map(id => (
+                    <button key={id} role="tab" aria-selected={tab === id} className="ds-tab" onClick={() => setTab(id)}>{t(`liveTranslation.tabs.${id}`)}</button>
+                ))}
+            </div>
+
+            {tab === 'guide' && <GuideTab onNavigate={setTab} />}
+            {tab === 'access' && <AccessTab canEdit={canEdit} langNames={LANG_NAMES} />}
+
+            {tab === 'general' && message && (
                 <div className={`p-3 rounded-lg text-sm ${message.error ? 'bg-ds-danger/10 text-ds-danger ' : 'bg-ds-ok/10 text-ds-ok '}`}>
                     {message.text}
                 </div>
             )}
 
-            {status && !status.configured && (
+            {tab === 'general' && status && !status.configured && (
                 <div className="p-3 rounded-lg text-sm bg-ds-warn/10 text-ds-warn">{t('liveTranslation.notConfigured')}</div>
             )}
 
+            {tab === 'general' && (<>
             {/* Sesión en vivo */}
             <div className={card}>
                 <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
@@ -372,6 +388,7 @@ export default function LiveTranslationConfig() {
                     </div>
                 )}
             </div>
+            </>)}
         </div>
     );
 }

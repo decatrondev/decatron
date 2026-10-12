@@ -176,6 +176,7 @@ namespace Decatron.Controllers
                 Add("gamesHidePromo",    t => Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).CanHidePromo ? 1 : 0);
                 Add("multiviewSlots",    t => Decatron.Services.Multiview.MultiviewTierLimits.ForTier(t).MaxSlots);
                 Add("multiviewLayouts",  t => Decatron.Services.Multiview.MultiviewTierLimits.ForTier(t).MaxLayouts);
+                Add("translationListeners", t => Decatron.Services.LiveTranslation.LiveTranslationTierLimits.ForTier(t).MaxListeners);
 
                 return Ok(new { tiers, rows });
             }

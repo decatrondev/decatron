@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Decatron.Attributes;
 using Decatron.Core.Interfaces;
+using Decatron.Core.Helpers;
 using Decatron.Core.Models.LiveTranslation;
 using Decatron.Data;
 using Decatron.Services.LiveTranslation;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Decatron.Controllers
@@ -33,6 +35,8 @@ namespace Decatron.Controllers
         private readonly Decatron.Services.AI.AiSettingsCache _aiSettings;
         private readonly ILogger<LiveTranslationController> _logger;
         private readonly Microsoft.Extensions.Options.IOptionsMonitor<LiveTranslationOptions> _optsMonitor;
+        private readonly TranslationAccessService _access;
+        private readonly IHubContext<Decatron.Hubs.TranslationHub> _hub;
 
         public LiveTranslationController(
             DecatronDbContext db,
@@ -41,9 +45,12 @@ namespace Decatron.Controllers
             Decatron.Services.Desktop.DesktopConnectionRegistry desktop,
             Decatron.Services.AI.AiSettingsCache aiSettings,
             ILogger<LiveTranslationController> logger,
-            Microsoft.Extensions.Options.IOptionsMonitor<LiveTranslationOptions> optsMonitor)
+            Microsoft.Extensions.Options.IOptionsMonitor<LiveTranslationOptions> optsMonitor,
+            TranslationAccessService access,
+            IHubContext<Decatron.Hubs.TranslationHub> hub)
         {
             _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _aiSettings = aiSettings; _logger = logger; _optsMonitor = optsMonitor;
+            _access = access; _hub = hub;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -66,6 +73,7 @@ namespace Decatron.Controllers
                 where u.Login.ToLower() == login && s.Enabled
                 select new { u.Id, s.SourceLanguage, s.TargetLanguages, s.BackgroundVolume }
             ).FirstOrDefaultAsync();
+            var paused = row != null && await _db.LiveTranslationAccess.AsNoTracking().AnyAsync(a => a.UserId == row.Id && a.Paused);
 
             if (row == null)
                 return Ok(new { enabled = false, live = false, login });
@@ -79,6 +87,7 @@ namespace Decatron.Controllers
                 source = row.SourceLanguage,
                 languages = row.TargetLanguages.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
                 backgroundVolume = row.BackgroundVolume,
+                paused,
                 startedAt = status?.StartedAt,
                 tuning = _optsMonitor.CurrentValue.ClientTuning.Sanitized(),
             });
@@ -180,6 +189,87 @@ namespace Decatron.Controllers
             await _desktop.NotifyModuleChangedAsync(userId, "translation");
 
             return Ok(ToDto(s));
+        }
+
+        // ─────────────────────────────────────────────────────
+        // Acceso y protección (.dev/plans/TRADUCCION_ACCESO_PLAN.md, Fase 1)
+        // ─────────────────────────────────────────────────────
+
+        public class AccessDto
+        {
+            /// <summary>null = el valor recomendado de tu plan</summary>
+            public int? MaxListenersTotal { get; set; }
+            public int? MaxListenersPerLanguage { get; set; }
+            public int MaxActiveLanguages { get; set; } = 2;
+            public int MaxConnectionsPerIp { get; set; } = 3;
+            public bool Paused { get; set; }
+        }
+
+        private async Task<object> AccessViewAsync(long userId, LiveTranslationAccess? a)
+        {
+            var tier = await TierResolver.GetEffectiveTierAsync(_db, userId);
+            var limits = LiveTranslationTierLimits.ForTier(tier);
+            var login = await _db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Login).FirstOrDefaultAsync() ?? "";
+            var eff = TranslationAccessService.Resolve(userId, login, tier, a, _mgr.Options.MaxLanguagesPerChannel, Array.Empty<string>());
+            var current = Decatron.Hubs.TranslationHub.ListenersByLanguage(login);
+            return new
+            {
+                tier,
+                settings = new
+                {
+                    maxListenersTotal = a?.MaxListenersTotal,
+                    maxListenersPerLanguage = a?.MaxListenersPerLanguage,
+                    maxActiveLanguages = a?.MaxActiveLanguages ?? 2,
+                    maxConnectionsPerIp = a?.MaxConnectionsPerIp ?? 3,
+                    paused = a?.Paused ?? false,
+                },
+                effective = new { eff.MaxListenersTotal, eff.MaxListenersPerLanguage, eff.MaxActiveLanguages, eff.MaxConnectionsPerIp, eff.Paused },
+                ceilings = new { maxListeners = limits.MaxListeners, defaultListeners = limits.DefaultListeners, maxLanguages = _mgr.Options.MaxLanguagesPerChannel, maxConnectionsPerIp = TranslationAccessService.MaxConnectionsPerIpCeiling },
+                now = new { listeners = current.Values.Sum(), byLanguage = current },
+            };
+        }
+
+        [HttpGet("access")]
+        [Authorize]
+        [RequirePermission("settings")]
+        public async Task<IActionResult> GetAccess()
+        {
+            var userId = GetChannelOwnerId();
+            var a = await _db.LiveTranslationAccess.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
+            return Ok(await AccessViewAsync(userId, a));
+        }
+
+        [HttpPut("access")]
+        [Authorize]
+        [RequirePermission("settings", "control_total")]
+        public async Task<IActionResult> UpdateAccess([FromBody] AccessDto dto)
+        {
+            var userId = GetChannelOwnerId();
+            var tier = await TierResolver.GetEffectiveTierAsync(_db, userId);
+            var limits = LiveTranslationTierLimits.ForTier(tier);
+            var maxLangs = Math.Max(1, _mgr.Options.MaxLanguagesPerChannel);
+
+            // Se recorta a lo que permite el plan y el sistema: un valor fuera de rango no se rechaza, se ajusta.
+            int? total = dto.MaxListenersTotal.HasValue ? Math.Clamp(dto.MaxListenersTotal.Value, 1, limits.MaxListeners) : null;
+            int? perLang = dto.MaxListenersPerLanguage.HasValue ? Math.Clamp(dto.MaxListenersPerLanguage.Value, 1, total ?? limits.MaxListeners) : null;
+
+            var a = await _db.LiveTranslationAccess.FirstOrDefaultAsync(x => x.UserId == userId);
+            var wasPaused = a?.Paused ?? false;
+            if (a == null) { a = new LiveTranslationAccess { UserId = userId }; _db.LiveTranslationAccess.Add(a); }
+            a.MaxListenersTotal = total;
+            a.MaxListenersPerLanguage = perLang;
+            a.MaxActiveLanguages = Math.Clamp(dto.MaxActiveLanguages, 1, maxLangs);
+            a.MaxConnectionsPerIp = Math.Clamp(dto.MaxConnectionsPerIp, 1, TranslationAccessService.MaxConnectionsPerIpCeiling);
+            a.Paused = dto.Paused;
+            a.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            var login = await _db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Login).FirstOrDefaultAsync() ?? "";
+            _access.Invalidate(login);
+            // El botón de pánico también saca a quien ya escuchaba
+            if (a.Paused && !wasPaused) await Decatron.Hubs.TranslationHub.EvictChannelAsync(_hub, login, "paused");
+            _logger.LogInformation("[LiveTranslation] Acceso de {Login} actualizado (pausa: {Paused})", login, a.Paused);
+            return Ok(await AccessViewAsync(userId, a));
         }
 
         /// <summary>Estado en vivo de la sesión actual (si hay) + saldo de créditos.</summary>

@@ -182,5 +182,7 @@
   "creatorLabel": "Creador de Decatron",
   "tGroupMultiview": "Multi-view",
   "rMultiviewSlots": "Casillas a la vez",
-  "rMultiviewLayouts": "Layouts guardados"
+  "rMultiviewLayouts": "Layouts guardados",
+  "tGroupTranslation": "Traducción en vivo",
+  "rTranslationListeners": "Oyentes simultáneos"
 }

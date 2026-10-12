@@ -48,10 +48,13 @@ export function useTranslationInfo(slots: Slot[]) {
 export function useTileCaptions(login: string, lang: string | null) {
     const [caption, setCaption] = useState<TrCaption | null>(null);
     const [active, setActive] = useState<boolean | null>(null);
+    /** Motivo por el que el canal no deja escuchar (límites de acceso): paused, full, ip_limit, languages_full, language, rate_limited, busy */
+    const [denied, setDenied] = useState<string | null>(null);
 
     useEffect(() => {
         setCaption(null);
         setActive(null);
+        setDenied(null);
         if (!lang) return;
         const c = new signalR.HubConnectionBuilder().withUrl('/hubs/translation').withAutomaticReconnect([0, 2000, 5000, 15000, 30000]).configureLogging(signalR.LogLevel.None).build();
         let timer: number | null = null;
@@ -66,8 +69,16 @@ export function useTileCaptions(login: string, lang: string | null) {
             timer = window.setTimeout(() => setCaption(null), Math.max(3500, text.length * 75));
         });
         c.on('Status', (st: { active?: boolean }) => setActive(!!st?.active));
+        // El servidor saca a quien escucha (por ejemplo, el streamer usó el botón de pánico)
+        c.on('Denied', (m: { reason?: string }) => { setDenied(m?.reason ?? 'paused'); setCaption(null); void c.stop(); });
 
-        const join = () => c.invoke('Join', login, lang).then((st: { active?: boolean } | null) => setActive(!!st?.active)).catch(() => { /* se reintenta al reconectar */ });
+        const join = () => c.invoke('Join', login, lang)
+            .then((st: { ok?: boolean; reason?: string; active?: boolean } | null) => {
+                if (st && st.ok === false) { setDenied(st.reason ?? 'paused'); void c.stop(); return; }
+                setDenied(null);
+                setActive(!!st?.active);
+            })
+            .catch(() => { /* se reintenta al reconectar */ });
         c.onreconnected(() => { void join(); });
         let stopped = false;
         c.start().then(() => { if (!stopped) void join(); }).catch(() => { if (!stopped) setActive(null); });
@@ -75,5 +86,5 @@ export function useTileCaptions(login: string, lang: string | null) {
         return () => { stopped = true; if (timer != null) window.clearTimeout(timer); void c.stop(); };
     }, [login, lang]);
 
-    return { caption, active };
+    return { caption, active, denied };
 }

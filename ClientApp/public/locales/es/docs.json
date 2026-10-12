@@ -698,7 +698,8 @@
       "wheelSegments": "Gajos por rueda",
       "wheelHistoryDays": "Días de historial de la rueda",
       "multiviewSlots": "Casillas a la vez",
-      "multiviewLayouts": "Layouts guardados"
+      "multiviewLayouts": "Layouts guardados",
+      "translationListeners": "Oyentes simultáneos"
     },
     "unlimited": "Sin tope",
     "yes": "Sí",

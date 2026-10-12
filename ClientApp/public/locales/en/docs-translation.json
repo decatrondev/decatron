@@ -354,6 +354,76 @@
         ]
       },
       {
+        "id": "access",
+        "title": "Access and protection",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The module's Access tab decides how many people and how many languages can spend your credits. The cost of translation depends on the languages that are on, not on how many people listen: a language with a single listener already turns on its translation and voice, and twenty listeners in the same language cost the same as one."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Setting",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Simultaneous listeners",
+                "Maximum number of people listening at once. Your plan sets the ceiling; empty uses your plan's recommended value."
+              ],
+              [
+                "Listeners per language",
+                "Optional. Maximum in a single language (by default, the total's)."
+              ],
+              [
+                "Simultaneous languages",
+                "How many languages can be on at once (up to the maximum of languages per channel)."
+              ],
+              [
+                "Connections per IP",
+                "How many connections a single IP can have listening to your channel."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The Recommended, Open and Strict buttons fill in those values; then you save them with the Save button."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "translationListeners"
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "What is always on"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Only a language you offer is accepted: asking for others turns nothing on and takes no slots.",
+              "There is a maximum of connections per IP across all channels and a maximum of join attempts per minute per IP.",
+              "There is a cap on connections across the whole server."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Panic button"
+          },
+          {
+            "t": "p",
+            "x": "«Pause for viewers» instantly removes whoever is listening and lets no one in until you press Resume. Your voice session stays active and keeps spending credits: if you do not want to spend, stop the session too."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "For now access is open to any viewer, within these limits. Choosing who can listen (followers, subscribers, VIPs, moderators or a list) comes in a later phase."
+          }
+        ]
+      },
+      {
         "id": "apagar",
         "title": "If you turn the feature off",
         "blocks": [
@@ -684,6 +754,49 @@
           {
             "t": "p",
             "x": "The extension has no accounts, ads or tracking. For translation it sends decatron.net the name of the channel you are watching and the chosen language. Your chat text is only read in your browser, to draw emotes, and is never sent. The full policy is at `/translate#privacy`."
+          }
+        ]
+      },
+      {
+        "id": "cant-listen",
+        "title": "If you cannot listen",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The streamer can limit how many people listen to their translation. If joining is rejected, the extension and the Multi-view subtitles tell you why:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Message",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "The streamer paused translation for now",
+                "The streamer used their panic button; try again later."
+              ],
+              [
+                "The channel reached its maximum of listeners",
+                "Too many people are listening; try again in a few minutes."
+              ],
+              [
+                "Too many connections from your network",
+                "You have several tabs with translation open; close some."
+              ],
+              [
+                "That language isn't available right now",
+                "Other languages are already on and the streamer limits how many at once."
+              ],
+              [
+                "This channel doesn't offer that language",
+                "Choose one of the languages in the list."
+              ],
+              [
+                "Too many attempts in a row",
+                "Wait a minute."
+              ]
+            ]
           }
         ]
       }

@@ -698,7 +698,8 @@
       "wheelSegments": "Segments per wheel",
       "wheelHistoryDays": "Wheel history days",
       "multiviewSlots": "Tiles at once",
-      "multiviewLayouts": "Saved layouts"
+      "multiviewLayouts": "Saved layouts",
+      "translationListeners": "Simultaneous listeners"
     },
     "unlimited": "No limit",
     "yes": "Yes",

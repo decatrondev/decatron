@@ -240,6 +240,8 @@ export function PlanComparison() {
             { key: 'gamesAccounts', label: t('rGamesAccounts'), fmt: num }, { key: 'gamesInstances', label: t('rGamesInstances'), fmt: num },
             { key: 'gamesRecent', label: t('rGamesRecent'), fmt: num }, { key: 'gamesHistoryDays', label: t('rGamesHistory'), fmt: days },
             { key: 'gamesHidePromo', label: t('rHidePromo'), fmt: flag } ] },
+        { title: t('tGroupTranslation'), rows: [
+            { key: 'translationListeners', label: t('rTranslationListeners'), fmt: num } ] },
         { title: t('tGroupMultiview'), rows: [
             { key: 'multiviewSlots', label: t('rMultiviewSlots'), fmt: num }, { key: 'multiviewLayouts', label: t('rMultiviewLayouts'), fmt: num } ] },
         { title: t('tGroupStorage'), rows: [

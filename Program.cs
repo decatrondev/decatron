@@ -550,6 +550,8 @@ try
     builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewSendService>();
     builder.Services.AddSingleton<Decatron.Services.Multiview.TwitchPresenceService>();
     builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewModerationService>();
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.TranslationAccessService>();
+    builder.Services.AddSingleton<Decatron.Hubs.ITranslationAccessGate>(sp => sp.GetRequiredService<Decatron.Services.LiveTranslation.TranslationAccessService>());
     builder.Services.AddSingleton<Decatron.Services.Multiview.MultiviewChatService>();
     builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Services.Multiview.MultiviewChatService>());
     builder.Services.AddSingleton<Decatron.Services.GameData.Riot.RiotApiKeys>();
