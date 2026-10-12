@@ -20,6 +20,7 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
     const player = useRef<TwitchPlayerApi | null>(null);
     const ready = useRef(false);
     const resumes = useRef<number[]>([]);
+    const enforceSoundRef = useRef<(why: string) => void>(() => undefined);
     const online = useRef(true);
     // Mientras reproduce, el ratón no llega al iframe de Twitch: al pasar por encima el player reacciona (se detiene y carga de
     // nuevo) y aquí no hay controles que usar. Si se pausa o falla, vuelve a recibir el ratón (botón de play, avisos de Twitch).
@@ -76,7 +77,7 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
             p.addEventListener(T.Player.READY, () => { ready.current = true; p.setMuted(latest.current.muted); p.setVolume(latest.current.volume); });
             p.addEventListener(T.Player.ONLINE, () => { online.current = true; onLiveRef.current(true); });
             p.addEventListener(T.Player.OFFLINE, () => { online.current = false; setPlaying(false); onLiveRef.current(false); });
-            p.addEventListener(T.Player.PLAYING, () => { playTries.current = 0; setPlaying(true); onLiveRef.current(true); applyQuality(); mvLog(`${channel} PLAYING (${document.visibilityState})`); });
+            p.addEventListener(T.Player.PLAYING, () => { enforceSoundRef.current('PLAYING'); playTries.current = 0; setPlaying(true); onLiveRef.current(true); applyQuality(); mvLog(`${channel} PLAYING (${document.visibilityState})`); });
             // Nadie pausa a mano (no hay botón de pausa): si Twitch pausa con la pestaña a la vista, se reanuda con calma.
             p.addEventListener(T.Player.PAUSE, () => {
                 mvLog(`${channel} PAUSE (${document.visibilityState})`);
@@ -100,19 +101,39 @@ export default function TwitchPlayer({ channel, silenced, volume, unlocked, qual
         player.current?.setVolume(effVolume);
     }, [muted, effVolume]);
 
+    // Twitch (o el navegador, por su política de autoplay) puede volver a silenciar el player por su cuenta, sobre todo al cambiar de pestaña
+    // o al recrearse. Nada debe quedar silenciado salvo lo que la persona silenció: se compara con lo esperado y se corrige.
+    const enforceSound = (why: string) => {
+        const p = player.current;
+        if (!p || !ready.current || !unlockedRef.current) return;
+        try {
+            const want = latest.current;
+            if (p.getMuted() !== false || Math.abs(p.getVolume() - want.volume) > 0.02) {
+                mvLog(`${channel} sonido cambiado por fuera (muted=${p.getMuted()}, vol=${p.getVolume().toFixed(2)}): se corrige (${why})`);
+                p.setMuted(false);
+                p.setVolume(want.volume);
+            }
+        } catch { /* el player aún no responde */ }
+    };
+    enforceSoundRef.current = enforceSound;
+    const unlockedRef = useRef(unlocked);
+    unlockedRef.current = unlocked;
+
     // El player de Twitch puede quedarse detenido sin avisar (autoplay bloqueado: se ve borroso con un botón de play,
     // o pausado por el navegador). Un vigilante lo arranca si la pestaña está a la vista y el canal está en vivo.
     const kick = autoPlay;
     useEffect(() => { if (unlocked) kick('primer gesto'); }, [unlocked]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
-        const id = window.setInterval(() => kick('vigilante'), 4000);
+        const id = window.setInterval(() => { enforceSoundRef.current('vigilante'); kick('vigilante'); }, 4000);
         return () => window.clearInterval(id);
     }, [channel]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Si el navegador pausó la casilla mientras la pestaña estaba oculta, se reanuda al volver.
     useEffect(() => {
         const resume = () => {
-            if (document.hidden || !ready.current) return;
+            if (!ready.current) return;
+            enforceSoundRef.current(document.hidden ? 'pestaña oculta' : 'volvió a la vista');
+            if (document.hidden) return;
             // Al volver a la pestaña Twitch suele dejar las casillas pausadas o borrosas (las pausa mientras estaba oculta). Se da un
             // momento a que el player (y un posible anuncio) se acomoden, se pide play y, si sigue detenido, se recrea el player.
             playTries.current = 0;
