@@ -1,12 +1,10 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GripVertical, Maximize2, PanelTop, Volume2, VolumeX, X } from 'lucide-react';
+import { Flame, GripVertical, Maximize2, PanelTop, RotateCw, Volume2, VolumeX, X } from 'lucide-react';
 import TwitchPlayer from './TwitchPlayer';
 import KickPlayer from './KickPlayer';
 import TranslationMenu from './TranslationMenu';
 import TileCaptions from './TileCaptions';
-import LurkChip from './LurkChip';
-import type { LurkState } from './lurk';
 import type { TrInfo } from './translation';
 import type { QualityChoice, Slot } from './types';
 
@@ -25,8 +23,6 @@ interface Props {
     /** Traducción en vivo del canal (solo Twitch) y el idioma elegido para los subtítulos */
     tr?: TrInfo;
     trLang: string | null;
-    /** Modo lurk de este canal (solo Twitch, con la extensión y el modo encendido); null mientras la extensión no informa */
-    lurk?: LurkState['channels'][string] | null;
     onTrLang: (lang: string | null) => void;
     dragging: boolean;
     onToggleSound: () => void;
@@ -45,6 +41,8 @@ export default function SlotFrame(p: Props) {
     const { t } = useTranslation('multiview');
     const box = useRef<HTMLDivElement>(null);
     const isTwitch = p.slot.platform === 'twitch';
+    // Recargar solo esta casilla: el player se vuelve a montar con otra clave, sin tocar las demás
+    const [reloadKey, setReloadKey] = useState(0);
 
     const fullscreen = () => {
         const el = box.current;
@@ -73,8 +71,8 @@ export default function SlotFrame(p: Props) {
                     <GripVertical className="hidden h-4 w-4 flex-none text-white/60 md:block" />
                     <span className={`h-2 w-2 flex-none rounded-full ${p.live ? 'bg-ds-danger' : 'bg-[#52525b]'}`} aria-hidden />
                     <span className="truncate text-sm font-bold text-white">{p.slot.channel}</span>
-                    <span className="flex-none text-[11px] font-semibold uppercase text-white/60">{isTwitch ? 'Twitch' : 'Kick'}</span>
-                    {p.live === false && <span className="flex-none rounded bg-white/15 px-1.5 text-[11px] font-semibold text-white/80">{t('slot.offline')}</span>}
+                    <span className="hidden flex-none text-[11px] font-semibold uppercase text-white/60 sm:inline">{isTwitch ? 'Twitch' : 'Kick'}</span>
+                    {p.live === false && <span className="hidden flex-none rounded bg-white/15 px-1.5 text-[11px] font-semibold text-white/80 sm:inline">{t('slot.offline')}</span>}
                     {p.live && p.viewers != null && <span className="flex-none text-[11px] tabular-nums text-white/70">{p.viewers.toLocaleString()}</span>}
                 </div>
 
@@ -91,7 +89,17 @@ export default function SlotFrame(p: Props) {
                             className="mx-1 h-1 w-14 accent-[#6e94ed] sm:w-20"
                         />
                     )}
-                    {isTwitch && p.lurk !== undefined && <LurkChip channel={p.slot.channel} info={p.lurk} />}
+                    {/* El video embebido no suma rachas en Twitch: este botón abre el canal en una pestaña normal de twitch.tv, que la persona
+                        cierra cuando quiera. Solo un enlace, sin extensión ni pestañas automáticas. */}
+                    {isTwitch && (
+                        <a href={`https://www.twitch.tv/${encodeURIComponent(p.slot.channel)}`} target="_blank" rel="noopener noreferrer"
+                            className={iconBtn} aria-label={t('slot.streak')} title={t('slot.streakHint')}>
+                            <Flame className="h-4 w-4" />
+                        </a>
+                    )}
+                    <button type="button" className={`${iconBtn} hidden sm:flex`} onClick={() => setReloadKey(k => k + 1)} aria-label={t('slot.reload')} title={t('slot.reload')}>
+                        <RotateCw className="h-4 w-4" />
+                    </button>
                     {isTwitch && p.tr?.enabled && p.tr.languages.length > 0 && <TranslationMenu info={p.tr} lang={p.trLang} onLang={p.onTrLang} btn={iconBtn} />}
                     <button type="button" className={iconBtn} onClick={p.onToggleSound} aria-pressed={!p.silenced} aria-label={p.silenced ? t('slot.listen') : t('slot.mute')} title={p.silenced ? t('slot.listen') : t('slot.mute')}>
                         {p.silenced ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-pub-accent-hi" />}
@@ -111,8 +119,8 @@ export default function SlotFrame(p: Props) {
             </div>
             <div className={`relative min-h-0 w-full bg-black ${p.stack ? 'aspect-video' : 'aspect-video md:aspect-auto md:flex-1'}`}>
             {isTwitch
-                ? <TwitchPlayer channel={p.slot.channel} silenced={p.silenced} volume={p.volume} unlocked={p.unlocked} quality={p.quality} onLive={p.onLive} />
-                : <KickPlayer channel={p.slot.channel} muted={p.silenced} />}
+                ? <TwitchPlayer key={reloadKey} channel={p.slot.channel} silenced={p.silenced} volume={p.volume} unlocked={p.unlocked} quality={p.quality} onLive={p.onLive} />
+                : <KickPlayer key={reloadKey} channel={p.slot.channel} muted={p.silenced} />}
 
             {/* Mientras se arrastra, una capa recibe el soltar: los iframes se tragarían el evento. */}
             {p.dragging && (

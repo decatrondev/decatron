@@ -111,46 +111,29 @@
         ]
       },
       {
-        "id": "lurk",
-        "title": "Puntos de canal y rachas (modo lurk)",
+        "id": "rachas",
+        "title": "Vistas, puntos de canal y rachas",
         "blocks": [
           {
             "t": "p",
-            "x": "El video de las casillas es el player embebido de Twitch, y Twitch no le suma a tu cuenta puntos de canal ni rachas de visualización, aunque tengas la sesión de Twitch iniciada y la casilla esté sonando. Lo que sí cuenta es una pestaña normal de twitch.tv, aunque esté silenciada y en segundo plano."
+            "x": "El video de las casillas es el player embebido de Twitch. Cuenta como vista del canal y, con el chat oficial abierto y tu sesión de Twitch iniciada en el navegador, apareces conectado en el chat. Así puedes dejar varios canales abiertos en una sola pestaña."
           },
           {
             "t": "p",
-            "x": "Por eso la extensión de Decatron (versión 0.9.0 o más nueva) tiene un modo lurk: por cada canal de Twitch que tengas en el Multi-view abre una pestaña normal de Twitch, silenciada, en calidad mínima y en una ventana chica aparte. Esa ventana se muestra unos segundos en una esquina hasta que arranca el video (el navegador no arranca video en una pestaña que nunca se vio) y luego se minimiza sola. Tú sigues viendo todo en el Multi-view. Se elige con el selector del ojo en la barra superior, que solo aparece si tienes la extensión:"
-          },
-          {
-            "t": "ul",
-            "items": [
-              "Apagado (como viene): no abre nada.",
-              "Solo racha: abre la pestaña de cada canal en vivo una vez por directo. La extensión lee la racha del menú de puntos del canal (la tarjeta «Racha de visualizaciones … 0/2») y cierra la pestaña apenas sube; si no la ve subir, la cierra a los 30 minutos. Abre hasta 3 a la vez; el resto espera su turno.",
-              "Completo: la pestaña queda abierta mientras el canal esté en vivo y en el Multi-view, así suma también los puntos y, con el módulo de puntos de la extensión encendido, reclama los cofres."
-            ]
+            "x": "Lo que Twitch no hace es sumarle puntos de canal ni rachas de visualización al video embebido, aunque esté sonando y tengas la sesión iniciada. Lo comprobamos con una cuenta real: solo cuenta una pestaña normal de twitch.tv."
           },
           {
             "t": "p",
-            "x": "Cada casilla de Twitch muestra un ojo con un punto de estado (verde: pestaña abierta o racha cubierta en este directo; ámbar: esperando turno; gris: apagado o canal sin directo). Al pulsarlo eliges el ajuste de ese canal: como el resto, apagado, solo racha o completo."
-          },
-          {
-            "t": "p",
-            "x": "El botón del reloj, al lado del selector, abre la ventana del modo lurk con tres pestañas: Ahora (cada canal con su estado, si el video de la pestaña de Twitch avanza, la racha leída y hace cuánto se abrió), Historial (todo lo que hizo la extensión: cuándo abrió y cerró cada pestaña y por qué, si Twitch pausó el video, si falta la sesión de Twitch y cuándo subió la racha) y Guía (los pasos para dejarlo funcionando)."
-          },
-          {
-            "t": "ul",
-            "items": [
-              "Si cierras a mano una de esas pestañas, no se vuelve a abrir en ese directo.",
-              "Al cerrar el Multi-view se cierran todas las pestañas del modo lurk.",
-              "En esas pestañas solo corre el módulo de puntos de la extensión (nada de traducción ni emotes).",
-              "Necesitas tener la sesión de Twitch iniciada en ese navegador: las pestañas cuentan para la cuenta con la que entras a twitch.tv. Si no la hay, el estado y el historial lo dicen."
-            ]
+            "x": "Para la racha, cada casilla de Twitch tiene un botón con una llama: abre ese canal en una pestaña normal de twitch.tv. Déjala abierta unos minutos (puede estar silenciada) y ciérrala tú cuando Twitch te cuente la racha. Es un enlace común: no hace falta la extensión y nada se abre solo."
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "Twitch no publica cuántos minutos hacen falta para la racha. Por eso la extensión no espera un tiempo fijo: lee la racha y cierra la pestaña cuando sube."
+            "x": "Estamos investigando cómo lograr que el Multi-view sume puntos y rachas sin abrir pestañas, y lo estamos hablando con Twitch. Cuando haya novedades se actualizará esta página."
+          },
+          {
+            "t": "p",
+            "x": "El botón de las flechas en círculo, al lado, recarga solo esa casilla, por si un video se traba o se queda en negro, sin tocar las demás."
           }
         ]
       },
@@ -342,7 +325,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "La extensión de Decatron para Chrome y Firefox tiene un módulo Multi-view (desde la versión 0.4.0) y el modo lurk (desde la 0.9.0, ver «Puntos de canal y rachas»). En twitch.tv, abre el panel del botón de Decatron, entra en Multi-view y pulsa «Agregar [canal] al Multi-view»."
+            "x": "La extensión de Decatron para Chrome y Firefox tiene un módulo Multi-view (desde la versión 0.4.0). En twitch.tv, abre el panel del botón de Decatron, entra en Multi-view y pulsa «Agregar [canal] al Multi-view»."
           },
           {
             "t": "ul",
