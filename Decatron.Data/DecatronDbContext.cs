@@ -158,6 +158,8 @@ namespace Decatron.Data
         public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }
         public DbSet<Core.Models.Brand.BrandSlot> BrandSlots { get; set; }
         public DbSet<Core.Models.Design.DesignVersion> DesignVersions { get; set; }
+        public DbSet<Core.Models.Platform.PlatformWaitlistEntry> PlatformWaitlist { get; set; }
+        public DbSet<Core.Models.Platform.PlatformWaitlistEmail> PlatformWaitlistEmails { get; set; }
         public DbSet<Core.Models.SongRequest.SongTrack> SongTracks { get; set; }
         public DbSet<Core.Models.ClipCommand.ClipCommandConfig> ClipCommandConfigs { get; set; }
         public DbSet<Core.Models.ClipCommand.ClipCommandBlock> ClipCommandBlocks { get; set; }

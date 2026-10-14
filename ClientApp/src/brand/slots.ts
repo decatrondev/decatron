@@ -85,6 +85,15 @@ export const BRAND_SLOTS: SlotDef[] = [
         previewUrl: '/',
     },
     {
+        key: 'platform-header',
+        name: 'Header de la plataforma (decatron.top)',
+        description: 'Arriba de la landing de la plataforma y su confirmación de lista de espera. Siempre sobre fondo oscuro.',
+        group: 'Páginas públicas', kind: 'mark', themes: ['dark'],
+        variants: publicWidths,
+        background: { dark: '#0f1219' },
+        defaults: same(publicWidths, () => imageOnly('builtin:lockup', LOCKUP_W, LOCKUP_H)),
+    },
+    {
         key: 'landing-hero',
         name: 'Hero de la landing',
         description: 'La imagen grande al lado de la terminal en la portada.',

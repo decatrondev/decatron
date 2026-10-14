@@ -1,0 +1,246 @@
+{
+  "meta": {
+    "title": "Decatron para tu propio bot",
+    "description": "Tu propio bot de streaming con tus credenciales y tu marca. Lista de espera abierta."
+  },
+  "nav": {
+    "what": "Qué es",
+    "how": "Cómo funciona",
+    "includes": "Qué incluye",
+    "faq": "Preguntas",
+    "join": "Unirme a la lista",
+    "bot": "Decatron para streamers"
+  },
+  "hero": {
+    "tag": "lista de espera abierta",
+    "titleA": "Tu propio bot de streaming,",
+    "titleB": "con tus credenciales y tu marca.",
+    "description": "Decatron te da el motor completo de un bot de Twitch: comandos, moderación, alertas, overlays y más. Tú pones tu cuenta y tu aplicación; nosotros ponemos la infraestructura.",
+    "primary": "Unirme a la lista de espera",
+    "secondary": "Cómo funciona",
+    "note": "Sin tarjeta. Te avisamos cuando abramos las primeras cuentas.",
+    "diagram": [
+      {
+        "title": "Tu aplicación de Twitch",
+        "text": "Tus credenciales y tu cuenta de bot. Tuyas, no compartidas."
+      },
+      {
+        "title": "El motor de Decatron",
+        "text": "Comandos, moderación, alertas, overlays y más. Siempre actualizado."
+      },
+      {
+        "title": "Tu bot, con tu marca",
+        "text": "En tus canales, con tus límites y tu identidad."
+      }
+    ]
+  },
+  "what": {
+    "title": "Un bot que funciona como tuyo, no como uno más de la lista.",
+    "body": "La mayoría de los bots comparten una sola cuenta y una sola aplicación entre todos sus usuarios. Aquí es distinto: registras tu propia aplicación de Twitch, usas tu propia cuenta de bot y administras tus propios canales. El motor es el mismo que ya usamos todos los días en Decatron; lo único que cambia es que la cuenta, las credenciales y la marca son tuyas.",
+    "cards": [
+      {
+        "title": "Tus credenciales",
+        "text": "Tu aplicación de Twitch y tu cuenta de bot. Si algo pasa en una cuenta, no afecta a las demás."
+      },
+      {
+        "title": "Tu marca",
+        "text": "Tu nombre y tu logo en tus páginas y overlays, en los planes que incluyan marca propia."
+      },
+      {
+        "title": "Siempre al día",
+        "text": "Cada mejora del motor llega a tu cuenta sin que tengas que instalar ni actualizar nada."
+      }
+    ]
+  },
+  "how": {
+    "title": "Cómo funciona",
+    "steps": [
+      {
+        "title": "Creas tu cuenta",
+        "text": "Con tu correo. Sin contraseñas que recordar."
+      },
+      {
+        "title": "Conectas tu aplicación",
+        "text": "Te guiamos paso a paso para registrar tu aplicación de Twitch y vincular la cuenta de tu bot."
+      },
+      {
+        "title": "Activas lo que necesites",
+        "text": "Eliges los módulos, ajustas los límites de tu plan y listo."
+      }
+    ]
+  },
+  "includes": {
+    "title": "Todo el bot, no una versión recortada.",
+    "subtitle": "Estos módulos ya funcionan hoy en Decatron.",
+    "items": [
+      {
+        "title": "Comandos",
+        "text": "Comandos por defecto, personalizados, micro comandos y un editor de scripts."
+      },
+      {
+        "title": "Moderación",
+        "text": "Filtros de palabras, enlaces y spam, protección ante raids e historial. Incluye a los moderadores líder de Twitch."
+      },
+      {
+        "title": "Alertas y overlays",
+        "text": "Alertas de eventos y de sonido, chat en pantalla, «ahora suena», shoutouts, temporizadores y partida en vivo."
+      },
+      {
+        "title": "Peticiones de canciones",
+        "text": "Cola, página pública para tu comunidad y reproductor."
+      },
+      {
+        "title": "Traducción en vivo",
+        "text": "Subtítulos traducidos para tu audiencia mientras transmites."
+      },
+      {
+        "title": "Torneos y ruleta",
+        "text": "Inscripción, llaves y premios; ruleta con sorteos."
+      },
+      {
+        "title": "Y más",
+        "text": "Puntos de espectador, clips, multi-view, estadísticas…"
+      }
+    ],
+    "note": "Algunos módulos usan inteligencia artificial y consumen créditos. Cada plan define cuántos incluye."
+  },
+  "who": {
+    "title": "Hecho para quien necesita algo más que un bot genérico.",
+    "items": [
+      {
+        "title": "Streamers",
+        "text": "Quieren su propio bot, con su propia cuenta y su propia identidad."
+      },
+      {
+        "title": "Agencias y managers",
+        "text": "Llevan varios canales y necesitan administrarlos desde un solo lugar."
+      },
+      {
+        "title": "Comunidades y marcas",
+        "text": "Quieren un bot con su nombre, incluso en su propio dominio."
+      }
+    ]
+  },
+  "trust": {
+    "title": "Seguridad y aislamiento de datos desde el diseño.",
+    "text": "Cada cuenta se construye separada de las demás. Te contamos los detalles cuando abramos."
+  },
+  "form": {
+    "title": "Entra primero.",
+    "text": "Estamos abriendo cuentas poco a poco. Déjanos tu correo y te avisamos cuando haya lugar.",
+    "email": "Correo",
+    "emailPlaceholder": "tu@correo.com",
+    "useCase": "¿Para qué lo usarías?",
+    "useCaseOptions": {
+      "own_channel": "Un canal propio",
+      "several_channels": "Varios canales",
+      "community": "Mi comunidad o marca",
+      "other": "Otro"
+    },
+    "platform": "Plataforma principal",
+    "platformOptions": {
+      "": "Prefiero no decirlo",
+      "twitch": "Twitch",
+      "kick": "Kick",
+      "other": "Otra"
+    },
+    "optional": "opcional",
+    "submit": "Unirme",
+    "sending": "Enviando…",
+    "consent": "Solo usaremos tu correo para avisarte sobre esta lista. Puedes pedir que lo borremos cuando quieras.",
+    "doneTitle": "Revisa tu correo",
+    "doneText": "Si la dirección es válida, te enviamos un mensaje para confirmar tu lugar. Si no llega en unos minutos, revisa la carpeta de spam.",
+    "errorInvalid": "Escribe un correo válido.",
+    "errorGeneric": "No pudimos registrar tu correo. Inténtalo de nuevo en unos minutos.",
+    "errorLimit": "Hiciste demasiados intentos. Espera unos minutos.",
+    "errorBusy": "Hoy recibimos muchas solicitudes y no podemos enviar más correos. Vuelve a intentarlo mañana.",
+    "errorCaptcha": "Completa la verificación de seguridad e inténtalo de nuevo."
+  },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "items": [
+      {
+        "q": "¿Qué necesito para empezar?",
+        "a": "Una cuenta de Twitch para tu bot y registrar tu propia aplicación de desarrollador. Te guiamos en cada paso."
+      },
+      {
+        "q": "¿Funciona con Kick y otras plataformas?",
+        "a": "Empezamos con Twitch. Kick y otras plataformas vendrán después."
+      },
+      {
+        "q": "¿Es gratis?",
+        "a": "Habrá una prueba corta con límites. Los planes serán de pago y accesibles; todavía no publicamos precios."
+      },
+      {
+        "q": "¿Puedo usar mi propio dominio?",
+        "a": "Está previsto para los planes de pago."
+      },
+      {
+        "q": "¿Qué pasa si dejo de pagar?",
+        "a": "Tu cuenta se pausa y tus datos se conservan un tiempo para que puedas volver."
+      },
+      {
+        "q": "¿Es lo mismo que Decatron?",
+        "a": "Usa el mismo motor, pero con tus credenciales, tu marca y tus propios canales."
+      },
+      {
+        "q": "¿Cuándo abren?",
+        "a": "Todavía no hay fecha. La lista de espera es la forma de enterarte primero."
+      }
+    ]
+  },
+  "confirm": {
+    "loading": "Confirmando tu correo…",
+    "okTitle": "Listo, estás en la lista",
+    "okText": "Te escribiremos cuando abramos cuentas.",
+    "errorTitle": "No pudimos confirmar tu correo",
+    "errorText": "El enlace no es válido o ya se usó. Si todavía no te confirmamos, vuelve a anotarte.",
+    "back": "Volver al inicio"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "text": "Esta dirección no existe.",
+    "back": "Volver al inicio"
+  },
+  "footer": {
+    "copyright": "© 2026 Decatron",
+    "bot": "Decatron para streamers",
+    "terms": "Términos y condiciones",
+    "privacy": "Política de privacidad",
+    "refunds": "Devoluciones",
+    "claims": "Libro de reclamaciones"
+  },
+  "admin": {
+    "title": "Lista de espera de la plataforma",
+    "subtitle": "Personas anotadas desde decatron.top. Solo cuentan las que confirmaron su correo.",
+    "summary": "Resumen",
+    "confirmed": "Confirmados",
+    "pending": "Pendientes",
+    "total": "Total",
+    "pendingHint": "Pendiente = se anotó pero aún no abrió el enlace del correo. No la cuentes como interesada.",
+    "byUse": "Para qué lo usarían",
+    "byUseHint": "Solo confirmados.",
+    "empty": "Todavía no hay nadie.",
+    "listTitle": "Personas",
+    "exportConfirmed": "Exportar confirmados (CSV)",
+    "exportAll": "Exportar todos (CSV)",
+    "colEmail": "Correo",
+    "colUse": "Uso",
+    "colPlatform": "Plataforma",
+    "colState": "Estado",
+    "colDate": "Fecha",
+    "delete": "Borrar",
+    "cancel": "Cancelar",
+    "deleteTitle": "Borrar de la lista",
+    "deleteText": "Se borrará {{email}} de la lista de espera. No se puede deshacer.",
+    "deleted": "Borrado de la lista.",
+    "deleteFailed": "No se pudo borrar.",
+    "exportFailed": "No se pudo exportar.",
+    "loadFailed": "No se pudo cargar la lista.",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {{page}} de {{pages}}",
+    "stateConfirmed": "Confirmado",
+    "statePending": "Pendiente"
+  }
+}

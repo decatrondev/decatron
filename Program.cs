@@ -280,6 +280,25 @@ try
                 });
         });
 
+        // Lista de espera de la plataforma (decatron.top, PLATAFORMA_PLAN.md Fase L): endpoint anónimo que
+        // además envía un correo, así que se limita por IP igual que la inscripción de torneos.
+        options.AddPolicy("platform-waitlist", context =>
+        {
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(10),
+                    PermitLimit = 6,
+                    QueueLimit = 0,
+                });
+        });
+
         // Widget de ranking embebible (fase 12 #2) — mas laxo que el form de
         // inscripcion (es solo lectura, cacheable), pero presente: es un endpoint
         // publico sin auth, no se deja sin ningun freno.

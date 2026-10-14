@@ -89,6 +89,8 @@ import GachaOverlay from './pages/GachaOverlay';
 import GameOverlay from './pages/GameOverlay';
 import GameOverlayDemo from './pages/GameOverlayDemo';
 // three.js solo se carga en las rutas de mascotas
+import { isPlatformHost } from './platform/host';
+const PlatformApp = lazy(() => import('./platform/PlatformApp'));
 const PetsDemo = lazy(() => import('./pages/PetsDemo'));
 const PetsConfig = lazy(() => import('./pages/features/PetsConfig'));
 const PetsOverlay = lazy(() => import('./pages/PetsOverlay'));
@@ -211,12 +213,15 @@ import './i18n/config'; // Initialize i18next
 import { BrandProvider } from './brand/BrandContext';
 import { BrandMark } from './brand/BrandMark';
 import BrandAdmin from './pages/admin/BrandAdmin';
+import PlatformWaitlistAdmin from './pages/admin/PlatformWaitlistAdmin';
 import GlobalEmotesAdmin from './pages/admin/GlobalEmotesAdmin';
 import GlobalEmotesPublic from './pages/GlobalEmotesPublic';
 import OverlayAutoUpdate from './components/OverlayAutoUpdate';
 import PreviewBanner from './design/PreviewBanner';
 
 function App() {
+    // decatron.top (plataforma) usa su propio árbol de rutas; decatron.net sigue exactamente igual.
+    if (isPlatformHost()) return <Suspense fallback={null}><PlatformApp /></Suspense>;
     return (
         <BrowserRouter>
             <BrandProvider>
@@ -396,6 +401,7 @@ function App() {
                     <Route path="admin/logo" element={<SafeRoute name="Logo Guide"><LogoGuide /></SafeRoute>} />
                     <Route path="admin/global-emotes" element={<SafeRoute name="Global Emotes"><GlobalEmotesAdmin /></SafeRoute>} />
                     <Route path="admin/brand" element={<SafeRoute name="Brand Logos"><BrandAdmin /></SafeRoute>} />
+                    <Route path="admin/platform-waitlist" element={<SafeRoute name="Platform Waitlist"><PlatformWaitlistAdmin /></SafeRoute>} />
                     <Route path="admin/game-overlay-promos" element={<SafeRoute name="Game Overlay Promos"><GameOverlayPromosAdmin /></SafeRoute>} />
 
                     {/* Chat Moderation */}

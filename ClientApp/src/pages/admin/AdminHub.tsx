@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck, Clapperboard, MessagesSquare, Search, ChevronRight, X } from 'lucide-react';
+import { ListChecks, Cpu, MessageSquare, Heart, Star, TrendingUp, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck, Clapperboard, MessagesSquare, Search, ChevronRight, X } from 'lucide-react';
 
 interface AdminItem {
     id: string;
@@ -43,6 +43,7 @@ const GROUPS: AdminGroup[] = [
             { id: 'channels-visibility', name: 'Canales del carrusel', description: 'Qué canales de Twitch y Kick aparecen en la página pública', icon: <Users className={ic} />, route: '/admin/channels', ready: true },
             { id: 'channel-mods', name: 'Mod en canales', description: 'Da o quita mod al bot y a ti en los canales de Twitch, con el token del streamer', icon: <ShieldCheck className={ic} />, route: '/admin/mods', ready: true },
             { id: 'global-emotes', name: 'Emotes globales', description: 'El set de emotes de Decatron que se ve en todos los canales, y quién puede manejarlo', icon: <ImageIcon className={ic} />, route: '/admin/global-emotes', ready: true },
+            { id: 'platform-waitlist', name: 'Lista de espera (decatron.top)', description: 'Quién se anotó en la landing de la plataforma: confirmados, pendientes, exportar y borrar', icon: <ListChecks className={ic} />, route: '/admin/platform-waitlist', ready: true },
             { id: 'clip-command', name: 'Comando !clip', description: 'Disco, uso por canal y tope mensual de descargas', icon: <Clapperboard className={ic} />, route: '/admin/clip-command', ready: true },
             { id: 'ranking', name: 'Ranking global', description: 'Configura el leaderboard global de la plataforma', icon: <TrendingUp className={ic} />, route: '/admin/ranking', ready: false },
         ],

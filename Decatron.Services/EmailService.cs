@@ -33,7 +33,7 @@ namespace Decatron.Services
             _logger = logger;
         }
 
-        public async Task<(bool success, string? resendId, string? error)> SendEmailAsync(string to, string subject, string htmlContent)
+        public async Task<(bool success, string? resendId, string? error)> SendEmailAsync(string to, string subject, string htmlContent, string? fromOverride = null)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace Decatron.Services
 
                 var payload = new
                 {
-                    from = _settings.FromAddress,
+                    from = string.IsNullOrWhiteSpace(fromOverride) ? _settings.FromAddress : fromOverride,
                     to = new[] { to },
                     subject,
                     html = htmlContent
