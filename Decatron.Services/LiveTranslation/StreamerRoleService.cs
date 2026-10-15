@@ -33,16 +33,16 @@ namespace Decatron.Services.LiveTranslation
         private readonly IStreamerTwitchAccess _accounts;
         private readonly IHttpClientFactory _http;
         private readonly IMemoryCache _cache;
-        private readonly TwitchSettings _twitch;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<StreamerRoleService> _logger;
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
 
-        public StreamerRoleService(IStreamerTwitchAccess accounts, IHttpClientFactory http, IMemoryCache cache, IOptions<TwitchSettings> twitch, ILogger<StreamerRoleService> logger)
+        public StreamerRoleService(IStreamerTwitchAccess accounts, IHttpClientFactory http, IMemoryCache cache, Decatron.Core.Interfaces.ICredentialProvider credentials, ILogger<StreamerRoleService> logger)
         {
             _accounts = accounts;
             _http = http;
             _cache = cache;
-            _twitch = twitch.Value;
+            _credentials = credentials;
             _logger = logger;
         }
 
@@ -152,7 +152,7 @@ namespace Decatron.Services.LiveTranslation
         private async Task<JsonDocument?> HelixAsync(long ownerUserId, TwitchIdentity me, string path, string viewerId, bool notFoundIsEmpty = false)
         {
             using var req = new HttpRequestMessage(HttpMethod.Get, $"https://api.twitch.tv/helix/{path}?broadcaster_id={Uri.EscapeDataString(me.TwitchId)}&user_id={Uri.EscapeDataString(viewerId)}");
-            req.Headers.Add("Client-Id", _twitch.ClientId);
+            req.Headers.Add("Client-Id", _credentials.GetTwitchApp().ClientId);
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", me.Token);
             using var res = await _http.CreateClient().SendAsync(req);
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound && notFoundIsEmpty) return JsonDocument.Parse("{\"data\":[]}");

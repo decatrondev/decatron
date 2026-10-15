@@ -33,14 +33,14 @@ namespace Decatron.Controllers
 
         private readonly DecatronDbContext _db;
         private readonly TwitchApiService _twitch;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<AdminModsController> _logger;
 
-        public AdminModsController(DecatronDbContext db, TwitchApiService twitch, IOptions<TwitchSettings> twitchSettings, ILogger<AdminModsController> logger)
+        public AdminModsController(DecatronDbContext db, TwitchApiService twitch, Decatron.Core.Interfaces.ICredentialProvider credentials, ILogger<AdminModsController> logger)
         {
             _db = db;
             _twitch = twitch;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
             _logger = logger;
         }
 
@@ -55,7 +55,7 @@ namespace Decatron.Controllers
                 .Select(u => new Account(u.TwitchId!, u.Login, u.DisplayName))
                 .FirstOrDefaultAsync();
 
-            var botLogin = (_twitchSettings.BotUsername ?? "").ToLowerInvariant();
+            var botLogin = (_credentials.GetTwitchBotUsername() ?? "").ToLowerInvariant();
             var botData = string.IsNullOrEmpty(botLogin) ? null : await _twitch.GetUserByLoginAsync(botLogin);
             var bot = botData == null ? null : new Account(botData.id, botData.login, botData.display_name);
             return (bot, owner, ownerUserId);

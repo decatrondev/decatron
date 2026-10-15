@@ -24,6 +24,7 @@ namespace Decatron.Controllers
         private readonly ILogger<SettingsController> _logger;
         private readonly TwitchBotService _botService;
         private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
 
         public SettingsController(
             ISettingsService settingsService,
@@ -32,7 +33,8 @@ namespace Decatron.Controllers
             DecatronDbContext dbContext,
             ILogger<SettingsController> logger,
             TwitchBotService botService,
-            IOptions<TwitchSettings> twitchSettings)
+            IOptions<TwitchSettings> twitchSettings,
+            Decatron.Core.Interfaces.ICredentialProvider credentials)
         {
             _settingsService = settingsService;
             _authService = authService;
@@ -41,6 +43,7 @@ namespace Decatron.Controllers
             _logger = logger;
             _botService = botService;
             _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
         }
 
         private long GetUserId()
@@ -423,7 +426,7 @@ namespace Decatron.Controllers
                     success = true,
                     botConnected = _botService.IsConnected,
                     botEnabledForUser = settings.BotEnabled,
-                    botUsername = _twitchSettings.BotUsername,
+                    botUsername = _credentials.GetTwitchBotUsername(),
                     connectedChannels = connectedChannels.Count,
                     channels = connectedChannels,
                     userAccessLevel = userAccessLevel,

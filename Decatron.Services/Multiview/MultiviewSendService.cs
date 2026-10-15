@@ -26,18 +26,18 @@ namespace Decatron.Services.Multiview
         private readonly MultiviewStatusService _status;
         private readonly MultiviewChatService _chat;
         private readonly IHttpClientFactory _http;
-        private readonly TwitchSettings _twitch;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<MultiviewSendService> _logger;
         private readonly ConcurrentDictionary<long, Queue<DateTime>> _recent = new();
 
         public MultiviewSendService(MultiviewAccountService accounts, MultiviewStatusService status, MultiviewChatService chat,
-            IHttpClientFactory http, IOptions<TwitchSettings> twitch, ILogger<MultiviewSendService> logger)
+            IHttpClientFactory http, Decatron.Core.Interfaces.ICredentialProvider credentials, ILogger<MultiviewSendService> logger)
         {
             _accounts = accounts;
             _status = status;
             _chat = chat;
             _http = http;
-            _twitch = twitch.Value;
+            _credentials = credentials;
             _logger = logger;
         }
 
@@ -90,7 +90,7 @@ namespace Decatron.Services.Multiview
             {
                 Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
             };
-            req.Headers.Add("Client-Id", _twitch.ClientId);
+            req.Headers.Add("Client-Id", _credentials.GetTwitchApp().ClientId);
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", me.Token);
             using var res = await _http.CreateClient().SendAsync(req, ct);
             var json = await res.Content.ReadAsStringAsync(ct);

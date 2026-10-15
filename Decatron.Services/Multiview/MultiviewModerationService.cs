@@ -34,13 +34,13 @@ namespace Decatron.Services.Multiview
         private readonly IServiceScopeFactory _scopes;
         private readonly IHttpClientFactory _http;
         private readonly IHubContext<MultiviewChatHub> _hub;
-        private readonly TwitchSettings _twitch;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<MultiviewModerationService> _logger;
         private readonly ConcurrentDictionary<string, (DateTime At, string Role)> _kickRoles = new();
 
         public MultiviewModerationService(MultiviewAccountService accounts, TwitchPresenceService presence, MultiviewChatService chat,
             MultiviewStatusService status, IServiceScopeFactory scopes, IHttpClientFactory http, IHubContext<MultiviewChatHub> hub,
-            IOptions<TwitchSettings> twitch, ILogger<MultiviewModerationService> logger)
+            Decatron.Core.Interfaces.ICredentialProvider credentials, ILogger<MultiviewModerationService> logger)
         {
             _accounts = accounts;
             _presence = presence;
@@ -49,7 +49,7 @@ namespace Decatron.Services.Multiview
             _scopes = scopes;
             _http = http;
             _hub = hub;
-            _twitch = twitch.Value;
+            _credentials = credentials;
             _logger = logger;
         }
 
@@ -149,7 +149,7 @@ namespace Decatron.Services.Multiview
             }
             using (req)
             {
-                req.Headers.Add("Client-Id", _twitch.ClientId);
+                req.Headers.Add("Client-Id", _credentials.GetTwitchApp().ClientId);
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", me.Token);
                 using var res = await _http.CreateClient().SendAsync(req, ct);
                 if (res.IsSuccessStatusCode) return new SendResult(true);
