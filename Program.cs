@@ -365,6 +365,7 @@ try
     builder.Services.AddSingleton<Decatron.Data.Encryption.SecretVault>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantMembership>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantBotUserToken>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantEventSubHub>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantEventSubSync>();
     builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Services.Tenancy.TenantEventSubHub>());

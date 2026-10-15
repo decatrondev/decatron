@@ -216,6 +216,65 @@ public sealed class NpgsqlTenantCredentialStore : ITenantCredentialStore
         return string.IsNullOrEmpty(user) || string.IsNullOrEmpty(id) ? null : new TwitchBotSummary(user, id, r.GetFieldValue<DateTimeOffset>(1));
     }
 
+    public async Task<TwitchBotTokens?> GetTwitchBotTokensAsync(long tenantId, string purpose, CancellationToken ct = default)
+    {
+        await using var c = await OpenAsync(tenantId, ct);
+        string? access = null, refresh = null;
+        await using (var cmd = new NpgsqlCommand("SELECT kind, secret_enc FROM tenant_credentials WHERE tenant_id=@t AND provider=@p AND kind IN ('access_token','refresh_token') AND status='ok'", c))
+        {
+            cmd.Parameters.AddWithValue("t", tenantId);
+            cmd.Parameters.AddWithValue("p", BotProvider);
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct))
+            {
+                var kind = r.GetString(0);
+                var plain = await _vault.UnprotectAsync(tenantId, BotProvider, kind, r.GetString(1), ct);
+                if (kind == "access_token") access = plain; else refresh = plain;
+            }
+        }
+        if (string.IsNullOrEmpty(access)) return null;
+        DateTimeOffset? exp = null;
+        await using (var cmd = new NpgsqlCommand("SELECT config->>'expiresAt' FROM tenant_provider_config WHERE tenant_id=@t AND provider=@p", c))
+        {
+            cmd.Parameters.AddWithValue("t", tenantId);
+            cmd.Parameters.AddWithValue("p", BotProvider);
+            if (await cmd.ExecuteScalarAsync(ct) is string e && DateTimeOffset.TryParse(e, null, System.Globalization.DateTimeStyles.AssumeUniversal, out var d)) exp = d;
+        }
+        await LogAsync(c, null, tenantId, "access_token", "read", "system", purpose, ct, BotProvider);
+        return new TwitchBotTokens(access, refresh, exp);
+    }
+
+    public async Task UpdateTwitchBotTokensAsync(long tenantId, TwitchBotTokens tokens, CancellationToken ct = default)
+    {
+        var accessEnc = await _vault.ProtectAsync(tenantId, BotProvider, "access_token", tokens.AccessToken, ct);
+        var refreshEnc = string.IsNullOrEmpty(tokens.RefreshToken) ? null : await _vault.ProtectAsync(tenantId, BotProvider, "refresh_token", tokens.RefreshToken, ct);
+        await using var c = await OpenAsync(tenantId, ct);
+        await using var tx = await c.BeginTransactionAsync(ct);
+        var rows = new List<(string Kind, string Enc)> { ("access_token", accessEnc) };
+        if (refreshEnc != null) rows.Add(("refresh_token", refreshEnc));
+        foreach (var (kind, enc) in rows)
+        {
+            await using var cmd = new NpgsqlCommand(
+                @"UPDATE tenant_credentials SET secret_enc=@e, key_version=@v, status='ok', last_validated_at=now(), updated_at=now()
+                  WHERE tenant_id=@t AND provider=@p AND kind=@k", c, tx);
+            cmd.Parameters.AddWithValue("t", tenantId);
+            cmd.Parameters.AddWithValue("p", BotProvider);
+            cmd.Parameters.AddWithValue("k", kind);
+            cmd.Parameters.AddWithValue("e", enc);
+            cmd.Parameters.AddWithValue("v", int.Parse(enc.Split(':')[1]));
+            await cmd.ExecuteNonQueryAsync(ct);
+            await LogAsync(c, tx, tenantId, kind, "write", "system", "bot-refresh", ct, BotProvider);
+        }
+        await using (var cmd = new NpgsqlCommand("UPDATE tenant_provider_config SET config = jsonb_set(config, '{expiresAt}', to_jsonb(@x::text)), updated_at=now() WHERE tenant_id=@t AND provider=@p", c, tx))
+        {
+            cmd.Parameters.AddWithValue("t", tenantId);
+            cmd.Parameters.AddWithValue("p", BotProvider);
+            cmd.Parameters.AddWithValue("x", (object?)tokens.ExpiresAt?.ToString("o") ?? DBNull.Value);
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+        await tx.CommitAsync(ct);
+    }
+
     public async Task<bool> DeleteTwitchBotAsync(long tenantId, string actor, CancellationToken ct = default)
     {
         await using var c = await OpenAsync(tenantId, ct);

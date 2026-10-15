@@ -19,6 +19,8 @@ public class StoreCredentialProviderTests
         public Dictionary<long, TwitchBotSummary> Bots = new();
         public Task<TwitchBotSummary?> GetTwitchBotAsync(long t, CancellationToken ct = default) => Task.FromResult(Bots.GetValueOrDefault(t));
         public Task<bool> DeleteTwitchBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
+        public Task<TwitchBotTokens?> GetTwitchBotTokensAsync(long t, string p, CancellationToken ct = default) => Task.FromResult<TwitchBotTokens?>(null);
+        public Task UpdateTwitchBotTokensAsync(long t, TwitchBotTokens k, CancellationToken ct = default) => Task.CompletedTask;
         public Task SaveDiscordBotAsync(long t, DiscordBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
         public Task<DiscordBotSummary?> GetDiscordBotAsync(long t, CancellationToken ct = default) => Task.FromResult<DiscordBotSummary?>(null);
         public Task<string?> GetDiscordBotTokenAsync(long t, string p, CancellationToken ct = default) => Task.FromResult<string?>(null);
@@ -140,6 +142,14 @@ public class NpgsqlTenantCredentialStoreTests
             var bot = await store.GetTwitchBotAsync(A);
             Assert.Equal("anabot", bot!.Username); Assert.Equal("123456", bot.TwitchId);
             Assert.Null(await store.GetTwitchBotAsync(B));
+            var tk = await store.GetTwitchBotTokensAsync(A, "test");
+            Assert.Equal("tok-acceso-secreto", tk!.AccessToken); Assert.Equal("tok-refresco-secreto", tk.RefreshToken); Assert.NotNull(tk.ExpiresAt);
+            Assert.Null(await store.GetTwitchBotTokensAsync(B, "test"));
+            await store.UpdateTwitchBotTokensAsync(A, new TwitchBotTokens("acceso-renovado", "refresco-renovado", DateTimeOffset.UtcNow.AddHours(3)));
+            var tk2 = await store.GetTwitchBotTokensAsync(A, "test");
+            Assert.Equal("acceso-renovado", tk2!.AccessToken); Assert.Equal("refresco-renovado", tk2.RefreshToken);
+            Assert.True(tk2.ExpiresAt > DateTimeOffset.UtcNow.AddHours(2));
+            Assert.Equal("anabot", (await store.GetTwitchBotAsync(A))!.Username); // el refresco no toca usuario ni id
             await using (var c = TenantNpgsql.Create(App, A)) { await c.OpenAsync();
                 var raws = new List<string>();
                 await using var rd = await new NpgsqlCommand("select secret_enc from tenant_credentials where provider='twitch_bot'", c).ExecuteReaderAsync();

@@ -9,6 +9,9 @@ public sealed record TwitchBotInput(string Username, string TwitchId, string Acc
 /// <summary>Estado visible del bot de un tenant. Sin tokens.</summary>
 public sealed record TwitchBotSummary(string Username, string TwitchId, DateTimeOffset? LinkedAt);
 
+/// <summary>Tokens de usuario del bot de un tenant, en claro, solo para llamar a Helix (moderación) o refrescarlos.</summary>
+public sealed record TwitchBotTokens(string AccessToken, string? RefreshToken, DateTimeOffset? ExpiresAt);
+
 /// <summary>Bot de Discord de un tenant (su propia aplicación): el token se guarda cifrado y solo se lee para abrir el gateway.</summary>
 public sealed record DiscordBotInput(string Token, string BotId, string BotName);
 
@@ -38,6 +41,10 @@ public interface ITenantCredentialStore
     Task SaveTwitchBotAsync(long tenantId, TwitchBotInput input, string actor, CancellationToken ct = default);
     Task<TwitchBotSummary?> GetTwitchBotAsync(long tenantId, CancellationToken ct = default);
     Task<bool> DeleteTwitchBotAsync(long tenantId, string actor, CancellationToken ct = default);
+    /// <summary>Tokens del bot en claro (queda en credential_access_log). Null si el tenant no tiene bot cargado.</summary>
+    Task<TwitchBotTokens?> GetTwitchBotTokensAsync(long tenantId, string purpose, CancellationToken ct = default);
+    /// <summary>Guarda los tokens renovados del bot sin tocar su usuario ni su id.</summary>
+    Task UpdateTwitchBotTokensAsync(long tenantId, TwitchBotTokens tokens, CancellationToken ct = default);
 
     Task SaveDiscordBotAsync(long tenantId, DiscordBotInput input, string actor, CancellationToken ct = default);
     Task<DiscordBotSummary?> GetDiscordBotAsync(long tenantId, CancellationToken ct = default);

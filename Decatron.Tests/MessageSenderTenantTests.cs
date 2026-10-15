@@ -51,6 +51,8 @@ public class TenantEventSubHubTests
         public Task SaveTwitchBotAsync(long t, TwitchBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
         public Task<TwitchBotSummary?> GetTwitchBotAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchBotSummary?>(null);
         public Task<bool> DeleteTwitchBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
+        public Task<TwitchBotTokens?> GetTwitchBotTokensAsync(long t, string p, CancellationToken ct = default) => Task.FromResult<TwitchBotTokens?>(null);
+        public Task UpdateTwitchBotTokensAsync(long t, TwitchBotTokens k, CancellationToken ct = default) => Task.CompletedTask;
         public Task SaveDiscordBotAsync(long t, DiscordBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
         public Task<DiscordBotSummary?> GetDiscordBotAsync(long t, CancellationToken ct = default) => Task.FromResult<DiscordBotSummary?>(null);
         public Task<string?> GetDiscordBotTokenAsync(long t, string p, CancellationToken ct = default) => Task.FromResult<string?>(null);

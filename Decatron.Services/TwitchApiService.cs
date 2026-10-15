@@ -19,6 +19,8 @@ namespace Decatron.Services
         private readonly ILogger<TwitchApiService> _logger;
         private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly IConfiguration _configuration;
+        private readonly Decatron.Services.Tenancy.TenantBotUserToken? _tenantBotToken;
+        private readonly Decatron.Core.Interfaces.ITenantCredentialStore? _tenantStore;
         private const string TwitchApiBaseUrl = "https://api.twitch.tv/helix";
         // App Access Token por ClientId: cada tenant con app propia tiene el suyo (nunca se reutiliza el de otra app)
         private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _appAccessTokens = new();
@@ -27,8 +29,12 @@ namespace Decatron.Services
             HttpClient httpClient,
             ILogger<TwitchApiService> logger,
             Decatron.Core.Interfaces.ICredentialProvider credentials,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            Decatron.Services.Tenancy.TenantBotUserToken? tenantBotToken = null,
+            Decatron.Core.Interfaces.ITenantCredentialStore? tenantStore = null)
         {
+            _tenantBotToken = tenantBotToken;
+            _tenantStore = tenantStore;
             _httpClient = httpClient;
             _logger = logger;
             _credentials = credentials;
@@ -759,6 +765,10 @@ namespace Decatron.Services
         {
             try
             {
+                // Tenant != 1: SU bot (almacen + refresco). Nunca bot_tokens, que es la cuenta del #1.
+                if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1)
+                    return _tenantBotToken is null ? null : await _tenantBotToken.GetAsync();
+
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
                 using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
@@ -799,6 +809,14 @@ namespace Decatron.Services
         {
             try
             {
+                var tenant = Decatron.Core.Interfaces.TenantAmbient.Current ?? 1;
+                if (tenant != 1)
+                {
+                    var bot = _tenantStore is null ? null : await _tenantStore.GetTwitchBotAsync(tenant);
+                    if (bot is null) _logger.LogWarning("Tenant {Tenant} sin cuenta de bot propia: no hay bot_twitch_id", tenant);
+                    return bot?.TwitchId;
+                }
+
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
                 using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
