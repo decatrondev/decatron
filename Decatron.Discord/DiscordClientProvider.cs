@@ -7,13 +7,23 @@ namespace Decatron.Discord;
 
 /// <summary>
 /// Singleton provider for the DSharpPlus DiscordClient instance.
+/// Plataforma (Fase 4, paso 6c): <see cref="Client"/> devuelve el cliente del tenant ambiente. El #1 (o sin tenant) recibe el de siempre;
+/// otro tenant recibe SU cliente del registro y, si no lo tiene, falla cerrado (nunca el bot de Decatron).
 /// </summary>
 public class DiscordClientProvider
 {
-    public DiscordClient Client { get; }
+    private readonly DiscordClientRegistry? _registry;
 
-    public DiscordClientProvider(IOptions<DiscordSettings> settings, ILoggerFactory loggerFactory)
+    /// <summary>El cliente del tenant #1 (el bot de Decatron).</summary>
+    public DiscordClient PrimaryClient { get; }
+
+    public DiscordClient Client => (_registry ?? Empty).Resolve(PrimaryClient, t => new DiscordNotConfiguredException(t));
+
+    private static readonly DiscordClientRegistry Empty = new();
+
+    public DiscordClientProvider(IOptions<DiscordSettings> settings, ILoggerFactory loggerFactory, DiscordClientRegistry? registry = null)
     {
+        _registry = registry;
         var config = new DiscordConfiguration
         {
             Token = settings.Value.BotToken,
@@ -23,6 +33,6 @@ public class DiscordClientProvider
             AutoReconnect = true
         };
 
-        Client = new DiscordClient(config);
+        PrimaryClient = new DiscordClient(config);
     }
 }

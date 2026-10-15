@@ -680,6 +680,7 @@ try
     builder.Services.AddHostedService<EventSubWebSocketService>();
 
     // Discord services
+    builder.Services.AddSingleton<Decatron.Discord.DiscordClientRegistry>();
     builder.Services.AddSingleton<Decatron.Discord.DiscordClientProvider>();
     builder.Services.AddScoped<Decatron.Core.Interfaces.IDiscordDmSender, Decatron.Discord.DiscordDmSender>();
     builder.Services.AddSingleton<Decatron.Discord.Events.LiveAlertHandler>();
