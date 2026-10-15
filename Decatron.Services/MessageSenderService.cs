@@ -16,23 +16,26 @@ namespace Decatron.Services
     {
         private readonly ILogger<MessageSenderService> _logger;
         private readonly HttpClient _httpClient;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly ICredentialProvider _credentials;
+        private readonly IBotAccountProvider _bot;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ConcurrentQueue<(string channel, string message)> _messageQueue;
+        private readonly ConcurrentQueue<(long tenantId, string channel, string message)> _messageQueue;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly Task _processingTask;
 
         public MessageSenderService(
             ILogger<MessageSenderService> logger,
             HttpClient httpClient,
-            IOptions<TwitchSettings> twitchSettings,
+            ICredentialProvider credentials,
+            IBotAccountProvider bot,
             IServiceProvider serviceProvider)
         {
             _logger = logger;
             _httpClient = httpClient;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
+            _bot = bot;
             _serviceProvider = serviceProvider;
-            _messageQueue = new ConcurrentQueue<(string, string)>();
+            _messageQueue = new ConcurrentQueue<(long, string, string)>();
             _cancellationTokenSource = new CancellationTokenSource();
             _processingTask = ProcessMessageQueue(_cancellationTokenSource.Token);
         }
@@ -46,7 +49,7 @@ namespace Decatron.Services
                     _logger.LogWarning("Channel o mensaje vacío");
                     return;
                 }
-                _messageQueue.Enqueue((channel, message));
+                _messageQueue.Enqueue((TenantAmbient.Current ?? 1, channel, message));
                 await Task.CompletedTask;
             }
             catch (Exception ex)
@@ -64,7 +67,7 @@ namespace Decatron.Services
                     _logger.LogWarning("Channel o mensaje vacío");
                     return;
                 }
-                _messageQueue.Enqueue((channel, message));
+                _messageQueue.Enqueue((TenantAmbient.Current ?? 1, channel, message));
             }
             catch (Exception ex)
             {
@@ -80,8 +83,10 @@ namespace Decatron.Services
                 {
                     if (_messageQueue.TryDequeue(out var messageData))
                     {
-                        var (channel, message) = messageData;
-                        await SendMessageViaAPI(channel, message);
+                        var (tenantId, channel, message) = messageData;
+                        // El hilo consumidor no hereda el contexto de quien encolo: se vuelve a fijar el tenant de ese mensaje.
+                        using (TenantAmbient.Push(tenantId))
+                            await SendMessageViaAPI(channel, message);
                         await Task.Delay(100, cancellationToken); // Rate limiting
                     }
                     else
@@ -109,21 +114,15 @@ namespace Decatron.Services
                     return;
                 }
 
-                // Obtener bot_twitch_id (necesario para verified badge)
-                var botTwitchId = await GetBotTwitchId();
-                if (string.IsNullOrEmpty(botTwitchId))
+                // Cuenta de bot del tenant (bot_twitch_id es necesario para el verified badge)
+                var bot = await _bot.GetAsync();
+                if (bot is null)
                 {
-                    _logger.LogWarning("No se pudo obtener bot_twitch_id del bot");
+                    _logger.LogWarning("No se pudo obtener la cuenta del bot para enviar a {Channel}", channel);
                     return;
                 }
-
-                // Obtener access token del bot (App Access Token para verified badge)
-                var accessToken = await GetBotAccessToken();
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    _logger.LogWarning("No se pudo obtener access token del bot");
-                    return;
-                }
+                var botTwitchId = bot.TwitchId;
+                var accessToken = bot.AccessToken;
 
                 // Crear payload para API
                 var payload = new
@@ -142,7 +141,7 @@ namespace Decatron.Services
                     Content = content
                 };
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 // Enviar mensaje
@@ -191,53 +190,6 @@ namespace Decatron.Services
             }
         }
 
-
-        private async Task<string?> GetBotAccessToken()
-        {
-            try
-            {
-                using var scope = _serviceProvider.CreateScope();
-                var botTokenRepo = scope.ServiceProvider.GetRequiredService<IBotTokenRepository>();
-
-                var botToken = await botTokenRepo.GetByBotUsernameAsync(_twitchSettings.BotUsername);
-                if (botToken != null && !string.IsNullOrEmpty(botToken.AccessToken))
-                {
-                    var token = botToken.AccessToken;
-                    return token.StartsWith("oauth:") ? token.Substring(6) : token;
-                }
-
-                _logger.LogWarning("Access token del bot no encontrado en BD");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error obteniendo access token del bot");
-                return null;
-            }
-        }
-
-        private async Task<string?> GetBotTwitchId()
-        {
-            try
-            {
-                using var scope = _serviceProvider.CreateScope();
-                var botTokenRepo = scope.ServiceProvider.GetRequiredService<IBotTokenRepository>();
-
-                var botToken = await botTokenRepo.GetByBotUsernameAsync(_twitchSettings.BotUsername);
-                if (botToken?.BotTwitchId != null)
-                {
-                    return botToken.BotTwitchId;
-                }
-
-                _logger.LogWarning($"bot_twitch_id no encontrado para bot: {_twitchSettings.BotUsername}");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error obteniendo bot_twitch_id del bot");
-                return null;
-            }
-        }
 
         public void Dispose()
         {

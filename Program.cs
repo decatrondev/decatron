@@ -363,6 +363,7 @@ try
     builder.Services.AddSingleton<Decatron.Data.Encryption.ITenantKeyStore>(sp => new Decatron.Data.Encryption.NpgsqlTenantKeyStore(
         builder.Configuration.GetConnectionString("DefaultConnection") ?? ""));
     builder.Services.AddSingleton<Decatron.Data.Encryption.SecretVault>();
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.IBotAccountProvider, Decatron.Services.Tenancy.BotAccountProvider>();
     builder.Services.AddSingleton<Decatron.Core.Interfaces.ITenantCredentialStore>(sp => new Decatron.Services.Tenancy.NpgsqlTenantCredentialStore(
         builder.Configuration.GetConnectionString("DefaultConnection") ?? "", sp.GetRequiredService<Decatron.Data.Encryption.SecretVault>()));
     builder.Services.AddSingleton<Decatron.Core.Interfaces.ITwitchAppValidator, Decatron.Services.Tenancy.TwitchAppValidator>();
