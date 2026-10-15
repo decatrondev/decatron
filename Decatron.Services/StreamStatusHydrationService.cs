@@ -100,9 +100,10 @@ namespace Decatron.Services
             foreach (var channel in channelInfos)
             {
                 if (stoppingToken.IsCancellationRequested) break;
-                using var tenantScope = tenantShadow?.Enter("Bg.StreamStatusHydration", channel.Login);
                 alreadyChecked.Add(channel.Login);
+                // Cuentas sin Twitch (p. ej. solo Discord) no tienen canal: no se resuelve tenant para ellas.
                 if (string.IsNullOrEmpty(channel.TwitchId)) continue;
+                using var tenantScope = tenantShadow?.Enter("Bg.StreamStatusHydration", channel.Login);
 
                 try
                 {
