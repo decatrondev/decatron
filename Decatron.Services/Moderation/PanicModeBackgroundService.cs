@@ -16,8 +16,11 @@ namespace Decatron.Services.Moderation
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<PanicModeBackgroundService> _logger;
 
-        public PanicModeBackgroundService(IServiceScopeFactory scopeFactory, ILogger<PanicModeBackgroundService> logger)
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
+        public PanicModeBackgroundService(IServiceScopeFactory scopeFactory, ILogger<PanicModeBackgroundService> logger, Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _scopeFactory = scopeFactory;
             _logger = logger;
         }
@@ -26,8 +29,11 @@ namespace Decatron.Services.Moderation
         {
             try
             {
-                using var scope = _scopeFactory.CreateScope();
-                await scope.ServiceProvider.GetRequiredService<PanicModeService>().LoadActiveAsync();
+                await _tenants.ForEachTenantAsync("panic-load", async _ =>
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    await scope.ServiceProvider.GetRequiredService<PanicModeService>().LoadActiveAsync();
+                }, stoppingToken);
             }
             catch (Exception ex) { _logger.LogError(ex, "[PÁNICO] No se pudieron cargar los pánicos activos"); }
 
@@ -35,10 +41,13 @@ namespace Decatron.Services.Moderation
             {
                 try
                 {
-                    using var scope = _scopeFactory.CreateScope();
-                    var panic = scope.ServiceProvider.GetRequiredService<PanicModeService>();
-                    foreach (var channel in await panic.GetExpiredAsync())
-                        await panic.DeactivateAsync(channel, "decatron");
+                    await _tenants.ForEachTenantAsync("panic-expire", async _ =>
+                    {
+                        using var scope = _scopeFactory.CreateScope();
+                        var panic = scope.ServiceProvider.GetRequiredService<PanicModeService>();
+                        foreach (var channel in await panic.GetExpiredAsync())
+                            await panic.DeactivateAsync(channel, "decatron");
+                    }, stoppingToken);
                 }
                 catch (Exception ex) { _logger.LogError(ex, "[PÁNICO] Error apagando pánicos vencidos"); }
 

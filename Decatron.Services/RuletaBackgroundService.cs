@@ -27,8 +27,11 @@ namespace Decatron.Services
         private readonly ILogger<RuletaBackgroundService> _logger;
         private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
 
-        public RuletaBackgroundService(IServiceScopeFactory serviceScopeFactory, ILogger<RuletaBackgroundService> logger)
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
+        public RuletaBackgroundService(IServiceScopeFactory serviceScopeFactory, ILogger<RuletaBackgroundService> logger, Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
         }
@@ -41,7 +44,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await RestorePendingModsAsync();
+                    await _tenants.ForEachTenantAsync("ruleta", _ => RestorePendingModsAsync(), stoppingToken);
                 }
                 catch (Exception ex)
                 {

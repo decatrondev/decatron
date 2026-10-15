@@ -15,8 +15,11 @@ namespace Decatron.Services.ClipCommand
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<ClipHistoryCleanupService> _logger;
 
-        public ClipHistoryCleanupService(IServiceScopeFactory scopeFactory, ILogger<ClipHistoryCleanupService> logger)
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
+        public ClipHistoryCleanupService(IServiceScopeFactory scopeFactory, ILogger<ClipHistoryCleanupService> logger, Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _scopeFactory = scopeFactory;
             _logger = logger;
         }
@@ -28,7 +31,7 @@ namespace Decatron.Services.ClipCommand
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                try { await CleanAsync(stoppingToken); }
+                try { await _tenants.ForEachTenantAsync("clip-history", _ => CleanAsync(stoppingToken), stoppingToken); }
                 catch (OperationCanceledException) { return; }
                 catch (Exception ex) { _logger.LogError(ex, "[Clip] Error limpiando el historial"); }
 

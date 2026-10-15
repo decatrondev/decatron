@@ -25,11 +25,14 @@ namespace Decatron.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<GiveawayBackgroundService> _logger;
         private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(5);
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
 
         public GiveawayBackgroundService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<GiveawayBackgroundService> logger)
+            ILogger<GiveawayBackgroundService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
         }
@@ -42,7 +45,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await CheckGiveawayTimeouts();
+                    await _tenants.ForEachTenantAsync("giveaway", _ => CheckGiveawayTimeouts(), stoppingToken);
                 }
                 catch (Exception ex)
                 {
