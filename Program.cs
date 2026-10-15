@@ -695,7 +695,11 @@ try
     builder.Services.AddSingleton<Decatron.Discord.Services.XpRoleService>();
     builder.Services.AddScoped<Decatron.Discord.RankCardGenerator>();
     builder.Services.AddSingleton<Decatron.Discord.Events.MessageXpHandler>();
-    builder.Services.AddHostedService<Decatron.Discord.DiscordBotService>();
+    builder.Services.AddSingleton<Decatron.Discord.DiscordBotService>();
+    builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Discord.DiscordBotService>());
+    builder.Services.AddSingleton<Decatron.Discord.IDiscordBotValidator, Decatron.Discord.DiscordBotValidator>();
+    builder.Services.AddSingleton<Decatron.Discord.DiscordTenantGateway>();
+    builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Discord.DiscordTenantGateway>());
     builder.Services.AddHostedService<Decatron.Discord.DiscordAlertPollingService>();
     builder.Services.AddHostedService<Decatron.Discord.Services.StoreExpirationService>();
 

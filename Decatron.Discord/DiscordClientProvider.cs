@@ -21,6 +21,15 @@ public class DiscordClientProvider
 
     private static readonly DiscordClientRegistry Empty = new();
 
+    /// <summary>
+    /// Para los manejadores de eventos: fija el tenant ambiente al del cliente que disparó el evento (los eventos llegan en hilos del
+    /// gateway, sin contexto). El cliente del #1 no cambia nada (null).
+    /// </summary>
+    public IDisposable? EnterTenantOf(DiscordClient sender)
+        => (_registry ?? Empty).TenantOf(sender) is long t ? Decatron.Core.Interfaces.TenantAmbient.Push(t) : null;
+
+    public DiscordClientRegistry? Registry => _registry;
+
     public DiscordClientProvider(IOptions<DiscordSettings> settings, ILoggerFactory loggerFactory, DiscordClientRegistry? registry = null)
     {
         _registry = registry;

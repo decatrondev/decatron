@@ -20,6 +20,8 @@ namespace Decatron.Controllers
         private static readonly Regex ScopesRx = new(@"^[a-z0-9:_ ]{0,2000}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> _jwt;
+        private readonly Decatron.Discord.IDiscordBotValidator _discordValidator;
+        private readonly Decatron.Discord.DiscordTenantGateway _gateway;
         private readonly ITenantCredentialStore _store;
         private readonly ITwitchAppValidator _validator;
         private readonly ICredentialProvider _provider;
@@ -28,9 +30,10 @@ namespace Decatron.Controllers
 
         public PlatformTenantsController(ITenantCredentialStore store, ITwitchAppValidator validator, ICredentialProvider provider,
             IConfiguration config, ILogger<PlatformTenantsController> log,
-            Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> jwt)
+            Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> jwt,
+            Decatron.Discord.IDiscordBotValidator discordValidator, Decatron.Discord.DiscordTenantGateway gateway)
         {
-            _jwt = jwt; _store = store; _validator = validator; _provider = provider; _config = config; _log = log;
+            _discordValidator = discordValidator; _gateway = gateway; _jwt = jwt; _store = store; _validator = validator; _provider = provider; _config = config; _log = log;
         }
 
         public sealed class TwitchAppBody
@@ -66,8 +69,9 @@ namespace Decatron.Controllers
             }
             var items = new List<object>();
             foreach (var (id, slug, name, status, mode) in rows)
-                items.Add(new { id, slug, name, status, mode, twitchApp = id == 1 ? null : await _store.GetTwitchAppSummaryAsync(id), twitchBot = id == 1 ? null : await _store.GetTwitchBotAsync(id) });
-            return Ok(new { success = true, items });
+                items.Add(new { id, slug, name, status, mode, twitchApp = id == 1 ? null : await _store.GetTwitchAppSummaryAsync(id), twitchBot = id == 1 ? null : await _store.GetTwitchBotAsync(id),
+                    discordBot = id == 1 ? null : await _store.GetDiscordBotAsync(id), gateway = id == 1 ? null : _gateway.StateOf(id) });
+            return Ok(new { success = true, items, gateways = new { connected = _gateway.Connected, cap = _gateway.Cap, rssMb = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64 / 1048576 } });
         }
 
         [HttpPut("{id:long}/twitch-app")]
@@ -138,6 +142,48 @@ namespace Decatron.Controllers
             if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
             var removed = await _store.DeleteTwitchBotAsync(id, Actor);
             _log.LogInformation("Plataforma: cuenta de bot desvinculada del tenant {Tenant} por {Actor}", id, Actor);
+            return Ok(new { success = true, removed });
+        }
+
+        public sealed class DiscordBotBody { public string? Token { get; set; } }
+
+        /// <summary>Carga el bot de Discord del tenant: se valida contra Discord (debe ser un bot), se guarda cifrado y se abre su gateway.</summary>
+        [HttpPut("{id:long}/discord-bot")]
+        public async Task<IActionResult> SaveDiscordBot(long id, [FromBody] DiscordBotBody body)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            var tenant = await FindAsync(id);
+            if (tenant is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            if (tenant.Value.Status != "active") return BadRequest(new { success = false, code = "tenant_not_active" });
+            var token = body.Token?.Trim() ?? "";
+            if (token.Length < 50 || token.Length > 120 || token.Any(char.IsWhiteSpace)) return BadRequest(new { success = false, code = "invalid_discord_token" });
+
+            var who = await _discordValidator.ValidateAsync(token);
+            if (who.Result == Decatron.Discord.DiscordTokenCheck.InvalidToken) return UnprocessableEntity(new { success = false, code = "discord_rejected" });
+            if (who.Result == Decatron.Discord.DiscordTokenCheck.Unreachable) return StatusCode(502, new { success = false, code = "discord_unreachable" });
+
+            await _store.SaveDiscordBotAsync(id, new DiscordBotInput(token, who.BotId!, who.BotName ?? who.BotId!), Actor);
+            _log.LogInformation("Plataforma: bot de Discord {Bot} cargado para el tenant {Tenant} por {Actor}", who.BotName, id, Actor);
+            var state = await _gateway.StartAsync(id);
+            return Ok(new { success = true, discordBot = await _store.GetDiscordBotAsync(id), gateway = state });
+        }
+
+        [HttpPost("{id:long}/discord-bot/restart")]
+        public async Task<IActionResult> RestartDiscordBot(long id)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            return Ok(new { success = true, gateway = await _gateway.StartAsync(id) });
+        }
+
+        [HttpDelete("{id:long}/discord-bot")]
+        public async Task<IActionResult> DeleteDiscordBot(long id)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            await _gateway.StopAsync(id);
+            var removed = await _store.DeleteDiscordBotAsync(id, Actor);
+            _log.LogInformation("Plataforma: bot de Discord quitado del tenant {Tenant} por {Actor}", id, Actor);
             return Ok(new { success = true, removed });
         }
     }

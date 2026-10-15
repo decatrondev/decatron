@@ -41,4 +41,14 @@ public class TenantClientRegistryTests
         Assert.True(r.TryRemove(2, out _));
         using (TenantAmbient.Push(2)) Assert.Throws<NoClient>(() => r.Resolve("uno", Fail));
     }
+
+    [Fact]
+    public void ElEventoSabeDeQueTenantEsElCliente()
+    {
+        var r = new TenantClientRegistry<string>();
+        var c2 = new string("dos".ToCharArray()); var c3 = new string("tres".ToCharArray());
+        r.TryAdd(2, c2); r.TryAdd(3, c3);
+        Assert.Equal(2, r.TenantOf(c2)); Assert.Equal(3, r.TenantOf(c3));
+        Assert.Null(r.TenantOf("uno")); // el del #1 (o uno no registrado) no es de ningun tenant
+    }
 }

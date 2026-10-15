@@ -12,7 +12,9 @@ import api from '../../services/api';
 
 interface AppSummary { clientId: string; redirectUri: string | null; scopes: string | null; secretHint: string | null; status: string; lastValidatedAt: string | null }
 interface BotSummary { username: string; twitchId: string; linkedAt: string | null }
-interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null; twitchBot: BotSummary | null }
+interface DiscordSummary { botId: string; botName: string; linkedAt: string | null }
+interface GatewayState { status: string; guilds: number; error: string | null; intentsMissing: boolean; memoryDeltaMb: number }
+interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null; twitchBot: BotSummary | null; discordBot: DiscordSummary | null; gateway: GatewayState | null }
 interface Form { clientId: string; clientSecret: string; redirectUri: string; scopes: string }
 
 const EMPTY: Form = { clientId: '', clientSecret: '', redirectUri: '', scopes: '' };
@@ -21,6 +23,10 @@ export default function PlatformTenantsAdmin() {
     const { t, i18n } = useTranslation('platform');
     const navigate = useNavigate();
     const [items, setItems] = useState<Tenant[] | null>(null);
+    const [totals, setTotals] = useState<{ connected: number; cap: number; rssMb: number } | null>(null);
+    const [discordFor, setDiscordFor] = useState<Tenant | null>(null);
+    const [discordToken, setDiscordToken] = useState('');
+    const [rmDiscord, setRmDiscord] = useState<Tenant | null>(null);
     const [error, setError] = useState(false);
     const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
     const [editing, setEditing] = useState<Tenant | null>(null);
@@ -34,6 +40,7 @@ export default function PlatformTenantsAdmin() {
         try {
             const res = await api.get('/admin/platform/tenants');
             setItems(res.data.items);
+            setTotals(res.data.gateways ?? null);
             setError(false);
         } catch { setError(true); }
     }, []);
@@ -95,6 +102,40 @@ export default function PlatformTenantsAdmin() {
         setBusy(false);
     };
 
+    const saveDiscord = async () => {
+        if (!discordFor) return;
+        setBusy(true);
+        try {
+            const res = await api.put(`/admin/platform/tenants/${discordFor.id}/discord-bot`, { token: discordToken });
+            const g: GatewayState | undefined = res.data.gateway;
+            setNote(g?.status === 'connected' ? { ok: true, text: t('tenants.discordConnected') }
+                : { ok: false, text: g?.intentsMissing ? t('tenants.errors.intents_missing') : t('tenants.discordSavedNotConnected') });
+            setDiscordFor(null);
+            setDiscordToken(''); // el token no se queda en memoria de la pantalla
+            await load();
+        } catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
+
+    const restartDiscord = async (row: Tenant) => {
+        setBusy(true);
+        try { await api.post(`/admin/platform/tenants/${row.id}/discord-bot/restart`); await load(); }
+        catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
+
+    const removeDiscord = async () => {
+        if (!rmDiscord) return;
+        setBusy(true);
+        try {
+            await api.delete(`/admin/platform/tenants/${rmDiscord.id}/discord-bot`);
+            setNote({ ok: true, text: t('tenants.discordRemoved') });
+            setRmDiscord(null);
+            await load();
+        } catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
+
     if (error) return <div className="panel-scale"><Alert tone="danger">{t('tenants.loadFailed')}</Alert></div>;
     if (!items) return <div className="flex items-center justify-center h-64"><Spinner /></div>;
 
@@ -104,6 +145,7 @@ export default function PlatformTenantsAdmin() {
         <div className="panel-scale space-y-6">
             <ConfigHeader onBack={() => navigate('/admin')} icon={<KeyRound />} title={t('tenants.title')} subtitle={t('tenants.subtitle')} />
             {note && <Alert tone={note.ok ? 'ok' : 'danger'}>{note.text}</Alert>}
+            {totals && <p className="text-sm text-ds-soft">{t('tenants.gatewayTotals', { connected: totals.connected, cap: totals.cap, rss: totals.rssMb })}</p>}
 
             {items.map(row => (
                 <ConfigCard key={row.id} icon={<KeyRound />} title={`${row.name} (#${row.id})`} hint={row.slug}>
@@ -143,6 +185,23 @@ export default function PlatformTenantsAdmin() {
                                     </div>
                                 </div>
                             )}
+                            <div className="pt-3 border-t border-ds-border space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-bold text-ds-text">{t('tenants.discordTitle')}</span>
+                                    {row.discordBot ? (
+                                        <Badge tone={row.gateway?.status === 'connected' ? 'ok' : 'warn'}>
+                                            {row.discordBot.botName} · {t(`tenants.gatewayStatus.${row.gateway?.status ?? 'stopped'}`, { defaultValue: row.gateway?.status ?? 'stopped' })}
+                                        </Badge>
+                                    ) : <Badge tone="warn">{t('tenants.discordNone')}</Badge>}
+                                    {row.gateway?.status === 'connected' && <span className="text-sm text-ds-soft">{t('tenants.discordGuilds', { n: row.gateway.guilds, mb: row.gateway.memoryDeltaMb })}</span>}
+                                </div>
+                                {row.gateway?.error && <Alert tone="danger">{t(`tenants.errors.${row.gateway.error}`, { defaultValue: t('tenants.errors.generic') })}</Alert>}
+                                <div className="flex flex-wrap gap-2">
+                                    <Button size="sm" variant="secondary" onClick={() => { setDiscordToken(''); setDiscordFor(row); }}>{row.discordBot ? t('tenants.discordReplace') : t('tenants.discordLoad')}</Button>
+                                    {row.discordBot && <Button size="sm" variant="ghost" loading={busy} onClick={() => restartDiscord(row)}>{t('tenants.discordRestart')}</Button>}
+                                    {row.discordBot && <Button size="sm" variant="ghost" onClick={() => setRmDiscord(row)}>{t('tenants.discordRemove')}</Button>}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </ConfigCard>
@@ -180,6 +239,35 @@ export default function PlatformTenantsAdmin() {
                         <p className="text-sm text-ds-soft">{t('tenants.botLinkHelp')}</p>
                         <Input readOnly value={botLink.url} onFocus={e => e.currentTarget.select()} />
                     </div>
+                </ModalShell>
+            )}
+
+            {discordFor && (
+                <ModalShell
+                    title={t('tenants.discordFormTitle', { name: discordFor.name })} size="lg" onClose={() => { if (!busy) { setDiscordFor(null); setDiscordToken(''); } }}
+                    actions={<>
+                        <Button variant="ghost" onClick={() => { setDiscordFor(null); setDiscordToken(''); }} disabled={busy}>{t('admin.cancel')}</Button>
+                        <Button onClick={saveDiscord} loading={busy} disabled={discordToken.trim().length < 50}>{t('tenants.validateSave')}</Button>
+                    </>}
+                >
+                    <div className="space-y-4">
+                        <p className="text-sm text-ds-soft">{t('tenants.discordHelp')}</p>
+                        <Field label={t('tenants.discordToken')} hint={t('tenants.discordTokenHint')}>
+                            <Input type="password" value={discordToken} onChange={e => setDiscordToken(e.target.value)} autoComplete="new-password" spellCheck={false} />
+                        </Field>
+                    </div>
+                </ModalShell>
+            )}
+
+            {rmDiscord && (
+                <ModalShell
+                    title={t('tenants.discordRemoveTitle')} size="md" onClose={() => !busy && setRmDiscord(null)}
+                    actions={<>
+                        <Button variant="ghost" onClick={() => setRmDiscord(null)} disabled={busy}>{t('admin.cancel')}</Button>
+                        <Button variant="danger" onClick={removeDiscord} loading={busy}>{t('tenants.discordRemove')}</Button>
+                    </>}
+                >
+                    <p className="text-ds-soft">{t('tenants.discordRemoveText', { name: rmDiscord.name })}</p>
                 </ModalShell>
             )}
 

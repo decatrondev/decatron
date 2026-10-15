@@ -127,7 +127,7 @@ public class DiscordBotService : BackgroundService
             {
                 try
                 {
-                    await RegisterCommandsForGuild(e.Guild.Id, e.Guild.Name);
+                    await RegisterCommandsForGuild(e.Guild.Id, e.Guild.Name, _settings.BotToken, _settings.AppId);
                     _logger.LogInformation("Auto-registered commands for new guild: {Guild}", e.Guild.Name);
                 }
                 catch (Exception ex)
@@ -144,7 +144,7 @@ public class DiscordBotService : BackgroundService
             await Task.Delay(3000, stoppingToken);
 
             // Register commands via Discord API
-            await RegisterCommandsViaApi(client);
+            await RegisterCommandsViaApi(client, _settings.BotToken, _settings.AppId);
 
             // Keep alive
             await Task.Delay(Timeout.Infinite, stoppingToken);
@@ -165,8 +165,28 @@ public class DiscordBotService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Plataforma (Fase 4, paso 6c.2): engancha a un cliente de OTRO tenant los mismos eventos que el del #1 (comandos, bienvenida, XP,
+    /// registro de comandos al entrar a un servidor). El #1 no pasa por aquí: su cableado sigue en <see cref="ExecuteAsync"/>.
+    /// </summary>
+    public void AttachTenantClient(DiscordClient client, string botToken, string appId)
+    {
+        client.InteractionCreated += OnInteractionCreated;
+        _serviceProvider.GetRequiredService<Decatron.Discord.Events.WelcomeHandler>().RegisterEvents(client);
+        _serviceProvider.GetRequiredService<Decatron.Discord.Events.MessageXpHandler>().RegisterEvents(client);
+        client.GuildCreated += async (sender, e) =>
+        {
+            using var _tenant = _clientProvider.EnterTenantOf(sender);
+            try { await RegisterCommandsForGuild(e.Guild.Id, e.Guild.Name, botToken, appId); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Error registrando comandos en {Guild}", e.Guild.Name); }
+        };
+    }
+
+    public Task RegisterTenantCommandsAsync(DiscordClient client, string botToken, string appId) => RegisterCommandsViaApi(client, botToken, appId);
+
     private async Task OnInteractionCreated(DiscordClient sender, InteractionCreateEventArgs e)
     {
+        using var _tenant = _clientProvider.EnterTenantOf(sender); // cliente de un tenant: el trabajo siguiente corre en SU contexto
         if (e.Interaction.Type == InteractionType.ApplicationCommand)
         {
             _ = Task.Run(async () =>
@@ -421,16 +441,16 @@ public class DiscordBotService : BackgroundService
         }
     }
 
-    private async Task RegisterCommandsViaApi(DiscordClient client)
+    private async Task RegisterCommandsViaApi(DiscordClient client, string botToken, string appId)
     {
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.Add("Authorization", $"Bot {_settings.BotToken}");
+        http.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
 
         // Clean global commands
         try
         {
             await http.PutAsync(
-                $"https://discord.com/api/v10/applications/{_settings.AppId}/commands",
+                $"https://discord.com/api/v10/applications/{appId}/commands",
                 new StringContent("[]", Encoding.UTF8, "application/json"));
             _logger.LogInformation("Global commands limpiados");
         }
@@ -442,7 +462,7 @@ public class DiscordBotService : BackgroundService
             try
             {
                 var response = await http.PutAsync(
-                    $"https://discord.com/api/v10/applications/{_settings.AppId}/guilds/{guild.Id}/commands",
+                    $"https://discord.com/api/v10/applications/{appId}/guilds/{guild.Id}/commands",
                     new StringContent(CommandsJson, Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
@@ -454,13 +474,13 @@ public class DiscordBotService : BackgroundService
         }
     }
 
-    private async Task RegisterCommandsForGuild(ulong guildId, string guildName)
+    private async Task RegisterCommandsForGuild(ulong guildId, string guildName, string botToken, string appId)
     {
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.Add("Authorization", $"Bot {_settings.BotToken}");
+        http.DefaultRequestHeaders.Add("Authorization", $"Bot {botToken}");
 
         var response = await http.PutAsync(
-            $"https://discord.com/api/v10/applications/{_settings.AppId}/guilds/{guildId}/commands",
+            $"https://discord.com/api/v10/applications/{appId}/guilds/{guildId}/commands",
             new StringContent(CommandsJson, Encoding.UTF8, "application/json"));
 
         if (response.IsSuccessStatusCode)

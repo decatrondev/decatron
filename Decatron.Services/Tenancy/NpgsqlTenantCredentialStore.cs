@@ -232,4 +232,94 @@ public sealed class NpgsqlTenantCredentialStore : ITenantCredentialStore
         await tx.CommitAsync(ct);
         return n > 0;
     }
+
+    private const string DiscordProvider = "discord_bot";
+
+    public async Task SaveDiscordBotAsync(long tenantId, DiscordBotInput input, string actor, CancellationToken ct = default)
+    {
+        var enc = await _vault.ProtectAsync(tenantId, DiscordProvider, "bot_token", input.Token, ct);
+        await using var c = await OpenAsync(tenantId, ct);
+        await using var tx = await c.BeginTransactionAsync(ct);
+        await using (var cmd = new NpgsqlCommand(
+            @"INSERT INTO tenant_provider_config (tenant_id, provider, config, updated_at) VALUES (@t, @p, @cfg::jsonb, now())
+              ON CONFLICT (tenant_id, provider) DO UPDATE SET config = EXCLUDED.config, updated_at = now()", c, tx))
+        {
+            cmd.Parameters.AddWithValue("t", tenantId);
+            cmd.Parameters.AddWithValue("p", DiscordProvider);
+            cmd.Parameters.AddWithValue("cfg", JsonSerializer.Serialize(new { botId = input.BotId, botName = input.BotName }));
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+        await using (var cmd = new NpgsqlCommand(
+            @"INSERT INTO tenant_credentials (tenant_id, provider, kind, secret_enc, key_version, hint, status, last_validated_at)
+              VALUES (@t, @p, 'bot_token', @e, @v, @h, 'ok', now())
+              ON CONFLICT (tenant_id, provider, kind) DO UPDATE SET secret_enc = EXCLUDED.secret_enc, key_version = EXCLUDED.key_version,
+                hint = EXCLUDED.hint, status = 'ok', last_validated_at = now(), updated_at = now()", c, tx))
+        {
+            cmd.Parameters.AddWithValue("t", tenantId);
+            cmd.Parameters.AddWithValue("p", DiscordProvider);
+            cmd.Parameters.AddWithValue("e", enc);
+            cmd.Parameters.AddWithValue("v", int.Parse(enc.Split(':')[1]));
+            cmd.Parameters.AddWithValue("h", Hint(input.Token));
+            await cmd.ExecuteNonQueryAsync(ct);
+        }
+        await LogAsync(c, tx, tenantId, "bot_token", "write", actor, "admin-save", ct, DiscordProvider);
+        await tx.CommitAsync(ct);
+    }
+
+    public async Task<DiscordBotSummary?> GetDiscordBotAsync(long tenantId, CancellationToken ct = default)
+    {
+        await using var c = await OpenAsync(tenantId, ct);
+        await using var cmd = new NpgsqlCommand(
+            @"SELECT p.config::text, k.updated_at FROM tenant_provider_config p
+              JOIN tenant_credentials k ON k.tenant_id=p.tenant_id AND k.provider=p.provider AND k.kind='bot_token' AND k.status='ok'
+              WHERE p.tenant_id=@t AND p.provider=@p", c);
+        cmd.Parameters.AddWithValue("t", tenantId);
+        cmd.Parameters.AddWithValue("p", DiscordProvider);
+        await using var r = await cmd.ExecuteReaderAsync(ct);
+        if (!await r.ReadAsync(ct)) return null;
+        using var doc = JsonDocument.Parse(r.GetString(0));
+        string? S(string n) => doc.RootElement.TryGetProperty(n, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+        var id = S("botId"); var name = S("botName");
+        return string.IsNullOrEmpty(id) ? null : new DiscordBotSummary(id, name ?? id, r.GetFieldValue<DateTimeOffset>(1));
+    }
+
+    public async Task<string?> GetDiscordBotTokenAsync(long tenantId, string purpose, CancellationToken ct = default)
+    {
+        await using var c = await OpenAsync(tenantId, ct);
+        await using var cmd = new NpgsqlCommand("SELECT secret_enc FROM tenant_credentials WHERE tenant_id=@t AND provider=@p AND kind='bot_token' AND status='ok'", c);
+        cmd.Parameters.AddWithValue("t", tenantId);
+        cmd.Parameters.AddWithValue("p", DiscordProvider);
+        if (await cmd.ExecuteScalarAsync(ct) is not string enc) return null;
+        var token = await _vault.UnprotectAsync(tenantId, DiscordProvider, "bot_token", enc, ct);
+        await LogAsync(c, null, tenantId, "bot_token", "read", "system", purpose, ct, DiscordProvider);
+        return token;
+    }
+
+    public async Task<bool> DeleteDiscordBotAsync(long tenantId, string actor, CancellationToken ct = default)
+    {
+        await using var c = await OpenAsync(tenantId, ct);
+        await using var tx = await c.BeginTransactionAsync(ct);
+        int n = 0;
+        foreach (var table in new[] { "tenant_credentials", "tenant_provider_config" })
+        {
+            await using var cmd = new NpgsqlCommand($"DELETE FROM {table} WHERE tenant_id=@t AND provider=@p", c, tx);
+            cmd.Parameters.AddWithValue("t", tenantId);
+            cmd.Parameters.AddWithValue("p", DiscordProvider);
+            n += await cmd.ExecuteNonQueryAsync(ct);
+        }
+        if (n > 0) await LogAsync(c, tx, tenantId, "bot_token", "write", actor, "admin-delete", ct, DiscordProvider);
+        await tx.CommitAsync(ct);
+        return n > 0;
+    }
+
+    public async Task<IReadOnlyList<long>> ListActiveTenantIdsAsync(CancellationToken ct = default)
+    {
+        var ids = new List<long>();
+        await using var c = TenantNpgsql.Create(_cs, 1);
+        await c.OpenAsync(ct);
+        await using var cmd = new NpgsqlCommand("SELECT id FROM tenants WHERE status='active' AND id<>1 ORDER BY id", c);
+        await using var r = await cmd.ExecuteReaderAsync(ct);
+        while (await r.ReadAsync(ct)) ids.Add(r.GetInt64(0));
+        return ids;
+    }
 }

@@ -22,9 +22,9 @@ public class WelcomeHandler
         _logger = logger;
     }
 
-    public void RegisterEvents()
+    public void RegisterEvents(DiscordClient? client = null)
     {
-        var client = _clientProvider.Client;
+        client ??= _clientProvider.Client;
         client.GuildMemberAdded += OnMemberJoined;
         client.GuildMemberRemoved += OnMemberLeft;
         _logger.LogInformation("Welcome/goodbye events registered");
@@ -32,6 +32,7 @@ public class WelcomeHandler
 
     private async Task OnMemberJoined(DiscordClient sender, GuildMemberAddEventArgs e)
     {
+        using var _tenant = _clientProvider.EnterTenantOf(sender);
         try
         {
             _serviceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>()?.ObserveGuild("Discord.MemberJoined", e.Guild.Id.ToString());
@@ -92,6 +93,7 @@ public class WelcomeHandler
 
     private async Task OnMemberLeft(DiscordClient sender, GuildMemberRemoveEventArgs e)
     {
+        using var _tenant = _clientProvider.EnterTenantOf(sender);
         try
         {
             _serviceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>()?.ObserveGuild("Discord.MemberLeft", e.Guild.Id.ToString());

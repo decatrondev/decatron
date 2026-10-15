@@ -29,15 +29,16 @@ public class MessageXpHandler
         _logger = logger;
     }
 
-    public void RegisterEvents()
+    public void RegisterEvents(DiscordClient? client = null)
     {
-        var client = _clientProvider.Client;
+        client ??= _clientProvider.Client;
         client.MessageCreated += OnMessageCreated;
         _logger.LogInformation("Message XP handler registered");
     }
 
     private async Task OnMessageCreated(DiscordClient sender, MessageCreateEventArgs e)
     {
+        using var _tenant = _clientProvider.EnterTenantOf(sender); // el evento llega sin contexto: se fija el tenant del cliente
         try
         {
             // Ignore bots and DMs

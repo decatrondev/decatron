@@ -284,7 +284,13 @@
       "tenant_one_legacy": "The Decatron tenant is not edited here.",
       "tenant_not_found": "The tenant does not exist.",
       "tenant_not_active": "The tenant is not active.",
-      "app_required": "Load the tenant's Twitch app first."
+      "app_required": "Load the tenant's Twitch app first.",
+      "invalid_discord_token": "The token format is not valid.",
+      "discord_rejected": "Discord rejected the token or it is not a bot's. Nothing was saved.",
+      "discord_unreachable": "Could not reach Discord. Try again.",
+      "intents_missing": "The bot could not connect: the privileged intents (Server Members Intent and Message Content Intent) are missing in the buyer's Discord portal.",
+      "gateway_cap": "The platform's Discord connection limit was reached.",
+      "connect_failed": "The bot could not connect to Discord."
     },
     "botTitle": "Bot account",
     "botNone": "No bot",
@@ -298,6 +304,29 @@
     "botLinkHelp": "Send it to the buyer. They must open it while signed in to Twitch with their bot's account and accept every permission. It works once and expires in 30 minutes.",
     "botUnlinkTitle": "Unlink the bot",
     "botUnlinkText": "{{name}}'s bot will stop writing in their chat until another account is authorized.",
-    "botUnlinked": "Bot unlinked."
+    "botUnlinked": "Bot unlinked.",
+    "discordTitle": "Discord bot",
+    "discordNone": "No bot",
+    "discordLoad": "Load bot token",
+    "discordReplace": "Replace token",
+    "discordRestart": "Reconnect",
+    "discordRemove": "Remove bot",
+    "discordFormTitle": "{{name}}'s Discord bot",
+    "discordHelp": "The buyer creates their application at discord.com/developers, adds a bot and enables the privileged «Server Members Intent» and «Message Content Intent». Paste the bot token here. It is checked against Discord (it must be a bot), stored encrypted and connected.",
+    "discordToken": "Bot token",
+    "discordTokenHint": "Encrypted on save and cannot be viewed afterwards.",
+    "discordConnected": "Bot validated, saved and connected to Discord.",
+    "discordSavedNotConnected": "The token was saved, but the bot could not connect. Check the status and use «Reconnect».",
+    "discordRemoved": "Discord bot removed.",
+    "discordRemoveTitle": "Remove the Discord bot",
+    "discordRemoveText": "{{name}}'s bot will be disconnected and its token deleted.",
+    "discordGuilds": "{{n}} server(s) · +{{mb}} MB",
+    "gatewayTotals": "Tenant Discord connections: {{connected}} of {{cap}} · process memory: {{rss}} MB",
+    "gatewayStatus": {
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "failed": "Failed",
+      "stopped": "Stopped"
+    }
   }
 }

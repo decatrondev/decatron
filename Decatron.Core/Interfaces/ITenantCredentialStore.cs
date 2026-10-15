@@ -9,6 +9,12 @@ public sealed record TwitchBotInput(string Username, string TwitchId, string Acc
 /// <summary>Estado visible del bot de un tenant. Sin tokens.</summary>
 public sealed record TwitchBotSummary(string Username, string TwitchId, DateTimeOffset? LinkedAt);
 
+/// <summary>Bot de Discord de un tenant (su propia aplicación): el token se guarda cifrado y solo se lee para abrir el gateway.</summary>
+public sealed record DiscordBotInput(string Token, string BotId, string BotName);
+
+/// <summary>Estado visible del bot de Discord de un tenant. Sin token.</summary>
+public sealed record DiscordBotSummary(string BotId, string BotName, DateTimeOffset? LinkedAt);
+
 /// <summary>Estado visible de la app de un tenant. Nunca incluye secretos: solo si existen y sus últimos caracteres.</summary>
 public sealed record TwitchAppSummary(
     string ClientId, string? RedirectUri, string? Scopes, string? SecretHint, string Status, DateTimeOffset? LastValidatedAt);
@@ -32,6 +38,14 @@ public interface ITenantCredentialStore
     Task SaveTwitchBotAsync(long tenantId, TwitchBotInput input, string actor, CancellationToken ct = default);
     Task<TwitchBotSummary?> GetTwitchBotAsync(long tenantId, CancellationToken ct = default);
     Task<bool> DeleteTwitchBotAsync(long tenantId, string actor, CancellationToken ct = default);
+
+    Task SaveDiscordBotAsync(long tenantId, DiscordBotInput input, string actor, CancellationToken ct = default);
+    Task<DiscordBotSummary?> GetDiscordBotAsync(long tenantId, CancellationToken ct = default);
+    /// <summary>Token en claro, solo para abrir el gateway. Queda registrado en credential_access_log.</summary>
+    Task<string?> GetDiscordBotTokenAsync(long tenantId, string purpose, CancellationToken ct = default);
+    Task<bool> DeleteDiscordBotAsync(long tenantId, string actor, CancellationToken ct = default);
+    /// <summary>Ids de los tenants activos distintos del #1 (la tabla tenants no lleva RLS; los secretos de cada uno sí).</summary>
+    Task<IReadOnlyList<long>> ListActiveTenantIdsAsync(CancellationToken ct = default);
 }
 
 public enum AppValidationResult { Ok, InvalidCredentials, Unreachable }

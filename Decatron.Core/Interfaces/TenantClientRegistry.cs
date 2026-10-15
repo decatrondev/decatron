@@ -17,6 +17,13 @@ public class TenantClientRegistry<T> where T : class
     public bool TryAdd(long tenantId, T client) => tenantId != 1 && _clients.TryAdd(tenantId, client);
     public bool TryRemove(long tenantId, out T client) => _clients.TryRemove(tenantId, out client!);
 
+    /// <summary>Tenant dueño de este cliente (el que dispara un evento), o null si es el del #1 o no está registrado.</summary>
+    public long? TenantOf(T client)
+    {
+        foreach (var kv in _clients) if (ReferenceEquals(kv.Value, client)) return kv.Key;
+        return null;
+    }
+
     /// <summary>Cliente del tenant ambiente: el #1 (o sin tenant) recibe <paramref name="primary"/>; otro recibe el suyo o una excepción.</summary>
     public T Resolve(T primary, Func<long, Exception> notConfigured)
     {

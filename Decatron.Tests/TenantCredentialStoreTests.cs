@@ -18,6 +18,11 @@ public class StoreCredentialProviderTests
         public Task SaveTwitchBotAsync(long t, TwitchBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
         public Task<TwitchBotSummary?> GetTwitchBotAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchBotSummary?>(null);
         public Task<bool> DeleteTwitchBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
+        public Task SaveDiscordBotAsync(long t, DiscordBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<DiscordBotSummary?> GetDiscordBotAsync(long t, CancellationToken ct = default) => Task.FromResult<DiscordBotSummary?>(null);
+        public Task<string?> GetDiscordBotTokenAsync(long t, string p, CancellationToken ct = default) => Task.FromResult<string?>(null);
+        public Task<bool> DeleteDiscordBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
+        public Task<IReadOnlyList<long>> ListActiveTenantIdsAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<long>>(new List<long>());
         public Task<long?> FindActiveTenantIdAsync(string slug, CancellationToken ct = default) => Task.FromResult<long?>(null);
         public Task<TwitchAppCredentials?> GetTwitchAppAsync(long t, CancellationToken ct = default) { Calls++; return Task.FromResult(Apps.GetValueOrDefault(t)); }
         public Task<TwitchAppSummary?> GetTwitchAppSummaryAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchAppSummary?>(null);
@@ -128,6 +133,21 @@ public class NpgsqlTenantCredentialStoreTests
                 await using var rd = await new NpgsqlCommand("select secret_enc from tenant_credentials where provider='twitch_bot'", c).ExecuteReaderAsync();
                 while (await rd.ReadAsync()) raws.Add(rd.GetString(0));
                 Assert.Equal(2, raws.Count); Assert.All(raws, r => { Assert.StartsWith("ENC2:", r); Assert.DoesNotContain("secreto", r); }); }
+            // Bot de Discord: token cifrado, solo legible por su tenant, resumen sin token
+            const string dtok = "token-de-prueba-fakefakefakefakefakefakefakefakefakefake";
+            await store.SaveDiscordBotAsync(A, new DiscordBotInput(dtok, "9988", "AnaBot"), "tester");
+            var dsum = await store.GetDiscordBotAsync(A);
+            Assert.Equal("9988", dsum!.BotId); Assert.Equal("AnaBot", dsum.BotName);
+            Assert.Equal(dtok, await store.GetDiscordBotTokenAsync(A, "test"));
+            Assert.Null(await store.GetDiscordBotAsync(B));
+            Assert.Null(await store.GetDiscordBotTokenAsync(B, "test"));
+            await using (var c = TenantNpgsql.Create(App, A)) { await c.OpenAsync();
+                var raw = (string)(await new NpgsqlCommand("select secret_enc from tenant_credentials where provider='discord_bot'", c).ExecuteScalarAsync())!;
+                Assert.StartsWith("ENC2:", raw); Assert.DoesNotContain("fakefake", raw); }
+            Assert.Contains(A, await store.ListActiveTenantIdsAsync());
+            Assert.True(await store.DeleteDiscordBotAsync(A, "tester"));
+            Assert.Null(await store.GetDiscordBotAsync(A));
+
             Assert.True(await store.DeleteTwitchBotAsync(A, "tester"));
             Assert.Null(await store.GetTwitchBotAsync(A));
 
