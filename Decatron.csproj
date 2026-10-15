@@ -59,6 +59,7 @@
     <Compile Remove="Decatron.Custom/**/*.cs" />
     <Compile Remove="Decatron.Attributes/**/*.cs" />
     <Compile Remove="Decatron.Business/**/*.cs" />
+    <Compile Remove="Decatron.Tests/**/*.cs" />
     <ProjectReference Include="Decatron.Core/Decatron.Core.csproj" />
     <ProjectReference Include="Decatron.Data/Decatron.Data.csproj" />
     <ProjectReference Include="Decatron.Business/Decatron.Business.csproj" />
