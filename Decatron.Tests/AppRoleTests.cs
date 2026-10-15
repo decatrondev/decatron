@@ -19,7 +19,7 @@ public class AppRoleTests
 
     private static NpgsqlConnection Open()
     {
-        var c = new NpgsqlConnection(Conn);
+        var c = Decatron.Core.Interfaces.TenantNpgsql.Create(Conn, 1); // P9: el default de tenant_id es app_tenant_id(); sin tenant el INSERT se rechaza
         c.Open();
         using var cmd = new NpgsqlCommand("select current_database() || '/' || current_user", c);
         var who = (string)cmd.ExecuteScalar()!;
@@ -55,7 +55,7 @@ public class AppRoleTests
     public void Role_CanQueryEveryEntity()
     {
         if (!Available) return;
-        var options = new DbContextOptionsBuilder<DecatronDbContext>().UseNpgsql(Conn).Options;
+        var options = new DbContextOptionsBuilder<DecatronDbContext>().UseNpgsql(Decatron.Core.Interfaces.TenantNpgsql.Create(Conn, 1)).Options;
         using var ctx = new DecatronDbContext(options);
         var setMethod = typeof(DbContext).GetMethods().First(m => m.Name == "Set" && m.GetParameters().Length == 0 && m.IsGenericMethodDefinition);
         var take = typeof(Queryable).GetMethods().First(m => m.Name == "Take" && m.GetParameters()[1].ParameterType == typeof(int));
@@ -82,7 +82,7 @@ public class AppRoleTests
     public void Role_CanWrite()
     {
         if (!Available) return;
-        var options = new DbContextOptionsBuilder<DecatronDbContext>().UseNpgsql(Conn).Options;
+        var options = new DbContextOptionsBuilder<DecatronDbContext>().UseNpgsql(Decatron.Core.Interfaces.TenantNpgsql.Create(Conn, 1)).Options;
         using var ctx = new DecatronDbContext(options);
         var row = new Decatron.Core.Models.CommandCounter { ChannelName = "app_role", CommandName = "c" + Guid.NewGuid().ToString("N")[..8], UserId = 515151 };
         ctx.CommandCounters.Add(row);
