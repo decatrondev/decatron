@@ -455,6 +455,7 @@ namespace Decatron.Services
 
         private static JObject BuildSubscribeJObject(ChannelSubscribe e) => new()
         {
+            ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
             ["user_name"] = e.UserName,
             ["tier"] = e.Tier,
@@ -463,6 +464,7 @@ namespace Decatron.Services
 
         private static JObject BuildGiftSubJObject(ChannelSubscriptionGift e) => new()
         {
+            ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
             ["user_name"] = e.UserName,
             ["total"] = e.Total
@@ -470,6 +472,7 @@ namespace Decatron.Services
 
         private static JObject BuildResubJObject(ChannelSubscriptionMessage e) => new()
         {
+            ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
             ["user_name"] = e.UserName,
             ["tier"] = e.Tier,
@@ -479,6 +482,7 @@ namespace Decatron.Services
 
         private static JObject BuildRaidJObject(ChannelRaid e) => new()
         {
+            ["to_broadcaster_user_id"] = e.ToBroadcasterUserId,
             ["to_broadcaster_user_login"] = e.ToBroadcasterUserLogin,
             ["from_broadcaster_user_name"] = e.FromBroadcasterUserName,
             ["from_broadcaster_user_login"] = e.FromBroadcasterUserLogin,
@@ -487,6 +491,7 @@ namespace Decatron.Services
 
         private static JObject BuildHypeTrainJObject(HypeTrainBeginV2 e) => new()
         {
+            ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
             ["level"] = e.Level
         };

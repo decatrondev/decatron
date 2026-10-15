@@ -117,7 +117,9 @@ namespace Decatron.Services
         {
             var broadcasterId = datosEvento?["broadcaster_user_id"]?.ToString() ?? "?";
             _logger.LogWarning($"📨 [EVENTSUB] Evento recibido: {tipoEvento} | broadcaster: {broadcasterId}");
-            _tenantShadow.Observe("EventSub." + tipoEvento, broadcasterId == "?" ? null : broadcasterId);
+            // Raids traen el canal destino en to_broadcaster_user_id; en el resto, broadcaster_user_id.
+            var claveCanal = broadcasterId != "?" ? broadcasterId : datosEvento?["to_broadcaster_user_id"]?.ToString();
+            _tenantShadow.Observe("EventSub." + tipoEvento, claveCanal);
 
             if (tipoEvento == "channel.follow")
             {
