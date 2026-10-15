@@ -355,6 +355,9 @@ try
     });
 
     // Register repositories
+    // Plataforma, Fase 2: contexto de tenant (bandera Platform:TenantContext:Mode, apagada por defecto)
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.ITenantResolver, Decatron.Services.Tenancy.TenantResolver>();
+    builder.Services.AddScoped<Decatron.Core.Interfaces.ITenantContext, Decatron.Services.Tenancy.TenantContext>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IBotTokenRepository, BotTokenRepository>();
 
@@ -814,6 +817,7 @@ try
     app.UseCors("AllowReact");
     app.UseSession();
     app.UseAuthentication(); // CRITICAL: Debe estar ANTES de UseAuthorization
+    app.UseTenantContext(); // Fase 2 plataforma: no hace nada con Mode=off
     app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseAuthorization();
     app.UseRateLimiter();

@@ -160,6 +160,9 @@ namespace Decatron.Data
         public DbSet<Core.Models.Design.DesignVersion> DesignVersions { get; set; }
         public DbSet<Core.Models.Platform.PlatformWaitlistEntry> PlatformWaitlist { get; set; }
         public DbSet<Core.Models.Platform.PlatformWaitlistEmail> PlatformWaitlistEmails { get; set; }
+        public DbSet<Core.Models.Platform.Tenant> Tenants { get; set; }
+        public DbSet<Core.Models.Platform.TenantMember> TenantMembers { get; set; }
+        public DbSet<Core.Models.Platform.Channel> PlatformChannels { get; set; }
         public DbSet<Core.Models.SongRequest.SongTrack> SongTracks { get; set; }
         public DbSet<Core.Models.ClipCommand.ClipCommandConfig> ClipCommandConfigs { get; set; }
         public DbSet<Core.Models.ClipCommand.ClipCommandBlock> ClipCommandBlocks { get; set; }
@@ -327,6 +330,8 @@ namespace Decatron.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Core.Models.Platform.TenantMember>().HasKey(m => new { m.TenantId, m.UserId });
 
             // Apply encryption converter to sensitive token columns
             EncryptedStringConverter? encConverter = null;
