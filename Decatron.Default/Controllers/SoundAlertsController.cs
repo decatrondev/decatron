@@ -22,7 +22,7 @@ namespace Decatron.Default.Controllers
     {
         private readonly DecatronDbContext _dbContext;
         private readonly ILogger<SoundAlertsController> _logger;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHubContext<OverlayHub> _hubContext;
         private readonly IKickApiService _kickApiService;
@@ -31,14 +31,14 @@ namespace Decatron.Default.Controllers
         public SoundAlertsController(
             DecatronDbContext dbContext,
             ILogger<SoundAlertsController> logger,
-            IOptions<TwitchSettings> twitchSettings,
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
             IHttpClientFactory httpClientFactory,
             IHubContext<OverlayHub> hubContext,
             IKickApiService kickApiService)
         {
             _dbContext = dbContext;
             _logger = logger;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
             _httpClientFactory = httpClientFactory;
             _hubContext = hubContext;
             _kickApiService = kickApiService;
@@ -155,7 +155,7 @@ namespace Decatron.Default.Controllers
                     return await GetKickChannelRewardsAsync(user);
 
                 // Validar configuración
-                if (string.IsNullOrEmpty(_twitchSettings?.ClientId))
+                if (string.IsNullOrEmpty(_credentials.GetTwitchApp().ClientId))
                 {
                     _logger.LogError("🎵 [SoundAlerts] ClientId de Twitch no configurado");
                     return StatusCode(500, new { success = false, message = "Configuración de Twitch no disponible" });
@@ -184,7 +184,7 @@ namespace Decatron.Default.Controllers
                 var request = new HttpRequestMessage(HttpMethod.Get,
                     $"{TwitchApiBaseUrl}/channel_points/custom_rewards?broadcaster_id={user.TwitchId}");
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 var response = await httpClient.SendAsync(request);

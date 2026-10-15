@@ -61,7 +61,7 @@ namespace Decatron.Services
             {
                 var context = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                 var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
-                var twitchSettings = scope.ServiceProvider.GetRequiredService<IOptions<TwitchSettings>>().Value;
+                var twitchSettings = scope.ServiceProvider.GetRequiredService<Decatron.Core.Interfaces.ICredentialProvider>().GetTwitchApp();
 
                 try
                 {

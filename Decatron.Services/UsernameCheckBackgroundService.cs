@@ -13,17 +13,17 @@ namespace Decatron.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<UsernameCheckBackgroundService> _logger;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly TimeSpan _checkInterval = TimeSpan.FromHours(12);
 
         public UsernameCheckBackgroundService(
             IServiceProvider serviceProvider,
             ILogger<UsernameCheckBackgroundService> logger,
-            IOptions<TwitchSettings> twitchSettings)
+            Decatron.Core.Interfaces.ICredentialProvider credentials)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -156,8 +156,8 @@ namespace Decatron.Services
             try
             {
                 using var httpClient = new HttpClient();
-                var url = $"https://id.twitch.tv/oauth2/token?client_id={_twitchSettings.ClientId}&client_secret={_twitchSettings.ClientSecret}&grant_type=client_credentials";
-                _logger.LogInformation("Requesting app access token (ClientId: {ClientId})", _twitchSettings.ClientId?[..6] + "...");
+                var url = $"https://id.twitch.tv/oauth2/token?client_id={_credentials.GetTwitchApp().ClientId}&client_secret={_credentials.GetTwitchApp().ClientSecret}&grant_type=client_credentials";
+                _logger.LogInformation("Requesting app access token (ClientId: {ClientId})", _credentials.GetTwitchApp().ClientId?[..6] + "...");
                 var response = await httpClient.PostAsync(url, new StringContent(""), ct);
 
                 if (!response.IsSuccessStatusCode)
@@ -190,7 +190,7 @@ namespace Decatron.Services
             {
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {appToken}");
-                httpClient.DefaultRequestHeaders.Add("Client-Id", _twitchSettings.ClientId);
+                httpClient.DefaultRequestHeaders.Add("Client-Id", _credentials.GetTwitchApp().ClientId);
 
                 var queryParams = string.Join("&", twitchIds.Select(id => $"id={id}"));
                 var response = await httpClient.GetAsync($"https://api.twitch.tv/helix/users?{queryParams}", ct);

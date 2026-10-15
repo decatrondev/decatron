@@ -30,16 +30,16 @@ namespace Decatron.Controllers
         };
 
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<TwitchOAuthProxyController> _logger;
 
         public TwitchOAuthProxyController(
             IHttpClientFactory httpClientFactory,
-            IOptions<TwitchSettings> twitchSettings,
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
             ILogger<TwitchOAuthProxyController> logger)
         {
             _httpClientFactory = httpClientFactory;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
             _logger = logger;
         }
 
@@ -54,8 +54,8 @@ namespace Decatron.Controllers
 
             var payload = new Dictionary<string, string>
             {
-                ["client_id"] = _twitchSettings.ClientId,
-                ["client_secret"] = _twitchSettings.ClientSecret,
+                ["client_id"] = _credentials.GetTwitchApp().ClientId,
+                ["client_secret"] = _credentials.GetTwitchApp().ClientSecret,
                 ["grant_type"] = form.grant_type
             };
 

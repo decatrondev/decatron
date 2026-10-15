@@ -19,18 +19,18 @@ namespace Decatron.Services
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly DecatronDbContext _context;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<GameSearchService> _logger;
 
         public GameSearchService(
             IHttpClientFactory httpClientFactory,
             DecatronDbContext context,
-            IOptions<TwitchSettings> twitchSettings,
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
             ILogger<GameSearchService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _context = context;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
             _logger = logger;
         }
 
@@ -181,7 +181,7 @@ namespace Decatron.Services
                 }
 
                 var client = _httpClientFactory.CreateClient();
-                client.DefaultRequestHeaders.Add("Client-ID", _twitchSettings.ClientId);
+                client.DefaultRequestHeaders.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {botToken.AccessToken}");
 
                 var url = $"https://api.twitch.tv/helix/search/categories?query={Uri.EscapeDataString(query)}&first={limit}";
