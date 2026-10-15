@@ -46,6 +46,7 @@ namespace Decatron.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Decatron.Services.ChatOverlay.ChatOverlayService _chatOverlay;
         private readonly Decatron.Services.Tenancy.TenantShadow _tenantShadow;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
 
         // Cache para evitar procesar el mismo mensaje de chat dos veces
         private static readonly ConcurrentDictionary<string, DateTime> _processedMessages = new ConcurrentDictionary<string, DateTime>();
@@ -67,8 +68,10 @@ namespace Decatron.Services
             IServiceScopeFactory serviceScopeFactory,
             Decatron.Services.Pets.PetEventBridge petEventBridge,
             Decatron.Services.ChatOverlay.ChatOverlayService chatOverlay,
-            Decatron.Services.Tenancy.TenantShadow tenantShadow)
+            Decatron.Services.Tenancy.TenantShadow tenantShadow,
+            Decatron.Core.Interfaces.ICredentialProvider credentials)
         {
+            _credentials = credentials;
             _tenantShadow = tenantShadow;
             _chatOverlay = chatOverlay;
             _configuration = configuration;
@@ -379,7 +382,7 @@ namespace Decatron.Services
                 }
 
                 // FILTRO CRÍTICO: Ignorar mensajes del propio bot para evitar loops
-                var botUsername = _configuration["TwitchSettings:BotUsername"];
+                var botUsername = _credentials.GetTwitchBotUsername();
                 if (!string.IsNullOrEmpty(botUsername) &&
                     chatterUserName.Equals(botUsername, StringComparison.OrdinalIgnoreCase))
                 {

@@ -21,13 +21,16 @@ namespace Decatron.Controllers
         private readonly ILogger<TwitchWebhookController> _logger;
         private readonly EventSubService _eventSubService;
         private readonly EventSubNotificationHandler _notificationHandler;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
 
         public TwitchWebhookController(
             IConfiguration configuration,
             ILogger<TwitchWebhookController> logger,
             EventSubService eventSubService,
-            EventSubNotificationHandler notificationHandler)
+            EventSubNotificationHandler notificationHandler,
+            Decatron.Core.Interfaces.ICredentialProvider credentials)
         {
+            _credentials = credentials;
             _configuration = configuration;
             _logger = logger;
             _eventSubService = eventSubService;
@@ -101,7 +104,7 @@ namespace Decatron.Controllers
 
         private bool VerificarFirma(string idMensaje, string marcaTiempo, string cuerpo, string encabezadoFirma)
         {
-            var secreto = _configuration["TwitchSettings:WebhookSecret"];
+            var secreto = _credentials.GetTwitchApp().WebhookSecret;
             if (string.IsNullOrEmpty(secreto))
             {
                 LogToFile("ERROR: WebhookSecret no configurado");

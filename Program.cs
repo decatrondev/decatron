@@ -357,6 +357,7 @@ try
     // Register repositories
     // Plataforma, Fase 2: contexto de tenant (bandera Platform:TenantContext:Mode, apagada por defecto)
     builder.Services.AddSingleton<Decatron.Core.Interfaces.ITenantResolver, Decatron.Services.Tenancy.TenantResolver>();
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.ICredentialProvider, Decatron.Services.Tenancy.CredentialProvider>();
     builder.Services.AddScoped<Decatron.Core.Interfaces.ITenantContext, Decatron.Services.Tenancy.TenantContext>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantShadow>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();

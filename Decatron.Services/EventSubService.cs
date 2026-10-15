@@ -23,14 +23,17 @@ namespace Decatron.Services
     public class EventSubService
     {
         private readonly IConfiguration _configuration;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<EventSubService> _logger;
         private readonly HttpClient _httpClient;
 
         public EventSubService(
             IConfiguration configuration,
             ILogger<EventSubService> logger,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            Decatron.Core.Interfaces.ICredentialProvider credentials)
         {
+            _credentials = credentials;
             _configuration = configuration;
             _logger = logger;
             _httpClient = httpClient;
@@ -150,7 +153,7 @@ namespace Decatron.Services
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
                 object transport;
 
                 if (transportMode == EventSubTransportMode.Conduit)
@@ -164,8 +167,8 @@ namespace Decatron.Services
                 }
                 else
                 {
-                    var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                    var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
+                    var webhookUrl = _credentials.GetTwitchApp().WebhookCallbackUrl;
+                    var webhookSecret = _credentials.GetTwitchApp().WebhookSecret;
 
                     if (string.IsNullOrEmpty(webhookUrl))
                     {
@@ -420,7 +423,7 @@ namespace Decatron.Services
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
 
                 var allData = new List<JsonElement>();
                 string cursor = null;
@@ -504,7 +507,7 @@ namespace Decatron.Services
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
 
                 var request = new HttpRequestMessage(HttpMethod.Delete, $"https://api.twitch.tv/helix/eventsub/subscriptions?id={subscriptionId}");
                 request.Headers.Add("Client-ID", clientId);
@@ -622,7 +625,7 @@ namespace Decatron.Services
         {
             try
             {
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
                 var result = await ListSubscriptionsAsync();
 
                 if (result.Success && !string.IsNullOrEmpty(result.ResponseBody))
@@ -801,7 +804,7 @@ namespace Decatron.Services
 
                 // Si no está en BD, obtener desde la API de Twitch
                 _logger.LogWarning("bot_twitch_id no encontrado en BD, obteniendo desde API de Twitch");
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
 
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://api.twitch.tv/helix/users");
                 request.Headers.Add("Client-ID", clientId);
@@ -1096,7 +1099,7 @@ namespace Decatron.Services
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
 
                 var payload = new { shard_count = shardCount };
                 var jsonContent = JsonSerializer.Serialize(payload);
@@ -1138,7 +1141,7 @@ namespace Decatron.Services
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
 
                 var request = new HttpRequestMessage(HttpMethod.Get, "https://api.twitch.tv/helix/eventsub/conduits");
                 request.Headers.Add("Client-ID", clientId);
@@ -1171,7 +1174,7 @@ namespace Decatron.Services
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
 
                 var payload = new { id = conduitId, shard_count = newShardCount };
                 var jsonContent = JsonSerializer.Serialize(payload);
@@ -1213,7 +1216,7 @@ namespace Decatron.Services
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = _credentials.GetTwitchApp().ClientId;
 
                 var payload = new
                 {

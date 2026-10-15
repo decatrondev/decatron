@@ -26,6 +26,7 @@ namespace Decatron.Controllers
         private readonly Decatron.Services.TimerEventService _timerEventService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
 
         public TimerExtensionController(
             DecatronDbContext dbContext,
@@ -33,8 +34,10 @@ namespace Decatron.Controllers
             Decatron.Services.OverlayNotificationService overlayNotificationService,
             Decatron.Services.TimerEventService timerEventService,
             IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            Decatron.Core.Interfaces.ICredentialProvider credentials)
         {
+            _credentials = credentials;
             _dbContext = dbContext;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
@@ -1093,7 +1096,7 @@ namespace Decatron.Controllers
                     {
                         var accessToken = Decatron.Data.Encryption.TokenEncryption.Decrypt(
                             botToken.AccessToken, _configuration["JwtSettings:SecretKey"] ?? "");
-                        var clientId = _configuration["TwitchSettings:ClientId"] ?? "";
+                        var clientId = _credentials.GetTwitchApp().ClientId;
 
                         var client = _httpClientFactory.CreateClient();
                         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
