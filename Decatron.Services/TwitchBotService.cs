@@ -293,8 +293,15 @@ namespace Decatron.Services
 
                 _logger.LogInformation($"Conectando a {enabledChannels.Count} canales desde configuración de settings");
 
+                var tenantResolver = scope.ServiceProvider.GetService<ITenantResolver>();
                 foreach (var channelName in enabledChannels)
                 {
+                    // El IRC es respaldo del tenant #1: users es global, así que se descartan los canales de otros tenants (usan EventSub).
+                    if (tenantResolver?.ByChannelKey(channelName) is { Resolved: true } ownerT && ownerT.TenantId != 1)
+                    {
+                        _logger.LogDebug($"IRC: se omite {channelName} (tenant {ownerT.TenantId})");
+                        continue;
+                    }
                     if (!_client.JoinedChannels.Any(c => c.Channel.Equals(channelName, StringComparison.OrdinalIgnoreCase)))
                     {
                         _client.JoinChannel(channelName);
