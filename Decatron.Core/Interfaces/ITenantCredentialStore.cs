@@ -3,6 +3,12 @@ namespace Decatron.Core.Interfaces;
 /// <summary>Lo que el dueño carga de la app de Twitch de un tenant. El secreto de webhook lo genera el sistema si no se da.</summary>
 public sealed record TwitchAppInput(string ClientId, string ClientSecret, string? RedirectUri, string? Scopes);
 
+/// <summary>Cuenta de Twitch con la que escribe el bot de un tenant, autorizada por OAuth (el dueño del bot).</summary>
+public sealed record TwitchBotInput(string Username, string TwitchId, string AccessToken, string? RefreshToken, DateTimeOffset? ExpiresAt);
+
+/// <summary>Estado visible del bot de un tenant. Sin tokens.</summary>
+public sealed record TwitchBotSummary(string Username, string TwitchId, DateTimeOffset? LinkedAt);
+
 /// <summary>Estado visible de la app de un tenant. Nunca incluye secretos: solo si existen y sus últimos caracteres.</summary>
 public sealed record TwitchAppSummary(
     string ClientId, string? RedirectUri, string? Scopes, string? SecretHint, string Status, DateTimeOffset? LastValidatedAt);
@@ -21,6 +27,11 @@ public interface ITenantCredentialStore
     /// <summary>Guarda (o reemplaza) la app ya validada. Cifra los secretos y deja constancia en credential_access_log.</summary>
     Task SaveTwitchAppAsync(long tenantId, TwitchAppInput input, string actor, CancellationToken ct = default);
     Task<bool> DeleteTwitchAppAsync(long tenantId, string actor, CancellationToken ct = default);
+
+    /// <summary>Guarda la cuenta de bot del tenant (tokens cifrados) y deja constancia en credential_access_log.</summary>
+    Task SaveTwitchBotAsync(long tenantId, TwitchBotInput input, string actor, CancellationToken ct = default);
+    Task<TwitchBotSummary?> GetTwitchBotAsync(long tenantId, CancellationToken ct = default);
+    Task<bool> DeleteTwitchBotAsync(long tenantId, string actor, CancellationToken ct = default);
 }
 
 public enum AppValidationResult { Ok, InvalidCredentials, Unreachable }

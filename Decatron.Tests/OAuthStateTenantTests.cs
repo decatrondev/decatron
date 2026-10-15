@@ -44,3 +44,30 @@ public class OAuthStateTenantTests
         Assert.True(ok); Assert.Equal("/a", redirect); Assert.Null(tenant);
     }
 }
+
+public class OAuthStateBotTests
+{
+    private const string Key = "clave-de-prueba-con-suficiente-longitud-123456";
+
+    [Fact]
+    public void ElFlagDeBotViajaFirmadoYSoloConTenant()
+    {
+        Assert.True(AuthService.ValidateOAuthStateFull(AuthService.SignOAuthState(null, 7, Key, bot: true), Key).Bot);
+        Assert.False(AuthService.ValidateOAuthStateFull(AuthService.SignOAuthState(null, 7, Key), Key).Bot);
+        Assert.False(AuthService.ValidateOAuthStateFull(AuthService.SignOAuthState(null, null, Key, bot: true), Key).Bot); // sin tenant no hay bot
+    }
+
+    [Fact]
+    public void ElEnlaceDeBotCaducaYEsDeUnTenant()
+    {
+        var link = AuthService.SignOAuthState("botlink", 7, Key);
+        var (ok, what, tenant) = AuthService.ValidateOAuthStateWithTenant(link, Key, maxAgeMinutes: 30);
+        Assert.True(ok); Assert.Equal("botlink", what); Assert.Equal(7, tenant);
+        Assert.NotEqual(8, tenant);
+        Assert.False(AuthService.ValidateOAuthStateWithTenant(link, Key, maxAgeMinutes: -1).IsValid); // vencido
+    }
+
+    [Fact]
+    public void LosPermisosDelBotSonSoloLosDeEscribirComoBot()
+        => Assert.Equal("user:read:chat user:write:chat user:bot", AuthService.BotScopes);
+}

@@ -283,7 +283,21 @@
       "invalid_scopes": "The permissions contain invalid characters.",
       "tenant_one_legacy": "The Decatron tenant is not edited here.",
       "tenant_not_found": "The tenant does not exist.",
-      "tenant_not_active": "The tenant is not active."
-    }
+      "tenant_not_active": "The tenant is not active.",
+      "app_required": "Load the tenant's Twitch app first."
+    },
+    "botTitle": "Bot account",
+    "botNone": "No bot",
+    "botLinkedAt": "Authorized on {{date}}",
+    "botLink": "Generate bot link",
+    "botRelink": "Change the bot account",
+    "botUnlink": "Unlink bot",
+    "botLinkTitle": "Link for {{name}}'s bot",
+    "close": "Close",
+    "copy": "Copy link",
+    "botLinkHelp": "Send it to the buyer. They must open it while signed in to Twitch with their bot's account and accept every permission. It works once and expires in 30 minutes.",
+    "botUnlinkTitle": "Unlink the bot",
+    "botUnlinkText": "{{name}}'s bot will stop writing in their chat until another account is authorized.",
+    "botUnlinked": "Bot unlinked."
   }
 }

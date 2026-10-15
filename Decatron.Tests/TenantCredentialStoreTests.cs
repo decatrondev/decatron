@@ -15,6 +15,9 @@ public class StoreCredentialProviderTests
     {
         public int Calls;
         public Dictionary<long, TwitchAppCredentials> Apps = new();
+        public Task SaveTwitchBotAsync(long t, TwitchBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<TwitchBotSummary?> GetTwitchBotAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchBotSummary?>(null);
+        public Task<bool> DeleteTwitchBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
         public Task<long?> FindActiveTenantIdAsync(string slug, CancellationToken ct = default) => Task.FromResult<long?>(null);
         public Task<TwitchAppCredentials?> GetTwitchAppAsync(long t, CancellationToken ct = default) { Calls++; return Task.FromResult(Apps.GetValueOrDefault(t)); }
         public Task<TwitchAppSummary?> GetTwitchAppSummaryAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchAppSummary?>(null);
@@ -68,7 +71,7 @@ public class StoreCredentialProviderTests
 
 public class NpgsqlTenantCredentialStoreTests
 {
-    private sealed class FixedMaster : IMasterKeySource { private readonly byte[] _k = RandomNumberGenerator.GetBytes(32); public byte[] GetKey() => _k; }
+    private sealed class FixedMaster : IMasterKeySource { private readonly byte[] _k = Enumerable.Range(1, 32).Select(i => (byte)i).ToArray(); public byte[] GetKey() => _k; }
 
     private static string? App => Environment.GetEnvironmentVariable("DECATRON_APP_CONN");
     private static string? Schema => Environment.GetEnvironmentVariable("DECATRON_SCHEMA_CONN");
@@ -114,6 +117,19 @@ public class NpgsqlTenantCredentialStoreTests
             // La auditoria registra escritura y lectura, sin secretos
             await using (var c = TenantNpgsql.Create(App, A)) { await c.OpenAsync();
                 Assert.True((long)(await new NpgsqlCommand("select count(*) from credential_access_log where action in ('write','read')", c).ExecuteScalarAsync())! >= 3); }
+
+            // Cuenta de bot: se guarda cifrada, el resumen no trae tokens y otro tenant no la ve
+            await store.SaveTwitchBotAsync(A, new TwitchBotInput("anabot", "123456", "tok-acceso-secreto", "tok-refresco-secreto", DateTimeOffset.UtcNow.AddHours(4)), "tester");
+            var bot = await store.GetTwitchBotAsync(A);
+            Assert.Equal("anabot", bot!.Username); Assert.Equal("123456", bot.TwitchId);
+            Assert.Null(await store.GetTwitchBotAsync(B));
+            await using (var c = TenantNpgsql.Create(App, A)) { await c.OpenAsync();
+                var raws = new List<string>();
+                await using var rd = await new NpgsqlCommand("select secret_enc from tenant_credentials where provider='twitch_bot'", c).ExecuteReaderAsync();
+                while (await rd.ReadAsync()) raws.Add(rd.GetString(0));
+                Assert.Equal(2, raws.Count); Assert.All(raws, r => { Assert.StartsWith("ENC2:", r); Assert.DoesNotContain("secreto", r); }); }
+            Assert.True(await store.DeleteTwitchBotAsync(A, "tester"));
+            Assert.Null(await store.GetTwitchBotAsync(A));
 
             Assert.True(await store.DeleteTwitchAppAsync(A, "tester"));
             Assert.Null(await store.GetTwitchAppAsync(A));

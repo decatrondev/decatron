@@ -29,6 +29,8 @@ public sealed class CredentialProvider : ICredentialProvider
         if (!_cache.TryGetValue(tenant, out var hit) || hit.Expires < DateTime.UtcNow)
         {
             var app = _store.GetTwitchAppAsync(tenant).GetAwaiter().GetResult();
+            // Los permisos que pide la plataforma son del sistema, no secretos del tenant: sin los suyos propios se usan los del sistema.
+            if (app is not null && string.IsNullOrWhiteSpace(app.Scopes)) app = app with { Scopes = _cfg["TwitchSettings:Scopes"] };
             hit = (app, DateTime.UtcNow + (app is null ? NegativeTtl : Ttl));
             _cache[tenant] = hit;
         }

@@ -19,6 +19,7 @@ namespace Decatron.Controllers
         private static readonly Regex ClientIdRx = new(@"^[a-z0-9]{20,40}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex ScopesRx = new(@"^[a-z0-9:_ ]{0,2000}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        private readonly Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> _jwt;
         private readonly ITenantCredentialStore _store;
         private readonly ITwitchAppValidator _validator;
         private readonly ICredentialProvider _provider;
@@ -26,9 +27,10 @@ namespace Decatron.Controllers
         private readonly ILogger<PlatformTenantsController> _log;
 
         public PlatformTenantsController(ITenantCredentialStore store, ITwitchAppValidator validator, ICredentialProvider provider,
-            IConfiguration config, ILogger<PlatformTenantsController> log)
+            IConfiguration config, ILogger<PlatformTenantsController> log,
+            Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> jwt)
         {
-            _store = store; _validator = validator; _provider = provider; _config = config; _log = log;
+            _jwt = jwt; _store = store; _validator = validator; _provider = provider; _config = config; _log = log;
         }
 
         public sealed class TwitchAppBody
@@ -64,7 +66,7 @@ namespace Decatron.Controllers
             }
             var items = new List<object>();
             foreach (var (id, slug, name, status, mode) in rows)
-                items.Add(new { id, slug, name, status, mode, twitchApp = id == 1 ? null : await _store.GetTwitchAppSummaryAsync(id) });
+                items.Add(new { id, slug, name, status, mode, twitchApp = id == 1 ? null : await _store.GetTwitchAppSummaryAsync(id), twitchBot = id == 1 ? null : await _store.GetTwitchBotAsync(id) });
             return Ok(new { success = true, items });
         }
 
@@ -109,6 +111,33 @@ namespace Decatron.Controllers
             var removed = await _store.DeleteTwitchAppAsync(id, Actor);
             _provider.Invalidate(id);
             _log.LogInformation("Plataforma: app de Twitch borrada del tenant {Tenant} por {Actor}", id, Actor);
+            return Ok(new { success = true, removed });
+        }
+    
+        /// <summary>Enlace de un solo proposito (30 min) para que el comprador autorice la cuenta de su bot iniciando sesion en Twitch con ella.</summary>
+        [HttpPost("{id:long}/bot-link")]
+        public async Task<IActionResult> CreateBotLink(long id)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            var tenant = await FindAsync(id);
+            if (tenant is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            if (tenant.Value.Status != "active") return BadRequest(new { success = false, code = "tenant_not_active" });
+            if (await _store.GetTwitchAppSummaryAsync(id) is null) return BadRequest(new { success = false, code = "app_required" });
+
+            var k = Decatron.Services.AuthService.SignOAuthState("botlink", id, _jwt.Value.SecretKey);
+            var baseUrl = (_config["Platform:PublicBaseUrl"] ?? "https://decatron.net").TrimEnd('/');
+            var url = $"{baseUrl}/api/auth/login?tenant={Uri.EscapeDataString(tenant.Value.Slug)}&bot=1&k={Uri.EscapeDataString(k)}";
+            _log.LogInformation("Plataforma: enlace de autorizacion de bot generado para el tenant {Tenant} por {Actor}", id, Actor);
+            return Ok(new { success = true, url, expiresInMinutes = 30 });
+        }
+
+        [HttpDelete("{id:long}/bot")]
+        public async Task<IActionResult> DeleteBot(long id)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            var removed = await _store.DeleteTwitchBotAsync(id, Actor);
+            _log.LogInformation("Plataforma: cuenta de bot desvinculada del tenant {Tenant} por {Actor}", id, Actor);
             return Ok(new { success = true, removed });
         }
     }

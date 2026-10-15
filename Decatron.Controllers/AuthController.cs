@@ -58,7 +58,7 @@ namespace Decatron.Controllers
         }
 
         [HttpGet("login")]
-        public async Task<IActionResult> Login([FromQuery] string? redirect = null, [FromQuery] string? mod = null, [FromQuery] string? tenant = null)
+        public async Task<IActionResult> Login([FromQuery] string? redirect = null, [FromQuery] string? mod = null, [FromQuery] string? tenant = null, [FromQuery] string? bot = null, [FromQuery] string? k = null)
         {
             try
             {
@@ -69,8 +69,16 @@ namespace Decatron.Controllers
                     tenantId = await _tenantStore.FindActiveTenantIdAsync(tenant.Trim().ToLowerInvariant());
                     if (tenantId is null) return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Unknown tenant")}");
                 }
+                // bot=1: autorizar la CUENTA DE BOT del tenant. Solo con el enlace firmado que genera el dueño (k): sin el, cualquiera podria fijar el bot.
+                var isBot = bot is "1" or "true";
+                if (isBot)
+                {
+                    var (okLink, linkWhat, linkTenant) = AuthService.ValidateOAuthStateWithTenant(k ?? "", _jwtSettings.SecretKey, maxAgeMinutes: 30);
+                    if (tenantId is null || !okLink || linkWhat != "botlink" || linkTenant != tenantId)
+                        return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Invalid or expired link")}");
+                }
                 // mod=1: además de los permisos de siempre, los de moderar el chat (Multi-view).
-                var loginUrl = _authService.GetLoginUrl(redirect, withModeration: mod is "1" or "true", tenantId: tenantId);
+                var loginUrl = _authService.GetLoginUrl(redirect, withModeration: mod is "1" or "true", tenantId: tenantId, bot: isBot);
                 _logger.LogInformation("Redirecting to Twitch login (redirect: {Redirect})", redirect ?? "none");
                 return Redirect(loginUrl);
             }
@@ -189,6 +197,24 @@ namespace Decatron.Controllers
                 // Get user info
                 _logger.LogInformation("Fetching user information...");
                 var twitchUser = await _authService.GetUserInfoAsync(tokenResponse.AccessToken);
+
+                // Autorizacion de la cuenta de bot de un tenant: se guarda en su almacen y NO se crea sesion ni usuario.
+                if (!string.IsNullOrEmpty(state))
+                {
+                    var (okBot, _, botTenant, isBotState) = AuthService.ValidateOAuthStateFull(state, _jwtSettings.SecretKey);
+                    if (okBot && isBotState && botTenant is long botTenantId)
+                    {
+                        if (tokenResponse.Scope is null || !tokenResponse.Scope.Contains("user:bot"))
+                            return Content("<!doctype html><meta charset=utf-8><body style='font-family:system-ui;padding:2rem'>Falta el permiso user:bot. Vuelve a abrir el enlace y acepta todos los permisos.<br>The user:bot permission is missing. Open the link again and accept every permission.", "text/html; charset=utf-8");
+                        await _tenantStore.SaveTwitchBotAsync(botTenantId, new TwitchBotInput(
+                            twitchUser.Login, twitchUser.Id, tokenResponse.AccessToken, tokenResponse.RefreshToken,
+                            DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn)), "bot-oauth");
+                        _logger.LogInformation("Plataforma: cuenta de bot {Bot} autorizada para el tenant {Tenant}", twitchUser.Login, botTenantId);
+                        return Content("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>OK</title>"
+                            + "<body style='font-family:system-ui;background:#0f1115;color:#e8eaf0;display:grid;place-items:center;min-height:100vh;margin:0'>"
+                            + $"<p style='text-align:center;padding:1rem'>✓ {System.Net.WebUtility.HtmlEncode(twitchUser.DisplayName ?? twitchUser.Login)}<br>Bot autorizado. Ya puedes cerrar esta ventana.<br>Bot authorized. You can close this window.</p>", "text/html; charset=utf-8");
+                    }
+                }
 
                 // Check if this is a link-twitch operation BEFORE creating/updating user
                 string? linkUserIdEarly = null;

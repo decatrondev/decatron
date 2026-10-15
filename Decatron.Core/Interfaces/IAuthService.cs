@@ -4,7 +4,7 @@ namespace Decatron.Core.Interfaces
 {
     public interface IAuthService
     {
-        string GetLoginUrl(string? redirect = null, bool withModeration = false, long? tenantId = null);
+        string GetLoginUrl(string? redirect = null, bool withModeration = false, long? tenantId = null, bool bot = false);
         Task<TokenResponse> ExchangeCodeForTokenAsync(string code);
         Task<TwitchUser> GetUserInfoAsync(string accessToken);
         Task<User> AuthenticateUserAsync(TwitchUser twitchUser, TokenResponse tokenResponse, string? acceptLanguage = null);

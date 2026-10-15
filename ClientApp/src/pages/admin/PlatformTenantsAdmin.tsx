@@ -11,7 +11,8 @@ import api from '../../services/api';
 // El dueño carga aquí la app de Twitch de cada tenant. Los secretos son SOLO ESCRITURA: nunca se devuelven, solo «configurado, …últimos 4».
 
 interface AppSummary { clientId: string; redirectUri: string | null; scopes: string | null; secretHint: string | null; status: string; lastValidatedAt: string | null }
-interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null }
+interface BotSummary { username: string; twitchId: string; linkedAt: string | null }
+interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null; twitchBot: BotSummary | null }
 interface Form { clientId: string; clientSecret: string; redirectUri: string; scopes: string }
 
 const EMPTY: Form = { clientId: '', clientSecret: '', redirectUri: '', scopes: '' };
@@ -26,6 +27,8 @@ export default function PlatformTenantsAdmin() {
     const [form, setForm] = useState<Form>(EMPTY);
     const [toDelete, setToDelete] = useState<Tenant | null>(null);
     const [busy, setBusy] = useState(false);
+    const [botLink, setBotLink] = useState<{ tenant: Tenant; url: string } | null>(null);
+    const [unlinkBot, setUnlinkBot] = useState<Tenant | null>(null);
 
     const load = useCallback(async () => {
         try {
@@ -71,6 +74,27 @@ export default function PlatformTenantsAdmin() {
         setBusy(false);
     };
 
+    const makeBotLink = async (row: Tenant) => {
+        setBusy(true);
+        try {
+            const res = await api.post(`/admin/platform/tenants/${row.id}/bot-link`);
+            setBotLink({ tenant: row, url: res.data.url });
+        } catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
+
+    const removeBot = async () => {
+        if (!unlinkBot) return;
+        setBusy(true);
+        try {
+            await api.delete(`/admin/platform/tenants/${unlinkBot.id}/bot`);
+            setNote({ ok: true, text: t('tenants.botUnlinked') });
+            setUnlinkBot(null);
+            await load();
+        } catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
+
     if (error) return <div className="panel-scale"><Alert tone="danger">{t('tenants.loadFailed')}</Alert></div>;
     if (!items) return <div className="flex items-center justify-center h-64"><Spinner /></div>;
 
@@ -106,6 +130,19 @@ export default function PlatformTenantsAdmin() {
                                     <Button size="sm" variant="ghost" icon={<Trash2 className="w-4 h-4" />} onClick={() => setToDelete(row)}>{t('tenants.remove')}</Button>
                                 )}
                             </div>
+                            {row.twitchApp && (
+                                <div className="pt-3 border-t border-ds-border space-y-2">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-sm font-bold text-ds-text">{t('tenants.botTitle')}</span>
+                                        <Badge tone={row.twitchBot ? 'ok' : 'warn'}>{row.twitchBot ? `@${row.twitchBot.username}` : t('tenants.botNone')}</Badge>
+                                        {row.twitchBot?.linkedAt && <span className="text-sm text-ds-soft">{t('tenants.botLinkedAt', { date: fmt(row.twitchBot.linkedAt) })}</span>}
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button size="sm" variant="secondary" loading={busy} onClick={() => makeBotLink(row)}>{row.twitchBot ? t('tenants.botRelink') : t('tenants.botLink')}</Button>
+                                        {row.twitchBot && <Button size="sm" variant="ghost" onClick={() => setUnlinkBot(row)}>{t('tenants.botUnlink')}</Button>}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </ConfigCard>
@@ -128,6 +165,33 @@ export default function PlatformTenantsAdmin() {
                         <Field label={t('tenants.redirectUri')} hint={t('tenants.redirectHint')}><Input value={form.redirectUri} onChange={set('redirectUri')} placeholder="https://decatron.net/api/auth/callback" autoComplete="off" /></Field>
                         <Field label={t('tenants.scopes')} hint={t('tenants.scopesHint')}><Input value={form.scopes} onChange={set('scopes')} autoComplete="off" spellCheck={false} /></Field>
                     </div>
+                </ModalShell>
+            )}
+
+            {botLink && (
+                <ModalShell
+                    title={t('tenants.botLinkTitle', { name: botLink.tenant.name })} size="lg" onClose={() => setBotLink(null)}
+                    actions={<>
+                        <Button variant="ghost" onClick={() => setBotLink(null)}>{t('tenants.close')}</Button>
+                        <Button onClick={() => navigator.clipboard?.writeText(botLink.url)}>{t('tenants.copy')}</Button>
+                    </>}
+                >
+                    <div className="space-y-3">
+                        <p className="text-sm text-ds-soft">{t('tenants.botLinkHelp')}</p>
+                        <Input readOnly value={botLink.url} onFocus={e => e.currentTarget.select()} />
+                    </div>
+                </ModalShell>
+            )}
+
+            {unlinkBot && (
+                <ModalShell
+                    title={t('tenants.botUnlinkTitle')} size="md" onClose={() => !busy && setUnlinkBot(null)}
+                    actions={<>
+                        <Button variant="ghost" onClick={() => setUnlinkBot(null)} disabled={busy}>{t('admin.cancel')}</Button>
+                        <Button variant="danger" onClick={removeBot} loading={busy}>{t('tenants.botUnlink')}</Button>
+                    </>}
+                >
+                    <p className="text-ds-soft">{t('tenants.botUnlinkText', { name: unlinkBot.name })}</p>
                 </ModalShell>
             )}
 
