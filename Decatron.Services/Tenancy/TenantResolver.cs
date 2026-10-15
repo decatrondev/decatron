@@ -35,6 +35,8 @@ public sealed class TenantResolver : ITenantResolver
     {
         if (string.IsNullOrWhiteSpace(key)) return new(DefaultTenantId, false, TenantSource.Default);
         key = key.Trim();
+        // Los overlays v2 se unen con "v2:{clave}" (SoundAlertTriggerService.V2Key); el prefijo no es parte del login.
+        if (key.StartsWith("v2:", StringComparison.OrdinalIgnoreCase)) key = key[3..];
         var s = _Get();
         // external_id (Twitch/Kick) y kick_{id}
         if (s.ByExternal.TryGetValue(key, out var t1)) return new(t1, true, TenantSource.Channel);
