@@ -1,31 +1,53 @@
+using System.Collections.Concurrent;
 using Decatron.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 
 namespace Decatron.Services.Tenancy;
 
-/// <summary>Despacha por tenant: el #1 lee de appsettings (legacy); otro tenant falla cerrado hasta el paso 4.</summary>
+/// <summary>
+/// Despacha por tenant: el #1 lee de appsettings (legacy, como siempre); los demas leen del almacen (tenant_credentials) y, si no tienen
+/// app cargada y validada, fallan cerrado. Nunca se cae a las credenciales del #1.
+/// El almacen es asincrono y esta interfaz no: se cachea por tenant (5 min; 30 s si no hay credenciales) y la carga en frio bloquea una vez.
+/// </summary>
 public sealed class CredentialProvider : ICredentialProvider
 {
+    private static readonly TimeSpan Ttl = TimeSpan.FromMinutes(5), NegativeTtl = TimeSpan.FromSeconds(30);
     private readonly IConfiguration _cfg;
-    public CredentialProvider(IConfiguration cfg) => _cfg = cfg;
+    private readonly ITenantCredentialStore? _store;
+    private readonly ConcurrentDictionary<long, (TwitchAppCredentials? App, DateTime Expires)> _cache = new();
+
+    public CredentialProvider(IConfiguration cfg, ITenantCredentialStore? store = null) { _cfg = cfg; _store = store; }
 
     private long Tenant => TenantAmbient.Current ?? 1;
 
     public TwitchAppCredentials GetTwitchApp()
     {
-        if (Tenant != 1) throw new CredentialsNotConfiguredException(Tenant, "la app de Twitch");
-        return new TwitchAppCredentials(
-            _cfg["TwitchSettings:ClientId"] ?? "",
-            _cfg["TwitchSettings:ClientSecret"],
-            _cfg["TwitchSettings:RedirectUri"],
-            _cfg["TwitchSettings:WebhookSecret"],
-            _cfg["TwitchSettings:WebhookCallbackUrl"],
-            _cfg["TwitchSettings:Scopes"]);
+        var tenant = Tenant;
+        if (tenant == 1) return LegacyApp();
+        if (_store is null) throw new CredentialsNotConfiguredException(tenant, "la app de Twitch");
+
+        if (!_cache.TryGetValue(tenant, out var hit) || hit.Expires < DateTime.UtcNow)
+        {
+            var app = _store.GetTwitchAppAsync(tenant).GetAwaiter().GetResult();
+            hit = (app, DateTime.UtcNow + (app is null ? NegativeTtl : Ttl));
+            _cache[tenant] = hit;
+        }
+        return hit.App ?? throw new CredentialsNotConfiguredException(tenant, "la app de Twitch");
     }
+
+    private TwitchAppCredentials LegacyApp() => new(
+        _cfg["TwitchSettings:ClientId"] ?? "",
+        _cfg["TwitchSettings:ClientSecret"],
+        _cfg["TwitchSettings:RedirectUri"],
+        _cfg["TwitchSettings:WebhookSecret"],
+        _cfg["TwitchSettings:WebhookCallbackUrl"],
+        _cfg["TwitchSettings:Scopes"]);
 
     public string? GetTwitchBotUsername()
     {
         if (Tenant != 1) throw new CredentialsNotConfiguredException(Tenant, "la cuenta de bot de Twitch");
         return _cfg["TwitchSettings:BotUsername"];
     }
+
+    public void Invalidate(long tenantId) => _cache.TryRemove(tenantId, out _);
 }

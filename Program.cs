@@ -357,6 +357,15 @@ try
     // Register repositories
     // Plataforma, Fase 2: contexto de tenant (bandera Platform:TenantContext:Mode, apagada por defecto)
     builder.Services.AddSingleton<Decatron.Core.Interfaces.ITenantResolver, Decatron.Services.Tenancy.TenantResolver>();
+    // Fase 4 (paso 4): almacen de credenciales por tenant. La clave maestra se lee solo al cifrar/descifrar (no al arrancar).
+    builder.Services.AddSingleton<Decatron.Data.Encryption.IMasterKeySource>(sp => new Decatron.Data.Encryption.FileMasterKeySource(
+        builder.Configuration["Platform:MasterKeyPath"] ?? "/etc/decatron/tenant-master.key"));
+    builder.Services.AddSingleton<Decatron.Data.Encryption.ITenantKeyStore>(sp => new Decatron.Data.Encryption.NpgsqlTenantKeyStore(
+        builder.Configuration.GetConnectionString("DefaultConnection") ?? ""));
+    builder.Services.AddSingleton<Decatron.Data.Encryption.SecretVault>();
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.ITenantCredentialStore>(sp => new Decatron.Services.Tenancy.NpgsqlTenantCredentialStore(
+        builder.Configuration.GetConnectionString("DefaultConnection") ?? "", sp.GetRequiredService<Decatron.Data.Encryption.SecretVault>()));
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.ITwitchAppValidator, Decatron.Services.Tenancy.TwitchAppValidator>();
     builder.Services.AddSingleton<Decatron.Core.Interfaces.ICredentialProvider, Decatron.Services.Tenancy.CredentialProvider>();
     builder.Services.AddScoped<Decatron.Core.Interfaces.ITenantContext, Decatron.Services.Tenancy.TenantContext>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantShadow>();

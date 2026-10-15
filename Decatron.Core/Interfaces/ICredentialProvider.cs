@@ -21,4 +21,6 @@ public interface ICredentialProvider
 {
     TwitchAppCredentials GetTwitchApp();
     string? GetTwitchBotUsername();
+    /// <summary>Descarta lo cacheado de un tenant (tras guardar o borrar su app).</summary>
+    void Invalidate(long tenantId);
 }
