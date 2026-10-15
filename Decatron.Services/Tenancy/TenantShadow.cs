@@ -61,6 +61,32 @@ public sealed class TenantShadow
         }
     }
 
+    /// <summary>Igual que <see cref="Enter"/> pero la clave es users.id (tareas que recorren usuarios, no canales).</summary>
+    public IDisposable EnterUser(string entryPoint, long userId)
+    {
+        try
+        {
+            if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase))
+                return NoopScope.Instance;
+            var res = _resolver.ByUserId(userId);
+            if (!res.Resolved) WarnOnce(entryPoint, "user:" + userId);
+            return TenantAmbient.Push(res.TenantId);
+        }
+        catch
+        {
+            return NoopScope.Instance;
+        }
+    }
+
+    private void WarnOnce(string entryPoint, string key)
+    {
+        var k = entryPoint + "|" + key;
+        var now = DateTime.UtcNow;
+        if (_seen.TryGetValue(k, out var last) && now - last < TimeSpan.FromHours(1)) return;
+        _seen[k] = now;
+        _log.LogWarning("tenant.ambiguous key={Key} path={Path} fallback=1", key, entryPoint);
+    }
+
     private sealed class NoopScope : IDisposable
     {
         public static readonly NoopScope Instance = new();

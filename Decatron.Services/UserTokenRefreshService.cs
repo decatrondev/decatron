@@ -10,11 +10,15 @@ namespace Decatron.Services
         private readonly IAuthService _authService;
         private readonly ILogger<UserTokenRefreshService> _logger;
 
+        private readonly Decatron.Services.Tenancy.TenantShadow _tenantShadow;
+
         public UserTokenRefreshService(
             IUserRepository userRepository,
             IAuthService authService,
-            ILogger<UserTokenRefreshService> logger)
+            ILogger<UserTokenRefreshService> logger,
+            Decatron.Services.Tenancy.TenantShadow tenantShadow)
         {
+            _tenantShadow = tenantShadow;
             _userRepository = userRepository;
             _authService = authService;
             _logger = logger;
@@ -79,6 +83,7 @@ namespace Decatron.Services
 
                 foreach (var user in expiringUsers)
                 {
+                using var tenantScope = _tenantShadow.EnterUser("Bg.UserTokenRefresh", user.Id);
                     try
                     {
                         await RefreshUserTokenAsync(user);

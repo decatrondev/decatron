@@ -39,6 +39,8 @@ namespace Decatron.Controllers
 
         private readonly Services.ChatOverlay.ChatOverlayService _chatOverlay;
 
+        private readonly Services.Tenancy.TenantShadow _tenantShadow;
+
         public KickWebhookController(
             DecatronDbContext db,
             CommandService commandService,
@@ -46,8 +48,10 @@ namespace Decatron.Controllers
             IHttpClientFactory httpClientFactory,
             ISoundAlertTriggerService soundAlertTriggerService,
             Services.ChatOverlay.ChatOverlayService chatOverlay,
-            ILogger<KickWebhookController> logger)
+            ILogger<KickWebhookController> logger,
+            Services.Tenancy.TenantShadow tenantShadow)
         {
+            _tenantShadow = tenantShadow;
             _chatOverlay = chatOverlay;
             _db = db;
             _commandService = commandService;
@@ -84,6 +88,17 @@ namespace Decatron.Controllers
                 _logger.LogError(ex, "[Kick Webhook] Payload invalido");
                 return BadRequest();
             }
+
+            // Plataforma Fase 2 (sombra): tenant del canal que originó el evento (cualquier tipo de evento de Kick)
+            try
+            {
+                string? kickBroadcaster = null;
+                if (payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("broadcaster", out var bc) &&
+                    bc.ValueKind == JsonValueKind.Object && bc.TryGetProperty("user_id", out var bid))
+                    kickBroadcaster = bid.ToString();
+                _tenantShadow.Observe("Kick." + eventType.ToString(), kickBroadcaster);
+            }
+            catch { /* la sombra nunca rompe el webhook */ }
 
             if (eventType == "chat.message.sent")
             {

@@ -18,11 +18,15 @@ namespace Decatron.Services
         // Un semaforo por usuario serializa esos dos casos sin bloquear a otros usuarios.
         private static readonly ConcurrentDictionary<long, SemaphoreSlim> _locks = new();
 
+        private readonly Decatron.Services.Tenancy.TenantShadow _tenantShadow;
+
         public KickTokenRefreshService(
             IUserRepository userRepository,
             KickOAuthClient kickOAuthClient,
-            ILogger<KickTokenRefreshService> logger)
+            ILogger<KickTokenRefreshService> logger,
+            Decatron.Services.Tenancy.TenantShadow tenantShadow)
         {
+            _tenantShadow = tenantShadow;
             _userRepository = userRepository;
             _kickOAuthClient = kickOAuthClient;
             _logger = logger;
@@ -119,6 +123,7 @@ namespace Decatron.Services
 
             foreach (var user in expiringUsers)
             {
+                using var tenantScope = _tenantShadow.EnterUser("Bg.KickTokenRefresh", user.Id);
                 try
                 {
                     await RefreshUserTokenAsync(user);
