@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using System.Collections;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
@@ -91,5 +92,65 @@ public class AppRoleTests
         ctx.SaveChanges();
         ctx.CommandCounters.Remove(row);
         ctx.SaveChanges();
+    }
+}
+
+/// <summary>
+/// Fase 3 (paso 5): con las políticas reales aplicadas y RLS habilitado en una tabla, el rol de aplicación solo ve las filas del tenant
+/// que el interceptor le fija, aunque el código pida todo (IgnoreQueryFilters). Usa command_counters de la copia desechable.
+/// </summary>
+public class RlsPoliciesEndToEndTests
+{
+    private static string? App => Environment.GetEnvironmentVariable("DECATRON_APP_CONN");
+    private static string? Admin => Environment.GetEnvironmentVariable("DECATRON_SCHEMA_CONN");
+    private static bool Available => !string.IsNullOrWhiteSpace(App) && !string.IsNullOrWhiteSpace(Admin);
+
+    private static void AdminExec(params string[] sqls)
+    {
+        using var c = new NpgsqlConnection(Admin); c.Open();
+        foreach (var sql in sqls) { using var cmd = new NpgsqlCommand(sql, c); cmd.ExecuteNonQuery(); }
+    }
+
+    private static DecatronDbContext Ctx(string rls)
+    {
+        var cfg = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Platform:TenantContext:Rls"] = rls }).Build();
+        return new DecatronDbContext(new DbContextOptionsBuilder<DecatronDbContext>().UseNpgsql(App).Options, cfg);
+    }
+
+    private static List<string> Names(DecatronDbContext c)
+        => c.CommandCounters.IgnoreQueryFilters().Where(x => x.ChannelName.StartsWith("rls_")).Select(x => x.ChannelName).OrderBy(x => x).ToList();
+
+    [Fact(DisplayName = "RLS + interceptor: cada tenant ve solo lo suyo; sin contexto no se ve nada; no se escribe en otro tenant")]
+    public void Rls_IsolatesTenants()
+    {
+        if (!Available) return;
+        AdminExec(
+            "alter table command_counters disable row level security",
+            "delete from command_counters where channel_name like 'rls_%'",
+            "insert into command_counters (tenant_id, channel_name, user_id, command_name, counter_value, last_modified_at, created_at) values (1,'rls_t1',9101,'c',1,now(),now()),(2,'rls_t2',9102,'c',1,now(),now())",
+            "alter table command_counters enable row level security",
+            "alter table command_counters force row level security");
+        try
+        {
+            // Sin interceptor (Rls=off): no se fija tenant -> la política devuelve 0 filas (falla cerrada)
+            using (var off = Ctx("off")) Assert.Empty(Names(off));
+            using (var t1 = Ctx("context")) Assert.Equal(new[] { "rls_t1" }, Names(t1));
+            using (Decatron.Core.Interfaces.TenantAmbient.Push(2))
+            using (var t2 = Ctx("context")) Assert.Equal(new[] { "rls_t2" }, Names(t2));
+            // Escribir en otro tenant se rechaza
+            using (var w = Ctx("context"))
+            {
+                w.CommandCounters.Add(new Decatron.Core.Models.CommandCounter { ChannelName = "rls_x", CommandName = "x", UserId = 9103 });
+                w.Entry(w.CommandCounters.Local.First()).Property<long>("TenantId").CurrentValue = 2;
+                var ex = Assert.ThrowsAny<Exception>(() => w.SaveChanges());
+                Assert.Contains("row-level security", ex.GetBaseException().Message);
+            }
+        }
+        finally
+        {
+            AdminExec("alter table command_counters no force row level security", "alter table command_counters disable row level security",
+                      "delete from command_counters where channel_name like 'rls_%'");
+        }
     }
 }

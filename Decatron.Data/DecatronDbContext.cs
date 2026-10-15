@@ -25,9 +25,16 @@ namespace Decatron.Data
         /// <summary>Lo usa la clave de caché del modelo: el modo estricto construye un modelo distinto (con filtros).</summary>
         public bool TenantStrictMode => _tenantStrict;
 
+        /// <summary>Platform:TenantContext:Rls = context: el interceptor fija app.tenant_id en cada conexión (se lee al crear el contexto).</summary>
+        public bool RlsContextEnabled { get; }
+
+        /// <summary>Tenant que se manda a PostgreSQL para RLS.</summary>
+        public long CurrentTenantIdForRls => CurrentTenantId;
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCacheKeyFactory, TenantModelCacheKeyFactory>();
+            optionsBuilder.AddInterceptors(TenantRlsConnectionInterceptor.Instance);
         }
 
         private long CurrentTenantId => Core.Interfaces.TenantAmbient.Current ?? _tenantContext?.TenantId ?? 1;
@@ -38,6 +45,7 @@ namespace Decatron.Data
             _encryptionKey = configuration?["JwtSettings:SecretKey"];
             _tenantContext = tenantContext;
             _tenantStrict = Core.Interfaces.TenantMode.IsStrict(configuration?[Core.Interfaces.TenantMode.ConfigKey]);
+            RlsContextEnabled = string.Equals(configuration?["Platform:TenantContext:Rls"], "context", StringComparison.OrdinalIgnoreCase);
         }
 
         public DbSet<User> Users { get; set; }
