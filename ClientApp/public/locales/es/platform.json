@@ -242,5 +242,48 @@
     "pageOf": "Página {{page}} de {{pages}}",
     "stateConfirmed": "Confirmado",
     "statePending": "Pendiente"
+  },
+  "tenants": {
+    "title": "Tenants de la plataforma",
+    "subtitle": "Carga la app de Twitch de cada comprador. Los secretos son solo de escritura: nunca se vuelven a mostrar.",
+    "legacy": "Este es el tenant de Decatron: usa la configuración del servidor y no se edita desde aquí.",
+    "notConfigured": "Sin app cargada",
+    "status": {
+      "ok": "Validada",
+      "pending": "Pendiente",
+      "invalid": "Inválida"
+    },
+    "secretSet": "Secreto configurado (…{{hint}})",
+    "clientId": "Client ID",
+    "clientSecret": "Client Secret",
+    "redirectUri": "URL de redirección",
+    "validatedAt": "Última validación",
+    "load": "Cargar app",
+    "replace": "Reemplazar app",
+    "remove": "Quitar app",
+    "formTitle": "App de Twitch de {{name}}",
+    "formHelp": "Se comprueba contra Twitch antes de guardar. Si Twitch la rechaza, no se guarda nada.",
+    "secretHint": "Se cifra al guardar y no se podrá ver después. Para cambiarlo, vuelve a cargar la app.",
+    "redirectHint": "Opcional. Debe ser https y coincidir con la registrada en la app de Twitch.",
+    "scopes": "Permisos (scopes)",
+    "scopesHint": "Opcional. Separados por espacios.",
+    "validateSave": "Validar y guardar",
+    "saved": "App validada con Twitch y guardada.",
+    "deleted": "App quitada.",
+    "loadFailed": "No se pudo cargar la lista de tenants.",
+    "removeTitle": "Quitar la app",
+    "removeText": "Se borrarán las credenciales de {{name}}. Sus conexiones con Twitch dejarán de funcionar hasta cargar otra app.",
+    "errors": {
+      "generic": "No se pudo completar la operación.",
+      "twitch_rejected": "Twitch rechazó el Client ID o el Client Secret. No se guardó nada.",
+      "twitch_unreachable": "No se pudo contactar a Twitch. Intenta de nuevo.",
+      "invalid_client_id": "El Client ID no tiene un formato válido.",
+      "invalid_client_secret": "El Client Secret no tiene un formato válido.",
+      "invalid_redirect_uri": "La URL de redirección debe ser https válida.",
+      "invalid_scopes": "Los permisos tienen caracteres no válidos.",
+      "tenant_one_legacy": "El tenant de Decatron no se edita desde aquí.",
+      "tenant_not_found": "El tenant no existe.",
+      "tenant_not_active": "El tenant no está activo."
+    }
   }
 }

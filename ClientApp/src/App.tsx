@@ -214,6 +214,7 @@ import { BrandProvider } from './brand/BrandContext';
 import { BrandMark } from './brand/BrandMark';
 import BrandAdmin from './pages/admin/BrandAdmin';
 import PlatformWaitlistAdmin from './pages/admin/PlatformWaitlistAdmin';
+import PlatformTenantsAdmin from './pages/admin/PlatformTenantsAdmin';
 import GlobalEmotesAdmin from './pages/admin/GlobalEmotesAdmin';
 import GlobalEmotesPublic from './pages/GlobalEmotesPublic';
 import OverlayAutoUpdate from './components/OverlayAutoUpdate';
@@ -402,6 +403,7 @@ function App() {
                     <Route path="admin/global-emotes" element={<SafeRoute name="Global Emotes"><GlobalEmotesAdmin /></SafeRoute>} />
                     <Route path="admin/brand" element={<SafeRoute name="Brand Logos"><BrandAdmin /></SafeRoute>} />
                     <Route path="admin/platform-waitlist" element={<SafeRoute name="Platform Waitlist"><PlatformWaitlistAdmin /></SafeRoute>} />
+                    <Route path="admin/platform-tenants" element={<SafeRoute name="Platform Tenants"><PlatformTenantsAdmin /></SafeRoute>} />
                     <Route path="admin/game-overlay-promos" element={<SafeRoute name="Game Overlay Promos"><GameOverlayPromosAdmin /></SafeRoute>} />
 
                     {/* Chat Moderation */}

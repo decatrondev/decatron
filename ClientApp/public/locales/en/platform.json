@@ -242,5 +242,48 @@
     "pageOf": "Page {{page}} of {{pages}}",
     "stateConfirmed": "Confirmed",
     "statePending": "Pending"
+  },
+  "tenants": {
+    "title": "Platform tenants",
+    "subtitle": "Load each buyer's Twitch app. Secrets are write-only: they are never shown again.",
+    "legacy": "This is the Decatron tenant: it uses the server configuration and is not edited here.",
+    "notConfigured": "No app loaded",
+    "status": {
+      "ok": "Validated",
+      "pending": "Pending",
+      "invalid": "Invalid"
+    },
+    "secretSet": "Secret configured (…{{hint}})",
+    "clientId": "Client ID",
+    "clientSecret": "Client Secret",
+    "redirectUri": "Redirect URL",
+    "validatedAt": "Last validation",
+    "load": "Load app",
+    "replace": "Replace app",
+    "remove": "Remove app",
+    "formTitle": "{{name}}'s Twitch app",
+    "formHelp": "It is checked against Twitch before saving. If Twitch rejects it, nothing is saved.",
+    "secretHint": "Encrypted on save and cannot be viewed afterwards. To change it, load the app again.",
+    "redirectHint": "Optional. Must be https and match the one registered in the Twitch app.",
+    "scopes": "Permissions (scopes)",
+    "scopesHint": "Optional. Separated by spaces.",
+    "validateSave": "Validate and save",
+    "saved": "App validated with Twitch and saved.",
+    "deleted": "App removed.",
+    "loadFailed": "Could not load the tenant list.",
+    "removeTitle": "Remove the app",
+    "removeText": "{{name}}'s credentials will be deleted. Its Twitch connections will stop working until another app is loaded.",
+    "errors": {
+      "generic": "The operation could not be completed.",
+      "twitch_rejected": "Twitch rejected the Client ID or Client Secret. Nothing was saved.",
+      "twitch_unreachable": "Could not reach Twitch. Try again.",
+      "invalid_client_id": "The Client ID format is not valid.",
+      "invalid_client_secret": "The Client Secret format is not valid.",
+      "invalid_redirect_uri": "The redirect URL must be a valid https URL.",
+      "invalid_scopes": "The permissions contain invalid characters.",
+      "tenant_one_legacy": "The Decatron tenant is not edited here.",
+      "tenant_not_found": "The tenant does not exist.",
+      "tenant_not_active": "The tenant is not active."
+    }
   }
 }
