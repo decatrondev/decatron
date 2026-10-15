@@ -48,6 +48,11 @@ public sealed class TenantResolver : ITenantResolver
         return new(DefaultTenantId, false, TenantSource.Default);
     }
 
+    public TenantResolution ByGuildId(string? guildId)
+        => !string.IsNullOrWhiteSpace(guildId) && _Get().ByGuild.TryGetValue(guildId.Trim(), out var t)
+            ? new(t, true, TenantSource.Guild)
+            : new(DefaultTenantId, false, TenantSource.Default);
+
     public TenantResolution ByHost(string? host)
     {
         // Fase 8 traerá subdominios por tenant; hoy ningún Host elige un tenant distinto.
@@ -75,7 +80,19 @@ public sealed class TenantResolver : ITenantResolver
                     byExt[r.ExternalId] = r.TenantId;
                     byLogin[r.Login.ToLowerInvariant()] = r.TenantId;
                 }
-                _snap = new Snapshot(byUser, byExt, byLogin);
+                var byGuild = new Dictionary<string, long>();
+                try
+                {
+                    // discord_guild_configs ya liga cada servidor con su canal y lleva tenant_id: es el mapa guild -> tenant.
+                    foreach (var g in db.Database.SqlQueryRaw<GuildRow>(
+                        "select guild_id as \"GuildId\", tenant_id as \"TenantId\" from discord_guild_configs").ToList())
+                        byGuild[g.GuildId] = g.TenantId;
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(ex, "tenant.resolver_guilds_failed");
+                }
+                _snap = new Snapshot(byUser, byExt, byLogin, byGuild);
             }
             catch (Exception ex)
             {
@@ -88,9 +105,16 @@ public sealed class TenantResolver : ITenantResolver
     }
 
     private sealed record Snapshot(
-        Dictionary<long, long> ByUser, Dictionary<string, long> ByExternal, Dictionary<string, long> ByLogin)
+        Dictionary<long, long> ByUser, Dictionary<string, long> ByExternal, Dictionary<string, long> ByLogin,
+        Dictionary<string, long> ByGuild)
     {
-        public static readonly Snapshot Empty = new(new(), new(), new());
+        public static readonly Snapshot Empty = new(new(), new(), new(), new());
+    }
+
+    private sealed class GuildRow
+    {
+        public string GuildId { get; set; } = "";
+        public long TenantId { get; set; }
     }
 }
 

@@ -66,8 +66,10 @@ namespace Decatron.Services
 
             var channels = await GetCandidateChannelsAsync(dbContext);
 
+            var tenantShadow = scope.ServiceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>();
             foreach (var channel in channels)
             {
+                using var tenantScope = tenantShadow?.Enter("Bg.HappyHourWatcher", channel);
                 try
                 {
                     var info = await timerEventService.GetActiveHappyHourInfoAsync(channel);

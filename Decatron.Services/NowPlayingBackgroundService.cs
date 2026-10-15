@@ -81,9 +81,11 @@ namespace Decatron.Services
                 .Where(c => c.IsEnabled)
                 .ToListAsync(stoppingToken);
 
+            var tenantShadow = scope.ServiceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>();
             foreach (var config in configs)
             {
                 if (stoppingToken.IsCancellationRequested) break;
+                using var tenantScope = tenantShadow?.EnterUser("Bg.NowPlaying", config.UserId);
 
                 // Only poll if someone is actually viewing the overlay
                 if (!Hubs.OverlayHub.HasActiveClients(config.ChannelName))

@@ -34,6 +34,7 @@ public class WelcomeHandler
     {
         try
         {
+            _serviceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>()?.ObserveGuild("Discord.MemberJoined", e.Guild.Id.ToString());
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 
@@ -93,6 +94,7 @@ public class WelcomeHandler
     {
         try
         {
+            _serviceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>()?.ObserveGuild("Discord.MemberLeft", e.Guild.Id.ToString());
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 

@@ -39,6 +39,9 @@ public interface ITenantResolver
     /// <summary>users.id, id de Twitch, id de Kick, kick_{id} o login (sin distinguir mayúsculas).</summary>
     TenantResolution ByChannelKey(string? key);
 
+    /// <summary>Servidor de Discord (guild_id), según discord_guild_configs.</summary>
+    TenantResolution ByGuildId(string? guildId);
+
     /// <summary>Host del request (decatron.top y subdominios llegarán en la Fase 8).</summary>
     TenantResolution ByHost(string? host);
 }

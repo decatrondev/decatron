@@ -67,8 +67,10 @@ namespace Decatron.Services
                 .Join(db.Users.AsNoTracking(), c => c.UserId, u => u.Id, (c, u) => new { u.Id, u.TwitchId, u.Login })
                 .ToListAsync();
 
+            var tenantShadow = scope.ServiceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>();
             foreach (var channel in channels)
             {
+                using var tenantScope = tenantShadow?.EnterUser("Bg.WatchtimeLurkerTracking", channel.Id);
                 if (string.IsNullOrEmpty(channel.Login) || string.IsNullOrEmpty(channel.TwitchId))
                     continue;
 

@@ -20,6 +20,9 @@ public class TenantResolverTests : IDisposable
         using (var c = TestDb.Open())
         {
             TestDb.Exec(c, "DROP TABLE IF EXISTS channels");
+            TestDb.Exec(c, "DROP TABLE IF EXISTS discord_guild_configs");
+            TestDb.Exec(c, "CREATE TABLE discord_guild_configs (id BIGSERIAL PRIMARY KEY, guild_id VARCHAR(50) NOT NULL, tenant_id BIGINT NOT NULL DEFAULT 1)");
+            TestDb.Exec(c, "INSERT INTO discord_guild_configs (guild_id, tenant_id) VALUES ('1091093060244471808', 1)");
             TestDb.Exec(c, @"CREATE TABLE channels (id BIGSERIAL PRIMARY KEY, tenant_id BIGINT NOT NULL, platform VARCHAR(12) NOT NULL,
                 external_id VARCHAR(64) NOT NULL, user_id BIGINT NOT NULL, login VARCHAR(100) NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
             TestDb.Exec(c, "INSERT INTO channels (tenant_id, platform, external_id, user_id, login) VALUES (1,'twitch','123456',7,'PixiPNJ'),(1,'kick','98765',9,'kick_98765')");
@@ -69,11 +72,24 @@ public class TenantResolverTests : IDisposable
         Assert.False(_resolver.ByUserId(123).Resolved);
     }
 
+    [Fact(DisplayName = "Un servidor de Discord conocido resuelve a su tenant y uno desconocido no")]
+    public void ByGuildId()
+    {
+        if (!TestDb.Available) return;
+        var ok = _resolver.ByGuildId("1091093060244471808");
+        Assert.True(ok.Resolved);
+        Assert.Equal(1, ok.TenantId);
+        Assert.Equal(TenantSource.Guild, ok.Source);
+        Assert.False(_resolver.ByGuildId("42").Resolved);
+        Assert.False(_resolver.ByGuildId(null).Resolved);
+    }
+
     public void Dispose()
     {
         if (!TestDb.Available) return;
         _sp.Dispose();
         using var c = TestDb.Open();
         TestDb.Exec(c, "DROP TABLE IF EXISTS channels");
+        TestDb.Exec(c, "DROP TABLE IF EXISTS discord_guild_configs");
     }
 }

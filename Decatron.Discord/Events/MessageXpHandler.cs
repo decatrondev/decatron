@@ -45,6 +45,7 @@ public class MessageXpHandler
             if (e.Guild == null) return;
 
             var guildId = e.Guild.Id.ToString();
+            _serviceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>()?.ObserveGuild("Discord.MessageCreated", guildId);
             var userId = e.Author.Id.ToString();
             var content = e.Message.Content ?? "";
 

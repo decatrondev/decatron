@@ -78,6 +78,20 @@ public sealed class TenantShadow
         }
     }
 
+    /// <summary>Punto de entrada de Discord: la clave es el guild_id del servidor.</summary>
+    public void ObserveGuild(string entryPoint, string? guildId)
+    {
+        try
+        {
+            if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase)) return;
+            if (!_resolver.ByGuildId(guildId).Resolved) WarnOnce(entryPoint, "guild:" + (guildId ?? "(vacío)"));
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "tenant.shadow_error");
+        }
+    }
+
     private void WarnOnce(string entryPoint, string key)
     {
         var k = entryPoint + "|" + key;
