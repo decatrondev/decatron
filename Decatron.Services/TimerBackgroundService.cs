@@ -97,8 +97,10 @@ namespace Decatron.Services
 
             _logger.LogDebug($"⏰ Encontrados {channelsWithTimers.Count} canales a procesar: {string.Join(", ", channelsWithTimers)}");
 
+            var tenantShadow = scope.ServiceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>();
             foreach (var channelName in channelsWithTimers)
             {
+                using var tenantScope = tenantShadow?.Enter("Bg.TimerBackgroundService", channelName);
                 try
                 {
                     // --- AUTO-PAUSE LOGIC (UPDATED) ---

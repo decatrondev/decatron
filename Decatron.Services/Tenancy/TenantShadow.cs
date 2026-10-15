@@ -41,4 +41,50 @@ public sealed class TenantShadow
             _log.LogWarning(ex, "tenant.shadow_error");
         }
     }
+
+    /// <summary>
+    /// Fase 2: fija el tenant ambiente de una tarea de fondo mientras procesa un canal (using var _ = shadow.Enter(...)).
+    /// Con Mode=off no hace nada. Hoy solo lo lee TenantAmbient.Current (registro); en la Fase 3 lo usarán el filtro de EF y RLS.
+    /// </summary>
+    public IDisposable Enter(string entryPoint, string? channelKey)
+    {
+        try
+        {
+            if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase))
+                return NoopScope.Instance;
+            Observe(entryPoint, channelKey);
+            return TenantAmbient.Push(_resolver.ByChannelKey(channelKey).TenantId);
+        }
+        catch
+        {
+            return NoopScope.Instance;
+        }
+    }
+
+    private sealed class NoopScope : IDisposable
+    {
+        public static readonly NoopScope Instance = new();
+        public void Dispose() { }
+    }
+}
+
+/// <summary>Tenant ambiente por flujo asíncrono (AsyncLocal) para tareas sin HttpContext. null = ninguno fijado.</summary>
+public static class TenantAmbient
+{
+    private static readonly AsyncLocal<long?> _current = new();
+    public static long? Current => _current.Value;
+
+    internal static IDisposable Push(long tenantId)
+    {
+        var prev = _current.Value;
+        _current.Value = tenantId;
+        return new Restore(prev);
+    }
+
+    private sealed class Restore : IDisposable
+    {
+        private readonly long? _prev;
+        public Restore(long? prev) { _prev = prev; }
+        public void Dispose() { _current.Value = _prev; }
+    }
 }

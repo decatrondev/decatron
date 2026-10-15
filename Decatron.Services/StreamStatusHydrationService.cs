@@ -96,9 +96,11 @@ namespace Decatron.Services
                 .ToListAsync(stoppingToken);
 
             var liveCount = 0;
+            var tenantShadow = scope.ServiceProvider.GetService<Decatron.Services.Tenancy.TenantShadow>();
             foreach (var channel in channelInfos)
             {
                 if (stoppingToken.IsCancellationRequested) break;
+                using var tenantScope = tenantShadow?.Enter("Bg.StreamStatusHydration", channel.Login);
                 alreadyChecked.Add(channel.Login);
                 if (string.IsNullOrEmpty(channel.TwitchId)) continue;
 
