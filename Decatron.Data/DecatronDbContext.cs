@@ -2247,15 +2247,15 @@ namespace Decatron.Data
             });
 
             // Plataforma, Fase 3: las tablas con tenant_id exponen la propiedad sombra "TenantId" (sin tocar las entidades).
-            // HasDefaultValueSql("1") + ValueGeneratedOnAdd: EF no envía la columna al insertar y se conserva el DEFAULT 1
-            // de la Fase 1, así que los INSERT quedan idénticos a los de hoy.
+            // HasDefaultValueSql("app_tenant_id()") + ValueGeneratedOnAdd: EF no envía la columna al insertar; la fija el DEFAULT de la columna (P9)
+            // con el tenant de la conexión, y falla cerrado (NOT NULL) si no hay tenant.
             foreach (var entityType in modelBuilder.Model.GetEntityTypes().Where(t => t.BaseType == null && !t.IsOwned()).ToList())
             {
                 var table = entityType.GetTableName();
                 if (table == null || !TenantTables.Names.Contains(table) || entityType.FindProperty("TenantId") != null) continue;
                 if (entityType.GetProperties().Any(p => p.GetColumnName() == "tenant_id")) continue;
                 modelBuilder.Entity(entityType.ClrType).Property<long>("TenantId")
-                    .HasColumnName("tenant_id").HasDefaultValueSql("1").ValueGeneratedOnAdd();
+                    .HasColumnName("tenant_id").HasDefaultValueSql("app_tenant_id()").ValueGeneratedOnAdd();
             }
 
             // Modo estricto (Platform:TenantContext:Mode = strict): filtro global por tenant en toda entidad con tenant_id.
