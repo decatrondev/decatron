@@ -71,7 +71,7 @@ namespace Decatron.Services.Moderation
             await using var cmd = new NpgsqlCommand(@"
                 INSERT INTO moderation_panic (channel_name, user_id, settings, updated_at)
                 VALUES (@channel, @userId, CAST(@settings AS jsonb), NOW())
-                ON CONFLICT (channel_name) DO UPDATE SET settings = EXCLUDED.settings, updated_at = NOW()", conn);
+                ON CONFLICT (tenant_id, channel_name) DO UPDATE SET settings = EXCLUDED.settings, updated_at = NOW()", conn);
             cmd.Parameters.AddWithValue("channel", channel.ToLower());
             cmd.Parameters.AddWithValue("userId", channelUserId);
             cmd.Parameters.AddWithValue("settings", settings.Serialize());
@@ -135,7 +135,7 @@ namespace Decatron.Services.Moderation
                 await using var cmd = new NpgsqlCommand(@"
                     INSERT INTO moderation_panic (channel_name, user_id, settings, active, started_at, ends_at, triggered_by, reason, previous_chat_settings, shield_applied, updated_at)
                     VALUES (@channel, @userId, CAST(@settings AS jsonb), TRUE, NOW(), @endsAt, @by, @reason, CAST(@previous AS jsonb), @shield, NOW())
-                    ON CONFLICT (channel_name) DO UPDATE SET active = TRUE, started_at = NOW(), ends_at = @endsAt, triggered_by = @by,
+                    ON CONFLICT (tenant_id, channel_name) DO UPDATE SET active = TRUE, started_at = NOW(), ends_at = @endsAt, triggered_by = @by,
                         reason = @reason, previous_chat_settings = CAST(@previous AS jsonb), shield_applied = @shield, updated_at = NOW()", conn);
                 cmd.Parameters.AddWithValue("channel", channel);
                 cmd.Parameters.AddWithValue("userId", channelUserId);
