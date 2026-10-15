@@ -34,7 +34,7 @@ namespace Decatron.Core.Functions
                     return "Desconocido";
                 }
 
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(_configuration);
                 Utils.ConfigureTwitchApiHeaders(_httpClient, _configuration, accessToken);
 
                 // First request to get user ID

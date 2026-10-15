@@ -688,6 +688,7 @@ try
     builder.Services.AddHostedService<Decatron.Discord.Services.StoreExpirationService>();
 
     var app = builder.Build();
+    Decatron.Core.Interfaces.CredentialAccessor.Set(app.Services.GetRequiredService<Decatron.Core.Interfaces.ICredentialProvider>());
 
     // Configure pipeline
     if (app.Environment.IsDevelopment())

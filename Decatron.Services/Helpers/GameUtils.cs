@@ -18,7 +18,7 @@ namespace Decatron.Default.Helpers
             {
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("Client-ID", configuration["TwitchSettings:ClientId"]);
+                httpClient.DefaultRequestHeaders.Add("Client-ID", Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(configuration));
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
                 var response = await httpClient.GetAsync($"https://api.twitch.tv/helix/channels?broadcaster_id={twitchId}");
@@ -57,7 +57,7 @@ namespace Decatron.Default.Helpers
 
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("Client-ID", configuration["TwitchSettings:ClientId"]);
+                httpClient.DefaultRequestHeaders.Add("Client-ID", Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(configuration));
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
                 var updateData = new { game_id = gameInfo.Id };
@@ -197,7 +197,7 @@ namespace Decatron.Default.Helpers
             {
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.Add("Client-ID", configuration["TwitchSettings:ClientId"]);
+                httpClient.DefaultRequestHeaders.Add("Client-ID", Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(configuration));
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
                 var encodedName = Uri.EscapeDataString(gameName);
@@ -523,7 +523,7 @@ namespace Decatron.Default.Helpers
                 // En su lugar, obtener el user_id desde la API de Twitch usando el username
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {channelInfo.AccessToken}");
-                httpClient.DefaultRequestHeaders.Add("Client-Id", configuration["TwitchSettings:ClientId"]);
+                httpClient.DefaultRequestHeaders.Add("Client-Id", Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(configuration));
 
                 // Paso 1: Obtener el user_id del moderador desde Twitch API
                 var userId = await Utils.GetUserId(httpClient, username);

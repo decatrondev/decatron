@@ -39,7 +39,7 @@ namespace Decatron.Core.Functions
                     return "Error: No se pudo obtener el token de acceso";
                 }
 
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(_configuration);
                 if (string.IsNullOrEmpty(clientId))
                 {
                     return "Error: Configuración incompleta";

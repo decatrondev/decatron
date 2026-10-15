@@ -172,7 +172,7 @@ namespace Decatron.Core.Helpers
         /// </summary>
         public static void ConfigureTwitchApiHeaders(HttpClient httpClient, IConfiguration configuration, string accessToken)
         {
-            var clientId = configuration["TwitchSettings:ClientId"];
+            var clientId = Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(configuration);
 
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Add("Client-ID", clientId);
@@ -250,7 +250,7 @@ namespace Decatron.Core.Helpers
                     return false;
                 }
 
-                var clientId = configuration["TwitchSettings:ClientId"];
+                var clientId = Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(configuration);
                 var broadcasterId = await GetBroadcasterIdFromDatabaseAsync(configuration, channelName);
 
                 if (string.IsNullOrEmpty(broadcasterId))

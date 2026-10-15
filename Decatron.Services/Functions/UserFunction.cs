@@ -21,7 +21,7 @@ namespace Decatron.Core.Functions
             _httpClient = new HttpClient();
 
             // Obtener ClientId desde configuración
-            _clientId = _configuration["TwitchSettings:ClientId"];
+            _clientId = Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(_configuration);
 
             if (string.IsNullOrEmpty(_clientId))
             {

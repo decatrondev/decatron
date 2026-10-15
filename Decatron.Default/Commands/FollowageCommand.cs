@@ -170,7 +170,7 @@ namespace Decatron.Default.Commands
         {
             try
             {
-                var clientId = _configuration["TwitchSettings:ClientId"];
+                var clientId = Decatron.Core.Interfaces.CredentialAccessor.TwitchClientId(_configuration);
                 var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
