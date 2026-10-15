@@ -27,6 +27,8 @@ namespace Decatron.Services
         private readonly DecatronDbContext _dbContext;
         private readonly UsernameUpdateService _usernameUpdateService;
 
+        private readonly Decatron.Services.Tenancy.TenantMembership? _membership;
+
         public AuthService(
             IHttpClientFactory httpClientFactory,
             IUserRepository userRepository,
@@ -36,8 +38,10 @@ namespace Decatron.Services
             IOptions<JwtSettings> jwtSettings,
             ILogger<AuthService> logger,
             DecatronDbContext dbContext,
-            UsernameUpdateService usernameUpdateService)
+            UsernameUpdateService usernameUpdateService,
+            Decatron.Services.Tenancy.TenantMembership? membership = null)
         {
+            _membership = membership;
             _httpClientFactory = httpClientFactory;
             _userRepository = userRepository;
             _settingsService = settingsService;
@@ -335,6 +339,10 @@ namespace Decatron.Services
 
                     user = await _userRepository.CreateAsync(user);
                     _logger.LogInformation("Created new user: {Login}", user.Login);
+
+                    // Plataforma: un usuario nuevo de un tenant distinto del #1 necesita su fila de canal; sin ella el resolutor lo daria por del #1.
+                    if (TenantAmbient.Current is long newUserTenant && newUserTenant > 1 && _membership is not null)
+                        await _membership.EnsureChannelAsync(newUserTenant, user.Id, user.TwitchId, user.Login);
 
                     // Asignar tier 'free' al nuevo usuario
                     try

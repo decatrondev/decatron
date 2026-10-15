@@ -190,3 +190,40 @@ public class BotTokensRlsTests
         finally { await new NpgsqlCommand($"delete from bot_tokens where \"Id\"={id}", one).ExecuteNonQueryAsync(); }
     }
 }
+
+public class TenantMembershipTests
+{
+    private static string? App => Environment.GetEnvironmentVariable("DECATRON_APP_CONN");
+
+    [Fact(DisplayName = "Una cuenta pertenece a un solo tenant: el canal nuevo se crea en su tenant y entrar por otro se rechaza")]
+    public async Task UnaCuentaPerteneceAUnTenant()
+    {
+        if (string.IsNullOrWhiteSpace(App)) return;
+        await using var c = TenantNpgsql.Create(App, 1); await c.OpenAsync();
+        if ((string)(await new NpgsqlCommand("select current_database()", c).ExecuteScalarAsync())! != "decatron_schema") return;
+        if ((long)(await new NpgsqlCommand("select count(*) from tenants where id in (9101,9102)", c).ExecuteScalarAsync())! != 2) return;
+        const long uid = 990101; const string tw = "zz-tw-990101";
+        var cfg = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:DefaultConnection"] = App }).Build();
+        var m = new Decatron.Services.Tenancy.TenantMembership(cfg);
+        try
+        {
+            await new NpgsqlCommand($@"insert into users (id, twitch_id, login, display_name, email, profile_image_url, offline_image_url, broadcaster_type, view_count, description,
+                access_token, refresh_token, token_expiration, created_at, updated_at, is_active, unique_id)
+                values ({uid}, '{tw}', 'zzuser', 'Z', '', '', '', '', 0, '', 'a', 'b', now(), now(), now(), true, 'zz-uid-990101')", c).ExecuteNonQueryAsync();
+
+            Assert.False(await m.BelongsElsewhereAsync(tw, 9101)); // cuenta nueva: puede entrar por cualquier tenant
+            await m.EnsureChannelAsync(9101, uid, tw, "ZZUser");
+            await m.EnsureChannelAsync(9101, uid, tw, "ZZUser"); // idempotente
+            Assert.Equal(1L, await new NpgsqlCommand($"select count(*) from channels where user_id={uid}", c).ExecuteScalarAsync());
+            Assert.Equal(9101L, await new NpgsqlCommand($"select tenant_id from channels where user_id={uid}", c).ExecuteScalarAsync());
+            Assert.False(await m.BelongsElsewhereAsync(tw, 9101)); // por su tenant entra
+            Assert.True(await m.BelongsElsewhereAsync(tw, 9102));  // por otro tenant, no
+            Assert.True(await m.BelongsElsewhereAsync(tw, 1));     // ni por el #1
+        }
+        finally
+        {
+            foreach (var sql in new[] { $"delete from tenant_members where user_id={uid}", $"delete from channels where user_id={uid}", $"delete from users where id={uid}" })
+                await new NpgsqlCommand(sql, c).ExecuteNonQueryAsync();
+        }
+    }
+}

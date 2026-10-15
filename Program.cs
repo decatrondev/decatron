@@ -363,6 +363,7 @@ try
     builder.Services.AddSingleton<Decatron.Data.Encryption.ITenantKeyStore>(sp => new Decatron.Data.Encryption.NpgsqlTenantKeyStore(
         builder.Configuration.GetConnectionString("DefaultConnection") ?? ""));
     builder.Services.AddSingleton<Decatron.Data.Encryption.SecretVault>();
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantMembership>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantEventSubHub>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantEventSubSync>();
