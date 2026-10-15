@@ -90,7 +90,7 @@ namespace Decatron.Hubs
         {
             try
             {
-                if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase)) return;
+                if (!TenantMode.IsOn(_config[TenantMode.ConfigKey])) return;
                 var res = _tenants.ByChannelKey(channel);
                 if (res.Resolved) return;
                 var now = DateTime.UtcNow;

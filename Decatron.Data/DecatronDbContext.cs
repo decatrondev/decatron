@@ -18,9 +18,26 @@ namespace Decatron.Data
     {
         private readonly string? _encryptionKey;
 
-        public DecatronDbContext(DbContextOptions<DecatronDbContext> options, IConfiguration? configuration = null) : base(options)
+        private readonly Core.Interfaces.ITenantContext? _tenantContext;
+        private readonly bool _tenantStrict;
+
+        /// <summary>Tenant que usa el filtro estricto: el ambiente de la tarea (Fase 2) o el del request; sin ninguno, 1.</summary>
+        /// <summary>Lo usa la clave de caché del modelo: el modo estricto construye un modelo distinto (con filtros).</summary>
+        public bool TenantStrictMode => _tenantStrict;
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.ReplaceService<Microsoft.EntityFrameworkCore.Infrastructure.IModelCacheKeyFactory, TenantModelCacheKeyFactory>();
+        }
+
+        private long CurrentTenantId => Core.Interfaces.TenantAmbient.Current ?? _tenantContext?.TenantId ?? 1;
+
+        public DecatronDbContext(DbContextOptions<DecatronDbContext> options, IConfiguration? configuration = null,
+            Core.Interfaces.ITenantContext? tenantContext = null) : base(options)
         {
             _encryptionKey = configuration?["JwtSettings:SecretKey"];
+            _tenantContext = tenantContext;
+            _tenantStrict = Core.Interfaces.TenantMode.IsStrict(configuration?[Core.Interfaces.TenantMode.ConfigKey]);
         }
 
         public DbSet<User> Users { get; set; }
@@ -2220,6 +2237,36 @@ namespace Decatron.Data
             {
                 entity.HasIndex(e => new { e.Provider, e.ExternalId, e.Kind }).IsUnique();
             });
+
+            // Plataforma, Fase 3: las tablas con tenant_id exponen la propiedad sombra "TenantId" (sin tocar las entidades).
+            // HasDefaultValueSql("1") + ValueGeneratedOnAdd: EF no envía la columna al insertar y se conserva el DEFAULT 1
+            // de la Fase 1, así que los INSERT quedan idénticos a los de hoy.
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes().Where(t => t.BaseType == null && !t.IsOwned()).ToList())
+            {
+                var table = entityType.GetTableName();
+                if (table == null || !TenantTables.Names.Contains(table) || entityType.FindProperty("TenantId") != null) continue;
+                if (entityType.GetProperties().Any(p => p.GetColumnName() == "tenant_id")) continue;
+                modelBuilder.Entity(entityType.ClrType).Property<long>("TenantId")
+                    .HasColumnName("tenant_id").HasDefaultValueSql("1").ValueGeneratedOnAdd();
+            }
+
+            // Modo estricto (Platform:TenantContext:Mode = strict): filtro global por tenant en toda entidad con tenant_id.
+            // Con el modo apagado no se registra ningún filtro, así que las consultas son idénticas a las de hoy.
+            if (_tenantStrict)
+            {
+                foreach (var entityType in modelBuilder.Model.GetEntityTypes().Where(t => t.BaseType == null && !t.IsOwned()).ToList())
+                {
+                    var prop = entityType.GetProperties().FirstOrDefault(p => p.GetColumnName() == "tenant_id");
+                    if (prop == null || entityType.GetTableName() == null || !TenantTables.Names.Contains(entityType.GetTableName()!)) continue;
+                    var param = System.Linq.Expressions.Expression.Parameter(entityType.ClrType, "e");
+                    var left = System.Linq.Expressions.Expression.Call(typeof(EF), nameof(EF.Property), new[] { typeof(long) },
+                        param, System.Linq.Expressions.Expression.Constant(prop.Name));
+                    var right = System.Linq.Expressions.Expression.Property(
+                        System.Linq.Expressions.Expression.Constant(this), nameof(CurrentTenantId));
+                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(System.Linq.Expressions.Expression.Lambda(
+                        System.Linq.Expressions.Expression.Equal(left, right), param));
+                }
+            }
         }
     }
 }

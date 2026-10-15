@@ -27,7 +27,7 @@ public sealed class TenantShadow
     {
         try
         {
-            if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase)) return;
+            if (!TenantMode.IsOn(_config[TenantMode.ConfigKey])) return;
             var res = _resolver.ByChannelKey(channelKey);
             if (res.Resolved) return;
             var k = entryPoint + "|" + (channelKey ?? "");
@@ -50,7 +50,7 @@ public sealed class TenantShadow
     {
         try
         {
-            if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase))
+            if (!TenantMode.IsOn(_config[TenantMode.ConfigKey]))
                 return NoopScope.Instance;
             Observe(entryPoint, channelKey);
             return TenantAmbient.Push(_resolver.ByChannelKey(channelKey).TenantId);
@@ -66,7 +66,7 @@ public sealed class TenantShadow
     {
         try
         {
-            if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase))
+            if (!TenantMode.IsOn(_config[TenantMode.ConfigKey]))
                 return NoopScope.Instance;
             var res = _resolver.ByUserId(userId);
             if (!res.Resolved) WarnOnce(entryPoint, "user:" + userId);
@@ -83,7 +83,7 @@ public sealed class TenantShadow
     {
         try
         {
-            if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase)) return;
+            if (!TenantMode.IsOn(_config[TenantMode.ConfigKey])) return;
             if (!_resolver.ByGuildId(guildId).Resolved) WarnOnce(entryPoint, "guild:" + (guildId ?? "(vacío)"));
         }
         catch (Exception ex)
@@ -105,26 +105,5 @@ public sealed class TenantShadow
     {
         public static readonly NoopScope Instance = new();
         public void Dispose() { }
-    }
-}
-
-/// <summary>Tenant ambiente por flujo asíncrono (AsyncLocal) para tareas sin HttpContext. null = ninguno fijado.</summary>
-public static class TenantAmbient
-{
-    private static readonly AsyncLocal<long?> _current = new();
-    public static long? Current => _current.Value;
-
-    internal static IDisposable Push(long tenantId)
-    {
-        var prev = _current.Value;
-        _current.Value = tenantId;
-        return new Restore(prev);
-    }
-
-    private sealed class Restore : IDisposable
-    {
-        private readonly long? _prev;
-        public Restore(long? prev) { _prev = prev; }
-        public void Dispose() { _current.Value = _prev; }
     }
 }

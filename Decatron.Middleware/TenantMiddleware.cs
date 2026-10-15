@@ -27,8 +27,8 @@ namespace Decatron.Middleware
         {
             try
             {
-                var mode = _config["Platform:TenantContext:Mode"];
-                if (string.Equals(mode, "shadow", StringComparison.OrdinalIgnoreCase))
+                var mode = _config[TenantMode.ConfigKey];
+                if (TenantMode.IsOn(mode))
                 {
                     var res = Resolve(context, resolver);
                     tenant.Set(res);
