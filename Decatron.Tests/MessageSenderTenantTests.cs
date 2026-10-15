@@ -39,3 +39,45 @@ public class MessageSenderTenantTests
         Assert.Null(await p.GetAsync());
     }
 }
+
+public class TenantEventSubHubTests
+{
+    private sealed class EmptyStore : ITenantCredentialStore
+    {
+        public Task<TwitchAppCredentials?> GetTwitchAppAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchAppCredentials?>(null);
+        public Task<TwitchAppSummary?> GetTwitchAppSummaryAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchAppSummary?>(null);
+        public Task SaveTwitchAppAsync(long t, TwitchAppInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<bool> DeleteTwitchAppAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
+        public Task SaveTwitchBotAsync(long t, TwitchBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<TwitchBotSummary?> GetTwitchBotAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchBotSummary?>(null);
+        public Task<bool> DeleteTwitchBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
+        public Task SaveDiscordBotAsync(long t, DiscordBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<DiscordBotSummary?> GetDiscordBotAsync(long t, CancellationToken ct = default) => Task.FromResult<DiscordBotSummary?>(null);
+        public Task<string?> GetDiscordBotTokenAsync(long t, string p, CancellationToken ct = default) => Task.FromResult<string?>(null);
+        public Task<bool> DeleteDiscordBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
+        public Task<IReadOnlyList<long>> ListActiveTenantIdsAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<long>>(new List<long>());
+        public Task<long?> FindActiveTenantIdAsync(string slug, CancellationToken ct = default) => Task.FromResult<long?>(null);
+    }
+
+    private static TenantEventSubHub NewHub()
+        => new(new ServiceCollection().BuildServiceProvider(), new EmptyStore(), new ConfigurationBuilder().Build(),
+            Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, NullLogger<TenantEventSubHub>.Instance);
+
+    [Fact]
+    public async Task SinAppNiBotQuedaEnNeedsSetupYNoConectaNada()
+    {
+        var st = await NewHub().StartAsync(2);
+        Assert.Equal("needs_setup", st.Status);
+        Assert.Equal(0, st.Shards);
+    }
+
+    [Fact]
+    public async Task ElTenantUnoNoPasaPorElHubNiPorLaSincronizacion()
+    {
+        var hub = NewHub();
+        await Assert.ThrowsAsync<ArgumentException>(() => hub.StartAsync(1));
+        var sync = new TenantEventSubSync(new ServiceCollection().BuildServiceProvider(), new ConfigurationBuilder().Build(), hub, NullLogger<TenantEventSubSync>.Instance);
+        await Assert.ThrowsAsync<ArgumentException>(() => sync.SyncAsync(1));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sync.SyncAsync(2)); // sin conduit conectado
+    }
+}

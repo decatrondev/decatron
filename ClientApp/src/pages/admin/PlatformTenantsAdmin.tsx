@@ -14,7 +14,9 @@ interface AppSummary { clientId: string; redirectUri: string | null; scopes: str
 interface BotSummary { username: string; twitchId: string; linkedAt: string | null }
 interface DiscordSummary { botId: string; botName: string; linkedAt: string | null }
 interface GatewayState { status: string; guilds: number; error: string | null; intentsMissing: boolean; memoryDeltaMb: number }
-interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null; twitchBot: BotSummary | null; discordBot: DiscordSummary | null; gateway: GatewayState | null }
+interface EventSubState { status: string; conduitId: string | null; shards: number; shardsConnected: number; error: string | null; lastEventAt: string | null }
+interface SyncResult { channels: number; created: number; existing: number; errors: number; at: string }
+interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null; twitchBot: BotSummary | null; discordBot: DiscordSummary | null; gateway: GatewayState | null; eventSub: EventSubState | null; eventSubSync: SyncResult | null }
 interface Form { clientId: string; clientSecret: string; redirectUri: string; scopes: string }
 
 const EMPTY: Form = { clientId: '', clientSecret: '', redirectUri: '', scopes: '' };
@@ -117,6 +119,24 @@ export default function PlatformTenantsAdmin() {
         setBusy(false);
     };
 
+    const restartEventSub = async (row: Tenant) => {
+        setBusy(true);
+        try {
+            const res = await api.post(`/admin/platform/tenants/${row.id}/eventsub/restart`);
+            const st: EventSubState | null = res.data.eventSub;
+            setNote(st?.status === 'connected' ? { ok: true, text: t('tenants.eventSubOk') } : { ok: false, text: t(`tenants.errors.${st?.error ?? st?.status ?? 'generic'}`, { defaultValue: t('tenants.errors.generic') }) });
+            await load();
+        } catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
+
+    const syncEventSub = async (row: Tenant) => {
+        setBusy(true);
+        try { await api.post(`/admin/platform/tenants/${row.id}/eventsub/sync`); await load(); setNote({ ok: true, text: t('tenants.eventSubSynced') }); }
+        catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
+
     const restartDiscord = async (row: Tenant) => {
         setBusy(true);
         try { await api.post(`/admin/platform/tenants/${row.id}/discord-bot/restart`); await load(); }
@@ -185,6 +205,21 @@ export default function PlatformTenantsAdmin() {
                                     </div>
                                 </div>
                             )}
+                            <div className="pt-3 border-t border-ds-border space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-bold text-ds-text">{t('tenants.eventSubTitle')}</span>
+                                    <Badge tone={row.eventSub?.status === 'connected' ? 'ok' : 'warn'}>
+                                        {t(`tenants.eventSubStatus.${row.eventSub?.status ?? 'stopped'}`, { defaultValue: row.eventSub?.status ?? 'stopped' })}
+                                    </Badge>
+                                    {row.eventSub?.status === 'connected' && <span className="text-sm text-ds-soft">{t('tenants.eventSubShards', { n: row.eventSub.shardsConnected, total: row.eventSub.shards })}</span>}
+                                    {row.eventSub?.lastEventAt && <span className="text-sm text-ds-soft">{t('tenants.eventSubLast', { date: fmt(row.eventSub.lastEventAt) })}</span>}
+                                </div>
+                                {row.eventSubSync && <p className="text-sm text-ds-soft">{t('tenants.eventSubSync', { channels: row.eventSubSync.channels, created: row.eventSubSync.created, existing: row.eventSubSync.existing, errors: row.eventSubSync.errors })}</p>}
+                                <div className="flex flex-wrap gap-2">
+                                    <Button size="sm" variant="secondary" loading={busy} onClick={() => restartEventSub(row)}>{t('tenants.eventSubRestart')}</Button>
+                                    {row.eventSub?.status === 'connected' && <Button size="sm" variant="ghost" loading={busy} onClick={() => syncEventSub(row)}>{t('tenants.eventSubSyncBtn')}</Button>}
+                                </div>
+                            </div>
                             <div className="pt-3 border-t border-ds-border space-y-2">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="text-sm font-bold text-ds-text">{t('tenants.discordTitle')}</span>

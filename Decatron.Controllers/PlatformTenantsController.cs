@@ -22,6 +22,8 @@ namespace Decatron.Controllers
         private readonly Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> _jwt;
         private readonly Decatron.Discord.IDiscordBotValidator _discordValidator;
         private readonly Decatron.Discord.DiscordTenantGateway _gateway;
+        private readonly Decatron.Services.Tenancy.TenantEventSubHub _eventSub;
+        private readonly Decatron.Services.Tenancy.TenantEventSubSync _eventSubSync;
         private readonly ITenantCredentialStore _store;
         private readonly ITwitchAppValidator _validator;
         private readonly ICredentialProvider _provider;
@@ -31,8 +33,10 @@ namespace Decatron.Controllers
         public PlatformTenantsController(ITenantCredentialStore store, ITwitchAppValidator validator, ICredentialProvider provider,
             IConfiguration config, ILogger<PlatformTenantsController> log,
             Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> jwt,
-            Decatron.Discord.IDiscordBotValidator discordValidator, Decatron.Discord.DiscordTenantGateway gateway)
+            Decatron.Discord.IDiscordBotValidator discordValidator, Decatron.Discord.DiscordTenantGateway gateway,
+            Decatron.Services.Tenancy.TenantEventSubHub eventSub, Decatron.Services.Tenancy.TenantEventSubSync eventSubSync)
         {
+            _eventSub = eventSub; _eventSubSync = eventSubSync;
             _discordValidator = discordValidator; _gateway = gateway; _jwt = jwt; _store = store; _validator = validator; _provider = provider; _config = config; _log = log;
         }
 
@@ -70,7 +74,8 @@ namespace Decatron.Controllers
             var items = new List<object>();
             foreach (var (id, slug, name, status, mode) in rows)
                 items.Add(new { id, slug, name, status, mode, twitchApp = id == 1 ? null : await _store.GetTwitchAppSummaryAsync(id), twitchBot = id == 1 ? null : await _store.GetTwitchBotAsync(id),
-                    discordBot = id == 1 ? null : await _store.GetDiscordBotAsync(id), gateway = id == 1 ? null : _gateway.StateOf(id) });
+                    discordBot = id == 1 ? null : await _store.GetDiscordBotAsync(id), gateway = id == 1 ? null : _gateway.StateOf(id),
+                    eventSub = id == 1 ? null : _eventSub.StateOf(id), eventSubSync = id == 1 ? null : _eventSubSync.LastOf(id) });
             return Ok(new { success = true, items, gateways = new { connected = _gateway.Connected, cap = _gateway.Cap, rssMb = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64 / 1048576 } });
         }
 
@@ -104,6 +109,7 @@ namespace Decatron.Controllers
             await _store.SaveTwitchAppAsync(id, new TwitchAppInput(clientId, secret, redirect, scopes), Actor);
             _provider.Invalidate(id);
             _log.LogInformation("Plataforma: app de Twitch cargada para el tenant {Tenant} por {Actor}", id, Actor);
+            _ = Task.Run(() => _eventSub.StartAsync(id)); // otra app = otro conduit: se reabre (queda en needs_setup si aun no hay bot)
             return Ok(new { success = true, twitchApp = await _store.GetTwitchAppSummaryAsync(id) });
         }
 
@@ -112,6 +118,7 @@ namespace Decatron.Controllers
         {
             if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
             if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            await _eventSub.StopAsync(id);
             var removed = await _store.DeleteTwitchAppAsync(id, Actor);
             _provider.Invalidate(id);
             _log.LogInformation("Plataforma: app de Twitch borrada del tenant {Tenant} por {Actor}", id, Actor);
@@ -140,6 +147,7 @@ namespace Decatron.Controllers
         {
             if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
             if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            await _eventSub.StopAsync(id);
             var removed = await _store.DeleteTwitchBotAsync(id, Actor);
             _log.LogInformation("Plataforma: cuenta de bot desvinculada del tenant {Tenant} por {Actor}", id, Actor);
             return Ok(new { success = true, removed });
@@ -185,6 +193,27 @@ namespace Decatron.Controllers
             var removed = await _store.DeleteDiscordBotAsync(id, Actor);
             _log.LogInformation("Plataforma: bot de Discord quitado del tenant {Tenant} por {Actor}", id, Actor);
             return Ok(new { success = true, removed });
+        }
+
+        /// <summary>Reabre el conduit del tenant (app + bot de Twitch) y opcionalmente crea las suscripciones de sus canales.</summary>
+        [HttpPost("{id:long}/eventsub/restart")]
+        public async Task<IActionResult> RestartEventSub(long id, [FromQuery] bool sync = true)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            var state = await _eventSub.StartAsync(id);
+            Decatron.Services.Tenancy.EventSubSyncResult? result = null;
+            if (sync && state.Status == "connected") result = await _eventSubSync.SyncAsync(id);
+            return Ok(new { success = true, eventSub = _eventSub.StateOf(id), eventSubSync = result });
+        }
+
+        [HttpPost("{id:long}/eventsub/sync")]
+        public async Task<IActionResult> SyncEventSub(long id)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            try { return Ok(new { success = true, eventSubSync = await _eventSubSync.SyncAsync(id) }); }
+            catch (InvalidOperationException) { return BadRequest(new { success = false, code = "eventsub_not_connected" }); }
         }
     }
 }

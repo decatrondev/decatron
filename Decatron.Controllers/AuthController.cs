@@ -30,6 +30,7 @@ namespace Decatron.Controllers
         private readonly IMemoryCache _memoryCache;
         private readonly DecatronDbContext _dbContext;
         private readonly ITenantCredentialStore _tenantStore;
+        private readonly Decatron.Services.Tenancy.TenantEventSubHub _eventSubHub;
 
         public AuthController(
             IAuthService authService,
@@ -42,8 +43,10 @@ namespace Decatron.Controllers
             IHttpClientFactory httpClientFactory,
             IMemoryCache memoryCache,
             DecatronDbContext dbContext,
-            ITenantCredentialStore tenantStore)
+            ITenantCredentialStore tenantStore,
+            Decatron.Services.Tenancy.TenantEventSubHub eventSubHub)
         {
+            _eventSubHub = eventSubHub;
             _tenantStore = tenantStore;
             _authService = authService;
             _botService = botService;
@@ -210,6 +213,7 @@ namespace Decatron.Controllers
                             twitchUser.Login, twitchUser.Id, tokenResponse.AccessToken, tokenResponse.RefreshToken,
                             DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn)), "bot-oauth");
                         _logger.LogInformation("Plataforma: cuenta de bot {Bot} autorizada para el tenant {Tenant}", twitchUser.Login, botTenantId);
+                        _ = Task.Run(() => _eventSubHub.StartAsync(botTenantId)); // con app y bot listos se abre su conduit
                         return Content("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>OK</title>"
                             + "<body style='font-family:system-ui;background:#0f1115;color:#e8eaf0;display:grid;place-items:center;min-height:100vh;margin:0'>"
                             + $"<p style='text-align:center;padding:1rem'>✓ {System.Net.WebUtility.HtmlEncode(twitchUser.DisplayName ?? twitchUser.Login)}<br>Bot autorizado. Ya puedes cerrar esta ventana.<br>Bot authorized. You can close this window.</p>", "text/html; charset=utf-8");

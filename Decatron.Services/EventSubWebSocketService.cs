@@ -339,7 +339,7 @@ namespace Decatron.Services
         // idéntico entre transportes; esto solo reconstruye ese sobre.
         // ============================================================================
 
-        private static JObject BuildChatMessageJObject(ChannelChatMessage e)
+        internal static JObject BuildChatMessageJObject(ChannelChatMessage e)
         {
             var badges = new JArray();
             if (e.Badges != null)
@@ -402,7 +402,7 @@ namespace Decatron.Services
         /// Los trozos del mensaje (texto, emotes de Twitch, cheermotes): el overlay de chat los dibuja y el
         /// filtro de emotes de la moderación los cuenta. Sin esto, por el conduit solo llegaba el texto plano.
         /// </summary>
-        private static JArray BuildFragments(TwitchLib.EventSub.Core.Models.Chat.ChatMessage? message)
+        internal static JArray BuildFragments(TwitchLib.EventSub.Core.Models.Chat.ChatMessage? message)
         {
             var fragments = new JArray();
             if (message?.Fragments == null) return fragments;
@@ -419,7 +419,7 @@ namespace Decatron.Services
             return fragments;
         }
 
-        private static JObject BuildFollowJObject(ChannelFollow e) => new()
+        internal static JObject BuildFollowJObject(ChannelFollow e) => new()
         {
             ["user_id"] = e.UserId,
             ["user_name"] = e.UserName,
@@ -429,7 +429,7 @@ namespace Decatron.Services
             ["followed_at"] = e.FollowedAt.UtcDateTime.ToString("o")
         };
 
-        private static JObject BuildRedemptionJObject(ChannelPointsCustomRewardRedemption e) => new()
+        internal static JObject BuildRedemptionJObject(ChannelPointsCustomRewardRedemption e) => new()
         {
             ["reward"] = new JObject
             {
@@ -444,7 +444,7 @@ namespace Decatron.Services
             ["user_input"] = e.UserInput
         };
 
-        private static JObject BuildCheerJObject(ChannelCheer e) => new()
+        internal static JObject BuildCheerJObject(ChannelCheer e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
@@ -453,7 +453,7 @@ namespace Decatron.Services
             ["bits"] = e.Bits
         };
 
-        private static JObject BuildSubscribeJObject(ChannelSubscribe e) => new()
+        internal static JObject BuildSubscribeJObject(ChannelSubscribe e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
@@ -462,7 +462,7 @@ namespace Decatron.Services
             ["is_gift"] = e.IsGift
         };
 
-        private static JObject BuildGiftSubJObject(ChannelSubscriptionGift e) => new()
+        internal static JObject BuildGiftSubJObject(ChannelSubscriptionGift e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
@@ -470,7 +470,7 @@ namespace Decatron.Services
             ["total"] = e.Total
         };
 
-        private static JObject BuildResubJObject(ChannelSubscriptionMessage e) => new()
+        internal static JObject BuildResubJObject(ChannelSubscriptionMessage e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
@@ -480,7 +480,7 @@ namespace Decatron.Services
             ["message"] = new JObject { ["text"] = e.Message?.Text }
         };
 
-        private static JObject BuildRaidJObject(ChannelRaid e) => new()
+        internal static JObject BuildRaidJObject(ChannelRaid e) => new()
         {
             ["to_broadcaster_user_id"] = e.ToBroadcasterUserId,
             ["to_broadcaster_user_login"] = e.ToBroadcasterUserLogin,
@@ -489,20 +489,20 @@ namespace Decatron.Services
             ["viewers"] = e.Viewers
         };
 
-        private static JObject BuildHypeTrainJObject(HypeTrainBeginV2 e) => new()
+        internal static JObject BuildHypeTrainJObject(HypeTrainBeginV2 e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
             ["level"] = e.Level
         };
 
-        private static JObject BuildStreamOnlineJObject(StreamOnline e) => new()
+        internal static JObject BuildStreamOnlineJObject(StreamOnline e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin
         };
 
-        private static JObject BuildChannelUpdateJObject(ChannelUpdate e) => new()
+        internal static JObject BuildChannelUpdateJObject(ChannelUpdate e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin,
@@ -511,7 +511,7 @@ namespace Decatron.Services
             ["category_name"] = e.CategoryName
         };
 
-        private static JObject BuildStreamOfflineJObject(StreamOffline e) => new()
+        internal static JObject BuildStreamOfflineJObject(StreamOffline e) => new()
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin

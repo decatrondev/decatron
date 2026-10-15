@@ -364,6 +364,9 @@ try
         builder.Configuration.GetConnectionString("DefaultConnection") ?? ""));
     builder.Services.AddSingleton<Decatron.Data.Encryption.SecretVault>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantEventSubHub>();
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantEventSubSync>();
+    builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Services.Tenancy.TenantEventSubHub>());
     builder.Services.AddSingleton<Decatron.Core.Interfaces.IBotAccountProvider, Decatron.Services.Tenancy.BotAccountProvider>();
     builder.Services.AddSingleton<Decatron.Core.Interfaces.ITenantCredentialStore>(sp => new Decatron.Services.Tenancy.NpgsqlTenantCredentialStore(
         builder.Configuration.GetConnectionString("DefaultConnection") ?? "", sp.GetRequiredService<Decatron.Data.Encryption.SecretVault>()));

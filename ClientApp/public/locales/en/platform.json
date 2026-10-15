@@ -290,7 +290,10 @@
       "discord_unreachable": "Could not reach Discord. Try again.",
       "intents_missing": "The bot could not connect: the privileged intents (Server Members Intent and Message Content Intent) are missing in the buyer's Discord portal.",
       "gateway_cap": "The platform's Discord connection limit was reached.",
-      "connect_failed": "The bot could not connect to Discord."
+      "connect_failed": "The bot could not connect to Discord.",
+      "needs_setup": "First load the tenant's Twitch app and authorize its bot.",
+      "eventsub_not_connected": "The event connection is not open.",
+      "connect_failed_eventsub": "The event connection could not be opened."
     },
     "botTitle": "Bot account",
     "botNone": "No bot",
@@ -327,6 +330,21 @@
       "connecting": "Connecting",
       "failed": "Failed",
       "stopped": "Stopped"
-    }
+    },
+    "eventSubTitle": "Twitch events (chat, follows, subs…)",
+    "eventSubStatus": {
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "needs_setup": "App or bot missing",
+      "failed": "Failed",
+      "stopped": "Stopped"
+    },
+    "eventSubShards": "{{n}} of {{total}} connection(s)",
+    "eventSubLast": "Last event: {{date}}",
+    "eventSubSync": "Channels: {{channels}} · new subscriptions {{created}} · already existed {{existing}} · errors {{errors}}",
+    "eventSubRestart": "Reopen connection",
+    "eventSubSyncBtn": "Sync channels",
+    "eventSubOk": "Event connection opened and channels synced.",
+    "eventSubSynced": "Channels synced."
   }
 }

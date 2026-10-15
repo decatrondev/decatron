@@ -290,7 +290,10 @@
       "discord_unreachable": "No se pudo contactar a Discord. Intenta de nuevo.",
       "intents_missing": "El bot no pudo conectar: faltan los permisos privilegiados (Server Members Intent y Message Content Intent) en el portal de Discord del comprador.",
       "gateway_cap": "Se alcanzó el tope de conexiones de Discord de la plataforma.",
-      "connect_failed": "El bot no pudo conectarse a Discord."
+      "connect_failed": "El bot no pudo conectarse a Discord.",
+      "needs_setup": "Primero carga la app y autoriza el bot de Twitch del tenant.",
+      "eventsub_not_connected": "La conexión de eventos no está abierta.",
+      "connect_failed_eventsub": "No se pudo abrir la conexión de eventos."
     },
     "botTitle": "Cuenta de bot",
     "botNone": "Sin bot",
@@ -327,6 +330,21 @@
       "connecting": "Conectando",
       "failed": "Con error",
       "stopped": "Detenido"
-    }
+    },
+    "eventSubTitle": "Eventos de Twitch (chat, follows, subs…)",
+    "eventSubStatus": {
+      "connected": "Conectado",
+      "connecting": "Conectando",
+      "needs_setup": "Falta app o bot",
+      "failed": "Con error",
+      "stopped": "Detenido"
+    },
+    "eventSubShards": "{{n}} de {{total}} conexión(es)",
+    "eventSubLast": "Último evento: {{date}}",
+    "eventSubSync": "Canales: {{channels}} · suscripciones nuevas {{created}} · ya existían {{existing}} · errores {{errors}}",
+    "eventSubRestart": "Reabrir conexión",
+    "eventSubSyncBtn": "Sincronizar canales",
+    "eventSubOk": "Conexión de eventos abierta y canales sincronizados.",
+    "eventSubSynced": "Canales sincronizados."
   }
 }

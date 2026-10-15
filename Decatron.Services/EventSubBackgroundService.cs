@@ -74,6 +74,18 @@ namespace Decatron.Services
                         .Where(u => u.IsActive)
                         .ToListAsync(stoppingToken);
 
+                    // Plataforma (Fase 4, paso 7c): los streamers de OTROS tenants se suscriben con el conduit de su tenant
+                    // (TenantEventSubSync), nunca con el del #1. channels no lleva RLS: el resolutor la lee entera.
+                    var otherTenantUsers = new HashSet<long>();
+                    using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>()["ConnectionStrings:DefaultConnection"], 1))
+                    {
+                        await conn.OpenAsync(stoppingToken);
+                        using var cmd = new Npgsql.NpgsqlCommand("SELECT DISTINCT user_id FROM channels WHERE tenant_id <> 1", conn);
+                        using var rd = await cmd.ExecuteReaderAsync(stoppingToken);
+                        while (await rd.ReadAsync(stoppingToken)) otherTenantUsers.Add(rd.GetInt64(0));
+                    }
+                    activeUsers = activeUsers.Where(u => !otherTenantUsers.Contains(u.Id)).ToList();
+
                     _logger.LogInformation($"📊 Encontrados {activeUsers.Count} usuarios activos");
 
                     int registeredCount = 0;
