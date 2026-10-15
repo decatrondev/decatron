@@ -21,7 +21,7 @@ namespace Decatron.Services
         private readonly IUserRepository _userRepository;
         private readonly ISettingsService _settingsService;
         private readonly ILanguageService _languageService;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly JwtSettings _jwtSettings;
         private readonly ILogger<AuthService> _logger;
         private readonly DecatronDbContext _dbContext;
@@ -32,7 +32,7 @@ namespace Decatron.Services
             IUserRepository userRepository,
             ISettingsService settingsService,
             ILanguageService languageService,
-            IOptions<TwitchSettings> twitchSettings,
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
             IOptions<JwtSettings> jwtSettings,
             ILogger<AuthService> logger,
             DecatronDbContext dbContext,
@@ -42,7 +42,7 @@ namespace Decatron.Services
             _userRepository = userRepository;
             _settingsService = settingsService;
             _languageService = languageService;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
             _jwtSettings = jwtSettings.Value;
             _logger = logger;
             _dbContext = dbContext;
@@ -55,11 +55,11 @@ namespace Decatron.Services
         public string GetLoginUrl(string? redirect = null, bool withModeration = false)
         {
             var state = GenerateSignedOAuthState(redirect);
-            var scopes = withModeration ? $"{_twitchSettings.Scopes} {ModerationScopes}" : _twitchSettings.Scopes;
+            var scopes = withModeration ? $"{_credentials.GetTwitchApp().Scopes} {ModerationScopes}" : _credentials.GetTwitchApp().Scopes;
 
             var loginUrl = $"https://id.twitch.tv/oauth2/authorize" +
-                $"?client_id={_twitchSettings.ClientId}" +
-                $"&redirect_uri={Uri.EscapeDataString(_twitchSettings.RedirectUri)}" +
+                $"?client_id={_credentials.GetTwitchApp().ClientId}" +
+                $"&redirect_uri={Uri.EscapeDataString(_credentials.GetTwitchApp().RedirectUri)}" +
                 $"&response_type=code" +
                 $"&scope={Uri.EscapeDataString(scopes)}" +
                 $"&state={Uri.EscapeDataString(state)}";
@@ -154,11 +154,11 @@ namespace Decatron.Services
                 var client = _httpClientFactory.CreateClient();
                 var requestBody = new Dictionary<string, string>
                 {
-                    { "client_id", _twitchSettings.ClientId },
-                    { "client_secret", _twitchSettings.ClientSecret },
+                    { "client_id", _credentials.GetTwitchApp().ClientId },
+                    { "client_secret", _credentials.GetTwitchApp().ClientSecret },
                     { "code", code },
                     { "grant_type", "authorization_code" },
-                    { "redirect_uri", _twitchSettings.RedirectUri }
+                    { "redirect_uri", _credentials.GetTwitchApp().RedirectUri }
                 };
 
                 var content = new FormUrlEncodedContent(requestBody);
@@ -195,7 +195,7 @@ namespace Decatron.Services
             {
                 var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-                client.DefaultRequestHeaders.Add("Client-ID", _twitchSettings.ClientId);
+                client.DefaultRequestHeaders.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
 
                 var response = await client.GetAsync("https://api.twitch.tv/helix/users");
 
@@ -405,8 +405,8 @@ namespace Decatron.Services
                 var client = _httpClientFactory.CreateClient();
                 var requestBody = new Dictionary<string, string>
                 {
-                    { "client_id", _twitchSettings.ClientId },
-                    { "client_secret", _twitchSettings.ClientSecret },
+                    { "client_id", _credentials.GetTwitchApp().ClientId },
+                    { "client_secret", _credentials.GetTwitchApp().ClientSecret },
                     { "grant_type", "refresh_token" },
                     { "refresh_token", refreshToken }
                 };

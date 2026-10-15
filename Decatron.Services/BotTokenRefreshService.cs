@@ -11,18 +11,18 @@ namespace Decatron.Services
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IBotTokenRepository _botTokenRepository;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<BotTokenRefreshService> _logger;
 
         public BotTokenRefreshService(
             IHttpClientFactory httpClientFactory,
             IBotTokenRepository botTokenRepository,
-            IOptions<TwitchSettings> twitchSettings,
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
             ILogger<BotTokenRefreshService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _botTokenRepository = botTokenRepository;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
             _logger = logger;
         }
 
@@ -53,8 +53,8 @@ namespace Decatron.Services
                 var client = _httpClientFactory.CreateClient();
                 var requestBody = new Dictionary<string, string>
                 {
-                    { "client_id", _twitchSettings.ClientId },
-                    { "client_secret", _twitchSettings.ClientSecret },
+                    { "client_id", _credentials.GetTwitchApp().ClientId },
+                    { "client_secret", _credentials.GetTwitchApp().ClientSecret },
                     { "grant_type", "refresh_token" },
                     { "refresh_token", botToken.RefreshToken }
                 };
@@ -180,8 +180,8 @@ namespace Decatron.Services
                 var client = _httpClientFactory.CreateClient();
                 var requestBody = new Dictionary<string, string>
                 {
-                    { "client_id", _twitchSettings.ClientId },
-                    { "client_secret", _twitchSettings.ClientSecret },
+                    { "client_id", _credentials.GetTwitchApp().ClientId },
+                    { "client_secret", _credentials.GetTwitchApp().ClientSecret },
                     { "grant_type", "client_credentials" }
                 };
 

@@ -17,20 +17,21 @@ namespace Decatron.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<TwitchApiService> _logger;
-        private readonly TwitchSettings _twitchSettings;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly IConfiguration _configuration;
         private const string TwitchApiBaseUrl = "https://api.twitch.tv/helix";
-        private string? _appAccessToken = null;
+        // App Access Token por ClientId: cada tenant con app propia tiene el suyo (nunca se reutiliza el de otra app)
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _appAccessTokens = new();
 
         public TwitchApiService(
             HttpClient httpClient,
             ILogger<TwitchApiService> logger,
-            IOptions<TwitchSettings> twitchSettings,
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
             IConfiguration configuration)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _twitchSettings = twitchSettings.Value;
+            _credentials = credentials;
             _configuration = configuration;
         }
 
@@ -39,7 +40,7 @@ namespace Decatron.Services
         /// </summary>
         public void InvalidateAppAccessToken()
         {
-            _appAccessToken = null;
+            _appAccessTokens.TryRemove(_credentials.GetTwitchApp().ClientId, out _);
             _logger.LogInformation("App Access Token cache invalidated");
         }
 
@@ -48,14 +49,15 @@ namespace Decatron.Services
         /// </summary>
         private async Task<string?> GetAppAccessTokenAsync()
         {
-            if (!string.IsNullOrEmpty(_appAccessToken))
-                return _appAccessToken;
+            var app = _credentials.GetTwitchApp();
+            if (_appAccessTokens.TryGetValue(app.ClientId, out var cached) && !string.IsNullOrEmpty(cached))
+                return cached;
 
             try
             {
                 var response = await Core.Helpers.TwitchAuthHelper.PostWithFallbackAsync(
                     _httpClient,
-                    $"/oauth2/token?client_id={_twitchSettings.ClientId}&client_secret={_twitchSettings.ClientSecret}&grant_type=client_credentials",
+                    $"/oauth2/token?client_id={app.ClientId}&client_secret={app.ClientSecret}&grant_type=client_credentials",
                     new StringContent(""),
                     _logger);
                 if (!response.IsSuccessStatusCode)
@@ -69,9 +71,11 @@ namespace Decatron.Services
 
                 if (result.TryGetProperty("access_token", out var token))
                 {
-                    _appAccessToken = token.GetString();
+                    var newToken = token.GetString();
+                    if (string.IsNullOrEmpty(newToken)) return null;
+                    _appAccessTokens[app.ClientId] = newToken;
                     _logger.LogInformation("App Access Token obtained successfully");
-                    return _appAccessToken;
+                    return newToken;
                 }
 
                 return null;
@@ -95,7 +99,7 @@ namespace Decatron.Services
 
             requestFactory.Headers.Remove("Authorization");
             requestFactory.Headers.Remove("Client-ID");
-            requestFactory.Headers.Add("Client-ID", _twitchSettings.ClientId);
+            requestFactory.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
             requestFactory.Headers.Add("Authorization", $"Bearer {token}");
 
             var response = await _httpClient.SendAsync(requestFactory);
@@ -279,7 +283,7 @@ namespace Decatron.Services
             var request = new HttpRequestMessage(method, $"{TwitchApiBaseUrl}/{path}?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}{extraQuery}");
             if (body != null)
                 request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-            request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+            request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             return await _httpClient.SendAsync(request);
         }
@@ -454,7 +458,7 @@ namespace Decatron.Services
                     query += $"&duration={durationSeconds.Value.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)}";
 
                 var request = new HttpRequestMessage(HttpMethod.Post, $"{TwitchApiBaseUrl}/clips?{query}");
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
                 var response = await _httpClient.SendAsync(request);
                 var body = await response.Content.ReadAsStringAsync();
@@ -672,7 +676,7 @@ namespace Decatron.Services
 
                 var request = new HttpRequestMessage(HttpMethod.Post,
                     $"{TwitchApiBaseUrl}/chat/shoutouts?from_broadcaster_id={fromBroadcasterId}&to_broadcaster_id={toBroadcasterId}&moderator_id={botTwitchId}");
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {token}");
 
                 var response = await _httpClient.SendAsync(request);
@@ -728,7 +732,7 @@ namespace Decatron.Services
                 if (string.IsNullOrEmpty(token)) return null;
 
                 var request = new HttpRequestMessage(HttpMethod.Get, $"{TwitchApiBaseUrl}/channels/followers?broadcaster_id={broadcasterId}&first=1");
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {token}");
                 var response = await _httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)
@@ -766,7 +770,7 @@ namespace Decatron.Services
                 const string query = "SELECT chat_token FROM bot_tokens WHERE bot_username = @botUsername AND is_active = true LIMIT 1";
 
                 using var command = new NpgsqlCommand(query, connection);
-                command.Parameters.AddWithValue("@botUsername", _twitchSettings.BotUsername);
+                command.Parameters.AddWithValue("@botUsername", _credentials.GetTwitchBotUsername());
 
                 var result = await command.ExecuteScalarAsync();
                 if (result != null)
@@ -802,7 +806,7 @@ namespace Decatron.Services
                 const string query = "SELECT bot_twitch_id FROM bot_tokens WHERE bot_username = @botUsername AND is_active = true LIMIT 1";
 
                 using var command = new NpgsqlCommand(query, connection);
-                command.Parameters.AddWithValue("@botUsername", _twitchSettings.BotUsername);
+                command.Parameters.AddWithValue("@botUsername", _credentials.GetTwitchBotUsername());
 
                 var result = await command.ExecuteScalarAsync();
                 if (result != null)
@@ -810,7 +814,7 @@ namespace Decatron.Services
                     return result.ToString();
                 }
 
-                _logger.LogWarning("bot_twitch_id not found for bot: {BotUsername}", _twitchSettings.BotUsername);
+                _logger.LogWarning("bot_twitch_id not found for bot: {BotUsername}", _credentials.GetTwitchBotUsername());
                 return null;
             }
             catch (Exception ex)
@@ -880,7 +884,7 @@ namespace Decatron.Services
                     Content = content
                 };
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 // Enviar request
@@ -964,7 +968,7 @@ namespace Decatron.Services
                     Content = content
                 };
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 // Enviar request
@@ -1026,7 +1030,7 @@ namespace Decatron.Services
                 var request = new HttpRequestMessage(HttpMethod.Delete,
                     $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterUser.id}&user_id={targetUser.id}");
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 var response = await _httpClient.SendAsync(request);
@@ -1083,7 +1087,7 @@ namespace Decatron.Services
                 var request = new HttpRequestMessage(HttpMethod.Post,
                     $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterUser.id}&user_id={targetUser.id}");
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 var response = await _httpClient.SendAsync(request);
@@ -1127,7 +1131,7 @@ namespace Decatron.Services
 
                 var query = string.Join("", userIds.Select(id => $"&user_id={Uri.EscapeDataString(id)}"));
                 var request = new HttpRequestMessage(HttpMethod.Get, $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterId}{query}");
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 var response = await _httpClient.SendAsync(request);
@@ -1164,7 +1168,7 @@ namespace Decatron.Services
 
                 var request = new HttpRequestMessage(add ? HttpMethod.Post : HttpMethod.Delete,
                     $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterId}&user_id={Uri.EscapeDataString(userId)}");
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 var response = await _httpClient.SendAsync(request);
@@ -1235,7 +1239,7 @@ namespace Decatron.Services
                 var request = new HttpRequestMessage(HttpMethod.Delete,
                     $"{TwitchApiBaseUrl}/moderation/chat?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}&message_id={messageId}");
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 // Enviar request
@@ -1295,7 +1299,7 @@ namespace Decatron.Services
                 var request = new HttpRequestMessage(HttpMethod.Get,
                     $"{TwitchApiBaseUrl}/chat/chatters?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}&first=1000");
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 // Enviar request
@@ -1360,7 +1364,7 @@ namespace Decatron.Services
                 var request = new HttpRequestMessage(HttpMethod.Get,
                     $"{TwitchApiBaseUrl}/chat/chatters?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}&first=1000");
 
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
 
                 var response = await _httpClient.SendAsync(request);
@@ -1395,7 +1399,7 @@ namespace Decatron.Services
 
                 var request = new HttpRequestMessage(HttpMethod.Get,
                     $"{TwitchApiBaseUrl}/channels/followers?broadcaster_id={broadcasterId}&user_id={userId}");
-                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                 request.Headers.Add("Authorization", $"Bearer {token}");
                 var response = await _httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)
@@ -1448,7 +1452,7 @@ namespace Decatron.Services
                     _logger.LogDebug($"🔄 Página {pageCount}: Solicitando hasta 100 followers (cursor: {cursor ?? "null"})");
 
                     var request = new HttpRequestMessage(HttpMethod.Get, url);
-                    request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                    request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
                     request.Headers.Add("Authorization", $"Bearer {token}");
 
                     var response = await _httpClient.SendAsync(request);

@@ -29,3 +29,16 @@ public class CredentialAccessorTests
         Assert.Throws<CredentialsNotConfiguredException>(() => CredentialAccessor.TwitchClientId(Cfg()));
     }
 }
+
+public class CredentialScopesTests
+{
+    [Fact]
+    public void ScopesYRedirectSalenDeLaConfiguracionDelUno()
+    {
+        var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        { ["TwitchSettings:ClientId"] = "cid", ["TwitchSettings:Scopes"] = "chat:read", ["TwitchSettings:RedirectUri"] = "https://x/cb" }).Build();
+        var app = new CredentialProvider(cfg).GetTwitchApp();
+        Assert.Equal("chat:read", app.Scopes);
+        Assert.Equal("https://x/cb", app.RedirectUri);
+    }
+}

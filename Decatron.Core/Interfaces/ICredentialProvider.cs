@@ -2,7 +2,7 @@ namespace Decatron.Core.Interfaces;
 
 /// <summary>Credenciales de la app de Twitch con la que opera un tenant (no incluye la cuenta de bot).</summary>
 public sealed record TwitchAppCredentials(
-    string ClientId, string? ClientSecret, string? RedirectUri, string? WebhookSecret, string? WebhookCallbackUrl);
+    string ClientId, string? ClientSecret, string? RedirectUri, string? WebhookSecret, string? WebhookCallbackUrl, string? Scopes = null);
 
 /// <summary>Un tenant sin credenciales configuradas. Nunca se cae a las del tenant #1: sería actuar con la cuenta de Decatron.</summary>
 public sealed class CredentialsNotConfiguredException : InvalidOperationException

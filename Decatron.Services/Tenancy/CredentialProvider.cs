@@ -19,7 +19,8 @@ public sealed class CredentialProvider : ICredentialProvider
             _cfg["TwitchSettings:ClientSecret"],
             _cfg["TwitchSettings:RedirectUri"],
             _cfg["TwitchSettings:WebhookSecret"],
-            _cfg["TwitchSettings:WebhookCallbackUrl"]);
+            _cfg["TwitchSettings:WebhookCallbackUrl"],
+            _cfg["TwitchSettings:Scopes"]);
     }
 
     public string? GetTwitchBotUsername()
