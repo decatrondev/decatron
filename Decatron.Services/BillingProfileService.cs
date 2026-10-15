@@ -336,7 +336,7 @@ namespace Decatron.Services
                     (user_id, country, doc_type, doc_number, legal_name, address, email, name_source)
                 VALUES
                     (@userId, @country, @docType, @docNum, @name, @address, @email, @source)
-                ON CONFLICT (user_id) DO UPDATE SET
+                ON CONFLICT (tenant_id, user_id) DO UPDATE SET
                     country = EXCLUDED.country,
                     doc_type = EXCLUDED.doc_type,
                     doc_number = EXCLUDED.doc_number,

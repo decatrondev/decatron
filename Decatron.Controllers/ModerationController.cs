@@ -623,7 +623,7 @@ namespace Decatron.Controllers
                 await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
                     INSERT INTO moderation_command_configs (user_id, channel_name, settings, updated_at)
                     VALUES ({channelOwnerId}, {username}, CAST({json} AS jsonb), NOW())
-                    ON CONFLICT (channel_name) DO UPDATE SET settings = EXCLUDED.settings, updated_at = NOW()");
+                    ON CONFLICT (tenant_id, channel_name) DO UPDATE SET settings = EXCLUDED.settings, updated_at = NOW()");
                 ModerationCache.Invalidate(username);
 
                 return Ok(new { success = true, commands });

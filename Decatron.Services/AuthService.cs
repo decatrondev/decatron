@@ -320,7 +320,7 @@ namespace Decatron.Services
                         tierCmd.CommandText = @"
                             INSERT INTO user_subscription_tiers (user_id, tier, tier_started_at, source, notes)
                             VALUES (@userId, 'free', NOW(), 'auto_register', 'Asignado automáticamente al registrarse')
-                            ON CONFLICT (user_id) DO NOTHING";
+                            ON CONFLICT (tenant_id, user_id) DO NOTHING";
                         tierCmd.Parameters.Add(new NpgsqlParameter("@userId", user.Id));
                         await tierCmd.ExecuteNonQueryAsync();
                         _logger.LogInformation("Tier free assigned to new user {Login}", user.Login);

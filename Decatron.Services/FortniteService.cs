@@ -278,7 +278,7 @@ namespace Decatron.Services
             // logea la excepcion completa como ERROR aunque se recupere bien — con
             // ON CONFLICT DO NOTHING el que pierde la carrera ni genera el error.
             await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"INSERT INTO user_spirit_notification_prefs (user_id) VALUES ({userId}) ON CONFLICT (user_id) DO NOTHING");
+                $"INSERT INTO user_spirit_notification_prefs (user_id) VALUES ({userId}) ON CONFLICT (tenant_id, user_id) DO NOTHING");
 
             return await _context.UserSpiritNotificationPrefs.FirstAsync(p => p.UserId == userId);
         }

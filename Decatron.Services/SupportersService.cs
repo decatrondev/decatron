@@ -699,7 +699,7 @@ namespace Decatron.Services
                 VALUES
                     (@userId, @tier, NOW(), @expiresAt, @source, @sourceRef,
                      @amountPaid, @currency, @notes)
-                ON CONFLICT (user_id) DO UPDATE
+                ON CONFLICT (tenant_id, user_id) DO UPDATE
                     SET tier             = EXCLUDED.tier,
                         tier_started_at  = EXCLUDED.tier_started_at,
                         tier_expires_at  = EXCLUDED.tier_expires_at,

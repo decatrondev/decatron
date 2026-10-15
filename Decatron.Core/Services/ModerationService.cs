@@ -492,7 +492,7 @@ namespace Decatron.Core.Services
             await using var cmd = new NpgsqlCommand(@"
                 INSERT INTO user_strikes (channel_name, user_id, username, strike_level, last_infraction_at, expires_at, created_at, updated_at)
                 VALUES (@channelName, @userId, @username, 0, @now, NULL, @now, @now)
-                ON CONFLICT (user_id, username) DO UPDATE SET channel_name = EXCLUDED.channel_name
+                ON CONFLICT (tenant_id, user_id, username) DO UPDATE SET channel_name = EXCLUDED.channel_name
                 RETURNING id, channel_name, username, strike_level, last_infraction_at, expires_at, created_at, updated_at", conn);
             cmd.Parameters.AddWithValue("channelName", channelName.ToLower());
             cmd.Parameters.AddWithValue("userId", channelUserId);
