@@ -59,6 +59,7 @@ namespace Decatron.Services
             using var scope = _serviceProvider.CreateScope();
             var usernameUpdateService = scope.ServiceProvider.GetRequiredService<UsernameUpdateService>();
             var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+            var tenantShadow = scope.ServiceProvider.GetRequiredService<Decatron.Services.Tenancy.TenantShadow>();
 
             // Get all active users with TwitchId
             var users = await db.Users
@@ -118,6 +119,8 @@ namespace Decatron.Services
                         continue;
 
                     // One user failing must not stop the rest of the batch from being checked
+                    // El cambio se propaga en el tenant del usuario (las tablas con RLS solo se ven desde su tenant).
+                    using var userTenant = tenantShadow.EnterUser("Bg.UsernameCheck", user.Id);
                     try
                     {
                         var changed = await usernameUpdateService.DetectAndPropagateAsync(

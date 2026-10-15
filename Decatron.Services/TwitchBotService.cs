@@ -219,10 +219,13 @@ namespace Decatron.Services
                         int refreshedCount = 0;
                         int skippedCount = 0;
 
+                        var tenantShadow = scope.ServiceProvider.GetRequiredService<Decatron.Services.Tenancy.TenantShadow>();
                         foreach (var user in users)
                         {
                             if (!string.IsNullOrEmpty(user.RefreshToken))
                             {
+                                // El token de un streamer de otro tenant se refresca con SU app: sin esto se intentaba con la del #1 y fallaba.
+                                using var userTenant = tenantShadow.EnterUser("Boot.UserTokenRefresh", user.Id);
                                 try
                                 {
                                     _logger.LogInformation($"🔄 Refrescando token para usuario: {user.Login}");
