@@ -26,13 +26,19 @@ namespace Decatron.Services
         private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
         private readonly ILogger<EventSubService> _logger;
         private readonly HttpClient _httpClient;
+        private readonly Decatron.Services.Tenancy.TenantAppTokens? _tenantAppTokens;
+        private readonly Decatron.Core.Interfaces.ITenantCredentialStore? _tenantStore;
 
         public EventSubService(
             IConfiguration configuration,
             ILogger<EventSubService> logger,
             HttpClient httpClient,
-            Decatron.Core.Interfaces.ICredentialProvider credentials)
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
+            Decatron.Services.Tenancy.TenantAppTokens? tenantAppTokens = null,
+            Decatron.Core.Interfaces.ITenantCredentialStore? tenantStore = null)
         {
+            _tenantAppTokens = tenantAppTokens;
+            _tenantStore = tenantStore;
             _credentials = credentials;
             _configuration = configuration;
             _logger = logger;
@@ -40,9 +46,20 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Obtiene el App Access Token del bot desde la tabla bot_tokens
+        /// App Access Token con el que se llama a EventSub. Plataforma (Fase 4, paso 7a): el tenant #1 sigue leyendo bot_tokens como siempre;
+        /// otro tenant usa el token de SU app. bot_tokens no filtra por tenant: un tenant ≠ 1 JAMAS debe llegar a esa consulta.
         /// </summary>
         private async Task<string> GetBotAppAccessTokenAsync()
+        {
+            var tenant = Decatron.Core.Interfaces.TenantAmbient.Current ?? 1;
+            if (tenant == 1) return await GetLegacyBotAppAccessTokenAsync();
+            var token = _tenantAppTokens is null ? null : await _tenantAppTokens.GetAsync();
+            if (string.IsNullOrEmpty(token)) throw new Decatron.Core.Interfaces.CredentialsNotConfiguredException(tenant, "el token de app de Twitch");
+            return token;
+        }
+
+        /// <summary>Obtiene el App Access Token del bot desde la tabla bot_tokens (tenant #1)</summary>
+        private async Task<string> GetLegacyBotAppAccessTokenAsync()
         {
             try
             {
@@ -776,9 +793,19 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Obtiene el bot_twitch_id desde la tabla bot_tokens
+        /// Id de usuario del bot. Tenant #1: bot_tokens como siempre; otro tenant: el de SU cuenta de bot (almacén), o falla cerrado.
         /// </summary>
         private async Task<string> GetBotUserIdAsync(string accessToken)
+        {
+            var tenant = Decatron.Core.Interfaces.TenantAmbient.Current ?? 1;
+            if (tenant == 1) return await GetLegacyBotUserIdAsync(accessToken);
+            var bot = _tenantStore is null ? null : await _tenantStore.GetTwitchBotAsync(tenant);
+            if (bot is null) throw new Decatron.Core.Interfaces.CredentialsNotConfiguredException(tenant, "la cuenta de bot de Twitch");
+            return bot.TwitchId;
+        }
+
+        /// <summary>Obtiene el bot_twitch_id desde la tabla bot_tokens (tenant #1)</summary>
+        private async Task<string> GetLegacyBotUserIdAsync(string accessToken)
         {
             try
             {

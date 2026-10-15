@@ -166,3 +166,27 @@ public class NpgsqlTenantCredentialStoreTests
         }
     }
 }
+
+public class BotTokensRlsTests
+{
+    private static string? App => Environment.GetEnvironmentVariable("DECATRON_APP_CONN");
+
+    [Fact(DisplayName = "bot_tokens: un tenant distinto de 1 no ve el bot de Decatron (RLS)")]
+    public async Task ElBotDelUnoNoSeVeDesdeOtroTenant()
+    {
+        if (string.IsNullOrWhiteSpace(App)) return;
+        await using var one = TenantNpgsql.Create(App, 1); await one.OpenAsync();
+        if ((string)(await new NpgsqlCommand("select current_database()", one).ExecuteScalarAsync())! != "decatron_schema") return;
+        // Solo valida si la base de pruebas ya tiene la politica (7_bot_tokens_rls.sql)
+        if (!(bool)(await new NpgsqlCommand("select relrowsecurity from pg_class where relname='bot_tokens'", one).ExecuteScalarAsync())!) return;
+        const int id = 990001;
+        try
+        {
+            await new NpgsqlCommand($"insert into bot_tokens (\"Id\", bot_username, access_token, chat_token, created_at, updated_at, is_active) values ({id}, 'zz-bot', 'x', 'y', now(), now(), true)", one).ExecuteNonQueryAsync();
+            Assert.Equal(1L, await new NpgsqlCommand($"select count(*) from bot_tokens where \"Id\"={id}", one).ExecuteScalarAsync());
+            await using var other = TenantNpgsql.Create(App, 9101); await other.OpenAsync();
+            Assert.Equal(0L, await new NpgsqlCommand("select count(*) from bot_tokens", other).ExecuteScalarAsync());
+        }
+        finally { await new NpgsqlCommand($"delete from bot_tokens where \"Id\"={id}", one).ExecuteNonQueryAsync(); }
+    }
+}
