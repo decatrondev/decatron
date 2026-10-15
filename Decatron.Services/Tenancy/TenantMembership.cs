@@ -12,7 +12,8 @@ namespace Decatron.Services.Tenancy;
 public sealed class TenantMembership
 {
     private readonly IConfiguration _cfg;
-    public TenantMembership(IConfiguration cfg) => _cfg = cfg;
+    private readonly ITenantResolver? _resolver;
+    public TenantMembership(IConfiguration cfg, ITenantResolver? resolver = null) { _cfg = cfg; _resolver = resolver; }
 
     private NpgsqlConnection Open() => TenantNpgsql.Create(_cfg["ConnectionStrings:DefaultConnection"], 1);
 
@@ -56,5 +57,6 @@ public sealed class TenantMembership
             await cmd.ExecuteNonQueryAsync(ct);
         }
         await tx.CommitAsync(ct);
+        (_resolver as TenantResolver)?.InvalidateCache(); // el canal nuevo se resuelve ya, sin esperar el refresco de 1 min
     }
 }

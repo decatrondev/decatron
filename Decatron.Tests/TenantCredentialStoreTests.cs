@@ -16,7 +16,8 @@ public class StoreCredentialProviderTests
         public int Calls;
         public Dictionary<long, TwitchAppCredentials> Apps = new();
         public Task SaveTwitchBotAsync(long t, TwitchBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
-        public Task<TwitchBotSummary?> GetTwitchBotAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchBotSummary?>(null);
+        public Dictionary<long, TwitchBotSummary> Bots = new();
+        public Task<TwitchBotSummary?> GetTwitchBotAsync(long t, CancellationToken ct = default) => Task.FromResult(Bots.GetValueOrDefault(t));
         public Task<bool> DeleteTwitchBotAsync(long t, string a, CancellationToken ct = default) => Task.FromResult(false);
         public Task SaveDiscordBotAsync(long t, DiscordBotInput i, string a, CancellationToken ct = default) => Task.CompletedTask;
         public Task<DiscordBotSummary?> GetDiscordBotAsync(long t, CancellationToken ct = default) => Task.FromResult<DiscordBotSummary?>(null);
@@ -61,6 +62,17 @@ public class StoreCredentialProviderTests
         using var _ = TenantAmbient.Push(3);
         var ex = Assert.Throws<CredentialsNotConfiguredException>(() => p.GetTwitchApp());
         Assert.Equal(3, ex.TenantId);
+    }
+
+    [Fact]
+    public void ElBotDeUnTenantEsSuPropioYNuncaElDelUno()
+    {
+        var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["TwitchSettings:ClientId"] = "uno", ["TwitchSettings:BotUsername"] = "elbotdeuno" }).Build();
+        var store = new FakeStore(); store.Bots[2] = new TwitchBotSummary("botdedos", "222", null);
+        var p = new CredentialProvider(cfg, store);
+        Assert.Equal("elbotdeuno", p.GetTwitchBotUsername());
+        using (TenantAmbient.Push(2)) Assert.Equal("botdedos", p.GetTwitchBotUsername());
+        using (TenantAmbient.Push(3)) Assert.Throws<CredentialsNotConfiguredException>(() => p.GetTwitchBotUsername()); // sin bot propio: no cae al del 1
     }
 
     [Fact]

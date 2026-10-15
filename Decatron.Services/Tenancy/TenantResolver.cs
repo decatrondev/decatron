@@ -26,6 +26,9 @@ public sealed class TenantResolver : ITenantResolver
         _log = log;
     }
 
+    /// <summary>Fuerza la relectura de channels en la proxima resolucion (tras dar de alta un canal nuevo).</summary>
+    public void InvalidateCache() => _loadedAt = DateTime.MinValue;
+
     public TenantResolution ByUserId(long userId)
         => _Get().ByUser.TryGetValue(userId, out var t)
             ? new(t, true, TenantSource.User)

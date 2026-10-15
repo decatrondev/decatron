@@ -542,6 +542,13 @@ namespace Decatron.Services
 
         public void JoinChannel(string channel)
         {
+            // El IRC es el respaldo del tenant #1: los canales de otros tenants entran SOLO por EventSub (decision de la plataforma).
+            var owner = _serviceProvider.GetService<ITenantResolver>()?.ByChannelKey(channel);
+            if (owner is { Resolved: true } o && o.TenantId != 1)
+            {
+                _logger.LogInformation("IRC: no se une a {Channel} (pertenece al tenant {Tenant}; ese canal usa EventSub)", channel, o.TenantId);
+                return;
+            }
             if (_client.IsConnected)
             {
                 _client.JoinChannel(channel);

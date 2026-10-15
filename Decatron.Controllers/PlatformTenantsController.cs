@@ -149,6 +149,7 @@ namespace Decatron.Controllers
             if (await FindAsync(id) is null) return NotFound(new { success = false, code = "tenant_not_found" });
             await _eventSub.StopAsync(id);
             var removed = await _store.DeleteTwitchBotAsync(id, Actor);
+            _provider.Invalidate(id);
             _log.LogInformation("Plataforma: cuenta de bot desvinculada del tenant {Tenant} por {Actor}", id, Actor);
             return Ok(new { success = true, removed });
         }

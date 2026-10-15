@@ -15,6 +15,7 @@ public sealed class CredentialProvider : ICredentialProvider
     private readonly IConfiguration _cfg;
     private readonly ITenantCredentialStore? _store;
     private readonly ConcurrentDictionary<long, (TwitchAppCredentials? App, DateTime Expires)> _cache = new();
+    private readonly ConcurrentDictionary<long, (string? Name, DateTime Expires)> _botCache = new();
 
     public CredentialProvider(IConfiguration cfg, ITenantCredentialStore? store = null) { _cfg = cfg; _store = store; }
 
@@ -47,9 +48,18 @@ public sealed class CredentialProvider : ICredentialProvider
 
     public string? GetTwitchBotUsername()
     {
-        if (Tenant != 1) throw new CredentialsNotConfiguredException(Tenant, "la cuenta de bot de Twitch");
-        return _cfg["TwitchSettings:BotUsername"];
+        var tenant = Tenant;
+        if (tenant == 1) return _cfg["TwitchSettings:BotUsername"];
+        // Otro tenant: el nombre de SU cuenta de bot (autorizada por OAuth), o falla cerrado. Nunca el bot de Decatron.
+        if (_store is null) throw new CredentialsNotConfiguredException(tenant, "la cuenta de bot de Twitch");
+        if (!_botCache.TryGetValue(tenant, out var hit) || hit.Expires < DateTime.UtcNow)
+        {
+            var bot = _store.GetTwitchBotAsync(tenant).GetAwaiter().GetResult();
+            hit = (bot?.Username, DateTime.UtcNow + (bot is null ? NegativeTtl : Ttl));
+            _botCache[tenant] = hit;
+        }
+        return hit.Name ?? throw new CredentialsNotConfiguredException(tenant, "la cuenta de bot de Twitch");
     }
 
-    public void Invalidate(long tenantId) => _cache.TryRemove(tenantId, out _);
+    public void Invalidate(long tenantId) { _cache.TryRemove(tenantId, out _); _botCache.TryRemove(tenantId, out _); }
 }

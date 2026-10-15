@@ -31,6 +31,7 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _dbContext;
         private readonly ITenantCredentialStore _tenantStore;
         private readonly Decatron.Services.Tenancy.TenantMembership _membership;
+        private readonly Decatron.Core.Interfaces.ICredentialProvider _credProvider;
         private readonly Decatron.Services.Tenancy.TenantEventSubHub _eventSubHub;
 
         public AuthController(
@@ -46,8 +47,10 @@ namespace Decatron.Controllers
             DecatronDbContext dbContext,
             ITenantCredentialStore tenantStore,
             Decatron.Services.Tenancy.TenantEventSubHub eventSubHub,
-            Decatron.Services.Tenancy.TenantMembership membership)
+            Decatron.Services.Tenancy.TenantMembership membership,
+            Decatron.Core.Interfaces.ICredentialProvider credProvider)
         {
+            _credProvider = credProvider;
             _membership = membership;
             _eventSubHub = eventSubHub;
             _tenantStore = tenantStore;
@@ -216,6 +219,7 @@ namespace Decatron.Controllers
                             twitchUser.Login, twitchUser.Id, tokenResponse.AccessToken, tokenResponse.RefreshToken,
                             DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn)), "bot-oauth");
                         _logger.LogInformation("Plataforma: cuenta de bot {Bot} autorizada para el tenant {Tenant}", twitchUser.Login, botTenantId);
+                        _credProvider.Invalidate(botTenantId);
                         _ = Task.Run(() => _eventSubHub.StartAsync(botTenantId)); // con app y bot listos se abre su conduit
                         return Content("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>OK</title>"
                             + "<body style='font-family:system-ui;background:#0f1115;color:#e8eaf0;display:grid;place-items:center;min-height:100vh;margin:0'>"
