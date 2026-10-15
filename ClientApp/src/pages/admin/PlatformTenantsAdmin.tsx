@@ -125,7 +125,7 @@ export default function PlatformTenantsAdmin() {
                         <Field label={t('tenants.clientSecret')} hint={t('tenants.secretHint')}>
                             <Input type="password" value={form.clientSecret} onChange={set('clientSecret')} autoComplete="new-password" spellCheck={false} />
                         </Field>
-                        <Field label={t('tenants.redirectUri')} hint={t('tenants.redirectHint')}><Input value={form.redirectUri} onChange={set('redirectUri')} placeholder="https://" autoComplete="off" /></Field>
+                        <Field label={t('tenants.redirectUri')} hint={t('tenants.redirectHint')}><Input value={form.redirectUri} onChange={set('redirectUri')} placeholder="https://decatron.net/api/auth/callback" autoComplete="off" /></Field>
                         <Field label={t('tenants.scopes')} hint={t('tenants.scopesHint')}><Input value={form.scopes} onChange={set('scopes')} autoComplete="off" spellCheck={false} /></Field>
                     </div>
                 </ModalShell>

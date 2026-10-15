@@ -264,7 +264,7 @@
     "formTitle": "{{name}}'s Twitch app",
     "formHelp": "It is checked against Twitch before saving. If Twitch rejects it, nothing is saved.",
     "secretHint": "Encrypted on save and cannot be viewed afterwards. To change it, load the app again.",
-    "redirectHint": "Optional. Must be https and match the one registered in the Twitch app.",
+    "redirectHint": "Optional. If left empty, https://decatron.net/api/auth/callback is used. It must be registered exactly the same in the Twitch app.",
     "scopes": "Permissions (scopes)",
     "scopesHint": "Optional. Separated by spaces.",
     "validateSave": "Validate and save",

@@ -264,7 +264,7 @@
     "formTitle": "App de Twitch de {{name}}",
     "formHelp": "Se comprueba contra Twitch antes de guardar. Si Twitch la rechaza, no se guarda nada.",
     "secretHint": "Se cifra al guardar y no se podrá ver después. Para cambiarlo, vuelve a cargar la app.",
-    "redirectHint": "Opcional. Debe ser https y coincidir con la registrada en la app de Twitch.",
+    "redirectHint": "Opcional. Si lo dejas vacío se usa https://decatron.net/api/auth/callback. Debe estar registrada igual en la app de Twitch.",
     "scopes": "Permisos (scopes)",
     "scopesHint": "Opcional. Separados por espacios.",
     "validateSave": "Validar y guardar",
