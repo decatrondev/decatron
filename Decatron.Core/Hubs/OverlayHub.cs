@@ -1,3 +1,5 @@
+using Decatron.Core.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.SignalR;
 
@@ -70,15 +72,43 @@ namespace Decatron.Hubs
             return types.Count == 0 ? "ninguno" : string.Join(", ", types);
         }
 
-        public OverlayHub(ILogger<OverlayHub> logger)
+        private readonly ITenantResolver _tenants;
+        private readonly IConfiguration _config;
+
+        // Un aviso por canal cada hora (Fase 2 plataforma, modo sombra).
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _tenantSeen = new();
+
+        public OverlayHub(ILogger<OverlayHub> logger, ITenantResolver tenants, IConfiguration config)
         {
             _logger = logger;
+            _tenants = tenants;
+            _config = config;
+        }
+
+        /// <summary>Fase 2 (sombra): resuelve el tenant del canal del overlay y registra si no se pudo. No cambia nada más.</summary>
+        private void ShadowResolveTenant(string channel)
+        {
+            try
+            {
+                if (!string.Equals(_config["Platform:TenantContext:Mode"], "shadow", StringComparison.OrdinalIgnoreCase)) return;
+                var res = _tenants.ByChannelKey(channel);
+                if (res.Resolved) return;
+                var now = DateTime.UtcNow;
+                if (_tenantSeen.TryGetValue(channel, out var last) && now - last < TimeSpan.FromHours(1)) return;
+                _tenantSeen[channel] = now;
+                _logger.LogWarning("tenant.ambiguous key={Key} path=OverlayHub.JoinChannel fallback=1", channel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "tenant.overlayhub_error");
+            }
         }
 
         public async Task JoinChannel(string channel)
         {
             try
             {
+                ShadowResolveTenant(channel);
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"overlay_{channel}");
                 _activeChannels.AddOrUpdate(channel, 1, (_, count) => count + 1);
                 // El tipo llega después, con RegisterOverlay. Los overlays viejos que
