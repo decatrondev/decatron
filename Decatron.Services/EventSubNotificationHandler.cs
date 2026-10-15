@@ -45,6 +45,7 @@ namespace Decatron.Services
         private readonly IGachaService _gachaService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Decatron.Services.ChatOverlay.ChatOverlayService _chatOverlay;
+        private readonly Decatron.Services.Tenancy.TenantShadow _tenantShadow;
 
         // Cache para evitar procesar el mismo mensaje de chat dos veces
         private static readonly ConcurrentDictionary<string, DateTime> _processedMessages = new ConcurrentDictionary<string, DateTime>();
@@ -65,8 +66,10 @@ namespace Decatron.Services
             IGachaService gachaService,
             IServiceScopeFactory serviceScopeFactory,
             Decatron.Services.Pets.PetEventBridge petEventBridge,
-            Decatron.Services.ChatOverlay.ChatOverlayService chatOverlay)
+            Decatron.Services.ChatOverlay.ChatOverlayService chatOverlay,
+            Decatron.Services.Tenancy.TenantShadow tenantShadow)
         {
+            _tenantShadow = tenantShadow;
             _chatOverlay = chatOverlay;
             _configuration = configuration;
             _logger = logger;
@@ -114,6 +117,7 @@ namespace Decatron.Services
         {
             var broadcasterId = datosEvento?["broadcaster_user_id"]?.ToString() ?? "?";
             _logger.LogWarning($"📨 [EVENTSUB] Evento recibido: {tipoEvento} | broadcaster: {broadcasterId}");
+            _tenantShadow.Observe("EventSub." + tipoEvento, broadcasterId == "?" ? null : broadcasterId);
 
             if (tipoEvento == "channel.follow")
             {

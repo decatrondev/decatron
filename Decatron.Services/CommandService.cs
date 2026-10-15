@@ -37,6 +37,8 @@ namespace Decatron.Services
         private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
         private readonly IBotListService _botList;
 
+        private readonly Decatron.Services.Tenancy.TenantShadow _tenantShadow;
+
         public CommandService(
             ILogger<CommandService> logger,
             IMessageSender messageSender,
@@ -48,8 +50,10 @@ namespace Decatron.Services
             Decatron.Services.SongRequest.SongRequestChatHandler songRequestHandler,
             IBotListService botList,
             Decatron.Services.ClipCommand.ClipCommandService clipCommand,
-            Decatron.Services.Platforms.Kick.KickTitleCategoryHandler kickTitleCategory)
+            Decatron.Services.Platforms.Kick.KickTitleCategoryHandler kickTitleCategory,
+            Decatron.Services.Tenancy.TenantShadow tenantShadow)
         {
+            _tenantShadow = tenantShadow;
             _botList = botList;
             _kickTitleCategory = kickTitleCategory;
             // Tras un !g set / !g remove en Kick, el caché de micro comandos se recarga (el handler no puede depender de CommandService)
@@ -543,6 +547,7 @@ namespace Decatron.Services
         public async Task ProcessMessageAsync(string username, string channel, string chatMessage, string userId = "", string? messageId = null,
             bool isModerator = false, bool isLeadModerator = false, bool isVip = false, bool isSubscriber = false, bool isBroadcaster = false, Dictionary<string, object>? metadata = null)
         {
+            _tenantShadow.Observe("CommandService.ProcessMessage", channel);
             try
             {
                 _logger.LogWarning($"🎯 [CommandService#{_instanceId}] ProcessMessageAsync llamado: [{channel}] [{username}] {chatMessage}");
