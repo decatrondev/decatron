@@ -284,7 +284,7 @@ namespace Decatron.Default.Controllers
             try
             {
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 var offset = (page - 1) * limit;

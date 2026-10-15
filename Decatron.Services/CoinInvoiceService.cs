@@ -83,7 +83,7 @@ namespace Decatron.Services
         /// </summary>
         private async Task<int?> ObtenerCompanyIdAsync(CancellationToken ct)
         {
-            await using (var conn = new NpgsqlConnection(ConnectionString))
+            await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString))
             {
                 await conn.OpenAsync(ct);
                 await using var cmd = new NpgsqlCommand(
@@ -114,7 +114,7 @@ namespace Decatron.Services
             foreach (var fuente in new[] { FuenteCoins, FuenteCreditos })
             {
                 var pendientes = new List<long>();
-                await using (var conn = new NpgsqlConnection(ConnectionString))
+                await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString))
                 {
                     await conn.OpenAsync(ct);
                     await using var cmd = new NpgsqlCommand($@"
@@ -262,7 +262,7 @@ namespace Decatron.Services
         public async Task<int?> ObtenerDocumentIdAsync(long purchaseId, long userId, CancellationToken ct = default, string fuente = "coins")
         {
             var f = FuenteDe(fuente);
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             // El user_id va en el WHERE, no se compara después: así no hay forma de pedir
@@ -296,7 +296,7 @@ namespace Decatron.Services
 
         private async Task<CompraParaFacturar?> CargarCompraAsync(Fuente f, long id, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             // coins_received ya incluye el bono de primera compra (se acredita en el mismo
@@ -336,7 +336,7 @@ namespace Decatron.Services
             Fuente f, long id, string? estado, int? docId, string? tipo, string? serie, int? numero,
             string? error, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand($@"
@@ -364,7 +364,7 @@ namespace Decatron.Services
 
         private async Task MarcarAsync(Fuente f, long id, string? estado, string? error, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand($@"
@@ -386,7 +386,7 @@ namespace Decatron.Services
         /// </summary>
         private async Task AnotarIntentoAsync(Fuente f, long id, string? error, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand($@"

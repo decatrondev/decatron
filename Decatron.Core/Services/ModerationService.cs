@@ -182,7 +182,7 @@ namespace Decatron.Core.Services
 
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 await using var cmd = new NpgsqlCommand(@"
@@ -239,7 +239,7 @@ namespace Decatron.Core.Services
                 return cached;
 
             var list = new List<ModerationFilter>();
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
 
             await using var cmd = new NpgsqlCommand(@"
@@ -306,7 +306,7 @@ namespace Decatron.Core.Services
 
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 var userStrike = await GetOrCreateUserStrikeAsync(conn, channelUserId, message.Channel, message.Username);
@@ -358,7 +358,7 @@ namespace Decatron.Core.Services
         {
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 await using var cmd = new NpgsqlCommand(@"
@@ -392,7 +392,7 @@ namespace Decatron.Core.Services
         public async Task<(int level, DateTime? nextDecay)> GetStrikeStatusAsync(string channel, string username)
         {
             var config = await GetModerationConfigAsync(channel) ?? new ModerationConfig();
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
 
             await using var cmd = new NpgsqlCommand(@"
@@ -424,7 +424,7 @@ namespace Decatron.Core.Services
         {
             var (level, _) = await GetStrikeStatusAsync(channel, username);
 
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(@"
                 UPDATE user_strikes SET strike_level = 0, expires_at = NULL, updated_at = @now
@@ -442,7 +442,7 @@ namespace Decatron.Core.Services
         /// </summary>
         public async Task<bool> ReturnStrikeAsync(string channel, string username)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(@"
                 UPDATE user_strikes SET strike_level = GREATEST(strike_level - 1, 0), updated_at = @now
@@ -461,7 +461,7 @@ namespace Decatron.Core.Services
             if (ModerationCache.TryGet<Dictionary<string, ModerationCommandSetting>>("commands", channel, out var cached) && cached != null)
                 return cached;
 
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(
                 "SELECT settings::text FROM moderation_command_configs WHERE channel_name = @channel", conn);

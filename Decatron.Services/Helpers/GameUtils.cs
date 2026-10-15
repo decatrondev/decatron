@@ -144,7 +144,7 @@ namespace Decatron.Default.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 // Prioridad: 1) Match exacto case-sensitive, 2) case-insensitive, 3) fuzzy
@@ -302,7 +302,7 @@ namespace Decatron.Default.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -332,7 +332,7 @@ namespace Decatron.Default.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -389,7 +389,7 @@ namespace Decatron.Default.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -418,7 +418,7 @@ namespace Decatron.Default.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"

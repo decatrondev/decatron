@@ -34,7 +34,7 @@ namespace Decatron.Core.Helpers
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
                 
-                using (var connection = new NpgsqlConnection(connectionString))
+                using (var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString))
                 {
                     await connection.OpenAsync();
                     
@@ -63,7 +63,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -92,7 +92,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -121,7 +121,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 // PostgreSQL: usar comillas dobles para nombres exactos de columna
@@ -187,7 +187,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -318,7 +318,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 // Buscar en la tabla bot_tokens
@@ -348,7 +348,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -551,7 +551,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -581,7 +581,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -610,7 +610,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
@@ -653,7 +653,7 @@ namespace Decatron.Core.Helpers
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"

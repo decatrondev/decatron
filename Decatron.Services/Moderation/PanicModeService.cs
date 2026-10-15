@@ -45,7 +45,7 @@ namespace Decatron.Services.Moderation
 
         public async Task<(PanicSettings Settings, PanicState State)> GetAsync(string channel)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(@"
                 SELECT settings::text, active, started_at, ends_at, triggered_by, reason
@@ -66,7 +66,7 @@ namespace Decatron.Services.Moderation
 
         public async Task SaveSettingsAsync(string channel, long channelUserId, PanicSettings settings)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(@"
                 INSERT INTO moderation_panic (channel_name, user_id, settings, updated_at)
@@ -129,7 +129,7 @@ namespace Decatron.Services.Moderation
 
             var shieldApplied = settings.ShieldMode && await _twitch.SetShieldModeAsync(channel, true);
 
-            await using (var conn = new NpgsqlConnection(_connectionString))
+            await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString))
             {
                 await conn.OpenAsync();
                 await using var cmd = new NpgsqlCommand(@"
@@ -168,7 +168,7 @@ namespace Decatron.Services.Moderation
             string? previousJson = null;
             bool shieldApplied = false, announce = true;
             long channelUserId;
-            await using (var conn = new NpgsqlConnection(_connectionString))
+            await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString))
             {
                 await conn.OpenAsync();
                 // Tomar y apagar en un solo paso: si el job y un mod lo apagan a la vez, lo restaura uno solo
@@ -221,7 +221,7 @@ namespace Decatron.Services.Moderation
         public async Task<List<string>> GetExpiredAsync()
         {
             var list = new List<string>();
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand("SELECT channel_name FROM moderation_panic WHERE active AND ends_at <= NOW()", conn);
             await using var reader = await cmd.ExecuteReaderAsync();
@@ -234,7 +234,7 @@ namespace Decatron.Services.Moderation
         /// </summary>
         public async Task LoadActiveAsync()
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand("SELECT channel_name, ends_at FROM moderation_panic WHERE active AND ends_at > NOW()", conn);
             await using var reader = await cmd.ExecuteReaderAsync();
@@ -337,7 +337,7 @@ namespace Decatron.Services.Moderation
 
         private async Task<long> ResolveChannelUserIdAsync(string channel)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand("SELECT user_id FROM moderation_panic WHERE channel_name = @channel", conn);
             cmd.Parameters.AddWithValue("channel", channel);
@@ -346,7 +346,7 @@ namespace Decatron.Services.Moderation
 
         private async Task ExecAsync(string sql, params (string Name, object Value)[] args)
         {
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(sql, conn);
             foreach (var (name, value) in args) cmd.Parameters.AddWithValue(name, value);

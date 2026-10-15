@@ -57,7 +57,7 @@ namespace Decatron.Core.Services.Moderation
             if (hit.RefId == null) return;
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new NpgsqlCommand(
                     "UPDATE banned_words SET detections = detections + 1, updated_at = @now WHERE id = @id", conn);
@@ -95,7 +95,7 @@ namespace Decatron.Core.Services.Moderation
                 return cached;
 
             var words = new List<BannedWord>();
-            await using var conn = new NpgsqlConnection(_connectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
             await conn.OpenAsync();
 
             // Las más graves primero: si un mensaje tiene dos, gana la severa

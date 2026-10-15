@@ -62,7 +62,7 @@ namespace Decatron.Services
         {
             try
             {
-                await using var conn = new NpgsqlConnection(ConnectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
                 await conn.OpenAsync(ct);
                 await using var cmd = new NpgsqlCommand(
                     "SELECT culqi_mode FROM invoicing_settings WHERE id = 1", conn);
@@ -110,7 +110,7 @@ namespace Decatron.Services
                     return (false, "Falta la sección CulqiSettingsTest en la configuración del servidor.");
             }
 
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
             await using var cmd = new NpgsqlCommand(@"
                 UPDATE invoicing_settings

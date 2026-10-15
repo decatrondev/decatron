@@ -756,7 +756,7 @@ namespace Decatron.Services
             try
             {
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 // chat_token es el User Access Token real (con scopes de moderación,
@@ -796,7 +796,7 @@ namespace Decatron.Services
             try
             {
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = "SELECT bot_twitch_id FROM bot_tokens WHERE bot_username = @botUsername AND is_active = true LIMIT 1";

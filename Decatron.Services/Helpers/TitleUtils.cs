@@ -113,7 +113,7 @@ namespace Decatron.Core.Helpers // Namespace corregido al original
             try
             {
                 var connectionString = configuration.GetConnectionString("DefaultConnection");                
-                using var connection = new NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"

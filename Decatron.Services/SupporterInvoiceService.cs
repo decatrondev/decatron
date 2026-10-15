@@ -111,7 +111,7 @@ namespace Decatron.Services
         /// </summary>
         private async Task<int?> ObtenerCompanyIdAsync(CancellationToken ct)
         {
-            await using (var conn = new NpgsqlConnection(ConnectionString))
+            await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString))
             {
                 await conn.OpenAsync(ct);
                 await using var cmd = new NpgsqlCommand(
@@ -144,7 +144,7 @@ namespace Decatron.Services
 
             var pendientes = new List<int>();
 
-            await using (var conn = new NpgsqlConnection(ConnectionString))
+            await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString))
             {
                 await conn.OpenAsync(ct);
                 await using var cmd = new NpgsqlCommand(@"
@@ -413,7 +413,7 @@ namespace Decatron.Services
                     + (!empresa.TieneCertificado ? "certificado digital" : "clave SOL")
                     + " cargado en DecatronAPI: no podría emitir nada.");
 
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(@"
@@ -490,7 +490,7 @@ namespace Decatron.Services
             if (!Habilitado) return false;
 
             int? documentId;
-            await using (var conn = new NpgsqlConnection(ConnectionString))
+            await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString))
             {
                 await conn.OpenAsync(ct);
                 await using var cmd = new NpgsqlCommand(
@@ -511,7 +511,7 @@ namespace Decatron.Services
 
             // Nunca se emitió: se le devuelven los intentos y se emite ahora mismo, sin
             // esperar a la pasada del job.
-            await using (var conn = new NpgsqlConnection(ConnectionString))
+            await using (var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString))
             {
                 await conn.OpenAsync(ct);
                 await using var cmd = new NpgsqlCommand(@"
@@ -553,7 +553,7 @@ namespace Decatron.Services
                 var mensaje = documento.TryGetProperty("sunatMessage", out var m) ? m.GetString() : null;
                 if (string.IsNullOrWhiteSpace(estado)) return false;
 
-                await using var conn = new NpgsqlConnection(ConnectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
                 await conn.OpenAsync(ct);
                 await using var cmd = new NpgsqlCommand(@"
                     UPDATE supporter_payments
@@ -603,7 +603,7 @@ namespace Decatron.Services
 
         private async Task<PagoParaFacturar?> CargarPagoAsync(int id, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(@"
@@ -641,7 +641,7 @@ namespace Decatron.Services
             int id, string? estado, int? docId, string? tipo, string? serie, int? numero,
             string? error, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(@"
@@ -669,7 +669,7 @@ namespace Decatron.Services
 
         private async Task MarcarAsync(int id, string? estado, string? error, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(@"
@@ -691,7 +691,7 @@ namespace Decatron.Services
         /// </summary>
         private async Task AnotarIntentoAsync(int id, string? error, CancellationToken ct)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(@"

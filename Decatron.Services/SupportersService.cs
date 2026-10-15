@@ -253,7 +253,7 @@ namespace Decatron.Services
         // ── Helpers ───────────────────────────────────────────────────────────────
 
         private NpgsqlConnection CreateConnection() =>
-            new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
+            Decatron.Core.Interfaces.TenantNpgsql.Create(_config.GetConnectionString("DefaultConnection"));
 
         // ── Política de cambio de tier ────────────────────────────────────────────
 

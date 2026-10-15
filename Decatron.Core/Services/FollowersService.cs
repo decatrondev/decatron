@@ -38,7 +38,7 @@ namespace Decatron.Core.Services
 
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 var sql = @"
@@ -120,7 +120,7 @@ namespace Decatron.Core.Services
 
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 var sql = @"
@@ -163,7 +163,7 @@ namespace Decatron.Core.Services
         {
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 // Verificar si está actualmente siguiendo
@@ -211,7 +211,7 @@ namespace Decatron.Core.Services
         {
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 // Verificar si existe
@@ -303,7 +303,7 @@ namespace Decatron.Core.Services
         {
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 var sql = @"
@@ -333,7 +333,7 @@ namespace Decatron.Core.Services
         {
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 var sql = @"
@@ -372,7 +372,7 @@ namespace Decatron.Core.Services
 
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
                 await conn.OpenAsync();
 
                 var sql = @"

@@ -280,7 +280,7 @@ namespace Decatron.Services
 
         public async Task<BillingProfile?> GetAsync(long userId, CancellationToken ct = default)
         {
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(@"
@@ -328,7 +328,7 @@ namespace Decatron.Services
                 }
             }
 
-            await using var conn = new NpgsqlConnection(ConnectionString);
+            await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(ConnectionString);
             await conn.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(@"

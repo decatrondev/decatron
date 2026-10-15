@@ -13,6 +13,19 @@ public sealed class TenantRlsConnectionInterceptor : DbConnectionInterceptor
 {
     public static readonly TenantRlsConnectionInterceptor Instance = new();
 
+    /// <summary>
+    /// Fase 3 (paso 6): EF crea su conexión ya con app.tenant_id en la cadena (TenantNpgsql). Cubre los ~14 sitios que hacen
+    /// Database.GetDbConnection().OpenAsync() a mano, que se saltan ConnectionOpened. ConnectionOpened sigue fijándolo en cada apertura
+    /// de EF por si el tenant cambia durante la vida del contexto.
+    /// </summary>
+    public override InterceptionResult<DbConnection> ConnectionCreating(ConnectionCreatingEventData eventData, InterceptionResult<DbConnection> result)
+    {
+        if (eventData.Context is DecatronDbContext { RlsContextEnabled: true } ctx && !string.IsNullOrEmpty(eventData.ConnectionString))
+            return InterceptionResult<DbConnection>.SuppressWithResult(
+                Decatron.Core.Interfaces.TenantNpgsql.Create(eventData.ConnectionString, ctx.CurrentTenantIdForRls));
+        return result;
+    }
+
     public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
     {
         if (eventData.Context is DecatronDbContext { RlsContextEnabled: true } ctx)
