@@ -29,6 +29,7 @@ namespace Decatron.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMemoryCache _memoryCache;
         private readonly DecatronDbContext _dbContext;
+        private readonly ITenantCredentialStore _tenantStore;
 
         public AuthController(
             IAuthService authService,
@@ -40,8 +41,10 @@ namespace Decatron.Controllers
             Microsoft.Extensions.Configuration.IConfiguration configuration,
             IHttpClientFactory httpClientFactory,
             IMemoryCache memoryCache,
-            DecatronDbContext dbContext)
+            DecatronDbContext dbContext,
+            ITenantCredentialStore tenantStore)
         {
+            _tenantStore = tenantStore;
             _authService = authService;
             _botService = botService;
             _eventSubService = eventSubService;
@@ -55,12 +58,19 @@ namespace Decatron.Controllers
         }
 
         [HttpGet("login")]
-        public IActionResult Login([FromQuery] string? redirect = null, [FromQuery] string? mod = null)
+        public async Task<IActionResult> Login([FromQuery] string? redirect = null, [FromQuery] string? mod = null, [FromQuery] string? tenant = null)
         {
             try
             {
+                // Plataforma (Fase 4, paso 5): ?tenant=<slug> inicia sesion con la app de Twitch de ese tenant. Slug desconocido = error, nunca cae al #1.
+                long? tenantId = null;
+                if (!string.IsNullOrWhiteSpace(tenant))
+                {
+                    tenantId = await _tenantStore.FindActiveTenantIdAsync(tenant.Trim().ToLowerInvariant());
+                    if (tenantId is null) return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Unknown tenant")}");
+                }
                 // mod=1: además de los permisos de siempre, los de moderar el chat (Multi-view).
-                var loginUrl = _authService.GetLoginUrl(redirect, withModeration: mod is "1" or "true");
+                var loginUrl = _authService.GetLoginUrl(redirect, withModeration: mod is "1" or "true", tenantId: tenantId);
                 _logger.LogInformation("Redirecting to Twitch login (redirect: {Redirect})", redirect ?? "none");
                 return Redirect(loginUrl);
             }
@@ -149,6 +159,16 @@ namespace Decatron.Controllers
             try
             {
                 _logger.LogInformation("Auth callback received - Error: {Error}", error);
+
+                // Plataforma (Fase 4, paso 5): el tenant firmado en el state fija el contexto de todo el callback (intercambio de codigo con la
+                // app de ese tenant incluido). Un state invalido o sin tenant sigue el camino de siempre (#1).
+                IDisposable? tenantScope = null;
+                if (!string.IsNullOrEmpty(state))
+                {
+                    var (okState, _, stateTenant) = AuthService.ValidateOAuthStateWithTenant(state, _jwtSettings.SecretKey);
+                    if (okState && stateTenant is long stn) tenantScope = TenantAmbient.Push(stn);
+                }
+                using var _tenantScope = tenantScope;
 
                 if (!string.IsNullOrEmpty(error))
                 {

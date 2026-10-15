@@ -15,6 +15,7 @@ public class StoreCredentialProviderTests
     {
         public int Calls;
         public Dictionary<long, TwitchAppCredentials> Apps = new();
+        public Task<long?> FindActiveTenantIdAsync(string slug, CancellationToken ct = default) => Task.FromResult<long?>(null);
         public Task<TwitchAppCredentials?> GetTwitchAppAsync(long t, CancellationToken ct = default) { Calls++; return Task.FromResult(Apps.GetValueOrDefault(t)); }
         public Task<TwitchAppSummary?> GetTwitchAppSummaryAsync(long t, CancellationToken ct = default) => Task.FromResult<TwitchAppSummary?>(null);
         public Task SaveTwitchAppAsync(long t, TwitchAppInput i, string a, CancellationToken ct = default) => Task.CompletedTask;

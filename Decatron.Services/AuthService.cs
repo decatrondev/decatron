@@ -52,9 +52,13 @@ namespace Decatron.Services
         /// <summary>Permisos extra para moderar el chat desde el Multi-view; solo se piden a quien los necesita.</summary>
         public const string ModerationScopes = "moderator:manage:chat_messages moderator:manage:banned_users";
 
-        public string GetLoginUrl(string? redirect = null, bool withModeration = false)
+        public string GetLoginUrl(string? redirect = null, bool withModeration = false, long? tenantId = null)
         {
-            var state = GenerateSignedOAuthState(redirect);
+            // Plataforma, Fase 4 (paso 5): con tenant (>1) el login usa la app de Twitch de ese tenant y el tenant viaja firmado en el state.
+            // Si el tenant no tiene app cargada, GetTwitchApp() lanza CredentialsNotConfiguredException (falla cerrado).
+            long? tn = tenantId is > 1 ? tenantId : null;
+            using var _scope = tn is long t ? TenantAmbient.Push(t) : null;
+            var state = GenerateSignedOAuthState(redirect, tn);
             var scopes = withModeration ? $"{_credentials.GetTwitchApp().Scopes} {ModerationScopes}" : _credentials.GetTwitchApp().Scopes;
 
             var loginUrl = $"https://id.twitch.tv/oauth2/authorize" +
@@ -73,17 +77,20 @@ namespace Decatron.Services
         /// Format: base64payload.signature
         /// Payload JSON: {"redirect":"...","ts":unix_timestamp}
         /// </summary>
-        private string GenerateSignedOAuthState(string? redirect)
+        private string GenerateSignedOAuthState(string? redirect, long? tenantId = null) => SignOAuthState(redirect, tenantId, _jwtSettings.SecretKey);
+
+        public static string SignOAuthState(string? redirect, long? tenantId, string secretKey)
         {
             var payload = new
             {
                 redirect = redirect ?? "",
-                ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                tn = tenantId ?? 0L
             };
 
             var payloadJson = JsonConvert.SerializeObject(payload);
             var payloadBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(payloadJson));
-            var signature = ComputeHmacSha256(payloadBase64, _jwtSettings.SecretKey);
+            var signature = ComputeHmacSha256(payloadBase64, secretKey);
 
             return $"{payloadBase64}.{signature}";
         }
@@ -94,12 +101,19 @@ namespace Decatron.Services
         /// </summary>
         public static (bool IsValid, string? Redirect) ValidateOAuthState(string state, string secretKey, int maxAgeMinutes = 10)
         {
+            var (ok, redirect, _) = ValidateOAuthStateWithTenant(state, secretKey, maxAgeMinutes);
+            return (ok, redirect);
+        }
+
+        /// <summary>Igual que <see cref="ValidateOAuthState"/> y además devuelve el tenant firmado en el state (null = el #1 / sin tenant).</summary>
+        public static (bool IsValid, string? Redirect, long? TenantId) ValidateOAuthStateWithTenant(string state, string secretKey, int maxAgeMinutes = 10)
+        {
             if (string.IsNullOrEmpty(state))
-                return (false, null);
+                return (false, null, null);
 
             var dotIndex = state.IndexOf('.');
             if (dotIndex < 0 || dotIndex == state.Length - 1)
-                return (false, null);
+                return (false, null, null);
 
             var payloadBase64 = state.Substring(0, dotIndex);
             var signature = state.Substring(dotIndex + 1);
@@ -110,28 +124,28 @@ namespace Decatron.Services
                     Encoding.UTF8.GetBytes(signature),
                     Encoding.UTF8.GetBytes(expectedSignature)))
             {
-                return (false, null);
+                return (false, null, null);
             }
 
             // Decode and parse payload
             try
             {
                 var payloadJson = Encoding.UTF8.GetString(Convert.FromBase64String(payloadBase64));
-                var payload = JsonConvert.DeserializeAnonymousType(payloadJson, new { redirect = "", ts = 0L });
+                var payload = JsonConvert.DeserializeAnonymousType(payloadJson, new { redirect = "", ts = 0L, tn = 0L });
 
                 if (payload == null)
-                    return (false, null);
+                    return (false, null, null);
 
                 // Check timestamp is within allowed window
                 var stateTime = DateTimeOffset.FromUnixTimeSeconds(payload.ts);
                 if (DateTimeOffset.UtcNow - stateTime > TimeSpan.FromMinutes(maxAgeMinutes))
-                    return (false, null);
+                    return (false, null, null);
 
-                return (true, string.IsNullOrEmpty(payload.redirect) ? null : payload.redirect);
+                return (true, string.IsNullOrEmpty(payload.redirect) ? null : payload.redirect, payload.tn > 1 ? payload.tn : null);
             }
             catch
             {
-                return (false, null);
+                return (false, null, null);
             }
         }
 

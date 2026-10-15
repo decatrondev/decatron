@@ -35,6 +35,15 @@ public sealed class NpgsqlTenantCredentialStore : ITenantCredentialStore
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
+    public async Task<long?> FindActiveTenantIdAsync(string slug, CancellationToken ct = default)
+    {
+        await using var c = TenantNpgsql.Create(_cs, 1);
+        await c.OpenAsync(ct);
+        await using var cmd = new NpgsqlCommand("SELECT id FROM tenants WHERE slug=@s AND status='active' AND id<>1", c);
+        cmd.Parameters.AddWithValue("s", slug);
+        return await cmd.ExecuteScalarAsync(ct) is long id ? id : null;
+    }
+
     private static string Hint(string secret) => secret.Length <= 4 ? "" : secret[^4..];
 
     public async Task SaveTwitchAppAsync(long tenantId, TwitchAppInput input, string actor, CancellationToken ct = default)

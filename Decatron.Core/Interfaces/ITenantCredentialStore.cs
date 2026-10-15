@@ -13,6 +13,8 @@ public sealed record TwitchAppSummary(
 /// </summary>
 public interface ITenantCredentialStore
 {
+    /// <summary>Id del tenant activo con ese slug, o null. El #1 se excluye (no se elige por slug).</summary>
+    Task<long?> FindActiveTenantIdAsync(string slug, CancellationToken ct = default);
     /// <summary>La app lista para usar (estado <c>ok</c>) o null si el tenant no tiene ninguna.</summary>
     Task<TwitchAppCredentials?> GetTwitchAppAsync(long tenantId, CancellationToken ct = default);
     Task<TwitchAppSummary?> GetTwitchAppSummaryAsync(long tenantId, CancellationToken ct = default);
