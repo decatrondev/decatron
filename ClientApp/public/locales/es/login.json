@@ -32,5 +32,7 @@
   "featureTranslateTitle": "Traducción en vivo",
   "featureTranslateDescription": "Tus espectadores te escuchan en su idioma, con subtítulos y voz.",
   "featureCommunityTitle": "Torneos, sorteos y juegos",
-  "featureCommunityDescription": "Torneos de Fortnite, ruleta, gacha, sorteos y mascotas para tu comunidad."
+  "featureCommunityDescription": "Torneos de Fortnite, ruleta, gacha, sorteos y mascotas para tu comunidad.",
+  "errorChannelQuota": "Este espacio ya usa todos los canales de su plan. Pide a quien lo administra ampliar el plan.",
+  "errorAccountOtherTenant": "Esta cuenta ya pertenece a otro espacio de Decatron."
 }

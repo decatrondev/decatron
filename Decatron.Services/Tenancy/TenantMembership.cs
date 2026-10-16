@@ -13,7 +13,8 @@ public sealed class TenantMembership
 {
     private readonly IConfiguration _cfg;
     private readonly ITenantResolver? _resolver;
-    public TenantMembership(IConfiguration cfg, ITenantResolver? resolver = null) { _cfg = cfg; _resolver = resolver; }
+    private readonly IEntitlements? _entitlements;
+    public TenantMembership(IConfiguration cfg, ITenantResolver? resolver = null, IEntitlements? entitlements = null) { _cfg = cfg; _resolver = resolver; _entitlements = entitlements; }
 
     private NpgsqlConnection Open() => TenantNpgsql.Create(_cfg["ConnectionStrings:DefaultConnection"], 1);
 
@@ -30,6 +31,26 @@ public sealed class TenantMembership
         await using var r = await cmd.ExecuteReaderAsync(ct);
         await r.ReadAsync(ct);
         return r.GetInt64(1) > 0 && r.GetInt64(0) == 0;
+    }
+
+    /// <summary>
+    /// Fase 5.4: una cuenta que todavía no es canal de este tenant solo puede entrar si el plan admite un canal más (<c>quota.channels</c>). El #1 no tiene tope.
+    /// Una cuenta que ya es canal del tenant siempre pasa (no suma nada).
+    /// </summary>
+    public async Task<EntitlementResult> ChannelQuotaAsync(string twitchId, long tenantId, CancellationToken ct = default)
+    {
+        if (tenantId == 1 || _entitlements is null) return EntitlementResult.Ok();
+        await using var c = Open();
+        await c.OpenAsync(ct);
+        await using var cmd = new NpgsqlCommand(
+            @"SELECT count(*), count(*) FILTER (WHERE external_id = @tw) FROM channels WHERE tenant_id = @t AND platform = 'twitch'", c);
+        cmd.Parameters.AddWithValue("t", tenantId);
+        cmd.Parameters.AddWithValue("tw", twitchId);
+        await using var r = await cmd.ExecuteReaderAsync(ct);
+        await r.ReadAsync(ct);
+        var current = r.GetInt64(0);
+        if (r.GetInt64(1) > 0) return EntitlementResult.Ok(current);
+        return await _entitlements.CheckGaugeAsync("quota.channels", current, 1, tenantId, ct);
     }
 
     /// <summary>Da de alta el canal (y la membresia) de un usuario nuevo en su tenant; sin esto el resolutor lo trataria como del #1.</summary>

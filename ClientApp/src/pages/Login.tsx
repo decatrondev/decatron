@@ -110,7 +110,7 @@ export default function Login() {
 
                     {(error || exchangeError) && (
                         <div role="alert" className="mb-6 p-4 rounded-md border border-red-500/40 bg-red-500/10">
-                            <p className="text-red-400 text-sm font-medium">{error || exchangeError}</p>
+                            <p className="text-red-400 text-sm font-medium">{exchangeError || (error === 'channel_quota_reached' ? t('errorChannelQuota') : error === 'account_other_tenant' ? t('errorAccountOtherTenant') : error)}</p>
                         </div>
                     )}
 

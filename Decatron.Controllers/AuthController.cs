@@ -382,6 +382,12 @@ namespace Decatron.Controllers
                     _logger.LogWarning("Login rechazado: {Login} pertenece a otro tenant (entro por el {Tenant})", twitchUser.Login, TenantAmbient.Current ?? 1);
                     return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("account_other_tenant")}");
                 }
+                var channelQuota = await _membership.ChannelQuotaAsync(twitchUser.Id, TenantAmbient.Current ?? 1);
+                if (!channelQuota.IsAllowed)
+                {
+                    _logger.LogWarning("Login rechazado: {Login} no cabe en el plan del tenant {Tenant} ({Used}/{Limit} canales, {Reason})", twitchUser.Login, TenantAmbient.Current ?? 1, channelQuota.Used, channelQuota.Limit, channelQuota.Reason);
+                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("channel_quota_reached")}");
+                }
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 _logger.LogInformation("Authenticating user: {Login}", twitchUser.Login);
                 var user = await _authService.AuthenticateUserAsync(twitchUser, tokenResponse, acceptLanguage);

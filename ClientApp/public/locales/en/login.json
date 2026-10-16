@@ -32,5 +32,7 @@
   "featureTranslateTitle": "Live translation",
   "featureTranslateDescription": "Your viewers hear you in their language, with subtitles and voice.",
   "featureCommunityTitle": "Tournaments, giveaways and games",
-  "featureCommunityDescription": "Fortnite tournaments, wheel, gacha, giveaways and pets for your community."
+  "featureCommunityDescription": "Fortnite tournaments, wheel, gacha, giveaways and pets for your community.",
+  "errorChannelQuota": "This workspace has used all the channels in its plan. Ask its administrator to upgrade the plan.",
+  "errorAccountOtherTenant": "This account already belongs to another Decatron workspace."
 }
