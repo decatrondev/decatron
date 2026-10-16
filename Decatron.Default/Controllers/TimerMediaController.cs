@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.IO.Compression;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
@@ -17,6 +18,7 @@ namespace Decatron.Default.Controllers
     public class TimerMediaController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;
+        private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;
         private readonly ILogger<TimerMediaController> _logger;
         private readonly IWebHostEnvironment _environment;
         private const long MaxFileSize = 50 * 1024 * 1024; // 50MB
@@ -36,8 +38,10 @@ namespace Decatron.Default.Controllers
         public TimerMediaController(
             DecatronDbContext dbContext,
             ILogger<TimerMediaController> logger,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            Decatron.Core.Interfaces.IEntitlements? entitlements = null)
         {
+            _entitlements = entitlements;
             _dbContext = dbContext;
             _logger = logger;
             _environment = environment;
@@ -389,6 +393,14 @@ namespace Decatron.Default.Controllers
                         success = false,
                         message = $"Cuota de almacenamiento excedida. Usado: {currentUsage / 1024 / 1024}MB / {storageLimit / 1024 / 1024}MB"
                     });
+                }
+
+                // Plataforma, Fase 5.4: tope de almacenamiento del plan del tenant (el #1 no tiene)
+                var storageQuota = await Decatron.Services.Tenancy.StorageQuota.CheckUploadAsync(_entitlements, _dbContext, file.Length,
+                    HttpContext.RequestServices.GetService<Decatron.Core.Interfaces.ITenantContext>()?.TenantId);
+                if (!storageQuota.IsAllowed)
+                {
+                    return StatusCode(403, new { success = false, error = "quota_reached", quota = "quota.storage_mb", message = "Tu plan alcanzó el máximo de almacenamiento." });
                 }
 
                 // Validar categoría (usar "general" si no se proporciona)

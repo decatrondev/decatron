@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
@@ -20,6 +21,7 @@ namespace Decatron.Default.Controllers
     [ApiController]
     public class SoundAlertsController : ControllerBase
     {
+        private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;
         private readonly DecatronDbContext _dbContext;
         private readonly ILogger<SoundAlertsController> _logger;
         private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
@@ -34,8 +36,10 @@ namespace Decatron.Default.Controllers
             Decatron.Core.Interfaces.ICredentialProvider credentials,
             IHttpClientFactory httpClientFactory,
             IHubContext<OverlayHub> hubContext,
-            IKickApiService kickApiService)
+            IKickApiService kickApiService,
+            Decatron.Core.Interfaces.IEntitlements? entitlements = null)
         {
+            _entitlements = entitlements;
             _dbContext = dbContext;
             _logger = logger;
             _credentials = credentials;
@@ -728,6 +732,14 @@ namespace Decatron.Default.Controllers
                     {
                         return BadRequest(new { success = false, message = "La duración máxima es de 30 segundos" });
                     }
+                }
+
+                // Plataforma, Fase 5.4: tope de almacenamiento del plan del tenant (el #1 no tiene)
+                var storageQuota = await Decatron.Services.Tenancy.StorageQuota.CheckUploadAsync(_entitlements, _dbContext, request.File.Length,
+                    HttpContext.RequestServices.GetService<Decatron.Core.Interfaces.ITenantContext>()?.TenantId);
+                if (!storageQuota.IsAllowed)
+                {
+                    return StatusCode(403, new { success = false, error = "quota_reached", quota = "quota.storage_mb", message = "Tu plan alcanzó el máximo de almacenamiento." });
                 }
 
                 // Crear directorio si no existe

@@ -48,4 +48,11 @@ public class EntitlementsGaugeTests
     [Fact]
     public async Task NoOperativo_Bloquea() =>
         Assert.False((await new Ent(5, operational: false).CheckNewAsync("quota.timers", () => Task.FromResult(0L), 2)).IsAllowed);
+
+    [Fact]
+    public async Task ConCantidad_SumaElTamanoAlConteo()
+    {
+        Assert.False((await new Ent(10).CheckNewAsync("quota.storage_mb", () => Task.FromResult(8L), 2, adding: 3)).IsAllowed);
+        Assert.True((await new Ent(10).CheckNewAsync("quota.storage_mb", () => Task.FromResult(8L), 2, adding: 2)).IsAllowed);
+    }
 }

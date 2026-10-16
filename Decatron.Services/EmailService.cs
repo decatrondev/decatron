@@ -20,13 +20,16 @@ namespace Decatron.Services
         private readonly EmailSettings _settings;
         private readonly DecatronDbContext _db;
         private readonly ILogger<EmailService> _logger;
+        private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;
 
         public EmailService(
             IHttpClientFactory httpClientFactory,
             IOptions<EmailSettings> settings,
             DecatronDbContext db,
-            ILogger<EmailService> logger)
+            ILogger<EmailService> logger,
+            Decatron.Core.Interfaces.IEntitlements? entitlements = null)
         {
+            _entitlements = entitlements;
             _httpClientFactory = httpClientFactory;
             _settings = settings.Value;
             _db = db;
@@ -58,6 +61,7 @@ namespace Decatron.Services
                 {
                     var result = JsonSerializer.Deserialize<JsonElement>(responseBody);
                     var resendId = result.GetProperty("id").GetString();
+                    _entitlements?.Count("quota.emails_month"); // Fase 5.4: mide los correos del tenant ambiente (el #1 no cuenta); no corta nada
                     return (true, resendId, null);
                 }
 
