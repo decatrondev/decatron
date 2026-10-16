@@ -364,6 +364,7 @@ try
         builder.Configuration.GetConnectionString("DefaultConnection") ?? ""));
     builder.Services.AddSingleton<Decatron.Data.Encryption.SecretVault>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantMembership>();
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.IEntitlements, Decatron.Services.Tenancy.Entitlements>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantBotUserToken>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantTaskRunner>();
