@@ -27,8 +27,11 @@ namespace Decatron.Services.Tournament
         private readonly ILogger<TournamentRiotPollingService> _logger;
         private readonly TimeSpan _pollInterval = TimeSpan.FromMinutes(3);
 
-        public TournamentRiotPollingService(IServiceProvider serviceProvider, ILogger<TournamentRiotPollingService> logger)
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
+        public TournamentRiotPollingService(IServiceProvider serviceProvider, ILogger<TournamentRiotPollingService> logger, Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceProvider = serviceProvider;
             _logger = logger;
         }
@@ -43,7 +46,7 @@ namespace Decatron.Services.Tournament
             {
                 try
                 {
-                    await PollOnceAsync(stoppingToken);
+                    await _tenants.ForEachTenantAsync("tournament-riot", _ => PollOnceAsync(stoppingToken), stoppingToken);
                 }
                 catch (Exception ex)
                 {

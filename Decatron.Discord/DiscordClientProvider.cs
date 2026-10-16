@@ -19,6 +19,13 @@ public class DiscordClientProvider
 
     public DiscordClient Client => (_registry ?? Empty).Resolve(PrimaryClient, t => new DiscordNotConfiguredException(t));
 
+    /// <summary>Como <see cref="Client"/> pero devuelve null si el tenant ambiente no tiene bot de Discord (para tareas que recorren todos los tenants).</summary>
+    public DiscordClient? TryGetClient()
+    {
+        try { return Client; }
+        catch (DiscordNotConfiguredException) { return null; }
+    }
+
     private static readonly DiscordClientRegistry Empty = new();
 
     /// <summary>

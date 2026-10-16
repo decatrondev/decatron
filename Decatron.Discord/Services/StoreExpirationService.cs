@@ -18,11 +18,15 @@ public class StoreExpirationService : BackgroundService
     private readonly ILogger<StoreExpirationService> _logger;
     private static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(2);
 
+    private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
     public StoreExpirationService(
         IServiceProvider serviceProvider,
         DiscordClientProvider clientProvider,
-        ILogger<StoreExpirationService> logger)
+        ILogger<StoreExpirationService> logger,
+        Decatron.Services.Tenancy.TenantTaskRunner tenants)
     {
+        _tenants = tenants;
         _serviceProvider = serviceProvider;
         _clientProvider = clientProvider;
         _logger = logger;
@@ -38,7 +42,7 @@ public class StoreExpirationService : BackgroundService
         {
             try
             {
-                await ProcessExpiredPurchases();
+                await _tenants.ForEachTenantAsync("store-expiry", _ => ProcessExpiredPurchases(), stoppingToken);
             }
             catch (Exception ex)
             {
@@ -61,7 +65,8 @@ public class StoreExpirationService : BackgroundService
 
         if (expired.Count == 0) return;
 
-        var client = _clientProvider.Client;
+        var client = _clientProvider.TryGetClient();
+        if (client == null) return; // el tenant no tiene bot de Discord conectado: nada que revocar por ahora
 
         foreach (var purchase in expired)
         {

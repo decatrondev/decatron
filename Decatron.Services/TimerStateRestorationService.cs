@@ -15,10 +15,14 @@ namespace Decatron.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<TimerStateRestorationService> _logger;
 
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
         public TimerStateRestorationService(
             IServiceProvider serviceProvider,
-            ILogger<TimerStateRestorationService> logger)
+            ILogger<TimerStateRestorationService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceProvider = serviceProvider;
             _logger = logger;
         }
@@ -34,7 +38,7 @@ namespace Decatron.Services
 
                 _logger.LogInformation("🔄 Iniciando restauración de estados de timers...");
 
-                await RestoreTimerStatesAsync();
+                await _tenants.ForEachTenantAsync("timer-restore", _ => RestoreTimerStatesAsync(), stoppingToken);
 
                 _logger.LogInformation("✅ TimerStateRestorationService completado");
             }

@@ -15,8 +15,11 @@ public class DiscordAlertPollingService : BackgroundService
     private readonly ILogger<DiscordAlertPollingService> _logger;
     private static readonly TimeSpan PollingInterval = TimeSpan.FromMinutes(1);
 
-    public DiscordAlertPollingService(LiveAlertHandler alertHandler, ILogger<DiscordAlertPollingService> logger)
+    private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
+    public DiscordAlertPollingService(LiveAlertHandler alertHandler, ILogger<DiscordAlertPollingService> logger, Decatron.Services.Tenancy.TenantTaskRunner tenants)
     {
+        _tenants = tenants;
         _alertHandler = alertHandler;
         _logger = logger;
     }
@@ -31,7 +34,7 @@ public class DiscordAlertPollingService : BackgroundService
         {
             try
             {
-                await _alertHandler.UpdateActiveAlerts();
+                await _tenants.ForEachTenantAsync("discord-alerts", _ => _alertHandler.UpdateActiveAlerts(), stoppingToken);
             }
             catch (Exception ex)
             {

@@ -148,7 +148,7 @@ public class LiveAlertHandler : ILiveAlertHandler
     {
         try
         {
-            var client = _clientProvider.Client;
+            var client = _clientProvider.TryGetClient();
             if (client == null || !client.Guilds.Any()) return;
 
             using var scope = _serviceProvider.CreateScope();

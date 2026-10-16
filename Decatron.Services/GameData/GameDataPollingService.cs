@@ -45,6 +45,8 @@ namespace Decatron.Services.GameData
         private readonly ConcurrentDictionary<long, bool> _forceRefresh = new();    // por userId (cambio de juego/config)
         private DateTime _lastPurge = DateTime.MinValue;
 
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
         public GameDataPollingService(
             IServiceProvider services,
             ILogger<GameDataPollingService> logger,
@@ -55,8 +57,10 @@ namespace Decatron.Services.GameData
             GameDataCache cache,
             IHubContext<OverlayHub> hub,
             TwitchApiService twitchApi,
-            LolLive.LolLiveStateStore live)
+            LolLive.LolLiveStateStore live,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _live = live;
             _services = services;
             _logger = logger;
@@ -251,7 +255,7 @@ namespace Decatron.Services.GameData
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                try { await TickAsync(stoppingToken); }
+                try { await _tenants.ForEachTenantAsync("game-data", _ => TickAsync(stoppingToken), stoppingToken); }
                 catch (OperationCanceledException) { }
                 catch (Exception ex) { _logger.LogError(ex, "Error en el tick de GameDataPollingService"); }
 

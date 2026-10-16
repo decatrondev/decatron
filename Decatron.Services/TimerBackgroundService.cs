@@ -21,10 +21,14 @@ namespace Decatron.Services
         private const int CHECK_INTERVAL_SECONDS = 1; // Revisar cada segundo para precisión máxima
         private readonly Dictionary<string, DateTime> _lastAutoSave = new(); // Control de Auto-Save
 
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
         public TimerBackgroundService(
             IServiceProvider serviceProvider,
-            ILogger<TimerBackgroundService> logger)
+            ILogger<TimerBackgroundService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceProvider = serviceProvider;
             _logger = logger;
             _logger.LogInformation("⏰ TimerBackgroundService constructor llamado");
@@ -47,7 +51,7 @@ namespace Decatron.Services
                 {
                     try
                     {
-                        await CheckAndExecuteTimersAsync();
+                        await _tenants.ForEachTenantAsync("timers", _ => CheckAndExecuteTimersAsync(), stoppingToken);
                     }
                     catch (Exception ex)
                     {
@@ -302,8 +306,10 @@ namespace Decatron.Services
                     }
 
                     // Verificar si el canal está conectado al bot
+                    // El IRC es respaldo solo del #1: los canales de otros tenants reciben por EventSub y no figuran como conectados
                     var connectedChannels = botService.GetConnectedChannels();
-                    if (!connectedChannels.Any(c => c.Equals(channelName, StringComparison.OrdinalIgnoreCase)))
+                    if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) == 1
+                        && !connectedChannels.Any(c => c.Equals(channelName, StringComparison.OrdinalIgnoreCase)))
                     {
                         _logger.LogDebug($"⏭️ Canal {channelName} no está conectado, saltando timers");
                         continue;
