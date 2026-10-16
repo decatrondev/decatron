@@ -6,6 +6,7 @@ import { Alert, Badge, Button, Field, Input, Spinner } from '../../components/ds
 import ModalShell from '../../components/dashboard/ModalShell';
 import { ConfigCard, ConfigHeader } from '../../components/dashboard/config';
 import api from '../../services/api';
+import PlatformPlanModal from './PlatformPlanModal';
 
 // Tenants de la plataforma (decatron.top). .dev/plans/plataforma/FASE4_DISENO.md, paso 4.
 // El dueño carga aquí la app de Twitch de cada tenant. Los secretos son SOLO ESCRITURA: nunca se devuelven, solo «configurado, …últimos 4».
@@ -37,6 +38,7 @@ export default function PlatformTenantsAdmin() {
     const [busy, setBusy] = useState(false);
     const [botLink, setBotLink] = useState<{ tenant: Tenant; url: string } | null>(null);
     const [unlinkBot, setUnlinkBot] = useState<Tenant | null>(null);
+    const [planFor, setPlanFor] = useState<Tenant | null>(null);
 
     const load = useCallback(async () => {
         try {
@@ -187,6 +189,7 @@ export default function PlatformTenantsAdmin() {
                                 </dl>
                             )}
                             <div className="flex flex-wrap gap-2">
+                                <Button size="sm" variant="secondary" onClick={() => setPlanFor(row)}>{t('tenants.plan.button')}</Button>
                                 <Button size="sm" onClick={() => openEdit(row)}>{row.twitchApp ? t('tenants.replace') : t('tenants.load')}</Button>
                                 {row.twitchApp && (
                                     <Button size="sm" variant="ghost" icon={<Trash2 className="w-4 h-4" />} onClick={() => setToDelete(row)}>{t('tenants.remove')}</Button>
@@ -241,6 +244,8 @@ export default function PlatformTenantsAdmin() {
                     )}
                 </ConfigCard>
             ))}
+
+            {planFor && <PlatformPlanModal tenantId={planFor.id} tenantName={planFor.name} onClose={() => setPlanFor(null)} onChanged={load} />}
 
             {editing && (
                 <ModalShell
