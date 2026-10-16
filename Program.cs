@@ -366,6 +366,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantMembership>();
     builder.Services.AddSingleton<Decatron.Core.Interfaces.IEntitlements, Decatron.Services.Tenancy.Entitlements>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantPlanAdmin>();
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantDataAdmin>();
     builder.Services.AddHostedService<Decatron.Services.Tenancy.EntitlementsFlusher>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantBotUserToken>();

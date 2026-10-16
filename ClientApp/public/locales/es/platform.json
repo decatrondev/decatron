@@ -405,7 +405,10 @@
         "bad_source": "Origen no válido.",
         "tenant_not_found": "El tenant no existe.",
         "override_not_found": "Ese ajuste ya no existe.",
-        "addon_not_found": "Ese complemento ya no existe."
+        "addon_not_found": "Ese complemento ya no existe.",
+        "confirm_mismatch": "El texto de confirmación no coincide con el slug.",
+        "tenant_operational": "El tenant sigue operativo: suspéndelo o cancélalo antes de borrar sus datos.",
+        "purge_stuck": "No se pudo borrar por una dependencia entre tablas; no se cambió nada."
       },
       "caps": {
         "quota.channels": "Canales",
@@ -441,7 +444,16 @@
         "feature.custom_domain": "Dominio propio",
         "feature.api_v1": "API pública /v1",
         "feature.priority_support": "Soporte prioritario"
-      }
+      },
+      "dataTitle": "Datos del tenant",
+      "dataHelp": "Exporta una copia (sin credenciales ni tokens) o borra todo. Para borrar, el tenant no debe estar operativo: suspéndelo o cancélalo antes.",
+      "export": "Exportar datos",
+      "exported": "Exportación descargada.",
+      "purgeStart": "Borrar todos los datos…",
+      "purgeWarn": "Esto borra TODOS los datos de «{{slug}}»: canales, configuración, historial, credenciales y cuentas propias. No se puede deshacer. Exporta antes si hace falta.",
+      "purgeConfirm": "Escribe «{{slug}}» para confirmar",
+      "purge": "Borrar definitivamente",
+      "purged": "Datos borrados: {{rows}} filas en {{tables}} tablas."
     }
   }
 }

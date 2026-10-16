@@ -18,7 +18,7 @@ interface Detail { subscription: Sub | null; overrides: Override[]; addons: Addo
 const STATUSES = ['sandbox', 'active', 'past_due', 'suspended', 'cancelled'];
 const PERIODS = ['', '1', '3', '6', '9', '12'];
 
-export default function PlatformPlanModal({ tenantId, tenantName, onClose, onChanged }: { tenantId: number; tenantName: string; onClose: () => void; onChanged: () => void }) {
+export default function PlatformPlanModal({ tenantId, tenantName, tenantSlug, onClose, onChanged }: { tenantId: number; tenantName: string; tenantSlug: string; onClose: () => void; onChanged: () => void }) {
     const { t, i18n } = useTranslation('platform');
     const [plans, setPlans] = useState<Plan[]>([]);
     const [caps, setCaps] = useState<Cap[]>([]);
@@ -36,6 +36,8 @@ export default function PlatformPlanModal({ tenantId, tenantName, onClose, onCha
     const [adKey, setAdKey] = useState('');
     const [adValue, setAdValue] = useState('');
     const [adSource, setAdSource] = useState('purchase');
+    const [confirmPurge, setConfirmPurge] = useState('');
+    const [purging, setPurging] = useState(false);
 
     const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(i18n.language) : '—');
     const capLabel = (k: string) => t(`tenants.plan.caps.${k}`, { defaultValue: k });
@@ -81,6 +83,30 @@ export default function PlatformPlanModal({ tenantId, tenantName, onClose, onCha
         await api.post(`/admin/platform/tenants/${tenantId}/addons`, { capabilityKey: adKey, value: adValue === '' ? null : Number(adValue), source: adSource });
         setAdKey(''); setAdValue('');
     }, t('tenants.plan.saved'));
+
+    const exportData = async () => {
+        setBusy(true);
+        try {
+            const res = await api.get(`/admin/platform/tenants/${tenantId}/export`, { responseType: 'blob' });
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a');
+            a.href = url; a.download = `tenant-${tenantId}.zip`; a.click();
+            URL.revokeObjectURL(url);
+            setNote({ ok: true, text: t('tenants.plan.exported') });
+        } catch { setNote({ ok: false, text: t('tenants.errors.generic') }); }
+        setBusy(false);
+    };
+
+    const purge = async () => {
+        setBusy(true);
+        try {
+            const res = await api.post(`/admin/platform/tenants/${tenantId}/purge`, { confirmSlug: confirmPurge.trim() });
+            setNote({ ok: true, text: t('tenants.plan.purged', { rows: res.data.rows, tables: res.data.tables }) });
+            setPurging(false); setConfirmPurge('');
+            await load(); onChanged();
+        } catch (e: any) { setNote({ ok: false, text: errText(e?.response?.data?.code) }); }
+        setBusy(false);
+    };
 
     return (
         <ModalShell title={t('tenants.plan.title', { name: tenantName })} size="xl" onClose={() => !busy && onClose()}
@@ -191,6 +217,27 @@ export default function PlatformPlanModal({ tenantId, tenantName, onClose, onCha
                             </Field>
                             <Button variant="secondary" onClick={saveAddon} loading={busy} disabled={!adKey}>{t('tenants.plan.add')}</Button>
                         </div>
+                    </section>
+
+                    <section className="space-y-3 pt-3 border-t border-ds-border">
+                        <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.dataTitle')}</h3>
+                        <p className="text-sm text-ds-soft">{t('tenants.plan.dataHelp')}</p>
+                        <div className="flex flex-wrap gap-2">
+                            <Button size="sm" variant="secondary" loading={busy} onClick={exportData}>{t('tenants.plan.export')}</Button>
+                            {!purging && <Button size="sm" variant="ghost" onClick={() => setPurging(true)}>{t('tenants.plan.purgeStart')}</Button>}
+                        </div>
+                        {purging && (
+                            <div className="space-y-3">
+                                <Alert tone="danger">{t('tenants.plan.purgeWarn', { slug: tenantSlug })}</Alert>
+                                <Field label={t('tenants.plan.purgeConfirm', { slug: tenantSlug })}>
+                                    <Input value={confirmPurge} onChange={e => setConfirmPurge(e.target.value)} autoComplete="off" spellCheck={false} />
+                                </Field>
+                                <div className="flex gap-2">
+                                    <Button variant="ghost" onClick={() => { setPurging(false); setConfirmPurge(''); }} disabled={busy}>{t('admin.cancel')}</Button>
+                                    <Button variant="danger" loading={busy} disabled={confirmPurge.trim() !== tenantSlug} onClick={purge}>{t('tenants.plan.purge')}</Button>
+                                </div>
+                            </div>
+                        )}
                     </section>
 
                     <section className="space-y-2 pt-3 border-t border-ds-border">

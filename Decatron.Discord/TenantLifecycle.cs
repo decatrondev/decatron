@@ -22,10 +22,12 @@ public sealed class TenantLifecycle : BackgroundService
     private readonly IConfiguration _cfg;
     private readonly ILogger<TenantLifecycle> _log;
     private readonly HashSet<long> _paused = new();
+    private readonly TenantDataAdmin _data;
+    private DateTime _lastDueCheck = DateTime.MinValue;
 
     public TenantLifecycle(IEntitlements ent, ITenantCredentialStore store, TenantEventSubHub hub, DiscordTenantGateway gateway,
-        TenantEventSubSync sync, IConfiguration cfg, ILogger<TenantLifecycle> log)
-    { _ent = ent; _store = store; _hub = hub; _gateway = gateway; _sync = sync; _cfg = cfg; _log = log; }
+        TenantEventSubSync sync, TenantDataAdmin data, IConfiguration cfg, ILogger<TenantLifecycle> log)
+    { _data = data; _ent = ent; _store = store; _hub = hub; _gateway = gateway; _sync = sync; _cfg = cfg; _log = log; }
 
     public IReadOnlyCollection<long> Paused { get { lock (_paused) return _paused.ToArray(); } }
 
@@ -37,6 +39,17 @@ public sealed class TenantLifecycle : BackgroundService
         {
             try { await PassAsync(ct); }
             catch (Exception ex) when (ex is not OperationCanceledException) { _log.LogWarning("tenant.lifecycle.failed {Type}", ex.GetType().Name); }
+            // Aviso (no borra): tenants cuyo plazo de guarda venció; el dueño decide desde /admin/platform-tenants
+            if (DateTime.UtcNow - _lastDueCheck > TimeSpan.FromHours(6))
+            {
+                _lastDueCheck = DateTime.UtcNow;
+                try
+                {
+                    var due = await _data.DueForPurgeAsync(Math.Max(1, _cfg.GetValue<int?>("Platform:Lifecycle:PurgeAfterDays") ?? 30), ct);
+                    if (due.Count > 0) _log.LogWarning("tenant.purge.due tenants={Tenants}", string.Join(",", due));
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException) { _log.LogWarning("tenant.purge.due.failed {Type}", ex.GetType().Name); }
+            }
             try { await Task.Delay(every, ct); } catch (OperationCanceledException) { return; }
         }
     }

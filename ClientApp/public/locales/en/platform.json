@@ -405,7 +405,10 @@
         "bad_source": "Invalid source.",
         "tenant_not_found": "The tenant does not exist.",
         "override_not_found": "That override no longer exists.",
-        "addon_not_found": "That add-on no longer exists."
+        "addon_not_found": "That add-on no longer exists.",
+        "confirm_mismatch": "The confirmation text does not match the slug.",
+        "tenant_operational": "The tenant is still operational: suspend or cancel it before deleting its data.",
+        "purge_stuck": "Could not delete because of a table dependency; nothing was changed."
       },
       "caps": {
         "quota.channels": "Channels",
@@ -441,7 +444,16 @@
         "feature.custom_domain": "Custom domain",
         "feature.api_v1": "Public API /v1",
         "feature.priority_support": "Priority support"
-      }
+      },
+      "dataTitle": "Tenant data",
+      "dataHelp": "Export a copy (without credentials or tokens) or delete everything. To delete, the tenant must not be operational: suspend or cancel it first.",
+      "export": "Export data",
+      "exported": "Export downloaded.",
+      "purgeStart": "Delete all data…",
+      "purgeWarn": "This deletes ALL data of \"{{slug}}\": channels, settings, history, credentials and its own accounts. It cannot be undone. Export first if needed.",
+      "purgeConfirm": "Type \"{{slug}}\" to confirm",
+      "purge": "Delete permanently",
+      "purged": "Data deleted: {{rows}} rows in {{tables}} tables."
     }
   }
 }

@@ -245,7 +245,7 @@ export default function PlatformTenantsAdmin() {
                 </ConfigCard>
             ))}
 
-            {planFor && <PlatformPlanModal tenantId={planFor.id} tenantName={planFor.name} onClose={() => setPlanFor(null)} onChanged={load} />}
+            {planFor && <PlatformPlanModal tenantId={planFor.id} tenantName={planFor.name} tenantSlug={planFor.slug} onClose={() => setPlanFor(null)} onChanged={load} />}
 
             {editing && (
                 <ModalShell
