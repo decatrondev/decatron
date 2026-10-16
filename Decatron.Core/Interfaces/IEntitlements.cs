@@ -37,6 +37,15 @@ public interface IEntitlements
     /// <summary>Topes de «cuántos hay» (canales, admins, comandos…): el llamador entrega cuántos hay hoy y se compara con el tope; <paramref name="adding"/> = cuántos quiere agregar.</summary>
     Task<EntitlementResult> CheckGaugeAsync(string key, long current, long adding = 1, long? tenantId = null, CancellationToken ct = default);
 
+    /// <summary>
+    /// Cuenta uso sin esperar ni bloquear (mensajes de chat, etc.): se acumula en memoria y se escribe en lotes cada pocos segundos. No corta nada por sí mismo;
+    /// al pasar el 80 % o el tope deja el evento correspondiente. El #1 no cuenta. Por defecto no hace nada (pruebas).
+    /// </summary>
+    void Count(string key, long amount = 1, long? tenantId = null) { }
+
+    /// <summary>Escribe lo acumulado por <see cref="Count"/> (lo llama el servicio de fondo y el cierre del proceso).</summary>
+    Task FlushAsync(CancellationToken ct = default) => Task.CompletedTask;
+
     /// <summary>Olvida el valor en caché (al cambiar suscripción, complemento o ajuste).</summary>
     void Invalidate(long? tenantId = null);
 }

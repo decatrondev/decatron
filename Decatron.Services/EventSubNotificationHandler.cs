@@ -49,6 +49,7 @@ namespace Decatron.Services
         private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
 
         // Cache para evitar procesar el mismo mensaje de chat dos veces
+        private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;
         private static readonly ConcurrentDictionary<string, DateTime> _processedMessages = new ConcurrentDictionary<string, DateTime>();
 
         public EventSubNotificationHandler(
@@ -69,8 +70,10 @@ namespace Decatron.Services
             Decatron.Services.Pets.PetEventBridge petEventBridge,
             Decatron.Services.ChatOverlay.ChatOverlayService chatOverlay,
             Decatron.Services.Tenancy.TenantShadow tenantShadow,
-            Decatron.Core.Interfaces.ICredentialProvider credentials)
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
+            Decatron.Core.Interfaces.IEntitlements? entitlements = null)
         {
+            _entitlements = entitlements;
             _credentials = credentials;
             _tenantShadow = tenantShadow;
             _chatOverlay = chatOverlay;
@@ -396,6 +399,7 @@ namespace Decatron.Services
                     return;
                 }
                 _processedMessages[dedupeKey] = DateTime.UtcNow;
+                _entitlements?.Count("quota.chat_messages_month"); // Fase 5.4: mide el chat del tenant (el #1 no cuenta); no corta nada
 
                 // Overlay de chat: sale antes de las validaciones de comandos, porque muestra también los
                 // mensajes del chat compartido (los comandos y la moderación los siguen ignorando)

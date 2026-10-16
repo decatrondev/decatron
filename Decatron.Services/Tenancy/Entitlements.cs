@@ -16,6 +16,7 @@ public sealed class Entitlements : IEntitlements
     private readonly string? _cs;
     private readonly ILogger<Entitlements> _log;
     private readonly ConcurrentDictionary<long, Snapshot> _cache = new();
+    private readonly ConcurrentDictionary<(long Tenant, string Key), long> _pending = new();
 
     public Entitlements(IConfiguration cfg, ILogger<Entitlements> log)
     {
@@ -121,6 +122,60 @@ public sealed class Entitlements : IEntitlements
                 if (values.ContainsKey(r.GetString(0))) values[r.GetString(0)] = r.IsDBNull(1) ? null : r.GetDecimal(1);
         }
         return new Snapshot(DateTime.UtcNow, operational, values, meters);
+    }
+
+    public void Count(string key, long amount = 1, long? tenantId = null)
+    {
+        var t = Resolve(tenantId);
+        if (t == 1 || amount <= 0) return;
+        _pending.AddOrUpdate((t, key), amount, (_, old) => old + amount);
+    }
+
+    public async Task FlushAsync(CancellationToken ct = default)
+    {
+        foreach (var k in _pending.Keys.ToArray())
+        {
+            // se toma lo acumulado y se deja en cero; si el guardado falla se devuelve para el siguiente intento
+            long n = 0;
+            _pending.AddOrUpdate(k, 0, (_, old) => { n = old; return 0; });
+            if (n <= 0) { _pending.TryRemove(new KeyValuePair<(long, string), long>(k, 0)); continue; }
+            try { await AddUsageAsync(k.Tenant, k.Key, n, ct); }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _pending.AddOrUpdate(k, n, (_, old) => old + n);
+                _log.LogWarning("entitlements.flush.failed tenant={Tenant} key={Key} {Type}", k.Tenant, k.Key, ex.GetType().Name);
+            }
+        }
+    }
+
+    /// <summary>Suma al contador del periodo sin condición (medir, no cortar) y deja el aviso del 80 % o del tope al cruzarlos.</summary>
+    private async Task AddUsageAsync(long tenant, string key, long amount, CancellationToken ct)
+    {
+        var s = await GetAsync(tenant, ct);
+        var period = s != null && s.Meters.TryGetValue(key, out var m) ? m.Period : null;
+        var start = period switch
+        {
+            "day" => DateTime.UtcNow.Date,
+            "month" => new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1),
+            _ => new DateTime(2000, 1, 1)
+        };
+        await using var c = TenantNpgsql.Create(_cs, tenant);
+        await c.OpenAsync(ct);
+        await using var cmd = new NpgsqlCommand(@"
+            INSERT INTO usage_counters (tenant_id, capability_key, period_start, used) VALUES (@t, @k, @d, @n)
+            ON CONFLICT (tenant_id, capability_key, period_start) DO UPDATE SET used = usage_counters.used + @n, updated_at = now()
+            RETURNING used", c);
+        cmd.Parameters.AddWithValue("t", tenant);
+        cmd.Parameters.AddWithValue("k", key);
+        cmd.Parameters.AddWithValue("d", start);
+        cmd.Parameters.AddWithValue("n", amount);
+        var used = Convert.ToInt64(await cmd.ExecuteScalarAsync(ct));
+        if (s != null && s.Values.TryGetValue(key, out var limit) && limit is not null)
+        {
+            var before = used - amount;
+            if (before <= limit && used > limit) await RecordAsync(tenant, key, "blocked", used, limit, ct);
+            else if (before * 100m < limit * 80m && used * 100m >= limit * 80m) await RecordAsync(tenant, key, "warn80", used, limit, ct);
+        }
     }
 
     public async Task<bool> IsOperationalAsync(long? tenantId = null, bool live = false, CancellationToken ct = default)

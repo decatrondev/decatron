@@ -173,4 +173,27 @@ public class EntitlementsTests : IDisposable
         e.Invalidate(A);
         Assert.False(await e.HasAsync("zz.flag", A));   // refrescado
     }
+
+    [Fact(DisplayName = "Count acumula en memoria, Flush escribe el lote, cruzar el 80 % y el tope deja eventos, y el #1 no cuenta")]
+    public async Task Count_Lotes()
+    {
+        if (!Available) return;
+        var e = Make();
+        var started = DateTime.UtcNow.AddSeconds(-1);
+        e.Count("zz.cuota", 2, A);            // límite del plan = 3
+        e.Count("zz.cuota", 1, A);
+        e.Count("zz.cuota", 5, 1);            // el #1 no cuenta
+        using (var c = Open(A)) { using var q = new NpgsqlCommand("select coalesce(sum(used),0) from usage_counters where capability_key='zz.cuota'", c); Assert.Equal(0m, q.ExecuteScalar()); }  // aún en memoria
+        await e.FlushAsync();
+        using (var c = Open(A)) { using var q = new NpgsqlCommand("select sum(used) from usage_counters where capability_key='zz.cuota'", c); Assert.Equal(3m, q.ExecuteScalar()); }
+        e.Count("zz.cuota", 1, A);            // 4 > 3: pasa el tope, igual se mide (no corta)
+        await e.FlushAsync();
+        using (var c = Open(A))
+        {
+            using var q = new NpgsqlCommand("select sum(used) from usage_counters where capability_key='zz.cuota'", c); Assert.Equal(4m, q.ExecuteScalar());
+            using var ev = new NpgsqlCommand("select string_agg(kind, ',' order by id) from entitlement_events where capability_key='zz.cuota' and at >= @t", c);
+            ev.Parameters.AddWithValue("t", started);
+            Assert.Equal("warn80,blocked", ev.ExecuteScalar());
+        }
+    }
 }
