@@ -20,6 +20,9 @@ public static class TenantAmbient
     private static readonly AsyncLocal<long?> _current = new();
     public static long? Current => _current.Value;
 
+    /// <summary>Clave de memoria por canal con el tenant ambiente por delante: un mismo canal en dos tenants no comparte contadores, caches ni permisos. Sin tenant fijado cae al #1 (igual que el resto).</summary>
+    public static string Key(string channel) => (_current.Value ?? 1) + "|" + channel.ToLowerInvariant();
+
     public static IDisposable Push(long tenantId)
     {
         var prev = _current.Value;

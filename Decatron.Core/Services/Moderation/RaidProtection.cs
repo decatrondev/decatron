@@ -1,3 +1,4 @@
+using Decatron.Core.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -70,11 +71,11 @@ namespace Decatron.Core.Services.Moderation
     {
         private static readonly ConcurrentDictionary<string, DateTime> _active = new();
 
-        public static void Set(string channel, DateTime endsAt) => _active[channel.ToLower()] = endsAt;
-        public static void Clear(string channel) => _active.TryRemove(channel.ToLower(), out _);
+        public static void Set(string channel, DateTime endsAt) => _active[TenantAmbient.Key(channel)] = endsAt;
+        public static void Clear(string channel) => _active.TryRemove(TenantAmbient.Key(channel), out _);
 
         public static bool IsActive(string channel) =>
-            _active.TryGetValue(channel.ToLower(), out var endsAt) && endsAt > DateTime.Now;
+            _active.TryGetValue(TenantAmbient.Key(channel), out var endsAt) && endsAt > DateTime.Now;
     }
 
     /// <summary>

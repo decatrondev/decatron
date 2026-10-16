@@ -254,7 +254,7 @@ namespace Decatron.Services.Moderation
 
             if (Hit(_follows, channel, settings.AutoWindowSeconds) >= settings.FollowsThreshold)
             {
-                _follows.TryRemove(channel, out _);
+                _follows.TryRemove(TenantAmbient.Key(channel), out _);
                 await ActivateAsync(channel, await ResolveChannelUserIdAsync(channel), "decatron", $"{settings.FollowsThreshold}+ follows en {settings.AutoWindowSeconds} s");
             }
         }
@@ -270,7 +270,7 @@ namespace Decatron.Services.Moderation
             var (settings, _) = await GetCachedSettingsAsync(channel);
             if (!settings.AutoOnNewAccounts) return;
 
-            var key = $"{channel}:{twitchUserId}";
+            var key = $"{TenantAmbient.Key(channel)}:{twitchUserId}";
             if (_seenNewAccount.TryGetValue(key, out var seen) && DateTime.UtcNow - seen < TimeSpan.FromSeconds(settings.AutoWindowSeconds))
                 return;
 
@@ -283,7 +283,7 @@ namespace Decatron.Services.Moderation
 
             if (Hit(_newAccounts, channel, settings.AutoWindowSeconds) >= settings.NewAccountsThreshold)
             {
-                _newAccounts.TryRemove(channel, out _);
+                _newAccounts.TryRemove(TenantAmbient.Key(channel), out _);
                 await ActivateAsync(channel, await ResolveChannelUserIdAsync(channel), "decatron", $"{settings.NewAccountsThreshold}+ cuentas nuevas escribiendo en {settings.AutoWindowSeconds} s");
             }
         }
@@ -300,7 +300,7 @@ namespace Decatron.Services.Moderation
         /// <summary>Registra un evento y devuelve cuántos hubo dentro de la ventana</summary>
         private static int Hit(ConcurrentDictionary<string, Queue<DateTime>> events, string channel, int windowSeconds)
         {
-            var queue = events.GetOrAdd(channel, _ => new Queue<DateTime>());
+            var queue = events.GetOrAdd(TenantAmbient.Key(channel), _ => new Queue<DateTime>());
             lock (queue)
             {
                 var now = DateTime.UtcNow;

@@ -1,3 +1,4 @@
+using Decatron.Core.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -30,11 +31,11 @@ namespace Decatron.Core.Services.Moderation
 
         public static void Invalidate(string channel)
         {
-            var suffix = ":" + channel.ToLower();
+            var suffix = ":" + TenantAmbient.Key(channel);
             foreach (var key in _entries.Keys.Where(k => k.EndsWith(suffix)))
                 _entries.TryRemove(key, out _);
         }
 
-        private static string Key(string kind, string channel) => $"{kind}:{channel.ToLower()}";
+        private static string Key(string kind, string channel) => $"{kind}:{TenantAmbient.Key(channel)}";
     }
 }

@@ -1,3 +1,4 @@
+using Decatron.Core.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -110,7 +111,7 @@ namespace Decatron.Core.Services.Moderation
         }
 
         private static string Key(string channel, string username) =>
-            $"{channel.ToLower()}:{username.TrimStart('@').ToLower()}";
+            $"{TenantAmbient.Key(channel)}:{username.TrimStart('@').ToLower()}";
     }
 
     /// <summary>

@@ -390,11 +390,12 @@ namespace Decatron.Services
                 }
 
                 // Evitar procesar duplicados (mismo messageId, sea cual sea el transporte)
-                if (_processedMessages.ContainsKey(messageId))
+                var dedupeKey = TenantAmbient.Key(messageId);
+                if (_processedMessages.ContainsKey(dedupeKey))
                 {
                     return;
                 }
-                _processedMessages[messageId] = DateTime.UtcNow;
+                _processedMessages[dedupeKey] = DateTime.UtcNow;
 
                 // Overlay de chat: sale antes de las validaciones de comandos, porque muestra también los
                 // mensajes del chat compartido (los comandos y la moderación los siguen ignorando)
@@ -968,9 +969,9 @@ namespace Decatron.Services
                 var channel = datosEvento["broadcaster_user_login"]?.ToString()?.ToLower();
                 var level = datosEvento["level"]?.ToObject<int>() ?? 0;
                 if (string.IsNullOrEmpty(channel) || level <= 0) return;
-                var last = _hypeTrainLevels.GetOrAdd(channel, 1);
+                var last = _hypeTrainLevels.GetOrAdd(TenantAmbient.Key(channel), 1);
                 if (level <= last) return;
-                _hypeTrainLevels[channel] = level;
+                _hypeTrainLevels[TenantAmbient.Key(channel)] = level;
                 _logger.LogInformation("🔥 [HYPE TRAIN] {Channel} subió al nivel {Level}", channel, level);
                 await _eventAlertsService.TriggerAlertAsync(channel, "hypeTrain", channel, level: Math.Min(level, 5));
             }
@@ -988,7 +989,7 @@ namespace Decatron.Services
                 var channel = datosEvento["broadcaster_user_login"]?.ToString()?.ToLower();
                 var level = datosEvento["level"]?.ToObject<int>() ?? 1;
                 if (string.IsNullOrEmpty(channel)) return;
-                _hypeTrainLevels.TryRemove(channel, out _);
+                _hypeTrainLevels.TryRemove(TenantAmbient.Key(channel), out _);
                 _logger.LogInformation("🏁 [HYPE TRAIN] Terminó en {Channel} - nivel {Level}", channel, level);
                 await _eventAlertsService.TriggerAlertAsync(channel, "hypeTrain", channel, level: level, hypeTrainCompleted: true);
             }
@@ -1012,7 +1013,7 @@ namespace Decatron.Services
                 }
 
                 _logger.LogInformation($"🔥 [HYPE TRAIN] Iniciado en {broadcasterUserName} - Nivel: {level}");
-                _hypeTrainLevels[broadcasterUserName.ToLower()] = level;
+                _hypeTrainLevels[TenantAmbient.Key(broadcasterUserName)] = level;
 
                 await _timerEventService.ProcessHypeTrainEventAsync(broadcasterUserName, level);
 

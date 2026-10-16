@@ -1,3 +1,4 @@
+using Decatron.Core.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace Decatron.Core.Services.Moderation
 
         public static void Add(string channel, string username, string text, string? userId = null)
         {
-            var queue = _channels.GetOrAdd(channel.ToLower(), _ => new Queue<Entry>());
+            var queue = _channels.GetOrAdd(TenantAmbient.Key(channel), _ => new Queue<Entry>());
             lock (queue)
             {
                 queue.Enqueue(new Entry(DateTime.UtcNow, username.ToLower(), text, userId));
@@ -29,7 +30,7 @@ namespace Decatron.Core.Services.Moderation
 
         public static List<Entry> Since(string channel, TimeSpan window)
         {
-            if (!_channels.TryGetValue(channel.ToLower(), out var queue))
+            if (!_channels.TryGetValue(TenantAmbient.Key(channel), out var queue))
                 return new List<Entry>();
 
             var from = DateTime.UtcNow - window;
