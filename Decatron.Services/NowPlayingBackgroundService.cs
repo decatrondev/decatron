@@ -23,6 +23,7 @@ namespace Decatron.Services
         private readonly string _lastfmApiKey;
 
         // Cache: channelName -> last known track data (to detect changes)
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
         private readonly ConcurrentDictionary<string, string> _lastTrackCache = new();
         // Cache: channelName -> last poll time (for per-user interval)
         private readonly ConcurrentDictionary<string, DateTime> _lastPollTime = new();
@@ -32,8 +33,10 @@ namespace Decatron.Services
         public NowPlayingBackgroundService(
             IServiceProvider serviceProvider,
             ILogger<NowPlayingBackgroundService> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceProvider = serviceProvider;
             _logger = logger;
             _configuration = configuration;
@@ -55,7 +58,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await PollAllActiveChannels(stoppingToken);
+                    await _tenants.ForEachTenantAsync("nowplaying", _ => PollAllActiveChannels(stoppingToken), stoppingToken);
                 }
                 catch (Exception ex)
                 {

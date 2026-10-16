@@ -20,10 +20,14 @@ namespace Decatron.Services
         private readonly ILogger<WatchtimeLurkerTrackingService> _logger;
         private const int POLL_INTERVAL_SECONDS = 90; // Respeta rate limits de Twitch
 
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
         public WatchtimeLurkerTrackingService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<WatchtimeLurkerTrackingService> logger)
+            ILogger<WatchtimeLurkerTrackingService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
         }
@@ -38,7 +42,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await PollLurkersAsync();
+                    await _tenants.ForEachTenantAsync("lurkers", _ => PollLurkersAsync(), stoppingToken);
                 }
                 catch (Exception ex)
                 {

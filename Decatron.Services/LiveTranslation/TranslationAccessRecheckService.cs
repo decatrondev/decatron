@@ -18,8 +18,12 @@ namespace Decatron.Services.LiveTranslation
         private readonly ITranslationAccessGate _gate;
         private readonly ILogger<TranslationAccessRecheckService> _logger;
 
-        public TranslationAccessRecheckService(IHubContext<TranslationHub> hub, ITranslationAccessGate gate, ILogger<TranslationAccessRecheckService> logger)
+        private readonly Decatron.Services.Tenancy.TenantShadow? _tenantShadow;
+
+        public TranslationAccessRecheckService(IHubContext<TranslationHub> hub, ITranslationAccessGate gate, ILogger<TranslationAccessRecheckService> logger,
+            Decatron.Services.Tenancy.TenantShadow? tenantShadow = null)
         {
+            _tenantShadow = tenantShadow;
             _hub = hub;
             _gate = gate;
             _logger = logger;
@@ -42,6 +46,8 @@ namespace Decatron.Services.LiveTranslation
             var listeners = TranslationHub.SnapshotListeners().Where(l => login == null || l.Login == login.ToLowerInvariant()).ToList();
             foreach (var l in listeners)
             {
+                // El acceso se comprueba con la app de Twitch del tenant dueño del canal, no con la del #1
+                using var tenantScope = _tenantShadow?.Enter("Bg.TranslationAccessRecheck", l.Login);
                 var r = await _gate.CheckViewerAsync(l.Login, l.Who);
                 if (r.Reason == null) continue;
                 _logger.LogInformation("[LiveTranslation] Se saca a un oyente de {Login} porque ya no cumple el acceso: {Reason}", l.Login, r.Reason);

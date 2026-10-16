@@ -17,10 +17,14 @@ namespace Decatron.Services
         private readonly ILogger<WatchTimeBackgroundService> _logger;
         private const int UPDATE_INTERVAL_SECONDS = 60; // Actualizar cada minuto
 
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
         public WatchTimeBackgroundService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<WatchTimeBackgroundService> logger)
+            ILogger<WatchTimeBackgroundService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
         }
@@ -36,7 +40,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await UpdateWatchTimes();
+                    await _tenants.ForEachTenantAsync("watchtime", _ => UpdateWatchTimes(), stoppingToken);
                 }
                 catch (Exception ex)
                 {

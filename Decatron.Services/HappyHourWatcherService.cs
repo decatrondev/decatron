@@ -27,10 +27,14 @@ namespace Decatron.Services
         // Último estado conocido por canal, para emitir solo en los cambios y no en cada vuelta.
         private readonly Dictionary<string, bool> _lastKnownActive = new();
 
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
         public HappyHourWatcherService(
             IServiceProvider serviceProvider,
-            ILogger<HappyHourWatcherService> logger)
+            ILogger<HappyHourWatcherService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceProvider = serviceProvider;
             _logger = logger;
         }
@@ -46,7 +50,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await CheckTransitionsAsync();
+                    await _tenants.ForEachTenantAsync("happyhour", _ => CheckTransitionsAsync(), stoppingToken);
                 }
                 catch (Exception ex)
                 {

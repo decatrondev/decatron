@@ -23,10 +23,14 @@ namespace Decatron.Services
         private readonly ILogger<SpiritNotifySweepBackgroundService> _logger;
         private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(15);
 
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
+
         public SpiritNotifySweepBackgroundService(
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<SpiritNotifySweepBackgroundService> logger)
+            ILogger<SpiritNotifySweepBackgroundService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
+            _tenants = tenants;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
         }
@@ -43,10 +47,13 @@ namespace Decatron.Services
             {
                 try
                 {
-                    using var scope = _serviceScopeFactory.CreateScope();
-                    var delivery = scope.ServiceProvider.GetRequiredService<ISpiritNotificationDeliveryService>();
-                    await delivery.RunTwitchSweepAsync();
-                    await delivery.RunDiscordSweepAsync();
+                    await _tenants.ForEachTenantAsync("spirit-sweep", async _ =>
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var delivery = scope.ServiceProvider.GetRequiredService<ISpiritNotificationDeliveryService>();
+                        await delivery.RunTwitchSweepAsync();
+                        await delivery.RunDiscordSweepAsync();
+                    }, stoppingToken);
                 }
                 catch (Exception ex)
                 {
