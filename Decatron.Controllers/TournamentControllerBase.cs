@@ -14,6 +14,7 @@ namespace Decatron.Controllers
     /// channelOwnerId, para no repetir el bug de "me olvide de filtrar por tenant" en
     /// alguno nuevo (ver .dev/torneos/13-roles-permisos-multitenant.md #3).
     /// </summary>
+    [Decatron.Core.Interfaces.RequiresModule("module.tournaments")]
     public abstract class TournamentControllerBase : ControllerBase
     {
         protected readonly DecatronDbContext DbContext;

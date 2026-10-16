@@ -21,6 +21,7 @@ namespace Decatron.Controllers
     /// <summary>Song Request (.dev/plans/SONG_REQUEST_PLAN.md).</summary>
     [ApiController]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.song_request")]
     public class SongRequestController : ControllerBase
     {
         private static readonly string[] Roles = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };

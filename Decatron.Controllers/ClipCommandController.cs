@@ -20,6 +20,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/clipcommand")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.clips")]
     public class ClipCommandController : ControllerBase
     {
         private readonly DecatronDbContext _db;

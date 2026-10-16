@@ -14,6 +14,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/raffles")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.giveaways")]
     public class RaffleController : ControllerBase
     {
         private readonly IRaffleService _raffleService;

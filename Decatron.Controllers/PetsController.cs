@@ -19,6 +19,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/pets")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.pets")]
     public class PetsController : ControllerBase
     {
         /// <summary>Panel: URL corta, se pide con JWT cada vez.</summary>

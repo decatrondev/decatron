@@ -21,6 +21,7 @@ namespace Decatron.Controllers
     [Authorize]
     [Route("api/chat-overlay")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.overlays")]
     public class ChatOverlayController : ControllerBase
     {
         private const int MaxConfigBytes = 100_000;

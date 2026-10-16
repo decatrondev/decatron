@@ -28,6 +28,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/wheel")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.roulette")]
     public partial class WheelController : ControllerBase
     {
         private readonly WheelService _wheels;

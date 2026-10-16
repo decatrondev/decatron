@@ -19,6 +19,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/tts-credits")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.tts")]
     public class TtsCreditsController : ControllerBase
     {
         private readonly ITtsCreditService _creditService;

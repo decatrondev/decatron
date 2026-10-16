@@ -12,6 +12,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.tts")]
     public class TtsController : ControllerBase
     {
         private readonly ITtsService _ttsService;

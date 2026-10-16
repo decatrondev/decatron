@@ -18,6 +18,7 @@ namespace Decatron.Controllers
     [Authorize]
     [Route("api/timer")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.timers")]
     public class TimerExtensionController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

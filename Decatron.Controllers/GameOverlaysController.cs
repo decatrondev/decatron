@@ -24,6 +24,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/game-overlays")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.game_overlays")]
     public class GameOverlaysController : ControllerBase
     {
         private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);

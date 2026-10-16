@@ -16,6 +16,7 @@ namespace Decatron.Controllers
     [Route("api/admin/discord-server")]
     [Authorize]
     [RequireSystemOwner]
+    [Decatron.Core.Interfaces.RequiresModule("module.discord")]
     public class DiscordServerAdminController : ControllerBase
     {
         private readonly ServerTemplateService _service;

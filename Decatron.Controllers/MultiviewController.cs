@@ -15,6 +15,7 @@ namespace Decatron.Controllers
     [Route("api/public/multiview")]
     [ApiController]
     [AllowAnonymous]
+    [Decatron.Core.Interfaces.RequiresModule("module.multiview")]
     public class MultiviewController : ControllerBase
     {
         private const int MaxStatusChannels = 12;

@@ -20,6 +20,7 @@ namespace Decatron.Controllers
     [Route("api/admin/tts-lab")]
     [Authorize]
     [RequireSystemOwner]
+    [Decatron.Core.Interfaces.RequiresModule("module.tts")]
     public class TtsLabController : ControllerBase
     {
         private readonly PiperTtsService _piper;

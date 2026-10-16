@@ -20,6 +20,7 @@ namespace Decatron.Controllers
     [Route("api/multiview/session")]
     [ApiController]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.multiview")]
     public class MultiviewSessionController : ControllerBase
     {
         // Datos propios del token que se generan de nuevo; el resto (usuario, proveedor, ids, foto) se copia tal cual.

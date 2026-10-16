@@ -12,6 +12,7 @@ namespace Decatron.Controllers
     [Authorize]
     [Route("api/timer/backup")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.timers")]
     public class TimerBackupController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

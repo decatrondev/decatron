@@ -18,6 +18,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/lol-coach")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.lol_coach")]
     public class LolCoachController : ControllerBase
     {
         private readonly DecatronDbContext _db;

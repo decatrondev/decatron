@@ -26,6 +26,7 @@ namespace Decatron.Controllers
     /// </summary>
     [ApiController]
     [Route("api/live-translation")]
+    [Decatron.Core.Interfaces.RequiresModule("module.live_translation")]
     public class LiveTranslationController : ControllerBase
     {
         private readonly DecatronDbContext _db;

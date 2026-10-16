@@ -13,6 +13,7 @@ namespace Decatron.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Decatron.Core.Interfaces.RequiresModule("module.timers")]
     public class TimersController : ControllerBase
     {
         private readonly ITimerService _timerService;

@@ -19,6 +19,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.giveaways")]
     public class GiveawayController : ControllerBase
     {
         private readonly GiveawayService _giveawayService;

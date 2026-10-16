@@ -17,6 +17,7 @@ namespace Decatron.Controllers
     [Route("api/multiview/layouts")]
     [ApiController]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.multiview")]
     public class MultiviewLayoutsController : ControllerBase
     {
         private const int NameMax = 60;

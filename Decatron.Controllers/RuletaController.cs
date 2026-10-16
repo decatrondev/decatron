@@ -13,6 +13,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/ruleta")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.roulette")]
     public class RuletaController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

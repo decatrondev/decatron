@@ -22,6 +22,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/live-overlays")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.overlays")]
     public class LiveOverlaysController : ControllerBase
     {
         private readonly DecatronDbContext _db;
