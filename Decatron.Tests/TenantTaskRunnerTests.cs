@@ -29,6 +29,29 @@ public class TenantTaskRunnerTests
         public Task<long?> FindActiveTenantIdAsync(string slug, CancellationToken ct = default) => Task.FromResult<long?>(null);
     }
 
+    private sealed class Ops(params long[] ok) : IEntitlements
+    {
+        public bool Down;
+        public Task<bool> IsOperationalAsync(long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult(Down ? live : ok.Contains(t ?? 1));
+        public Task<bool> HasAsync(string f, long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult(true);
+        public Task<(bool Operational, decimal? Limit)> LimitAsync(string k, long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult((true, (decimal?)null));
+        public Task<EntitlementResult> TryConsumeAsync(string k, long a = 1, long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult(EntitlementResult.Ok());
+        public Task<EntitlementResult> CheckGaugeAsync(string k, long c, long a = 1, long? t = null, CancellationToken ct = default) => Task.FromResult(EntitlementResult.Ok());
+        public void Invalidate(long? t = null) { }
+    }
+
+    [Fact(DisplayName = "Fase 5.5: un tenant suspendido o vencido no corre tareas; el #1 siempre; con la base de planes caída se deja correr")]
+    public async Task SuspendidoNoCorreTareas()
+    {
+        var ops = new Ops(2, 4);
+        var runner = new TenantTaskRunner(NullLogger<TenantTaskRunner>.Instance, new Store(2, 3, 4), ops);
+        Assert.Equal(new long[] { 1, 2, 4 }, await runner.GetTenantsAsync());
+
+        ops.Down = true;
+        var runner2 = new TenantTaskRunner(NullLogger<TenantTaskRunner>.Instance, new Store(2, 3, 4), ops);
+        Assert.Equal(new long[] { 1, 2, 3, 4 }, await runner2.GetTenantsAsync());
+    }
+
     private static TenantTaskRunner Make(Store? s = null) => new(NullLogger<TenantTaskRunner>.Instance, s);
 
     [Fact]

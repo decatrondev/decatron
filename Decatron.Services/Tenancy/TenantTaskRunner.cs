@@ -15,11 +15,12 @@ public sealed class TenantTaskRunner
     private static readonly TimeSpan CacheFor = TimeSpan.FromSeconds(60);
     private readonly ITenantCredentialStore? _store;
     private readonly ILogger<TenantTaskRunner> _log;
+    private readonly IEntitlements? _entitlements;
     private IReadOnlyList<long> _tenants = new long[] { 1 };
     private DateTime _loadedAt = DateTime.MinValue;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public TenantTaskRunner(ILogger<TenantTaskRunner> log, ITenantCredentialStore? store = null) { _log = log; _store = store; }
+    public TenantTaskRunner(ILogger<TenantTaskRunner> log, ITenantCredentialStore? store = null, IEntitlements? entitlements = null) { _log = log; _store = store; _entitlements = entitlements; }
 
     /// <summary>Tenants activos: el #1 primero y luego el resto en orden. Si el almacén falla, se conserva la última lista conocida.</summary>
     public async Task<IReadOnlyList<long>> GetTenantsAsync(CancellationToken ct = default)
@@ -33,8 +34,15 @@ public sealed class TenantTaskRunner
             {
                 try
                 {
-                    var others = await _store.ListActiveTenantIdsAsync(ct);
-                    _tenants = new[] { 1L }.Concat(others.Where(t => t != 1).Distinct().OrderBy(t => t)).ToArray();
+                    var others = (await _store.ListActiveTenantIdsAsync(ct)).Where(t => t != 1).Distinct().OrderBy(t => t).ToList();
+                    if (_entitlements != null)
+                    {
+                        // Fase 5.5: un tenant suspendido, vencido o sin suscripción no corre tareas (sus datos quedan intactos). Si no se puede saber, se deja correr.
+                        var operational = new List<long>();
+                        foreach (var t in others) if (await _entitlements.IsOperationalAsync(t, live: true, ct)) operational.Add(t);
+                        others = operational;
+                    }
+                    _tenants = new[] { 1L }.Concat(others).ToArray();
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {

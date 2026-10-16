@@ -19,6 +19,7 @@ public sealed record GatewayState(
 /// </summary>
 public sealed class DiscordTenantGateway : IHostedService
 {
+    private readonly IEntitlements? _entitlements;
     private readonly DiscordClientProvider _provider;
     private readonly ITenantCredentialStore _store;
     private readonly DiscordBotService _bot;
@@ -30,8 +31,8 @@ public sealed class DiscordTenantGateway : IHostedService
     private CancellationTokenSource? _boot;
 
     public DiscordTenantGateway(DiscordClientProvider provider, ITenantCredentialStore store, DiscordBotService bot, IConfiguration cfg,
-        ILoggerFactory loggerFactory, ILogger<DiscordTenantGateway> log)
-    { _provider = provider; _store = store; _bot = bot; _cfg = cfg; _loggerFactory = loggerFactory; _log = log; }
+        ILoggerFactory loggerFactory, ILogger<DiscordTenantGateway> log, IEntitlements? entitlements = null)
+    { _entitlements = entitlements; _provider = provider; _store = store; _bot = bot; _cfg = cfg; _loggerFactory = loggerFactory; _log = log; }
 
     public int Cap => Math.Max(0, _cfg.GetValue<int?>("Platform:Discord:MaxGateways") ?? 20);
     public int Connected => _provider.Registry?.Count ?? 0;
@@ -146,6 +147,7 @@ public sealed class DiscordTenantGateway : IHostedService
                 foreach (var id in await _store.ListActiveTenantIdsAsync(_boot.Token))
                 {
                     if (await _store.GetDiscordBotAsync(id, _boot.Token) is null) continue;
+                    if (_entitlements != null && !await _entitlements.IsOperationalAsync(id, live: true, _boot.Token)) continue; // Fase 5.5: suspendido/vencido no conecta
                     await StartAsync(id, _boot.Token);
                     await Task.Delay(2000, _boot.Token);
                 }

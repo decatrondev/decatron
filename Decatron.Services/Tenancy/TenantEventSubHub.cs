@@ -233,6 +233,7 @@ public sealed class TenantEventSubHub : IHostedService
                 foreach (var id in await _store.ListActiveTenantIdsAsync(_boot.Token))
                 {
                     if (await _store.GetTwitchBotAsync(id, _boot.Token) is null) continue;
+                    if (_sp.GetService<IEntitlements>() is { } ent && !await ent.IsOperationalAsync(id, live: true, _boot.Token)) continue; // Fase 5.5: suspendido/vencido no conecta
                     var st = await StartAsync(id, _boot.Token);
                     if (st.Status == "connected") _ = Task.Run(async () => { try { await _sp.GetRequiredService<TenantEventSubSync>().SyncAsync(id); } catch (Exception ex) { _log.LogWarning("eventsub.tenant.boot_sync tenant={Tenant} type={Type}", id, ex.GetType().Name); } });
                     await Task.Delay(3000, _boot.Token);

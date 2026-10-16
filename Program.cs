@@ -707,6 +707,7 @@ try
     builder.Services.AddSingleton<Decatron.Discord.IDiscordBotValidator, Decatron.Discord.DiscordBotValidator>();
     builder.Services.AddSingleton<Decatron.Discord.DiscordTenantGateway>();
     builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Discord.DiscordTenantGateway>());
+    builder.Services.AddHostedService<Decatron.Discord.TenantLifecycle>(); // Fase 5.5: pausa/reanuda conduit y gateway según el estado de la suscripción
     builder.Services.AddHostedService<Decatron.Discord.DiscordAlertPollingService>();
     builder.Services.AddHostedService<Decatron.Discord.Services.StoreExpirationService>();
 
