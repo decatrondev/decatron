@@ -26,6 +26,7 @@ namespace Decatron.Custom.Commands
         private readonly UptimeFunction _uptimeFunction;
         private readonly ScriptingService _scriptingService;
         private readonly ICommandMessagesService _messagesService;
+        private readonly IEntitlements? _entitlements;
 
         public string Name => "!crear";
         public string Description => "Crear comandos personalizados con o sin scripting";
@@ -34,8 +35,10 @@ namespace Decatron.Custom.Commands
             DecatronDbContext context,
             IConfiguration configuration,
             ScriptingService scriptingService,
-            ICommandMessagesService messagesService)
+            ICommandMessagesService messagesService,
+            IEntitlements? entitlements = null)
         {
+            _entitlements = entitlements;
             _context = context;
             _configuration = configuration;
             _gameFunction = new GameFunction(configuration);
@@ -275,6 +278,14 @@ namespace Decatron.Custom.Commands
                     IsScripted = false,
                     ScriptContent = null
                 };
+
+                // Plataforma, Fase 5.4: tope de comandos del plan (el #1 no tiene)
+                var quota = await EntitlementsGauge.CheckNewAsync(_entitlements, "quota.commands", async () => await _context.CustomCommands.LongCountAsync());
+                if (!quota.IsAllowed)
+                {
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "quota_reached", lang));
+                    return;
+                }
 
                 var success = await UtilsCrear.CreateCustomCommand(_context, customCommand);
 

@@ -220,6 +220,10 @@ namespace Decatron.Controllers
                     timer = created
                 });
             }
+            catch (InvalidOperationException ex) when (ex.Message == "quota_timers_reached")
+            {
+                return StatusCode(403, new { success = false, error = "quota_reached", quota = "quota.timers", message = "Tu plan alcanzó el máximo de timers." });
+            }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });

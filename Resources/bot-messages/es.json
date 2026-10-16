@@ -263,6 +263,7 @@
     "command_created": "Comando {0} creado correctamente para el canal {1} con restricción: {2} y estado: {3}.",
     "command_create_failed": "No se pudo crear el comando. Por favor, inténtalo de nuevo.",
     "command_error_generic": "Error al crear el comando.",
+    "quota_reached": "Tu plan alcanzó el máximo de comandos.",
     "active": "activo",
     "inactive": "inactivo"
   },

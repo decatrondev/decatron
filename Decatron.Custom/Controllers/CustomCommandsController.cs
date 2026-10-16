@@ -7,6 +7,7 @@ using Decatron.Services;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Decatron.Custom.Controllers
 {
@@ -19,13 +20,16 @@ namespace Decatron.Custom.Controllers
         private readonly IConfiguration _configuration;
         private readonly IPermissionService _permissionService;
         private readonly ILogger<CustomCommandsController> _logger;
+        private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;
 
         public CustomCommandsController(
             DecatronDbContext context,
             IConfiguration configuration,
             IPermissionService permissionService,
-            ILogger<CustomCommandsController> logger)
+            ILogger<CustomCommandsController> logger,
+            Decatron.Core.Interfaces.IEntitlements? entitlements = null)
         {
+            _entitlements = entitlements;
             _context = context;
             _configuration = configuration;
             _permissionService = permissionService;
@@ -215,6 +219,14 @@ namespace Decatron.Custom.Controllers
                     {
                         message = $"El comando '{commandName}' ya existe en el canal {channelName}. Usa la opción de editar para modificarlo."
                     });
+                }
+
+                // Plataforma, Fase 5.4: tope de comandos del plan (el #1 no tiene)
+                var quota = await Decatron.Core.Interfaces.EntitlementsGauge.CheckNewAsync(_entitlements, "quota.commands",
+                    async () => await _context.CustomCommands.LongCountAsync(), HttpContext.RequestServices.GetService<Decatron.Core.Interfaces.ITenantContext>()?.TenantId);
+                if (!quota.IsAllowed)
+                {
+                    return StatusCode(403, new { error = "quota_reached", quota = "quota.commands", message = "Tu plan alcanzó el máximo de comandos." });
                 }
 
                 // Validar restricción

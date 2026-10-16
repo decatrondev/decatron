@@ -262,6 +262,7 @@
     "script_error_generic": "Error creating script command.",
     "command_created": "Command {0} created for channel {1} with restriction: {2} and status: {3}.",
     "command_create_failed": "Could not create the command. Please try again.",
+    "quota_reached": "Your plan has reached its command limit.",
     "command_error_generic": "Error creating command.",
     "active": "active",
     "inactive": "inactive"

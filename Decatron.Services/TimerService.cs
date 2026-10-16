@@ -24,11 +24,15 @@ namespace Decatron.Services
     {
         private readonly DecatronDbContext _context;
         private readonly ILogger<TimerService> _logger;
+        private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;
+        private readonly Decatron.Core.Interfaces.ITenantContext? _tenant;
 
-        public TimerService(DecatronDbContext context, ILogger<TimerService> logger)
+        public TimerService(DecatronDbContext context, ILogger<TimerService> logger, Decatron.Core.Interfaces.IEntitlements? entitlements = null, Decatron.Core.Interfaces.ITenantContext? tenant = null)
         {
             _context = context;
             _logger = logger;
+            _entitlements = entitlements;
+            _tenant = tenant;
         }
 
         /// <summary>
@@ -66,6 +70,10 @@ namespace Decatron.Services
             {
                 throw new InvalidOperationException("Has alcanzado el límite máximo de 20 timers por canal");
             }
+
+            // Plataforma, Fase 5.4: tope de timers del plan (el #1 no tiene). RLS ya limita el conteo al tenant.
+            var quota = await Decatron.Core.Interfaces.EntitlementsGauge.CheckNewAsync(_entitlements, "quota.timers", async () => await _context.Timers.LongCountAsync(), _tenant?.TenantId);
+            if (!quota.IsAllowed) throw new InvalidOperationException("quota_timers_reached");
 
             // Validar campos requeridos
             ValidateTimer(timer);
