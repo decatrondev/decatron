@@ -33,7 +33,7 @@ public sealed class TenantMembership
     }
 
     /// <summary>Da de alta el canal (y la membresia) de un usuario nuevo en su tenant; sin esto el resolutor lo trataria como del #1.</summary>
-    public async Task EnsureChannelAsync(long tenantId, long userId, string twitchId, string login, CancellationToken ct = default)
+    public async Task EnsureChannelAsync(long tenantId, long userId, string twitchId, string login, CancellationToken ct = default, bool addMember = true)
     {
         await using var c = Open();
         await c.OpenAsync(ct);
@@ -49,6 +49,7 @@ public sealed class TenantMembership
             cmd.Parameters.AddWithValue("login", login.ToLowerInvariant());
             await cmd.ExecuteNonQueryAsync(ct);
         }
+        if (addMember)
         await using (var cmd = new NpgsqlCommand(
             "INSERT INTO tenant_members (tenant_id, user_id, role) VALUES (@t, @u, 'viewer') ON CONFLICT DO NOTHING", c, tx))
         {

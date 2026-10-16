@@ -340,9 +340,12 @@ namespace Decatron.Services
                     user = await _userRepository.CreateAsync(user);
                     _logger.LogInformation("Created new user: {Login}", user.Login);
 
-                    // Plataforma: un usuario nuevo de un tenant distinto del #1 necesita su fila de canal; sin ella el resolutor lo daria por del #1.
-                    if (TenantAmbient.Current is long newUserTenant && newUserTenant > 1 && _membership is not null)
-                        await _membership.EnsureChannelAsync(newUserTenant, user.Id, user.TwitchId, user.Login);
+                    // Plataforma: todo usuario nuevo necesita su fila de canal; sin ella el resolutor la marca ambigua (tenant.ambiguous). Los del #1 no entran a tenant_members (solo el dueno).
+                    if (_membership is not null)
+                    {
+                        var newUserTenant = TenantAmbient.Current ?? 1;
+                        await _membership.EnsureChannelAsync(newUserTenant, user.Id, user.TwitchId, user.Login, default, addMember: newUserTenant > 1);
+                    }
 
                     // Asignar tier 'free' al nuevo usuario
                     try
