@@ -44,7 +44,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await _tenants.ForEachTenantAsync("ruleta", _ => RestorePendingModsAsync(), stoppingToken);
+                    await _tenants.ForEachTenantAsync("ruleta", _ => RestorePendingModsAsync(), stoppingToken, module: "module.roulette");
                 }
                 catch (Exception ex)
                 {

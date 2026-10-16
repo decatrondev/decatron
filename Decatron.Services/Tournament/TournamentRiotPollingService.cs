@@ -46,7 +46,7 @@ namespace Decatron.Services.Tournament
             {
                 try
                 {
-                    await _tenants.ForEachTenantAsync("tournament-riot", _ => PollOnceAsync(stoppingToken), stoppingToken);
+                    await _tenants.ForEachTenantAsync("tournament-riot", _ => PollOnceAsync(stoppingToken), stoppingToken, module: "module.tournaments");
                 }
                 catch (Exception ex)
                 {

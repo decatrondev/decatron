@@ -45,7 +45,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await _tenants.ForEachTenantAsync("giveaway", _ => CheckGiveawayTimeouts(), stoppingToken);
+                    await _tenants.ForEachTenantAsync("giveaway", _ => CheckGiveawayTimeouts(), stoppingToken, module: "module.giveaways");
                 }
                 catch (Exception ex)
                 {

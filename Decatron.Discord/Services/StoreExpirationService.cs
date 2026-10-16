@@ -42,7 +42,7 @@ public class StoreExpirationService : BackgroundService
         {
             try
             {
-                await _tenants.ForEachTenantAsync("store-expiry", _ => ProcessExpiredPurchases(), stoppingToken);
+                await _tenants.ForEachTenantAsync("store-expiry", _ => ProcessExpiredPurchases(), stoppingToken, module: "module.discord");
             }
             catch (Exception ex)
             {

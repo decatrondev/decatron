@@ -33,11 +33,25 @@ public class TenantTaskRunnerTests
     {
         public bool Down;
         public Task<bool> IsOperationalAsync(long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult(Down ? live : ok.Contains(t ?? 1));
-        public Task<bool> HasAsync(string f, long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult(true);
+        public HashSet<long> WithoutModule = new();
+        public Task<bool> HasAsync(string f, long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult(!WithoutModule.Contains(t ?? 1));
         public Task<(bool Operational, decimal? Limit)> LimitAsync(string k, long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult((true, (decimal?)null));
         public Task<EntitlementResult> TryConsumeAsync(string k, long a = 1, long? t = null, bool live = false, CancellationToken ct = default) => Task.FromResult(EntitlementResult.Ok());
         public Task<EntitlementResult> CheckGaugeAsync(string k, long c, long a = 1, long? t = null, CancellationToken ct = default) => Task.FromResult(EntitlementResult.Ok());
         public void Invalidate(long? t = null) { }
+    }
+
+    [Fact(DisplayName = "Fase 5.4: con un módulo indicado se omiten los tenants cuyo plan no lo incluye; el #1 siempre corre")]
+    public async Task SinModuloNoCorreLaTarea()
+    {
+        var ops = new Ops(2, 3) { WithoutModule = new HashSet<long> { 1, 3 } };
+        var runner = new TenantTaskRunner(NullLogger<TenantTaskRunner>.Instance, new Store(2, 3), ops);
+        var ran = new List<long>();
+        await runner.ForEachTenantAsync("t", t => { ran.Add(t); return Task.CompletedTask; }, module: "module.timers");
+        Assert.Equal(new long[] { 1, 2 }, ran);
+        ran.Clear();
+        await runner.ForEachTenantAsync("t", t => { ran.Add(t); return Task.CompletedTask; });
+        Assert.Equal(new long[] { 1, 2, 3 }, ran);
     }
 
     [Fact(DisplayName = "Fase 5.5: un tenant suspendido o vencido no corre tareas; el #1 siempre; con la base de planes caída se deja correr")]

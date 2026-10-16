@@ -34,7 +34,7 @@ public class DiscordAlertPollingService : BackgroundService
         {
             try
             {
-                await _tenants.ForEachTenantAsync("discord-alerts", _ => _alertHandler.UpdateActiveAlerts(), stoppingToken);
+                await _tenants.ForEachTenantAsync("discord-alerts", _ => _alertHandler.UpdateActiveAlerts(), stoppingToken, module: "module.discord");
             }
             catch (Exception ex)
             {

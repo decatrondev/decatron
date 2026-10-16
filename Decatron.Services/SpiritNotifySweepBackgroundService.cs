@@ -53,7 +53,7 @@ namespace Decatron.Services
                         var delivery = scope.ServiceProvider.GetRequiredService<ISpiritNotificationDeliveryService>();
                         await delivery.RunTwitchSweepAsync();
                         await delivery.RunDiscordSweepAsync();
-                    }, stoppingToken);
+                    }, stoppingToken, module: "module.spirits");
                 }
                 catch (Exception ex)
                 {

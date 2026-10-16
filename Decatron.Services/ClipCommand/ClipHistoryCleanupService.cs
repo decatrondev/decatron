@@ -31,7 +31,7 @@ namespace Decatron.Services.ClipCommand
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                try { await _tenants.ForEachTenantAsync("clip-history", _ => CleanAsync(stoppingToken), stoppingToken); }
+                try { await _tenants.ForEachTenantAsync("clip-history", _ => CleanAsync(stoppingToken), stoppingToken, module: "module.clips"); }
                 catch (OperationCanceledException) { return; }
                 catch (Exception ex) { _logger.LogError(ex, "[Clip] Error limpiando el historial"); }
 

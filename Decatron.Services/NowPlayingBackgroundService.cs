@@ -58,7 +58,7 @@ namespace Decatron.Services
             {
                 try
                 {
-                    await _tenants.ForEachTenantAsync("nowplaying", _ => PollAllActiveChannels(stoppingToken), stoppingToken);
+                    await _tenants.ForEachTenantAsync("nowplaying", _ => PollAllActiveChannels(stoppingToken), stoppingToken, module: "module.overlays");
                 }
                 catch (Exception ex)
                 {

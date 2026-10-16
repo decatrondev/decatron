@@ -55,14 +55,19 @@ public sealed class TenantTaskRunner
         finally { _gate.Release(); }
     }
 
-    /// <summary>Ejecuta <paramref name="body"/> una vez por tenant, en secuencia. No lanza: los errores de un tenant se registran.</summary>
-    public async Task ForEachTenantAsync(string name, Func<long, Task> body, CancellationToken ct = default)
+    /// <summary>
+    /// Ejecuta <paramref name="body"/> una vez por tenant, en secuencia. No lanza: los errores de un tenant se registran.
+    /// Fase 5.4: con <paramref name="module"/> (p. ej. <c>module.timers</c>) se omiten los tenants cuyo plan no lo incluye; el #1 siempre corre.
+    /// Si no se puede saber (base de planes caída) se deja correr.
+    /// </summary>
+    public async Task ForEachTenantAsync(string name, Func<long, Task> body, CancellationToken ct = default, string? module = null)
     {
         if (ct.IsCancellationRequested) return;
         Exception? firstError = null; // el del #1 se relanza al final para que la tarea lo maneje como siempre
         foreach (var tenant in await GetTenantsAsync(ct))
         {
             if (ct.IsCancellationRequested) return;
+            if (module != null && tenant != 1 && _entitlements != null && !await _entitlements.HasAsync(module, tenant, live: true, ct)) continue;
             var sw = Stopwatch.StartNew();
             try
             {

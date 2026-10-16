@@ -51,7 +51,7 @@ namespace Decatron.Services
                 {
                     try
                     {
-                        await _tenants.ForEachTenantAsync("timers", _ => CheckAndExecuteTimersAsync(), stoppingToken);
+                        await _tenants.ForEachTenantAsync("timers", _ => CheckAndExecuteTimersAsync(), stoppingToken, module: "module.timers");
                     }
                     catch (Exception ex)
                     {

@@ -38,7 +38,7 @@ namespace Decatron.Services
 
                 _logger.LogInformation("🔄 Iniciando restauración de estados de timers...");
 
-                await _tenants.ForEachTenantAsync("timer-restore", _ => RestoreTimerStatesAsync(), stoppingToken);
+                await _tenants.ForEachTenantAsync("timer-restore", _ => RestoreTimerStatesAsync(), stoppingToken, module: "module.timers");
 
                 _logger.LogInformation("✅ TimerStateRestorationService completado");
             }

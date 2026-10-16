@@ -38,6 +38,29 @@ namespace Decatron.Services
         private readonly IBotListService _botList;
 
         private readonly Decatron.Services.Tenancy.TenantShadow _tenantShadow;
+        private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;
+
+        // Plataforma, Fase 5.4: módulo del plan que habilita cada comando del servidor. Lo que no está aquí es base (siempre disponible).
+        private static readonly Dictionary<string, string> ModuleByCommand = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["!dtimer"] = "module.timers", ["!dpause"] = "module.timers", ["!dplay"] = "module.timers", ["!dstart"] = "module.timers",
+            ["!dreset"] = "module.timers", ["!dstop"] = "module.timers", ["!dtiempo"] = "module.timers", ["!dcuando"] = "module.timers",
+            ["!drecord"] = "module.timers", ["!dstats"] = "module.timers", ["!dtop"] = "module.timers",
+            ["!ruleta"] = "module.roulette", ["!dgirar"] = "module.roulette", ["!dcomprar"] = "module.roulette", ["!dcreditos"] = "module.roulette",
+            ["!djoin"] = "module.roulette", ["!drueda"] = "module.roulette",
+            ["!raffle"] = "module.giveaways", ["!join"] = "module.giveaways",
+            ["!spirit"] = "module.spirits", ["!spirits"] = "module.spirits",
+            ["!strikes"] = "module.moderation", ["!resetstrikes"] = "module.moderation", ["!permit"] = "module.moderation", ["!nuke"] = "module.moderation",
+            ["!addword"] = "module.moderation", ["!delword"] = "module.moderation",
+            ["!commands"] = "module.commands",
+        };
+
+        /// <summary>El tenant ambiente tiene el módulo. El #1 siempre; si la base no responde, el chat en vivo sigue (live: true).</summary>
+        private async Task<bool> ModuleOnAsync(string module) =>
+            _entitlements is null || await _entitlements.HasAsync(module, null, live: true);
+
+        private Task<bool> CommandModuleOnAsync(string commandName) =>
+            ModuleByCommand.TryGetValue(commandName, out var module) ? ModuleOnAsync(module) : Task.FromResult(true);
 
         public CommandService(
             ILogger<CommandService> logger,
@@ -51,8 +74,10 @@ namespace Decatron.Services
             IBotListService botList,
             Decatron.Services.ClipCommand.ClipCommandService clipCommand,
             Decatron.Services.Platforms.Kick.KickTitleCategoryHandler kickTitleCategory,
-            Decatron.Services.Tenancy.TenantShadow tenantShadow)
+            Decatron.Services.Tenancy.TenantShadow tenantShadow,
+            Decatron.Core.Interfaces.IEntitlements? entitlements = null)
         {
+            _entitlements = entitlements;
             _tenantShadow = tenantShadow;
             _botList = botList;
             _kickTitleCategory = kickTitleCategory;
@@ -639,7 +664,7 @@ namespace Decatron.Services
                 }
 
                 // 1. COMANDOS DEL SERVIDOR (registrados en _commands)
-                if (_commands.TryGetValue(commandName, out var command))
+                if (_commands.TryGetValue(commandName, out var command) && await CommandModuleOnAsync(commandName))
                 {
                     _logger.LogInformation($"✅ Ejecutando comando del servidor {commandName} por {username} en {channel}");
                     var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
@@ -711,7 +736,7 @@ namespace Decatron.Services
 
                 // 1e. SONG REQUEST — solo si el módulo está activo en el canal; si no, sigue de largo
                 // (un !song custom del streamer no se pierde por no usar el módulo)
-                if (Decatron.Services.SongRequest.SongRequestChatHandler.IsSongRequestCommand(commandName))
+                if (Decatron.Services.SongRequest.SongRequestChatHandler.IsSongRequestCommand(commandName) && await ModuleOnAsync("module.song_request"))
                 {
                     var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
                     if (await _songRequestHandler.TryHandleAsync(ctx, _messageSender))
@@ -720,7 +745,7 @@ namespace Decatron.Services
 
                 // 1f. !clip — solo si el canal lo activó (con sus alias); si no, sigue de largo
                 // (un !clip propio del streamer no se pierde por no usar el módulo)
-                if (commandName.StartsWith("!") && channelUserId != null)
+                if (commandName.StartsWith("!") && channelUserId != null && await ModuleOnAsync("module.clips"))
                 {
                     var clipCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
                     if (await _clipCommand.TryHandleAsync(clipCtx, _messageSender))
@@ -732,29 +757,32 @@ namespace Decatron.Services
                     _logger.LogDebug($"❌ Comando '{commandName}' no encontrado en _commands");
                 }
 
+                // Fase 5.4: sin el módulo de comandos del plan no hay comandos propios (crear/editar/borrar, micro y custom)
+                var commandsOn = await ModuleOnAsync("module.commands");
+
                 // 2. COMANDOS ESPECIALES del servidor
-                if (commandName == "!crear")
+                if (commandName == "!crear" && commandsOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !crear por {username} en {channel}");
                     await ProcessCreateCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
                     return;
                 }
 
-                if (commandName == "!editcom")
+                if (commandName == "!editcom" && commandsOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !editcom por {username} en {channel}");
                     await ProcessEditCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
                     return;
                 }
 
-                if (commandName == "!delcom")
+                if (commandName == "!delcom" && commandsOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !delcom por {username} en {channel}");
                     await ProcessDeleteCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
                     return;
                 }
 
-                if (commandName == "!g")
+                if (commandName == "!g" && commandsOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !g por {username} en {channel}");
                     await ProcessGCommand(username, channel, chatMessage);
@@ -762,7 +790,7 @@ namespace Decatron.Services
                 }
 
                 // 3a. MICRO COMANDOS EN KICK: se guardan por cuenta (login de la fila principal), no por el id numérico del chat de Kick
-                if (platform == "kick" && commandName.StartsWith("!") && channelUserId != null)
+                if (commandsOn && platform == "kick" && commandName.StartsWith("!") && channelUserId != null)
                 {
                     var microOwner = await _kickTitleCategory.MicroOwnerLoginAsync(channelUserId.Value);
                     if (microOwner != null && _microCommandsCache.TryGetValue(microOwner, out var kickMicros)
@@ -775,7 +803,7 @@ namespace Decatron.Services
                 }
 
                 // 3. MICRO COMANDOS (requieren !)
-                if (commandName.StartsWith("!"))
+                if (commandsOn && commandName.StartsWith("!"))
                 {
                     var baseCommand = commandName.Substring(1);
                     if (_microCommandsCache.ContainsKey(channel) &&
@@ -787,14 +815,14 @@ namespace Decatron.Services
                 }
 
                 // 3b. COMANDOS DE LA MASCOTA (definidos por el streamer en /overlays/pets)
-                if (commandName.StartsWith("!"))
+                if (commandName.StartsWith("!") && await ModuleOnAsync("module.pets"))
                 {
                     if (await _petEventBridge.TryHandleCommandAsync(channel, username, commandName.Substring(1), isBroadcaster, isModerator || isLeadModerator, isVip, isSubscriber))
                         return;
                 }
 
                 // 4. COMANDOS CUSTOM del streamer (de la BD)
-                await ProcessCustomCommandAsync(username, channel, commandName, chatMessage);
+                if (commandsOn) await ProcessCustomCommandAsync(username, channel, commandName, chatMessage);
 
                 _logger.LogDebug($"Comando desconocido: {commandName} por {username} en {channel}");
             }

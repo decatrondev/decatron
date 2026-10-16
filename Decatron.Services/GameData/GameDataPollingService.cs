@@ -255,7 +255,7 @@ namespace Decatron.Services.GameData
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                try { await _tenants.ForEachTenantAsync("game-data", _ => TickAsync(stoppingToken), stoppingToken); }
+                try { await _tenants.ForEachTenantAsync("game-data", _ => TickAsync(stoppingToken), stoppingToken, module: "module.game_overlays"); }
                 catch (OperationCanceledException) { }
                 catch (Exception ex) { _logger.LogError(ex, "Error en el tick de GameDataPollingService"); }
 
