@@ -21,6 +21,7 @@ namespace Decatron.Controllers
         private readonly TwitchBotService _botService;
         private readonly VariableResolver _variableResolver;
         private readonly DecatronDbContext _context;
+        private readonly Decatron.Core.Interfaces.ISettingsService _settingsService;
 
         public TimersController(
             ITimerService timerService,
@@ -28,8 +29,10 @@ namespace Decatron.Controllers
             ILogger<TimersController> logger,
             TwitchBotService botService,
             VariableResolver variableResolver,
-            DecatronDbContext context)
+            DecatronDbContext context,
+            Decatron.Core.Interfaces.ISettingsService settingsService)
         {
+            _settingsService = settingsService;
             _timerService = timerService;
             _permissionService = permissionService;
             _logger = logger;
@@ -380,13 +383,13 @@ namespace Decatron.Controllers
                 }
 
                 // Verificar que el canal está conectado
-                var connectedChannels = _botService.GetConnectedChannels();
-                if (!connectedChannels.Any(c => c.Equals(channelName, StringComparison.OrdinalIgnoreCase)))
+                // El envío va por Helix; el IRC no interviene. Lo que hace falta es que el bot esté habilitado en el canal.
+                if (!await _settingsService.IsBotEnabledForChannelAsync(channelName))
                 {
                     return BadRequest(new
                     {
                         success = false,
-                        message = "El bot no está conectado al canal. Por favor, conecta el bot primero."
+                        message = "El bot no está habilitado en el canal. Por favor, habilita el bot primero."
                     });
                 }
 

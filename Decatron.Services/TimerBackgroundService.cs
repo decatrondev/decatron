@@ -71,6 +71,17 @@ namespace Decatron.Services
             }
         }
 
+        private readonly Dictionary<string, (bool Enabled, DateTime At)> _botEnabledCache = new();
+
+        private async Task<bool> IsBotEnabledCachedAsync(IServiceScope scope, string channelName)
+        {
+            var key = $"{Decatron.Core.Interfaces.TenantAmbient.Current ?? 1}:{channelName.ToLowerInvariant()}";
+            if (_botEnabledCache.TryGetValue(key, out var hit) && DateTime.UtcNow - hit.At < TimeSpan.FromSeconds(30)) return hit.Enabled;
+            var enabled = await scope.ServiceProvider.GetRequiredService<Decatron.Core.Interfaces.ISettingsService>().IsBotEnabledForChannelAsync(channelName);
+            _botEnabledCache[key] = (enabled, DateTime.UtcNow);
+            return enabled;
+        }
+
         private async Task CheckAndExecuteTimersAsync()
         {
             _logger.LogDebug("⏰ CheckAndExecuteTimersAsync iniciado");
@@ -306,12 +317,10 @@ namespace Decatron.Services
                     }
 
                     // Verificar si el canal está conectado al bot
-                    // El IRC es respaldo solo del #1: los canales de otros tenants reciben por EventSub y no figuran como conectados
-                    var connectedChannels = botService.GetConnectedChannels();
-                    if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) == 1
-                        && !connectedChannels.Any(c => c.Equals(channelName, StringComparison.OrdinalIgnoreCase)))
+                    // El chat entra y sale por EventSub/Helix (el IRC es solo respaldo del #1): lo que cuenta es que el bot esté habilitado
+                    if (!await IsBotEnabledCachedAsync(scope, channelName))
                     {
-                        _logger.LogDebug($"⏭️ Canal {channelName} no está conectado, saltando timers");
+                        _logger.LogDebug($"⏭️ Bot deshabilitado en {channelName}, saltando timers");
                         continue;
                     }
 

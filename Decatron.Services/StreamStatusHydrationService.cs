@@ -82,7 +82,13 @@ namespace Decatron.Services
             var twitchApiService = scope.ServiceProvider.GetRequiredService<TwitchApiService>();
             var streamStatusService = scope.ServiceProvider.GetRequiredService<IStreamStatusService>();
 
-            var pending = botService.GetConnectedChannels()
+            // Canales con el bot habilitado según la BD (el IRC es solo respaldo del #1 y no lista los canales de otros tenants)
+            var enabledLogins = await (from u in db.Users.AsNoTracking()
+                                       join s in db.SystemSettings.AsNoTracking() on u.Id equals s.UserId into st
+                                       from s in st.DefaultIfEmpty()
+                                       where u.IsActive && u.TwitchId != null && (s == null || s.BotEnabled)
+                                       select u.Login).ToListAsync(stoppingToken);
+            var pending = enabledLogins
                 .Where(c => !alreadyChecked.Contains(c))
                 .ToList();
 
