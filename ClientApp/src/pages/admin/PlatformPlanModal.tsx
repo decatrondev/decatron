@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
-import { Alert, Badge, Button, Field, Input, Select, Spinner } from '../../components/ds';
+import { Alert, Badge, Button, Card, Field, Input, Progress, Select, Spinner, Table, Tabs } from '../../components/ds';
 import ModalShell from '../../components/dashboard/ModalShell';
 import api from '../../services/api';
 
@@ -17,6 +17,18 @@ interface Detail { subscription: Sub | null; overrides: Override[]; addons: Addo
 
 const STATUSES = ['sandbox', 'active', 'past_due', 'suspended', 'cancelled'];
 const PERIODS = ['', '1', '3', '6', '9', '12'];
+
+function Meter({ label, used, limit, unlimited, of }: { label: string; used: number; limit: number | null; unlimited: string; of: string }) {
+    return (
+        <div className="space-y-1.5">
+            <div className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="text-ds-soft">{label}</span>
+                <span className="font-semibold text-ds-text">{limit === null ? `${used} · ${unlimited}` : of}</span>
+            </div>
+            {limit !== null && <Progress value={limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 100} />}
+        </div>
+    );
+}
 
 export default function PlatformPlanModal({ tenantId, tenantName, tenantSlug, onClose, onChanged }: { tenantId: number; tenantName: string; tenantSlug: string; onClose: () => void; onChanged: () => void }) {
     const { t, i18n } = useTranslation('platform');
@@ -38,6 +50,7 @@ export default function PlatformPlanModal({ tenantId, tenantName, tenantSlug, on
     const [adSource, setAdSource] = useState('purchase');
     const [confirmPurge, setConfirmPurge] = useState('');
     const [purging, setPurging] = useState(false);
+    const [tab, setTab] = useState('plan');
 
     const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(i18n.language) : '—');
     const capLabel = (k: string) => t(`tenants.plan.caps.${k}`, { defaultValue: k });
@@ -108,146 +121,156 @@ export default function PlatformPlanModal({ tenantId, tenantName, tenantSlug, on
         setBusy(false);
     };
 
+    const removeBtn = (onClick: () => void) => (
+        <Button size="sm" variant="ghost" icon={<Trash2 className="w-4 h-4" />} disabled={busy} onClick={onClick}>{t('tenants.remove')}</Button>
+    );
+    const capSelect = (value: string, set: (v: string) => void, setVal: (v: string) => void) => (
+        <Select value={value} onChange={e => { set(e.target.value); if (isFlag(e.target.value)) setVal('1'); }}>
+            <option value="">—</option>
+            {caps.map(c => <option key={c.key} value={c.key}>{capLabel(c.key)}</option>)}
+        </Select>
+    );
+
     return (
         <ModalShell title={t('tenants.plan.title', { name: tenantName })} size="xl" onClose={() => !busy && onClose()}
             actions={<Button variant="ghost" onClick={onClose} disabled={busy}>{t('tenants.close')}</Button>}>
             {!d ? <div className="flex justify-center py-8"><Spinner /></div> : (
-                <div className="space-y-6">
+                <div className="space-y-5">
                     {note && <Alert tone={note.ok ? 'ok' : 'danger'}>{note.text}</Alert>}
 
-                    <section className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-bold text-ds-text">{t('tenants.plan.current')}</span>
+                    <Card>
+                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                            <span className="text-sm text-ds-soft">{t('tenants.plan.current')}</span>
+                            {d.subscription ? <Badge tone="accent">{d.subscription.planName}</Badge> : <Badge>—</Badge>}
                             <Badge tone={d.operational ? 'ok' : 'danger'}>{d.operational ? t('tenants.plan.operational') : t('tenants.plan.paused')}</Badge>
-                            {d.subscription && <Badge tone="accent">{d.subscription.planName}</Badge>}
+                            {d.subscription?.sandboxEndsAt && d.subscription.status === 'sandbox' && <span className="text-sm text-ds-soft">{t('tenants.plan.sandboxEnds', { date: fmtDate(d.subscription.sandboxEndsAt) })}</span>}
                         </div>
-                        <p className="text-sm text-ds-soft">
-                            {t('tenants.plan.usageLine', { channels: d.channels.used, channelsLimit: d.channels.limit ?? '∞', admins: d.admins.used, adminsLimit: d.admins.limit ?? '∞' })}
-                        </p>
-                        {d.subscription?.sandboxEndsAt && d.subscription.status === 'sandbox' && <p className="text-sm text-ds-soft">{t('tenants.plan.sandboxEnds', { date: fmtDate(d.subscription.sandboxEndsAt) })}</p>}
-                    </section>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                            <Meter label={t('tenants.plan.channels')} used={d.channels.used} limit={d.channels.limit} unlimited={t('tenants.plan.unlimited')} of={t('tenants.plan.of', { used: d.channels.used, limit: d.channels.limit })} />
+                            <Meter label={t('tenants.plan.admins')} used={d.admins.used} limit={d.admins.limit} unlimited={t('tenants.plan.unlimited')} of={t('tenants.plan.of', { used: d.admins.used, limit: d.admins.limit })} />
+                        </div>
+                    </Card>
 
-                    <section className="space-y-3 pt-3 border-t border-ds-border">
-                        <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.assign')}</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <Field label={t('tenants.plan.plan')}>
-                                <Select value={planKey} onChange={e => setPlanKey(e.target.value)}>
-                                    <option value="">—</option>
-                                    {plans.map(p => <option key={p.key} value={p.key}>{p.name}</option>)}
-                                </Select>
-                            </Field>
-                            <Field label={t('tenants.plan.status')}>
-                                <Select value={status} onChange={e => setStatus(e.target.value)}>
-                                    {STATUSES.map(s => <option key={s} value={s}>{t(`tenants.plan.statuses.${s}`)}</option>)}
-                                </Select>
-                            </Field>
-                            <Field label={t('tenants.plan.period')}>
-                                <Select value={period} onChange={e => setPeriod(e.target.value)}>
-                                    {PERIODS.map(p => <option key={p} value={p}>{p ? t('tenants.plan.months', { n: p }) : '—'}</option>)}
-                                </Select>
-                            </Field>
-                            <Field label={t('tenants.plan.endsAt')} hint={t('tenants.plan.endsAtHint')}>
-                                <Input type="date" value={endsAt} onChange={e => setEndsAt(e.target.value)} />
-                            </Field>
-                        </div>
-                        {status === 'suspended' && <Field label={t('tenants.plan.reason')}><Input value={reason} maxLength={200} onChange={e => setReason(e.target.value)} /></Field>}
-                        {status === 'sandbox' && <p className="text-sm text-ds-soft">{t('tenants.plan.sandboxHelp')}</p>}
-                        <Button onClick={savePlan} loading={busy} disabled={!planKey}>{t('tenants.plan.save')}</Button>
-                    </section>
+                    <Tabs value={tab} onChange={setTab} items={[
+                        { id: 'plan', label: t('tenants.plan.tabs.plan') },
+                        { id: 'overrides', label: t('tenants.plan.tabs.overrides') },
+                        { id: 'addons', label: t('tenants.plan.tabs.addons') },
+                        { id: 'data', label: t('tenants.plan.tabs.data') },
+                    ]} />
 
-                    <section className="space-y-3 pt-3 border-t border-ds-border">
-                        <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.overridesTitle')}</h3>
-                        <p className="text-sm text-ds-soft">{t('tenants.plan.overridesHelp')}</p>
-                        {d.overrides.length === 0 ? <p className="text-sm text-ds-soft">{t('tenants.plan.none')}</p> : (
-                            <ul className="space-y-1">
-                                {d.overrides.map(o => (
-                                    <li key={o.key} className="flex flex-wrap items-center gap-2 text-sm">
-                                        <span className="text-ds-text">{capLabel(o.key)}</span><Badge>{valueText(o.value)}</Badge>
-                                        {o.reason && <span className="text-ds-soft">{o.reason}</span>}
-                                        <Button size="sm" variant="ghost" icon={<Trash2 className="w-4 h-4" />} disabled={busy}
-                                            onClick={() => run(() => api.delete(`/admin/platform/tenants/${tenantId}/overrides/${encodeURIComponent(o.key)}`), t('tenants.plan.removed'))}>{t('tenants.remove')}</Button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        <div className="grid grid-cols-1 sm:grid-cols-[1fr_8rem_1fr_auto] gap-2 items-end">
-                            <Field label={t('tenants.plan.capability')}>
-                                <Select value={ovKey} onChange={e => { setOvKey(e.target.value); if (isFlag(e.target.value)) setOvValue('1'); }}>
-                                    <option value="">—</option>
-                                    {caps.map(c => <option key={c.key} value={c.key}>{capLabel(c.key)}</option>)}
-                                </Select>
-                            </Field>
-                            <Field label={t('tenants.plan.value')} hint={isFlag(ovKey) ? t('tenants.plan.flagHint') : t('tenants.plan.valueHint')}>
-                                <Input type="number" min={0} value={ovValue} onChange={e => setOvValue(e.target.value)} />
-                            </Field>
-                            <Field label={t('tenants.plan.reason')}><Input value={ovReason} maxLength={200} onChange={e => setOvReason(e.target.value)} /></Field>
-                            <Button variant="secondary" onClick={saveOverride} loading={busy} disabled={!ovKey}>{t('tenants.plan.add')}</Button>
-                        </div>
-                    </section>
-
-                    <section className="space-y-3 pt-3 border-t border-ds-border">
-                        <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.addonsTitle')}</h3>
-                        <p className="text-sm text-ds-soft">{t('tenants.plan.addonsHelp')}</p>
-                        {d.addons.length === 0 ? <p className="text-sm text-ds-soft">{t('tenants.plan.none')}</p> : (
-                            <ul className="space-y-1">
-                                {d.addons.map(a => (
-                                    <li key={a.id} className="flex flex-wrap items-center gap-2 text-sm">
-                                        <span className="text-ds-text">{capLabel(a.key)}</span><Badge>{valueText(a.value)}</Badge>
-                                        <span className="text-ds-soft">{t(`tenants.plan.sources.${a.source}`)} · {t('tenants.plan.until', { date: fmtDate(a.endsAt) })}</span>
-                                        <Button size="sm" variant="ghost" icon={<Trash2 className="w-4 h-4" />} disabled={busy}
-                                            onClick={() => run(() => api.delete(`/admin/platform/tenants/${tenantId}/addons/${a.id}`), t('tenants.plan.removed'))}>{t('tenants.remove')}</Button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        <div className="grid grid-cols-1 sm:grid-cols-[1fr_8rem_9rem_auto] gap-2 items-end">
-                            <Field label={t('tenants.plan.capability')}>
-                                <Select value={adKey} onChange={e => { setAdKey(e.target.value); if (isFlag(e.target.value)) setAdValue('1'); }}>
-                                    <option value="">—</option>
-                                    {caps.map(c => <option key={c.key} value={c.key}>{capLabel(c.key)}</option>)}
-                                </Select>
-                            </Field>
-                            <Field label={t('tenants.plan.value')} hint={isFlag(adKey) ? t('tenants.plan.flagHint') : t('tenants.plan.valueHint')}>
-                                <Input type="number" min={0} value={adValue} onChange={e => setAdValue(e.target.value)} />
-                            </Field>
-                            <Field label={t('tenants.plan.source')}>
-                                <Select value={adSource} onChange={e => setAdSource(e.target.value)}>
-                                    {['purchase', 'gift', 'pilot'].map(s => <option key={s} value={s}>{t(`tenants.plan.sources.${s}`)}</option>)}
-                                </Select>
-                            </Field>
-                            <Button variant="secondary" onClick={saveAddon} loading={busy} disabled={!adKey}>{t('tenants.plan.add')}</Button>
-                        </div>
-                    </section>
-
-                    <section className="space-y-3 pt-3 border-t border-ds-border">
-                        <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.dataTitle')}</h3>
-                        <p className="text-sm text-ds-soft">{t('tenants.plan.dataHelp')}</p>
-                        <div className="flex flex-wrap gap-2">
-                            <Button size="sm" variant="secondary" loading={busy} onClick={exportData}>{t('tenants.plan.export')}</Button>
-                            {!purging && <Button size="sm" variant="ghost" onClick={() => setPurging(true)}>{t('tenants.plan.purgeStart')}</Button>}
-                        </div>
-                        {purging && (
-                            <div className="space-y-3">
-                                <Alert tone="danger">{t('tenants.plan.purgeWarn', { slug: tenantSlug })}</Alert>
-                                <Field label={t('tenants.plan.purgeConfirm', { slug: tenantSlug })}>
-                                    <Input value={confirmPurge} onChange={e => setConfirmPurge(e.target.value)} autoComplete="off" spellCheck={false} />
-                                </Field>
-                                <div className="flex gap-2">
-                                    <Button variant="ghost" onClick={() => { setPurging(false); setConfirmPurge(''); }} disabled={busy}>{t('admin.cancel')}</Button>
-                                    <Button variant="danger" loading={busy} disabled={confirmPurge.trim() !== tenantSlug} onClick={purge}>{t('tenants.plan.purge')}</Button>
+                    {tab === 'plan' && (
+                        <div className="space-y-6">
+                            <section className="space-y-3">
+                                <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.assign')}</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <Field label={t('tenants.plan.plan')}>
+                                        <Select value={planKey} onChange={e => setPlanKey(e.target.value)}>
+                                            <option value="">—</option>
+                                            {plans.map(p => <option key={p.key} value={p.key}>{p.name}</option>)}
+                                        </Select>
+                                    </Field>
+                                    <Field label={t('tenants.plan.status')}>
+                                        <Select value={status} onChange={e => setStatus(e.target.value)}>
+                                            {STATUSES.map(s => <option key={s} value={s}>{t(`tenants.plan.statuses.${s}`)}</option>)}
+                                        </Select>
+                                    </Field>
+                                    <Field label={t('tenants.plan.period')}>
+                                        <Select value={period} onChange={e => setPeriod(e.target.value)}>
+                                            {PERIODS.map(p => <option key={p} value={p}>{p ? t('tenants.plan.months', { n: p }) : '—'}</option>)}
+                                        </Select>
+                                    </Field>
+                                    <Field label={t('tenants.plan.endsAt')} hint={t('tenants.plan.endsAtHint')}>
+                                        <Input type="date" value={endsAt} onChange={e => setEndsAt(e.target.value)} />
+                                    </Field>
                                 </div>
-                            </div>
-                        )}
-                    </section>
+                                {status === 'suspended' && <Field label={t('tenants.plan.reason')}><Input value={reason} maxLength={200} onChange={e => setReason(e.target.value)} /></Field>}
+                                {status === 'sandbox' && <Alert tone="info">{t('tenants.plan.sandboxHelp')}</Alert>}
+                                <Button onClick={savePlan} loading={busy} disabled={!planKey}>{t('tenants.plan.save')}</Button>
+                            </section>
 
-                    <section className="space-y-2 pt-3 border-t border-ds-border">
-                        <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.usageTitle')}</h3>
-                        {d.usage.length === 0 ? <p className="text-sm text-ds-soft">{t('tenants.plan.noUsage')}</p> : (
-                            <ul className="text-sm space-y-1">
-                                {d.usage.map(u => <li key={u.key + u.periodStart} className="flex gap-2"><span className="text-ds-text">{capLabel(u.key)}</span><span className="text-ds-soft">{u.periodStart}</span><Badge>{u.used}</Badge></li>)}
-                            </ul>
-                        )}
-                    </section>
+                            <section className="space-y-3">
+                                <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.usageTitle')}</h3>
+                                {d.usage.length === 0 ? <p className="text-sm text-ds-soft">{t('tenants.plan.noUsage')}</p> : (
+                                    <Table align={['left', 'left', 'right']}
+                                        head={[t('tenants.plan.capability'), t('tenants.plan.since'), t('tenants.plan.used')]}
+                                        rows={d.usage.map(u => [capLabel(u.key), u.periodStart, u.used])} />
+                                )}
+                            </section>
+                        </div>
+                    )}
+
+                    {tab === 'overrides' && (
+                        <section className="space-y-4">
+                            <p className="text-sm text-ds-soft">{t('tenants.plan.overridesHelp')}</p>
+                            {d.overrides.length === 0 ? <p className="text-sm text-ds-soft">{t('tenants.plan.none')}</p> : (
+                                <Table align={['left', 'left', 'left', 'right']}
+                                    head={[t('tenants.plan.capability'), t('tenants.plan.value'), t('tenants.plan.reason'), '']}
+                                    rows={d.overrides.map(o => [capLabel(o.key), <Badge key="v">{valueText(o.value)}</Badge>, o.reason ?? '—',
+                                        removeBtn(() => run(() => api.delete(`/admin/platform/tenants/${tenantId}/overrides/${encodeURIComponent(o.key)}`), t('tenants.plan.removed')))])} />
+                            )}
+                            <Card>
+                                <div className="grid grid-cols-1 sm:grid-cols-[1fr_8rem_1fr_auto] gap-3 items-end">
+                                    <Field label={t('tenants.plan.capability')}>{capSelect(ovKey, setOvKey, setOvValue)}</Field>
+                                    <Field label={t('tenants.plan.value')} hint={isFlag(ovKey) ? t('tenants.plan.flagHint') : t('tenants.plan.valueHint')}>
+                                        <Input type="number" min={0} value={ovValue} onChange={e => setOvValue(e.target.value)} />
+                                    </Field>
+                                    <Field label={t('tenants.plan.reason')}><Input value={ovReason} maxLength={200} onChange={e => setOvReason(e.target.value)} /></Field>
+                                    <Button variant="secondary" onClick={saveOverride} loading={busy} disabled={!ovKey}>{t('tenants.plan.add')}</Button>
+                                </div>
+                            </Card>
+                        </section>
+                    )}
+
+                    {tab === 'addons' && (
+                        <section className="space-y-4">
+                            <p className="text-sm text-ds-soft">{t('tenants.plan.addonsHelp')}</p>
+                            {d.addons.length === 0 ? <p className="text-sm text-ds-soft">{t('tenants.plan.none')}</p> : (
+                                <Table align={['left', 'left', 'left', 'left', 'right']}
+                                    head={[t('tenants.plan.capability'), t('tenants.plan.value'), t('tenants.plan.source'), t('tenants.plan.untilHead'), '']}
+                                    rows={d.addons.map(a => [capLabel(a.key), <Badge key="v">{valueText(a.value)}</Badge>, t(`tenants.plan.sources.${a.source}`), fmtDate(a.endsAt),
+                                        removeBtn(() => run(() => api.delete(`/admin/platform/tenants/${tenantId}/addons/${a.id}`), t('tenants.plan.removed')))])} />
+                            )}
+                            <Card>
+                                <div className="grid grid-cols-1 sm:grid-cols-[1fr_8rem_9rem_auto] gap-3 items-end">
+                                    <Field label={t('tenants.plan.capability')}>{capSelect(adKey, setAdKey, setAdValue)}</Field>
+                                    <Field label={t('tenants.plan.value')} hint={isFlag(adKey) ? t('tenants.plan.flagHint') : t('tenants.plan.valueHint')}>
+                                        <Input type="number" min={0} value={adValue} onChange={e => setAdValue(e.target.value)} />
+                                    </Field>
+                                    <Field label={t('tenants.plan.source')}>
+                                        <Select value={adSource} onChange={e => setAdSource(e.target.value)}>
+                                            {['purchase', 'gift', 'pilot'].map(s => <option key={s} value={s}>{t(`tenants.plan.sources.${s}`)}</option>)}
+                                        </Select>
+                                    </Field>
+                                    <Button variant="secondary" onClick={saveAddon} loading={busy} disabled={!adKey}>{t('tenants.plan.add')}</Button>
+                                </div>
+                            </Card>
+                        </section>
+                    )}
+
+                    {tab === 'data' && (
+                        <section className="space-y-4">
+                            <h3 className="text-sm font-bold text-ds-text">{t('tenants.plan.dataTitle')}</h3>
+                            <p className="text-sm text-ds-soft">{t('tenants.plan.dataHelp')}</p>
+                            <div className="flex flex-wrap gap-2">
+                                <Button size="sm" variant="secondary" loading={busy} onClick={exportData}>{t('tenants.plan.export')}</Button>
+                                {!purging && <Button size="sm" variant="danger" onClick={() => setPurging(true)}>{t('tenants.plan.purgeStart')}</Button>}
+                            </div>
+                            {purging && (
+                                <Card>
+                                    <div className="space-y-3">
+                                        <Alert tone="danger">{t('tenants.plan.purgeWarn', { slug: tenantSlug })}</Alert>
+                                        <Field label={t('tenants.plan.purgeConfirm', { slug: tenantSlug })}>
+                                            <Input value={confirmPurge} onChange={e => setConfirmPurge(e.target.value)} autoComplete="off" spellCheck={false} />
+                                        </Field>
+                                        <div className="flex gap-2">
+                                            <Button variant="ghost" onClick={() => { setPurging(false); setConfirmPurge(''); }} disabled={busy}>{t('admin.cancel')}</Button>
+                                            <Button variant="danger" loading={busy} disabled={confirmPurge.trim() !== tenantSlug} onClick={purge}>{t('tenants.plan.purge')}</Button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            )}
+                        </section>
+                    )}
                 </div>
             )}
         </ModalShell>

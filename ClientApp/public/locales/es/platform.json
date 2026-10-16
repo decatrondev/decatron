@@ -453,7 +453,19 @@
       "purgeWarn": "Esto borra TODOS los datos de «{{slug}}»: canales, configuración, historial, credenciales y cuentas propias. No se puede deshacer. Exporta antes si hace falta.",
       "purgeConfirm": "Escribe «{{slug}}» para confirmar",
       "purge": "Borrar definitivamente",
-      "purged": "Datos borrados: {{rows}} filas en {{tables}} tablas."
+      "purged": "Datos borrados: {{rows}} filas en {{tables}} tablas.",
+      "channels": "Canales",
+      "admins": "Administradores",
+      "of": "{{used}} de {{limit}}",
+      "since": "Periodo desde",
+      "used": "Usado",
+      "untilHead": "Hasta",
+      "tabs": {
+        "plan": "Plan y uso",
+        "overrides": "Ajustes",
+        "addons": "Complementos",
+        "data": "Datos"
+      }
     }
   }
 }

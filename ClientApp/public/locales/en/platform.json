@@ -453,7 +453,19 @@
       "purgeWarn": "This deletes ALL data of \"{{slug}}\": channels, settings, history, credentials and its own accounts. It cannot be undone. Export first if needed.",
       "purgeConfirm": "Type \"{{slug}}\" to confirm",
       "purge": "Delete permanently",
-      "purged": "Data deleted: {{rows}} rows in {{tables}} tables."
+      "purged": "Data deleted: {{rows}} rows in {{tables}} tables.",
+      "channels": "Channels",
+      "admins": "Administrators",
+      "of": "{{used}} of {{limit}}",
+      "since": "Period start",
+      "used": "Used",
+      "untilHead": "Until",
+      "tabs": {
+        "plan": "Plan and usage",
+        "overrides": "Overrides",
+        "addons": "Add-ons",
+        "data": "Data"
+      }
     }
   }
 }
