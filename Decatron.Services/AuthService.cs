@@ -54,8 +54,8 @@ namespace Decatron.Services
         }
 
         /// <summary>Permisos extra para moderar el chat desde el Multi-view; solo se piden a quien los necesita.</summary>
-        /// <summary>Permisos de la cuenta de bot de un tenant: leer/escribir chat y actuar como bot.</summary>
-        public const string BotScopes = "user:read:chat user:write:chat user:bot";
+        /// <summary>Permisos de la cuenta de bot de un tenant: leer/escribir chat, actuar como bot y moderar (timeout, borrar mensajes: !ruleta, filtros, pánico).</summary>
+        public const string BotScopes = "user:read:chat user:write:chat user:bot moderator:manage:chat_messages moderator:manage:banned_users";
 
         public const string ModerationScopes = "moderator:manage:chat_messages moderator:manage:banned_users";
 

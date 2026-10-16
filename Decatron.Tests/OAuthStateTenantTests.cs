@@ -69,5 +69,5 @@ public class OAuthStateBotTests
 
     [Fact]
     public void LosPermisosDelBotSonSoloLosDeEscribirComoBot()
-        => Assert.Equal("user:read:chat user:write:chat user:bot", AuthService.BotScopes);
+        => Assert.Equal("user:read:chat user:write:chat user:bot moderator:manage:chat_messages moderator:manage:banned_users", AuthService.BotScopes);
 }
