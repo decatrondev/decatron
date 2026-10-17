@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Download, ListChecks, Trash2 } from 'lucide-react';
+import { Check, Download, ListChecks, Trash2 } from 'lucide-react';
 import { Alert, Badge, Button, Spinner, Table } from '../../components/ds';
 import ModalShell from '../../components/dashboard/ModalShell';
 import { ConfigCard, ConfigHeader } from '../../components/dashboard/config';
 import api from '../../services/api';
+import PlatformApprovals, { type Approval } from './PlatformApprovals';
 
-// Lista de espera de la plataforma (decatron.top). .dev/plans/PLATAFORMA_PLAN.md, Fase L.
+// Lista de espera de la plataforma (decatron.top). .dev/plans/plataforma/PLATAFORMA_PLAN.md, Fase L.
 // Las altas llegan de la landing; aquí el dueño las revisa, exporta y borra. Los endpoints son solo del dueño.
 
 interface Row {
@@ -30,6 +31,23 @@ export default function PlatformWaitlistAdmin() {
     const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
     const [toDelete, setToDelete] = useState<Row | null>(null);
     const [busy, setBusy] = useState(false);
+    const [approvals, setApprovals] = useState<Approval[]>([]);
+    const [mode, setMode] = useState('approval');
+
+    const loadApprovals = useCallback(async () => {
+        try { const res = await api.get('/admin/platform/approvals'); setApprovals(res.data.items); setMode(res.data.mode); } catch { /* la lista de espera sigue funcionando */ }
+    }, []);
+    useEffect(() => { loadApprovals(); }, [loadApprovals]);
+    const approvedSet = new Set(approvals.map(a => a.email));
+    const toggleApproval = async (r: Row) => {
+        setBusy(true);
+        try {
+            if (approvedSet.has(r.email.toLowerCase())) await api.delete('/admin/platform/approvals', { params: { email: r.email } });
+            else await api.post('/admin/platform/approvals', { email: r.email, note: t('admin.approvals.fromWaitlist') });
+            await loadApprovals();
+        } catch { setNote({ ok: false, text: t('admin.approvals.failed') }); }
+        setBusy(false);
+    };
 
     const load = useCallback(async (p: number) => {
         try {
@@ -110,6 +128,8 @@ export default function PlatformWaitlistAdmin() {
                 </ConfigCard>
             </div>
 
+            <PlatformApprovals items={approvals} mode={mode} onChanged={loadApprovals} />
+
             <ConfigCard icon={<ListChecks />} title={t('admin.listTitle')}>
                 <div className="flex flex-wrap gap-2 mb-4">
                     <Button variant="secondary" size="sm" icon={<Download className="w-4 h-4" />} onClick={() => exportCsv(true)}>{t('admin.exportConfirmed')}</Button>
@@ -121,13 +141,16 @@ export default function PlatformWaitlistAdmin() {
                 ) : (
                     <div className="overflow-x-auto">
                         <Table
-                            head={[t('admin.colEmail'), t('admin.colUse'), t('admin.colPlatform'), t('admin.colState'), t('admin.colDate'), '']}
+                            head={[t('admin.colEmail'), t('admin.colUse'), t('admin.colPlatform'), t('admin.colState'), t('admin.colDate'), t('admin.approvals.colSignup'), '']}
                             rows={data.items.map(r => [
                                 <span className="font-bold text-ds-text break-all">{r.email}</span>,
                                 useLabel(r.useCase),
                                 r.platform ? t(`form.platformOptions.${r.platform}`, { defaultValue: r.platform }) : '—',
                                 <Badge tone={r.confirmed ? 'ok' : undefined}>{r.confirmed ? t('admin.stateConfirmed') : t('admin.statePending')}</Badge>,
                                 <span className="whitespace-nowrap">{fmt(r.confirmedAt ?? r.createdAt)}</span>,
+                                approvedSet.has(r.email.toLowerCase())
+                                    ? <Button variant="ghost" size="sm" disabled={busy} onClick={() => toggleApproval(r)}><Badge tone="ok">{t('admin.approvals.approved')}</Badge></Button>
+                                    : <Button variant="secondary" size="sm" disabled={busy} icon={<Check className="w-4 h-4" />} onClick={() => toggleApproval(r)}>{t('admin.approvals.approve')}</Button>,
                                 <Button variant="ghost" size="sm" aria-label={t('admin.delete')} title={t('admin.delete')} onClick={() => setToDelete(r)}>
                                     <Trash2 className="w-4 h-4" />
                                 </Button>,

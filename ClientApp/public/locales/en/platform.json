@@ -241,7 +241,28 @@
     "next": "Next",
     "pageOf": "Page {{page}} of {{pages}}",
     "stateConfirmed": "Confirmed",
-    "statePending": "Pending"
+    "statePending": "Pending",
+    "approvals": {
+      "title": "Emails approved to sign up",
+      "hint": "With approval-only sign-up, only these emails can request their sign-up link. Approving sends no e-mail and creates nothing: let the person know yourself.",
+      "modeApproval": "Approved only",
+      "modeOpen": "Open",
+      "modeApprovalText": "Anyone not on the list gets no link (and can't tell the difference).",
+      "modeOpenText": "Anyone can sign up. To close it, remove the Platform:SignupMode setting or set it to approval.",
+      "email": "Email",
+      "note": "Note",
+      "by": "Approved by",
+      "add": "Approve",
+      "empty": "No approved emails yet.",
+      "added": "Email approved.",
+      "revoked": "Approval removed. It doesn't affect a tenant that already exists.",
+      "failed": "The action couldn't be completed.",
+      "revoke": "Remove approval",
+      "approve": "Approve",
+      "approved": "Approved",
+      "colSignup": "Sign-up",
+      "fromWaitlist": "From the waiting list"
+    }
   },
   "tenants": {
     "title": "Platform tenants",
@@ -536,7 +557,10 @@
     "errorName": "Enter the project name (2 to 80 characters).",
     "errorSlug": "Choose a valid, available address.",
     "doneTitle": "Check your email",
-    "doneText": "If the details are valid, we sent a link that works for 30 minutes. Opening it creates your space. If it does not arrive, check spam."
+    "doneText": "If the details are valid, we sent a link that works for 30 minutes. Opening it creates your space. If it does not arrive, check spam.",
+    "approvalNotice": "Sign-up is only for approved people. If we already approved you, use the e-mail we approved.",
+    "waitlistLink": "If not yet, join the waiting list.",
+    "doneTextApproval": "If your e-mail is approved, we sent you a link that is valid for 30 minutes; opening it creates your space. If nothing arrives, check spam: we may not have approved you yet."
   },
   "signupConfirm": {
     "loading": "Creating your space…",

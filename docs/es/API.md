@@ -848,6 +848,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/platform/buyer/me` | JWT |
 | `POST` | `/api/platform/signup` | Público |
 | `POST` | `/api/platform/signup/confirm` | Público |
+| `GET` | `/api/platform/signup/mode` | Público |
 | `GET` | `/api/platform/signup/slug` | Público |
 
 ### Platform Tenant Info

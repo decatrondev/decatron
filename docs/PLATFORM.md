@@ -37,7 +37,7 @@ Capabilities are rows, not code. The catalog (`capabilities`) has four groups: `
 
 The buyer is independent of Twitch: they are identified by e-mail and are an `owner` in `tenant_members`.
 
-1. **Sign-up** at `decatron.top/registro`: e-mail, project name and subdomain, plus a Turnstile challenge. Limits: 5 requests per IP and 3 per e-mail per day; the e-mail quota is shared with the waiting list (`Platform:WaitlistMaxEmailsPerDay`, 40 by default).
+1. **Sign-up** at `decatron.top/registro`: e-mail, project name and subdomain, plus a Turnstile challenge. By default sign-up is **by approval** (`Platform:SignupMode`): only e-mails the platform owner approved can get a link. A request from any other e-mail gets the same answer as a normal one but sends nothing and spends no e-mail quota, so nobody can tell who is approved; approval is checked again when the link is confirmed, so removing it stops a pending sign-up. Approving (from the waiting list or by hand, in the admin panel) sends no e-mail and creates nothing. Set the mode to `open` to let anyone sign up. Limits: 5 requests per IP and 3 per e-mail per day; the e-mail quota is shared with the waiting list (`Platform:WaitlistMaxEmailsPerDay`, 40 by default).
 2. A one-use link, valid 30 minutes, is e-mailed. The tenant is created **only when the link is confirmed**, in one transaction: tenant, owner account, membership and sandbox subscription. The answer to a request never reveals whether an e-mail exists.
 3. **Signing in again:** `slug.decatron.top/panel/login` sends a 15-minute one-use link, valid only on that host.
 4. **Session:** an 8-hour JWT with the claim `tnt` (the tenant) and `scope=buyer`. `TenantMiddleware` answers 403 if the claim does not match the Host, and a buyer session can only open `/api/platform/`, `/api/auth/`, `/api/brand` and `/api/design/tokens`, never the streamer screens. It is delivered through the 60-second exchange code (`/api/auth/exchange`), not in the URL.
@@ -72,6 +72,7 @@ Public (the tenant comes from the Host where it applies):
 | `GET` | `/api/platform/config` | Public settings of the landing (Turnstile key) |
 | `POST` | `/api/platform/waitlist`, `/api/platform/waitlist/confirm` | Waiting list with e-mail confirmation |
 | `GET` | `/api/platform/signup/slug` | Is a subdomain available |
+| `GET` | `/api/platform/signup/mode` | `open` or `approval`, so the form can warn before people type |
 | `POST` | `/api/platform/signup`, `/api/platform/signup/confirm` | Buyer sign-up and confirmation |
 | `POST` | `/api/platform/buyer/login-link`, `/api/platform/buyer/login-confirm` | Buyer sign-in by e-mail link |
 | `GET` | `/api/platform/tenant-info` | Name, readiness and requested scopes of a tenant subdomain |
@@ -88,13 +89,14 @@ Buyer (JWT with `scope=buyer`, owner of the tenant of the Host):
 | `POST` | `/api/platform/buyer/eventsub/restart` | Reopen the EventSub connection |
 | `GET` `POST` | `/api/platform/buyer/mfa`, `/mfa/setup`, `/mfa/confirm`, `/mfa/verify`, `/mfa/recovery-codes`, `/mfa/disable` | Two-step verification |
 
-The platform owner has equivalent admin routes under `/api/admin/platform/` (waiting list, tenants, plans, overrides, add-ons, export and purge). They are admin-only and documented here at architecture level.
+The platform owner has equivalent admin routes under `/api/admin/platform/` (waiting list, approved e-mails, tenants, plans, overrides, add-ons, export and purge). They are admin-only and documented here at architecture level.
 
 ## 7. Settings
 
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `Platform:TenantContext:Mode` / `:Rls` | `strict` / `context` | Tenant resolution and RLS mode |
+| `Platform:SignupMode` | `approval` | `open` lets anyone sign up; anything else (or nothing) means only approved e-mails; hot-reloaded |
 | `Platform:IdentityPerTenant` | off | One `users` row per tenant |
 | `Platform:MasterKeyPath` | `/etc/decatron/tenant-master.key` | Master key file for `SecretVault` |
 | `Platform:BaseUrl` / `Platform:PublicBaseUrl` | `https://decatron.top` / `https://decatron.net` | Links in e-mails and in the bot link |

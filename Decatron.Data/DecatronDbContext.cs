@@ -186,6 +186,7 @@ namespace Decatron.Data
         public DbSet<Core.Models.Platform.PlatformWaitlistEntry> PlatformWaitlist { get; set; }
         public DbSet<Core.Models.Platform.PlatformWaitlistEmail> PlatformWaitlistEmails { get; set; }
         public DbSet<Core.Models.Platform.PlatformSignup> PlatformSignups { get; set; }
+        public DbSet<Core.Models.Platform.PlatformApprovedEmail> PlatformApprovedEmails { get; set; }
         public DbSet<Core.Models.Platform.Tenant> Tenants { get; set; }
         public DbSet<Core.Models.Platform.TenantMember> TenantMembers { get; set; }
         public DbSet<Core.Models.Platform.Channel> PlatformChannels { get; set; }

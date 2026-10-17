@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MailCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Alert, Button, Field, Input } from '../../components/ds';
 import PlatformShell from './PlatformShell';
 import { useTurnstile } from './useTurnstile';
@@ -23,6 +24,9 @@ export default function PlatformSignup() {
     const [status, setStatus] = useState<Status>('idle');
     const [error, setError] = useState('');
     const captcha = useTurnstile();
+    // ¿Registro abierto o solo para personas aprobadas? Se avisa antes de que escriban; si no se sabe, no se muestra nada.
+    const [approval, setApproval] = useState(false);
+    useEffect(() => { fetch('/api/platform/signup/mode').then(r => r.ok ? r.json() : null).then(d => setApproval(d?.mode === 'approval')).catch(() => { /* sin aviso */ }); }, []);
 
     // Disponibilidad del subdominio en vivo (con pausa para no preguntar en cada tecla).
     useEffect(() => {
@@ -82,7 +86,8 @@ export default function PlatformSignup() {
                     <div className="text-center py-6" role="status">
                         <MailCheck className="w-10 h-10 mx-auto text-ds-accent-text mb-4" aria-hidden />
                         <h1 className="text-2xl font-extrabold text-ds-text mb-2">{t('signup.doneTitle')}</h1>
-                        <p className="text-ds-soft leading-relaxed">{t('signup.doneText')}</p>
+                        <p className="text-ds-soft leading-relaxed">{approval ? t('signup.doneTextApproval') : t('signup.doneText')}</p>
+                        {approval && <p className="mt-4"><Link to="/#lista" className="text-ds-accent-text hover:underline">{t('signup.waitlistLink')}</Link></p>}
                     </div>
                 ) : (
                     <form onSubmit={submit} noValidate className="space-y-5">
@@ -90,6 +95,7 @@ export default function PlatformSignup() {
                             <h1 className="text-3xl font-extrabold text-ds-text">{t('signup.title')}</h1>
                             <p className="text-ds-soft mt-2 leading-relaxed">{t('signup.text')}</p>
                         </div>
+                        {approval && <Alert tone="info">{t('signup.approvalNotice')} <Link to="/#lista" className="underline">{t('signup.waitlistLink')}</Link></Alert>}
                         <Field label={t('signup.name')}>
                             <Input value={name} maxLength={80} onChange={e => setName(e.target.value)} placeholder={t('signup.namePlaceholder')} />
                         </Field>

@@ -37,7 +37,7 @@ Las capacidades son filas, no código. El catálogo (`capabilities`) tiene cuatr
 
 El comprador es independiente de Twitch: se identifica por correo y es `owner` en `tenant_members`.
 
-1. **Registro** en `decatron.top/registro`: correo, nombre del proyecto y subdominio, más un desafío de Turnstile. Límites: 5 solicitudes por IP y 3 por correo al día; la cuota de correos se comparte con la lista de espera (`Platform:WaitlistMaxEmailsPerDay`, 40 por defecto).
+1. **Registro** en `decatron.top/registro`: correo, nombre del proyecto y subdominio, más un desafío de Turnstile. Por defecto el registro es **por aprobación** (`Platform:SignupMode`): solo los correos que el dueño de la plataforma aprobó pueden recibir un enlace. Una solicitud de cualquier otro correo recibe la misma respuesta que una normal pero no envía nada ni gasta cuota de correos, así que nadie puede saber quién está aprobado; la aprobación se vuelve a comprobar al confirmar el enlace, de modo que retirarla detiene un registro pendiente. Aprobar (desde la lista de espera o a mano, en el panel de administración) no envía ningún correo ni crea nada. Con el modo `open` cualquiera puede registrarse. Límites: 5 solicitudes por IP y 3 por correo al día; la cuota de correos se comparte con la lista de espera (`Platform:WaitlistMaxEmailsPerDay`, 40 por defecto).
 2. Se envía por correo un enlace de un solo uso, válido 30 minutos. El tenant se crea **solo al confirmar el enlace**, en una transacción: tenant, cuenta del dueño, membresía y suscripción sandbox. La respuesta a una solicitud nunca revela si un correo existe.
 3. **Volver a entrar:** `slug.decatron.top/panel/login` envía un enlace de un solo uso de 15 minutos, válido solo en ese host.
 4. **Sesión:** un JWT de 8 horas con el claim `tnt` (el tenant) y `scope=buyer`. `TenantMiddleware` responde 403 si el claim no coincide con el Host, y una sesión de comprador solo abre `/api/platform/`, `/api/auth/`, `/api/brand` y `/api/design/tokens`, nunca las pantallas del streamer. Se entrega por el código de canje de 60 segundos (`/api/auth/exchange`), no por la URL.
@@ -72,6 +72,7 @@ Públicos (el tenant sale del Host donde aplica):
 | `GET` | `/api/platform/config` | Ajustes públicos de la landing (clave de Turnstile) |
 | `POST` | `/api/platform/waitlist`, `/api/platform/waitlist/confirm` | Lista de espera con confirmación por correo |
 | `GET` | `/api/platform/signup/slug` | Si un subdominio está disponible |
+| `GET` | `/api/platform/signup/mode` | `open` o `approval`, para que el formulario avise antes de que escriban |
 | `POST` | `/api/platform/signup`, `/api/platform/signup/confirm` | Registro del comprador y su confirmación |
 | `POST` | `/api/platform/buyer/login-link`, `/api/platform/buyer/login-confirm` | Entrada del comprador con enlace por correo |
 | `GET` | `/api/platform/tenant-info` | Nombre, si está listo y permisos que pide un subdominio de tenant |
@@ -88,13 +89,14 @@ Comprador (JWT con `scope=buyer`, dueño del tenant del Host):
 | `POST` | `/api/platform/buyer/eventsub/restart` | Reabrir la conexión de EventSub |
 | `GET` `POST` | `/api/platform/buyer/mfa`, `/mfa/setup`, `/mfa/confirm`, `/mfa/verify`, `/mfa/recovery-codes`, `/mfa/disable` | Verificación en dos pasos |
 
-El dueño de la plataforma tiene rutas de administración equivalentes bajo `/api/admin/platform/` (lista de espera, tenants, planes, ajustes, complementos, exportación y borrado). Son solo para administradores y se documentan aquí a nivel de arquitectura.
+El dueño de la plataforma tiene rutas de administración equivalentes bajo `/api/admin/platform/` (lista de espera, correos aprobados, tenants, planes, ajustes, complementos, exportación y borrado). Son solo para administradores y se documentan aquí a nivel de arquitectura.
 
 ## 7. Ajustes
 
 | Clave | Por defecto | Para qué |
 |-------|-------------|----------|
 | `Platform:TenantContext:Mode` / `:Rls` | `strict` / `context` | Resolución de tenant y modo de RLS |
+| `Platform:SignupMode` | `approval` | `open` deja registrarse a cualquiera; cualquier otro valor (o ninguno) significa solo correos aprobados; se recarga en caliente |
 | `Platform:IdentityPerTenant` | apagado | Una fila de `users` por tenant |
 | `Platform:MasterKeyPath` | `/etc/decatron/tenant-master.key` | Archivo de la clave maestra de `SecretVault` |
 | `Platform:BaseUrl` / `Platform:PublicBaseUrl` | `https://decatron.top` / `https://decatron.net` | Enlaces de los correos y del enlace del bot |

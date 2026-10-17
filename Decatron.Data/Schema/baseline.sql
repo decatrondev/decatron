@@ -5139,6 +5139,18 @@ ALTER SEQUENCE public.plans_id_seq OWNED BY public.plans.id;
 
 
 --
+-- Name: platform_approved_emails; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platform_approved_emails (
+    email character varying(254) NOT NULL,
+    approved_at timestamp with time zone DEFAULT now() NOT NULL,
+    approved_by character varying(100) DEFAULT ''::character varying NOT NULL,
+    note character varying(200)
+);
+
+
+--
 -- Name: platform_signups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13096,6 +13108,14 @@ ALTER TABLE ONLY public.plans
 
 ALTER TABLE ONLY public.plans
     ADD CONSTRAINT plans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: platform_approved_emails platform_approved_emails_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_approved_emails
+    ADD CONSTRAINT platform_approved_emails_pkey PRIMARY KEY (email);
 
 
 --

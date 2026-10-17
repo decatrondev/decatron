@@ -241,7 +241,28 @@
     "next": "Siguiente",
     "pageOf": "Página {{page}} de {{pages}}",
     "stateConfirmed": "Confirmado",
-    "statePending": "Pendiente"
+    "statePending": "Pendiente",
+    "approvals": {
+      "title": "Correos aprobados para registrarse",
+      "hint": "Con el registro por aprobación, solo estos correos pueden pedir su enlace de alta. Aprobar no envía ningún correo ni crea nada: avísale tú a la persona.",
+      "modeApproval": "Solo aprobados",
+      "modeOpen": "Abierto",
+      "modeApprovalText": "Quien no está en la lista no recibe enlace (y no ve la diferencia).",
+      "modeOpenText": "Cualquier persona puede registrarse. Para cerrarlo, quita el ajuste Platform:SignupMode o ponlo en approval.",
+      "email": "Correo",
+      "note": "Nota",
+      "by": "Aprobó",
+      "add": "Aprobar",
+      "empty": "Aún no hay correos aprobados.",
+      "added": "Correo aprobado.",
+      "revoked": "Aprobación retirada. No afecta a un tenant ya creado.",
+      "failed": "No se pudo completar la acción.",
+      "revoke": "Retirar aprobación",
+      "approve": "Aprobar",
+      "approved": "Aprobado",
+      "colSignup": "Registro",
+      "fromWaitlist": "Desde la lista de espera"
+    }
   },
   "tenants": {
     "title": "Tenants de la plataforma",
@@ -536,7 +557,10 @@
     "errorName": "Escribe el nombre del proyecto (2 a 80 caracteres).",
     "errorSlug": "Elige una dirección válida y disponible.",
     "doneTitle": "Revisa tu correo",
-    "doneText": "Si los datos son válidos, te enviamos un enlace que vale 30 minutos. Al abrirlo se crea tu espacio. Si no llega, revisa spam."
+    "doneText": "Si los datos son válidos, te enviamos un enlace que vale 30 minutos. Al abrirlo se crea tu espacio. Si no llega, revisa spam.",
+    "approvalNotice": "El registro es solo para personas aprobadas. Si ya te aprobamos, usa el correo con el que te aprobamos.",
+    "waitlistLink": "Si aún no, apúntate a la lista de espera.",
+    "doneTextApproval": "Si tu correo está aprobado, te enviamos un enlace que vale 30 minutos; al abrirlo se crea tu espacio. Si no llega nada, revisa spam: puede que aún no te hayamos aprobado."
   },
   "signupConfirm": {
     "loading": "Creando tu espacio…",

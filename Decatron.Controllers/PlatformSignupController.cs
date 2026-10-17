@@ -91,6 +91,15 @@ namespace Decatron.Controllers
             public string? TurnstileToken { get; set; }
         }
 
+        /// <summary>El formulario de registro pregunta aquí si es abierto o solo para personas aprobadas, para avisarlo antes de que escriban.</summary>
+        [HttpGet("api/platform/signup/mode")]
+        [AllowAnonymous]
+        public IActionResult Mode()
+        {
+            Response.Headers["Cache-Control"] = "no-store";
+            return Ok(new { mode = SignupGate.Mode(_config) });
+        }
+
         [HttpPost("api/platform/signup")]
         [AllowAnonymous]
         [EnableRateLimiting("platform-waitlist")]
@@ -105,6 +114,13 @@ namespace Decatron.Controllers
             if (PlatformSlug.Check(slug) is { } why) return BadRequest(new { success = false, code = "slug_" + why });
             if (!string.IsNullOrEmpty(req.Website)) return ok; // bot
             if (!await _turnstile.VerifyAsync(req.TurnstileToken, ClientIp())) return BadRequest(new { success = false, code = "captcha" });
+            // Modo approval (por defecto): solo correos aprobados por el dueño. Misma respuesta que un alta normal, sin correo ni cuota gastada:
+            // quien no está aprobado no descubre quién sí lo está ni qué subdominios existen.
+            if (SignupGate.RequiresApproval(_config) && !await _db.PlatformApprovedEmails.AnyAsync(a => a.Email == email))
+            {
+                _log.LogInformation("Registro: solicitud de un correo no aprobado (modo approval)");
+                return ok;
+            }
             if (await _provisioner.SlugExistsAsync(slug)) return BadRequest(new { success = false, code = "slug_taken" });
 
             var locale = req.Locale == "en" ? "en" : "es";
@@ -151,6 +167,9 @@ namespace Decatron.Controllers
             var now = DateTime.UtcNow;
             var signup = await _db.PlatformSignups.FirstOrDefaultAsync(s => s.TokenHash == hash && s.Purpose == "signup" && s.UsedAt == null && s.ExpiresAt > now);
             if (signup == null) return BadRequest(new { success = false, code = "invalid_token" });
+            // Si la aprobación se retiró entre el correo y el enlace, el tenant no nace (y el enlace no se gasta).
+            if (SignupGate.RequiresApproval(_config) && !await _db.PlatformApprovedEmails.AnyAsync(a => a.Email == signup.Email))
+                return BadRequest(new { success = false, code = "invalid_token" });
 
             var result = await _provisioner.CreateWithBuyerAsync(signup.Slug, signup.ProjectName, signup.Email, signup.Locale);
             if (!result.Ok) return Conflict(new { success = false, code = result.Error ?? "error" });

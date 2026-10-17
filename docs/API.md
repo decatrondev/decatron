@@ -848,6 +848,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/platform/buyer/me` | JWT |
 | `POST` | `/api/platform/signup` | Public |
 | `POST` | `/api/platform/signup/confirm` | Public |
+| `GET` | `/api/platform/signup/mode` | Public |
 | `GET` | `/api/platform/signup/slug` | Public |
 
 ### Platform Tenant Info
