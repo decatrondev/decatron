@@ -33,16 +33,17 @@ function LanguageToggle() {
     );
 }
 
-export default function PlatformShell({ children, showNav = true }: { children: ReactNode; showNav?: boolean }) {
+/** brandName: en el subdominio de un tenant la cabecera lleva el nombre del tenant (su marca) y no la de Decatron. */
+export default function PlatformShell({ children, showNav = true, brandName }: { children: ReactNode; showNav?: boolean; brandName?: string }) {
     const { t, i18n } = useTranslation('platform');
     const { pathname, hash } = useLocation();
 
     useEffect(() => {
-        document.title = t('meta.title');
+        document.title = brandName || t('meta.title');
         const meta = document.querySelector('meta[name="description"]');
         if (meta) meta.setAttribute('content', t('meta.description'));
         document.documentElement.lang = i18n.language?.startsWith('en') ? 'en' : 'es';
-    }, [t, i18n.language]);
+    }, [t, i18n.language, brandName]);
 
     // Los enlaces con # desplazan solos al entrar desde otra ruta
     useEffect(() => {
@@ -59,11 +60,13 @@ export default function PlatformShell({ children, showNav = true }: { children: 
         <DsRoot theme="dark" ambient className="panel-scale min-h-screen bg-ds-bg text-ds-text font-onest overflow-x-hidden">
             <header className="sticky top-0 z-40 border-b border-ds-border-soft bg-ds-bg/85 backdrop-blur">
                 <div className={`${wrap} py-3 flex items-center justify-between gap-4`}>
-                    <Link to="/" className="flex items-center gap-2.5 shrink-0" aria-label="Decatron">
-                        <BrandMark
-                            slot="platform-header"
-                            fallback={<><img src={decatronMascot} alt="" className="w-9 h-9" /><span className="text-xl font-extrabold tracking-tight text-ds-text">Decatron</span></>}
-                        />
+                    <Link to="/" className="flex items-center gap-2.5 shrink-0" aria-label={brandName || 'Decatron'}>
+                        {brandName
+                            ? <span className="text-xl font-extrabold tracking-tight text-ds-text">{brandName}</span>
+                            : <BrandMark
+                                slot="platform-header"
+                                fallback={<><img src={decatronMascot} alt="" className="w-9 h-9" /><span className="text-xl font-extrabold tracking-tight text-ds-text">Decatron</span></>}
+                            />}
                     </Link>
                     {showNav && (
                         <nav className="hidden md:flex items-center gap-7 text-sm text-ds-soft" aria-label="Principal">
@@ -84,8 +87,8 @@ export default function PlatformShell({ children, showNav = true }: { children: 
             <footer className="border-t border-ds-border-soft mt-10">
                 <div className={`${wrap} py-10 space-y-6`}>
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm 3xl:text-base">
-                        <p className="text-ds-soft font-mono">{t('footer.copyright')}</p>
-                        <a href={BOT_SITE} className="text-ds-soft hover:text-ds-text transition-colors">{t('footer.bot')}</a>
+                        <p className="text-ds-soft font-mono">{brandName ? t('tenantLogin.poweredBy') : t('footer.copyright')}</p>
+                        {!brandName && <a href={BOT_SITE} className="text-ds-soft hover:text-ds-text transition-colors">{t('footer.bot')}</a>}
                     </div>
                     <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 pt-4 border-t border-ds-border-soft text-sm text-ds-faint">
                         <a href={`${BOT_SITE}/terminos`} className="hover:text-ds-text transition-colors">{t('footer.terms')}</a>

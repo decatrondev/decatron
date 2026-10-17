@@ -90,7 +90,9 @@ import GameOverlay from './pages/GameOverlay';
 import GameOverlayDemo from './pages/GameOverlayDemo';
 // three.js solo se carga en las rutas de mascotas
 import { isPlatformHost } from './platform/host';
+import { isTenantHost } from './platform/tenantHost';
 const PlatformApp = lazy(() => import('./platform/PlatformApp'));
+const TenantLogin = lazy(() => import('./pages/platform/TenantLogin'));
 const BuyerPanel = lazy(() => import('./pages/platform/buyer/BuyerPanel'));
 const PetsDemo = lazy(() => import('./pages/PetsDemo'));
 const PetsConfig = lazy(() => import('./pages/features/PetsConfig'));
@@ -233,8 +235,8 @@ function App() {
                         <PreviewBanner />
                         <Routes>
                 {/* Public Routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/" element={isTenantHost() ? <Navigate to={localStorage.getItem('token') ? '/dashboard' : '/login'} replace /> : <Index />} />
+                <Route path="/login" element={isTenantHost() ? <Suspense fallback={null}><TenantLogin /></Suspense> : <Login />} />
                 <Route path="/panel/*" element={<Suspense fallback={null}><BuyerPanel /></Suspense>} />
                 <Route path="/translate" element={<><PublicNav /><TranslatePublic /></>} />
 

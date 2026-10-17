@@ -32,6 +32,8 @@ public sealed class CredentialProvider : ICredentialProvider
             var app = _store.GetTwitchAppAsync(tenant).GetAwaiter().GetResult();
             // Los permisos que pide la plataforma son del sistema, no secretos del tenant: sin los suyos propios se usan los del sistema.
             if (app is not null && string.IsNullOrWhiteSpace(app.Scopes)) app = app with { Scopes = _cfg["TwitchSettings:Scopes"] };
+            // channel_editor (API v5 retirada) hace fallar el login con apps nuevas de Twitch: solo el #1 lo conserva.
+            if (app is not null) app = app with { Scopes = TwitchScopeCatalog.StripDeprecated(app.Scopes) };
             hit = (app, DateTime.UtcNow + (app is null ? NegativeTtl : Ttl));
             _cache[tenant] = hit;
         }

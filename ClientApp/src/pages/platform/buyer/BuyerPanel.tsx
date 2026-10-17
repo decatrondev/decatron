@@ -5,6 +5,7 @@ import { MailCheck, XCircle } from 'lucide-react';
 import { Alert, Button, Card, Field, Input, Spinner } from '../../../components/ds';
 import PlatformShell from '../PlatformShell';
 import BuyerSetup from './BuyerSetup';
+import BuyerTransparency from './BuyerTransparency';
 import { useTurnstile } from '../useTurnstile';
 
 // La sesión del comprador va aparte de la del streamer: otra clave y su propio encabezado (nunca toca el login de Twitch).
@@ -77,6 +78,7 @@ function Home() {
                         </dl>
                     </Card>
                     <BuyerSetup />
+                    <BuyerTransparency />
                     <Button variant="secondary" onClick={logout}>{t('buyer.logout')}</Button>
                 </>}
             </div>
