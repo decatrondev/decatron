@@ -624,7 +624,8 @@ namespace Decatron.Controllers
                 new Claim("TwitchId", user.TwitchId ?? ""),
                 new Claim("DiscordId", user.DiscordId ?? ""),
                 new Claim("ProfileImage", user.ProfileImageUrl ?? ""),
-                new Claim("Email", user.Email ?? "")
+                new Claim("Email", user.Email ?? ""),
+                new Claim("tid", (TenantAmbient.Current ?? 1).ToString()) // Fase A-C: la sesion vale solo en el subdominio de su tenant
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));

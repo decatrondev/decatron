@@ -514,5 +514,52 @@
         }
       }
     }
+  },
+  "signup": {
+    "title": "Crea tu espacio",
+    "text": "Elige un nombre y una dirección. Te enviamos un enlace para confirmar tu correo y crear tu espacio con 7 días de prueba.",
+    "name": "Nombre del proyecto",
+    "namePlaceholder": "Mi marca",
+    "slug": "Dirección",
+    "slugHint": "3 a 30 letras minúsculas, números o guiones.",
+    "slugChecking": "Revisando…",
+    "slugOk": "Disponible",
+    "slugTaken": "Esa dirección ya está en uso.",
+    "slugInvalid": "Usa 3 a 30 letras minúsculas, números o guiones (sin guion al inicio o al final).",
+    "slugReserved": "Esa dirección está reservada.",
+    "submit": "Enviar enlace",
+    "consent": "Solo usaremos tu correo para crear y avisarte sobre tu espacio.",
+    "errorEmail": "Escribe un correo válido.",
+    "errorName": "Escribe el nombre del proyecto (2 a 80 caracteres).",
+    "errorSlug": "Elige una dirección válida y disponible.",
+    "doneTitle": "Revisa tu correo",
+    "doneText": "Si los datos son válidos, te enviamos un enlace que vale 30 minutos. Al abrirlo se crea tu espacio. Si no llega, revisa spam."
+  },
+  "signupConfirm": {
+    "loading": "Creando tu espacio…",
+    "errorTitle": "No pudimos crear tu espacio",
+    "errorText": "El enlace venció o ya se usó. Vuelve a registrarte.",
+    "slugTaken": "Esa dirección ya la tomó alguien más. Registra otra.",
+    "retry": "Volver al registro"
+  },
+  "buyer": {
+    "errorLoad": "No pudimos cargar tu panel. Intenta de nuevo.",
+    "plan": "Plan",
+    "sandboxLeft": "Prueba restante",
+    "days_one": "{{count}} día",
+    "days_other": "{{count}} días",
+    "account": "Cuenta",
+    "role": "Rol",
+    "owner": "Propietario",
+    "soon": "Aquí podrás cargar tus credenciales de Twitch, tu bot y tus llaves. Estamos terminando esta parte.",
+    "logout": "Cerrar sesión",
+    "loginTitle": "Entrar a tu panel",
+    "loginText": "Escribe el correo con el que creaste tu espacio y te enviamos un enlace de entrada.",
+    "sendLink": "Enviarme el enlace",
+    "sentTitle": "Revisa tu correo",
+    "sentText": "Si el correo corresponde a un propietario de este espacio, te enviamos un enlace que vale 15 minutos.",
+    "entering": "Entrando…",
+    "enterErrorTitle": "El enlace no sirve",
+    "enterErrorText": "Venció o ya se usó. Pide uno nuevo."
   }
 }

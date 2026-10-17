@@ -33,6 +33,19 @@ namespace Decatron.Middleware
                 {
                     var res = Resolve(context, resolver);
                     tenant.Set(res);
+                    // Fase A-C: un JWT atado a un tenant (claim "tid") solo vale en el subdominio de ese tenant; la sesion del comprador
+                    // (scope=buyer) ademas solo abre el panel del comprador y el canje de sesion, nunca las pantallas del streamer.
+                    if (res.Source == TenantSource.Host && context.User.Identity?.IsAuthenticated == true)
+                    {
+                        var tid = context.User.FindFirst(BuyerClaims.Tenant)?.Value;
+                        var isBuyer = context.User.FindFirst(BuyerClaims.Scope)?.Value == BuyerClaims.BuyerScope;
+                        if ((tid != null && tid != res.TenantId.ToString())
+                            || (isBuyer && !BuyerClaims.PathAllowed(context.Request.Path)))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                            return;
+                        }
+                    }
                     // Fase 5.8: los servicios singleton (IA, voz, llaves propias) leen el tenant de TenantAmbient; sin esto, lo que se dispara desde
                     // un request de otro tenant correria como el #1. DecatronDbContext ya prefiere el ambiente, y es el mismo valor.
                     if (res.Resolved) ambient = TenantAmbient.Push(res.TenantId);
@@ -71,6 +84,16 @@ namespace Decatron.Middleware
             _seen[key] = now;
             _log.LogWarning("tenant.ambiguous key={Key} path={Path} fallback=1", key, path.Value);
         }
+    }
+
+    /// <summary>Claims de la sesion atada a un tenant (los emite BuyerSessions y AuthController).</summary>
+    public static class BuyerClaims
+    {
+        public const string Tenant = "tid";
+        public const string Scope = "scope";
+        public const string BuyerScope = "buyer";
+        private static readonly string[] BuyerPaths = { "/api/platform/", "/api/auth/", "/api/brand", "/api/design/tokens", "/uploads/brand/" };
+        public static bool PathAllowed(PathString p) => BuyerPaths.Any(x => p.StartsWithSegments(x.TrimEnd('/'), StringComparison.OrdinalIgnoreCase) || p.Value?.StartsWith(x, StringComparison.OrdinalIgnoreCase) == true);
     }
 
     public static class TenantMiddlewareExtensions

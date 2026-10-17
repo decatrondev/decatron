@@ -91,6 +91,7 @@ import GameOverlayDemo from './pages/GameOverlayDemo';
 // three.js solo se carga en las rutas de mascotas
 import { isPlatformHost } from './platform/host';
 const PlatformApp = lazy(() => import('./platform/PlatformApp'));
+const BuyerPanel = lazy(() => import('./pages/platform/buyer/BuyerPanel'));
 const PetsDemo = lazy(() => import('./pages/PetsDemo'));
 const PetsConfig = lazy(() => import('./pages/features/PetsConfig'));
 const PetsOverlay = lazy(() => import('./pages/PetsOverlay'));
@@ -234,6 +235,7 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/panel/*" element={<Suspense fallback={null}><BuyerPanel /></Suspense>} />
                 <Route path="/translate" element={<><PublicNav /><TranslatePublic /></>} />
 
                 {/* Overlay Routes - No layout for OBS */}

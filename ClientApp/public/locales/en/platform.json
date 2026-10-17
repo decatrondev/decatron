@@ -514,5 +514,52 @@
         }
       }
     }
+  },
+  "signup": {
+    "title": "Create your space",
+    "text": "Pick a name and an address. We email you a link to confirm your address and create your space with a 7-day trial.",
+    "name": "Project name",
+    "namePlaceholder": "My brand",
+    "slug": "Address",
+    "slugHint": "3 to 30 lowercase letters, numbers or hyphens.",
+    "slugChecking": "Checking…",
+    "slugOk": "Available",
+    "slugTaken": "That address is already taken.",
+    "slugInvalid": "Use 3 to 30 lowercase letters, numbers or hyphens (no hyphen at the start or end).",
+    "slugReserved": "That address is reserved.",
+    "submit": "Send link",
+    "consent": "We only use your email to create your space and notify you about it.",
+    "errorEmail": "Enter a valid email.",
+    "errorName": "Enter the project name (2 to 80 characters).",
+    "errorSlug": "Choose a valid, available address.",
+    "doneTitle": "Check your email",
+    "doneText": "If the details are valid, we sent a link that works for 30 minutes. Opening it creates your space. If it does not arrive, check spam."
+  },
+  "signupConfirm": {
+    "loading": "Creating your space…",
+    "errorTitle": "We could not create your space",
+    "errorText": "The link expired or was already used. Sign up again.",
+    "slugTaken": "Someone else just took that address. Register another one.",
+    "retry": "Back to sign up"
+  },
+  "buyer": {
+    "errorLoad": "We could not load your panel. Try again.",
+    "plan": "Plan",
+    "sandboxLeft": "Trial left",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "account": "Account",
+    "role": "Role",
+    "owner": "Owner",
+    "soon": "Here you will load your Twitch credentials, your bot and your keys. We are finishing this part.",
+    "logout": "Sign out",
+    "loginTitle": "Sign in to your panel",
+    "loginText": "Enter the email you used to create your space and we will send you a sign-in link.",
+    "sendLink": "Send me the link",
+    "sentTitle": "Check your email",
+    "sentText": "If the email belongs to an owner of this space, we sent a link that works for 15 minutes.",
+    "entering": "Signing in…",
+    "enterErrorTitle": "The link does not work",
+    "enterErrorText": "It expired or was already used. Ask for a new one."
   }
 }
