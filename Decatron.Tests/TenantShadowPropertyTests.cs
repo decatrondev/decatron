@@ -27,7 +27,10 @@ public class TenantShadowPropertyTests
             if (db != "decatron_schema") throw new InvalidOperationException($"Base inesperada: {db}");
         }
         var options = new DbContextOptionsBuilder<DecatronDbContext>().UseNpgsql(Conn).Options;
-        return new DecatronDbContext(options);
+        // Rls=context: el interceptor fija app.tenant_id desde TenantAmbient, que es lo que lee el DEFAULT app_tenant_id() de la columna.
+        var cfg = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Platform:TenantContext:Rls"] = "context" }).Build();
+        return new DecatronDbContext(options, cfg);
     }
 
     [Fact(DisplayName = "Las 216 tablas con tenant_id tienen su propiedad TenantId mapeada a tenant_id")]
@@ -47,7 +50,7 @@ public class TenantShadowPropertyTests
         Assert.True(reallyMissing.Count == 0, "Tablas con entidad pero sin TenantId: " + string.Join(", ", reallyMissing));
     }
 
-    [Fact(DisplayName = "La propiedad TenantId no se envía en los INSERT (se conserva el DEFAULT 1)")]
+    [Fact(DisplayName = "La propiedad TenantId no se envía en los INSERT (lo fija el DEFAULT app_tenant_id() de la base)")]
     public void TenantId_IsDatabaseGenerated()
     {
         if (!Available) return;
@@ -58,7 +61,7 @@ public class TenantShadowPropertyTests
             // Solo las propiedades sombra que agrega el contexto; las entidades de la plataforma (Channel, TenantMember) la declaran ellas.
             if (p == null || !p.IsShadowProperty()) continue;
             Assert.Equal(ValueGenerated.OnAdd, p.ValueGenerated);
-            Assert.Equal("1", p.GetDefaultValueSql());
+            Assert.Equal("app_tenant_id()", p.GetDefaultValueSql());
         }
     }
 
@@ -86,7 +89,7 @@ public class TenantShadowPropertyTests
         Assert.True(failures.Count == 0, "Consultas que fallan:\n" + string.Join("\n", failures));
     }
 
-    [Fact(DisplayName = "Un INSERT por EF deja tenant_id = 1 (DEFAULT) sin enviarlo")]
+    [Fact(DisplayName = "Un INSERT por EF deja el tenant del contexto (DEFAULT app_tenant_id()) sin enviarlo")]
     public void Insert_UsesDefaultTenant()
     {
         if (!Available) return;
@@ -97,13 +100,14 @@ public class TenantShadowPropertyTests
             using var drop = new NpgsqlCommand("alter table command_counters drop constraint if exists fk_command_counters_user_id", c);
             drop.ExecuteNonQuery();
         }
+        using var _ambient = Decatron.Core.Interfaces.TenantAmbient.Push(9101);
         using var ctx = NewContext();
         var row = new Decatron.Core.Models.CommandCounter { ChannelName = "prueba", CommandName = "cmd" + Guid.NewGuid().ToString("N")[..8], UserId = 424242 };
         ctx.CommandCounters.Add(row);
         ctx.SaveChanges();
         using var c2 = new NpgsqlConnection(Conn); c2.Open();
         using var cmd = new NpgsqlCommand($"select tenant_id from command_counters where id = {row.Id}", c2);
-        Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
+        Assert.Equal(9101L, (long)cmd.ExecuteScalar()!);
     }
 }
 

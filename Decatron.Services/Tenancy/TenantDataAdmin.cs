@@ -98,7 +98,9 @@ public sealed class TenantDataAdmin
             if (n > 0) counts[table] = n;
         }
 
-        // cuentas que pertenecen al tenant (users es global): solo datos de perfil, nunca tokens
+        // Con identidad por tenant (A2) `users` lleva tenant_id y ya salió arriba, sin columnas de tokens. Este bloque solo cubre el modo antiguo
+        // (cuentas globales de tenant_id 1 que tienen canal o membresía aquí): sin él se escribiría un segundo users.jsonl con el mismo nombre.
+        if (!counts.ContainsKey("users"))
         await using (var uq = new NpgsqlCommand(@"SELECT u.id, u.login, u.display_name, u.created_at FROM users u
             WHERE EXISTS (SELECT 1 FROM channels ch WHERE ch.user_id=u.id AND ch.tenant_id=@t) OR EXISTS (SELECT 1 FROM tenant_members m WHERE m.user_id=u.id AND m.tenant_id=@t)", c))
         {

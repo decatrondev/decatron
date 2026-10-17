@@ -111,12 +111,20 @@ public class EntitlementsTests : IDisposable
         Assert.False(await e.IsOperationalAsync(B));
     }
 
+    /// <summary>Último id de evento del tenant. Se filtra por id y no por hora: comparar un DateTime con timestamptz arrastra el desfase horario legacy de Npgsql (5 h) y mezcla eventos de otras pruebas.</summary>
+    private static long LastEventId(long tenant)
+    {
+        using var c = Open(tenant);
+        using var q = new NpgsqlCommand("SELECT coalesce(max(id), 0) FROM entitlement_events", c);
+        return Convert.ToInt64(q.ExecuteScalar());
+    }
+
     [Fact(DisplayName = "Contador: aviso al 80 %, bloqueo al pasar el tope, y cada tenant cuenta aparte")]
     public async Task Contador()
     {
         if (!Available) return;
         var e = Make();
-        var started = DateTime.UtcNow.AddSeconds(-1);
+        var after = LastEventId(A);
         Assert.Equal(EntitlementOutcome.Allowed, (await e.TryConsumeAsync("zz.cuota", 1, A)).Outcome);        // 1/3
         Assert.Equal(EntitlementOutcome.Allowed, (await e.TryConsumeAsync("zz.cuota", 1, A)).Outcome);        // 2/3 (66 %)
         Assert.Equal(EntitlementOutcome.AllowedWarn80, (await e.TryConsumeAsync("zz.cuota", 1, A)).Outcome);  // 3/3 cruza el 80 %
@@ -125,10 +133,10 @@ public class EntitlementsTests : IDisposable
         Assert.Equal("limit_reached", r.Reason);
         Assert.Equal(EntitlementOutcome.Allowed, (await e.TryConsumeAsync("zz.cuota", 1, B)).Outcome);        // B no se entera de A
         Assert.False((await e.TryConsumeAsync("zz.cuota", 4, B)).IsAllowed);                                 // más que el tope de una vez
-        // entitlement_events es solo-inserción para el rol de la app: se mira lo que dejó ESTA prueba (después de su marca de tiempo)
+        // entitlement_events es solo-inserción para el rol de la app: se mira lo que dejó ESTA prueba (ids posteriores a los que ya había)
         using var c = Open(A);
-        using var q = new NpgsqlCommand("SELECT kind FROM entitlement_events WHERE capability_key='zz.cuota' AND at >= @t ORDER BY id", c);
-        q.Parameters.AddWithValue("t", started);
+        using var q = new NpgsqlCommand("SELECT kind FROM entitlement_events WHERE capability_key='zz.cuota' AND id > @after ORDER BY id", c);
+        q.Parameters.AddWithValue("after", after);
         using var rd = q.ExecuteReader();
         var kinds = new List<string>(); while (rd.Read()) kinds.Add(rd.GetString(0));
         Assert.Equal(new[] { "warn80", "blocked" }, kinds);
@@ -179,7 +187,7 @@ public class EntitlementsTests : IDisposable
     {
         if (!Available) return;
         var e = Make();
-        var started = DateTime.UtcNow.AddSeconds(-1);
+        var after = LastEventId(A);
         e.Count("zz.cuota", 2, A);            // límite del plan = 3
         e.Count("zz.cuota", 1, A);
         e.Count("zz.cuota", 5, 1);            // el #1 no cuenta
@@ -191,8 +199,8 @@ public class EntitlementsTests : IDisposable
         using (var c = Open(A))
         {
             using var q = new NpgsqlCommand("select sum(used) from usage_counters where capability_key='zz.cuota'", c); Assert.Equal(4m, q.ExecuteScalar());
-            using var ev = new NpgsqlCommand("select string_agg(kind, ',' order by id) from entitlement_events where capability_key='zz.cuota' and at >= @t", c);
-            ev.Parameters.AddWithValue("t", started);
+            using var ev = new NpgsqlCommand("select string_agg(kind, ',' order by id) from entitlement_events where capability_key='zz.cuota' and id > @after", c);
+            ev.Parameters.AddWithValue("after", after);
             Assert.Equal("warn80,blocked", ev.ExecuteScalar());
         }
     }

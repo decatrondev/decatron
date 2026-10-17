@@ -14,7 +14,7 @@ public class TenantDataAdminTests : IDisposable
 {
     private static string? Conn => Environment.GetEnvironmentVariable("DECATRON_APP_CONN");
     private static bool Available => !string.IsNullOrWhiteSpace(Conn);
-    private const long T = 9103, Other = 9101, Uid = 990103;
+    private const long T = 9103, Other = 9101, Uid = 990103, Uid2 = 990101;
     private readonly IConfiguration _cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:DefaultConnection"] = Conn }).Build();
 
     private static NpgsqlConnection Open(long tenant) { var c = TenantNpgsql.Create(Conn, tenant); c.Open(); return c; }
@@ -27,19 +27,23 @@ public class TenantDataAdminTests : IDisposable
         return (new TenantDataAdmin(_cfg, e, NullLogger<TenantDataAdmin>.Instance), e);
     }
 
+    /// <summary>Con identidad por tenant (A2) cada cuenta vive en su tenant: la fila de users lleva el tenant_id del contexto.</summary>
+    private static void InsertUser(long tenant, long id, string login) => Exec(tenant, $@"INSERT INTO users (id, twitch_id, login, display_name, email, profile_image_url, offline_image_url, broadcaster_type, view_count, description,
+            access_token, refresh_token, token_expiration, created_at, updated_at, is_active, unique_id)
+            VALUES ({id}, 'zz-tw-{id}', '{login}', 'Z', '', '', '', '', 0, '', 'a', 'b', now(), now(), now(), true, 'zz-uid-{id}')");
+
     public TenantDataAdminTests()
     {
         if (!Available) return;
         if (Count(1, "select count(*) from tenants where id=9103") == 0) return; // sin el tenant fijo las pruebas se omiten
         Dispose();
         Exec(1, "UPDATE tenants SET status='active' WHERE id=9103");
-        Exec(1, $@"INSERT INTO users (id, twitch_id, login, display_name, email, profile_image_url, offline_image_url, broadcaster_type, view_count, description,
-            access_token, refresh_token, token_expiration, created_at, updated_at, is_active, unique_id)
-            VALUES ({Uid}, 'zz-tw-{Uid}', 'zzborrado', 'Z', '', '', '', '', 0, '', 'a', 'b', now(), now(), now(), true, 'zz-uid-{Uid}')");
+        InsertUser(T, Uid, "zzborrado");
+        InsertUser(Other, Uid2, "zzotro");
         Exec(T, $"INSERT INTO channels (tenant_id, platform, external_id, user_id, login) VALUES ({T}, 'twitch', 'zz-tw-{Uid}', {Uid}, 'zzborrado')");
         Exec(T, $"INSERT INTO tenant_members (tenant_id, user_id, role) VALUES ({T}, {Uid}, 'viewer')");
         Exec(T, $"INSERT INTO chat_overlay_configs (user_id, config) VALUES ({Uid}, '{{\"a\":1}}')");
-        Exec(Other, $"INSERT INTO chat_overlay_configs (user_id, config) VALUES ({Uid}, '{{\"otro\":1}}')");
+        Exec(Other, $"INSERT INTO chat_overlay_configs (user_id, config) VALUES ({Uid2}, '{{\"otro\":1}}')");
     }
 
     public void Dispose()
@@ -47,8 +51,9 @@ public class TenantDataAdminTests : IDisposable
         if (!Available) return;
         if (Count(1, "select count(*) from tenants where id=9103") == 0) return;
         Exec(T, "DELETE FROM chat_overlay_configs; DELETE FROM tenant_subscriptions; DELETE FROM tenant_members; DELETE FROM channels");
-        Exec(Other, $"DELETE FROM chat_overlay_configs WHERE user_id={Uid}");
-        Exec(1, $"DELETE FROM users WHERE id={Uid}");
+        Exec(Other, $"DELETE FROM chat_overlay_configs WHERE user_id={Uid2}");
+        Exec(T, $"DELETE FROM users WHERE id={Uid}");
+        Exec(Other, $"DELETE FROM users WHERE id={Uid2}");
     }
 
     private static bool Ready => Available && Count(1, "select count(*) from tenants where id=9103") == 1;
@@ -65,7 +70,7 @@ public class TenantDataAdminTests : IDisposable
         var names = zip.Entries.Select(e => e.FullName).ToList();
         Assert.Contains("MANIFEST.json", names);
         Assert.Contains("chat_overlay_configs.jsonl", names);
-        Assert.Contains("users.jsonl", names);
+        Assert.Single(names, n => n == "users.jsonl");                                // una sola entrada (sin duplicar por el modo antiguo)
         Assert.DoesNotContain("tenant_credentials.jsonl", names);
         Assert.DoesNotContain("tenant_keys.jsonl", names);
         using var rd = new StreamReader(zip.GetEntry("chat_overlay_configs.jsonl")!.Open());
@@ -97,8 +102,9 @@ public class TenantDataAdminTests : IDisposable
         Assert.Equal(0, Count(T, "select count(*) from chat_overlay_configs"));
         Assert.Equal(0, Count(T, "select count(*) from channels"));
         Assert.Equal(0, Count(T, "select count(*) from tenant_members"));
-        Assert.Equal(1, Count(Other, $"select count(*) from chat_overlay_configs where user_id={Uid}")); // lo de otro tenant sigue
-        Assert.Equal(0, Count(1, $"select count(*) from users where id={Uid}"));                    // la cuenta era solo de este tenant
+        Assert.Equal(1, Count(Other, $"select count(*) from chat_overlay_configs where user_id={Uid2}")); // lo de otro tenant sigue
+        Assert.Equal(1, Count(Other, $"select count(*) from users where id={Uid2}"));                // y su cuenta también
+        Assert.Equal(0, Count(T, $"select count(*) from users where id={Uid}"));                    // la cuenta del tenant se borró
         using var c = Open(1); using var q = new NpgsqlCommand("select status from tenants where id=9103", c);
         Assert.Equal("closed", q.ExecuteScalar());
     }
