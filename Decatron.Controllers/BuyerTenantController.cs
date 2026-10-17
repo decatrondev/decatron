@@ -27,6 +27,7 @@ namespace Decatron.Controllers
         private readonly ITenantByoStore _byoStore;
         private readonly IByoKeyValidator _byoValidator;
         private readonly IByoKeys _byoKeys;
+        private readonly IEntitlements _entitlements;
         private readonly ITenantCredentialStore _store;
         private readonly ITwitchAppValidator _validator;
         private readonly ICredentialProvider _provider;
@@ -38,9 +39,9 @@ namespace Decatron.Controllers
             Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> jwt,
             Decatron.Discord.IDiscordBotValidator discordValidator, Decatron.Discord.DiscordTenantGateway gateway,
             Decatron.Services.Tenancy.TenantEventSubHub eventSub, Decatron.Services.Tenancy.TenantEventSubSync eventSubSync,
-            ITenantByoStore byoStore, IByoKeyValidator byoValidator, IByoKeys byoKeys)
+            ITenantByoStore byoStore, IByoKeyValidator byoValidator, IByoKeys byoKeys, IEntitlements entitlements)
         {
-            _byoStore = byoStore; _byoValidator = byoValidator; _byoKeys = byoKeys;
+            _entitlements = entitlements; _byoStore = byoStore; _byoValidator = byoValidator; _byoKeys = byoKeys;
             _eventSub = eventSub; _eventSubSync = eventSubSync;
             _discordValidator = discordValidator; _gateway = gateway; _jwt = jwt; _store = store; _validator = validator; _provider = provider; _config = config; _log = log;
         }
@@ -87,7 +88,8 @@ namespace Decatron.Controllers
             var t = await TenantAsync();
             if (t is null) return NotFound(new { success = false, code = "tenant_not_found" });
             var byo = new Dictionary<string, ByoKeySummary?>();
-            foreach (var p in ByoProviders.All) byo[p] = await _byoStore.GetSummaryAsync(Tid, p);
+            var byoAllowed = new Dictionary<string, bool>();
+            foreach (var p in ByoProviders.All) { byo[p] = await _byoStore.GetSummaryAsync(Tid, p); byoAllowed[p] = await ByoProviders.AllowedAsync(_entitlements, p, Tid); }
             return Ok(new
             {
                 success = true,
@@ -97,6 +99,7 @@ namespace Decatron.Controllers
                 twitchBot = await _store.GetTwitchBotAsync(Tid),
                 discordBot = await _store.GetDiscordBotAsync(Tid),
                 byo,
+                byoAllowed,
                 gateway = _gateway.StateOf(Tid),
                 eventSub = _eventSub.StateOf(Tid),
                 eventSubSync = _eventSubSync.LastOf(Tid),
@@ -200,6 +203,8 @@ namespace Decatron.Controllers
         {
             if (!ByoProviders.IsKnown(provider)) return BadRequest(new { success = false, code = "unknown_provider" });
             if (await RequireActiveAsync() is { } stop) return stop;
+            // Una llave que el plan no habilita no serviria (IByoKeys la ignora): no se guarda.
+            if (!await ByoProviders.AllowedAsync(_entitlements, provider, Tid)) return StatusCode(403, new { success = false, code = "byo_not_in_plan" });
             var key = body.ApiKey?.Trim() ?? "";
             var cfg = ByoConfig(provider, body);
             var check = await _byoValidator.ValidateAsync(provider, key, cfg, HttpContext.RequestAborted);

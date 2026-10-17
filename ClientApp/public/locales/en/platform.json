@@ -298,7 +298,8 @@
       "byo_unreachable": "Could not reach the provider. Try again.",
       "invalid_byo": "Check the key and the data (the URL must be public https and voices valid JSON).",
       "byo_not_configured": "This tenant has no such key.",
-      "unknown_provider": "Unknown provider."
+      "unknown_provider": "Unknown provider.",
+      "byo_not_in_plan": "Your current plan doesn't include this provider, so a key can't be loaded. Once your plan includes it, you'll be able to add it here."
     },
     "botTitle": "Bot account",
     "botNone": "No bot",
@@ -512,7 +513,9 @@
           "help": "Character voices.",
           "formHelp": "Fish Audio API key. It is tested by querying your balance."
         }
-      }
+      },
+      "notInPlan": "Not in your plan",
+      "notInPlanHelp": "Your current plan doesn't include this provider, so a key can't be loaded. Once your plan includes it, you'll be able to add it here."
     }
   },
   "signup": {

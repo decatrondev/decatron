@@ -21,6 +21,14 @@ public static class ByoProviders
         _ => Array.Empty<string>(),
     };
 
+    /// <summary>¿El plan del tenant incluye este proveedor? Basta una de sus capacidades. Lo usa el panel del comprador antes de guardar una llave.</summary>
+    public static async Task<bool> AllowedAsync(IEntitlements entitlements, string provider, long tenantId, CancellationToken ct = default)
+    {
+        foreach (var cap in Capabilities(provider))
+            if (await entitlements.HasAsync(cap, tenantId, live: true, ct)) return true;
+        return false;
+    }
+
     /// <summary>Datos no secretos que admite cada proveedor (van en <c>tenant_provider_config</c>).</summary>
     public static IReadOnlyList<string> ConfigKeys(string provider) => provider switch
     {

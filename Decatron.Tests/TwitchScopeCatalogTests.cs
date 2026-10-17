@@ -61,3 +61,40 @@ public class TwitchScopeCatalogTests
         }
     }
 }
+
+/// <summary>Gating de llaves propias: un proveedor se habilita si el plan incluye al menos una de sus capacidades.</summary>
+public class ByoPlanGateTests
+{
+    private class FakeEntitlements : System.Reflection.DispatchProxy
+    {
+        public HashSet<string> Has = new();
+        public static Decatron.Core.Interfaces.IEntitlements Create(params string[] has)
+        {
+            var p = Create<Decatron.Core.Interfaces.IEntitlements, FakeEntitlements>();
+            ((FakeEntitlements)(object)p).Has = new HashSet<string>(has);
+            return p;
+        }
+        protected override object? Invoke(System.Reflection.MethodInfo? m, object?[]? args)
+        {
+            if (m!.Name != "HasAsync") throw new NotImplementedException(m.Name);
+            return Task.FromResult(Has.Contains((string)args![0]!));
+        }
+    }
+
+    [Fact]
+    public async Task SinCapacidadesNingunProveedorSeHabilita()
+    {
+        var e = FakeEntitlements.Create();
+        foreach (var p in Decatron.Core.Interfaces.ByoProviders.All) Assert.False(await Decatron.Core.Interfaces.ByoProviders.AllowedAsync(e, p, 3));
+    }
+
+    [Fact]
+    public async Task UnaCapacidadBastaYCadaProveedorTieneLaSuya()
+    {
+        Assert.True(await Decatron.Core.Interfaces.ByoProviders.AllowedAsync(FakeEntitlements.Create("byo.translate"), "ai", 3));
+        Assert.False(await Decatron.Core.Interfaces.ByoProviders.AllowedAsync(FakeEntitlements.Create("byo.translate"), "deepgram", 3));
+        Assert.True(await Decatron.Core.Interfaces.ByoProviders.AllowedAsync(FakeEntitlements.Create("byo.stt"), "deepgram", 3));
+        Assert.True(await Decatron.Core.Interfaces.ByoProviders.AllowedAsync(FakeEntitlements.Create("byo.tts"), "fishaudio", 3));
+        Assert.False(await Decatron.Core.Interfaces.ByoProviders.AllowedAsync(FakeEntitlements.Create("byo.stt"), "fishaudio", 3));
+    }
+}

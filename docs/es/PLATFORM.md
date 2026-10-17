@@ -30,7 +30,7 @@ Las capacidades son filas, no código. El catálogo (`capabilities`) tiene cuatr
 - **Sandbox.** Un tenant nuevo empieza en `sandbox` por 7 días.
 - **Ciclo de vida.** `TenantLifecycle` (cada 60 s por defecto) pausa la conexión de EventSub y el gateway de Discord de un tenant que no está operativo (suspendido, cancelado, sandbox vencido, sin suscripción) y los reanuda solo. Registra `tenant.purge.due` para los tenants que pasaron el plazo de guarda (`Platform:Lifecycle:PurgeAfterDays`, 30 por defecto); nunca borra por su cuenta.
 - **Aplicación de los límites.** `[RequiresModule("module.x")]` en los controladores, filtros por plan en los comandos de chat y las tareas de fondo, y contadores de comandos, timers, almacenamiento, correos y mensajes de chat al mes (el de chat solo mide).
-- **Llaves propias.** La IA, la voz y la traducción corren con las llaves del propio tenant. Sin llave, la función queda apagada; las llaves de Decatron nunca se usan para otro tenant.
+- **Llaves propias.** La IA, la voz y la traducción corren con las llaves del propio tenant. Sin llave, la función queda apagada; las llaves de Decatron nunca se usan para otro tenant. Un proveedor se habilita cuando el plan incluye al menos una de sus capacidades (`byo.ai` o `byo.translate` para la IA, `byo.stt` o `byo.tts` para Deepgram, `byo.tts` para Fish Audio); el panel del comprador muestra «No incluido en tu plan» para un proveedor que el plan no incluye, y el servidor se niega a guardar su llave (`byo_not_in_plan`).
 - La exportación y el borrado de un tenant son herramientas solo del dueño (`GET .../export`, `POST .../purge`). El borrado pide el slug como confirmación y solo funciona con un tenant que no está operativo.
 
 ## 4. La cuenta del comprador

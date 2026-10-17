@@ -298,7 +298,8 @@
       "byo_unreachable": "No se pudo contactar al proveedor. Intenta de nuevo.",
       "invalid_byo": "Revisa la llave y los datos (la URL debe ser https y pública, y las voces un JSON válido).",
       "byo_not_configured": "Este tenant no tiene esa llave cargada.",
-      "unknown_provider": "Proveedor desconocido."
+      "unknown_provider": "Proveedor desconocido.",
+      "byo_not_in_plan": "Tu plan actual no incluye este proveedor, así que no se puede cargar una llave. Cuando el plan lo incluya, podrás agregarla aquí."
     },
     "botTitle": "Cuenta de bot",
     "botNone": "Sin bot",
@@ -512,7 +513,9 @@
           "help": "Voces con personajes.",
           "formHelp": "Llave de API de Fish Audio. Se prueba consultando su saldo."
         }
-      }
+      },
+      "notInPlan": "No incluido en tu plan",
+      "notInPlanHelp": "Tu plan actual no incluye este proveedor, así que no se puede cargar una llave. Cuando el plan lo incluya, podrás agregarla aquí."
     }
   },
   "signup": {

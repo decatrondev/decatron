@@ -30,7 +30,7 @@ Capabilities are rows, not code. The catalog (`capabilities`) has four groups: `
 - **Sandbox.** A new tenant starts on `sandbox` for 7 days.
 - **Lifecycle.** `TenantLifecycle` (every 60 s by default) pauses the EventSub connection and Discord gateway of a tenant that is not operational (suspended, cancelled, sandbox expired, no subscription) and resumes them on its own. It logs `tenant.purge.due` for tenants past the retention period (`Platform:Lifecycle:PurgeAfterDays`, 30 by default); it never deletes by itself.
 - **Enforcement.** `[RequiresModule("module.x")]` on controllers, plan filters on chat commands and background tasks, and counters for commands, timers, storage, e-mails and monthly chat messages (the chat counter only measures).
-- **Own keys.** AI, voice and translation run on the tenant's own keys. Without a key the feature is off; Decatron's keys are never used for another tenant.
+- **Own keys.** AI, voice and translation run on the tenant's own keys. Without a key the feature is off; Decatron's keys are never used for another tenant. A provider is enabled when the plan includes at least one of its capabilities (`byo.ai` or `byo.translate` for AI, `byo.stt` or `byo.tts` for Deepgram, `byo.tts` for Fish Audio); the buyer panel shows a provider the plan does not include as "not in your plan", and the server refuses to save its key (`byo_not_in_plan`).
 - Export and purge of a tenant are owner-only tools (`GET .../export`, `POST .../purge`). A purge asks for the slug as confirmation and only works on a tenant that is not operational.
 
 ## 4. The buyer account

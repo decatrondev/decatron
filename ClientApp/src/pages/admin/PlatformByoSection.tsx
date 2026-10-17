@@ -15,7 +15,7 @@ interface Form { apiKey: string; baseUrl: string; model: string; fallbackModel: 
 const EMPTY: Form = { apiKey: '', baseUrl: '', model: '', fallbackModel: '', voices: '' };
 
 // `client` y `basePath` permiten usarla también en el panel del comprador (su propia sesión y sus propios endpoints).
-export default function PlatformByoSection({ tenantId, tenantName, byo, onChanged, client, basePath }: { tenantId: number; tenantName: string; byo: Record<string, ByoSummary | null> | null; onChanged: () => void; client?: AxiosInstance; basePath?: string }) {
+export default function PlatformByoSection({ tenantId, tenantName, byo, onChanged, client, basePath, allowed }: { tenantId: number; tenantName: string; byo: Record<string, ByoSummary | null> | null; onChanged: () => void; client?: AxiosInstance; basePath?: string; allowed?: Record<string, boolean> }) {
     const http = client ?? api;
     const { t, i18n } = useTranslation('platform');
     const [editing, setEditing] = useState<Provider | null>(null);
@@ -57,17 +57,18 @@ export default function PlatformByoSection({ tenantId, tenantName, byo, onChange
             <ul className="space-y-3">
                 {PROVIDERS.map(p => {
                     const s = byo?.[p] ?? null;
+                    const locked = allowed?.[p] === false; // el plan no incluye este proveedor: se explica y no se puede cargar
                     return (
                         <li key={p} className="space-y-1.5">
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm text-ds-text">{t(`tenants.byo.providers.${p}.name`)}</span>
-                                {s ? <Badge tone="ok">{t('tenants.byo.configured', { hint: s.hint })}</Badge> : <Badge tone="warn">{t('tenants.byo.none')}</Badge>}
+                                {locked ? <Badge>{t('tenants.byo.notInPlan')}</Badge> : s ? <Badge tone="ok">{t('tenants.byo.configured', { hint: s.hint })}</Badge> : <Badge tone="warn">{t('tenants.byo.none')}</Badge>}
                                 {s?.config.model && <span className="text-sm text-ds-soft">{s.config.model}</span>}
                                 {s && <span className="text-sm text-ds-soft">{new Date(s.updatedAt).toLocaleDateString(i18n.language)}</span>}
                             </div>
-                            <p className="text-sm text-ds-soft">{t(`tenants.byo.providers.${p}.help`)}</p>
+                            <p className="text-sm text-ds-soft">{locked ? t('tenants.byo.notInPlanHelp') : t(`tenants.byo.providers.${p}.help`)}</p>
                             <div className="flex flex-wrap gap-2">
-                                <Button size="sm" variant="secondary" disabled={busy} onClick={() => open(p)}>{s ? t('tenants.byo.replace') : t('tenants.byo.load')}</Button>
+                                <Button size="sm" variant="secondary" disabled={busy || locked} onClick={() => open(p)}>{s ? t('tenants.byo.replace') : t('tenants.byo.load')}</Button>
                                 {s && <Button size="sm" variant="ghost" loading={busy} onClick={() => run(() => http.post(`${base}/${p}/test`), t('tenants.byo.tested'))}>{t('tenants.byo.test')}</Button>}
                                 {s && <Button size="sm" variant="ghost" disabled={busy} onClick={() => setRemoving(p)}>{t('tenants.byo.remove')}</Button>}
                             </div>

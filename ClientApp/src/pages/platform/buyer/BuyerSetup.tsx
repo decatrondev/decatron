@@ -16,6 +16,7 @@ interface Data {
     redirectUri: string;
     twitchApp: AppSummary | null; twitchBot: BotSummary | null; discordBot: DiscordSummary | null;
     byo: Record<string, ByoSummary | null>;
+    byoAllowed: Record<string, boolean>;
     gateway: GatewayState | null; eventSub: EventSubState | null;
 }
 type Note = { ok: boolean; text: string } | null;
@@ -173,7 +174,7 @@ export default function BuyerSetup() {
             </Section>
 
             <Card><div className="p-5">
-                <PlatformByoSection tenantId={0} tenantName={data.tenant.name} byo={data.byo} onChanged={load} client={buyerApi} basePath={`${BASE}/byo`} />
+                <PlatformByoSection tenantId={0} tenantName={data.tenant.name} byo={data.byo} allowed={data.byoAllowed} onChanged={load} client={buyerApi} basePath={`${BASE}/byo`} />
             </div></Card>
         </div>
     );
