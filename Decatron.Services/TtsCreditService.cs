@@ -103,7 +103,7 @@ namespace Decatron.Services
                 return new CreditConsumeResult(true, 0, 0);
 
             // Fase 5.8: Deepgram y Fish de un tenant van con SU llave y los cobra su proveedor; los creditos son de Decatron
-            if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1 && engine is "deepgram_aura" or "fish")
+            if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1 && engine is "deepgram_aura" or "fish" or "live_stt")
                 return new CreditConsumeResult(true, 0, long.MaxValue);
 
             var cost = await CalculateCostAsync(chars, engine);

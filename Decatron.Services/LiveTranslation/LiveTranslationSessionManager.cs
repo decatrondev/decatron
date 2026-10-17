@@ -50,6 +50,7 @@ namespace Decatron.Services.LiveTranslation
         private readonly ILogger<LiveTranslationSessionManager> _logger;
 
         private readonly Decatron.Core.Interfaces.ITenantResolver? _tenants;
+        private readonly Decatron.Core.Interfaces.IByoKeys? _byo;
         private readonly ConcurrentDictionary<long, ChannelSession> _byUser = new();
         private readonly ConcurrentDictionary<string, ChannelSession> _byLogin = new();
 
@@ -62,8 +63,10 @@ namespace Decatron.Services.LiveTranslation
             IOptions<LiveTranslationOptions> opts,
             IConfiguration config,
             ILogger<LiveTranslationSessionManager> logger,
-            Decatron.Core.Interfaces.ITenantResolver? tenants = null)
+            Decatron.Core.Interfaces.ITenantResolver? tenants = null,
+            Decatron.Core.Interfaces.IByoKeys? byo = null)
         {
+            _byo = byo;
             _tenants = tenants;
             _scopes = scopes;
             _hub = hub;
@@ -75,7 +78,10 @@ namespace Decatron.Services.LiveTranslation
             _logger = logger;
         }
 
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(_deepgramKey) && _translator.IsConfigured;
+        // #1: su llave de Deepgram de appsettings. Otro tenant (Fase 5.8): SU llave de Deepgram y SU IA (el traductor ya mira al tenant ambiente).
+        public bool IsConfigured =>
+            ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) == 1 ? !string.IsNullOrWhiteSpace(_deepgramKey) : _byo?.IsAvailable(Decatron.Core.Interfaces.ByoProviders.Deepgram) == true)
+            && _translator.IsConfigured;
 
         public IReadOnlyList<ITranslationTtsEngine> Engines => _engines.Values.ToList();
 
@@ -106,11 +112,13 @@ namespace Decatron.Services.LiveTranslation
         /// </summary>
         public async Task<ChannelSession> StartAsync(long userId, long? deviceId, CancellationToken ct)
         {
-            if (!IsConfigured) throw new InvalidOperationException("La traducción en vivo no está configurada en el servidor");
-            // Fase 5.8: la sesión usa la llave de Deepgram y la IA del #1. Hasta tener sesiones con contexto de tenant (STT con la llave de cada
-            // tenant), una cuenta de otro tenant no la abre: así nunca gasta la llave de Decatron. Si no se puede saber, se deja pasar como hasta hoy.
-            if (_tenants is not null && _tenants.ByUserId(userId).TenantId != 1)
-                throw new InvalidOperationException("La traducción en vivo todavía no está disponible para esta cuenta");
+            // Fase 5.8: la sesión corre en el tenant de la cuenta. Todo lo que se abre desde aquí (STT, pipelines, cobros, guardado) hereda ese
+            // tenant, así usa SUS llaves de Deepgram, IA y voz y nunca las del #1. Para el #1 no cambia nada.
+            var tenantId = _tenants?.ByUserId(userId).TenantId ?? 1;
+            using var tenantScope = tenantId != 1 ? Decatron.Core.Interfaces.TenantAmbient.Push(tenantId) : null;
+            if (!IsConfigured) throw new InvalidOperationException(tenantId == 1
+                ? "La traducción en vivo no está configurada en el servidor"
+                : "Para traducir en vivo carga tu llave de Deepgram y la de IA en el panel");
             if (_byUser.TryGetValue(userId, out var previous))
             {
                 // La app se reconectó (o se abrió en otra PC) mientras la sesión anterior
@@ -139,7 +147,8 @@ namespace Decatron.Services.LiveTranslation
 
                 var credits = scope.ServiceProvider.GetRequiredService<ITtsCreditService>();
                 var balance = await credits.GetBalanceAsync(userId);
-                if (!balance.IsUnlimited && balance.TotalAvailable <= 0)
+                // Un tenant paga STT, IA y voz premium a SUS proveedores: sus creditos de Decatron no son requisito para abrir la sesion
+                if (tenantId == 1 && !balance.IsUnlimited && balance.TotalAvailable <= 0)
                     throw new InvalidOperationException("Sin créditos. Compra un paquete en el dashboard para traducir en vivo");
 
                 budget = await db.LiveTranslationAccess.AsNoTracking().Where(a => a.UserId == userId).Select(a => a.CreditBudgetPerSession).FirstOrDefaultAsync(ct);
@@ -150,7 +159,7 @@ namespace Decatron.Services.LiveTranslation
                 sessionId = row.Id;
             }
 
-            var session = new ChannelSession(this, userId, login, sessionId, settings) { Budget = budget };
+            var session = new ChannelSession(this, userId, login, sessionId, settings) { Budget = budget, TenantId = tenantId };
             if (!_byUser.TryAdd(userId, session))
                 throw new InvalidOperationException("Dos apps intentaron iniciar a la vez; vuelve a pulsar Iniciar");
             _byLogin[login] = session;
@@ -181,6 +190,7 @@ namespace Decatron.Services.LiveTranslation
         public async Task StopAsync(long userId, string reason)
         {
             if (!_byUser.TryRemove(userId, out var session)) return;
+            using var tenantScope = session.TenantId != 1 ? Decatron.Core.Interfaces.TenantAmbient.Push(session.TenantId) : null;
             _byLogin.TryRemove(session.Login, out _);
             await session.CloseAsync();
             await PersistEndAsync(session, reason);
@@ -214,7 +224,13 @@ namespace Decatron.Services.LiveTranslation
         internal IHubContext<TranslationHub> Hub => _hub;
         internal LiveTranslator Translator => _translator;
         public LiveTranslationOptions Options => _opts;
-        internal string DeepgramKey => _deepgramKey;
+        /// <summary>Llave de Deepgram del tenant ambiente: la de appsettings para el #1, la suya para los demás (sin ella no hay sesión).</summary>
+        internal async Task<string> DeepgramKeyAsync(CancellationToken ct)
+        {
+            if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) == 1) return _deepgramKey;
+            var k = _byo is null ? null : await _byo.GetAsync(Decatron.Core.Interfaces.ByoProviders.Deepgram, null, ct);
+            return k?.ApiKey ?? throw new InvalidOperationException("Falta la llave de Deepgram de esta cuenta");
+        }
         internal ILogger Logger => _logger;
 
         /// <summary>Cobra créditos. Devuelve false si no alcanzó (no descuenta nada). El motor "standard" (Piper) va a la bolsa estándar.</summary>
@@ -396,7 +412,7 @@ namespace Decatron.Services.LiveTranslation
             var segmenter = _mgr.Options.SmartSegmentation
                 ? new SmartSegmenter(Settings.SourceLanguage, () => _pipelines.Values.Select(p => p.Pending).DefaultIfEmpty(0).Max())
                 : null;
-            _stt = new DeepgramLiveSttClient(_mgr.DeepgramKey, _mgr.Options.SttModel, Settings.SourceLanguage, _mgr.Logger, segmenter);
+            _stt = new DeepgramLiveSttClient(await _mgr.DeepgramKeyAsync(ct), _mgr.Options.SttModel, Settings.SourceLanguage, _mgr.Logger, segmenter);
             _stt.UtteranceReady += OnUtterance;
             _stt.Closed += OnSttClosed;
             await _stt.ConnectAsync(ct);
@@ -450,9 +466,14 @@ namespace Decatron.Services.LiveTranslation
             finally { Interlocked.Exchange(ref _chargingStt, 0); }
         }
 
+        /// <summary>Tenant de la cuenta del streamer (1 = Decatron). Lo fija StartAsync.</summary>
+        public long TenantId { get; internal set; } = 1;
+
         internal void EnsurePipeline(string lang)
         {
             lang = lang.ToLowerInvariant();
+            // Se llama tambien desde el hub (oyentes), sin contexto: el pipeline y lo que abre deben nacer en el tenant de la sesion
+            using var tenantScope = TenantId != 1 ? Decatron.Core.Interfaces.TenantAmbient.Push(TenantId) : null;
             if (!Settings.TargetLanguageList.Contains(lang)) return;
             _pipelines.GetOrAdd(lang, l =>
             {

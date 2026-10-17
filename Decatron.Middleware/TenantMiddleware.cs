@@ -25,6 +25,7 @@ namespace Decatron.Middleware
 
         public async Task InvokeAsync(HttpContext context, ITenantContext tenant, ITenantResolver resolver)
         {
+            IDisposable? ambient = null;
             try
             {
                 var mode = _config[TenantMode.ConfigKey];
@@ -32,6 +33,9 @@ namespace Decatron.Middleware
                 {
                     var res = Resolve(context, resolver);
                     tenant.Set(res);
+                    // Fase 5.8: los servicios singleton (IA, voz, llaves propias) leen el tenant de TenantAmbient; sin esto, lo que se dispara desde
+                    // un request de otro tenant correria como el #1. DecatronDbContext ya prefiere el ambiente, y es el mismo valor.
+                    if (res.Resolved) ambient = TenantAmbient.Push(res.TenantId);
                     // Un usuario autenticado cuyo tenant no se pudo resolver es una ambigüedad; los anónimos no.
                     if (!res.Resolved && context.User.Identity?.IsAuthenticated == true)
                         LogOnce($"user:{context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value}", context.Request.Path);
@@ -41,7 +45,8 @@ namespace Decatron.Middleware
             {
                 _log.LogWarning(ex, "tenant.middleware_error");
             }
-            await _next(context);
+            try { await _next(context); }
+            finally { ambient?.Dispose(); }
         }
 
         private static TenantResolution Resolve(HttpContext context, ITenantResolver resolver)

@@ -25,11 +25,19 @@ namespace Decatron.Services.LiveTranslation
         private readonly IServiceScopeFactory _scopes;
         private readonly LiveTranslationOptions _opts;
         private readonly ILogger<TranslationDesktopChannel> _logger;
+        private readonly ITenantResolver? _tenants;
 
         public TranslationDesktopChannel(LiveTranslationSessionManager mgr, IServiceScopeFactory scopes,
-            IOptions<LiveTranslationOptions> opts, ILogger<TranslationDesktopChannel> logger)
+            IOptions<LiveTranslationOptions> opts, ILogger<TranslationDesktopChannel> logger, ITenantResolver? tenants = null)
         {
-            _mgr = mgr; _scopes = scopes; _opts = opts.Value; _logger = logger;
+            _mgr = mgr; _scopes = scopes; _opts = opts.Value; _logger = logger; _tenants = tenants;
+        }
+
+        /// <summary>Fase 5.8: el mensaje del Desktop llega sin contexto; se trabaja en el tenant de la cuenta (null para el #1, que no cambia).</summary>
+        private IDisposable? InTenant(long userId)
+        {
+            var t = _tenants?.ByUserId(userId).TenantId ?? 1;
+            return t != 1 ? TenantAmbient.Push(t) : null;
         }
 
         public string Name => "translation";
@@ -37,6 +45,7 @@ namespace Decatron.Services.LiveTranslation
 
         public async Task<object?> DescribeAsync(DesktopConnection conn)
         {
+            using var tenantScope = InTenant(conn.UserId);
             using var scope = _scopes.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
             var s = await db.LiveTranslationSettings.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == conn.UserId);
@@ -66,6 +75,7 @@ namespace Decatron.Services.LiveTranslation
 
         public async Task OnMessageAsync(DesktopConnection conn, string type, JsonNode msg)
         {
+            using var tenantScope = InTenant(conn.UserId);
             switch (type)
             {
                 case "start":
@@ -103,6 +113,7 @@ namespace Decatron.Services.LiveTranslation
         private async Task StopAsync(DesktopConnection conn, string reason)
         {
             if (!conn.Items.Remove(SessionKey, out var s) || s is not ChannelSession session) return;
+            using var tenantScope = InTenant(session.UserId);
             conn.Items.Remove(LoopKey);
             if (!session.Token.IsCancellationRequested)
                 await _mgr.StopAsync(session.UserId, reason);
