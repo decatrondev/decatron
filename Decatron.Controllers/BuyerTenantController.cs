@@ -48,7 +48,9 @@ namespace Decatron.Controllers
         /// <summary>Tenant del subdominio. El filtro RequireBuyerOwner ya garantizó que existe y no es el #1.</summary>
         private long Tid => TenantAmbient.Current!.Value;
         private string Actor => "buyer:" + (User.FindFirst("Email")?.Value ?? "?");
-        private string RedirectUri => _config["Platform:DefaultRedirectUri"] ?? "https://decatron.net/api/auth/callback";
+        /// <summary>El callback de Twitch vuelve al subdominio del tenant: ahi se guarda la sesion del streamer (cada marca en su propio dominio).</summary>
+        private static string SiteOf(string slug) => $"https://{slug}.{Decatron.Services.Tenancy.TenantResolver.PlatformDomain}";
+        private static string RedirectFor(string slug) => $"{SiteOf(slug)}/api/auth/callback";
 
         public sealed class TwitchAppBody { public string? ClientId { get; set; } public string? ClientSecret { get; set; } }
         public sealed class DiscordBotBody { public string? Token { get; set; } }
@@ -90,7 +92,7 @@ namespace Decatron.Controllers
             {
                 success = true,
                 tenant = new { slug = t.Value.Slug, name = t.Value.Name, status = t.Value.Status },
-                redirectUri = RedirectUri,
+                redirectUri = RedirectFor(t.Value.Slug),
                 twitchApp = await _store.GetTwitchAppSummaryAsync(Tid),
                 twitchBot = await _store.GetTwitchBotAsync(Tid),
                 discordBot = await _store.GetDiscordBotAsync(Tid),
@@ -108,6 +110,7 @@ namespace Decatron.Controllers
         public async Task<IActionResult> SaveTwitchApp([FromBody] TwitchAppBody body)
         {
             if (await RequireActiveAsync() is { } stop) return stop;
+            var slug = (await TenantAsync())!.Value.Slug;
             var clientId = body.ClientId?.Trim() ?? "";
             var secret = body.ClientSecret?.Trim() ?? "";
             if (!ClientIdRx.IsMatch(clientId)) return BadRequest(new { success = false, code = "invalid_client_id" });
@@ -119,7 +122,7 @@ namespace Decatron.Controllers
                 case AppValidationResult.Unreachable: return StatusCode(502, new { success = false, code = "twitch_unreachable" });
             }
 
-            await _store.SaveTwitchAppAsync(Tid, new TwitchAppInput(clientId, secret, RedirectUri, null), Actor);
+            await _store.SaveTwitchAppAsync(Tid, new TwitchAppInput(clientId, secret, RedirectFor(slug), null), Actor);
             _provider.Invalidate(Tid);
             _log.LogInformation("Plataforma: app de Twitch cargada por el comprador del tenant {Tenant}", Tid);
             var tid = Tid;
@@ -145,8 +148,7 @@ namespace Decatron.Controllers
             if (await _store.GetTwitchAppSummaryAsync(Tid) is null) return BadRequest(new { success = false, code = "app_required" });
             var t = (await TenantAsync())!.Value;
             var k = Decatron.Services.AuthService.SignOAuthState("botlink", Tid, _jwt.Value.SecretKey);
-            var baseUrl = (_config["Platform:PublicBaseUrl"] ?? "https://decatron.net").TrimEnd('/');
-            var url = $"{baseUrl}/api/auth/login?tenant={Uri.EscapeDataString(t.Slug)}&bot=1&k={Uri.EscapeDataString(k)}";
+            var url = $"{SiteOf(t.Slug)}/api/auth/login?tenant={Uri.EscapeDataString(t.Slug)}&bot=1&k={Uri.EscapeDataString(k)}";
             _log.LogInformation("Plataforma: enlace de autorizacion de bot generado para el tenant {Tenant}", Tid);
             return Ok(new { success = true, url, expiresInMinutes = 30 });
         }

@@ -95,7 +95,7 @@ namespace Decatron.Controllers
             var clientId = body.ClientId?.Trim() ?? "";
             var secret = body.ClientSecret?.Trim() ?? "";
             // Vacio = el callback compartido del dominio canonico (sin redirect_uri el login del tenant no funcionaria)
-            var redirect = string.IsNullOrWhiteSpace(body.RedirectUri) ? (_config["Platform:DefaultRedirectUri"] ?? "https://decatron.net/api/auth/callback") : body.RedirectUri.Trim();
+            var redirect = string.IsNullOrWhiteSpace(body.RedirectUri) ? (_config["Platform:DefaultRedirectUri"] ?? $"https://{tenant.Value.Slug}.{Decatron.Services.Tenancy.TenantResolver.PlatformDomain}/api/auth/callback") : body.RedirectUri.Trim();
             var scopes = string.IsNullOrWhiteSpace(body.Scopes) ? null : body.Scopes.Trim();
             if (!ClientIdRx.IsMatch(clientId)) return BadRequest(new { success = false, code = "invalid_client_id" });
             if (secret.Length < 20 || secret.Length > 100 || secret.Any(char.IsWhiteSpace)) return BadRequest(new { success = false, code = "invalid_client_secret" });
