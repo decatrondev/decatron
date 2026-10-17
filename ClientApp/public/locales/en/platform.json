@@ -691,6 +691,72 @@
         "not_enabled": "Two-step verification is not on.",
         "generic": "We couldn't complete the action. Please try again."
       }
+    },
+    "adminRole": "Administrator",
+    "tabHome": "Overview",
+    "tabTeam": "Team",
+    "adminNotice": "You signed in as an administrator: you can view status, plan and permissions, and reopen the event connection. Credentials and the team are managed by the owner.",
+    "readonly": {
+      "title": "Connection status",
+      "help": "Read-only. Here you see whether each connection is set up; the owner loads the details and keys.",
+      "configured": "Set up"
+    },
+    "invitation": {
+      "accepting": "Accepting the invitation…",
+      "errorTitle": "We could not accept the invitation",
+      "errors": {
+        "invalid_token": "The link expired, was already used or was cancelled. Ask the owner to invite you again.",
+        "quota_admins": "This project has no room for more administrators. Let the owner know.",
+        "not_operational": "This project is not active right now. Try again later.",
+        "already_member": "This account is already part of the team. Sign in with your email from the sign-in page."
+      }
+    },
+    "team": {
+      "tabAdmins": "Administrators",
+      "tabStreamers": "Streamers ({{count}})",
+      "inviteTitle": "Invite an administrator",
+      "inviteHelp": "They get an email with a single-use link that lasts {{days}} days. Opening it creates their account in this project. Administrators can view status, plan and usage, and reopen the event connection.",
+      "seats": "{{used}} of {{limit}} seats used (owner included)",
+      "seatsUnlimited": "{{count}} seats used (no limit)",
+      "seatsPending_one": "{{count}} pending invitation",
+      "seatsPending_other": "{{count}} pending invitations",
+      "notIncluded": "Your plan does not include additional administrators. A higher plan lets you invite your team.",
+      "full": "You have used every seat in your plan. Remove someone or cancel an invitation to invite another person.",
+      "emailLabel": "Administrator's email",
+      "send": "Send invitation",
+      "invited": "Invitation sent to {{email}}.",
+      "membersTitle": "Team",
+      "role": {
+        "owner": "Owner",
+        "admin": "Administrator"
+      },
+      "since": "Since {{date}}",
+      "remove": "Remove",
+      "confirmRemove": "Yes, remove",
+      "removed": "Administrator removed. Their access closed immediately.",
+      "adminCan": "An administrator cannot change credentials, keys, 2FA or the team. Removing them closes their access immediately.",
+      "pendingTitle": "Pending invitations",
+      "expires": "Expires {{date}}",
+      "cancel": "Cancel",
+      "cancelled": "Invitation cancelled.",
+      "streamersTitle": "Streamers in this space",
+      "streamersHelp": "People who signed in with Twitch on your subdomain. They are not administrators and do not count toward the team limit; they count toward your plan's channel limit.",
+      "streamersEmptyTitle": "No streamers yet",
+      "streamersEmpty": "When someone signs in with Twitch on your subdomain, they will show up here.",
+      "errors": {
+        "invalid_email": "Enter a valid email.",
+        "already_member": "That person is already on the team.",
+        "already_invited": "There is already a pending invitation for that email.",
+        "quota_admins": "Your plan has no room for another administrator.",
+        "too_many_pending": "There are too many pending invitations. Cancel one or wait for them to be accepted.",
+        "daily_limit": "You reached today's invitation limit. Try again tomorrow.",
+        "busy": "There are many emails queued right now. Try again in a while.",
+        "email_failed": "We could not send the email. Check the address and try again.",
+        "not_operational": "Your project is not active; the team cannot be changed.",
+        "invitation_not_found": "That invitation no longer exists.",
+        "member_not_found": "That person is no longer on the team.",
+        "cannot_remove_self": "You cannot remove yourself."
+      }
     }
   },
   "tenantLogin": {

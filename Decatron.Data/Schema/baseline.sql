@@ -10,7 +10,7 @@
 --   psql -U decatron_user -d decatron -f Decatron.Data/Migrations/Seed_Platform_Base.sql
 --
 -- This snapshot already includes the multi-tenant platform (tenants, row-level security policies,
--- app_tenant_id(), plans and entitlements, buyer sign-up and two-step verification tables).
+-- app_tenant_id(), plans and entitlements, buyer sign-up, two-step verification and team invitation tables).
 -- It does NOT contain data: Seed_Platform_Base.sql creates tenant #1 and the capability catalog,
 -- which every installation needs (users and channels reference tenant #1 by default).
 --
@@ -6877,6 +6877,46 @@ CREATE TABLE public.tenant_entitlement_overrides (
 
 
 --
+-- Name: tenant_invitations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_invitations (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    email character varying(254) NOT NULL,
+    role character varying(12) DEFAULT 'admin'::character varying NOT NULL,
+    token_hash character varying(64) NOT NULL,
+    locale character varying(5) DEFAULT 'es'::character varying NOT NULL,
+    invited_by bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    used_at timestamp with time zone,
+    accepted_user_id bigint,
+    cancelled_at timestamp with time zone,
+    CONSTRAINT tenant_invitations_role_check CHECK (((role)::text = 'admin'::text))
+);
+
+
+--
+-- Name: tenant_invitations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenant_invitations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenant_invitations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenant_invitations_id_seq OWNED BY public.tenant_invitations.id;
+
+
+--
 -- Name: tenant_keys; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11292,6 +11332,13 @@ ALTER TABLE ONLY public.tenant_credentials ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: tenant_invitations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_invitations ALTER COLUMN id SET DEFAULT nextval('public.tenant_invitations_id_seq'::regclass);
+
+
+--
 -- Name: tenant_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -13484,6 +13531,14 @@ ALTER TABLE ONLY public.tenant_credentials
 
 ALTER TABLE ONLY public.tenant_entitlement_overrides
     ADD CONSTRAINT tenant_entitlement_overrides_pkey PRIMARY KEY (tenant_id, capability_key);
+
+
+--
+-- Name: tenant_invitations tenant_invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_invitations
+    ADD CONSTRAINT tenant_invitations_pkey PRIMARY KEY (id);
 
 
 --
@@ -17148,6 +17203,20 @@ CREATE INDEX ix_tenant_addons_tenant ON public.tenant_addons USING btree (tenant
 
 
 --
+-- Name: ix_tenant_invitations_tenant; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tenant_invitations_tenant ON public.tenant_invitations USING btree (tenant_id, created_at DESC);
+
+
+--
+-- Name: ix_tenant_invitations_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tenant_invitations_token ON public.tenant_invitations USING btree (token_hash);
+
+
+--
 -- Name: ix_users_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -18139,6 +18208,13 @@ CREATE UNIQUE INDEX ux_t_xp_achievements_b80bb7740288fda1f201890375a60c8f ON pub
 --
 
 CREATE UNIQUE INDEX ux_t_xp_store_items_b80bb7740288fda1f201890375a60c8f ON public.xp_store_items USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_tenant_invitations_live; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_tenant_invitations_live ON public.tenant_invitations USING btree (tenant_id, lower((email)::text)) WHERE ((used_at IS NULL) AND (cancelled_at IS NULL));
 
 
 --
@@ -19806,6 +19882,14 @@ ALTER TABLE ONLY public.tenant_entitlement_overrides
 
 
 --
+-- Name: tenant_invitations tenant_invitations_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_invitations
+    ADD CONSTRAINT tenant_invitations_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: tenant_keys tenant_keys_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21444,6 +21528,12 @@ ALTER TABLE public.tenant_credentials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenant_entitlement_overrides ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: tenant_invitations; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_invitations ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: accounts tenant_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -22456,6 +22546,13 @@ CREATE POLICY tenant_isolation ON public.tenant_credentials USING ((tenant_id = 
 --
 
 CREATE POLICY tenant_isolation ON public.tenant_entitlement_overrides USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_invitations tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_invitations USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --

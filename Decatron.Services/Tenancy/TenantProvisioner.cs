@@ -40,24 +40,7 @@ public sealed class TenantProvisioner
                 await cmd.ExecuteScalarAsync(ct);
             }
 
-            long accountId;
-            await using (var cmd = new NpgsqlCommand("INSERT INTO accounts DEFAULT VALUES RETURNING id", c, tx))
-                accountId = (long)(await cmd.ExecuteScalarAsync(ct))!;
-
-            long userId;
-            await using (var cmd = new NpgsqlCommand(@"
-                INSERT INTO users (login, display_name, email, profile_image_url, offline_image_url, broadcaster_type, view_count, description,
-                                   access_token, refresh_token, token_expiration, created_at, updated_at, is_active, unique_id, auth_provider, account_id, preferred_language)
-                VALUES ('owner', @dn, @em, '', '', '', 0, '', '', '', now(), now(), now(), true, @uid, 'email', @acc, @lang)
-                RETURNING id", c, tx))
-            {
-                cmd.Parameters.AddWithValue("dn", email.Split('@')[0]);
-                cmd.Parameters.AddWithValue("em", email);
-                cmd.Parameters.AddWithValue("uid", UniqueIdGenerator.Generate());
-                cmd.Parameters.AddWithValue("acc", accountId);
-                cmd.Parameters.AddWithValue("lang", locale == "en" ? "en" : "es");
-                userId = (long)(await cmd.ExecuteScalarAsync(ct))!;
-            }
+            var userId = await CreateBuyerUserAsync(c, tx, "owner", email, locale, ct);
 
             await using (var cmd = new NpgsqlCommand("INSERT INTO tenant_members (tenant_id, user_id, role) VALUES (@t, @u, 'owner')", c, tx))
             {
@@ -82,6 +65,32 @@ public sealed class TenantProvisioner
         {
             await tx.RollbackAsync(ct);
             return new ProvisionResult(false, "slug_taken");
+        }
+    }
+
+    /// <summary>
+    /// Cuenta + usuario de un comprador (auth_provider 'email', sin Twitch) en el tenant que ya está fijado en la transacción (app.tenant_id).
+    /// Lo usan el alta del dueño y la aceptación de una invitación de admin. El <c>login</c> debe ser único dentro del tenant.
+    /// </summary>
+    public static async Task<long> CreateBuyerUserAsync(NpgsqlConnection c, NpgsqlTransaction tx, string login, string email, string locale, CancellationToken ct = default)
+    {
+        long accountId;
+        await using (var cmd = new NpgsqlCommand("INSERT INTO accounts DEFAULT VALUES RETURNING id", c, tx))
+            accountId = (long)(await cmd.ExecuteScalarAsync(ct))!;
+
+        await using (var cmd = new NpgsqlCommand(@"
+            INSERT INTO users (login, display_name, email, profile_image_url, offline_image_url, broadcaster_type, view_count, description,
+                               access_token, refresh_token, token_expiration, created_at, updated_at, is_active, unique_id, auth_provider, account_id, preferred_language)
+            VALUES (@login, @dn, @em, '', '', '', 0, '', '', '', now(), now(), now(), true, @uid, 'email', @acc, @lang)
+            RETURNING id", c, tx))
+        {
+            cmd.Parameters.AddWithValue("login", login);
+            cmd.Parameters.AddWithValue("dn", email.Split('@')[0]);
+            cmd.Parameters.AddWithValue("em", email);
+            cmd.Parameters.AddWithValue("uid", UniqueIdGenerator.Generate());
+            cmd.Parameters.AddWithValue("acc", accountId);
+            cmd.Parameters.AddWithValue("lang", locale == "en" ? "en" : "es");
+            return (long)(await cmd.ExecuteScalarAsync(ct))!;
         }
     }
 

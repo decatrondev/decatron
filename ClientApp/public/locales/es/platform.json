@@ -691,6 +691,72 @@
         "not_enabled": "La verificación en dos pasos no está activa.",
         "generic": "No pudimos completar la acción. Intenta de nuevo."
       }
+    },
+    "adminRole": "Administrador",
+    "tabHome": "Resumen",
+    "tabTeam": "Equipo",
+    "adminNotice": "Entraste como administrador: puedes ver el estado, el plan y los permisos, y reabrir la conexión de eventos. Las credenciales y el equipo los gestiona el propietario.",
+    "readonly": {
+      "title": "Estado de las conexiones",
+      "help": "Solo lectura. Aquí ves si cada conexión está configurada; los datos y las llaves los carga el propietario.",
+      "configured": "Configurada"
+    },
+    "invitation": {
+      "accepting": "Aceptando la invitación…",
+      "errorTitle": "No pudimos aceptar la invitación",
+      "errors": {
+        "invalid_token": "El enlace venció, ya se usó o fue cancelado. Pide al propietario que te invite de nuevo.",
+        "quota_admins": "Este proyecto ya no tiene lugar para más administradores. Avisa al propietario.",
+        "not_operational": "Este proyecto no está activo en este momento. Intenta más tarde.",
+        "already_member": "Esta cuenta ya forma parte del equipo. Entra con tu correo desde la pantalla de inicio."
+      }
+    },
+    "team": {
+      "tabAdmins": "Administradores",
+      "tabStreamers": "Streamers ({{count}})",
+      "inviteTitle": "Invitar a un administrador",
+      "inviteHelp": "Le llega un correo con un enlace de {{days}} días y un solo uso. Al abrirlo se crea su cuenta en este proyecto. Los administradores ven el estado, el plan y el uso, y pueden reabrir la conexión de eventos.",
+      "seats": "{{used}} de {{limit}} lugares ocupados (contando al propietario)",
+      "seatsUnlimited": "{{count}} lugares ocupados (sin tope)",
+      "seatsPending_one": "{{count}} invitación pendiente",
+      "seatsPending_other": "{{count}} invitaciones pendientes",
+      "notIncluded": "Tu plan no incluye administradores adicionales. Con un plan superior podrás invitar a tu equipo.",
+      "full": "Ya usaste todos los lugares de tu plan. Quita a alguien o cancela una invitación para invitar a otra persona.",
+      "emailLabel": "Correo del administrador",
+      "send": "Enviar invitación",
+      "invited": "Invitación enviada a {{email}}.",
+      "membersTitle": "Equipo",
+      "role": {
+        "owner": "Propietario",
+        "admin": "Administrador"
+      },
+      "since": "Desde {{date}}",
+      "remove": "Quitar",
+      "confirmRemove": "Sí, quitar",
+      "removed": "Administrador quitado. Su acceso se cerró al instante.",
+      "adminCan": "Un administrador no puede cambiar credenciales, llaves, el 2FA ni el equipo. Quitarlo cierra su acceso al instante.",
+      "pendingTitle": "Invitaciones pendientes",
+      "expires": "Vence el {{date}}",
+      "cancel": "Cancelar",
+      "cancelled": "Invitación cancelada.",
+      "streamersTitle": "Streamers del espacio",
+      "streamersHelp": "Personas que entraron con Twitch a tu subdominio. No son administradores y no cuentan para el límite del equipo; cuentan para el límite de canales de tu plan.",
+      "streamersEmptyTitle": "Todavía no hay streamers",
+      "streamersEmpty": "Cuando alguien inicie sesión con Twitch en tu subdominio, aparecerá aquí.",
+      "errors": {
+        "invalid_email": "Escribe un correo válido.",
+        "already_member": "Esa persona ya es parte del equipo.",
+        "already_invited": "Ya hay una invitación pendiente para ese correo.",
+        "quota_admins": "Tu plan no tiene lugar para otro administrador.",
+        "too_many_pending": "Hay demasiadas invitaciones pendientes. Cancela alguna o espera a que se acepten.",
+        "daily_limit": "Llegaste al máximo de invitaciones de hoy. Intenta de nuevo mañana.",
+        "busy": "Hay muchos correos en cola ahora mismo. Intenta en un rato.",
+        "email_failed": "No pudimos enviar el correo. Revisa la dirección e intenta de nuevo.",
+        "not_operational": "Tu proyecto no está activo; no se pueden hacer cambios en el equipo.",
+        "invitation_not_found": "Esa invitación ya no existe.",
+        "member_not_found": "Esa persona ya no está en el equipo.",
+        "cannot_remove_self": "No puedes quitarte a ti mismo."
+      }
     }
   },
   "tenantLogin": {

@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MailCheck, XCircle } from 'lucide-react';
-import { Alert, Button, Card, Field, Input, Spinner } from '../../../components/ds';
+import { Alert, Button, Card, Field, Input, Spinner, Tabs } from '../../../components/ds';
 import PlatformShell from '../PlatformShell';
 import BuyerSetup from './BuyerSetup';
+import BuyerSetupReadOnly from './BuyerSetupReadOnly';
+import BuyerTeam from './BuyerTeam';
 import BuyerTransparency from './BuyerTransparency';
 import BuyerSecurity from './BuyerSecurity';
 import BuyerStepUp from './BuyerStepUp';
@@ -27,7 +29,7 @@ async function exchange(code: string): Promise<boolean> {
 type Me = {
     tenant: { slug: string; name: string; status: string };
     plan: { key: string | null; name: string | null; status: string | null; sandboxEndsAt: string | null; daysLeft: number | null };
-    buyer: { email: string; role: string };
+    buyer: { email: string; role: 'owner' | 'admin' };
 };
 
 function Home() {
@@ -37,6 +39,7 @@ function Home() {
     const [me, setMe] = useState<Me | null>(null);
     const [error, setError] = useState(false);
     const exchanged = useRef(false);
+    const [tab, setTab] = useState(params.get('tab') === 'equipo' ? 'team' : 'home');
 
     const load = useCallback(async () => {
         const token = getToken();
@@ -76,12 +79,21 @@ function Home() {
                             <div><dt className="text-sm text-ds-faint">{t('buyer.sandboxLeft')}</dt>
                                 <dd className="text-ds-text font-semibold">{me.plan.daysLeft == null ? '—' : t('buyer.days', { count: me.plan.daysLeft })}</dd></div>
                             <div><dt className="text-sm text-ds-faint">{t('buyer.account')}</dt><dd className="text-ds-text font-semibold break-all">{me.buyer.email}</dd></div>
-                            <div><dt className="text-sm text-ds-faint">{t('buyer.role')}</dt><dd className="text-ds-text font-semibold">{t('buyer.owner')}</dd></div>
+                            <div><dt className="text-sm text-ds-faint">{t('buyer.role')}</dt><dd className="text-ds-text font-semibold">{t(me.buyer.role === 'owner' ? 'buyer.owner' : 'buyer.adminRole')}</dd></div>
                         </dl>
                     </Card>
-                    <BuyerSecurity />
-                    <BuyerSetup />
-                    <BuyerTransparency />
+                    {me.buyer.role === 'owner' ? <>
+                        <Tabs value={tab} onChange={setTab} items={[{ id: 'home', label: t('buyer.tabHome') }, { id: 'team', label: t('buyer.tabTeam') }]} />
+                        {tab === 'team' ? <BuyerTeam /> : <>
+                            <BuyerSecurity />
+                            <BuyerSetup />
+                            <BuyerTransparency />
+                        </>}
+                    </> : <>
+                        <Alert tone="info">{t('buyer.adminNotice')}</Alert>
+                        <BuyerSetupReadOnly />
+                        <BuyerTransparency />
+                    </>}
                     <Button variant="secondary" onClick={logout}>{t('buyer.logout')}</Button>
                     <BuyerStepUp />
                 </>}
@@ -188,6 +200,42 @@ function Enter() {
     );
 }
 
+/** Destino del enlace de invitación del correo. Confirma con POST para que una vista previa no gaste el enlace. */
+function Invitation() {
+    const { t } = useTranslation('platform');
+    const nav = useNavigate();
+    const [params] = useSearchParams();
+    const [failure, setFailure] = useState<string | null>(null);
+    const started = useRef(false); // enlace de un solo uso: una petición, sin descartar su respuesta
+
+    useEffect(() => {
+        if (started.current) return;
+        started.current = true;
+        const token = params.get('t') ?? '';
+        if (!token) { setFailure('invalid_token'); return; }
+        fetch('/api/platform/buyer/team/accept', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) })
+            .then(async r => ({ ok: r.ok, b: await r.json().catch(() => null) }))
+            .then(async ({ ok, b }) => {
+                if (ok && b?.code && await exchange(b.code)) { nav('/panel', { replace: true }); return; }
+                setFailure(b?.code ?? 'invalid_token');
+            })
+            .catch(() => setFailure('invalid_token'));
+    }, [params, nav]);
+
+    return (
+        <PlatformShell showNav={false}>
+            <div className="max-w-lg mx-auto px-5 py-24 text-center space-y-4" role="status">
+                {!failure && <><Spinner /><p className="text-ds-soft">{t('buyer.invitation.accepting')}</p></>}
+                {failure && <>
+                    <XCircle className="w-12 h-12 mx-auto text-ds-danger" aria-hidden />
+                    <h1 className="text-2xl font-extrabold text-ds-text">{t('buyer.invitation.errorTitle')}</h1>
+                    <p className="text-ds-soft">{t(`buyer.invitation.errors.${failure}`, { defaultValue: t('buyer.invitation.errors.invalid_token') })}</p>
+                </>}
+            </div>
+        </PlatformShell>
+    );
+}
+
 /** Panel del comprador en slug.decatron.top/panel. Fuera de un subdominio de la plataforma no existe. */
 export default function BuyerPanel() {
     if (!onPlatformHost()) return <Navigate to="/" replace />;
@@ -195,6 +243,7 @@ export default function BuyerPanel() {
         <Routes>
             <Route path="login" element={<Login />} />
             <Route path="entrar" element={<Enter />} />
+            <Route path="invitacion" element={<Invitation />} />
             <Route path="*" element={<Home />} />
         </Routes>
     );

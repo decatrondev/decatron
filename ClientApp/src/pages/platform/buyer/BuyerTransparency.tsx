@@ -12,7 +12,7 @@ interface Data {
         subscription: { planName: string; status: string; sandboxEndsAt: string | null; endsAt: string | null } | null;
         usage: { key: string; periodStart: string; used: number }[];
         channels: { used: number; limit: number | null };
-        admins: { used: number; limit: number | null };
+        admins: { used: number; pending?: number; limit: number | null };
     } | null;
     capabilities: Cap[];
     scopes: { streamer: ScopeRow[]; bot: ScopeRow[]; moderation: ScopeRow[] };
@@ -52,7 +52,7 @@ export default function BuyerTransparency() {
     const quotas = data.capabilities.filter(c => c.kind === 'quota');
     const used = (key: string) => {
         if (key === 'quota.channels') return data.plan?.channels.used;
-        if (key === 'quota.admins') return data.plan?.admins.used;
+        if (key === 'quota.admins') return data.plan ? data.plan.admins.used + (data.plan.admins.pending ?? 0) : undefined;
         return data.plan?.usage.filter(u => u.key === key).sort((a, b) => b.periodStart.localeCompare(a.periodStart))[0]?.used;
     };
     const sub = data.plan?.subscription;

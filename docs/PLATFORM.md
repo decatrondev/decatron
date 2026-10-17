@@ -41,7 +41,18 @@ The buyer is independent of Twitch: they are identified by e-mail and are an `ow
 2. A one-use link, valid 30 minutes, is e-mailed. The tenant is created **only when the link is confirmed**, in one transaction: tenant, owner account, membership and sandbox subscription. The answer to a request never reveals whether an e-mail exists.
 3. **Signing in again:** `slug.decatron.top/panel/login` sends a 15-minute one-use link, valid only on that host.
 4. **Session:** an 8-hour JWT with the claim `tnt` (the tenant) and `scope=buyer`. `TenantMiddleware` answers 403 if the claim does not match the Host, and a buyer session can only open `/api/platform/`, `/api/auth/`, `/api/brand` and `/api/design/tokens`, never the streamer screens. It is delivered through the 60-second exchange code (`/api/auth/exchange`), not in the URL.
-5. **Panel** (`slug.decatron.top/panel`): the buyer loads the Twitch app, links the bot, reopens the EventSub connection, optionally adds a Discord bot and own keys. Every action re-checks in the database that the caller is still the owner.
+5. **Panel** (`slug.decatron.top/panel`): the buyer loads the Twitch app, links the bot, reopens the EventSub connection, optionally adds a Discord bot and own keys. Every action re-checks in the database that the caller is still the owner (or, for the read routes, an administrator).
+
+### Team (administrators)
+
+The owner can invite administrators by e-mail (tab **Team** in the panel). Rules:
+
+- **What an administrator can do:** sign in to the panel in **read-only** mode (state of the connections, plan, usage and permissions) and reopen the EventSub connection. They cannot touch credentials (Twitch app, bot, Discord, own keys), the 2FA or the team, and they never see credential hints (Client ID, last characters, account names): only "set up / not set up". The server picks the filter per route: `RequireBuyerOwner` for everything sensitive (a new action is protected by default) and `RequireBuyerMember` (owner or admin) only for the read routes and the EventSub restart.
+- **Invitation:** an e-mail with a one-use link valid 7 days. Opening it (confirmed with a `POST`, so an e-mail preview does not spend it) creates the invitee's buyer account in that tenant (`users`, `auth_provider='email'`) and a `tenant_members` row with role `admin`, and signs them in through the 60-second exchange code. The link only works on the tenant's own subdomain. Only the token hash is stored (`tenant_invitations`, row-level security).
+- **Limit:** `quota.admins` counts owner + admins + live invitations, checked when inviting **and again when accepting** (if the plan went down meanwhile, the invitation is not accepted). Fails closed. On a plan with no extra seat (sandbox, Seed) the form is disabled with "not included in your plan". Abuse caps: 5 pending invitations and 10 invitations per day per tenant (cancelled ones count); invitations use the shared e-mail quota (`Platform:WaitlistMaxEmailsPerDay`) and do not depend on `Platform:SignupMode`. A project that is not operational cannot invite or accept.
+- **Removing:** the owner can remove an admin or cancel an invitation. The role is read from the database on every call (never from the token), so removal closes access immediately; the admin's account is left inactive. Inviting and removing need the 2FA step-up if the owner enabled it. Every invitation, acceptance, cancellation and removal goes to `credential_access_log` (provider `team`, no e-mail addresses).
+- **Streamers** who signed in with Twitch (`viewer`) are listed read-only in a separate tab; they count toward `quota.channels`, not `quota.admins`.
+- Out of scope: transferring ownership and intermediate roles.
 
 ### Transparency
 
@@ -75,19 +86,34 @@ Public (the tenant comes from the Host where it applies):
 | `GET` | `/api/platform/signup/mode` | `open` or `approval`, so the form can warn before people type |
 | `POST` | `/api/platform/signup`, `/api/platform/signup/confirm` | Buyer sign-up and confirmation |
 | `POST` | `/api/platform/buyer/login-link`, `/api/platform/buyer/login-confirm` | Buyer sign-in by e-mail link |
+| `POST` | `/api/platform/buyer/team/accept` | An invited administrator accepts (one-use token, only on the tenant's host) |
 | `GET` | `/api/platform/tenant-info` | Name, readiness and requested scopes of a tenant subdomain |
 
-Buyer (JWT with `scope=buyer`, owner of the tenant of the Host):
+Owner (JWT with `scope=buyer`, owner of the tenant of the Host):
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| `GET` | `/api/platform/buyer/me`, `/tenant`, `/transparency` | Summary, setup state, plan and permissions |
+| `GET` | `/api/platform/buyer/tenant` | Setup state with credential hints (owner only) |
 | `PUT` `DELETE` | `/api/platform/buyer/twitch-app` | Twitch application (step-up) |
 | `POST` `DELETE` | `/api/platform/buyer/bot-link`, `/bot` | Bot account (step-up) |
 | `PUT` `DELETE` | `/api/platform/buyer/discord-bot` | Discord bot (step-up); `POST .../discord-bot/restart` reconnects |
 | `PUT` `DELETE` | `/api/platform/buyer/byo/{provider}` | Own keys (step-up); `POST .../byo/{provider}/test` checks a key |
-| `POST` | `/api/platform/buyer/eventsub/restart` | Reopen the EventSub connection |
 | `GET` `POST` | `/api/platform/buyer/mfa`, `/mfa/setup`, `/mfa/confirm`, `/mfa/verify`, `/mfa/recovery-codes`, `/mfa/disable` | Two-step verification |
+
+Team (owner only; invite and remove need the 2FA step-up when enabled):
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `GET` | `/api/platform/buyer/team` | Members, live invitations, streamers and seats |
+| `POST` | `/api/platform/buyer/team/invite` | Invite an administrator by e-mail |
+| `DELETE` | `/api/platform/buyer/team/invitations/{id}`, `/members/{userId}` | Cancel an invitation; remove an administrator |
+
+Owner or administrator (read-only routes):
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `GET` | `/api/platform/buyer/me`, `/state`, `/transparency` | Summary (with the real role), connection state without credential hints, plan and permissions |
+| `POST` | `/api/platform/buyer/eventsub/restart` | Reopen the EventSub connection |
 
 The platform owner has equivalent admin routes under `/api/admin/platform/` (waiting list, approved e-mails, tenants, plans, overrides, add-ons, export and purge). They are admin-only and documented here at architecture level.
 

@@ -41,7 +41,18 @@ El comprador es independiente de Twitch: se identifica por correo y es `owner` e
 2. Se envía por correo un enlace de un solo uso, válido 30 minutos. El tenant se crea **solo al confirmar el enlace**, en una transacción: tenant, cuenta del dueño, membresía y suscripción sandbox. La respuesta a una solicitud nunca revela si un correo existe.
 3. **Volver a entrar:** `slug.decatron.top/panel/login` envía un enlace de un solo uso de 15 minutos, válido solo en ese host.
 4. **Sesión:** un JWT de 8 horas con el claim `tnt` (el tenant) y `scope=buyer`. `TenantMiddleware` responde 403 si el claim no coincide con el Host, y una sesión de comprador solo abre `/api/platform/`, `/api/auth/`, `/api/brand` y `/api/design/tokens`, nunca las pantallas del streamer. Se entrega por el código de canje de 60 segundos (`/api/auth/exchange`), no por la URL.
-5. **Panel** (`slug.decatron.top/panel`): el comprador carga la app de Twitch, vincula el bot, reabre la conexión de EventSub y, si quiere, agrega un bot de Discord y llaves propias. Cada acción vuelve a comprobar en la base de datos que quien llama sigue siendo el dueño.
+5. **Panel** (`slug.decatron.top/panel`): el comprador carga la app de Twitch, vincula el bot, reabre la conexión de EventSub y, si quiere, agrega un bot de Discord y llaves propias. Cada acción vuelve a comprobar en la base de datos que quien llama sigue siendo el dueño (o, en las rutas de lectura, administrador).
+
+### Equipo (administradores)
+
+El dueño puede invitar administradores por correo (pestaña **Equipo** del panel). Reglas:
+
+- **Qué puede hacer un administrador:** entrar al panel en modo **solo lectura** (estado de las conexiones, plan, uso y permisos) y reabrir la conexión de EventSub. No toca credenciales (app de Twitch, bot, Discord, llaves propias), el 2FA ni el equipo, y nunca ve pistas de credenciales (Client ID, últimos caracteres, nombres de cuentas): solo «configurado / sin configurar». El servidor elige el filtro por ruta: `RequireBuyerOwner` para todo lo sensible (una acción nueva nace protegida) y `RequireBuyerMember` (dueño o admin) solo para las rutas de lectura y el reinicio de EventSub.
+- **Invitación:** un correo con un enlace de un solo uso y 7 días de vida. Al abrirlo (se confirma con `POST`, así que una vista previa del correo no lo gasta) se crea la cuenta de comprador del invitado en ese tenant (`users`, `auth_provider='email'`) y una fila en `tenant_members` con rol `admin`, y se le inicia sesión por el código de canje de 60 segundos. El enlace solo sirve en el subdominio del propio tenant. Solo se guarda el hash del token (`tenant_invitations`, con seguridad por filas).
+- **Tope:** `quota.admins` cuenta dueño + admins + invitaciones vivas, y se comprueba al invitar **y otra vez al aceptar** (si el plan bajó entretanto, la invitación no se acepta). Falla cerrado. En un plan sin lugar extra (sandbox, Semilla) el formulario sale desactivado con «no incluido en tu plan». Topes contra abuso: 5 invitaciones pendientes y 10 invitaciones al día por tenant (las canceladas cuentan); las invitaciones usan la cuota compartida de correos (`Platform:WaitlistMaxEmailsPerDay`) y no dependen de `Platform:SignupMode`. Un proyecto que no está operativo no puede invitar ni aceptar.
+- **Quitar:** el dueño puede quitar a un admin o cancelar una invitación. El rol se lee de la base en cada llamada (nunca del token), así que quitar cierra el acceso al instante; la cuenta del admin queda inactiva. Invitar y quitar piden el paso del 2FA si el dueño lo activó. Cada invitación, aceptación, cancelación y baja queda en `credential_access_log` (proveedor `team`, sin correos).
+- Los **streamers** que entraron con Twitch (`viewer`) se listan en una pestaña aparte, solo lectura; cuentan para `quota.channels`, no para `quota.admins`.
+- Fuera de alcance: transferir la propiedad y roles intermedios.
 
 ### Transparencia
 
@@ -75,19 +86,34 @@ Públicos (el tenant sale del Host donde aplica):
 | `GET` | `/api/platform/signup/mode` | `open` o `approval`, para que el formulario avise antes de que escriban |
 | `POST` | `/api/platform/signup`, `/api/platform/signup/confirm` | Registro del comprador y su confirmación |
 | `POST` | `/api/platform/buyer/login-link`, `/api/platform/buyer/login-confirm` | Entrada del comprador con enlace por correo |
+| `POST` | `/api/platform/buyer/team/accept` | Un administrador invitado acepta (token de un solo uso, solo en el host del tenant) |
 | `GET` | `/api/platform/tenant-info` | Nombre, si está listo y permisos que pide un subdominio de tenant |
 
-Comprador (JWT con `scope=buyer`, dueño del tenant del Host):
+Dueño (JWT con `scope=buyer`, dueño del tenant del Host):
 
 | Método | Ruta | Para qué |
 |--------|------|----------|
-| `GET` | `/api/platform/buyer/me`, `/tenant`, `/transparency` | Resumen, estado de la configuración, plan y permisos |
+| `GET` | `/api/platform/buyer/tenant` | Estado de la configuración con pistas de credenciales (solo el dueño) |
 | `PUT` `DELETE` | `/api/platform/buyer/twitch-app` | Aplicación de Twitch (paso de verificación) |
 | `POST` `DELETE` | `/api/platform/buyer/bot-link`, `/bot` | Cuenta del bot (paso de verificación) |
 | `PUT` `DELETE` | `/api/platform/buyer/discord-bot` | Bot de Discord (paso de verificación); `POST .../discord-bot/restart` lo reconecta |
 | `PUT` `DELETE` | `/api/platform/buyer/byo/{provider}` | Llaves propias (paso de verificación); `POST .../byo/{provider}/test` prueba una llave |
-| `POST` | `/api/platform/buyer/eventsub/restart` | Reabrir la conexión de EventSub |
 | `GET` `POST` | `/api/platform/buyer/mfa`, `/mfa/setup`, `/mfa/confirm`, `/mfa/verify`, `/mfa/recovery-codes`, `/mfa/disable` | Verificación en dos pasos |
+
+Equipo (solo el dueño; invitar y quitar piden el paso del 2FA si está activado):
+
+| Método | Ruta | Para qué |
+|--------|------|----------|
+| `GET` | `/api/platform/buyer/team` | Miembros, invitaciones vivas, streamers y lugares |
+| `POST` | `/api/platform/buyer/team/invite` | Invitar a un administrador por correo |
+| `DELETE` | `/api/platform/buyer/team/invitations/{id}`, `/members/{userId}` | Cancelar una invitación; quitar a un administrador |
+
+Dueño o administrador (rutas de solo lectura):
+
+| Método | Ruta | Para qué |
+|--------|------|----------|
+| `GET` | `/api/platform/buyer/me`, `/state`, `/transparency` | Resumen (con el rol real), estado de las conexiones sin pistas de credenciales, plan y permisos |
+| `POST` | `/api/platform/buyer/eventsub/restart` | Reabrir la conexión de EventSub |
 
 El dueño de la plataforma tiene rutas de administración equivalentes bajo `/api/admin/platform/` (lista de espera, correos aprobados, tenants, planes, ajustes, complementos, exportación y borrado). Son solo para administradores y se documentan aquí a nivel de arquitectura.
 

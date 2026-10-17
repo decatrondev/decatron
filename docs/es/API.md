@@ -208,6 +208,22 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `POST` | `/api/platform/buyer/mfa/setup` | JWT |
 | `POST` | `/api/platform/buyer/mfa/verify` | JWT |
 
+### Buyer State
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `POST` | `/api/platform/buyer/eventsub/restart` | JWT |
+| `GET` | `/api/platform/buyer/state` | JWT |
+
+### Buyer Team
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/platform/buyer/team` | JWT |
+| `DELETE` | `/api/platform/buyer/team/invitations/{id}` | JWT |
+| `POST` | `/api/platform/buyer/team/invite` | JWT |
+| `DELETE` | `/api/platform/buyer/team/members/{userId}` | JWT |
+
 ### Buyer Tenant
 
 | Método | Ruta | Acceso |
@@ -220,7 +236,6 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `DELETE` | `/api/platform/buyer/discord-bot` | JWT |
 | `PUT` | `/api/platform/buyer/discord-bot` | JWT |
 | `POST` | `/api/platform/buyer/discord-bot/restart` | JWT |
-| `POST` | `/api/platform/buyer/eventsub/restart` | JWT |
 | `GET` | `/api/platform/buyer/tenant` | JWT |
 | `DELETE` | `/api/platform/buyer/twitch-app` | JWT |
 | `PUT` | `/api/platform/buyer/twitch-app` | JWT |
@@ -846,6 +861,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `POST` | `/api/platform/buyer/login-confirm` | Público |
 | `POST` | `/api/platform/buyer/login-link` | Público |
 | `GET` | `/api/platform/buyer/me` | JWT |
+| `POST` | `/api/platform/buyer/team/accept` | Público |
 | `POST` | `/api/platform/signup` | Público |
 | `POST` | `/api/platform/signup/confirm` | Público |
 | `GET` | `/api/platform/signup/mode` | Público |

@@ -113,17 +113,17 @@ public sealed class TenantPlanAdmin
                 await using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync()) usage.Add(new { key = r.GetString(0), periodStart = r.GetDateTime(1).ToString("yyyy-MM-dd"), used = r.GetInt64(2) });
             }
-            long channels, admins;
-            await using (var cmd = new NpgsqlCommand("SELECT (SELECT count(*) FROM channels WHERE tenant_id=@t), (SELECT count(*) FROM tenant_members WHERE tenant_id=@t AND role <> 'viewer')", c))
+            long channels, admins, pendingAdmins;
+            await using (var cmd = new NpgsqlCommand("SELECT (SELECT count(*) FROM channels WHERE tenant_id=@t), " + TenantTeam.MembersSql + ", " + TenantTeam.PendingSql, c))
             {
                 cmd.Parameters.AddWithValue("t", id);
                 await using var r = await cmd.ExecuteReaderAsync(); await r.ReadAsync();
-                channels = r.GetInt64(0); admins = r.GetInt64(1);
+                channels = r.GetInt64(0); admins = r.GetInt64(1); pendingAdmins = r.GetInt64(2);
             }
             var operational = await _ent.IsOperationalAsync(id, live: true);
             var chLimit = (await _ent.LimitAsync("quota.channels", id, live: true)).Limit;
             var adLimit = (await _ent.LimitAsync("quota.admins", id, live: true)).Limit;
-            return PlanResult.Success(new { success = true, subscription = sub, overrides, addons, usage, operational, channels = new { used = channels, limit = chLimit }, admins = new { used = admins, limit = adLimit } });
+            return PlanResult.Success(new { success = true, subscription = sub, overrides, addons, usage, operational, channels = new { used = channels, limit = chLimit }, admins = new { used = admins, pending = pendingAdmins, limit = adLimit } });
         }
 
         /// <summary>Asigna o cambia el plan y el estado. Crea la suscripción si no existe.</summary>

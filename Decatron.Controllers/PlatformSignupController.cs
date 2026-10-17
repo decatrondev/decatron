@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Decatron.Attributes;
 using Decatron.Core.Interfaces;
 using Decatron.Core.Models.Platform;
 using Decatron.Data;
@@ -42,11 +43,12 @@ namespace Decatron.Controllers
         private readonly TurnstileVerifier _turnstile;
         private readonly TenantProvisioner _provisioner;
         private readonly BuyerSessions _sessions;
+        private readonly TenantTeam _team;
 
         public PlatformSignupController(DecatronDbContext db, EmailService email, IConfiguration config, ILogger<PlatformSignupController> log,
-            TurnstileVerifier turnstile, TenantProvisioner provisioner, BuyerSessions sessions)
+            TurnstileVerifier turnstile, TenantProvisioner provisioner, BuyerSessions sessions, TenantTeam team)
         {
-            _db = db; _email = email; _config = config; _log = log; _turnstile = turnstile; _provisioner = provisioner; _sessions = sessions;
+            _db = db; _email = email; _config = config; _log = log; _turnstile = turnstile; _provisioner = provisioner; _sessions = sessions; _team = team;
         }
 
         /// <summary>Misma cuenta de correos por día que la lista de espera (la cuota de Resend la comparte todo el bot).</summary>
@@ -63,7 +65,7 @@ namespace Decatron.Controllers
 
         private static string Sha256(string s) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(s))).ToLowerInvariant();
         private static string NewToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).Replace('+', '-').Replace('/', '_').TrimEnd('=');
-        private static string TenantUrl(string slug) => $"https://{slug}.{TenantResolver.PlatformDomain}";
+        internal static string TenantUrl(string slug) => $"https://{slug}.{TenantResolver.PlatformDomain}";
 
         // ── B: registro ──
 
@@ -257,9 +259,27 @@ namespace Decatron.Controllers
             return Ok(new { success = true, code });
         }
 
-        /// <summary>Resumen del tenant para el comprador con sesión (alcance buyer). La parte completa del panel es la pieza D.</summary>
+        /// <summary>
+        /// Un admin invitado acepta su invitación (el enlace del correo). Se confirma con POST para que una vista previa del correo no gaste el enlace;
+        /// crea su cuenta de comprador en este tenant y entrega la sesión por el código de canje de 60 s, como el resto de entradas.
+        /// </summary>
+        [HttpPost("api/platform/buyer/team/accept")]
+        [AllowAnonymous]
+        [EnableRateLimiting("platform-waitlist")]
+        public async Task<IActionResult> AcceptInvitation([FromBody] TokenRequest req)
+        {
+            var tenantId = TenantAmbient.Current;
+            if (tenantId is null or 1) return NotFound(new { success = false, code = "no_tenant" });
+            var result = await _team.AcceptAsync(tenantId.Value, req.Token ?? "", HttpContext.RequestAborted);
+            if (!result.Ok) return new ObjectResult(new { success = false, code = result.Code }) { StatusCode = result.Status };
+            var who = (AcceptOutcome)result.Data!;
+            _log.LogInformation("Equipo: invitación aceptada en el tenant {Tenant} (usuario {User})", tenantId, who.UserId);
+            return Ok(new { success = true, code = _sessions.IssueExchangeCode(who.UserId, who.Login, who.DisplayName, who.Email, tenantId.Value) });
+        }
+
+        /// <summary>Resumen del tenant para el comprador con sesión (alcance buyer). Lo ven el dueño y los admins; el rol sale de la base, no del token.</summary>
         [HttpGet("api/platform/buyer/me")]
-        [Authorize]
+        [Authorize, RequireBuyerMember]
         public async Task<IActionResult> BuyerMe()
         {
             var tenantId = TenantAmbient.Current;
@@ -283,18 +303,24 @@ namespace Decatron.Controllers
                 tenant = new { slug = r.GetString(0), name = r.GetString(1), status = r.GetString(2) },
                 plan = new { key = r.IsDBNull(3) ? null : r.GetString(3), name = r.IsDBNull(4) ? null : r.GetString(4), status = r.IsDBNull(5) ? null : r.GetString(5), sandboxEndsAt = ends,
                              daysLeft = ends is null ? (int?)null : Math.Max(0, (int)Math.Ceiling((ends.Value.ToUniversalTime() - DateTime.UtcNow).TotalDays)) },
-                buyer = new { email, role = "owner" },
+                buyer = new { email, role = HttpContext.Items[BuyerAccess.RoleItem] as string ?? "admin" },
             });
         }
 
-        private static (string subject, string html) BuildEmail(string locale, string kind, string subjectName, string link, int minutes)
+        internal static (string subject, string html) BuildEmail(string locale, string kind, string subjectName, string link, int minutes, string? by = null)
         {
             var safeLink = WebUtility.HtmlEncode(link);
             var safeName = WebUtility.HtmlEncode(subjectName);
+            var safeBy = WebUtility.HtmlEncode(by ?? "");
+            string Span(bool en) => minutes % 1440 == 0 ? (en ? $"{minutes / 1440} days" : $"{minutes / 1440} días") : (en ? $"{minutes} minutes" : $"{minutes} minutos");
             const string btn = "display:inline-block;background:#2f5fc6;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold";
             string Wrap(string h, string p, string label, string foot) =>
                 $"<div style=\"font-family:Arial,sans-serif;max-width:480px;color:#12151c\"><h2 style=\"margin:0 0 12px\">{h}</h2><p>{p}</p>" +
                 $"<p><a href=\"{safeLink}\" style=\"{btn}\">{label}</a></p><p style=\"color:#5b6475;font-size:13px\">{foot}</p></div>";
+            if (kind == "invite")
+                return locale == "en"
+                    ? ("You were invited to help manage " + subjectName, Wrap("Team invitation", $"<b>{safeBy}</b> invited you to be an administrator of <b>{safeName}</b> on Decatron. Admins can view the project's status, plan and usage, and reopen its event connection; they cannot change credentials. The link works once and expires in {Span(true)}.", "Accept invitation", "If you do not know who invited you, you can ignore this message."))
+                    : ("Te invitaron a administrar " + subjectName, Wrap("Invitación al equipo", $"<b>{safeBy}</b> te invitó a ser administrador de <b>{safeName}</b> en Decatron. Los administradores ven el estado, el plan y el uso del proyecto y pueden reabrir su conexión de eventos; no pueden cambiar credenciales. El enlace sirve una vez y vence en {Span(false)}.", "Aceptar invitación", "Si no conoces a quien te invitó, puedes ignorar este mensaje."));
             if (locale == "en")
                 return kind == "signup"
                     ? ("Confirm your email to create " + subjectName, Wrap("Almost there", $"Confirm your email to create <b>{safeName}</b> on Decatron. The link works once and expires in {minutes} minutes.", "Confirm and create", "If you did not ask for this, you can ignore this message."))

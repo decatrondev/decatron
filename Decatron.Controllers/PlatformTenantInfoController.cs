@@ -56,7 +56,7 @@ namespace Decatron.Controllers
 
         /// <summary>Panel del comprador: permisos de Twitch con su motivo y módulo, plan actual, qué incluye y cuánto se ha usado.</summary>
         [HttpGet("api/platform/buyer/transparency")]
-        [Authorize, RequireBuyerOwner]
+        [Authorize, RequireBuyerMember]
         public async Task<IActionResult> Transparency()
         {
             var tid = TenantAmbient.Current!.Value;

@@ -109,8 +109,7 @@ namespace Decatron.Controllers
         [RequireStepUp]
         public async Task<IActionResult> DeleteBot() => Map(await _svc.DeleteBotAsync(Tid, Actor));
 
-        [HttpPost("eventsub/restart")]
-        public async Task<IActionResult> RestartEventSub([FromQuery] bool sync = true) => Map(await _svc.RestartEventSubAsync(Tid, sync));
+        // POST eventsub/restart vive en BuyerStateController: lo puede hacer también un admin del equipo.
 
         // ── Llaves propias (IA, Deepgram, Fish Audio) ──
 
