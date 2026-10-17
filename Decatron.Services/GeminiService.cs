@@ -46,7 +46,7 @@ namespace Decatron.Services
 
             try
             {
-                if (string.IsNullOrEmpty(_apiKey))
+                if (string.IsNullOrEmpty(_apiKey) || (Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1) // Fase 5.8: la llave es del #1
                 {
                     _logger.LogError("❌ API Key de Gemini no configurada");
                     return new AIResponse

@@ -28,7 +28,8 @@ namespace Decatron.Services.AI
             _apiKey = config["GeminiSettings:ApiKey"] ?? "";
         }
 
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
+        // Fase 5.8: la llave de Gemini es del #1; un tenant no la usa nunca (su IA va por IByoKeys)
+        public bool IsConfigured => (Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) == 1 && !string.IsNullOrWhiteSpace(_apiKey);
 
         /// <summary>
         /// Una llamada. Lanza <see cref="InvalidOperationException"/> si la API responde error

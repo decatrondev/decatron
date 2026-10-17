@@ -60,6 +60,16 @@ public sealed class ByoKeys : IByoKeys
         return key;
     }
 
+    public bool IsAvailable(string provider, long? tenantId = null)
+    {
+        var tenant = tenantId ?? TenantAmbient.Current ?? 1;
+        if (tenant == 1) return Legacy(provider) is not null;
+        if (_cache.TryGetValue((tenant, provider), out var hit) && hit.Expires > DateTime.UtcNow) return hit.Key is not null;
+        // Cache fria: una lectura corta (solo ocurre una vez cada 5 min por tenant y proveedor; la gran mayoria de llamadas ya la encuentra tibia)
+        try { return Task.Run(() => GetAsync(provider, tenant)).GetAwaiter().GetResult() is not null; }
+        catch { return false; }
+    }
+
     public void Invalidate(long tenantId)
     {
         foreach (var k in _cache.Keys.Where(k => k.Item1 == tenantId).ToList()) _cache.TryRemove(k, out _);

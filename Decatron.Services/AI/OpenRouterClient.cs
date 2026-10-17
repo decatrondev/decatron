@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Decatron.Core.Interfaces;
 using Decatron.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -29,9 +30,11 @@ namespace Decatron.Services.AI
         /// <summary>OpenRouter acepta pocos modelos por petición: el principal y hasta tres de respaldo.</summary>
         private const int MaxModels = 4;
         private readonly string _apiKey;
+        private readonly IByoKeys? _byo;
 
-        public OpenRouterClient(IHttpClientFactory httpFactory, IConfiguration config, AiUsageRecorder usage, AiSettingsCache settings, ILogger<OpenRouterClient> logger)
+        public OpenRouterClient(IHttpClientFactory httpFactory, IConfiguration config, AiUsageRecorder usage, AiSettingsCache settings, ILogger<OpenRouterClient> logger, IByoKeys? byo = null)
         {
+            _byo = byo;
             _httpFactory = httpFactory;
             _usage = usage;
             _settings = settings;
@@ -39,7 +42,10 @@ namespace Decatron.Services.AI
             _apiKey = config["OpenRouterSettings:ApiKey"] ?? "";
         }
 
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
+        /// <summary>
+        /// #1: la llave de appsettings. Otro tenant (Fase 5.8): SU llave de IA; sin ella la IA queda apagada (nunca se usa la del #1).
+        /// </summary>
+        public bool IsConfigured => (TenantAmbient.Current ?? 1) == 1 ? !string.IsNullOrWhiteSpace(_apiKey) : _byo?.IsAvailable(ByoProviders.Ai) == true;
 
         public HttpRequestMessage NewRequest(HttpMethod method, string path)
         {
@@ -92,6 +98,16 @@ namespace Decatron.Services.AI
             string model, object[] messages, AiCallContext ctx,
             int maxTokens, double temperature, TimeSpan? timeout, bool reasoning, CancellationToken ct)
         {
+            var tenant = TenantAmbient.Current ?? 1;
+            ByoKey? byo = null;
+            if (tenant != 1)
+            {
+                // Fase 5.8: el tenant usa SU llave, su URL y sus modelos; sin llave la IA queda apagada
+                byo = _byo is null ? null : await _byo.GetAsync(ByoProviders.Ai, tenant, ct);
+                if (byo is null || string.IsNullOrWhiteSpace(byo.Config.GetValueOrDefault("model")) || string.IsNullOrWhiteSpace(byo.Config.GetValueOrDefault("base_url")))
+                    throw new InvalidOperationException("byo_not_configured");
+                return await SendByoAsync(byo, messages, ctx, maxTokens, temperature, timeout, reasoning, ct);
+            }
             if (!IsConfigured) throw new InvalidOperationException("API Key de OpenRouter no configurada");
             await _settings.EnsureFreshAsync();
 
@@ -168,10 +184,71 @@ namespace Decatron.Services.AI
             return new OpenRouterCompletion(text, pIn, pOut, (int)sw.ElapsedMilliseconds, usedModel);
         }
 
+        /// <summary>
+        /// Chat completion con la llave del tenant (Fase 5.8): API compatible con OpenAI en la URL que cargó. El modelo principal y, si hay, el de
+        /// respaldo (se prueba el segundo solo si el primero falla). El costo lo paga el proveedor del tenant: no se cobran créditos de Decatron.
+        /// </summary>
+        private async Task<OpenRouterCompletion> SendByoAsync(ByoKey key, object[] messages, AiCallContext ctx, int maxTokens, double temperature, TimeSpan? timeout, bool reasoning, CancellationToken ct)
+        {
+            var baseUrl = key.Config["base_url"].TrimEnd('/');
+            var isOpenRouter = new Uri(baseUrl).Host.EndsWith("openrouter.ai", StringComparison.OrdinalIgnoreCase);
+            var models = new[] { key.Config["model"], key.Config.GetValueOrDefault("fallback_model") }
+                .Where(m => !string.IsNullOrWhiteSpace(m)).Select(m => m!).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+            Exception? last = null;
+            foreach (var model in models)
+            {
+                var sw = Stopwatch.StartNew();
+                try
+                {
+                    // `reasoning` es propio de OpenRouter: otros proveedores pueden rechazar campos que no conocen.
+                    object body = isOpenRouter
+                        ? new { model, max_tokens = maxTokens, temperature, reasoning = new { enabled = reasoning }, messages }
+                        : new { model, max_tokens = maxTokens, temperature, messages };
+                    using var req = new HttpRequestMessage(HttpMethod.Post, baseUrl + "/chat/completions");
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key.ApiKey);
+                    req.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                    cts.CancelAfter(timeout ?? TimeSpan.FromSeconds(30));
+                    using var res = await _httpFactory.CreateClient("openrouter").SendAsync(req, cts.Token);
+                    var json = await res.Content.ReadAsStringAsync(cts.Token);
+                    sw.Stop();
+                    if (!res.IsSuccessStatusCode)
+                    {
+                        // Sin el cuerpo: puede repetir datos del pedido. Solo el codigo.
+                        _usage.Record(ctx, "byo-ai", model, 0, 0, (int)sw.ElapsedMilliseconds, false, $"HTTP {(int)res.StatusCode}");
+                        last = new InvalidOperationException($"IA del tenant: HTTP {(int)res.StatusCode}");
+                        continue;
+                    }
+                    var node = JsonNode.Parse(json);
+                    var text = node?["choices"]?[0]?["message"]?["content"]?.GetValue<string>();
+                    var pIn = node?["usage"]?["prompt_tokens"]?.GetValue<int>() ?? 0;
+                    var pOut = node?["usage"]?["completion_tokens"]?.GetValue<int>() ?? 0;
+                    if (string.IsNullOrWhiteSpace(text))
+                    {
+                        _usage.Record(ctx, "byo-ai", model, pIn, pOut, (int)sw.ElapsedMilliseconds, false, "respuesta vacía");
+                        last = new InvalidOperationException("La IA del tenant devolvió una respuesta vacía");
+                        continue;
+                    }
+                    _usage.Record(ctx, "byo-ai", model, pIn, pOut, (int)sw.ElapsedMilliseconds, true);
+                    _logger.LogInformation("✅ [BYO-AI] {Module} {Model} {Ms}ms in={In} out={Out}", ctx.Module, model, sw.ElapsedMilliseconds, pIn, pOut);
+                    return new OpenRouterCompletion(text, pIn, pOut, (int)sw.ElapsedMilliseconds, model);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+                {
+                    sw.Stop();
+                    _usage.Record(ctx, "byo-ai", model, 0, 0, (int)sw.ElapsedMilliseconds, false, ex is OperationCanceledException ? "timeout" : ex.GetType().Name);
+                    last = ex;
+                }
+            }
+            throw last ?? new InvalidOperationException("byo_not_configured");
+        }
+
         /// <summary>Saldo de la cuenta: (créditos comprados, gastados). Null si falla.</summary>
         public async Task<(decimal TotalCredits, decimal TotalUsage)?> GetCreditsAsync(CancellationToken ct = default)
         {
-            if (!IsConfigured) return null;
+            if ((TenantAmbient.Current ?? 1) != 1 || string.IsNullOrWhiteSpace(_apiKey)) return null; // el saldo es de la cuenta de Decatron
             try
             {
                 using var req = NewRequest(HttpMethod.Get, "/credits");

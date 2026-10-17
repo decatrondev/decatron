@@ -53,6 +53,14 @@ namespace Decatron.Default.Commands
 
                 // 1. Obtener configuración global
                 var globalConfig = await dbContext.DecatronAIGlobalConfigs.FirstOrDefaultAsync();
+                // Fase 5.8: la configuración global y los permisos por canal son del #1. Un tenant usa SU llave de IA (sin ella, apagado, en silencio)
+                // con los valores por defecto, y no necesita que un admin habilite cada canal: el costo lo paga su proveedor.
+                var tenantOwnKey = (Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1;
+                if (tenantOwnKey)
+                {
+                    if (!scope.ServiceProvider.GetRequiredService<Decatron.Core.Interfaces.IByoKeys>().IsAvailable(Decatron.Core.Interfaces.ByoProviders.Ai)) return;
+                    globalConfig ??= new Decatron.Core.Models.DecatronAIGlobalConfig { Enabled = true };
+                }
                 if (globalConfig == null || !globalConfig.Enabled)
                 {
                     _logger.LogDebug($"[DECATRON-IA] Sistema deshabilitado globalmente");
@@ -63,7 +71,7 @@ namespace Decatron.Default.Commands
                 var channelPermission = await dbContext.DecatronAIChannelPermissions
                     .FirstOrDefaultAsync(c => c.ChannelName == channelLower && c.Enabled);
 
-                if (channelPermission == null)
+                if (channelPermission == null && !tenantOwnKey)
                 {
                     _logger.LogDebug($"[DECATRON-IA] Canal {channel} no tiene permiso");
                     return; // Silencioso

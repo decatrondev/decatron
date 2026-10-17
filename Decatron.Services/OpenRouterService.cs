@@ -96,7 +96,7 @@ namespace Decatron.Services
             var sw = System.Diagnostics.Stopwatch.StartNew();
             int promptTokens = 0, completionTokens = 0;
             decimal? cost = null;
-            if (string.IsNullOrEmpty(_apiKey))
+            if (string.IsNullOrEmpty(_apiKey) || (Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1) // Fase 5.8: la llave es del #1
             {
                 _logger.LogError("❌ [OPENROUTER-STREAM] API Key no configurada");
                 throw new InvalidOperationException("API Key de OpenRouter no configurada");

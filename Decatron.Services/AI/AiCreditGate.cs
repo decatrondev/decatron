@@ -64,6 +64,7 @@ namespace Decatron.Services.AI
         public async Task<bool> HasCreditsAsync(long userId)
         {
             if (userId <= 0) return true;
+            if ((TenantAmbient.Current ?? 1) != 1) return true; // Fase 5.8: el tenant paga a su proveedor con SU llave; los creditos son de Decatron
             try
             {
                 using var scope = _scopes.CreateScope();

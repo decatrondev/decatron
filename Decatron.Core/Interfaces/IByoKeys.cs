@@ -64,5 +64,11 @@ public interface IByoKeys
 {
     /// <summary>Llave del tenant (o ambiente si es null), o null si la función debe quedar apagada.</summary>
     Task<ByoKey?> GetAsync(string provider, long? tenantId = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// ¿Hay llave usable ahora? Para propiedades síncronas tipo <c>IsConfigured</c>. El #1 mira appsettings; otro tenant mira la caché
+    /// (si está fría, la llena con una lectura corta y la deja cacheada 5 minutos).
+    /// </summary>
+    bool IsAvailable(string provider, long? tenantId = null);
     void Invalidate(long tenantId);
 }

@@ -1,3 +1,4 @@
+using Decatron.Core.Interfaces;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,7 +52,7 @@ namespace Decatron.Services.AI
                 try
                 {
                     // Solo se cobra lo que salió bien: un 429 del proveedor no le cuesta nada al canal.
-                    if (row.Success && row.EstimatedCostUsd > 0 && row.UserId > 0)
+                    if (row.Success && row.EstimatedCostUsd > 0 && row.UserId > 0 && (Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) == 1)
                         row.CreditsCharged = await _credits.ChargeAsync(row.UserId, row.Module, row.Model, row.EstimatedCostUsd);
 
                     using var scope = _scopes.CreateScope();
