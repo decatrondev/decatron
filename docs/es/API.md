@@ -155,6 +155,8 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 
 **Acceso** refleja los atributos declarados en cada ruta: `Público` significa que ningún atributo la restringe, `JWT` un usuario autenticado, `JWT + sección` un usuario autenticado con el nivel de permiso que requiere esa sección (consulta [CONFIGURATION.md](CONFIGURATION.md#sistema-de-permisos)). Algunos endpoints hacen comprobaciones adicionales en el código, por ejemplo acciones solo para el dueño. Las rutas restringidas a administradores de la plataforma (`RequireSystemOwner`) no se listan.
 
+**Rutas de la plataforma.** La plataforma multi-tenant (`/api/platform/` para el comprador, `/api/admin/platform/` para el dueño de la plataforma) se documenta en [PLATFORM.md](PLATFORM.md) con sus reglas de acceso, porque la mayoría de esas rutas dependen del tenant del Host y de la sesión del comprador y no de los niveles de permiso que se listan aquí.
+
 <!-- BEGIN GENERATED ENDPOINTS -->
 ### Analytics
 

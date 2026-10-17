@@ -228,6 +228,7 @@ See [docs/OVERLAYS.md](docs/OVERLAYS.md) for sizes, options and the rest of the 
 | [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment guide |
 | [API.md](docs/API.md) | API reference |
 | [COMMANDS.md](docs/COMMANDS.md) | Bot commands reference |
+| [PLATFORM.md](docs/PLATFORM.md) | Multi-tenant platform: tenants, credentials, plans, buyer account, two-step verification |
 | [OVERLAYS.md](docs/OVERLAYS.md) | Overlay setup and OBS integration |
 | [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Design tokens, component library, runtime theme editor |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common problems and solutions |
