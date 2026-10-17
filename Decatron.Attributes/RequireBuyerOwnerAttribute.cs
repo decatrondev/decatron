@@ -4,6 +4,7 @@ using Decatron.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Decatron.Attributes
 {
@@ -17,18 +18,31 @@ namespace Decatron.Attributes
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             var http = context.HttpContext;
+            var log = http.RequestServices.GetService<ILoggerFactory>()?.CreateLogger<RequireBuyerOwnerAttribute>();
             if (http.User.Identity?.IsAuthenticated != true) { context.Result = new UnauthorizedResult(); return; }
 
             var tenantId = TenantAmbient.Current;
-            var scope = http.User.FindFirst("scope")?.Value;
-            var tid = http.User.FindFirst("tid")?.Value;
-            if (tenantId is null or 1 || scope != "buyer" || tid != tenantId.ToString()) { context.Result = new ForbidResult(); return; }
-            if (!long.TryParse(http.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId)) { context.Result = new ForbidResult(); return; }
+            var scope = http.User.FindFirst(BuyerClaims.Scope)?.Value;
+            var tid = BuyerClaims.TenantOf(http.User);
+            if (tenantId is null or 1 || !BuyerClaims.IsBuyer(http.User) || tid != tenantId.ToString())
+            {
+                log?.LogWarning("buyer.denied reason=context tenant={Tenant} scope={Scope} tid={Tid}", tenantId, scope, tid);
+                context.Result = new ForbidResult(); return;
+            }
+            if (!long.TryParse(http.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+            {
+                log?.LogWarning("buyer.denied reason=user_claim");
+                context.Result = new ForbidResult(); return;
+            }
 
             var db = http.RequestServices.GetService<DecatronDbContext>();
             if (db == null) { context.Result = new StatusCodeResult(500); return; }
             var ok = await db.TenantMembers.AnyAsync(m => m.TenantId == tenantId && m.UserId == userId && m.Role == "owner");
-            if (!ok) context.Result = new ForbidResult();
+            if (!ok)
+            {
+                log?.LogWarning("buyer.denied reason=not_owner tenant={Tenant} user={User}", tenantId, userId);
+                context.Result = new ForbidResult();
+            }
         }
     }
 }

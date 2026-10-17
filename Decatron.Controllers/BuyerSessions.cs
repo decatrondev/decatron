@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Decatron.Core.Interfaces;
 using Decatron.Core.Settings;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -14,9 +15,6 @@ namespace Decatron.Controllers;
 /// </summary>
 public sealed class BuyerSessions
 {
-    public const string TenantClaim = "tid";
-    public const string ScopeClaim = "scope";
-    public const string BuyerScope = "buyer";
     public static readonly TimeSpan Lifetime = TimeSpan.FromHours(8);
 
     private readonly JwtSettings _jwt;
@@ -37,8 +35,8 @@ public sealed class BuyerSessions
             new Claim("DiscordId", ""),
             new Claim("ProfileImage", ""),
             new Claim("Email", email),
-            new Claim(TenantClaim, tenantId.ToString()),
-            new Claim(ScopeClaim, BuyerScope),
+            new Claim(BuyerClaims.Tenant, tenantId.ToString()),
+            new Claim(BuyerClaims.Scope, BuyerClaims.BuyerScope),
         };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.SecretKey));
         var jwt = new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(

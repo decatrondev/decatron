@@ -12,10 +12,11 @@ buyerApi.interceptors.request.use(config => {
     return config;
 });
 
-// Sesión vencida o revocada: se borra y se vuelve a pedir el enlace de entrada.
+// Solo un 401 (sesión vencida o inválida) la borra y manda a pedir el enlace. Un 403 u otro error se muestra, sin tirar la sesión:
+// pedir otro correo por un fallo que no es de la sesión sería gastar cuota para nada.
 buyerApi.interceptors.response.use(r => r, err => {
     const s = err?.response?.status;
-    if (s === 401 || s === 403) {
+    if (s === 401) {
         try { localStorage.removeItem(BUYER_TOKEN_KEY); } catch { /* sin almacenamiento */ }
         if (!window.location.pathname.startsWith('/panel/login')) window.location.href = '/panel/login';
     }

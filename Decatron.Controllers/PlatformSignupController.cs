@@ -244,7 +244,7 @@ namespace Decatron.Controllers
         public async Task<IActionResult> BuyerMe()
         {
             var tenantId = TenantAmbient.Current;
-            if (tenantId is null or 1 || User.FindFirst(BuyerClaimScope)?.Value != "buyer") return Forbid();
+            if (tenantId is null or 1 || !BuyerClaims.IsBuyer(User)) return Forbid();
             var email = User.FindFirst("Email")?.Value ?? "";
             await using var c = TenantNpgsql.Create(_config["ConnectionStrings:DefaultConnection"], tenantId.Value);
             await c.OpenAsync();
@@ -267,8 +267,6 @@ namespace Decatron.Controllers
                 buyer = new { email, role = "owner" },
             });
         }
-
-        private const string BuyerClaimScope = "scope";
 
         private static (string subject, string html) BuildEmail(string locale, string kind, string subjectName, string link, int minutes)
         {

@@ -37,10 +37,9 @@ namespace Decatron.Middleware
                     // (scope=buyer) ademas solo abre el panel del comprador y el canje de sesion, nunca las pantallas del streamer.
                     if (res.Source == TenantSource.Host && context.User.Identity?.IsAuthenticated == true)
                     {
-                        var tid = context.User.FindFirst(BuyerClaims.Tenant)?.Value;
-                        var isBuyer = context.User.FindFirst(BuyerClaims.Scope)?.Value == BuyerClaims.BuyerScope;
+                        var tid = BuyerClaims.TenantOf(context.User);
                         if ((tid != null && tid != res.TenantId.ToString())
-                            || (isBuyer && !BuyerClaims.PathAllowed(context.Request.Path)))
+                            || (BuyerClaims.IsBuyer(context.User) && !BuyerClaims.PathAllowed(context.Request.Path.Value)))
                         {
                             context.Response.StatusCode = StatusCodes.Status403Forbidden;
                             return;
@@ -84,16 +83,6 @@ namespace Decatron.Middleware
             _seen[key] = now;
             _log.LogWarning("tenant.ambiguous key={Key} path={Path} fallback=1", key, path.Value);
         }
-    }
-
-    /// <summary>Claims de la sesion atada a un tenant (los emite BuyerSessions y AuthController).</summary>
-    public static class BuyerClaims
-    {
-        public const string Tenant = "tid";
-        public const string Scope = "scope";
-        public const string BuyerScope = "buyer";
-        private static readonly string[] BuyerPaths = { "/api/platform/", "/api/auth/", "/api/brand", "/api/design/tokens", "/uploads/brand/" };
-        public static bool PathAllowed(PathString p) => BuyerPaths.Any(x => p.StartsWithSegments(x.TrimEnd('/'), StringComparison.OrdinalIgnoreCase) || p.Value?.StartsWith(x, StringComparison.OrdinalIgnoreCase) == true);
     }
 
     public static class TenantMiddlewareExtensions
