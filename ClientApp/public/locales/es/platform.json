@@ -293,7 +293,12 @@
       "connect_failed": "El bot no pudo conectarse a Discord.",
       "needs_setup": "Primero carga la app y autoriza el bot de Twitch del tenant.",
       "eventsub_not_connected": "La conexión de eventos no está abierta.",
-      "connect_failed_eventsub": "No se pudo abrir la conexión de eventos."
+      "connect_failed_eventsub": "No se pudo abrir la conexión de eventos.",
+      "byo_rejected": "El proveedor rechazó la llave. No se guardó nada.",
+      "byo_unreachable": "No se pudo contactar al proveedor. Intenta de nuevo.",
+      "invalid_byo": "Revisa la llave y los datos (la URL debe ser https y pública, y las voces un JSON válido).",
+      "byo_not_configured": "Este tenant no tiene esa llave cargada.",
+      "unknown_provider": "Proveedor desconocido."
     },
     "botTitle": "Cuenta de bot",
     "botNone": "Sin bot",
@@ -465,6 +470,48 @@
         "overrides": "Ajustes",
         "addons": "Complementos",
         "data": "Datos"
+      }
+    },
+    "byo": {
+      "title": "IA y voz",
+      "help": "Cada tenant usa SUS propias llaves. Sin llave, la función queda apagada; nunca se usa la de Decatron. Los costos los paga el proveedor de cada tenant.",
+      "configured": "Configurada · …{{hint}}",
+      "none": "Sin llave",
+      "load": "Cargar llave",
+      "replace": "Reemplazar llave",
+      "test": "Probar",
+      "remove": "Quitar",
+      "saved": "Llave probada y guardada.",
+      "tested": "La llave funciona.",
+      "removed": "Llave quitada.",
+      "formTitle": "{{provider}} de {{name}}",
+      "apiKey": "Llave",
+      "apiKeyHint": "Solo escritura: se prueba contra el proveedor y se guarda cifrada. No se vuelve a mostrar.",
+      "baseUrl": "URL base de la API",
+      "baseUrlHint": "Debe ser https y compatible con OpenAI (termina en /v1). Por ejemplo OpenRouter, OpenAI o Groq.",
+      "model": "Modelo",
+      "fallbackModel": "Modelo de respaldo",
+      "optional": "Opcional",
+      "voices": "Voces (JSON)",
+      "voicesHint": "Lista de personajes: nombre y referenceId de Fish Audio. Se puede dejar vacío.",
+      "removeTitle": "Quitar llave",
+      "removeText": "Se borrará la llave de {{provider}} de {{name}}. Las funciones que la usan quedarán apagadas.",
+      "providers": {
+        "ai": {
+          "name": "IA (compatible con OpenAI)",
+          "help": "Chat con IA, Coach de LoL y traducción de texto.",
+          "formHelp": "Cualquier proveedor con API compatible con OpenAI. Se prueba listando sus modelos."
+        },
+        "deepgram": {
+          "name": "Deepgram",
+          "help": "Voz a texto de la traducción en vivo y voz Aura.",
+          "formHelp": "Llave de API de Deepgram. Se prueba consultando sus proyectos."
+        },
+        "fishaudio": {
+          "name": "Fish Audio",
+          "help": "Voces con personajes.",
+          "formHelp": "Llave de API de Fish Audio. Se prueba consultando su saldo."
+        }
       }
     }
   }

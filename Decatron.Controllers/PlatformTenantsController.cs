@@ -24,6 +24,9 @@ namespace Decatron.Controllers
         private readonly Decatron.Discord.DiscordTenantGateway _gateway;
         private readonly Decatron.Services.Tenancy.TenantEventSubHub _eventSub;
         private readonly Decatron.Services.Tenancy.TenantEventSubSync _eventSubSync;
+        private readonly ITenantByoStore _byoStore;
+        private readonly IByoKeyValidator _byoValidator;
+        private readonly IByoKeys _byoKeys;
         private readonly ITenantCredentialStore _store;
         private readonly ITwitchAppValidator _validator;
         private readonly ICredentialProvider _provider;
@@ -34,8 +37,10 @@ namespace Decatron.Controllers
             IConfiguration config, ILogger<PlatformTenantsController> log,
             Microsoft.Extensions.Options.IOptions<Decatron.Core.Settings.JwtSettings> jwt,
             Decatron.Discord.IDiscordBotValidator discordValidator, Decatron.Discord.DiscordTenantGateway gateway,
-            Decatron.Services.Tenancy.TenantEventSubHub eventSub, Decatron.Services.Tenancy.TenantEventSubSync eventSubSync)
+            Decatron.Services.Tenancy.TenantEventSubHub eventSub, Decatron.Services.Tenancy.TenantEventSubSync eventSubSync,
+            ITenantByoStore byoStore, IByoKeyValidator byoValidator, IByoKeys byoKeys)
         {
+            _byoStore = byoStore; _byoValidator = byoValidator; _byoKeys = byoKeys;
             _eventSub = eventSub; _eventSubSync = eventSubSync;
             _discordValidator = discordValidator; _gateway = gateway; _jwt = jwt; _store = store; _validator = validator; _provider = provider; _config = config; _log = log;
         }
@@ -74,7 +79,7 @@ namespace Decatron.Controllers
             var items = new List<object>();
             foreach (var (id, slug, name, status, mode) in rows)
                 items.Add(new { id, slug, name, status, mode, twitchApp = id == 1 ? null : await _store.GetTwitchAppSummaryAsync(id), twitchBot = id == 1 ? null : await _store.GetTwitchBotAsync(id),
-                    discordBot = id == 1 ? null : await _store.GetDiscordBotAsync(id), gateway = id == 1 ? null : _gateway.StateOf(id),
+                    discordBot = id == 1 ? null : await _store.GetDiscordBotAsync(id), byo = id == 1 ? null : await ByoSummariesAsync(id), gateway = id == 1 ? null : _gateway.StateOf(id),
                     eventSub = id == 1 ? null : _eventSub.StateOf(id), eventSubSync = id == 1 ? null : _eventSubSync.LastOf(id) });
             return Ok(new { success = true, items, gateways = new { connected = _gateway.Connected, cap = _gateway.Cap, rssMb = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64 / 1048576 } });
         }
@@ -155,6 +160,83 @@ namespace Decatron.Controllers
         }
 
         public sealed class DiscordBotBody { public string? Token { get; set; } }
+
+        public sealed class ByoBody
+        {
+            public string? ApiKey { get; set; }
+            public string? BaseUrl { get; set; }
+            public string? Model { get; set; }
+            public string? FallbackModel { get; set; }
+            /// <summary>Fish Audio: JSON [{"name":"Toji","referenceId":"…"}].</summary>
+            public string? Voices { get; set; }
+        }
+
+        private async Task<Dictionary<string, ByoKeySummary?>> ByoSummariesAsync(long id)
+        {
+            var d = new Dictionary<string, ByoKeySummary?>();
+            foreach (var p in ByoProviders.All) d[p] = await _byoStore.GetSummaryAsync(id, p);
+            return d;
+        }
+
+        private static Dictionary<string, string> ByoConfig(string provider, ByoBody b)
+        {
+            var all = new Dictionary<string, string?> { ["base_url"] = b.BaseUrl, ["model"] = b.Model, ["fallback_model"] = b.FallbackModel, ["voices"] = b.Voices };
+            var cfg = new Dictionary<string, string>();
+            foreach (var k in ByoProviders.ConfigKeys(provider))
+                if (!string.IsNullOrWhiteSpace(all[k]) && all[k]!.Length <= 4000) cfg[k] = all[k]!.Trim();
+            return cfg;
+        }
+
+        private IActionResult ByoFailure(ByoCheck check) => check switch
+        {
+            ByoCheck.Rejected => UnprocessableEntity(new { success = false, code = "byo_rejected" }),
+            ByoCheck.Unreachable => StatusCode(502, new { success = false, code = "byo_unreachable" }),
+            _ => BadRequest(new { success = false, code = "invalid_byo" }),
+        };
+
+        /// <summary>Carga la llave propia del tenant para IA, Deepgram o Fish Audio: se prueba contra el proveedor y se guarda cifrada. Nunca se devuelve.</summary>
+        [HttpPut("{id:long}/byo/{provider}")]
+        public async Task<IActionResult> SaveByo(long id, string provider, [FromBody] ByoBody body)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (!ByoProviders.IsKnown(provider)) return BadRequest(new { success = false, code = "unknown_provider" });
+            var tenant = await FindAsync(id);
+            if (tenant is null) return NotFound(new { success = false, code = "tenant_not_found" });
+            if (tenant.Value.Status != "active") return BadRequest(new { success = false, code = "tenant_not_active" });
+
+            var key = body.ApiKey?.Trim() ?? "";
+            var cfg = ByoConfig(provider, body);
+            var check = await _byoValidator.ValidateAsync(provider, key, cfg, HttpContext.RequestAborted);
+            if (check != ByoCheck.Ok) return ByoFailure(check);
+
+            await _byoStore.SaveAsync(id, provider, key, cfg, Actor);
+            _byoKeys.Invalidate(id);
+            _log.LogInformation("Plataforma: llave {Provider} cargada para el tenant {Tenant} por {Actor}", provider, id, Actor);
+            return Ok(new { success = true, summary = await _byoStore.GetSummaryAsync(id, provider) });
+        }
+
+        /// <summary>Vuelve a probar la llave ya guardada (sin gastar créditos del proveedor).</summary>
+        [HttpPost("{id:long}/byo/{provider}/test")]
+        public async Task<IActionResult> TestByo(long id, string provider)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (!ByoProviders.IsKnown(provider)) return BadRequest(new { success = false, code = "unknown_provider" });
+            var stored = await _byoStore.GetAsync(id, provider, "admin-test");
+            if (stored is null) return NotFound(new { success = false, code = "byo_not_configured" });
+            var check = await _byoValidator.ValidateAsync(provider, stored.ApiKey, stored.Config, HttpContext.RequestAborted);
+            return check == ByoCheck.Ok ? Ok(new { success = true }) : ByoFailure(check);
+        }
+
+        [HttpDelete("{id:long}/byo/{provider}")]
+        public async Task<IActionResult> DeleteByo(long id, string provider)
+        {
+            if (id == 1) return BadRequest(new { success = false, code = "tenant_one_legacy" });
+            if (!ByoProviders.IsKnown(provider)) return BadRequest(new { success = false, code = "unknown_provider" });
+            var removed = await _byoStore.DeleteAsync(id, provider, Actor);
+            _byoKeys.Invalidate(id);
+            _log.LogInformation("Plataforma: llave {Provider} quitada del tenant {Tenant} por {Actor}", provider, id, Actor);
+            return Ok(new { success = true, removed });
+        }
 
         /// <summary>Carga el bot de Discord del tenant: se valida contra Discord (debe ser un bot), se guarda cifrado y se abre su gateway.</summary>
         [HttpPut("{id:long}/discord-bot")]

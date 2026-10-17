@@ -293,7 +293,12 @@
       "connect_failed": "The bot could not connect to Discord.",
       "needs_setup": "First load the tenant's Twitch app and authorize its bot.",
       "eventsub_not_connected": "The event connection is not open.",
-      "connect_failed_eventsub": "The event connection could not be opened."
+      "connect_failed_eventsub": "The event connection could not be opened.",
+      "byo_rejected": "The provider rejected the key. Nothing was saved.",
+      "byo_unreachable": "Could not reach the provider. Try again.",
+      "invalid_byo": "Check the key and the data (the URL must be public https and voices valid JSON).",
+      "byo_not_configured": "This tenant has no such key.",
+      "unknown_provider": "Unknown provider."
     },
     "botTitle": "Bot account",
     "botNone": "No bot",
@@ -465,6 +470,48 @@
         "overrides": "Overrides",
         "addons": "Add-ons",
         "data": "Data"
+      }
+    },
+    "byo": {
+      "title": "AI and voice",
+      "help": "Each tenant uses ITS OWN keys. Without a key the feature is off; Decatron's key is never used. The provider bills each tenant directly.",
+      "configured": "Configured · …{{hint}}",
+      "none": "No key",
+      "load": "Add key",
+      "replace": "Replace key",
+      "test": "Test",
+      "remove": "Remove",
+      "saved": "Key tested and saved.",
+      "tested": "The key works.",
+      "removed": "Key removed.",
+      "formTitle": "{{provider}} for {{name}}",
+      "apiKey": "Key",
+      "apiKeyHint": "Write-only: it is tested against the provider and stored encrypted. It is never shown again.",
+      "baseUrl": "API base URL",
+      "baseUrlHint": "Must be https and OpenAI-compatible (ends in /v1). For example OpenRouter, OpenAI or Groq.",
+      "model": "Model",
+      "fallbackModel": "Fallback model",
+      "optional": "Optional",
+      "voices": "Voices (JSON)",
+      "voicesHint": "Character list: name and Fish Audio referenceId. Can be left empty.",
+      "removeTitle": "Remove key",
+      "removeText": "The {{provider}} key for {{name}} will be deleted. Features that use it will turn off.",
+      "providers": {
+        "ai": {
+          "name": "AI (OpenAI-compatible)",
+          "help": "AI chat, LoL Coach and text translation.",
+          "formHelp": "Any provider with an OpenAI-compatible API. It is tested by listing its models."
+        },
+        "deepgram": {
+          "name": "Deepgram",
+          "help": "Speech-to-text for live translation and Aura voice.",
+          "formHelp": "Deepgram API key. It is tested by querying your projects."
+        },
+        "fishaudio": {
+          "name": "Fish Audio",
+          "help": "Character voices.",
+          "formHelp": "Fish Audio API key. It is tested by querying your balance."
+        }
       }
     }
   }

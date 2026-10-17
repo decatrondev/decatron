@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { KeyRound, Trash2 } from 'lucide-react';
 import { Alert, Badge, Button, Field, Input, Spinner } from '../../components/ds';
+import PlatformByoSection, { type ByoSummary } from './PlatformByoSection';
 import ModalShell from '../../components/dashboard/ModalShell';
 import { ConfigCard, ConfigHeader } from '../../components/dashboard/config';
 import api from '../../services/api';
@@ -17,7 +18,7 @@ interface DiscordSummary { botId: string; botName: string; linkedAt: string | nu
 interface GatewayState { status: string; guilds: number; error: string | null; intentsMissing: boolean; memoryDeltaMb: number }
 interface EventSubState { status: string; conduitId: string | null; shards: number; shardsConnected: number; error: string | null; lastEventAt: string | null }
 interface SyncResult { channels: number; created: number; existing: number; errors: number; at: string }
-interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null; twitchBot: BotSummary | null; discordBot: DiscordSummary | null; gateway: GatewayState | null; eventSub: EventSubState | null; eventSubSync: SyncResult | null }
+interface Tenant { id: number; slug: string; name: string; status: string; mode: string; twitchApp: AppSummary | null; twitchBot: BotSummary | null; discordBot: DiscordSummary | null; byo: Record<string, ByoSummary | null> | null; gateway: GatewayState | null; eventSub: EventSubState | null; eventSubSync: SyncResult | null }
 interface Form { clientId: string; clientSecret: string; redirectUri: string; scopes: string }
 
 const EMPTY: Form = { clientId: '', clientSecret: '', redirectUri: '', scopes: '' };
@@ -240,6 +241,7 @@ export default function PlatformTenantsAdmin() {
                                     {row.discordBot && <Button size="sm" variant="ghost" onClick={() => setRmDiscord(row)}>{t('tenants.discordRemove')}</Button>}
                                 </div>
                             </div>
+                            <PlatformByoSection tenantId={row.id} tenantName={row.name} byo={row.byo} onChanged={load} />
                         </div>
                     )}
                 </ConfigCard>
