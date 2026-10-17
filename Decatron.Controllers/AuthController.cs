@@ -388,7 +388,9 @@ namespace Decatron.Controllers
 
                 // Normal login flow
                 // Una cuenta pertenece a un solo tenant (users guarda un unico juego de tokens): entrar por otro sobrescribiria los de su app.
-                if (await _membership.BelongsElsewhereAsync(twitchUser.Id, TenantAmbient.Current ?? 1))
+                // Fase A2: con Platform:IdentityPerTenant la persona tiene una fila de users por tenant (tokens propios), asi que la regla ya no aplica.
+                if (!_configuration.GetValue<bool>("Platform:IdentityPerTenant")
+                    && await _membership.BelongsElsewhereAsync(twitchUser.Id, TenantAmbient.Current ?? 1))
                 {
                     _logger.LogWarning("Login rechazado: {Login} pertenece a otro tenant (entro por el {Tenant})", twitchUser.Login, TenantAmbient.Current ?? 1);
                     return Redirect($"{Front}/login?error={Uri.EscapeDataString("account_other_tenant")}");
