@@ -49,6 +49,7 @@ namespace Decatron.Services.LiveTranslation
         private readonly string _deepgramKey;
         private readonly ILogger<LiveTranslationSessionManager> _logger;
 
+        private readonly Decatron.Core.Interfaces.ITenantResolver? _tenants;
         private readonly ConcurrentDictionary<long, ChannelSession> _byUser = new();
         private readonly ConcurrentDictionary<string, ChannelSession> _byLogin = new();
 
@@ -60,8 +61,10 @@ namespace Decatron.Services.LiveTranslation
             IMessageSender chat,
             IOptions<LiveTranslationOptions> opts,
             IConfiguration config,
-            ILogger<LiveTranslationSessionManager> logger)
+            ILogger<LiveTranslationSessionManager> logger,
+            Decatron.Core.Interfaces.ITenantResolver? tenants = null)
         {
+            _tenants = tenants;
             _scopes = scopes;
             _hub = hub;
             _translator = translator;
@@ -104,6 +107,10 @@ namespace Decatron.Services.LiveTranslation
         public async Task<ChannelSession> StartAsync(long userId, long? deviceId, CancellationToken ct)
         {
             if (!IsConfigured) throw new InvalidOperationException("La traducción en vivo no está configurada en el servidor");
+            // Fase 5.8: la sesión usa la llave de Deepgram y la IA del #1. Hasta tener sesiones con contexto de tenant (STT con la llave de cada
+            // tenant), una cuenta de otro tenant no la abre: así nunca gasta la llave de Decatron. Si no se puede saber, se deja pasar como hasta hoy.
+            if (_tenants is not null && _tenants.ByUserId(userId).TenantId != 1)
+                throw new InvalidOperationException("La traducción en vivo todavía no está disponible para esta cuenta");
             if (_byUser.TryGetValue(userId, out var previous))
             {
                 // La app se reconectó (o se abrió en otra PC) mientras la sesión anterior

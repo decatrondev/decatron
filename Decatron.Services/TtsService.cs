@@ -80,6 +80,9 @@ namespace Decatron.Services
                 return new TtsGenerationResult(BuildPublicUrl(cached.FilePath), FromCache: true);
             }
 
+            // Fase 5.8: la cuenta de AWS Polly es de Decatron; un tenant no la usa (su voz va por Piper o por su propia llave)
+            if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1) return TtsGenerationResult.Failed();
+
             // Cache miss - call Polly
             try
             {

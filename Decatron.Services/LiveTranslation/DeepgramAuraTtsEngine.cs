@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using Decatron.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 
 namespace Decatron.Services.LiveTranslation
@@ -31,8 +32,11 @@ namespace Decatron.Services.LiveTranslation
             new("aura-2-nestor-es",   "Néstor",   "es", "m"),
         };
 
-        public DeepgramAuraTtsEngine(IHttpClientFactory httpFactory, IConfiguration config)
+        private readonly IByoKeys? _byo;
+
+        public DeepgramAuraTtsEngine(IHttpClientFactory httpFactory, IConfiguration config, IByoKeys? byo = null)
         {
+            _byo = byo;
             _http = httpFactory.CreateClient("deepgram-tts");
             _http.Timeout = TimeSpan.FromSeconds(30);
             _apiKey = config["Deepgram:ApiKey"] ?? "";
@@ -40,7 +44,8 @@ namespace Decatron.Services.LiveTranslation
 
         public string Name => "deepgram";
         public string CreditEngine => "deepgram_aura";
-        public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
+        // #1: su llave de appsettings. Otro tenant (Fase 5.8): SU llave de Deepgram; sin ella la voz Aura queda apagada (nunca la del #1).
+        public bool IsConfigured => (TenantAmbient.Current ?? 1) == 1 ? !string.IsNullOrWhiteSpace(_apiKey) : _byo?.IsAvailable(ByoProviders.Deepgram) == true;
         public IReadOnlyList<TtsVoice> Voices => _voices;
 
         public string DefaultVoiceFor(string language) =>
@@ -50,6 +55,14 @@ namespace Decatron.Services.LiveTranslation
             string text, string voiceId, [EnumeratorCancellation] CancellationToken ct)
         {
             if (!_voices.Any(v => v.Id == voiceId)) voiceId = _voices[0].Id;
+
+            var key = _apiKey;
+            if ((TenantAmbient.Current ?? 1) != 1)
+            {
+                var byo = _byo is null ? null : await _byo.GetAsync(ByoProviders.Deepgram, null, ct);
+                if (byo is null) throw new InvalidOperationException("byo_not_configured");
+                key = byo.ApiKey;
+            }
 
             // Una conexión reutilizada que Deepgram ya cerró hace fallar el envío con «The response ended prematurely» antes de recibir
             // un solo byte (se vio en producción el 2026-10-11). Eso es seguro de repetir una vez: no se entregó nada y el cobro ya se
@@ -62,7 +75,7 @@ namespace Decatron.Services.LiveTranslation
                 {
                     Content = new StringContent(JsonSerializer.Serialize(new { text }), Encoding.UTF8, "application/json")
                 };
-                req.Headers.Authorization = new AuthenticationHeaderValue("Token", _apiKey);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Token", key);
                 try
                 {
                     res = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
