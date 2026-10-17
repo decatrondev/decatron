@@ -551,7 +551,6 @@
     "account": "Account",
     "role": "Role",
     "owner": "Owner",
-    "soon": "Here you will load your Twitch credentials, your bot and your keys. We are finishing this part.",
     "logout": "Sign out",
     "loginTitle": "Sign in to your panel",
     "loginText": "Enter the email you used to create your space and we will send you a sign-in link.",
@@ -560,6 +559,23 @@
     "sentText": "If the email belongs to an owner of this space, we sent a link that works for 15 minutes.",
     "entering": "Signing in…",
     "enterErrorTitle": "The link does not work",
-    "enterErrorText": "It expired or was already used. Ask for a new one."
+    "enterErrorText": "It expired or was already used. Ask for a new one.",
+    "setup": {
+      "copied": "Copied.",
+      "linkReady": "Link ready.",
+      "confirmRemove": "Confirm and remove",
+      "openLink": "Open and authorize",
+      "done": "I authorized it",
+      "appTitle": "1. Your Twitch app",
+      "appHelp": "Create an application at dev.twitch.tv/console, add the redirect URL below exactly as shown, and paste its Client ID and Client Secret. It is checked against Twitch before saving.",
+      "redirectHint": "Register it the same way in your Twitch app (OAuth Redirect URLs).",
+      "botTitle": "2. Bot account",
+      "botHelp": "The Twitch account your bot will chat with. Generate the link, open it with that account signed in to Twitch, and accept the permissions.",
+      "botLinkHelp": "Open it with your bot's Twitch account signed in and accept all permissions. It works once and expires in 30 minutes. When finished, press \"I authorized it\".",
+      "eventsTitle": "3. Twitch events",
+      "eventsHelp": "Chat, follows, subs and the rest arrive over a connection that opens once the app and the bot are loaded.",
+      "discordTitle": "4. Discord bot (optional)",
+      "discordHelp": "Create your application at discord.com/developers, add a bot and enable the \"Server Members Intent\" and \"Message Content Intent\" permissions. Paste the bot token here; it is stored encrypted."
+    }
   }
 }

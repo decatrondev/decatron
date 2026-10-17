@@ -551,7 +551,6 @@
     "account": "Cuenta",
     "role": "Rol",
     "owner": "Propietario",
-    "soon": "Aquí podrás cargar tus credenciales de Twitch, tu bot y tus llaves. Estamos terminando esta parte.",
     "logout": "Cerrar sesión",
     "loginTitle": "Entrar a tu panel",
     "loginText": "Escribe el correo con el que creaste tu espacio y te enviamos un enlace de entrada.",
@@ -560,6 +559,23 @@
     "sentText": "Si el correo corresponde a un propietario de este espacio, te enviamos un enlace que vale 15 minutos.",
     "entering": "Entrando…",
     "enterErrorTitle": "El enlace no sirve",
-    "enterErrorText": "Venció o ya se usó. Pide uno nuevo."
+    "enterErrorText": "Venció o ya se usó. Pide uno nuevo.",
+    "setup": {
+      "copied": "Copiado.",
+      "linkReady": "Enlace listo.",
+      "confirmRemove": "Confirmar y quitar",
+      "openLink": "Abrir y autorizar",
+      "done": "Ya autoricé",
+      "appTitle": "1. Tu app de Twitch",
+      "appHelp": "Crea una aplicación en dev.twitch.tv/console, agrega abajo la URL de redirección exactamente como aparece, y pega su Client ID y Client Secret. Se comprueba contra Twitch antes de guardar.",
+      "redirectHint": "Regístrala igual en tu app de Twitch (OAuth Redirect URLs).",
+      "botTitle": "2. Cuenta del bot",
+      "botHelp": "La cuenta de Twitch con la que escribirá tu bot en el chat. Genera el enlace, ábrelo con esa cuenta iniciada en Twitch y acepta los permisos.",
+      "botLinkHelp": "Ábrelo con la cuenta de Twitch de tu bot iniciada y acepta todos los permisos. Sirve una vez y caduca en 30 minutos. Al terminar, pulsa «Ya autoricé».",
+      "eventsTitle": "3. Eventos de Twitch",
+      "eventsHelp": "Chat, follows, subs y demás llegan por una conexión que se abre cuando tienes la app y el bot cargados.",
+      "discordTitle": "4. Bot de Discord (opcional)",
+      "discordHelp": "Crea tu aplicación en discord.com/developers, añade un bot y activa los permisos «Server Members Intent» y «Message Content Intent». Pega aquí el token del bot; se guarda cifrado."
+    }
   }
 }

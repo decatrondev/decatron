@@ -74,6 +74,8 @@ public sealed class TenantTaskRunner
                 using (TenantAmbient.Push(tenant)) await body(tenant);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
+            // Un tenant recien creado aun no cargo su app de Twitch: no tiene nada que ejecutar, no es un error (se reintenta en la proxima vuelta).
+            catch (Decatron.Core.Interfaces.CredentialsNotConfiguredException) when (tenant != 1) { }
             catch (Exception ex)
             {
                 if (tenant == 1) { firstError = ex; continue; }

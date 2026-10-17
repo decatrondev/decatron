@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { MailCheck, XCircle } from 'lucide-react';
 import { Alert, Button, Card, Field, Input, Spinner } from '../../../components/ds';
 import PlatformShell from '../PlatformShell';
+import BuyerSetup from './BuyerSetup';
 import { useTurnstile } from '../useTurnstile';
 
 // La sesión del comprador va aparte de la del streamer: otra clave y su propio encabezado (nunca toca el login de Twitch).
@@ -75,7 +76,7 @@ function Home() {
                             <div><dt className="text-sm text-ds-faint">{t('buyer.role')}</dt><dd className="text-ds-text font-semibold">{t('buyer.owner')}</dd></div>
                         </dl>
                     </Card>
-                    <Alert tone="info">{t('buyer.soon')}</Alert>
+                    <BuyerSetup />
                     <Button variant="secondary" onClick={logout}>{t('buyer.logout')}</Button>
                 </>}
             </div>

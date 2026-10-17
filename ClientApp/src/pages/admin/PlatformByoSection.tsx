@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Badge, Button, Field, Input, Textarea } from '../../components/ds';
 import ModalShell from '../../components/dashboard/ModalShell';
+import type { AxiosInstance } from 'axios';
 import api from '../../services/api';
 
 // Llaves propias de IA, voz y traducción de un tenant (Fase 5.8). .dev/plans/plataforma/FASE5_8_DISENO.md.
@@ -13,7 +14,9 @@ type Provider = typeof PROVIDERS[number];
 interface Form { apiKey: string; baseUrl: string; model: string; fallbackModel: string; voices: string }
 const EMPTY: Form = { apiKey: '', baseUrl: '', model: '', fallbackModel: '', voices: '' };
 
-export default function PlatformByoSection({ tenantId, tenantName, byo, onChanged }: { tenantId: number; tenantName: string; byo: Record<string, ByoSummary | null> | null; onChanged: () => void }) {
+// `client` y `basePath` permiten usarla también en el panel del comprador (su propia sesión y sus propios endpoints).
+export default function PlatformByoSection({ tenantId, tenantName, byo, onChanged, client, basePath }: { tenantId: number; tenantName: string; byo: Record<string, ByoSummary | null> | null; onChanged: () => void; client?: AxiosInstance; basePath?: string }) {
+    const http = client ?? api;
     const { t, i18n } = useTranslation('platform');
     const [editing, setEditing] = useState<Provider | null>(null);
     const [removing, setRemoving] = useState<Provider | null>(null);
@@ -22,7 +25,7 @@ export default function PlatformByoSection({ tenantId, tenantName, byo, onChange
     const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
 
     const errText = (code?: string) => t(`tenants.errors.${code}`, { defaultValue: t('tenants.errors.generic') });
-    const base = `/admin/platform/tenants/${tenantId}/byo`;
+    const base = basePath ?? `/admin/platform/tenants/${tenantId}/byo`;
     const close = () => { setEditing(null); setForm(EMPTY); }; // la llave no se queda en memoria de la pantalla
 
     const open = (p: Provider) => {
@@ -38,7 +41,7 @@ export default function PlatformByoSection({ tenantId, tenantName, byo, onChange
         setBusy(false);
     };
 
-    const save = () => editing && run(() => api.put(`${base}/${editing}`, {
+    const save = () => editing && run(() => http.put(`${base}/${editing}`, {
         apiKey: form.apiKey, baseUrl: form.baseUrl, model: form.model, fallbackModel: form.fallbackModel, voices: form.voices,
     }), t('tenants.byo.saved'), close);
 
@@ -65,7 +68,7 @@ export default function PlatformByoSection({ tenantId, tenantName, byo, onChange
                             <p className="text-sm text-ds-soft">{t(`tenants.byo.providers.${p}.help`)}</p>
                             <div className="flex flex-wrap gap-2">
                                 <Button size="sm" variant="secondary" disabled={busy} onClick={() => open(p)}>{s ? t('tenants.byo.replace') : t('tenants.byo.load')}</Button>
-                                {s && <Button size="sm" variant="ghost" loading={busy} onClick={() => run(() => api.post(`${base}/${p}/test`), t('tenants.byo.tested'))}>{t('tenants.byo.test')}</Button>}
+                                {s && <Button size="sm" variant="ghost" loading={busy} onClick={() => run(() => http.post(`${base}/${p}/test`), t('tenants.byo.tested'))}>{t('tenants.byo.test')}</Button>}
                                 {s && <Button size="sm" variant="ghost" disabled={busy} onClick={() => setRemoving(p)}>{t('tenants.byo.remove')}</Button>}
                             </div>
                         </li>
@@ -106,7 +109,7 @@ export default function PlatformByoSection({ tenantId, tenantName, byo, onChange
                 <ModalShell title={t('tenants.byo.removeTitle')} size="md" onClose={() => !busy && setRemoving(null)}
                     actions={<>
                         <Button variant="ghost" onClick={() => setRemoving(null)} disabled={busy}>{t('admin.cancel')}</Button>
-                        <Button variant="danger" loading={busy} onClick={() => run(() => api.delete(`${base}/${removing}`), t('tenants.byo.removed'), () => setRemoving(null))}>{t('tenants.byo.remove')}</Button>
+                        <Button variant="danger" loading={busy} onClick={() => run(() => http.delete(`${base}/${removing}`), t('tenants.byo.removed'), () => setRemoving(null))}>{t('tenants.byo.remove')}</Button>
                     </>}>
                     <p className="text-ds-soft">{t('tenants.byo.removeText', { provider: t(`tenants.byo.providers.${removing}.name`), name: tenantName })}</p>
                 </ModalShell>
