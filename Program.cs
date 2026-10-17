@@ -367,6 +367,7 @@ try
     builder.Services.AddSingleton<Decatron.Core.Interfaces.IEntitlements, Decatron.Services.Tenancy.Entitlements>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantPlanAdmin>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.BuyerMfa>();
+    builder.Services.AddScoped<Decatron.Controllers.TenantCredentialsService>();   // reglas comunes de credenciales por tenant (panel del dueño y del comprador)
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantProvisioner>();   // Fase A-B: alta del tenant con su comprador
     builder.Services.AddSingleton<Decatron.Controllers.BuyerSessions>();       // Fase A-C: sesion del comprador
     builder.Services.AddSingleton<Decatron.Services.TurnstileVerifier>();
