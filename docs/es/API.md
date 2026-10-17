@@ -155,7 +155,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 
 **Acceso** refleja los atributos declarados en cada ruta: `Público` significa que ningún atributo la restringe, `JWT` un usuario autenticado, `JWT + sección` un usuario autenticado con el nivel de permiso que requiere esa sección (consulta [CONFIGURATION.md](CONFIGURATION.md#sistema-de-permisos)). Algunos endpoints hacen comprobaciones adicionales en el código, por ejemplo acciones solo para el dueño. Las rutas restringidas a administradores de la plataforma (`RequireSystemOwner`) no se listan.
 
-**Rutas de la plataforma.** La plataforma multi-tenant (`/api/platform/` para el comprador, `/api/admin/platform/` para el dueño de la plataforma) se documenta en [PLATFORM.md](PLATFORM.md) con sus reglas de acceso, porque la mayoría de esas rutas dependen del tenant del Host y de la sesión del comprador y no de los niveles de permiso que se listan aquí.
+**Rutas de la plataforma.** La plataforma multi-tenant (`/api/platform/` para el comprador, `/api/admin/platform/` para el dueño de la plataforma) se documenta en [PLATFORM.md](PLATFORM.md) con sus reglas de acceso. Las rutas del comprador aparecen abajo simplemente como `JWT`, pero además exigen una sesión de comprador (`scope=buyer`) que pertenezca al dueño del tenant del Host, y las que cambian credenciales piden el token reciente de la verificación en dos pasos; las rutas de administración quedan fuera de esta lista.
 
 <!-- BEGIN GENERATED ENDPOINTS -->
 ### Analytics
@@ -196,6 +196,34 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/brand` | Público |
+
+### Buyer Mfa
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/platform/buyer/mfa` | JWT |
+| `POST` | `/api/platform/buyer/mfa/confirm` | JWT |
+| `POST` | `/api/platform/buyer/mfa/disable` | JWT |
+| `POST` | `/api/platform/buyer/mfa/recovery-codes` | JWT |
+| `POST` | `/api/platform/buyer/mfa/setup` | JWT |
+| `POST` | `/api/platform/buyer/mfa/verify` | JWT |
+
+### Buyer Tenant
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `DELETE` | `/api/platform/buyer/bot` | JWT |
+| `POST` | `/api/platform/buyer/bot-link` | JWT |
+| `DELETE` | `/api/platform/buyer/byo/{provider}` | JWT |
+| `PUT` | `/api/platform/buyer/byo/{provider}` | JWT |
+| `POST` | `/api/platform/buyer/byo/{provider}/test` | JWT |
+| `DELETE` | `/api/platform/buyer/discord-bot` | JWT |
+| `PUT` | `/api/platform/buyer/discord-bot` | JWT |
+| `POST` | `/api/platform/buyer/discord-bot/restart` | JWT |
+| `POST` | `/api/platform/buyer/eventsub/restart` | JWT |
+| `GET` | `/api/platform/buyer/tenant` | JWT |
+| `DELETE` | `/api/platform/buyer/twitch-app` | JWT |
+| `PUT` | `/api/platform/buyer/twitch-app` | JWT |
 
 ### Channel Emotes
 
@@ -810,6 +838,32 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/pets/models/{id}/sign` | JWT |
 | `GET` | `/api/pets/overlay/{channel}` | JWT |
 | `POST` | `/api/pets/test` | JWT + `overlays` |
+
+### Platform Signup
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `POST` | `/api/platform/buyer/login-confirm` | Público |
+| `POST` | `/api/platform/buyer/login-link` | Público |
+| `GET` | `/api/platform/buyer/me` | JWT |
+| `POST` | `/api/platform/signup` | Público |
+| `POST` | `/api/platform/signup/confirm` | Público |
+| `GET` | `/api/platform/signup/slug` | Público |
+
+### Platform Tenant Info
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/platform/buyer/transparency` | JWT |
+| `GET` | `/api/platform/tenant-info` | Público |
+
+### Platform Waitlist
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/platform/config` | Público |
+| `POST` | `/api/platform/waitlist` | Público |
+| `POST` | `/api/platform/waitlist/confirm` | Público |
 
 ### Public Commands
 
