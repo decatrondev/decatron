@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MailCheck, XCircle } from 'lucide-react';
@@ -32,6 +32,7 @@ function Home() {
     const [params] = useSearchParams();
     const [me, setMe] = useState<Me | null>(null);
     const [error, setError] = useState(false);
+    const exchanged = useRef(false);
 
     const load = useCallback(async () => {
         const token = getToken();
@@ -45,6 +46,8 @@ function Home() {
     useEffect(() => {
         const code = params.get('code');
         if (code) {
+            if (exchanged.current) return;
+            exchanged.current = true;
             exchange(code).then(ok => { if (ok) nav('/panel', { replace: true }); else nav('/panel/login', { replace: true }); });
             return;
         }
@@ -147,20 +150,20 @@ function Enter() {
     const nav = useNavigate();
     const [params] = useSearchParams();
     const [failed, setFailed] = useState(false);
+    const started = useRef(false); // enlace de un solo uso: una petición, sin descartar su respuesta
 
     useEffect(() => {
+        if (started.current) return;
+        started.current = true;
         const token = params.get('t') ?? '';
         if (!token) { setFailed(true); return; }
-        let cancelled = false;
         fetch('/api/platform/buyer/login-confirm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) })
             .then(async r => ({ ok: r.ok, b: await r.json().catch(() => null) }))
             .then(async ({ ok, b }) => {
-                if (cancelled) return;
                 if (ok && b?.code && await exchange(b.code)) { nav('/panel', { replace: true }); return; }
                 setFailed(true);
             })
-            .catch(() => { if (!cancelled) setFailed(true); });
-        return () => { cancelled = true; };
+            .catch(() => setFailed(true));
     }, [params, nav]);
 
     return (

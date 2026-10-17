@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { XCircle } from 'lucide-react';
@@ -10,22 +10,22 @@ export default function PlatformSignupConfirm() {
     const { t } = useTranslation('platform');
     const [params] = useSearchParams();
     const [error, setError] = useState('');
+    const started = useRef(false); // el enlace es de un solo uso: la petición sale una vez, aunque el efecto se repita
 
     useEffect(() => {
+        if (started.current) return;
+        started.current = true;
         const token = params.get('t') ?? '';
         if (!token) { setError(t('signupConfirm.errorText')); return; }
-        let cancelled = false;
         fetch('/api/platform/signup/confirm', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }),
         })
             .then(async r => ({ ok: r.ok, body: await r.json().catch(() => null) }))
             .then(({ ok, body }) => {
-                if (cancelled) return;
                 if (ok && body?.url) { window.location.replace(body.url); return; }
                 setError(body?.code === 'slug_taken' ? t('signupConfirm.slugTaken') : t('signupConfirm.errorText'));
             })
-            .catch(() => { if (!cancelled) setError(t('signupConfirm.errorText')); });
-        return () => { cancelled = true; };
+            .catch(() => setError(t('signupConfirm.errorText')));
     }, [params, t]);
 
     return (
