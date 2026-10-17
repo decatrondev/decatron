@@ -51,13 +51,16 @@ namespace Decatron.Middleware
 
         private static TenantResolution Resolve(HttpContext context, ITenantResolver resolver)
         {
+            // Fase 8: en slug.decatron.top manda el Host (una sesion de otro tenant no cambia el tenant de ese subdominio)
+            var byHost = resolver.ByHost(context.Request.Host.Host);
+            if (byHost.Resolved) return byHost;
             var claim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (long.TryParse(claim, out var userId))
             {
                 var byUser = resolver.ByUserId(userId);
                 if (byUser.Resolved) return byUser;
             }
-            return resolver.ByHost(context.Request.Host.Host);
+            return byHost;
         }
 
         // Un aviso por clave cada hora, para que Grafana no se llene.

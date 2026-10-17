@@ -56,10 +56,30 @@ public sealed class TenantResolver : ITenantResolver
             ? new(t, true, TenantSource.Guild)
             : new(DefaultTenantId, false, TenantSource.Default);
 
+    /// <summary>Dominio de la plataforma: <c>slug.decatron.top</c> elige el tenant de ese slug.</summary>
+    public const string PlatformDomain = "decatron.top";
+
+    /// <summary>
+    /// El slug de un Host del tipo <c>slug.decatron.top</c> (una sola etiqueta, minúsculas y a-z0-9-), o null para cualquier otro Host:
+    /// el dominio raíz, <c>www</c>, otros dominios y subdominios anidados.
+    /// </summary>
+    public static string? SlugFromHost(string? host)
+    {
+        if (string.IsNullOrWhiteSpace(host)) return null;
+        var h = host.Trim().TrimEnd('.').ToLowerInvariant();
+        var suffix = "." + PlatformDomain;
+        if (!h.EndsWith(suffix, StringComparison.Ordinal)) return null;
+        var label = h[..^suffix.Length];
+        if (label.Length is < 1 or > 63 || label == "www") return null;
+        return label.All(c => c is >= 'a' and <= 'z' or >= '0' and <= '9' or '-') && label[0] != '-' && label[^1] != '-' ? label : null;
+    }
+
     public TenantResolution ByHost(string? host)
     {
-        // Fase 8 traerá subdominios por tenant; hoy ningún Host elige un tenant distinto.
-        return new(DefaultTenantId, false, TenantSource.Default);
+        var slug = SlugFromHost(host);
+        return slug is not null && _Get().BySlug.TryGetValue(slug, out var t)
+            ? new(t, true, TenantSource.Host)
+            : new(DefaultTenantId, false, TenantSource.Default);
     }
 
     private Snapshot _Get()
@@ -95,7 +115,19 @@ public sealed class TenantResolver : ITenantResolver
                 {
                     _log.LogWarning(ex, "tenant.resolver_guilds_failed");
                 }
-                _snap = new Snapshot(byUser, byExt, byLogin, byGuild);
+                var bySlug = new Dictionary<string, long>();
+                try
+                {
+                    // tenants no lleva RLS. Solo los activos y distintos del #1 (el #1 vive en decatron.net, no en un subdominio).
+                    foreach (var r in db.Database.SqlQueryRaw<SlugRow>(
+                        "select slug as \"Slug\", id as \"TenantId\" from tenants where status = 'active' and id <> 1").ToList())
+                        bySlug[r.Slug.ToLowerInvariant()] = r.TenantId;
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(ex, "tenant.resolver_slugs_failed");
+                }
+                _snap = new Snapshot(byUser, byExt, byLogin, byGuild, bySlug);
             }
             catch (Exception ex)
             {
@@ -109,9 +141,15 @@ public sealed class TenantResolver : ITenantResolver
 
     private sealed record Snapshot(
         Dictionary<long, long> ByUser, Dictionary<string, long> ByExternal, Dictionary<string, long> ByLogin,
-        Dictionary<string, long> ByGuild)
+        Dictionary<string, long> ByGuild, Dictionary<string, long> BySlug)
     {
-        public static readonly Snapshot Empty = new(new(), new(), new(), new());
+        public static readonly Snapshot Empty = new(new(), new(), new(), new(), new());
+    }
+
+    private sealed class SlugRow
+    {
+        public string Slug { get; set; } = "";
+        public long TenantId { get; set; }
     }
 
     private sealed class GuildRow

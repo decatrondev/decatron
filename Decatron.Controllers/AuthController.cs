@@ -66,6 +66,13 @@ namespace Decatron.Controllers
             _dbContext = dbContext;
         }
 
+        /// <summary>
+        /// Adonde vuelve el navegador tras el login. Para un tenant es SU subdominio (el callback llega ahi, asi la sesion queda guardada en ese Host);
+        /// para el #1, el sitio de siempre (FrontendUrl).
+        /// </summary>
+        private string Front => (Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1 && Request.Host.HasValue
+            ? $"https://{Request.Host.Value}" : _twitchSettings.FrontendUrl;
+
         [HttpGet("login")]
         public async Task<IActionResult> Login([FromQuery] string? redirect = null, [FromQuery] string? mod = null, [FromQuery] string? tenant = null, [FromQuery] string? bot = null, [FromQuery] string? k = null)
         {
@@ -73,10 +80,14 @@ namespace Decatron.Controllers
             {
                 // Plataforma (Fase 4, paso 5): ?tenant=<slug> inicia sesion con la app de Twitch de ese tenant. Slug desconocido = error, nunca cae al #1.
                 long? tenantId = null;
+                // En slug.decatron.top el tenant sale del Host (no hace falta ?tenant=): el login es siempre con la app de ESE tenant.
+                var hostCtx = HttpContext.RequestServices.GetService<Decatron.Core.Interfaces.ITenantContext>();
+                if (string.IsNullOrWhiteSpace(tenant) && hostCtx is { Source: Decatron.Core.Interfaces.TenantSource.Host, IsResolved: true } && hostCtx.TenantId != 1)
+                    tenantId = hostCtx.TenantId;
                 if (!string.IsNullOrWhiteSpace(tenant))
                 {
                     tenantId = await _tenantStore.FindActiveTenantIdAsync(tenant.Trim().ToLowerInvariant());
-                    if (tenantId is null) return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Unknown tenant")}");
+                    if (tenantId is null) return Redirect($"{Front}/login?error={Uri.EscapeDataString("Unknown tenant")}");
                 }
                 // bot=1: autorizar la CUENTA DE BOT del tenant. Solo con el enlace firmado que genera el dueño (k): sin el, cualquiera podria fijar el bot.
                 var isBot = bot is "1" or "true";
@@ -84,7 +95,7 @@ namespace Decatron.Controllers
                 {
                     var (okLink, linkWhat, linkTenant) = AuthService.ValidateOAuthStateWithTenant(k ?? "", _jwtSettings.SecretKey, maxAgeMinutes: 30);
                     if (tenantId is null || !okLink || linkWhat != "botlink" || linkTenant != tenantId)
-                        return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Invalid or expired link")}");
+                        return Redirect($"{Front}/login?error={Uri.EscapeDataString("Invalid or expired link")}");
                 }
                 // mod=1: además de los permisos de siempre, los de moderar el chat (Multi-view).
                 var loginUrl = _authService.GetLoginUrl(redirect, withModeration: mod is "1" or "true", tenantId: tenantId, bot: isBot);
@@ -94,7 +105,7 @@ namespace Decatron.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login");
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Error initiating login")}");
+                return Redirect($"{Front}/login?error={Uri.EscapeDataString("Error initiating login")}");
             }
         }
 
@@ -139,7 +150,7 @@ namespace Decatron.Controllers
         {
             var userId = ValidateTokenAndGetUserId(access_token);
             if (userId == null)
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error=Session+expired");
+                return Redirect($"{Front}/login?error=Session+expired");
 
             var loginUrl = _authService.GetLoginUrl($"link-twitch:{userId}");
             return Redirect(loginUrl);
@@ -190,13 +201,13 @@ namespace Decatron.Controllers
                 if (!string.IsNullOrEmpty(error))
                 {
                     _logger.LogWarning($"Authentication error: {error}");
-                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString(error)}");
+                    return Redirect($"{Front}/login?error={Uri.EscapeDataString(error)}");
                 }
 
                 if (string.IsNullOrEmpty(code))
                 {
                     _logger.LogWarning("Authorization code not received");
-                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error=Authorization+code+not+received");
+                    return Redirect($"{Front}/login?error=Authorization+code+not+received");
                 }
 
                 // Exchange code for token
@@ -253,7 +264,7 @@ namespace Decatron.Controllers
                 {
                     var discordUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == discordUserId);
                     if (discordUser == null)
-                        return Redirect($"{_twitchSettings.FrontendUrl}/settings?error=User+not+found");
+                        return Redirect($"{Front}/settings?error=User+not+found");
 
                     // Check if a Twitch user already exists with this TwitchId
                     var existingTwitch = await _dbContext.Users.FirstOrDefaultAsync(u => u.TwitchId == twitchUser.Id && u.Id != discordUserId);
@@ -357,7 +368,7 @@ namespace Decatron.Controllers
                         catch (Exception ex)
                         {
                             var innerMsg = ex.InnerException?.Message ?? ex.Message;
-                            return Redirect($"{_twitchSettings.FrontendUrl}/settings?error={Uri.EscapeDataString(innerMsg)}");
+                            return Redirect($"{Front}/settings?error={Uri.EscapeDataString(innerMsg)}");
                         }
 
                         finalUser = discordUser;
@@ -372,7 +383,7 @@ namespace Decatron.Controllers
                     var linkCode = Guid.NewGuid().ToString("N");
                     _memoryCache.Set($"auth_exchange:{linkCode}", linkJwt, TimeSpan.FromSeconds(60));
 
-                    return Redirect($"{_twitchSettings.FrontendUrl}/settings?linked=twitch&code={linkCode}");
+                    return Redirect($"{Front}/settings?linked=twitch&code={linkCode}");
                 }
 
                 // Normal login flow
@@ -380,13 +391,13 @@ namespace Decatron.Controllers
                 if (await _membership.BelongsElsewhereAsync(twitchUser.Id, TenantAmbient.Current ?? 1))
                 {
                     _logger.LogWarning("Login rechazado: {Login} pertenece a otro tenant (entro por el {Tenant})", twitchUser.Login, TenantAmbient.Current ?? 1);
-                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("account_other_tenant")}");
+                    return Redirect($"{Front}/login?error={Uri.EscapeDataString("account_other_tenant")}");
                 }
                 var channelQuota = await _membership.ChannelQuotaAsync(twitchUser.Id, TenantAmbient.Current ?? 1);
                 if (!channelQuota.IsAllowed)
                 {
                     _logger.LogWarning("Login rechazado: {Login} no cabe en el plan del tenant {Tenant} ({Used}/{Limit} canales, {Reason})", twitchUser.Login, TenantAmbient.Current ?? 1, channelQuota.Used, channelQuota.Limit, channelQuota.Reason);
-                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("channel_quota_reached")}");
+                    return Redirect($"{Front}/login?error={Uri.EscapeDataString("channel_quota_reached")}");
                 }
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 _logger.LogInformation("Authenticating user: {Login}", twitchUser.Login);
@@ -400,7 +411,7 @@ namespace Decatron.Controllers
                 {
                     var linkingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == accountLinkUserId);
                     if (linkingUser == null)
-                        return Redirect($"{_twitchSettings.FrontendUrl}/settings?error=link_user_not_found");
+                        return Redirect($"{Front}/settings?error=link_user_not_found");
 
                     if (linkingUser.AccountId == null)
                     {
@@ -425,7 +436,7 @@ namespace Decatron.Controllers
                         if (otherMembers > 0)
                         {
                             _logger.LogWarning("[Link Account] El Twitch {Login} ya pertenece a otra cuenta", user.Login);
-                            return Redirect($"{_twitchSettings.FrontendUrl}/settings?error=twitch_already_linked");
+                            return Redirect($"{Front}/settings?error=twitch_already_linked");
                         }
 
                         user.AccountId = linkingUser.AccountId;
@@ -527,7 +538,7 @@ namespace Decatron.Controllers
                 // como estaba, ej. Kick) — el vinculo ya quedo guardado arriba.
                 if (linkAccountUserId != null)
                 {
-                    return Redirect($"{_twitchSettings.FrontendUrl}/settings?linked=twitch-account");
+                    return Redirect($"{Front}/settings?linked=twitch-account");
                 }
 
                 // Validate HMAC-signed state and extract redirect
@@ -538,7 +549,7 @@ namespace Decatron.Controllers
                     if (!isValid)
                     {
                         _logger.LogWarning("Invalid or expired OAuth state parameter");
-                        return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Invalid or expired login session. Please try again.")}");
+                        return Redirect($"{Front}/login?error={Uri.EscapeDataString("Invalid or expired login session. Please try again.")}");
                     }
                     if (!string.IsNullOrEmpty(redirect) && !redirect.StartsWith("link-twitch:"))
                     {
@@ -556,13 +567,13 @@ namespace Decatron.Controllers
                 // Always redirect to /login for code exchange, with redirect param to navigate after
                 var redirectParam = redirectPath != "/dashboard" ? $"&redirect={Uri.EscapeDataString(redirectPath.TrimStart('/'))}" : "";
                 _logger.LogInformation("Redirecting to login with exchange code, then to {RedirectPath}", redirectPath);
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?code={exchangeCode}{redirectParam}");
+                return Redirect($"{Front}/login?code={exchangeCode}{redirectParam}");
             }
             catch (Exception ex)
             {
                 var fullError = ex.InnerException?.Message ?? ex.Message;
                 _logger.LogError(ex, "Error during authentication callback: {Error}", fullError);
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString(fullError)}");
+                return Redirect($"{Front}/login?error={Uri.EscapeDataString(fullError)}");
             }
         }
 
