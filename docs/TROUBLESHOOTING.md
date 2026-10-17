@@ -418,7 +418,7 @@ The backend does not create tables. If a feature fails with "relation ... does n
 sudo -u postgres psql -d decatron_prod -c "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
 ```
 
-Production has more than 240 tables. Load `Decatron.Data/Schema/baseline.sql` into an empty database and apply the scripts of `Decatron.Data/Migrations/` added after it (see [DEPLOYMENT.md](DEPLOYMENT.md#create-the-schema)).
+Production has more than 270 tables. Load `Decatron.Data/Schema/baseline.sql` into an empty database and apply the scripts of `Decatron.Data/Migrations/` added after it (see [DEPLOYMENT.md](DEPLOYMENT.md#create-the-schema)).
 
 **6. Tables with the wrong owner**
 

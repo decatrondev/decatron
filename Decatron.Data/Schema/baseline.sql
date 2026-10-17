@@ -7,12 +7,22 @@
 -- Use it to create an EMPTY database:
 --   createdb -O decatron_user decatron
 --   psql -U decatron_user -d decatron -f Decatron.Data/Schema/baseline.sql
+--   psql -U decatron_user -d decatron -f Decatron.Data/Migrations/Seed_Platform_Base.sql
 --
--- Tables created after this snapshot are added by the incremental scripts in
--- Decatron.Data/Migrations/. After loading the baseline, apply only the scripts
--- added to that folder after this file was generated (see git history).
+-- This snapshot already includes the multi-tenant platform (tenants, row-level security policies,
+-- app_tenant_id(), plans and entitlements, buyer sign-up and two-step verification tables).
+-- It does NOT contain data: Seed_Platform_Base.sql creates tenant #1 and the capability catalog,
+-- which every installation needs (users and channels reference tenant #1 by default).
 --
--- Snapshot date: 2026-10-10
+-- The scripts in Decatron.Data/Migrations/ dated on or before this snapshot are already part of it:
+-- do not apply them after loading the baseline. Scripts added to that folder after this file was
+-- generated are applied on top (see git history).
+--
+-- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
+-- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
+--
+-- Snapshot date: 2026-10-17
+--
 --
 -- PostgreSQL database dump
 --
@@ -37,6 +47,15 @@ SET row_security = off;
 --
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: app_tenant_id(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.app_tenant_id() RETURNS bigint
+    LANGUAGE sql STABLE PARALLEL SAFE
+    AS $$ SELECT NULLIF(current_setting('app.tenant_id', true), '')::bigint $$;
 
 
 --
@@ -99,7 +118,8 @@ CREATE TABLE public."__EFMigrationsHistory" (
 
 CREATE TABLE public.accounts (
     id bigint NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -123,6 +143,20 @@ ALTER SEQUENCE public.accounts_id_seq OWNED BY public.accounts.id;
 
 
 --
+-- Name: addon_prices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.addon_prices (
+    capability_key character varying(80) NOT NULL,
+    period_months smallint NOT NULL,
+    price_usd numeric(10,2) NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    CONSTRAINT addon_prices_period_months_check CHECK ((period_months = ANY (ARRAY[1, 3, 6, 9, 12]))),
+    CONSTRAINT addon_prices_price_usd_check CHECK ((price_usd >= (0)::numeric))
+);
+
+
+--
 -- Name: admin_mod_actions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -137,7 +171,8 @@ CREATE TABLE public.admin_mod_actions (
     error character varying(500),
     admin_user_id bigint NOT NULL,
     admin_login character varying(100) NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -178,7 +213,8 @@ CREATE TABLE public.ai_usage_logs (
     success boolean DEFAULT true NOT NULL,
     error_message character varying(300),
     used_at timestamp with time zone DEFAULT now() NOT NULL,
-    credits_charged bigint
+    credits_charged bigint,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -214,6 +250,7 @@ CREATE TABLE public.banned_words (
     detections integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_severity CHECK (((severity)::text = ANY (ARRAY[('leve'::character varying)::text, ('medio'::character varying)::text, ('severo'::character varying)::text])))
 );
 
@@ -253,6 +290,7 @@ CREATE TABLE public.billing_profiles (
     name_source character varying(10) DEFAULT 'manual'::character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_billing_country CHECK (((country)::text ~ '^[A-Z]{2}$'::text)),
     CONSTRAINT chk_billing_docnumber CHECK ((length(TRIM(BOTH FROM doc_number)) > 0)),
     CONSTRAINT chk_billing_name CHECK ((length(TRIM(BOTH FROM legal_name)) > 0)),
@@ -331,7 +369,8 @@ CREATE TABLE public.bot_tokens (
     token_expiration timestamp with time zone,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    is_active boolean NOT NULL
+    is_active boolean NOT NULL,
+    tenant_id bigint DEFAULT 1 NOT NULL
 );
 
 
@@ -391,6 +430,27 @@ CREATE TABLE public.brand_slots (
     slot_key character varying(60) NOT NULL,
     config jsonb DEFAULT '{}'::jsonb NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: capabilities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.capabilities (
+    key character varying(80) NOT NULL,
+    kind character varying(8) NOT NULL,
+    unit character varying(24),
+    group_key character varying(40) DEFAULT 'general'::character varying NOT NULL,
+    default_value numeric,
+    meter character varying(8) DEFAULT 'none'::character varying NOT NULL,
+    period character varying(8),
+    description text DEFAULT ''::text NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    sort integer DEFAULT 0 NOT NULL,
+    CONSTRAINT capabilities_kind_check CHECK (((kind)::text = ANY ((ARRAY['flag'::character varying, 'quota'::character varying, 'limit'::character varying])::text[]))),
+    CONSTRAINT capabilities_meter_check CHECK (((meter)::text = ANY ((ARRAY['gauge'::character varying, 'counter'::character varying, 'none'::character varying])::text[]))),
+    CONSTRAINT capabilities_period_check CHECK (((period)::text = ANY ((ARRAY['day'::character varying, 'month'::character varying])::text[])))
 );
 
 
@@ -584,6 +644,7 @@ CREATE TABLE public.channel_bot_entries (
     skip_speech boolean,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_channel_bot_category CHECK (((category IS NULL) OR ((category)::text = ANY ((ARRAY['competencia'::character varying, 'moderacion'::character varying, 'musica'::character varying, 'alertas'::character varying, 'utilidad'::character varying, 'propio'::character varying])::text[])))),
     CONSTRAINT chk_channel_bot_platform CHECK (((platform)::text = ANY ((ARRAY['twitch'::character varying, 'kick'::character varying, 'youtube'::character varying])::text[])))
 );
@@ -617,7 +678,8 @@ CREATE TABLE public.channel_emote_reports (
     emote_id bigint NOT NULL,
     reporter_user_id bigint NOT NULL,
     reason character varying(300),
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -651,6 +713,7 @@ CREATE TABLE public.channel_emote_settings (
     max_pending_per_user integer DEFAULT 5 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_channel_emote_mode CHECK (((upload_mode)::text = ANY ((ARRAY['owner'::character varying, 'staff'::character varying, 'approval'::character varying, 'list'::character varying])::text[]))),
     CONSTRAINT chk_channel_emote_pending CHECK (((max_pending_per_user >= 1) AND (max_pending_per_user <= 50)))
 );
@@ -685,6 +748,7 @@ CREATE TABLE public.channel_emote_uploaders (
     platform character varying(10) DEFAULT 'twitch'::character varying NOT NULL,
     login character varying(100) NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_channel_emote_uploader_platform CHECK (((platform)::text = ANY ((ARRAY['twitch'::character varying, 'kick'::character varying])::text[])))
 );
 
@@ -730,6 +794,7 @@ CREATE TABLE public.channel_emotes (
     reason character varying(300),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_channel_emote_status CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'hidden'::character varying, 'rejected'::character varying, 'removed'::character varying])::text[])))
 );
 
@@ -771,7 +836,8 @@ CREATE TABLE public.channel_followers (
     is_blocked integer DEFAULT 0 NOT NULL,
     was_blocked integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -795,6 +861,41 @@ ALTER SEQUENCE public.channel_followers_id_seq OWNED BY public.channel_followers
 
 
 --
+-- Name: channels; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.channels (
+    id bigint NOT NULL,
+    tenant_id bigint NOT NULL,
+    platform character varying(12) NOT NULL,
+    external_id character varying(64) NOT NULL,
+    user_id bigint NOT NULL,
+    login character varying(100) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT channels_platform_check CHECK (((platform)::text = ANY ((ARRAY['twitch'::character varying, 'kick'::character varying, 'discord'::character varying, 'youtube'::character varying, 'tiktok'::character varying])::text[])))
+);
+
+
+--
+-- Name: channels_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.channels_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: channels_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.channels_id_seq OWNED BY public.channels.id;
+
+
+--
 -- Name: chat_messages; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -805,7 +906,8 @@ CREATE TABLE public.chat_messages (
     user_id character varying(50) NOT NULL,
     message text NOT NULL,
     "timestamp" timestamp with time zone NOT NULL,
-    created_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -832,7 +934,8 @@ CREATE TABLE public.chat_overlay_configs (
     user_id bigint NOT NULL,
     config jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -853,6 +956,142 @@ CREATE SEQUENCE public.chat_overlay_configs_id_seq
 --
 
 ALTER SEQUENCE public.chat_overlay_configs_id_seq OWNED BY public.chat_overlay_configs.id;
+
+
+--
+-- Name: clip_command_blocks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clip_command_blocks (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    twitch_user_id character varying(50) NOT NULL,
+    twitch_login character varying(100) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: clip_command_blocks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.clip_command_blocks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: clip_command_blocks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.clip_command_blocks_id_seq OWNED BY public.clip_command_blocks.id;
+
+
+--
+-- Name: clip_command_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clip_command_configs (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    channel_name character varying(100) NOT NULL,
+    enabled boolean DEFAULT false NOT NULL,
+    min_role character varying(20) DEFAULT 'everyone'::character varying NOT NULL,
+    global_cooldown_seconds integer DEFAULT 30 NOT NULL,
+    user_cooldown_seconds integer DEFAULT 120 NOT NULL,
+    staff_skip_user_cooldown boolean DEFAULT true NOT NULL,
+    max_per_user_per_stream integer,
+    default_duration numeric(4,1) DEFAULT 30 NOT NULL,
+    min_duration numeric(4,1) DEFAULT 5 NOT NULL,
+    max_duration numeric(4,1) DEFAULT 60 NOT NULL,
+    allow_viewer_duration boolean DEFAULT true NOT NULL,
+    allow_title boolean DEFAULT true NOT NULL,
+    max_title_length integer DEFAULT 100 NOT NULL,
+    aliases character varying(300) DEFAULT ''::character varying NOT NULL,
+    unsupported_platform_mode character varying(10) DEFAULT 'message'::character varying NOT NULL,
+    download_enabled boolean DEFAULT false NOT NULL,
+    download_monthly_cap integer,
+    history_retention_days integer DEFAULT 90,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    language character varying(2) DEFAULT 'es'::character varying NOT NULL,
+    messages jsonb DEFAULT '{}'::jsonb NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    CONSTRAINT chk_clip_cmd_caps CHECK ((((max_per_user_per_stream IS NULL) OR (max_per_user_per_stream > 0)) AND ((download_monthly_cap IS NULL) OR (download_monthly_cap > 0)) AND ((history_retention_days IS NULL) OR (history_retention_days > 0)))),
+    CONSTRAINT chk_clip_cmd_cooldowns CHECK (((global_cooldown_seconds >= 0) AND (user_cooldown_seconds >= 0))),
+    CONSTRAINT chk_clip_cmd_durations CHECK (((min_duration >= (5)::numeric) AND (max_duration <= (60)::numeric) AND (min_duration <= max_duration) AND ((default_duration >= min_duration) AND (default_duration <= max_duration)))),
+    CONSTRAINT chk_clip_cmd_language CHECK (((language)::text = ANY ((ARRAY['es'::character varying, 'en'::character varying])::text[]))),
+    CONSTRAINT chk_clip_cmd_min_role CHECK (((min_role)::text = ANY ((ARRAY['everyone'::character varying, 'follower'::character varying, 'subscriber'::character varying, 'vip'::character varying, 'moderator'::character varying, 'lead_moderator'::character varying, 'broadcaster'::character varying])::text[]))),
+    CONSTRAINT chk_clip_cmd_title_length CHECK (((max_title_length >= 1) AND (max_title_length <= 100))),
+    CONSTRAINT chk_clip_cmd_unsupported CHECK (((unsupported_platform_mode)::text = ANY ((ARRAY['message'::character varying, 'silent'::character varying])::text[])))
+);
+
+
+--
+-- Name: clip_command_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.clip_command_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: clip_command_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.clip_command_configs_id_seq OWNED BY public.clip_command_configs.id;
+
+
+--
+-- Name: clip_command_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.clip_command_history (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    channel_name character varying(100) NOT NULL,
+    status character varying(10) NOT NULL,
+    clip_id character varying(150),
+    clip_url character varying(300),
+    error_code character varying(40),
+    title character varying(200),
+    duration_seconds numeric(4,1),
+    requested_by_id character varying(50) NOT NULL,
+    requested_by_login character varying(100) NOT NULL,
+    requested_by_role character varying(20) DEFAULT 'everyone'::character varying NOT NULL,
+    downloaded boolean DEFAULT false NOT NULL,
+    local_path character varying(500),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    CONSTRAINT chk_clip_cmd_history_status CHECK (((status)::text = ANY ((ARRAY['created'::character varying, 'failed'::character varying])::text[])))
+);
+
+
+--
+-- Name: clip_command_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.clip_command_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: clip_command_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.clip_command_history_id_seq OWNED BY public.clip_command_history.id;
 
 
 --
@@ -909,7 +1148,8 @@ CREATE TABLE public.coin_discount_uses (
     user_id bigint NOT NULL,
     purchase_id bigint,
     discount_applied numeric(10,2) DEFAULT 0 NOT NULL,
-    used_at timestamp without time zone DEFAULT now() NOT NULL
+    used_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -946,6 +1186,7 @@ CREATE TABLE public.coin_flags (
     resolved_by bigint,
     resolved_at timestamp without time zone,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_flag_status CHECK ((status = ANY (ARRAY['pending'::text, 'resolved_ok'::text, 'resolved_banned'::text]))),
     CONSTRAINT chk_flag_type CHECK ((flag_type = ANY (ARRAY['rapid_transfers'::text, 'high_balance_transfer_new_account'::text, 'coupon_then_transfer'::text, 'multi_account_ip'::text])))
 );
@@ -1027,6 +1268,7 @@ CREATE TABLE public.coin_pending_orders (
     status text DEFAULT 'pending'::text NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     custom_coins integer,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_pending_status CHECK ((status = ANY (ARRAY['pending'::text, 'completed'::text, 'expired'::text])))
 );
 
@@ -1085,7 +1327,8 @@ CREATE TABLE public.coin_purchases (
     invoice_error text,
     invoice_attempts integer DEFAULT 0 NOT NULL,
     invoice_last_attempt_at timestamp without time zone,
-    is_test boolean DEFAULT false NOT NULL
+    is_test boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1122,6 +1365,7 @@ CREATE TABLE public.coin_referrals (
     status text DEFAULT 'pending'::text NOT NULL,
     completed_at timestamp without time zone,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_referral_status CHECK ((status = ANY (ARRAY['pending'::text, 'completed'::text, 'rejected'::text])))
 );
 
@@ -1201,6 +1445,7 @@ CREATE TABLE public.coin_transactions (
     description text,
     related_user_id bigint,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_transaction_type CHECK ((type = ANY (ARRAY['purchase'::text, 'admin_gift'::text, 'admin_remove'::text, 'transfer_in'::text, 'transfer_out'::text, 'marketplace_buy'::text, 'referral_bonus'::text, 'coupon_bonus'::text, 'gacha_purchase'::text, 'tcg_sobre_purchase'::text, 'tcg_upgrade_payment'::text, 'wheel_credits'::text])))
 );
 
@@ -1234,7 +1479,8 @@ CREATE TABLE public.coin_transfers (
     to_user_id bigint NOT NULL,
     amount integer NOT NULL,
     message text,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1269,7 +1515,8 @@ CREATE TABLE public.command_counters (
     last_modified_by character varying(100),
     last_modified_at timestamp with time zone NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1297,7 +1544,8 @@ CREATE TABLE public.command_settings (
     command_name character varying(100) NOT NULL,
     is_enabled boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1326,7 +1574,8 @@ CREATE TABLE public.command_uses (
     use_count integer DEFAULT 0 NOT NULL,
     last_used_at timestamp with time zone NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1342,6 +1591,41 @@ ALTER TABLE public.command_uses ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDEN
     NO MAXVALUE
     CACHE 1
 );
+
+
+--
+-- Name: credential_access_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.credential_access_log (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    provider character varying(40) NOT NULL,
+    kind character varying(40),
+    action character varying(16) NOT NULL,
+    actor character varying(100),
+    purpose character varying(100),
+    at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: credential_access_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.credential_access_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: credential_access_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.credential_access_log_id_seq OWNED BY public.credential_access_log.id;
 
 
 --
@@ -1411,7 +1695,8 @@ CREATE TABLE public.credit_purchases (
     invoice_error text,
     invoice_attempts integer DEFAULT 0 NOT NULL,
     invoice_last_attempt_at timestamp without time zone,
-    created_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL
+    created_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1466,7 +1751,8 @@ CREATE TABLE public.custom_commands (
     updated_at timestamp with time zone NOT NULL,
     is_scripted boolean DEFAULT false NOT NULL,
     script_content text,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1501,7 +1787,8 @@ CREATE TABLE public.decatron_ai_channel_config (
     custom_system_prompt text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1536,7 +1823,8 @@ CREATE TABLE public.decatron_ai_channel_permissions (
     notes text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1620,7 +1908,8 @@ CREATE TABLE public.decatron_ai_usage (
     success boolean DEFAULT true NOT NULL,
     error_message text,
     used_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1694,7 +1983,8 @@ CREATE TABLE public.decatron_chat_conversations (
     title character varying(200) DEFAULT 'Nueva conversación'::character varying NOT NULL,
     message_count integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1711,6 +2001,7 @@ CREATE TABLE public.decatron_chat_messages (
     tokens_used integer DEFAULT 0 NOT NULL,
     response_time_ms integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT decatron_chat_messages_role_check CHECK (((role)::text = ANY (ARRAY[('user'::character varying)::text, ('assistant'::character varying)::text])))
 );
 
@@ -1747,7 +2038,8 @@ CREATE TABLE public.decatron_chat_permissions (
     granted_by bigint NOT NULL,
     notes text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1819,7 +2111,8 @@ CREATE TABLE public.desktop_devices (
     last_seen_at timestamp with time zone,
     revoked_at timestamp with time zone,
     app_version character varying(30),
-    platform character varying(20)
+    platform character varying(20),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1842,7 +2135,8 @@ CREATE TABLE public.discord_alert_messages (
     stream_started_at timestamp without time zone,
     sent_at timestamp without time zone DEFAULT now() NOT NULL,
     last_updated_at timestamp without time zone,
-    is_active boolean DEFAULT true NOT NULL
+    is_active boolean DEFAULT true NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1881,7 +2175,8 @@ CREATE TABLE public.discord_guild_configs (
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    is_default boolean DEFAULT false NOT NULL
+    is_default boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1930,7 +2225,8 @@ CREATE TABLE public.discord_live_alerts (
     send_mode character varying(20) DEFAULT 'wait'::character varying NOT NULL,
     delay_minutes integer DEFAULT 2 NOT NULL,
     update_interval_minutes integer DEFAULT 10 NOT NULL,
-    on_offline_action character varying(20) DEFAULT 'summary'::character varying NOT NULL
+    on_offline_action character varying(20) DEFAULT 'summary'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -1951,6 +2247,40 @@ CREATE SEQUENCE public.discord_live_alerts_id_seq
 --
 
 ALTER SEQUENCE public.discord_live_alerts_id_seq OWNED BY public.discord_live_alerts.id;
+
+
+--
+-- Name: discord_template_bindings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.discord_template_bindings (
+    id bigint NOT NULL,
+    guild_id character varying(32) NOT NULL,
+    template_key character varying(100) NOT NULL,
+    object_key character varying(200) NOT NULL,
+    discord_id character varying(32) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: discord_template_bindings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.discord_template_bindings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: discord_template_bindings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.discord_template_bindings_id_seq OWNED BY public.discord_template_bindings.id;
 
 
 --
@@ -1983,7 +2313,8 @@ CREATE TABLE public.discord_welcome_configs (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     editor_layout text,
     welcome_generated_image text,
-    goodbye_generated_image text
+    goodbye_generated_image text,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2151,6 +2482,41 @@ ALTER SEQUENCE public.email_templates_id_seq OWNED BY public.email_templates.id;
 
 
 --
+-- Name: entitlement_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.entitlement_events (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    capability_key character varying(80) NOT NULL,
+    kind character varying(10) NOT NULL,
+    used bigint,
+    "limit" numeric,
+    at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT entitlement_events_kind_check CHECK (((kind)::text = ANY ((ARRAY['warn80'::character varying, 'blocked'::character varying, 'failopen'::character varying])::text[])))
+);
+
+
+--
+-- Name: entitlement_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.entitlement_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: entitlement_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.entitlement_events_id_seq OWNED BY public.entitlement_events.id;
+
+
+--
 -- Name: event_alerts_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2161,7 +2527,8 @@ CREATE TABLE public.event_alerts_configs (
     config_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     is_enabled boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2253,7 +2620,8 @@ CREATE TABLE public.follow_alert_configs (
     message character varying(500) DEFAULT '¡Gracias @{username} por el follow! ❤️'::character varying,
     cooldown_minutes integer DEFAULT 60,
     created_at timestamp without time zone DEFAULT now(),
-    updated_at timestamp without time zone DEFAULT now()
+    updated_at timestamp without time zone DEFAULT now(),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2287,7 +2655,8 @@ CREATE TABLE public.follow_alert_history (
     followed_at timestamp without time zone DEFAULT now(),
     message_sent boolean DEFAULT true,
     created_at timestamp without time zone DEFAULT now(),
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2320,7 +2689,8 @@ CREATE TABLE public.follower_history (
     user_id character varying(50) NOT NULL,
     action integer NOT NULL,
     action_timestamp timestamp without time zone DEFAULT now() NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2400,7 +2770,8 @@ CREATE TABLE public.gacha_achievements (
     condition_param character varying(50),
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint
+    user_id bigint,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2435,7 +2806,8 @@ CREATE TABLE public.gacha_banners (
     is_active boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2469,7 +2841,8 @@ CREATE TABLE public.gacha_command_aliases (
     alias character varying(50) NOT NULL,
     target_command character varying(50) NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2509,6 +2882,7 @@ CREATE TABLE public.gacha_command_configs (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_cmd_permission CHECK (((permission)::text = ANY ((ARRAY['everyone'::character varying, 'subscriber'::character varying, 'vip'::character varying, 'moderator'::character varying, 'broadcaster'::character varying])::text[])))
 );
 
@@ -2561,7 +2935,8 @@ CREATE TABLE public.gacha_integration_configs (
     multi_pull_delay integer DEFAULT 10 NOT NULL,
     user_id bigint NOT NULL,
     chat_notify_enabled boolean DEFAULT true NOT NULL,
-    bonus_expire_on_stream_end boolean DEFAULT false NOT NULL
+    bonus_expire_on_stream_end boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2598,7 +2973,8 @@ CREATE TABLE public.gacha_inventory (
     is_redeemed boolean DEFAULT false NOT NULL,
     last_won_at timestamp without time zone DEFAULT now() NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2645,6 +3021,7 @@ CREATE TABLE public.gacha_item_restrictions (
     cumulative_probability numeric(5,2) DEFAULT NULL::numeric,
     milestone_priority integer DEFAULT 0 NOT NULL,
     user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_allowed_pull_types CHECK (((allowed_pull_types)::text = ANY ((ARRAY['all'::character varying, 'donation_only'::character varying, 'coins_only'::character varying])::text[])))
 );
 
@@ -2686,6 +3063,7 @@ CREATE TABLE public.gacha_items (
     effect_type character varying(30) DEFAULT 'none'::character varying NOT NULL,
     effect_value integer DEFAULT 0 NOT NULL,
     consumable boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_gacha_item_effect_type CHECK (((effect_type)::text = ANY ((ARRAY['none'::character varying, 'roll_again'::character varying, 'extra_pulls'::character varying, 'timer_time'::character varying])::text[])))
 );
 
@@ -2724,7 +3102,8 @@ CREATE TABLE public.gacha_linked_accounts (
     is_active boolean NOT NULL,
     last_used_at timestamp with time zone,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2757,7 +3136,8 @@ CREATE TABLE public.gacha_overlay_configs (
     enable_sounds boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2803,7 +3183,8 @@ CREATE TABLE public.gacha_participants (
     milestone_won_items jsonb DEFAULT '[]'::jsonb NOT NULL,
     user_id bigint NOT NULL,
     bonus_pulls_available integer DEFAULT 0 NOT NULL,
-    forced_item_id integer
+    forced_item_id integer,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2841,7 +3222,8 @@ CREATE TABLE public.gacha_preferences (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     coin_probability_override numeric(5,2) DEFAULT NULL::numeric,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2879,6 +3261,7 @@ CREATE TABLE public.gacha_pull_logs (
     occurred_at timestamp without time zone DEFAULT now() NOT NULL,
     pull_type character varying(10) DEFAULT 'donation'::character varying NOT NULL,
     user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_pull_type CHECK (((pull_type)::text = ANY ((ARRAY['donation'::character varying, 'coins'::character varying, 'bonus'::character varying])::text[])))
 );
 
@@ -2914,7 +3297,8 @@ CREATE TABLE public.gacha_rarity_configs (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     coin_probability numeric(5,2) DEFAULT NULL::numeric,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2957,7 +3341,8 @@ CREATE TABLE public.gacha_rarity_restrictions (
     coin_pull_interval integer,
     coin_time_interval integer,
     coin_time_unit character varying(10) DEFAULT NULL::character varying,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -2990,7 +3375,8 @@ CREATE TABLE public.gacha_showcases (
     participant_id integer NOT NULL,
     item_id integer NOT NULL,
     "position" integer DEFAULT 0 NOT NULL,
-    added_at timestamp without time zone DEFAULT now() NOT NULL
+    added_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3026,7 +3412,8 @@ CREATE TABLE public.gacha_sound_configs (
     sounds_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3058,7 +3445,8 @@ CREATE TABLE public.gacha_user_achievements (
     id integer NOT NULL,
     participant_id integer NOT NULL,
     achievement_id integer NOT NULL,
-    unlocked_at timestamp without time zone DEFAULT now() NOT NULL
+    unlocked_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3095,7 +3483,8 @@ CREATE TABLE public.gacha_viewer_settings (
     collections_public boolean DEFAULT true NOT NULL,
     private_channels jsonb DEFAULT '[]'::jsonb NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3127,7 +3516,8 @@ CREATE TABLE public.gacha_wishlists (
     id integer NOT NULL,
     participant_id integer NOT NULL,
     item_id integer NOT NULL,
-    added_at timestamp without time zone DEFAULT now() NOT NULL
+    added_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3256,7 +3646,8 @@ CREATE TABLE public.game_history (
     category_name character varying(500) NOT NULL,
     changed_by character varying(100) NOT NULL,
     changed_at timestamp with time zone NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3290,7 +3681,8 @@ CREATE TABLE public.game_overlay_configs (
     canvas jsonb DEFAULT '{"width": 1920, "height": 1080}'::jsonb NOT NULL,
     games_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3381,7 +3773,8 @@ CREATE TABLE public.game_session_snapshots (
     losses integer DEFAULT 0 NOT NULL,
     matches_json jsonb DEFAULT '[]'::jsonb NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    points_history_json jsonb DEFAULT '[]'::jsonb NOT NULL
+    points_history_json jsonb DEFAULT '[]'::jsonb NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3415,7 +3808,8 @@ CREATE TABLE public.giveaway_blacklist (
     username character varying(255) NOT NULL,
     reason text,
     added_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    added_by character varying(255)
+    added_by character varying(255),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3474,7 +3868,8 @@ CREATE TABLE public.giveaway_configs (
     winner_response_timeout integer DEFAULT 60 NOT NULL,
     auto_reroll_on_timeout boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3522,7 +3917,8 @@ CREATE TABLE public.giveaway_participants (
     entered_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     entry_count integer DEFAULT 1 NOT NULL,
     calculated_weight numeric(10,4) DEFAULT 1.0 NOT NULL,
-    ip_hash character varying(64)
+    ip_hash character varying(64),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3566,7 +3962,8 @@ CREATE TABLE public.giveaway_sessions (
     total_weight numeric(15,4) DEFAULT 0 NOT NULL,
     cancel_reason text,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3602,7 +3999,8 @@ CREATE TABLE public.giveaway_winner_cooldowns (
     won_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     cooldown_until timestamp without time zone NOT NULL,
     session_id integer,
-    prize_name character varying(500)
+    prize_name character varying(500),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3644,7 +4042,8 @@ CREATE TABLE public.giveaway_winners (
     disqualified_at timestamp without time zone,
     response_message character varying(500),
     timeout_processed boolean DEFAULT false NOT NULL,
-    promoted_at timestamp with time zone
+    promoted_at timestamp with time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3744,6 +4143,7 @@ CREATE TABLE public.global_emote_requests (
     resolved_by character varying(100),
     resolved_at timestamp without time zone,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_global_emote_request_status CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'rejected'::character varying])::text[])))
 );
 
@@ -3787,6 +4187,7 @@ CREATE TABLE public.global_emotes (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     removed_at timestamp without time zone,
     removed_by character varying(100),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_global_emote_status CHECK (((status)::text = ANY ((ARRAY['approved'::character varying, 'hidden'::character varying, 'removed'::character varying])::text[])))
 );
 
@@ -3826,6 +4227,20 @@ CREATE TABLE public.invoicing_settings (
 
 
 --
+-- Name: kick_category_cache; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.kick_category_cache (
+    category_id bigint NOT NULL,
+    name character varying(255) NOT NULL,
+    thumbnail character varying(500),
+    usage_count integer DEFAULT 0 NOT NULL,
+    last_updated timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: linked_game_accounts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3847,7 +4262,8 @@ CREATE TABLE public.linked_game_accounts (
     sort_order integer DEFAULT 0 NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3883,7 +4299,8 @@ CREATE TABLE public.live_overlay_configs (
     canvas jsonb DEFAULT '{"width": 1920, "height": 1080}'::jsonb NOT NULL,
     config_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3904,6 +4321,50 @@ CREATE SEQUENCE public.live_overlay_configs_id_seq
 --
 
 ALTER SEQUENCE public.live_overlay_configs_id_seq OWNED BY public.live_overlay_configs.id;
+
+
+--
+-- Name: live_translation_access; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.live_translation_access (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    mode character varying(20) DEFAULT 'everyone'::character varying NOT NULL,
+    min_follow_days integer DEFAULT 7 NOT NULL,
+    min_sub_tier integer DEFAULT 1 NOT NULL,
+    allow_list text DEFAULT ''::text NOT NULL,
+    block_list text DEFAULT ''::text NOT NULL,
+    max_listeners_total integer,
+    max_listeners_per_language integer,
+    max_active_languages integer DEFAULT 2 NOT NULL,
+    max_connections_per_ip integer DEFAULT 3 NOT NULL,
+    max_connections_per_user integer DEFAULT 2 NOT NULL,
+    credit_budget_per_session bigint,
+    paused boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: live_translation_access_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.live_translation_access_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: live_translation_access_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.live_translation_access_id_seq OWNED BY public.live_translation_access.id;
 
 
 --
@@ -3940,7 +4401,8 @@ CREATE TABLE public.live_translation_sessions (
     chars_by_language_json text DEFAULT '{}'::text NOT NULL,
     peak_listeners integer DEFAULT 0 NOT NULL,
     credits_used bigint DEFAULT 0 NOT NULL,
-    end_reason character varying(30)
+    end_reason character varying(30),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -3979,7 +4441,9 @@ CREATE TABLE public.live_translation_settings (
     announce_message character varying(400),
     background_volume integer DEFAULT 15 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    record_phrases boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4033,7 +4497,8 @@ CREATE TABLE public.lol_coach_settings (
     chat_kinds character varying(60) DEFAULT 'final,postgame'::character varying NOT NULL,
     voice_engine character varying(20) DEFAULT 'standard'::character varying NOT NULL,
     last_briefing_at timestamp with time zone,
-    coach_memory text DEFAULT ''::text NOT NULL
+    coach_memory text DEFAULT ''::text NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4067,7 +4532,8 @@ CREATE TABLE public.lol_prediction_bets (
     side character varying(5) NOT NULL,
     amount integer NOT NULL,
     payout bigint DEFAULT 0 NOT NULL,
-    placed_at timestamp with time zone DEFAULT now() NOT NULL
+    placed_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4101,7 +4567,8 @@ CREATE TABLE public.lol_prediction_points (
     points bigint DEFAULT 0 NOT NULL,
     correct integer DEFAULT 0 NOT NULL,
     total integer DEFAULT 0 NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4138,7 +4605,8 @@ CREATE TABLE public.lol_predictions (
     resolved_at timestamp with time zone,
     result character varying(10),
     pool_win bigint DEFAULT 0 NOT NULL,
-    pool_loss bigint DEFAULT 0 NOT NULL
+    pool_loss bigint DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4173,7 +4641,8 @@ CREATE TABLE public.micro_game_commands (
     created_by character varying(100) NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4201,7 +4670,8 @@ CREATE TABLE public.moderation_command_configs (
     channel_name character varying(100) NOT NULL,
     settings jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4248,6 +4718,7 @@ CREATE TABLE public.moderation_configs (
     timeout_message character varying(500) DEFAULT '⏱️ $(user), timeout aplicado por lenguaje inapropiado. Strike $(strike)/5'::character varying,
     ban_message character varying(500) DEFAULT '🔨 $(user), has sido baneado por lenguaje inapropiado. Strike $(strike)/5'::character varying,
     severo_message character varying(500) DEFAULT '🔨 $(user), has sido baneado por usar: $(word)'::character varying,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_strike_actions CHECK ((((strike1_action)::text = ANY (ARRAY[('warning'::character varying)::text, ('delete'::character varying)::text, ('timeout_30s'::character varying)::text, ('timeout_1m'::character varying)::text, ('timeout_5m'::character varying)::text, ('timeout_10m'::character varying)::text, ('timeout_30m'::character varying)::text, ('timeout_1h'::character varying)::text, ('ban'::character varying)::text])) AND ((strike2_action)::text = ANY (ARRAY[('warning'::character varying)::text, ('delete'::character varying)::text, ('timeout_30s'::character varying)::text, ('timeout_1m'::character varying)::text, ('timeout_5m'::character varying)::text, ('timeout_10m'::character varying)::text, ('timeout_30m'::character varying)::text, ('timeout_1h'::character varying)::text, ('ban'::character varying)::text])) AND ((strike3_action)::text = ANY (ARRAY[('warning'::character varying)::text, ('delete'::character varying)::text, ('timeout_30s'::character varying)::text, ('timeout_1m'::character varying)::text, ('timeout_5m'::character varying)::text, ('timeout_10m'::character varying)::text, ('timeout_30m'::character varying)::text, ('timeout_1h'::character varying)::text, ('ban'::character varying)::text])) AND ((strike4_action)::text = ANY (ARRAY[('warning'::character varying)::text, ('delete'::character varying)::text, ('timeout_30s'::character varying)::text, ('timeout_1m'::character varying)::text, ('timeout_5m'::character varying)::text, ('timeout_10m'::character varying)::text, ('timeout_30m'::character varying)::text, ('timeout_1h'::character varying)::text, ('ban'::character varying)::text])) AND ((strike5_action)::text = ANY (ARRAY[('warning'::character varying)::text, ('delete'::character varying)::text, ('timeout_30s'::character varying)::text, ('timeout_1m'::character varying)::text, ('timeout_5m'::character varying)::text, ('timeout_10m'::character varying)::text, ('timeout_30m'::character varying)::text, ('timeout_1h'::character varying)::text, ('ban'::character varying)::text])))),
     CONSTRAINT chk_strike_expiration CHECK (((strike_expiration)::text = ANY (ARRAY[('5min'::character varying)::text, ('10min'::character varying)::text, ('15min'::character varying)::text, ('30min'::character varying)::text, ('1hour'::character varying)::text, ('never'::character varying)::text]))),
     CONSTRAINT chk_sub_immunity CHECK (((sub_immunity)::text = ANY (ARRAY[('total'::character varying)::text, ('escalamiento'::character varying)::text]))),
@@ -4289,6 +4760,7 @@ CREATE TABLE public.moderation_filters (
     message character varying(500),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_moderation_filter_severity CHECK (((severity)::text = ANY ((ARRAY['leve'::character varying, 'medio'::character varying, 'severo'::character varying])::text[])))
 );
 
@@ -4332,6 +4804,7 @@ CREATE TABLE public.moderation_logs (
     undone_at timestamp without time zone,
     undone_by character varying(100),
     target_user_id character varying(50),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_log_severity CHECK (((severity)::text = ANY ((ARRAY['leve'::character varying, 'medio'::character varying, 'severo'::character varying, 'comando'::character varying])::text[])))
 );
 
@@ -4370,8 +4843,44 @@ CREATE TABLE public.moderation_panic (
     reason character varying(200),
     previous_chat_settings jsonb,
     shield_applied boolean DEFAULT false NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
+
+
+--
+-- Name: multiview_layouts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.multiview_layouts (
+    id bigint NOT NULL,
+    owner_user_id bigint NOT NULL,
+    name character varying(60) NOT NULL,
+    slots character varying(600) NOT NULL,
+    layout character varying(10) DEFAULT 'grid'::character varying NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: multiview_layouts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.multiview_layouts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: multiview_layouts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.multiview_layouts_id_seq OWNED BY public.multiview_layouts.id;
 
 
 --
@@ -4397,7 +4906,8 @@ CREATE TABLE public.now_playing_configs (
     spotify_slot_email character varying(255),
     spotify_slot_requested boolean DEFAULT false NOT NULL,
     spotify_is_premium boolean DEFAULT false NOT NULL,
-    spotify_slot_requested_at timestamp with time zone
+    spotify_slot_requested_at timestamp with time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4437,7 +4947,8 @@ CREATE TABLE public.oauth_access_tokens (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     ip_address character varying(45),
     user_agent character varying(500),
-    was_pkce_used boolean DEFAULT false NOT NULL
+    was_pkce_used boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4459,7 +4970,8 @@ CREATE TABLE public.oauth_applications (
     is_active boolean DEFAULT true NOT NULL,
     is_verified boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4500,7 +5012,8 @@ CREATE TABLE public.oauth_authorization_codes (
     state character varying(128),
     expires_at timestamp without time zone NOT NULL,
     used boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4515,7 +5028,8 @@ CREATE TABLE public.oauth_refresh_tokens (
     expires_at timestamp without time zone NOT NULL,
     revoked boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    used_at timestamp without time zone
+    used_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4529,7 +5043,8 @@ CREATE TABLE public.pet_configs (
     is_enabled boolean DEFAULT true NOT NULL,
     config_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4559,8 +5074,174 @@ ALTER SEQUENCE public.pet_configs_id_seq OWNED BY public.pet_configs.id;
 CREATE TABLE public.pet_seen_chatters (
     channel_user_id bigint NOT NULL,
     chatter_login character varying(100) NOT NULL,
-    first_seen_at timestamp with time zone DEFAULT now() NOT NULL
+    first_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
+
+
+--
+-- Name: plan_entitlements; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.plan_entitlements (
+    plan_id bigint NOT NULL,
+    capability_key character varying(80) NOT NULL,
+    value numeric
+);
+
+
+--
+-- Name: plan_prices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.plan_prices (
+    plan_id bigint NOT NULL,
+    period_months smallint NOT NULL,
+    price_usd numeric(10,2) NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    CONSTRAINT plan_prices_period_months_check CHECK ((period_months = ANY (ARRAY[1, 3, 6, 9, 12]))),
+    CONSTRAINT plan_prices_price_usd_check CHECK ((price_usd >= (0)::numeric))
+);
+
+
+--
+-- Name: plans; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.plans (
+    id bigint NOT NULL,
+    key character varying(40) NOT NULL,
+    name character varying(80) NOT NULL,
+    sort integer DEFAULT 0 NOT NULL,
+    is_public boolean DEFAULT false NOT NULL,
+    is_internal boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: plans_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.plans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: plans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.plans_id_seq OWNED BY public.plans.id;
+
+
+--
+-- Name: platform_signups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platform_signups (
+    id bigint NOT NULL,
+    email character varying(254) NOT NULL,
+    slug character varying(30) NOT NULL,
+    project_name character varying(80) NOT NULL,
+    locale character varying(5) DEFAULT 'es'::character varying NOT NULL,
+    token_hash character varying(64) NOT NULL,
+    ip_hash character varying(64) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    used_at timestamp with time zone,
+    tenant_id bigint,
+    purpose character varying(10) DEFAULT 'signup'::character varying NOT NULL,
+    user_id bigint
+);
+
+
+--
+-- Name: platform_signups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.platform_signups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: platform_signups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.platform_signups_id_seq OWNED BY public.platform_signups.id;
+
+
+--
+-- Name: platform_waitlist; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platform_waitlist (
+    id bigint NOT NULL,
+    email character varying(254) NOT NULL,
+    use_case character varying(24) DEFAULT 'other'::character varying NOT NULL,
+    platform character varying(12) DEFAULT ''::character varying NOT NULL,
+    locale character varying(5) DEFAULT 'es'::character varying NOT NULL,
+    confirm_token_hash character varying(64) DEFAULT ''::character varying NOT NULL,
+    confirmed_at timestamp with time zone,
+    last_email_at timestamp with time zone,
+    ip_hash character varying(64) DEFAULT ''::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: platform_waitlist_emails; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platform_waitlist_emails (
+    id bigint NOT NULL,
+    sent_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: platform_waitlist_emails_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.platform_waitlist_emails_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: platform_waitlist_emails_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.platform_waitlist_emails_id_seq OWNED BY public.platform_waitlist_emails.id;
+
+
+--
+-- Name: platform_waitlist_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.platform_waitlist_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: platform_waitlist_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.platform_waitlist_id_seq OWNED BY public.platform_waitlist.id;
 
 
 --
@@ -4585,6 +5266,7 @@ CREATE TABLE public.player_card_instances (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     upgrade_used boolean DEFAULT false NOT NULL,
     attempt_started_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_pci_level CHECK (((level >= 0) AND (level <= 10))),
     CONSTRAINT chk_pci_origin CHECK (((origin)::text = ANY ((ARRAY['claimed'::character varying, 'pulled'::character varying, 'free_pack'::character varying])::text[]))),
     CONSTRAINT chk_pci_pending_level CHECK (((pending_target_level IS NULL) OR ((pending_target_level >= 0) AND (pending_target_level <= 10)))),
@@ -4622,6 +5304,7 @@ CREATE TABLE public.player_pack_inventory (
     purchased_at timestamp without time zone DEFAULT now() NOT NULL,
     price_paid integer NOT NULL,
     is_free boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_ppi_price CHECK ((price_paid >= 0))
 );
 
@@ -4652,7 +5335,8 @@ ALTER SEQUENCE public.player_pack_inventory_id_seq OWNED BY public.player_pack_i
 CREATE TABLE public.player_pity_counter (
     owner_account_id bigint NOT NULL,
     cards_since_last_sr_plus integer DEFAULT 0 NOT NULL,
-    last_reset_at timestamp without time zone
+    last_reset_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4668,7 +5352,8 @@ CREATE TABLE public.public_command_overrides (
     hidden boolean DEFAULT false NOT NULL,
     public_description text,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4707,6 +5392,7 @@ CREATE TABLE public.raffle_participants (
     joined_at timestamp without time zone DEFAULT now() NOT NULL,
     is_disqualified boolean DEFAULT false NOT NULL,
     disqualification_reason character varying(255),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT raffle_participants_entry_method_check CHECK (((entry_method)::text = ANY (ARRAY[('command'::character varying)::text, ('automatic'::character varying)::text, ('bits'::character varying)::text, ('subscription'::character varying)::text, ('channelpoints'::character varying)::text, ('watchtime'::character varying)::text])))
 );
 
@@ -4745,7 +5431,8 @@ CREATE TABLE public.raffle_winners (
     has_confirmed boolean DEFAULT false NOT NULL,
     confirmed_at timestamp without time zone,
     was_rerolled boolean DEFAULT false NOT NULL,
-    reroll_reason character varying(255)
+    reroll_reason character varying(255),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4789,6 +5476,7 @@ CREATE TABLE public.raffles (
     total_participants integer DEFAULT 0 NOT NULL,
     total_tickets integer DEFAULT 0 NOT NULL,
     user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT raffles_status_check CHECK (((status)::text = ANY (ARRAY[('open'::character varying)::text, ('closed'::character varying)::text, ('completed'::character varying)::text, ('cancelled'::character varying)::text])))
 );
 
@@ -4826,7 +5514,8 @@ CREATE TABLE public.rank_card_configs (
     width integer DEFAULT 1400 NOT NULL,
     height integer DEFAULT 400 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4864,7 +5553,8 @@ CREATE TABLE public.rank_card_level_configs (
     template_id text DEFAULT 'default'::text,
     enabled boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4912,7 +5602,8 @@ CREATE TABLE public.ruleta_command_configs (
     self_hit_messages jsonb DEFAULT '["🔫💥 @{shooter} se apuntó a sí mismo... BANG! {seconds}s de timeout"]'::jsonb NOT NULL,
     self_miss_messages jsonb DEFAULT '["🔫 @{shooter} se apuntó a sí mismo... *click* sobrevivió de milagro"]'::jsonb NOT NULL,
     protected_users jsonb DEFAULT '[]'::jsonb NOT NULL,
-    blocked_users jsonb DEFAULT '[]'::jsonb NOT NULL
+    blocked_users jsonb DEFAULT '[]'::jsonb NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4946,7 +5637,8 @@ CREATE TABLE public.ruleta_mod_restores (
     target_username character varying(255) NOT NULL,
     expires_at timestamp without time zone NOT NULL,
     processed boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -4982,7 +5674,8 @@ CREATE TABLE public.scripted_commands (
     script_content text NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5027,7 +5720,8 @@ CREATE TABLE public.shoutout_configs (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     user_id bigint NOT NULL,
-    settings jsonb DEFAULT '{}'::jsonb NOT NULL
+    settings jsonb DEFAULT '{}'::jsonb NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5060,7 +5754,8 @@ CREATE TABLE public.shoutout_history (
     profile_image_url character varying(500),
     game_name character varying(200),
     executed_at timestamp with time zone NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5090,6 +5785,7 @@ CREATE TABLE public.song_request_bans (
     label character varying(300) DEFAULT ''::character varying NOT NULL,
     created_by character varying(100),
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_song_request_bans_type CHECK (((ban_type)::text = ANY ((ARRAY['track'::character varying, 'author'::character varying, 'user'::character varying])::text[])))
 );
 
@@ -5132,7 +5828,8 @@ CREATE TABLE public.song_request_configs (
     volume integer DEFAULT 50 NOT NULL,
     fallback_cursor integer DEFAULT 0 NOT NULL,
     active_playlist_id bigint,
-    is_stopped boolean DEFAULT false NOT NULL
+    is_stopped boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5171,7 +5868,8 @@ CREATE TABLE public.song_request_history (
     end_reason character varying(20) DEFAULT 'finished'::character varying NOT NULL,
     is_favorite boolean DEFAULT false NOT NULL,
     played_at timestamp with time zone DEFAULT now() NOT NULL,
-    requested_at timestamp with time zone
+    requested_at timestamp with time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5203,7 +5901,8 @@ CREATE TABLE public.song_request_listen_daily (
     day date NOT NULL,
     listens integer DEFAULT 0 NOT NULL,
     seconds bigint DEFAULT 0 NOT NULL,
-    web_requests integer DEFAULT 0 NOT NULL
+    web_requests integer DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5215,7 +5914,8 @@ CREATE TABLE public.song_request_listen_tracks (
     playlist_id bigint NOT NULL,
     track_id bigint NOT NULL,
     day date NOT NULL,
-    listens integer DEFAULT 0 NOT NULL
+    listens integer DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5228,7 +5928,8 @@ CREATE TABLE public.song_request_listen_unplayable (
     track_id bigint NOT NULL,
     reports integer DEFAULT 1 NOT NULL,
     first_reported timestamp with time zone DEFAULT now() NOT NULL,
-    last_reported timestamp with time zone DEFAULT now() NOT NULL
+    last_reported timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5239,7 +5940,8 @@ CREATE TABLE public.song_request_listen_unplayable (
 CREATE TABLE public.song_request_listen_visitors (
     playlist_id bigint NOT NULL,
     day date NOT NULL,
-    visitor_id character varying(36) NOT NULL
+    visitor_id character varying(36) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5262,7 +5964,8 @@ CREATE TABLE public.song_request_pending (
     origin_title character varying(300),
     origin_artist character varying(200),
     origin_thumbnail_url character varying(500),
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5299,7 +6002,8 @@ CREATE TABLE public.song_request_playlist_items (
     added_by_platform character varying(10),
     added_by_id character varying(64),
     added_by_login character varying(100),
-    added_by_name character varying(100)
+    added_by_name character varying(100),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5332,7 +6036,8 @@ CREATE TABLE public.song_request_playlist_votes (
     item_id bigint NOT NULL,
     platform character varying(20) NOT NULL,
     login character varying(100) NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5373,7 +6078,8 @@ CREATE TABLE public.song_request_playlists (
     requirements jsonb DEFAULT '{}'::jsonb NOT NULL,
     voting_enabled boolean DEFAULT false NOT NULL,
     sort_by_votes boolean DEFAULT false NOT NULL,
-    share_code character varying(16) NOT NULL
+    share_code character varying(16) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5416,6 +6122,7 @@ CREATE TABLE public.song_request_queue (
     origin_artist character varying(200),
     origin_thumbnail_url character varying(500),
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_song_request_queue_status CHECK (((status)::text = ANY ((ARRAY['queued'::character varying, 'playing'::character varying])::text[])))
 );
 
@@ -5492,7 +6199,8 @@ CREATE TABLE public.song_request_trusted (
     login character varying(100) NOT NULL,
     display_name character varying(100) NOT NULL,
     created_by character varying(100),
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5537,6 +6245,7 @@ CREATE TABLE public.sound_alert_configs (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT sound_alert_configs_cooldown_ms_check CHECK ((cooldown_ms >= 0)),
     CONSTRAINT sound_alert_configs_duration_check CHECK (((duration >= 3) AND (duration <= 30))),
     CONSTRAINT sound_alert_configs_global_volume_check CHECK (((global_volume >= 0) AND (global_volume <= 100)))
@@ -5588,6 +6297,7 @@ CREATE TABLE public.sound_alert_files (
     show_image boolean DEFAULT true NOT NULL,
     image_url character varying(1000),
     image_source character varying(20) DEFAULT 'upload'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT sound_alert_files_file_type_check CHECK (((file_type)::text = ANY ((ARRAY['sound'::character varying, 'video'::character varying, 'image'::character varying])::text[]))),
     CONSTRAINT sound_alert_files_volume_check CHECK (((volume IS NULL) OR ((volume >= 0) AND (volume <= 100))))
 );
@@ -5627,7 +6337,8 @@ CREATE TABLE public.sound_alert_history (
     redeemed_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     played_successfully boolean DEFAULT true NOT NULL,
     error_message character varying(500),
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5670,6 +6381,7 @@ CREATE TABLE public.sound_alert_reward_files (
     image_source character varying(20) DEFAULT 'upload'::character varying NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_sound_alert_reward_files_exactly_one_source CHECK (((((media_file_id IS NOT NULL))::integer + ((system_file_path IS NOT NULL))::integer) = 1))
 );
 
@@ -5704,7 +6416,8 @@ CREATE TABLE public.speak_chat_configs (
     is_enabled boolean DEFAULT false NOT NULL,
     config_json jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5738,7 +6451,8 @@ CREATE TABLE public.speak_chat_usage_backup (
     year integer NOT NULL,
     month integer NOT NULL,
     chars_used bigint DEFAULT 0 NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5775,7 +6489,8 @@ CREATE TABLE public.stream_chat_activities (
     message_count integer DEFAULT 0 NOT NULL,
     last_message_at timestamp without time zone DEFAULT now() NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5814,7 +6529,8 @@ CREATE TABLE public.stream_watch_times (
     is_active boolean DEFAULT false NOT NULL,
     session_started_at timestamp without time zone,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5871,7 +6587,8 @@ CREATE TABLE public.supporter_payments (
     invoice_attempts integer DEFAULT 0 NOT NULL,
     invoice_last_attempt_at timestamp without time zone,
     prefer_factura boolean DEFAULT false NOT NULL,
-    is_test boolean DEFAULT false NOT NULL
+    is_test boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5936,7 +6653,8 @@ CREATE TABLE public.system_admins (
     user_id bigint NOT NULL,
     username character varying(100) NOT NULL,
     role character varying(50) DEFAULT 'admin'::character varying NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -5975,7 +6693,8 @@ CREATE TABLE public.system_settings (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     timer_global_cooldown_seconds integer DEFAULT 30 NOT NULL,
-    message_count_since_last_timer integer DEFAULT 0 NOT NULL
+    message_count_since_last_timer integer DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6000,8 +6719,264 @@ ALTER TABLE public.system_settings ALTER COLUMN id ADD GENERATED BY DEFAULT AS I
 CREATE TABLE public.tcg_free_pack_claims (
     owner_account_id bigint NOT NULL,
     sobre_tier_id integer NOT NULL,
-    claimed_at timestamp without time zone DEFAULT now() NOT NULL
+    claimed_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
+
+
+--
+-- Name: tenant_addons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_addons (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    capability_key character varying(80) NOT NULL,
+    value numeric,
+    starts_at timestamp with time zone DEFAULT now() NOT NULL,
+    ends_at timestamp with time zone,
+    source character varying(10) DEFAULT 'purchase'::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenant_addons_source_check CHECK (((source)::text = ANY ((ARRAY['purchase'::character varying, 'gift'::character varying, 'pilot'::character varying])::text[])))
+);
+
+
+--
+-- Name: tenant_addons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenant_addons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenant_addons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenant_addons_id_seq OWNED BY public.tenant_addons.id;
+
+
+--
+-- Name: tenant_buyer_mfa; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_buyer_mfa (
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    user_id bigint NOT NULL,
+    secret_enc text NOT NULL,
+    enabled boolean DEFAULT false NOT NULL,
+    enabled_at timestamp with time zone,
+    last_step bigint DEFAULT 0 NOT NULL,
+    failed_count integer DEFAULT 0 NOT NULL,
+    locked_until timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: tenant_buyer_recovery_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_buyer_recovery_codes (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    user_id bigint NOT NULL,
+    code_hash character varying(64) NOT NULL,
+    used_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: tenant_buyer_recovery_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenant_buyer_recovery_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenant_buyer_recovery_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenant_buyer_recovery_codes_id_seq OWNED BY public.tenant_buyer_recovery_codes.id;
+
+
+--
+-- Name: tenant_credentials; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_credentials (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    provider character varying(40) NOT NULL,
+    kind character varying(40) NOT NULL,
+    secret_enc text NOT NULL,
+    key_version integer DEFAULT 1 NOT NULL,
+    hint character varying(8),
+    status character varying(16) DEFAULT 'pending'::character varying NOT NULL,
+    last_validated_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: tenant_credentials_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenant_credentials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenant_credentials_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenant_credentials_id_seq OWNED BY public.tenant_credentials.id;
+
+
+--
+-- Name: tenant_entitlement_overrides; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_entitlement_overrides (
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    capability_key character varying(80) NOT NULL,
+    value numeric,
+    reason character varying(200),
+    source character varying(10) DEFAULT 'custom'::character varying NOT NULL,
+    expires_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenant_entitlement_overrides_source_check CHECK (((source)::text = ANY ((ARRAY['custom'::character varying, 'gift'::character varying, 'pilot'::character varying])::text[])))
+);
+
+
+--
+-- Name: tenant_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_keys (
+    tenant_id bigint NOT NULL,
+    version integer DEFAULT 1 NOT NULL,
+    wrapped_key text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: tenant_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_members (
+    tenant_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    role character varying(12) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenant_members_role_check CHECK (((role)::text = ANY ((ARRAY['owner'::character varying, 'admin'::character varying, 'viewer'::character varying])::text[])))
+);
+
+
+--
+-- Name: tenant_provider_config; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_provider_config (
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    provider character varying(40) NOT NULL,
+    config jsonb DEFAULT '{}'::jsonb NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: tenant_subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_subscriptions (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    plan_id bigint NOT NULL,
+    period_months smallint,
+    status character varying(12) DEFAULT 'sandbox'::character varying NOT NULL,
+    starts_at timestamp with time zone DEFAULT now() NOT NULL,
+    ends_at timestamp with time zone,
+    grace_until timestamp with time zone,
+    sandbox_ends_at timestamp with time zone,
+    suspended_reason character varying(200),
+    tax_country character varying(2),
+    tax_treatment character varying(10),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenant_subscriptions_period_months_check CHECK ((period_months = ANY (ARRAY[1, 3, 6, 9, 12]))),
+    CONSTRAINT tenant_subscriptions_status_check CHECK (((status)::text = ANY ((ARRAY['sandbox'::character varying, 'active'::character varying, 'past_due'::character varying, 'suspended'::character varying, 'cancelled'::character varying])::text[]))),
+    CONSTRAINT tenant_subscriptions_tax_treatment_check CHECK (((tax_treatment)::text = ANY ((ARRAY['igv_18'::character varying, 'export_0'::character varying])::text[])))
+);
+
+
+--
+-- Name: tenant_subscriptions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenant_subscriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenant_subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenant_subscriptions_id_seq OWNED BY public.tenant_subscriptions.id;
+
+
+--
+-- Name: tenants; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenants (
+    id bigint NOT NULL,
+    slug character varying(40) NOT NULL,
+    name character varying(120) NOT NULL,
+    status character varying(12) DEFAULT 'active'::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    credentials_mode character varying(10) DEFAULT 'legacy'::character varying NOT NULL,
+    CONSTRAINT tenants_status_check CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'suspended'::character varying, 'closed'::character varying])::text[])))
+);
+
+
+--
+-- Name: tenants_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenants_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenants_id_seq OWNED BY public.tenants.id;
 
 
 --
@@ -6052,7 +7027,8 @@ CREATE TABLE public.tier_history (
     source character varying(50),
     source_reference character varying(255),
     changed_by bigint,
-    changed_at timestamp with time zone DEFAULT now() NOT NULL
+    changed_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6104,7 +7080,8 @@ CREATE TABLE public.timer_configs (
     max_chances integer DEFAULT 0 NOT NULL,
     resurrection_message text,
     game_over_message text,
-    widgets_config jsonb DEFAULT '{}'::jsonb NOT NULL
+    widgets_config jsonb DEFAULT '{}'::jsonb NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6116,7 +7093,8 @@ CREATE TABLE public.timer_configs_backup_tiers (
     id integer,
     channel_name character varying(100),
     events_config jsonb,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6151,7 +7129,8 @@ CREATE TABLE public.timer_event_cooldowns (
     user_id character varying(255) NOT NULL,
     user_name character varying(255),
     last_triggered_at timestamp with time zone NOT NULL,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6189,7 +7168,8 @@ CREATE TABLE public.timer_event_logs (
     event_data jsonb,
     occurred_at timestamp with time zone DEFAULT now() NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    timer_session_id integer
+    timer_session_id integer,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6229,7 +7209,8 @@ CREATE TABLE public.timer_happyhour (
     enabled boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    event_types jsonb
+    event_types jsonb,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6264,7 +7245,8 @@ CREATE TABLE public.timer_manual_happyhour (
     multiplier double precision DEFAULT 2.0 NOT NULL,
     expires_at timestamp with time zone NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    event_types jsonb
+    event_types jsonb,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6307,7 +7289,8 @@ CREATE TABLE public.timer_media_files (
     thumbnail_path character varying(500),
     usage_count integer DEFAULT 0 NOT NULL,
     updated_at timestamp without time zone,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6345,7 +7328,8 @@ CREATE TABLE public.timer_schedules (
     days_of_week jsonb DEFAULT '[true, true, true, true, true, true, true]'::jsonb NOT NULL,
     enabled boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6382,7 +7366,8 @@ CREATE TABLE public.timer_session_backups (
     reason character varying(255),
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     timer_session_id integer,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6418,7 +7403,8 @@ CREATE TABLE public.timer_sessions (
     initial_duration integer NOT NULL,
     total_added_time integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6461,7 +7447,8 @@ CREATE TABLE public.timer_states (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     current_session_id integer,
     used_chances integer DEFAULT 0 NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6508,7 +7495,8 @@ CREATE TABLE public.timer_templates (
     alerts_config jsonb DEFAULT '{}'::jsonb NOT NULL,
     goal_config jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6554,6 +7542,7 @@ CREATE TABLE public.timers (
     messages_since_last_execution integer DEFAULT 0 NOT NULL,
     category_name character varying(255),
     user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT timers_min_interval_messages CHECK ((interval_messages >= 5)),
     CONSTRAINT timers_min_interval_minutes CHECK ((interval_minutes >= 5))
 );
@@ -6616,7 +7605,8 @@ CREATE TABLE public.tips_configs (
     basic_alert_tts jsonb,
     basic_alert_overlay jsonb,
     tips_alert_config jsonb,
-    time_unit character varying(20) DEFAULT 'seconds'::character varying NOT NULL
+    time_unit character varying(20) DEFAULT 'seconds'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6658,7 +7648,8 @@ CREATE TABLE public.tips_history (
     alert_shown boolean DEFAULT false NOT NULL,
     donated_at timestamp with time zone DEFAULT now() NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6683,6 +7674,18 @@ ALTER SEQUENCE public.tips_history_id_seq OWNED BY public.tips_history.id;
 
 
 --
+-- Name: title_game_sync_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.title_game_sync_settings (
+    user_id bigint NOT NULL,
+    enabled boolean DEFAULT false NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
 -- Name: title_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6692,7 +7695,8 @@ CREATE TABLE public.title_history (
     title character varying(500) NOT NULL,
     changed_by character varying(100) NOT NULL,
     changed_at timestamp with time zone NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6725,7 +7729,8 @@ CREATE TABLE public.tournament_blue_shell_rules (
     daily_drop_enabled boolean DEFAULT false NOT NULL,
     daily_drop_challenge_template character varying(500),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6759,7 +7764,8 @@ CREATE TABLE public.tournament_divisions (
     sort_order smallint DEFAULT 0 NOT NULL,
     min_lp_threshold integer,
     max_lp_threshold integer,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6814,7 +7820,8 @@ CREATE TABLE public.tournament_editions (
     shell_item_name character varying(60) DEFAULT 'Ficha de Castigo'::character varying NOT NULL,
     aegis_mechanic_name character varying(60) DEFAULT 'Factor Suerte'::character varying NOT NULL,
     banner_url character varying(500),
-    theme character varying(10) DEFAULT 'dark'::character varying NOT NULL
+    theme character varying(10) DEFAULT 'dark'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6856,7 +7863,8 @@ CREATE TABLE public.tournament_fortnite_configs (
     report_window_minutes integer DEFAULT 30 NOT NULL,
     missing_report_zero boolean DEFAULT true NOT NULL,
     public_screenshots boolean DEFAULT false NOT NULL,
-    ai_screenshot_reading boolean DEFAULT false NOT NULL
+    ai_screenshot_reading boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6894,7 +7902,8 @@ CREATE TABLE public.tournament_fortnite_files (
     ai_placement smallint,
     ai_eliminations smallint,
     ai_note character varying(200),
-    ai_read_at timestamp without time zone
+    ai_read_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6931,7 +7940,8 @@ CREATE TABLE public.tournament_fortnite_games (
     revealed_at timestamp without time zone,
     started_at timestamp without time zone,
     ended_at timestamp without time zone,
-    shells_evaluated_at timestamp without time zone
+    shells_evaluated_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6962,7 +7972,8 @@ CREATE TABLE public.tournament_fortnite_group_teams (
     id bigint NOT NULL,
     group_id bigint NOT NULL,
     team_id bigint NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -6996,7 +8007,8 @@ CREATE TABLE public.tournament_fortnite_groups (
     sort_order smallint DEFAULT 0 NOT NULL,
     is_final boolean DEFAULT false NOT NULL,
     qualify_count smallint,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7032,7 +8044,8 @@ CREATE TABLE public.tournament_fortnite_reports (
     eliminations smallint NOT NULL,
     screenshot_file_id bigint,
     submitted_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7071,7 +8084,8 @@ CREATE TABLE public.tournament_fortnite_result_audit (
     after_json jsonb,
     reason text,
     evidence_file_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7107,7 +8121,8 @@ CREATE TABLE public.tournament_fortnite_results (
     status character varying(20) NOT NULL,
     source character varying(20) NOT NULL,
     reviewed_by_user_id bigint,
-    reviewed_at timestamp without time zone DEFAULT now() NOT NULL
+    reviewed_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7139,7 +8154,8 @@ CREATE TABLE public.tournament_fortnite_session_checkins (
     session_id bigint NOT NULL,
     participant_id bigint NOT NULL,
     checked_in_by character varying(10) DEFAULT 'self'::character varying NOT NULL,
-    checked_in_at timestamp without time zone DEFAULT now() NOT NULL
+    checked_in_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7175,7 +8191,8 @@ CREATE TABLE public.tournament_fortnite_sessions (
     status character varying(20) DEFAULT 'scheduled'::character varying NOT NULL,
     sort_order smallint DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    shells_evaluated_at timestamp without time zone
+    shells_evaluated_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7208,7 +8225,8 @@ CREATE TABLE public.tournament_games (
     game_number smallint NOT NULL,
     winner_team_id bigint,
     riot_match_id character varying(50),
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7254,7 +8272,8 @@ CREATE TABLE public.tournament_lp_snapshots (
     aegis_triggered boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     blue_shell_evaluated_at timestamp without time zone,
-    penta_kills smallint DEFAULT 0 NOT NULL
+    penta_kills smallint DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7293,7 +8312,8 @@ CREATE TABLE public.tournament_matches (
     scheduled_at timestamp without time zone,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    bracket_side character varying(20)
+    bracket_side character varying(20),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7327,7 +8347,8 @@ CREATE TABLE public.tournament_overlay_configs (
     enabled_widgets jsonb DEFAULT '["lp-actual", "shell-inventory", "racha"]'::jsonb NOT NULL,
     theme character varying(20) DEFAULT 'dark'::character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7381,7 +8402,8 @@ CREATE TABLE public.tournament_participants (
     smurf_flag_note text,
     game_account_id bigint,
     game_account_name character varying(100),
-    game_account_verified boolean DEFAULT false NOT NULL
+    game_account_verified boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7422,7 +8444,8 @@ CREATE TABLE public.tournament_prize_tiers (
     sort_order smallint DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    description text
+    description text,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7456,7 +8479,8 @@ CREATE TABLE public.tournament_punishment_types (
     description character varying(500),
     allows_reverse boolean DEFAULT true NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7493,7 +8517,8 @@ CREATE TABLE public.tournament_riot_configs (
     last_error_at timestamp without time zone,
     last_error_message character varying(500),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7528,7 +8553,8 @@ CREATE TABLE public.tournament_rule_documents (
     version integer DEFAULT 1 NOT NULL,
     updated_by_user_id bigint,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7567,7 +8593,8 @@ CREATE TABLE public.tournament_shell_events (
     was_lost_full boolean DEFAULT false NOT NULL,
     fulfilled_at timestamp without time zone,
     fulfilled_by_staff_id bigint,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7602,7 +8629,8 @@ CREATE TABLE public.tournament_shell_inventories (
     total_thrown integer DEFAULT 0 NOT NULL,
     total_received integer DEFAULT 0 NOT NULL,
     total_stolen integer DEFAULT 0 NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7639,7 +8667,8 @@ CREATE TABLE public.tournament_shell_triggers (
     shells_granted smallint DEFAULT 1 NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    streak_length smallint
+    streak_length smallint,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7678,7 +8707,8 @@ CREATE TABLE public.tournament_sponsors (
     status character varying(20) DEFAULT 'active'::character varying NOT NULL,
     sort_order smallint DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7713,7 +8743,8 @@ CREATE TABLE public.tournament_teams (
     seed smallint,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     join_code character varying(12),
-    seed_locked boolean DEFAULT false NOT NULL
+    seed_locked boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7748,7 +8779,8 @@ CREATE TABLE public.tournament_win_conditions (
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    name character varying(100) DEFAULT ''::character varying NOT NULL
+    name character varying(100) DEFAULT ''::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7824,7 +8856,8 @@ CREATE TABLE public.tts_credit_balances (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     standard_granted bigint DEFAULT 0 NOT NULL,
-    standard_used bigint DEFAULT 0 NOT NULL
+    standard_used bigint DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7866,7 +8899,8 @@ CREATE TABLE public.tts_credit_ledger (
     gateway character varying(20),
     external_id character varying(120),
     granted_by bigint,
-    note text
+    note text,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7905,6 +8939,7 @@ CREATE TABLE public.upgrade_attempt_log (
     cost_charged integer,
     rolled_at timestamp without time zone DEFAULT now() NOT NULL,
     resolved_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_ual_from_level CHECK ((from_level = 0)),
     CONSTRAINT chk_ual_result CHECK (((result)::text = ANY ((ARRAY['fail'::character varying, 'success_paid'::character varying, 'success_expired_unpaid'::character varying])::text[]))),
     CONSTRAINT chk_ual_to_level CHECK (((to_level >= 0) AND (to_level <= 10)))
@@ -7931,6 +8966,19 @@ ALTER SEQUENCE public.upgrade_attempt_log_id_seq OWNED BY public.upgrade_attempt
 
 
 --
+-- Name: usage_counters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.usage_counters (
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    capability_key character varying(80) NOT NULL,
+    period_start date NOT NULL,
+    used bigint DEFAULT 0 NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: user_access; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7939,7 +8987,8 @@ CREATE TABLE public.user_access (
     user_id bigint NOT NULL,
     authorized_user_id bigint NOT NULL,
     permission_level character varying(50) NOT NULL,
-    created_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -7966,7 +9015,8 @@ CREATE TABLE public.user_achievements (
     guild_id character varying(30) NOT NULL,
     user_id character varying(30) NOT NULL,
     achievement_id bigint NOT NULL,
-    unlocked_at timestamp without time zone DEFAULT now() NOT NULL
+    unlocked_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8003,7 +9053,8 @@ CREATE TABLE public.user_channel_permissions (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     is_hidden boolean DEFAULT false NOT NULL,
-    alias character varying(30)
+    alias character varying(30),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8037,6 +9088,7 @@ CREATE TABLE public.user_coins (
     economy_status text DEFAULT 'normal'::text NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_economy_status CHECK ((economy_status = ANY (ARRAY['normal'::text, 'flagged'::text, 'banned_economy'::text])))
 );
 
@@ -8069,7 +9121,8 @@ CREATE TABLE public.user_fortnite_sprites (
     user_id bigint NOT NULL,
     sprite_id integer NOT NULL,
     obtained_at timestamp without time zone DEFAULT now() NOT NULL,
-    platform character varying(20) DEFAULT 'web'::character varying NOT NULL
+    platform character varying(20) DEFAULT 'web'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8107,7 +9160,8 @@ CREATE TABLE public.user_riot_accounts (
     verification_challenge_icon_id integer,
     verification_started_at timestamp with time zone,
     verified_at timestamp with time zone,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8143,7 +9197,8 @@ CREATE TABLE public.user_spirit_notification_prefs (
     last_notified_discord_at timestamp without time zone,
     last_seen_dashboard_at timestamp without time zone,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8180,6 +9235,7 @@ CREATE TABLE public.user_strikes (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     user_id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_strike_level CHECK (((strike_level >= 0) AND (strike_level <= 5)))
 );
 
@@ -8221,6 +9277,7 @@ CREATE TABLE public.user_subscription_tiers (
     granted_by bigint,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_valid_tier CHECK (((tier)::text = ANY (ARRAY[('free'::character varying)::text, ('supporter'::character varying)::text, ('premium'::character varying)::text, ('fundador'::character varying)::text, ('admin'::character varying)::text])))
 );
 
@@ -8262,7 +9319,8 @@ CREATE TABLE public.user_xp (
     streak_days integer DEFAULT 0 NOT NULL,
     last_active_date date,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8277,7 +9335,8 @@ CREATE TABLE public.user_xp_global (
     level integer DEFAULT 0 NOT NULL,
     total_servers_active integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8329,7 +9388,8 @@ CREATE TABLE public.username_history (
     old_login character varying(100) NOT NULL,
     new_login character varying(100) NOT NULL,
     changed_at timestamp without time zone DEFAULT now() NOT NULL,
-    detected_by character varying(50) DEFAULT 'auth'::character varying NOT NULL
+    detected_by character varying(50) DEFAULT 'auth'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8392,7 +9452,8 @@ CREATE TABLE public.users (
     kick_refresh_token text,
     kick_token_expiration timestamp with time zone,
     account_id bigint,
-    is_hidden_from_carousel boolean DEFAULT false NOT NULL
+    is_hidden_from_carousel boolean DEFAULT false NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8407,6 +9468,18 @@ ALTER TABLE public.users ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
+);
+
+
+--
+-- Name: viewer_token_epoch; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.viewer_token_epoch (
+    user_id bigint NOT NULL,
+    epoch integer DEFAULT 0 NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8435,7 +9508,8 @@ CREATE TABLE public.watchtime_command_configs (
     use_offline_message boolean DEFAULT false NOT NULL,
     offline_message text DEFAULT '@{user} el stream no está en vivo ahora mismo'::text NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8476,6 +9550,7 @@ CREATE TABLE public.wheel_pending_deliveries (
     notes character varying(500),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     reason character varying(200),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheel_deliveries_resolved CHECK ((((status)::text = 'pending'::text) OR (resolved_at IS NOT NULL))),
     CONSTRAINT chk_wheel_deliveries_status CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'done'::character varying, 'cancelled'::character varying])::text[])))
 );
@@ -8525,6 +9600,7 @@ CREATE TABLE public.wheel_raffle_configs (
     is_open boolean DEFAULT false NOT NULL,
     window_opened_at timestamp without time zone,
     window_closes_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheel_raffle_command CHECK (((entry_command)::text ~ '^![a-zA-Z0-9_-]+$'::text)),
     CONSTRAINT chk_wheel_raffle_cost CHECK ((entry_cost_credits >= 0)),
     CONSTRAINT chk_wheel_raffle_draw CHECK (((draw_mode)::text = ANY ((ARRAY['single'::character varying, 'multi'::character varying, 'remove_and_continue'::character varying])::text[]))),
@@ -8570,6 +9646,7 @@ CREATE TABLE public.wheel_raffle_entries (
     joined_at timestamp without time zone DEFAULT now() NOT NULL,
     has_won boolean DEFAULT false NOT NULL,
     won_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheel_raffle_entries CHECK ((entries > 0)),
     CONSTRAINT chk_wheel_raffle_weight CHECK ((weight >= (0)::numeric))
 );
@@ -8616,6 +9693,7 @@ CREATE TABLE public.wheel_segments (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     stock_reset_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheel_segments_color CHECK (((color IS NULL) OR ((color)::text ~ '^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$'::text))),
     CONSTRAINT chk_wheel_segments_label CHECK ((length(TRIM(BOTH FROM label)) > 0)),
     CONSTRAINT chk_wheel_segments_stock CHECK (((stock_total IS NULL) OR (stock_total >= 0))),
@@ -8661,6 +9739,7 @@ CREATE TABLE public.wheel_spins (
     delivery_status character varying(20) DEFAULT 'delivered'::character varying NOT NULL,
     raffle_winner jsonb,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheel_spins_credits CHECK ((credits_spent >= 0)),
     CONSTRAINT chk_wheel_spins_mode CHECK (((mode)::text = ANY ((ARRAY['prizes'::character varying, 'raffle'::character varying])::text[]))),
     CONSTRAINT chk_wheel_spins_status CHECK (((delivery_status)::text = ANY ((ARRAY['delivered'::character varying, 'pending'::character varying, 'failed'::character varying])::text[]))),
@@ -8705,6 +9784,7 @@ CREATE TABLE public.wheel_wallet_sources (
     channel_points_reward_title character varying(150),
     tier2_multiplier numeric(5,2) DEFAULT 1 NOT NULL,
     tier3_multiplier numeric(5,2) DEFAULT 1 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheel_sources_cap CHECK (((cap_per_event IS NULL) OR (cap_per_event > 0))),
     CONSTRAINT chk_wheel_sources_den CHECK ((rate_denominator > 0)),
     CONSTRAINT chk_wheel_sources_name CHECK (((source)::text = ANY ((ARRAY['bits'::character varying, 'gift_sub'::character varying, 'donation'::character varying, 'channel_points'::character varying, 'deca_coins'::character varying])::text[]))),
@@ -8750,6 +9830,7 @@ CREATE TABLE public.wheel_wallets (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     spins_this_stream integer DEFAULT 0 NOT NULL,
     last_spin_at timestamp without time zone,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheel_wallets_credits CHECK ((credits >= 0)),
     CONSTRAINT chk_wheel_wallets_lifetime CHECK ((lifetime_credits >= 0)),
     CONSTRAINT chk_wheel_wallets_pity CHECK ((pity_counter >= 0)),
@@ -8814,6 +9895,7 @@ CREATE TABLE public.wheels (
     max_spins_per_stream integer,
     max_coins_per_hour integer,
     buy_command character varying(50) DEFAULT '!dcomprar'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     CONSTRAINT chk_wheels_balance_command CHECK (((balance_command)::text ~ '^![a-zA-Z0-9_-]+$'::text)),
     CONSTRAINT chk_wheels_buy_command CHECK (((buy_command)::text ~ '^![a-zA-Z0-9_-]+$'::text)),
     CONSTRAINT chk_wheels_commands_differ CHECK (((spin_command)::text <> (balance_command)::text)),
@@ -8870,7 +9952,8 @@ CREATE TABLE public.xp_achievements (
     condition_value integer DEFAULT 1 NOT NULL,
     is_system boolean DEFAULT false NOT NULL,
     enabled boolean DEFAULT true NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8906,7 +9989,8 @@ CREATE TABLE public.xp_boosts (
     starts_at timestamp without time zone DEFAULT now() NOT NULL,
     expires_at timestamp without time zone NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8950,7 +10034,8 @@ CREATE TABLE public.xp_configs (
     levelup_channel_id character varying(30),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    achievement_channel_id character varying(30)
+    achievement_channel_id character varying(30),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -8986,7 +10071,8 @@ CREATE TABLE public.xp_roles (
     discord_role_id character varying(30),
     "position" integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -9022,7 +10108,8 @@ CREATE TABLE public.xp_seasonal (
     xp_gained integer DEFAULT 0 NOT NULL,
     messages_count integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -9066,7 +10153,8 @@ CREATE TABLE public.xp_store_items (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     announcement_channel_id character varying(30),
-    custom_message character varying(500)
+    custom_message character varying(500),
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -9103,7 +10191,8 @@ CREATE TABLE public.xp_store_purchases (
     purchased_at timestamp without time zone DEFAULT now() NOT NULL,
     expires_at timestamp without time zone,
     is_active boolean DEFAULT true NOT NULL,
-    status character varying(20) DEFAULT 'completed'::character varying NOT NULL
+    status character varying(20) DEFAULT 'completed'::character varying NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -9137,7 +10226,8 @@ CREATE TABLE public.xp_transactions (
     xp_amount integer NOT NULL,
     source character varying(30) DEFAULT 'message'::character varying NOT NULL,
     description character varying(200),
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
 
 
@@ -9273,10 +10363,38 @@ ALTER TABLE ONLY public.channel_followers ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: channels id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channels ALTER COLUMN id SET DEFAULT nextval('public.channels_id_seq'::regclass);
+
+
+--
 -- Name: chat_overlay_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chat_overlay_configs ALTER COLUMN id SET DEFAULT nextval('public.chat_overlay_configs_id_seq'::regclass);
+
+
+--
+-- Name: clip_command_blocks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_blocks ALTER COLUMN id SET DEFAULT nextval('public.clip_command_blocks_id_seq'::regclass);
+
+
+--
+-- Name: clip_command_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_configs ALTER COLUMN id SET DEFAULT nextval('public.clip_command_configs_id_seq'::regclass);
+
+
+--
+-- Name: clip_command_history id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_history ALTER COLUMN id SET DEFAULT nextval('public.clip_command_history_id_seq'::regclass);
 
 
 --
@@ -9347,6 +10465,13 @@ ALTER TABLE ONLY public.coin_transactions ALTER COLUMN id SET DEFAULT nextval('p
 --
 
 ALTER TABLE ONLY public.coin_transfers ALTER COLUMN id SET DEFAULT nextval('public.coin_transfers_id_seq'::regclass);
+
+
+--
+-- Name: credential_access_log id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.credential_access_log ALTER COLUMN id SET DEFAULT nextval('public.credential_access_log_id_seq'::regclass);
 
 
 --
@@ -9448,6 +10573,13 @@ ALTER TABLE ONLY public.discord_live_alerts ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: discord_template_bindings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.discord_template_bindings ALTER COLUMN id SET DEFAULT nextval('public.discord_template_bindings_id_seq'::regclass);
+
+
+--
 -- Name: discord_welcome_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -9480,6 +10612,13 @@ ALTER TABLE ONLY public.email_logs ALTER COLUMN id SET DEFAULT nextval('public.e
 --
 
 ALTER TABLE ONLY public.email_templates ALTER COLUMN id SET DEFAULT nextval('public.email_templates_id_seq'::regclass);
+
+
+--
+-- Name: entitlement_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_events ALTER COLUMN id SET DEFAULT nextval('public.entitlement_events_id_seq'::regclass);
 
 
 --
@@ -9777,6 +10916,13 @@ ALTER TABLE ONLY public.live_overlay_configs ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: live_translation_access id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.live_translation_access ALTER COLUMN id SET DEFAULT nextval('public.live_translation_access_id_seq'::regclass);
+
+
+--
 -- Name: live_translation_sessions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -9847,6 +10993,13 @@ ALTER TABLE ONLY public.moderation_logs ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: multiview_layouts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.multiview_layouts ALTER COLUMN id SET DEFAULT nextval('public.multiview_layouts_id_seq'::regclass);
+
+
+--
 -- Name: now_playing_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -9858,6 +11011,34 @@ ALTER TABLE ONLY public.now_playing_configs ALTER COLUMN id SET DEFAULT nextval(
 --
 
 ALTER TABLE ONLY public.pet_configs ALTER COLUMN id SET DEFAULT nextval('public.pet_configs_id_seq'::regclass);
+
+
+--
+-- Name: plans id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plans ALTER COLUMN id SET DEFAULT nextval('public.plans_id_seq'::regclass);
+
+
+--
+-- Name: platform_signups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_signups ALTER COLUMN id SET DEFAULT nextval('public.platform_signups_id_seq'::regclass);
+
+
+--
+-- Name: platform_waitlist id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_waitlist ALTER COLUMN id SET DEFAULT nextval('public.platform_waitlist_id_seq'::regclass);
+
+
+--
+-- Name: platform_waitlist_emails id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_waitlist_emails ALTER COLUMN id SET DEFAULT nextval('public.platform_waitlist_emails_id_seq'::regclass);
 
 
 --
@@ -10075,6 +11256,41 @@ ALTER TABLE ONLY public.supporters_page_config ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.system_admins ALTER COLUMN id SET DEFAULT nextval('public.system_admins_id_seq'::regclass);
+
+
+--
+-- Name: tenant_addons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_addons ALTER COLUMN id SET DEFAULT nextval('public.tenant_addons_id_seq'::regclass);
+
+
+--
+-- Name: tenant_buyer_recovery_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_buyer_recovery_codes ALTER COLUMN id SET DEFAULT nextval('public.tenant_buyer_recovery_codes_id_seq'::regclass);
+
+
+--
+-- Name: tenant_credentials id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_credentials ALTER COLUMN id SET DEFAULT nextval('public.tenant_credentials_id_seq'::regclass);
+
+
+--
+-- Name: tenant_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_subscriptions ALTER COLUMN id SET DEFAULT nextval('public.tenant_subscriptions_id_seq'::regclass);
+
+
+--
+-- Name: tenants id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenants ALTER COLUMN id SET DEFAULT nextval('public.tenants_id_seq'::regclass);
 
 
 --
@@ -10779,6 +11995,14 @@ ALTER TABLE ONLY public.accounts
 
 
 --
+-- Name: addon_prices addon_prices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.addon_prices
+    ADD CONSTRAINT addon_prices_pkey PRIMARY KEY (capability_key, period_months);
+
+
+--
 -- Name: admin_mod_actions admin_mod_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -10811,14 +12035,6 @@ ALTER TABLE ONLY public.billing_profiles
 
 
 --
--- Name: billing_profiles billing_profiles_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.billing_profiles
-    ADD CONSTRAINT billing_profiles_user_id_key UNIQUE (user_id);
-
-
---
 -- Name: bot_catalog bot_catalog_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -10840,6 +12056,14 @@ ALTER TABLE ONLY public.brand_assets
 
 ALTER TABLE ONLY public.brand_slots
     ADD CONSTRAINT brand_slots_pkey PRIMARY KEY (slot_key);
+
+
+--
+-- Name: capabilities capabilities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.capabilities
+    ADD CONSTRAINT capabilities_pkey PRIMARY KEY (key);
 
 
 --
@@ -10923,11 +12147,43 @@ ALTER TABLE ONLY public.channel_followers
 
 
 --
+-- Name: channels channels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channels
+    ADD CONSTRAINT channels_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: chat_overlay_configs chat_overlay_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chat_overlay_configs
     ADD CONSTRAINT chat_overlay_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: clip_command_blocks clip_command_blocks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_blocks
+    ADD CONSTRAINT clip_command_blocks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: clip_command_configs clip_command_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_configs
+    ADD CONSTRAINT clip_command_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: clip_command_history clip_command_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_history
+    ADD CONSTRAINT clip_command_history_pkey PRIMARY KEY (id);
 
 
 --
@@ -11019,6 +12275,14 @@ ALTER TABLE ONLY public.coin_transfers
 
 
 --
+-- Name: credential_access_log credential_access_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.credential_access_log
+    ADD CONSTRAINT credential_access_log_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: credit_packages credit_packages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -11099,14 +12363,6 @@ ALTER TABLE ONLY public.decatron_chat_messages
 
 
 --
--- Name: decatron_chat_permissions decatron_chat_permissions_channel_owner_id_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.decatron_chat_permissions
-    ADD CONSTRAINT decatron_chat_permissions_channel_owner_id_user_id_key UNIQUE (channel_owner_id, user_id);
-
-
---
 -- Name: decatron_chat_permissions decatron_chat_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -11139,14 +12395,6 @@ ALTER TABLE ONLY public.discord_guild_configs
 
 
 --
--- Name: discord_live_alerts discord_live_alerts_guild_id_channel_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.discord_live_alerts
-    ADD CONSTRAINT discord_live_alerts_guild_id_channel_name_key UNIQUE (guild_id, channel_name);
-
-
---
 -- Name: discord_live_alerts discord_live_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -11155,11 +12403,11 @@ ALTER TABLE ONLY public.discord_live_alerts
 
 
 --
--- Name: discord_welcome_configs discord_welcome_configs_guild_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: discord_template_bindings discord_template_bindings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.discord_welcome_configs
-    ADD CONSTRAINT discord_welcome_configs_guild_id_key UNIQUE (guild_id);
+ALTER TABLE ONLY public.discord_template_bindings
+    ADD CONSTRAINT discord_template_bindings_pkey PRIMARY KEY (id);
 
 
 --
@@ -11208,6 +12456,14 @@ ALTER TABLE ONLY public.email_logs
 
 ALTER TABLE ONLY public.email_templates
     ADD CONSTRAINT email_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: entitlement_events entitlement_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.entitlement_events
+    ADD CONSTRAINT entitlement_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -11467,14 +12723,6 @@ ALTER TABLE ONLY public.game_overlay_configs
 
 
 --
--- Name: game_overlay_configs game_overlay_configs_user_id_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.game_overlay_configs
-    ADD CONSTRAINT game_overlay_configs_user_id_slug_key UNIQUE (user_id, slug);
-
-
---
 -- Name: game_overlay_promo_settings game_overlay_promo_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -11496,14 +12744,6 @@ ALTER TABLE ONLY public.game_overlay_promos
 
 ALTER TABLE ONLY public.game_session_snapshots
     ADD CONSTRAINT game_session_snapshots_pkey PRIMARY KEY (id);
-
-
---
--- Name: giveaway_blacklist giveaway_blacklist_channel_id_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.giveaway_blacklist
-    ADD CONSTRAINT giveaway_blacklist_channel_id_user_id_key UNIQUE (channel_id, user_id);
 
 
 --
@@ -11587,35 +12827,19 @@ ALTER TABLE ONLY public.global_emotes
 
 
 --
--- Name: banned_words idx_banned_word_channel_word; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.banned_words
-    ADD CONSTRAINT idx_banned_word_channel_word UNIQUE (channel_name, word);
-
-
---
--- Name: channel_followers idx_channel_followers_broadcaster_user; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.channel_followers
-    ADD CONSTRAINT idx_channel_followers_broadcaster_user UNIQUE (broadcaster_id, user_id);
-
-
---
--- Name: moderation_configs idx_moderation_config_channel; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.moderation_configs
-    ADD CONSTRAINT idx_moderation_config_channel UNIQUE (channel_name);
-
-
---
 -- Name: invoicing_settings invoicing_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invoicing_settings
     ADD CONSTRAINT invoicing_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: kick_category_cache kick_category_cache_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.kick_category_cache
+    ADD CONSTRAINT kick_category_cache_pkey PRIMARY KEY (category_id);
 
 
 --
@@ -11632,6 +12856,14 @@ ALTER TABLE ONLY public.linked_game_accounts
 
 ALTER TABLE ONLY public.live_overlay_configs
     ADD CONSTRAINT live_overlay_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: live_translation_access live_translation_access_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.live_translation_access
+    ADD CONSTRAINT live_translation_access_pkey PRIMARY KEY (id);
 
 
 --
@@ -11667,27 +12899,11 @@ ALTER TABLE ONLY public.live_translation_settings
 
 
 --
--- Name: live_translation_settings live_translation_settings_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.live_translation_settings
-    ADD CONSTRAINT live_translation_settings_user_id_key UNIQUE (user_id);
-
-
---
 -- Name: lol_coach_settings lol_coach_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lol_coach_settings
     ADD CONSTRAINT lol_coach_settings_pkey PRIMARY KEY (id);
-
-
---
--- Name: lol_coach_settings lol_coach_settings_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.lol_coach_settings
-    ADD CONSTRAINT lol_coach_settings_user_id_key UNIQUE (user_id);
 
 
 --
@@ -11699,14 +12915,6 @@ ALTER TABLE ONLY public.lol_prediction_bets
 
 
 --
--- Name: lol_prediction_bets lol_prediction_bets_prediction_id_viewer_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.lol_prediction_bets
-    ADD CONSTRAINT lol_prediction_bets_prediction_id_viewer_key UNIQUE (prediction_id, viewer);
-
-
---
 -- Name: lol_prediction_points lol_prediction_points_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -11715,27 +12923,11 @@ ALTER TABLE ONLY public.lol_prediction_points
 
 
 --
--- Name: lol_prediction_points lol_prediction_points_user_id_viewer_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.lol_prediction_points
-    ADD CONSTRAINT lol_prediction_points_user_id_viewer_key UNIQUE (user_id, viewer);
-
-
---
 -- Name: lol_predictions lol_predictions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lol_predictions
     ADD CONSTRAINT lol_predictions_pkey PRIMARY KEY (id);
-
-
---
--- Name: moderation_command_configs moderation_command_configs_channel_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.moderation_command_configs
-    ADD CONSTRAINT moderation_command_configs_channel_name_key UNIQUE (channel_name);
 
 
 --
@@ -11775,7 +12967,15 @@ ALTER TABLE ONLY public.moderation_logs
 --
 
 ALTER TABLE ONLY public.moderation_panic
-    ADD CONSTRAINT moderation_panic_pkey PRIMARY KEY (channel_name);
+    ADD CONSTRAINT moderation_panic_pkey PRIMARY KEY (tenant_id, channel_name);
+
+
+--
+-- Name: multiview_layouts multiview_layouts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.multiview_layouts
+    ADD CONSTRAINT multiview_layouts_pkey PRIMARY KEY (id);
 
 
 --
@@ -11863,7 +13063,63 @@ ALTER TABLE ONLY public.pet_configs
 --
 
 ALTER TABLE ONLY public.pet_seen_chatters
-    ADD CONSTRAINT pet_seen_chatters_pkey PRIMARY KEY (channel_user_id, chatter_login);
+    ADD CONSTRAINT pet_seen_chatters_pkey PRIMARY KEY (tenant_id, channel_user_id, chatter_login);
+
+
+--
+-- Name: plan_entitlements plan_entitlements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plan_entitlements
+    ADD CONSTRAINT plan_entitlements_pkey PRIMARY KEY (plan_id, capability_key);
+
+
+--
+-- Name: plan_prices plan_prices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plan_prices
+    ADD CONSTRAINT plan_prices_pkey PRIMARY KEY (plan_id, period_months);
+
+
+--
+-- Name: plans plans_key_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plans
+    ADD CONSTRAINT plans_key_key UNIQUE (key);
+
+
+--
+-- Name: plans plans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plans
+    ADD CONSTRAINT plans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: platform_signups platform_signups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_signups
+    ADD CONSTRAINT platform_signups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: platform_waitlist_emails platform_waitlist_emails_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_waitlist_emails
+    ADD CONSTRAINT platform_waitlist_emails_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: platform_waitlist platform_waitlist_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_waitlist
+    ADD CONSTRAINT platform_waitlist_pkey PRIMARY KEY (id);
 
 
 --
@@ -11920,14 +13176,6 @@ ALTER TABLE ONLY public.raffle_winners
 
 ALTER TABLE ONLY public.raffles
     ADD CONSTRAINT raffles_pkey PRIMARY KEY (id);
-
-
---
--- Name: rank_card_configs rank_card_configs_guild_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.rank_card_configs
-    ADD CONSTRAINT rank_card_configs_guild_id_key UNIQUE (guild_id);
 
 
 --
@@ -12123,14 +13371,6 @@ ALTER TABLE ONLY public.speak_chat_usage_backup
 
 
 --
--- Name: speak_chat_usage_backup speak_chat_usage_user_id_year_month_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.speak_chat_usage_backup
-    ADD CONSTRAINT speak_chat_usage_user_id_year_month_key UNIQUE (user_id, year, month);
-
-
---
 -- Name: stream_chat_activities stream_chat_activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -12171,19 +13411,107 @@ ALTER TABLE ONLY public.system_admins
 
 
 --
--- Name: system_admins system_admins_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.system_admins
-    ADD CONSTRAINT system_admins_user_id_key UNIQUE (user_id);
-
-
---
 -- Name: tcg_free_pack_claims tcg_free_pack_claims_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tcg_free_pack_claims
     ADD CONSTRAINT tcg_free_pack_claims_pkey PRIMARY KEY (owner_account_id, sobre_tier_id);
+
+
+--
+-- Name: tenant_addons tenant_addons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_addons
+    ADD CONSTRAINT tenant_addons_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tenant_buyer_mfa tenant_buyer_mfa_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_buyer_mfa
+    ADD CONSTRAINT tenant_buyer_mfa_pkey PRIMARY KEY (tenant_id, user_id);
+
+
+--
+-- Name: tenant_buyer_recovery_codes tenant_buyer_recovery_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_buyer_recovery_codes
+    ADD CONSTRAINT tenant_buyer_recovery_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tenant_credentials tenant_credentials_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_credentials
+    ADD CONSTRAINT tenant_credentials_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tenant_credentials tenant_credentials_uq; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_credentials
+    ADD CONSTRAINT tenant_credentials_uq UNIQUE (tenant_id, provider, kind);
+
+
+--
+-- Name: tenant_entitlement_overrides tenant_entitlement_overrides_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_entitlement_overrides
+    ADD CONSTRAINT tenant_entitlement_overrides_pkey PRIMARY KEY (tenant_id, capability_key);
+
+
+--
+-- Name: tenant_keys tenant_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_keys
+    ADD CONSTRAINT tenant_keys_pkey PRIMARY KEY (tenant_id, version);
+
+
+--
+-- Name: tenant_members tenant_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_members
+    ADD CONSTRAINT tenant_members_pkey PRIMARY KEY (tenant_id, user_id);
+
+
+--
+-- Name: tenant_provider_config tenant_provider_config_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_provider_config
+    ADD CONSTRAINT tenant_provider_config_pkey PRIMARY KEY (tenant_id, provider);
+
+
+--
+-- Name: tenant_subscriptions tenant_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_subscriptions
+    ADD CONSTRAINT tenant_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tenants tenants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenants
+    ADD CONSTRAINT tenants_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tenants tenants_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenants
+    ADD CONSTRAINT tenants_slug_key UNIQUE (slug);
 
 
 --
@@ -12240,14 +13568,6 @@ ALTER TABLE ONLY public.timer_event_logs
 
 ALTER TABLE ONLY public.timer_happyhour
     ADD CONSTRAINT timer_happyhour_pkey PRIMARY KEY (id);
-
-
---
--- Name: timer_manual_happyhour timer_manual_happyhour_channel_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.timer_manual_happyhour
-    ADD CONSTRAINT timer_manual_happyhour_channel_name_key UNIQUE (channel_name);
 
 
 --
@@ -12331,19 +13651,19 @@ ALTER TABLE ONLY public.tips_history
 
 
 --
+-- Name: title_game_sync_settings title_game_sync_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.title_game_sync_settings
+    ADD CONSTRAINT title_game_sync_settings_pkey PRIMARY KEY (tenant_id, user_id);
+
+
+--
 -- Name: tournament_blue_shell_rules tournament_blue_shell_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_blue_shell_rules
     ADD CONSTRAINT tournament_blue_shell_rules_pkey PRIMARY KEY (id);
-
-
---
--- Name: tournament_blue_shell_rules tournament_blue_shell_rules_tournament_edition_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_blue_shell_rules
-    ADD CONSTRAINT tournament_blue_shell_rules_tournament_edition_id_key UNIQUE (tournament_edition_id);
 
 
 --
@@ -12371,14 +13691,6 @@ ALTER TABLE ONLY public.tournament_fortnite_configs
 
 
 --
--- Name: tournament_fortnite_configs tournament_fortnite_configs_tournament_edition_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_configs
-    ADD CONSTRAINT tournament_fortnite_configs_tournament_edition_id_key UNIQUE (tournament_edition_id);
-
-
---
 -- Name: tournament_fortnite_files tournament_fortnite_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -12392,22 +13704,6 @@ ALTER TABLE ONLY public.tournament_fortnite_files
 
 ALTER TABLE ONLY public.tournament_fortnite_games
     ADD CONSTRAINT tournament_fortnite_games_pkey PRIMARY KEY (id);
-
-
---
--- Name: tournament_fortnite_games tournament_fortnite_games_session_id_game_number_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_games
-    ADD CONSTRAINT tournament_fortnite_games_session_id_game_number_key UNIQUE (session_id, game_number);
-
-
---
--- Name: tournament_fortnite_group_teams tournament_fortnite_group_teams_group_id_team_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_group_teams
-    ADD CONSTRAINT tournament_fortnite_group_teams_group_id_team_id_key UNIQUE (group_id, team_id);
 
 
 --
@@ -12427,14 +13723,6 @@ ALTER TABLE ONLY public.tournament_fortnite_groups
 
 
 --
--- Name: tournament_fortnite_reports tournament_fortnite_reports_game_id_participant_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_reports
-    ADD CONSTRAINT tournament_fortnite_reports_game_id_participant_id_key UNIQUE (game_id, participant_id);
-
-
---
 -- Name: tournament_fortnite_reports tournament_fortnite_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -12451,27 +13739,11 @@ ALTER TABLE ONLY public.tournament_fortnite_result_audit
 
 
 --
--- Name: tournament_fortnite_results tournament_fortnite_results_game_id_team_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_results
-    ADD CONSTRAINT tournament_fortnite_results_game_id_team_id_key UNIQUE (game_id, team_id);
-
-
---
 -- Name: tournament_fortnite_results tournament_fortnite_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_results
     ADD CONSTRAINT tournament_fortnite_results_pkey PRIMARY KEY (id);
-
-
---
--- Name: tournament_fortnite_session_checkins tournament_fortnite_session_check_session_id_participant_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_session_checkins
-    ADD CONSTRAINT tournament_fortnite_session_check_session_id_participant_id_key UNIQUE (session_id, participant_id);
 
 
 --
@@ -12531,14 +13803,6 @@ ALTER TABLE ONLY public.tournament_overlay_configs
 
 
 --
--- Name: tournament_overlay_configs tournament_overlay_configs_tournament_participant_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_overlay_configs
-    ADD CONSTRAINT tournament_overlay_configs_tournament_participant_id_key UNIQUE (tournament_participant_id);
-
-
---
 -- Name: tournament_participants tournament_participants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -12592,14 +13856,6 @@ ALTER TABLE ONLY public.tournament_shell_events
 
 ALTER TABLE ONLY public.tournament_shell_inventories
     ADD CONSTRAINT tournament_shell_inventories_pkey PRIMARY KEY (id);
-
-
---
--- Name: tournament_shell_inventories tournament_shell_inventories_tournament_participant_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_shell_inventories
-    ADD CONSTRAINT tournament_shell_inventories_tournament_participant_id_key UNIQUE (tournament_participant_id);
 
 
 --
@@ -12659,46 +13915,6 @@ ALTER TABLE ONLY public.tts_credit_ledger
 
 
 --
--- Name: timer_configs uk_timer_config_channel; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.timer_configs
-    ADD CONSTRAINT uk_timer_config_channel UNIQUE (channel_name);
-
-
---
--- Name: stream_chat_activities unique_channel_user_chat; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.stream_chat_activities
-    ADD CONSTRAINT unique_channel_user_chat UNIQUE (channel_id, user_id);
-
-
---
--- Name: stream_watch_times unique_channel_user_watch; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.stream_watch_times
-    ADD CONSTRAINT unique_channel_user_watch UNIQUE (channel_id, user_id);
-
-
---
--- Name: timer_event_cooldowns unique_event_cooldown; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.timer_event_cooldowns
-    ADD CONSTRAINT unique_event_cooldown UNIQUE (channel_name, event_type, user_id);
-
-
---
--- Name: follow_alert_configs unique_follow_alert_channel; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.follow_alert_configs
-    ADD CONSTRAINT unique_follow_alert_channel UNIQUE (channel_name);
-
-
---
 -- Name: upgrade_attempt_log upgrade_attempt_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -12715,83 +13931,11 @@ ALTER TABLE ONLY public.bot_catalog
 
 
 --
--- Name: channel_bot_entries uq_channel_bot_entries; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.channel_bot_entries
-    ADD CONSTRAINT uq_channel_bot_entries UNIQUE (user_id, platform, username);
-
-
---
--- Name: channel_emote_reports uq_channel_emote_reports; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.channel_emote_reports
-    ADD CONSTRAINT uq_channel_emote_reports UNIQUE (emote_id, reporter_user_id);
-
-
---
--- Name: channel_emote_settings uq_channel_emote_settings_user; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.channel_emote_settings
-    ADD CONSTRAINT uq_channel_emote_settings_user UNIQUE (user_id);
-
-
---
--- Name: channel_emote_uploaders uq_channel_emote_uploaders; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.channel_emote_uploaders
-    ADD CONSTRAINT uq_channel_emote_uploaders UNIQUE (user_id, platform, login);
-
-
---
--- Name: chat_overlay_configs uq_chat_overlay_configs_user; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.chat_overlay_configs
-    ADD CONSTRAINT uq_chat_overlay_configs_user UNIQUE (user_id);
-
-
---
 -- Name: card_level_art uq_cla_card_level; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.card_level_art
     ADD CONSTRAINT uq_cla_card_level UNIQUE (card_id, level);
-
-
---
--- Name: event_alerts_configs uq_event_alerts_user; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.event_alerts_configs
-    ADD CONSTRAINT uq_event_alerts_user UNIQUE (user_id);
-
-
---
--- Name: gacha_user_achievements uq_gacha_user_achievement; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.gacha_user_achievements
-    ADD CONSTRAINT uq_gacha_user_achievement UNIQUE (participant_id, achievement_id);
-
-
---
--- Name: gacha_viewer_settings uq_gacha_viewer_user; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.gacha_viewer_settings
-    ADD CONSTRAINT uq_gacha_viewer_user UNIQUE (user_id);
-
-
---
--- Name: gacha_wishlists uq_gacha_wishlist; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.gacha_wishlists
-    ADD CONSTRAINT uq_gacha_wishlist UNIQUE (participant_id, item_id);
 
 
 --
@@ -12803,131 +13947,11 @@ ALTER TABLE ONLY public.global_emote_managers
 
 
 --
--- Name: moderation_filters uq_moderation_filter_channel_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.moderation_filters
-    ADD CONSTRAINT uq_moderation_filter_channel_key UNIQUE (channel_name, filter_key);
-
-
---
--- Name: raffle_participants uq_raffle_participant; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.raffle_participants
-    ADD CONSTRAINT uq_raffle_participant UNIQUE (raffle_id, username);
-
-
---
--- Name: raffle_winners uq_raffle_winner_position; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.raffle_winners
-    ADD CONSTRAINT uq_raffle_winner_position UNIQUE (raffle_id, "position");
-
-
---
--- Name: song_request_bans uq_song_request_bans; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.song_request_bans
-    ADD CONSTRAINT uq_song_request_bans UNIQUE (user_id, ban_type, value);
-
-
---
--- Name: song_request_configs uq_song_request_configs_user; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.song_request_configs
-    ADD CONSTRAINT uq_song_request_configs_user UNIQUE (user_id);
-
-
---
--- Name: song_request_playlist_items uq_song_request_playlist_items; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.song_request_playlist_items
-    ADD CONSTRAINT uq_song_request_playlist_items UNIQUE (playlist_id, track_id);
-
-
---
--- Name: song_request_playlist_votes uq_song_request_playlist_votes; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.song_request_playlist_votes
-    ADD CONSTRAINT uq_song_request_playlist_votes UNIQUE (item_id, platform, login);
-
-
---
 -- Name: song_request_tracks uq_song_request_tracks_source; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_tracks
     ADD CONSTRAINT uq_song_request_tracks_source UNIQUE (source, source_id);
-
-
---
--- Name: song_request_trusted uq_song_request_trusted; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.song_request_trusted
-    ADD CONSTRAINT uq_song_request_trusted UNIQUE (user_id, platform, login);
-
-
---
--- Name: sound_alert_reward_files uq_sound_alert_reward_files_userid_reward; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.sound_alert_reward_files
-    ADD CONSTRAINT uq_sound_alert_reward_files_userid_reward UNIQUE (user_id, reward_id);
-
-
---
--- Name: tournament_editions uq_tournament_editions_channel_slug; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_editions
-    ADD CONSTRAINT uq_tournament_editions_channel_slug UNIQUE (channel_owner_id, slug);
-
-
---
--- Name: tournament_games uq_tournament_games_match_number; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_games
-    ADD CONSTRAINT uq_tournament_games_match_number UNIQUE (tournament_match_id, game_number);
-
-
---
--- Name: tournament_lp_snapshots uq_tournament_lp_snapshots_participant_match; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_lp_snapshots
-    ADD CONSTRAINT uq_tournament_lp_snapshots_participant_match UNIQUE (tournament_participant_id, riot_match_id);
-
-
---
--- Name: tournament_participants uq_tournament_participants_edition_puuid; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_participants
-    ADD CONSTRAINT uq_tournament_participants_edition_puuid UNIQUE (tournament_edition_id, riot_puuid);
-
-
---
--- Name: tournament_riot_configs uq_tournament_riot_configs_channel; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_riot_configs
-    ADD CONSTRAINT uq_tournament_riot_configs_channel UNIQUE (channel_owner_id);
-
-
---
--- Name: tournament_rule_documents uq_tournament_rule_documents_edition_type; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_rule_documents
-    ADD CONSTRAINT uq_tournament_rule_documents_edition_type UNIQUE (tournament_edition_id, type);
 
 
 --
@@ -12939,51 +13963,11 @@ ALTER TABLE ONLY public.tts_cache_entries
 
 
 --
--- Name: user_achievements uq_user_achievement; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: usage_counters usage_counters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.user_achievements
-    ADD CONSTRAINT uq_user_achievement UNIQUE (guild_id, user_id, achievement_id);
-
-
---
--- Name: user_xp uq_user_xp_guild_user; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_xp
-    ADD CONSTRAINT uq_user_xp_guild_user UNIQUE (guild_id, user_id);
-
-
---
--- Name: wheel_raffle_entries uq_wheel_raffle_entry; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wheel_raffle_entries
-    ADD CONSTRAINT uq_wheel_raffle_entry UNIQUE (wheel_id, viewer_login);
-
-
---
--- Name: wheel_wallets uq_wheel_wallets_channel_viewer; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wheel_wallets
-    ADD CONSTRAINT uq_wheel_wallets_channel_viewer UNIQUE (channel_id, viewer_login);
-
-
---
--- Name: wheels uq_wheels_channel_slug; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wheels
-    ADD CONSTRAINT uq_wheels_channel_slug UNIQUE (channel_id, slug);
-
-
---
--- Name: xp_seasonal uq_xp_seasonal; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.xp_seasonal
-    ADD CONSTRAINT uq_xp_seasonal UNIQUE (guild_id, user_id, year_month);
+ALTER TABLE ONLY public.usage_counters
+    ADD CONSTRAINT usage_counters_pkey PRIMARY KEY (tenant_id, capability_key, period_start);
 
 
 --
@@ -13011,14 +13995,6 @@ ALTER TABLE ONLY public.user_fortnite_sprites
 
 
 --
--- Name: user_fortnite_sprites user_fortnite_sprites_user_id_sprite_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_fortnite_sprites
-    ADD CONSTRAINT user_fortnite_sprites_user_id_sprite_id_key UNIQUE (user_id, sprite_id);
-
-
---
 -- Name: user_riot_accounts user_riot_accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -13032,14 +14008,6 @@ ALTER TABLE ONLY public.user_riot_accounts
 
 ALTER TABLE ONLY public.user_spirit_notification_prefs
     ADD CONSTRAINT user_spirit_notification_prefs_pkey PRIMARY KEY (id);
-
-
---
--- Name: user_spirit_notification_prefs user_spirit_notification_prefs_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_spirit_notification_prefs
-    ADD CONSTRAINT user_spirit_notification_prefs_user_id_key UNIQUE (user_id);
 
 
 --
@@ -13059,27 +14027,11 @@ ALTER TABLE ONLY public.user_subscription_tiers
 
 
 --
--- Name: user_subscription_tiers user_subscription_tiers_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_subscription_tiers
-    ADD CONSTRAINT user_subscription_tiers_user_id_key UNIQUE (user_id);
-
-
---
 -- Name: user_xp_global user_xp_global_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_xp_global
     ADD CONSTRAINT user_xp_global_pkey PRIMARY KEY (id);
-
-
---
--- Name: user_xp_global user_xp_global_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_xp_global
-    ADD CONSTRAINT user_xp_global_user_id_key UNIQUE (user_id);
 
 
 --
@@ -13096,6 +14048,14 @@ ALTER TABLE ONLY public.user_xp
 
 ALTER TABLE ONLY public.username_history
     ADD CONSTRAINT username_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: viewer_token_epoch viewer_token_epoch_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.viewer_token_epoch
+    ADD CONSTRAINT viewer_token_epoch_pkey PRIMARY KEY (tenant_id, user_id);
 
 
 --
@@ -13120,14 +14080,6 @@ ALTER TABLE ONLY public.wheel_pending_deliveries
 
 ALTER TABLE ONLY public.wheel_raffle_configs
     ADD CONSTRAINT wheel_raffle_configs_pkey PRIMARY KEY (id);
-
-
---
--- Name: wheel_raffle_configs wheel_raffle_configs_wheel_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.wheel_raffle_configs
-    ADD CONSTRAINT wheel_raffle_configs_wheel_id_key UNIQUE (wheel_id);
 
 
 --
@@ -13192,14 +14144,6 @@ ALTER TABLE ONLY public.xp_achievements
 
 ALTER TABLE ONLY public.xp_boosts
     ADD CONSTRAINT xp_boosts_pkey PRIMARY KEY (id);
-
-
---
--- Name: xp_configs xp_configs_guild_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.xp_configs
-    ADD CONSTRAINT xp_configs_guild_id_key UNIQUE (guild_id);
 
 
 --
@@ -13279,24 +14223,24 @@ CREATE INDEX "IX_command_settings_command_name" ON public.command_settings USING
 
 
 --
--- Name: IX_command_settings_user_id_command_name; Type: INDEX; Schema: public; Owner: -
+-- Name: IX_command_settings_user_id_command_name_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "IX_command_settings_user_id_command_name" ON public.command_settings USING btree (user_id, command_name);
-
-
---
--- Name: IX_scripted_commands_channel_name_command_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "IX_scripted_commands_channel_name_command_name" ON public.scripted_commands USING btree (channel_name, command_name);
+CREATE UNIQUE INDEX "IX_command_settings_user_id_command_name_t" ON public.command_settings USING btree (tenant_id, user_id, command_name);
 
 
 --
--- Name: IX_system_settings_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: IX_scripted_commands_channel_name_command_name_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "IX_system_settings_user_id" ON public.system_settings USING btree (user_id);
+CREATE UNIQUE INDEX "IX_scripted_commands_channel_name_command_name_t" ON public.scripted_commands USING btree (tenant_id, channel_name, command_name);
+
+
+--
+-- Name: IX_system_settings_user_id_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "IX_system_settings_user_id_t" ON public.system_settings USING btree (tenant_id, user_id);
 
 
 --
@@ -13321,20 +14265,6 @@ CREATE INDEX "IX_users_email" ON public.users USING btree (email);
 
 
 --
--- Name: IX_users_login; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "IX_users_login" ON public.users USING btree (login);
-
-
---
--- Name: IX_users_twitch_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX "IX_users_twitch_id" ON public.users USING btree (twitch_id);
-
-
---
 -- Name: IX_users_unique_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -13342,10 +14272,66 @@ CREATE UNIQUE INDEX "IX_users_unique_id" ON public.users USING btree (unique_id)
 
 
 --
+-- Name: billing_profiles_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX billing_profiles_user_id_key_t ON public.billing_profiles USING btree (tenant_id, user_id);
+
+
+--
 -- Name: cards_combo_hash_uidx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX cards_combo_hash_uidx ON public.cards USING btree (combo_hash);
+
+
+--
+-- Name: channels_platform_external_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX channels_platform_external_id_key_t ON public.channels USING btree (tenant_id, platform, external_id);
+
+
+--
+-- Name: channels_user_id_platform_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX channels_user_id_platform_key_t ON public.channels USING btree (tenant_id, user_id, platform);
+
+
+--
+-- Name: decatron_chat_permissions_channel_owner_id_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX decatron_chat_permissions_channel_owner_id_user_id_key_t ON public.decatron_chat_permissions USING btree (tenant_id, channel_owner_id, user_id);
+
+
+--
+-- Name: discord_live_alerts_guild_id_channel_name_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX discord_live_alerts_guild_id_channel_name_key_t ON public.discord_live_alerts USING btree (tenant_id, guild_id, channel_name);
+
+
+--
+-- Name: discord_welcome_configs_guild_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX discord_welcome_configs_guild_id_key_t ON public.discord_welcome_configs USING btree (tenant_id, guild_id);
+
+
+--
+-- Name: game_overlay_configs_user_id_slug_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX game_overlay_configs_user_id_slug_key_t ON public.game_overlay_configs USING btree (tenant_id, user_id, slug);
+
+
+--
+-- Name: giveaway_blacklist_channel_id_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX giveaway_blacklist_channel_id_user_id_key_t ON public.giveaway_blacklist USING btree (tenant_id, channel_id, user_id);
 
 
 --
@@ -13391,6 +14377,13 @@ CREATE INDEX idx_banned_word_channel ON public.banned_words USING btree (channel
 
 
 --
+-- Name: idx_banned_word_channel_word_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_banned_word_channel_word_t ON public.banned_words USING btree (tenant_id, channel_name, word);
+
+
+--
 -- Name: idx_billing_profiles_doc; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -13433,6 +14426,13 @@ CREATE INDEX idx_channel_followers_broadcaster ON public.channel_followers USING
 
 
 --
+-- Name: idx_channel_followers_broadcaster_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_channel_followers_broadcaster_user_t ON public.channel_followers USING btree (tenant_id, broadcaster_id, user_id);
+
+
+--
 -- Name: idx_channel_followers_date; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -13454,10 +14454,10 @@ CREATE INDEX idx_channel_followers_user ON public.channel_followers USING btree 
 
 
 --
--- Name: idx_channel_granted_user; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_channel_granted_user_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_channel_granted_user ON public.user_channel_permissions USING btree (channel_owner_id, granted_user_id);
+CREATE UNIQUE INDEX idx_channel_granted_user_t ON public.user_channel_permissions USING btree (tenant_id, channel_owner_id, granted_user_id);
 
 
 --
@@ -13580,6 +14580,20 @@ CREATE INDEX idx_cla_pending ON public.card_level_art USING btree (requested_at)
 
 
 --
+-- Name: idx_clip_cmd_history_channel; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_clip_cmd_history_channel ON public.clip_command_history USING btree (user_id, created_at DESC);
+
+
+--
+-- Name: idx_clip_cmd_history_requester; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_clip_cmd_history_requester ON public.clip_command_history USING btree (user_id, requested_by_id, created_at DESC);
+
+
+--
 -- Name: idx_coin_discount_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -13643,10 +14657,10 @@ CREATE INDEX idx_coin_purchases_user ON public.coin_purchases USING btree (user_
 
 
 --
--- Name: idx_coin_referrals_referred; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_coin_referrals_referred_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_coin_referrals_referred ON public.coin_referrals USING btree (referred_user_id);
+CREATE UNIQUE INDEX idx_coin_referrals_referred_t ON public.coin_referrals USING btree (tenant_id, referred_user_id);
 
 
 --
@@ -14378,6 +15392,13 @@ CREATE INDEX idx_is_active ON public.custom_commands USING btree (is_active);
 
 
 --
+-- Name: idx_kick_category_cache_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_kick_category_cache_name ON public.kick_category_cache USING btree (lower((name)::text));
+
+
+--
 -- Name: idx_linked_game_accounts_account; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -14385,10 +15406,10 @@ CREATE INDEX idx_linked_game_accounts_account ON public.linked_game_accounts USI
 
 
 --
--- Name: idx_linked_game_accounts_unique_external; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_linked_game_accounts_unique_external_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_linked_game_accounts_unique_external ON public.linked_game_accounts USING btree (account_id, game, provider, external_id) WHERE ((external_id)::text <> ''::text);
+CREATE UNIQUE INDEX idx_linked_game_accounts_unique_external_t ON public.linked_game_accounts USING btree (tenant_id, account_id, game, provider, external_id) WHERE ((external_id)::text <> ''::text);
 
 
 --
@@ -14413,17 +15434,17 @@ CREATE INDEX idx_live_alerts_guild ON public.discord_live_alerts USING btree (gu
 
 
 --
--- Name: idx_live_overlay_configs_user_slug; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_live_overlay_configs_user_slug_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_live_overlay_configs_user_slug ON public.live_overlay_configs USING btree (user_id, slug);
+CREATE UNIQUE INDEX idx_live_overlay_configs_user_slug_t ON public.live_overlay_configs USING btree (tenant_id, user_id, slug);
 
 
 --
--- Name: idx_lol_predictions_game; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_lol_predictions_game_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_lol_predictions_game ON public.lol_predictions USING btree (user_id, game_key);
+CREATE UNIQUE INDEX idx_lol_predictions_game_t ON public.lol_predictions USING btree (tenant_id, user_id, game_key);
 
 
 --
@@ -14452,6 +15473,13 @@ CREATE INDEX idx_micro_game_commands_user_id ON public.micro_game_commands USING
 --
 
 CREATE INDEX idx_moderation_command_configs_user_id ON public.moderation_command_configs USING btree (user_id);
+
+
+--
+-- Name: idx_moderation_config_channel_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_moderation_config_channel_t ON public.moderation_configs USING btree (tenant_id, channel_name);
 
 
 --
@@ -14672,10 +15700,10 @@ CREATE INDEX idx_pci_pending_payment ON public.player_card_instances USING btree
 
 
 --
--- Name: idx_pet_configs_user; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_pet_configs_user_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_pet_configs_user ON public.pet_configs USING btree (user_id);
+CREATE UNIQUE INDEX idx_pet_configs_user_t ON public.pet_configs USING btree (tenant_id, user_id);
 
 
 --
@@ -14798,10 +15826,10 @@ CREATE INDEX idx_rank_card_level_guild ON public.rank_card_level_configs USING b
 
 
 --
--- Name: idx_rank_card_level_unique; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_rank_card_level_unique_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_rank_card_level_unique ON public.rank_card_level_configs USING btree (guild_id, level_min);
+CREATE UNIQUE INDEX idx_rank_card_level_unique_t ON public.rank_card_level_configs USING btree (tenant_id, guild_id, level_min);
 
 
 --
@@ -15309,10 +16337,10 @@ CREATE INDEX idx_timer_templates_user_id ON public.timer_templates USING btree (
 
 
 --
--- Name: idx_timer_templates_user_name; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_timer_templates_user_name_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_timer_templates_user_name ON public.timer_templates USING btree (user_id, name);
+CREATE UNIQUE INDEX idx_timer_templates_user_name_t ON public.timer_templates USING btree (tenant_id, user_id, name);
 
 
 --
@@ -15323,10 +16351,10 @@ CREATE INDEX idx_timers_user_id ON public.timers USING btree (user_id);
 
 
 --
--- Name: idx_tips_config_channel; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_tips_config_channel_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_tips_config_channel ON public.tips_configs USING btree (channel_name);
+CREATE UNIQUE INDEX idx_tips_config_channel_t ON public.tips_configs USING btree (tenant_id, channel_name);
 
 
 --
@@ -15554,10 +16582,10 @@ CREATE INDEX idx_tournament_win_conditions_edition ON public.tournament_win_cond
 
 
 --
--- Name: idx_tts_credit_balances_user; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_tts_credit_balances_user_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_tts_credit_balances_user ON public.tts_credit_balances USING btree (user_id);
+CREATE UNIQUE INDEX idx_tts_credit_balances_user_t ON public.tts_credit_balances USING btree (tenant_id, user_id);
 
 
 --
@@ -15631,10 +16659,10 @@ CREATE INDEX idx_user_coins_economy_status ON public.user_coins USING btree (eco
 
 
 --
--- Name: idx_user_coins_user_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_user_coins_user_id_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_user_coins_user_id ON public.user_coins USING btree (user_id);
+CREATE UNIQUE INDEX idx_user_coins_user_id_t ON public.user_coins USING btree (tenant_id, user_id);
 
 
 --
@@ -15733,20 +16761,6 @@ CREATE INDEX idx_users_account_id ON public.users USING btree (account_id);
 --
 
 CREATE INDEX idx_users_auth_provider ON public.users USING btree (auth_provider);
-
-
---
--- Name: idx_users_discord_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_users_discord_id ON public.users USING btree (discord_id) WHERE (discord_id IS NOT NULL);
-
-
---
--- Name: idx_users_kick_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_users_kick_id ON public.users USING btree (kick_id) WHERE (kick_id IS NOT NULL);
 
 
 --
@@ -15953,6 +16967,48 @@ CREATE INDEX ix_admin_mod_actions_created ON public.admin_mod_actions USING btre
 
 
 --
+-- Name: ix_buyer_recovery_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_buyer_recovery_user ON public.tenant_buyer_recovery_codes USING btree (tenant_id, user_id);
+
+
+--
+-- Name: ix_channel_followers_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_channel_followers_tenant_id ON public.channel_followers USING btree (tenant_id);
+
+
+--
+-- Name: ix_channels_login; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_channels_login ON public.channels USING btree (lower((login)::text));
+
+
+--
+-- Name: ix_channels_tenant; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_channels_tenant ON public.channels USING btree (tenant_id);
+
+
+--
+-- Name: ix_chat_messages_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_chat_messages_tenant_id ON public.chat_messages USING btree (tenant_id);
+
+
+--
+-- Name: ix_credential_access_log_tenant_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_credential_access_log_tenant_at ON public.credential_access_log USING btree (tenant_id, at DESC);
+
+
+--
 -- Name: ix_credit_purchases_invoice; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -15974,10 +17030,24 @@ CREATE INDEX ix_desktop_devices_user ON public.desktop_devices USING btree (user
 
 
 --
+-- Name: ix_entitlement_events_tenant_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_entitlement_events_tenant_at ON public.entitlement_events USING btree (tenant_id, at DESC);
+
+
+--
 -- Name: ix_fixed_costs_range; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX ix_fixed_costs_range ON public.fixed_costs USING btree (starts_on, ends_on);
+
+
+--
+-- Name: ix_follower_history_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_follower_history_tenant_id ON public.follower_history USING btree (tenant_id);
 
 
 --
@@ -15988,122 +17058,458 @@ CREATE INDEX ix_live_translation_sessions_user_started ON public.live_translatio
 
 
 --
--- Name: uq_channel_emotes_live_name; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_platform_signups_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_channel_emotes_live_name ON public.channel_emotes USING btree (user_id, lower((name)::text)) WHERE ((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'hidden'::character varying])::text[]));
-
-
---
--- Name: uq_cmd_counters_userid_cmd; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_cmd_counters_userid_cmd ON public.command_counters USING btree (user_id, command_name);
+CREATE INDEX ix_platform_signups_email ON public.platform_signups USING btree (email, created_at DESC);
 
 
 --
--- Name: uq_cmd_uses_userid_cmd; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_platform_signups_ip; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_cmd_uses_userid_cmd ON public.command_uses USING btree (user_id, command_name);
-
-
---
--- Name: uq_custom_commands_userid_cmd; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_custom_commands_userid_cmd ON public.custom_commands USING btree (user_id, command_name);
+CREATE INDEX ix_platform_signups_ip ON public.platform_signups USING btree (ip_hash, created_at DESC);
 
 
 --
--- Name: uq_decatron_ai_config_userid; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_platform_signups_token; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_decatron_ai_config_userid ON public.decatron_ai_channel_config USING btree (user_id);
-
-
---
--- Name: uq_decatron_ai_permissions_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_decatron_ai_permissions_userid ON public.decatron_ai_channel_permissions USING btree (user_id);
+CREATE INDEX ix_platform_signups_token ON public.platform_signups USING btree (token_hash);
 
 
 --
--- Name: uq_gacha_achievement_userid_code; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_platform_waitlist_emails_sent; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_gacha_achievement_userid_code ON public.gacha_achievements USING btree (user_id, code) WHERE (user_id IS NOT NULL);
-
-
---
--- Name: uq_gacha_cmd_alias_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_gacha_cmd_alias_userid ON public.gacha_command_aliases USING btree (user_id, alias);
+CREATE INDEX ix_platform_waitlist_emails_sent ON public.platform_waitlist_emails USING btree (sent_at);
 
 
 --
--- Name: uq_gacha_cmd_config_userid; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_platform_waitlist_ip; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_gacha_cmd_config_userid ON public.gacha_command_configs USING btree (user_id, command);
-
-
---
--- Name: uq_gacha_integration_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_gacha_integration_userid ON public.gacha_integration_configs USING btree (user_id);
+CREATE INDEX ix_platform_waitlist_ip ON public.platform_waitlist USING btree (ip_hash, created_at);
 
 
 --
--- Name: uq_gacha_overlay_userid; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_platform_waitlist_token; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_gacha_overlay_userid ON public.gacha_overlay_configs USING btree (user_id);
-
-
---
--- Name: uq_gacha_participant_userid_name; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_gacha_participant_userid_name ON public.gacha_participants USING btree (user_id, name);
+CREATE INDEX ix_platform_waitlist_token ON public.platform_waitlist USING btree (confirm_token_hash) WHERE ((confirm_token_hash)::text <> ''::text);
 
 
 --
--- Name: uq_gacha_preference_userid_item_part; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_sound_alert_history_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_gacha_preference_userid_item_part ON public.gacha_preferences USING btree (user_id, item_id, participant_id);
-
-
---
--- Name: uq_gacha_rarity_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_gacha_rarity_userid ON public.gacha_rarity_configs USING btree (user_id, rarity);
+CREATE INDEX ix_sound_alert_history_tenant_id ON public.sound_alert_history USING btree (tenant_id);
 
 
 --
--- Name: uq_gacha_restriction_userid_item; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_stream_chat_activities_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_gacha_restriction_userid_item ON public.gacha_item_restrictions USING btree (user_id, item_id);
-
-
---
--- Name: uq_gacha_sound_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_gacha_sound_userid ON public.gacha_sound_configs USING btree (user_id);
+CREATE INDEX ix_stream_chat_activities_tenant_id ON public.stream_chat_activities USING btree (tenant_id);
 
 
 --
--- Name: uq_global_emote_requests_pending; Type: INDEX; Schema: public; Owner: -
+-- Name: ix_stream_watch_times_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_global_emote_requests_pending ON public.global_emote_requests USING btree (login) WHERE ((status)::text = 'pending'::text);
+CREATE INDEX ix_stream_watch_times_tenant_id ON public.stream_watch_times USING btree (tenant_id);
+
+
+--
+-- Name: ix_tenant_addons_tenant; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tenant_addons_tenant ON public.tenant_addons USING btree (tenant_id, capability_key);
+
+
+--
+-- Name: ix_users_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_users_tenant_id ON public.users USING btree (tenant_id);
+
+
+--
+-- Name: live_translation_access_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX live_translation_access_user_id_key_t ON public.live_translation_access USING btree (tenant_id, user_id);
+
+
+--
+-- Name: live_translation_settings_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX live_translation_settings_user_id_key_t ON public.live_translation_settings USING btree (tenant_id, user_id);
+
+
+--
+-- Name: lol_coach_settings_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX lol_coach_settings_user_id_key_t ON public.lol_coach_settings USING btree (tenant_id, user_id);
+
+
+--
+-- Name: lol_prediction_bets_prediction_id_viewer_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX lol_prediction_bets_prediction_id_viewer_key_t ON public.lol_prediction_bets USING btree (tenant_id, prediction_id, viewer);
+
+
+--
+-- Name: lol_prediction_points_user_id_viewer_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX lol_prediction_points_user_id_viewer_key_t ON public.lol_prediction_points USING btree (tenant_id, user_id, viewer);
+
+
+--
+-- Name: moderation_command_configs_channel_name_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX moderation_command_configs_channel_name_key_t ON public.moderation_command_configs USING btree (tenant_id, channel_name);
+
+
+--
+-- Name: rank_card_configs_guild_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX rank_card_configs_guild_id_key_t ON public.rank_card_configs USING btree (tenant_id, guild_id);
+
+
+--
+-- Name: speak_chat_usage_user_id_year_month_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX speak_chat_usage_user_id_year_month_key_t ON public.speak_chat_usage_backup USING btree (tenant_id, user_id, year, month);
+
+
+--
+-- Name: system_admins_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX system_admins_user_id_key_t ON public.system_admins USING btree (tenant_id, user_id);
+
+
+--
+-- Name: timer_manual_happyhour_channel_name_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX timer_manual_happyhour_channel_name_key_t ON public.timer_manual_happyhour USING btree (tenant_id, channel_name);
+
+
+--
+-- Name: tournament_blue_shell_rules_tournament_edition_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_blue_shell_rules_tournament_edition_id_key_t ON public.tournament_blue_shell_rules USING btree (tenant_id, tournament_edition_id);
+
+
+--
+-- Name: tournament_fortnite_configs_tournament_edition_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_fortnite_configs_tournament_edition_id_key_t ON public.tournament_fortnite_configs USING btree (tenant_id, tournament_edition_id);
+
+
+--
+-- Name: tournament_fortnite_games_session_id_game_number_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_fortnite_games_session_id_game_number_key_t ON public.tournament_fortnite_games USING btree (tenant_id, session_id, game_number);
+
+
+--
+-- Name: tournament_fortnite_group_teams_group_id_team_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_fortnite_group_teams_group_id_team_id_key_t ON public.tournament_fortnite_group_teams USING btree (tenant_id, group_id, team_id);
+
+
+--
+-- Name: tournament_fortnite_reports_game_id_participant_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_fortnite_reports_game_id_participant_id_key_t ON public.tournament_fortnite_reports USING btree (tenant_id, game_id, participant_id);
+
+
+--
+-- Name: tournament_fortnite_results_game_id_team_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_fortnite_results_game_id_team_id_key_t ON public.tournament_fortnite_results USING btree (tenant_id, game_id, team_id);
+
+
+--
+-- Name: tournament_fortnite_session_check_session_id_participant_id__t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_fortnite_session_check_session_id_participant_id__t ON public.tournament_fortnite_session_checkins USING btree (tenant_id, session_id, participant_id);
+
+
+--
+-- Name: tournament_overlay_configs_tournament_participant_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_overlay_configs_tournament_participant_id_key_t ON public.tournament_overlay_configs USING btree (tenant_id, tournament_participant_id);
+
+
+--
+-- Name: tournament_shell_inventories_tournament_participant_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tournament_shell_inventories_tournament_participant_id_key_t ON public.tournament_shell_inventories USING btree (tenant_id, tournament_participant_id);
+
+
+--
+-- Name: uk_timer_config_channel_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uk_timer_config_channel_t ON public.timer_configs USING btree (tenant_id, channel_name);
+
+
+--
+-- Name: unique_channel_user_chat_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_channel_user_chat_t ON public.stream_chat_activities USING btree (tenant_id, channel_id, user_id);
+
+
+--
+-- Name: unique_channel_user_watch_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_channel_user_watch_t ON public.stream_watch_times USING btree (tenant_id, channel_id, user_id);
+
+
+--
+-- Name: unique_event_cooldown_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_event_cooldown_t ON public.timer_event_cooldowns USING btree (tenant_id, channel_name, event_type, user_id);
+
+
+--
+-- Name: unique_follow_alert_channel_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_follow_alert_channel_t ON public.follow_alert_configs USING btree (tenant_id, channel_name);
+
+
+--
+-- Name: uq_channel_bot_entries_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_channel_bot_entries_t ON public.channel_bot_entries USING btree (tenant_id, user_id, platform, username);
+
+
+--
+-- Name: uq_channel_emote_reports_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_channel_emote_reports_t ON public.channel_emote_reports USING btree (tenant_id, emote_id, reporter_user_id);
+
+
+--
+-- Name: uq_channel_emote_settings_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_channel_emote_settings_user_t ON public.channel_emote_settings USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_channel_emote_uploaders_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_channel_emote_uploaders_t ON public.channel_emote_uploaders USING btree (tenant_id, user_id, platform, login);
+
+
+--
+-- Name: uq_channel_emotes_live_name_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_channel_emotes_live_name_t ON public.channel_emotes USING btree (tenant_id, user_id, lower((name)::text)) WHERE ((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('approved'::character varying)::text, ('hidden'::character varying)::text]));
+
+
+--
+-- Name: uq_chat_overlay_configs_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_chat_overlay_configs_user_t ON public.chat_overlay_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_clip_cmd_history_clip_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_clip_cmd_history_clip_t ON public.clip_command_history USING btree (tenant_id, user_id, clip_id) WHERE (clip_id IS NOT NULL);
+
+
+--
+-- Name: uq_clip_command_blocks_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_clip_command_blocks_t ON public.clip_command_blocks USING btree (tenant_id, user_id, twitch_user_id);
+
+
+--
+-- Name: uq_clip_command_configs_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_clip_command_configs_user_t ON public.clip_command_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_cmd_counters_userid_cmd_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_cmd_counters_userid_cmd_t ON public.command_counters USING btree (tenant_id, user_id, command_name);
+
+
+--
+-- Name: uq_cmd_uses_userid_cmd_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_cmd_uses_userid_cmd_t ON public.command_uses USING btree (tenant_id, user_id, command_name);
+
+
+--
+-- Name: uq_custom_commands_userid_cmd_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_custom_commands_userid_cmd_t ON public.custom_commands USING btree (tenant_id, user_id, command_name);
+
+
+--
+-- Name: uq_decatron_ai_config_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_decatron_ai_config_userid_t ON public.decatron_ai_channel_config USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_decatron_ai_permissions_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_decatron_ai_permissions_userid_t ON public.decatron_ai_channel_permissions USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_discord_template_bindings_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_discord_template_bindings_t ON public.discord_template_bindings USING btree (tenant_id, guild_id, template_key, object_key);
+
+
+--
+-- Name: uq_event_alerts_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_event_alerts_user_t ON public.event_alerts_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_gacha_achievement_userid_code_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_achievement_userid_code_t ON public.gacha_achievements USING btree (tenant_id, user_id, code) WHERE (user_id IS NOT NULL);
+
+
+--
+-- Name: uq_gacha_cmd_alias_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_cmd_alias_userid_t ON public.gacha_command_aliases USING btree (tenant_id, user_id, alias);
+
+
+--
+-- Name: uq_gacha_cmd_config_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_cmd_config_userid_t ON public.gacha_command_configs USING btree (tenant_id, user_id, command);
+
+
+--
+-- Name: uq_gacha_integration_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_integration_userid_t ON public.gacha_integration_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_gacha_overlay_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_overlay_userid_t ON public.gacha_overlay_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_gacha_participant_userid_name_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_participant_userid_name_t ON public.gacha_participants USING btree (tenant_id, user_id, name);
+
+
+--
+-- Name: uq_gacha_preference_userid_item_part_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_preference_userid_item_part_t ON public.gacha_preferences USING btree (tenant_id, user_id, item_id, participant_id);
+
+
+--
+-- Name: uq_gacha_rarity_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_rarity_userid_t ON public.gacha_rarity_configs USING btree (tenant_id, user_id, rarity);
+
+
+--
+-- Name: uq_gacha_restriction_userid_item_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_restriction_userid_item_t ON public.gacha_item_restrictions USING btree (tenant_id, user_id, item_id);
+
+
+--
+-- Name: uq_gacha_sound_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_sound_userid_t ON public.gacha_sound_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_gacha_user_achievement_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_user_achievement_t ON public.gacha_user_achievements USING btree (tenant_id, participant_id, achievement_id);
+
+
+--
+-- Name: uq_gacha_viewer_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_viewer_user_t ON public.gacha_viewer_settings USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_gacha_wishlist_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_gacha_wishlist_t ON public.gacha_wishlists USING btree (tenant_id, participant_id, item_id);
+
+
+--
+-- Name: uq_global_emote_requests_pending_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_global_emote_requests_pending_t ON public.global_emote_requests USING btree (tenant_id, login) WHERE ((status)::text = 'pending'::text);
 
 
 --
@@ -16114,80 +17520,199 @@ CREATE UNIQUE INDEX uq_global_emotes_name ON public.global_emotes USING btree (l
 
 
 --
--- Name: uq_micro_game_userid_cmd; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_micro_game_userid_cmd_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_micro_game_userid_cmd ON public.micro_game_commands USING btree (user_id, short_command);
-
-
---
--- Name: uq_public_command_overrides_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_public_command_overrides_key ON public.public_command_overrides USING btree (user_id, category, command_key);
+CREATE UNIQUE INDEX uq_micro_game_userid_cmd_t ON public.micro_game_commands USING btree (tenant_id, user_id, short_command);
 
 
 --
--- Name: uq_ruleta_command_configs_userid; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_moderation_filter_channel_key_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_ruleta_command_configs_userid ON public.ruleta_command_configs USING btree (user_id);
-
-
---
--- Name: uq_shoutout_configs_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_shoutout_configs_userid ON public.shoutout_configs USING btree (user_id);
+CREATE UNIQUE INDEX uq_moderation_filter_channel_key_t ON public.moderation_filters USING btree (tenant_id, channel_name, filter_key);
 
 
 --
--- Name: uq_song_request_playlists_fallback; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_multiview_layouts_owner_name_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_song_request_playlists_fallback ON public.song_request_playlists USING btree (user_id) WHERE is_fallback;
-
-
---
--- Name: uq_sound_alert_configs_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_sound_alert_configs_userid ON public.sound_alert_configs USING btree (user_id);
+CREATE UNIQUE INDEX uq_multiview_layouts_owner_name_t ON public.multiview_layouts USING btree (tenant_id, owner_user_id, lower((name)::text));
 
 
 --
--- Name: uq_sound_alert_file_userid_reward; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_public_command_overrides_key_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_sound_alert_file_userid_reward ON public.sound_alert_files USING btree (user_id, reward_id);
-
-
---
--- Name: uq_speak_chat_configs_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_speak_chat_configs_user_id ON public.speak_chat_configs USING btree (user_id);
+CREATE UNIQUE INDEX uq_public_command_overrides_key_t ON public.public_command_overrides USING btree (tenant_id, user_id, category, command_key);
 
 
 --
--- Name: uq_timer_states_userid; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_raffle_participant_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_timer_states_userid ON public.timer_states USING btree (user_id);
-
-
---
--- Name: uq_tournament_participants_edition_account; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_tournament_participants_edition_account ON public.tournament_participants USING btree (tournament_edition_id, account_id) WHERE (account_id IS NOT NULL);
+CREATE UNIQUE INDEX uq_raffle_participant_t ON public.raffle_participants USING btree (tenant_id, raffle_id, username);
 
 
 --
--- Name: uq_tournament_participants_edition_game_account; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_raffle_winner_position_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_tournament_participants_edition_game_account ON public.tournament_participants USING btree (tournament_edition_id, lower((game_account_name)::text)) WHERE (game_account_name IS NOT NULL);
+CREATE UNIQUE INDEX uq_raffle_winner_position_t ON public.raffle_winners USING btree (tenant_id, raffle_id, "position");
+
+
+--
+-- Name: uq_ruleta_command_configs_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_ruleta_command_configs_userid_t ON public.ruleta_command_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_shoutout_configs_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_shoutout_configs_userid_t ON public.shoutout_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_song_request_bans_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_song_request_bans_t ON public.song_request_bans USING btree (tenant_id, user_id, ban_type, value);
+
+
+--
+-- Name: uq_song_request_configs_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_song_request_configs_user_t ON public.song_request_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_song_request_playlist_items_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_song_request_playlist_items_t ON public.song_request_playlist_items USING btree (tenant_id, playlist_id, track_id);
+
+
+--
+-- Name: uq_song_request_playlist_votes_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_song_request_playlist_votes_t ON public.song_request_playlist_votes USING btree (tenant_id, item_id, platform, login);
+
+
+--
+-- Name: uq_song_request_playlists_fallback_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_song_request_playlists_fallback_t ON public.song_request_playlists USING btree (tenant_id, user_id) WHERE is_fallback;
+
+
+--
+-- Name: uq_song_request_trusted_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_song_request_trusted_t ON public.song_request_trusted USING btree (tenant_id, user_id, platform, login);
+
+
+--
+-- Name: uq_sound_alert_configs_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_sound_alert_configs_userid_t ON public.sound_alert_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_sound_alert_file_userid_reward_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_sound_alert_file_userid_reward_t ON public.sound_alert_files USING btree (tenant_id, user_id, reward_id);
+
+
+--
+-- Name: uq_sound_alert_reward_files_userid_reward_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_sound_alert_reward_files_userid_reward_t ON public.sound_alert_reward_files USING btree (tenant_id, user_id, reward_id);
+
+
+--
+-- Name: uq_speak_chat_configs_user_id_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_speak_chat_configs_user_id_t ON public.speak_chat_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_tenant_subscriptions_vigente; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tenant_subscriptions_vigente ON public.tenant_subscriptions USING btree (tenant_id) WHERE ((status)::text <> 'cancelled'::text);
+
+
+--
+-- Name: uq_timer_states_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_timer_states_userid_t ON public.timer_states USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_tournament_editions_channel_slug_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_editions_channel_slug_t ON public.tournament_editions USING btree (tenant_id, channel_owner_id, slug);
+
+
+--
+-- Name: uq_tournament_games_match_number_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_games_match_number_t ON public.tournament_games USING btree (tenant_id, tournament_match_id, game_number);
+
+
+--
+-- Name: uq_tournament_lp_snapshots_participant_match_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_lp_snapshots_participant_match_t ON public.tournament_lp_snapshots USING btree (tenant_id, tournament_participant_id, riot_match_id);
+
+
+--
+-- Name: uq_tournament_participants_edition_account_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_participants_edition_account_t ON public.tournament_participants USING btree (tenant_id, tournament_edition_id, account_id) WHERE (account_id IS NOT NULL);
+
+
+--
+-- Name: uq_tournament_participants_edition_game_account_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_participants_edition_game_account_t ON public.tournament_participants USING btree (tenant_id, tournament_edition_id, lower((game_account_name)::text)) WHERE (game_account_name IS NOT NULL);
+
+
+--
+-- Name: uq_tournament_participants_edition_puuid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_participants_edition_puuid_t ON public.tournament_participants USING btree (tenant_id, tournament_edition_id, riot_puuid);
+
+
+--
+-- Name: uq_tournament_riot_configs_channel_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_riot_configs_channel_t ON public.tournament_riot_configs USING btree (tenant_id, channel_owner_id);
+
+
+--
+-- Name: uq_tournament_rule_documents_edition_type_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_tournament_rule_documents_edition_type_t ON public.tournament_rule_documents USING btree (tenant_id, tournament_edition_id, type);
 
 
 --
@@ -16198,24 +17723,94 @@ CREATE UNIQUE INDEX uq_tournament_teams_join_code ON public.tournament_teams USI
 
 
 --
--- Name: uq_user_strike_userid_username; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_user_achievement_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_user_strike_userid_username ON public.user_strikes USING btree (user_id, username);
-
-
---
--- Name: uq_watchtime_command_configs_userid; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uq_watchtime_command_configs_userid ON public.watchtime_command_configs USING btree (user_id);
+CREATE UNIQUE INDEX uq_user_achievement_t ON public.user_achievements USING btree (tenant_id, guild_id, user_id, achievement_id);
 
 
 --
--- Name: uq_wheel_wallet_sources; Type: INDEX; Schema: public; Owner: -
+-- Name: uq_user_strike_userid_username_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uq_wheel_wallet_sources ON public.wheel_wallet_sources USING btree (wheel_id, source, COALESCE(channel_points_reward_id, ''::character varying));
+CREATE UNIQUE INDEX uq_user_strike_userid_username_t ON public.user_strikes USING btree (tenant_id, user_id, username);
+
+
+--
+-- Name: uq_user_xp_guild_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_user_xp_guild_user_t ON public.user_xp USING btree (tenant_id, guild_id, user_id);
+
+
+--
+-- Name: uq_watchtime_command_configs_userid_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_watchtime_command_configs_userid_t ON public.watchtime_command_configs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: uq_wheel_raffle_entry_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_wheel_raffle_entry_t ON public.wheel_raffle_entries USING btree (tenant_id, wheel_id, viewer_login);
+
+
+--
+-- Name: uq_wheel_wallet_sources_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_wheel_wallet_sources_t ON public.wheel_wallet_sources USING btree (tenant_id, wheel_id, source, COALESCE(channel_points_reward_id, ''::character varying));
+
+
+--
+-- Name: uq_wheel_wallets_channel_viewer_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_wheel_wallets_channel_viewer_t ON public.wheel_wallets USING btree (tenant_id, channel_id, viewer_login);
+
+
+--
+-- Name: uq_wheels_channel_slug_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_wheels_channel_slug_t ON public.wheels USING btree (tenant_id, channel_id, slug);
+
+
+--
+-- Name: uq_xp_seasonal_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_xp_seasonal_t ON public.xp_seasonal USING btree (tenant_id, guild_id, user_id, year_month);
+
+
+--
+-- Name: user_fortnite_sprites_user_id_sprite_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX user_fortnite_sprites_user_id_sprite_id_key_t ON public.user_fortnite_sprites USING btree (tenant_id, user_id, sprite_id);
+
+
+--
+-- Name: user_spirit_notification_prefs_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX user_spirit_notification_prefs_user_id_key_t ON public.user_spirit_notification_prefs USING btree (tenant_id, user_id);
+
+
+--
+-- Name: user_subscription_tiers_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX user_subscription_tiers_user_id_key_t ON public.user_subscription_tiers USING btree (tenant_id, user_id);
+
+
+--
+-- Name: user_xp_global_user_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX user_xp_global_user_id_key_t ON public.user_xp_global USING btree (tenant_id, user_id);
 
 
 --
@@ -16233,10 +17828,339 @@ CREATE UNIQUE INDEX ux_design_versions_published ON public.design_versions USING
 
 
 --
+-- Name: ux_platform_waitlist_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_platform_waitlist_email ON public.platform_waitlist USING btree (email);
+
+
+--
 -- Name: ux_song_request_playlists_share_code; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX ux_song_request_playlists_share_code ON public.song_request_playlists USING btree (share_code);
+
+
+--
+-- Name: ux_t_accounts_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_accounts_b80bb7740288fda1f201890375a60c8f ON public.accounts USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_channel_emotes_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_channel_emotes_b80bb7740288fda1f201890375a60c8f ON public.channel_emotes USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_coin_purchases_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_coin_purchases_b80bb7740288fda1f201890375a60c8f ON public.coin_purchases USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_decatron_chat_conversations_b80bb7740288fda1f201890375a60c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_decatron_chat_conversations_b80bb7740288fda1f201890375a60c ON public.decatron_chat_conversations USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_desktop_devices_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_desktop_devices_b80bb7740288fda1f201890375a60c8f ON public.desktop_devices USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_discord_guild_configs_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_discord_guild_configs_b80bb7740288fda1f201890375a60c8f ON public.discord_guild_configs USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_discord_live_alerts_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_discord_live_alerts_b80bb7740288fda1f201890375a60c8f ON public.discord_live_alerts USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_gacha_achievements_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_gacha_achievements_b80bb7740288fda1f201890375a60c8f ON public.gacha_achievements USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_gacha_items_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_gacha_items_b80bb7740288fda1f201890375a60c8f ON public.gacha_items USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_gacha_participants_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_gacha_participants_b80bb7740288fda1f201890375a60c8f ON public.gacha_participants USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_giveaway_configs_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_giveaway_configs_b80bb7740288fda1f201890375a60c8f ON public.giveaway_configs USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_giveaway_participants_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_giveaway_participants_b80bb7740288fda1f201890375a60c8f ON public.giveaway_participants USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_giveaway_sessions_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_giveaway_sessions_b80bb7740288fda1f201890375a60c8f ON public.giveaway_sessions USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_linked_game_accounts_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_linked_game_accounts_b80bb7740288fda1f201890375a60c8f ON public.linked_game_accounts USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_lol_predictions_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_lol_predictions_b80bb7740288fda1f201890375a60c8f ON public.lol_predictions USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_oauth_access_tokens_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_oauth_access_tokens_b80bb7740288fda1f201890375a60c8f ON public.oauth_access_tokens USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_oauth_applications_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_oauth_applications_b80bb7740288fda1f201890375a60c8f ON public.oauth_applications USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_player_card_instances_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_player_card_instances_b80bb7740288fda1f201890375a60c8f ON public.player_card_instances USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_raffle_participants_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_raffle_participants_b80bb7740288fda1f201890375a60c8f ON public.raffle_participants USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_raffles_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_raffles_b80bb7740288fda1f201890375a60c8f ON public.raffles USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_song_request_playlist_items_b80bb7740288fda1f201890375a60c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_song_request_playlist_items_b80bb7740288fda1f201890375a60c ON public.song_request_playlist_items USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_song_request_playlists_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_song_request_playlists_b80bb7740288fda1f201890375a60c8f ON public.song_request_playlists USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_timer_media_files_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_timer_media_files_b80bb7740288fda1f201890375a60c8f ON public.timer_media_files USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_timer_sessions_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_timer_sessions_b80bb7740288fda1f201890375a60c8f ON public.timer_sessions USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_divisions_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_divisions_b80bb7740288fda1f201890375a60c8f ON public.tournament_divisions USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_editions_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_editions_b80bb7740288fda1f201890375a60c8f ON public.tournament_editions USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_fortnite_files_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_fortnite_files_b80bb7740288fda1f201890375a60c8f ON public.tournament_fortnite_files USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_fortnite_games_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_fortnite_games_b80bb7740288fda1f201890375a60c8f ON public.tournament_fortnite_games USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_fortnite_groups_b80bb7740288fda1f201890375a60c8; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_fortnite_groups_b80bb7740288fda1f201890375a60c8 ON public.tournament_fortnite_groups USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_fortnite_sessions_b80bb7740288fda1f201890375a60; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_fortnite_sessions_b80bb7740288fda1f201890375a60 ON public.tournament_fortnite_sessions USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_matches_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_matches_b80bb7740288fda1f201890375a60c8f ON public.tournament_matches USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_participants_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_participants_b80bb7740288fda1f201890375a60c8f ON public.tournament_participants USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_punishment_types_b80bb7740288fda1f201890375a60c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_punishment_types_b80bb7740288fda1f201890375a60c ON public.tournament_punishment_types USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_shell_triggers_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_shell_triggers_b80bb7740288fda1f201890375a60c8f ON public.tournament_shell_triggers USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_tournament_teams_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_tournament_teams_b80bb7740288fda1f201890375a60c8f ON public.tournament_teams USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_wheel_segments_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_wheel_segments_b80bb7740288fda1f201890375a60c8f ON public.wheel_segments USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_wheel_spins_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_wheel_spins_b80bb7740288fda1f201890375a60c8f ON public.wheel_spins USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_wheels_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_wheels_b80bb7740288fda1f201890375a60c8f ON public.wheels USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_xp_achievements_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_xp_achievements_b80bb7740288fda1f201890375a60c8f ON public.xp_achievements USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_t_xp_store_items_b80bb7740288fda1f201890375a60c8f; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_t_xp_store_items_b80bb7740288fda1f201890375a60c8f ON public.xp_store_items USING btree (tenant_id, id);
+
+
+--
+-- Name: ux_users_tenant_discord_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_users_tenant_discord_id ON public.users USING btree (tenant_id, discord_id) WHERE (discord_id IS NOT NULL);
+
+
+--
+-- Name: ux_users_tenant_kick_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_users_tenant_kick_id ON public.users USING btree (tenant_id, kick_id) WHERE (kick_id IS NOT NULL);
+
+
+--
+-- Name: ux_users_tenant_login; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_users_tenant_login ON public.users USING btree (tenant_id, login);
+
+
+--
+-- Name: ux_users_tenant_twitch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_users_tenant_twitch_id ON public.users USING btree (tenant_id, twitch_id);
+
+
+--
+-- Name: wheel_raffle_configs_wheel_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX wheel_raffle_configs_wheel_id_key_t ON public.wheel_raffle_configs USING btree (tenant_id, wheel_id);
+
+
+--
+-- Name: xp_configs_guild_id_key_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX xp_configs_guild_id_key_t ON public.xp_configs USING btree (tenant_id, guild_id);
 
 
 --
@@ -16267,6 +18191,14 @@ ALTER TABLE ONLY public.command_settings
 
 ALTER TABLE ONLY public.game_aliases
     ADD CONSTRAINT "FK_game_aliases_game_cache_game_id" FOREIGN KEY (game_id) REFERENCES public.game_cache(game_id) ON DELETE CASCADE;
+
+
+--
+-- Name: addon_prices addon_prices_capability_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.addon_prices
+    ADD CONSTRAINT addon_prices_capability_key_fkey FOREIGN KEY (capability_key) REFERENCES public.capabilities(key) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -16310,11 +18242,11 @@ ALTER TABLE ONLY public.channel_bot_entries
 
 
 --
--- Name: channel_emote_reports channel_emote_reports_emote_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: channel_emote_reports channel_emote_reports_emote_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.channel_emote_reports
-    ADD CONSTRAINT channel_emote_reports_emote_id_fkey FOREIGN KEY (emote_id) REFERENCES public.channel_emotes(id) ON DELETE CASCADE;
+    ADD CONSTRAINT channel_emote_reports_emote_id_fkey_t FOREIGN KEY (tenant_id, emote_id) REFERENCES public.channel_emotes(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -16358,11 +18290,51 @@ ALTER TABLE ONLY public.channel_emotes
 
 
 --
+-- Name: channels channels_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channels
+    ADD CONSTRAINT channels_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: channels channels_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.channels
+    ADD CONSTRAINT channels_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: chat_overlay_configs chat_overlay_configs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chat_overlay_configs
     ADD CONSTRAINT chat_overlay_configs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: clip_command_blocks clip_command_blocks_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_blocks
+    ADD CONSTRAINT clip_command_blocks_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: clip_command_configs clip_command_configs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_configs
+    ADD CONSTRAINT clip_command_configs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: clip_command_history clip_command_history_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.clip_command_history
+    ADD CONSTRAINT clip_command_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -16398,11 +18370,11 @@ ALTER TABLE ONLY public.coin_discount_uses
 
 
 --
--- Name: coin_discount_uses coin_discount_uses_purchase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: coin_discount_uses coin_discount_uses_purchase_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.coin_discount_uses
-    ADD CONSTRAINT coin_discount_uses_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES public.coin_purchases(id);
+    ADD CONSTRAINT coin_discount_uses_purchase_id_fkey_t FOREIGN KEY (tenant_id, purchase_id) REFERENCES public.coin_purchases(tenant_id, id);
 
 
 --
@@ -16526,11 +18498,11 @@ ALTER TABLE ONLY public.decatron_chat_conversations
 
 
 --
--- Name: decatron_chat_messages decatron_chat_messages_conversation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: decatron_chat_messages decatron_chat_messages_conversation_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.decatron_chat_messages
-    ADD CONSTRAINT decatron_chat_messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.decatron_chat_conversations(id) ON DELETE CASCADE;
+    ADD CONSTRAINT decatron_chat_messages_conversation_id_fkey_t FOREIGN KEY (tenant_id, conversation_id) REFERENCES public.decatron_chat_conversations(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -16566,27 +18538,27 @@ ALTER TABLE ONLY public.decatron_chat_permissions
 
 
 --
--- Name: discord_alert_messages discord_alert_messages_alert_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: discord_alert_messages discord_alert_messages_alert_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.discord_alert_messages
-    ADD CONSTRAINT discord_alert_messages_alert_id_fkey FOREIGN KEY (alert_id) REFERENCES public.discord_live_alerts(id) ON DELETE CASCADE;
+    ADD CONSTRAINT discord_alert_messages_alert_id_fkey_t FOREIGN KEY (tenant_id, alert_id) REFERENCES public.discord_live_alerts(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: discord_live_alerts discord_live_alerts_guild_config_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: discord_live_alerts discord_live_alerts_guild_config_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.discord_live_alerts
-    ADD CONSTRAINT discord_live_alerts_guild_config_id_fkey FOREIGN KEY (guild_config_id) REFERENCES public.discord_guild_configs(id) ON DELETE CASCADE;
+    ADD CONSTRAINT discord_live_alerts_guild_config_id_fkey_t FOREIGN KEY (tenant_id, guild_config_id) REFERENCES public.discord_guild_configs(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: discord_welcome_configs discord_welcome_configs_guild_config_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: discord_welcome_configs discord_welcome_configs_guild_config_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.discord_welcome_configs
-    ADD CONSTRAINT discord_welcome_configs_guild_config_id_fkey FOREIGN KEY (guild_config_id) REFERENCES public.discord_guild_configs(id) ON DELETE CASCADE;
+    ADD CONSTRAINT discord_welcome_configs_guild_config_id_fkey_t FOREIGN KEY (tenant_id, guild_config_id) REFERENCES public.discord_guild_configs(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -16830,27 +18802,27 @@ ALTER TABLE ONLY public.now_playing_configs
 
 
 --
--- Name: raffle_participants fk_raffle_participants_raffle; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: raffle_participants fk_raffle_participants_raffle_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.raffle_participants
-    ADD CONSTRAINT fk_raffle_participants_raffle FOREIGN KEY (raffle_id) REFERENCES public.raffles(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_raffle_participants_raffle_t FOREIGN KEY (tenant_id, raffle_id) REFERENCES public.raffles(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: raffle_winners fk_raffle_winners_participant; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.raffle_winners
-    ADD CONSTRAINT fk_raffle_winners_participant FOREIGN KEY (participant_id) REFERENCES public.raffle_participants(id) ON DELETE CASCADE;
-
-
---
--- Name: raffle_winners fk_raffle_winners_raffle; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: raffle_winners fk_raffle_winners_participant_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.raffle_winners
-    ADD CONSTRAINT fk_raffle_winners_raffle FOREIGN KEY (raffle_id) REFERENCES public.raffles(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_raffle_winners_participant_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.raffle_participants(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: raffle_winners fk_raffle_winners_raffle_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.raffle_winners
+    ADD CONSTRAINT fk_raffle_winners_raffle_t FOREIGN KEY (tenant_id, raffle_id) REFERENCES public.raffles(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -16910,11 +18882,11 @@ ALTER TABLE ONLY public.sound_alert_history
 
 
 --
--- Name: timer_session_backups fk_timer_backup_channel; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: timer_session_backups fk_timer_backup_channel_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.timer_session_backups
-    ADD CONSTRAINT fk_timer_backup_channel FOREIGN KEY (channel_name) REFERENCES public.timer_configs(channel_name) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_timer_backup_channel_t FOREIGN KEY (tenant_id, channel_name) REFERENCES public.timer_configs(tenant_id, channel_name) ON DELETE CASCADE;
 
 
 --
@@ -16942,11 +18914,11 @@ ALTER TABLE ONLY public.timers
 
 
 --
--- Name: timer_event_logs fk_timer_event_logs_timer_sessions_timer_session_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: timer_event_logs fk_timer_event_logs_timer_sessions_timer_session_id_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.timer_event_logs
-    ADD CONSTRAINT fk_timer_event_logs_timer_sessions_timer_session_id FOREIGN KEY (timer_session_id) REFERENCES public.timer_sessions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT fk_timer_event_logs_timer_sessions_timer_session_id_t FOREIGN KEY (tenant_id, timer_session_id) REFERENCES public.timer_sessions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17062,115 +19034,115 @@ ALTER TABLE ONLY public.user_strikes
 
 
 --
--- Name: gacha_inventory gacha_inventory_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_inventory gacha_inventory_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_inventory
-    ADD CONSTRAINT gacha_inventory_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.gacha_items(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_inventory_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_inventory gacha_inventory_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_inventory gacha_inventory_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_inventory
-    ADD CONSTRAINT gacha_inventory_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.gacha_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_inventory_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.gacha_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_item_restrictions gacha_item_restrictions_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_item_restrictions gacha_item_restrictions_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_item_restrictions
-    ADD CONSTRAINT gacha_item_restrictions_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.gacha_items(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_item_restrictions_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_participants gacha_participants_forced_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_participants gacha_participants_forced_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_participants
-    ADD CONSTRAINT gacha_participants_forced_item_id_fkey FOREIGN KEY (forced_item_id) REFERENCES public.gacha_items(id) ON DELETE SET NULL;
+    ADD CONSTRAINT gacha_participants_forced_item_id_fkey_t FOREIGN KEY (tenant_id, forced_item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE SET NULL (forced_item_id);
 
 
 --
--- Name: gacha_preferences gacha_preferences_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.gacha_preferences
-    ADD CONSTRAINT gacha_preferences_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.gacha_items(id) ON DELETE CASCADE;
-
-
---
--- Name: gacha_preferences gacha_preferences_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_preferences gacha_preferences_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_preferences
-    ADD CONSTRAINT gacha_preferences_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.gacha_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_preferences_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_pull_logs gacha_pull_logs_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_preferences gacha_preferences_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gacha_preferences
+    ADD CONSTRAINT gacha_preferences_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.gacha_participants(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: gacha_pull_logs gacha_pull_logs_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_pull_logs
-    ADD CONSTRAINT gacha_pull_logs_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.gacha_items(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_pull_logs_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_pull_logs gacha_pull_logs_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_pull_logs gacha_pull_logs_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_pull_logs
-    ADD CONSTRAINT gacha_pull_logs_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.gacha_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_pull_logs_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.gacha_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_rarity_restrictions gacha_rarity_restrictions_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.gacha_rarity_restrictions
-    ADD CONSTRAINT gacha_rarity_restrictions_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.gacha_items(id) ON DELETE CASCADE;
-
-
---
--- Name: gacha_rarity_restrictions gacha_rarity_restrictions_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_rarity_restrictions gacha_rarity_restrictions_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_rarity_restrictions
-    ADD CONSTRAINT gacha_rarity_restrictions_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.gacha_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_rarity_restrictions_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_showcases gacha_showcases_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_rarity_restrictions gacha_rarity_restrictions_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gacha_rarity_restrictions
+    ADD CONSTRAINT gacha_rarity_restrictions_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.gacha_participants(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: gacha_showcases gacha_showcases_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_showcases
-    ADD CONSTRAINT gacha_showcases_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.gacha_items(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_showcases_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_showcases gacha_showcases_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_showcases gacha_showcases_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_showcases
-    ADD CONSTRAINT gacha_showcases_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.gacha_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_showcases_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.gacha_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_user_achievements gacha_user_achievements_achievement_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.gacha_user_achievements
-    ADD CONSTRAINT gacha_user_achievements_achievement_id_fkey FOREIGN KEY (achievement_id) REFERENCES public.gacha_achievements(id) ON DELETE CASCADE;
-
-
---
--- Name: gacha_user_achievements gacha_user_achievements_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_user_achievements gacha_user_achievements_achievement_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_user_achievements
-    ADD CONSTRAINT gacha_user_achievements_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.gacha_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_user_achievements_achievement_id_fkey_t FOREIGN KEY (tenant_id, achievement_id) REFERENCES public.gacha_achievements(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: gacha_user_achievements gacha_user_achievements_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gacha_user_achievements
+    ADD CONSTRAINT gacha_user_achievements_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.gacha_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17182,19 +19154,19 @@ ALTER TABLE ONLY public.gacha_viewer_settings
 
 
 --
--- Name: gacha_wishlists gacha_wishlists_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_wishlists gacha_wishlists_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_wishlists
-    ADD CONSTRAINT gacha_wishlists_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.gacha_items(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_wishlists_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.gacha_items(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: gacha_wishlists gacha_wishlists_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gacha_wishlists gacha_wishlists_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gacha_wishlists
-    ADD CONSTRAINT gacha_wishlists_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.gacha_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT gacha_wishlists_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.gacha_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17206,11 +19178,11 @@ ALTER TABLE ONLY public.game_overlay_configs
 
 
 --
--- Name: game_session_snapshots game_session_snapshots_linked_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: game_session_snapshots game_session_snapshots_linked_account_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.game_session_snapshots
-    ADD CONSTRAINT game_session_snapshots_linked_account_id_fkey FOREIGN KEY (linked_account_id) REFERENCES public.linked_game_accounts(id) ON DELETE CASCADE;
+    ADD CONSTRAINT game_session_snapshots_linked_account_id_fkey_t FOREIGN KEY (tenant_id, linked_account_id) REFERENCES public.linked_game_accounts(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17222,43 +19194,43 @@ ALTER TABLE ONLY public.game_session_snapshots
 
 
 --
--- Name: giveaway_participants giveaway_participants_session_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: giveaway_participants giveaway_participants_session_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.giveaway_participants
-    ADD CONSTRAINT giveaway_participants_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.giveaway_sessions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT giveaway_participants_session_id_fkey_t FOREIGN KEY (tenant_id, session_id) REFERENCES public.giveaway_sessions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: giveaway_sessions giveaway_sessions_config_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: giveaway_sessions giveaway_sessions_config_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.giveaway_sessions
-    ADD CONSTRAINT giveaway_sessions_config_id_fkey FOREIGN KEY (config_id) REFERENCES public.giveaway_configs(id) ON DELETE SET NULL;
+    ADD CONSTRAINT giveaway_sessions_config_id_fkey_t FOREIGN KEY (tenant_id, config_id) REFERENCES public.giveaway_configs(tenant_id, id) ON DELETE SET NULL (config_id);
 
 
 --
--- Name: giveaway_winner_cooldowns giveaway_winner_cooldowns_session_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: giveaway_winner_cooldowns giveaway_winner_cooldowns_session_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.giveaway_winner_cooldowns
-    ADD CONSTRAINT giveaway_winner_cooldowns_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.giveaway_sessions(id) ON DELETE SET NULL;
+    ADD CONSTRAINT giveaway_winner_cooldowns_session_id_fkey_t FOREIGN KEY (tenant_id, session_id) REFERENCES public.giveaway_sessions(tenant_id, id) ON DELETE SET NULL (session_id);
 
 
 --
--- Name: giveaway_winners giveaway_winners_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.giveaway_winners
-    ADD CONSTRAINT giveaway_winners_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.giveaway_participants(id) ON DELETE CASCADE;
-
-
---
--- Name: giveaway_winners giveaway_winners_session_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: giveaway_winners giveaway_winners_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.giveaway_winners
-    ADD CONSTRAINT giveaway_winners_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.giveaway_sessions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT giveaway_winners_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.giveaway_participants(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: giveaway_winners giveaway_winners_session_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.giveaway_winners
+    ADD CONSTRAINT giveaway_winners_session_id_fkey_t FOREIGN KEY (tenant_id, session_id) REFERENCES public.giveaway_sessions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17286,6 +19258,14 @@ ALTER TABLE ONLY public.live_overlay_configs
 
 
 --
+-- Name: live_translation_access live_translation_access_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.live_translation_access
+    ADD CONSTRAINT live_translation_access_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: desktop_devices live_translation_devices_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17294,11 +19274,11 @@ ALTER TABLE ONLY public.desktop_devices
 
 
 --
--- Name: live_translation_sessions live_translation_sessions_device_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: live_translation_sessions live_translation_sessions_device_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.live_translation_sessions
-    ADD CONSTRAINT live_translation_sessions_device_id_fkey FOREIGN KEY (device_id) REFERENCES public.desktop_devices(id) ON DELETE SET NULL;
+    ADD CONSTRAINT live_translation_sessions_device_id_fkey_t FOREIGN KEY (tenant_id, device_id) REFERENCES public.desktop_devices(tenant_id, id) ON DELETE SET NULL (device_id);
 
 
 --
@@ -17326,11 +19306,11 @@ ALTER TABLE ONLY public.lol_coach_settings
 
 
 --
--- Name: lol_prediction_bets lol_prediction_bets_prediction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: lol_prediction_bets lol_prediction_bets_prediction_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.lol_prediction_bets
-    ADD CONSTRAINT lol_prediction_bets_prediction_id_fkey FOREIGN KEY (prediction_id) REFERENCES public.lol_predictions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT lol_prediction_bets_prediction_id_fkey_t FOREIGN KEY (tenant_id, prediction_id) REFERENCES public.lol_predictions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17374,11 +19354,11 @@ ALTER TABLE ONLY public.moderation_panic
 
 
 --
--- Name: oauth_access_tokens oauth_access_tokens_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: oauth_access_tokens oauth_access_tokens_application_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_access_tokens
-    ADD CONSTRAINT oauth_access_tokens_application_id_fkey FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id) ON DELETE CASCADE;
+    ADD CONSTRAINT oauth_access_tokens_application_id_fkey_t FOREIGN KEY (tenant_id, application_id) REFERENCES public.oauth_applications(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17398,11 +19378,11 @@ ALTER TABLE ONLY public.oauth_applications
 
 
 --
--- Name: oauth_authorization_codes oauth_authorization_codes_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: oauth_authorization_codes oauth_authorization_codes_application_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_authorization_codes
-    ADD CONSTRAINT oauth_authorization_codes_application_id_fkey FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id) ON DELETE CASCADE;
+    ADD CONSTRAINT oauth_authorization_codes_application_id_fkey_t FOREIGN KEY (tenant_id, application_id) REFERENCES public.oauth_applications(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17414,11 +19394,11 @@ ALTER TABLE ONLY public.oauth_authorization_codes
 
 
 --
--- Name: oauth_refresh_tokens oauth_refresh_tokens_access_token_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: oauth_refresh_tokens oauth_refresh_tokens_access_token_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.oauth_refresh_tokens
-    ADD CONSTRAINT oauth_refresh_tokens_access_token_id_fkey FOREIGN KEY (access_token_id) REFERENCES public.oauth_access_tokens(id) ON DELETE CASCADE;
+    ADD CONSTRAINT oauth_refresh_tokens_access_token_id_fkey_t FOREIGN KEY (tenant_id, access_token_id) REFERENCES public.oauth_access_tokens(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17435,6 +19415,38 @@ ALTER TABLE ONLY public.pet_configs
 
 ALTER TABLE ONLY public.pet_seen_chatters
     ADD CONSTRAINT pet_seen_chatters_channel_user_id_fkey FOREIGN KEY (channel_user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: plan_entitlements plan_entitlements_capability_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plan_entitlements
+    ADD CONSTRAINT plan_entitlements_capability_key_fkey FOREIGN KEY (capability_key) REFERENCES public.capabilities(key) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: plan_entitlements plan_entitlements_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plan_entitlements
+    ADD CONSTRAINT plan_entitlements_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id) ON DELETE CASCADE;
+
+
+--
+-- Name: plan_prices plan_prices_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plan_prices
+    ADD CONSTRAINT plan_prices_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id) ON DELETE CASCADE;
+
+
+--
+-- Name: platform_signups platform_signups_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_signups
+    ADD CONSTRAINT platform_signups_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id) ON DELETE SET NULL;
 
 
 --
@@ -17502,11 +19514,11 @@ ALTER TABLE ONLY public.song_request_bans
 
 
 --
--- Name: song_request_configs song_request_configs_active_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_configs song_request_configs_active_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_configs
-    ADD CONSTRAINT song_request_configs_active_playlist_id_fkey FOREIGN KEY (active_playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE SET NULL;
+    ADD CONSTRAINT song_request_configs_active_playlist_id_fkey_t FOREIGN KEY (tenant_id, active_playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE SET NULL (active_playlist_id);
 
 
 --
@@ -17550,43 +19562,43 @@ ALTER TABLE ONLY public.song_request_history
 
 
 --
--- Name: song_request_listen_daily song_request_listen_daily_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_listen_daily song_request_listen_daily_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_listen_daily
-    ADD CONSTRAINT song_request_listen_daily_playlist_id_fkey FOREIGN KEY (playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE CASCADE;
+    ADD CONSTRAINT song_request_listen_daily_playlist_id_fkey_t FOREIGN KEY (tenant_id, playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: song_request_listen_tracks song_request_listen_tracks_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_listen_tracks song_request_listen_tracks_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_listen_tracks
-    ADD CONSTRAINT song_request_listen_tracks_playlist_id_fkey FOREIGN KEY (playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE CASCADE;
+    ADD CONSTRAINT song_request_listen_tracks_playlist_id_fkey_t FOREIGN KEY (tenant_id, playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: song_request_listen_unplayable song_request_listen_unplayable_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_listen_unplayable song_request_listen_unplayable_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_listen_unplayable
-    ADD CONSTRAINT song_request_listen_unplayable_playlist_id_fkey FOREIGN KEY (playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE CASCADE;
+    ADD CONSTRAINT song_request_listen_unplayable_playlist_id_fkey_t FOREIGN KEY (tenant_id, playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: song_request_listen_visitors song_request_listen_visitors_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_listen_visitors song_request_listen_visitors_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_listen_visitors
-    ADD CONSTRAINT song_request_listen_visitors_playlist_id_fkey FOREIGN KEY (playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE CASCADE;
+    ADD CONSTRAINT song_request_listen_visitors_playlist_id_fkey_t FOREIGN KEY (tenant_id, playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: song_request_pending song_request_pending_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_pending song_request_pending_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_pending
-    ADD CONSTRAINT song_request_pending_playlist_id_fkey FOREIGN KEY (playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE CASCADE;
+    ADD CONSTRAINT song_request_pending_playlist_id_fkey_t FOREIGN KEY (tenant_id, playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17606,27 +19618,27 @@ ALTER TABLE ONLY public.song_request_pending
 
 
 --
--- Name: song_request_playlist_items song_request_playlist_items_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_playlist_items song_request_playlist_items_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_playlist_items
-    ADD CONSTRAINT song_request_playlist_items_playlist_id_fkey FOREIGN KEY (playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE CASCADE;
+    ADD CONSTRAINT song_request_playlist_items_playlist_id_fkey_t FOREIGN KEY (tenant_id, playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: song_request_playlist_votes song_request_playlist_votes_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.song_request_playlist_votes
-    ADD CONSTRAINT song_request_playlist_votes_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.song_request_playlist_items(id) ON DELETE CASCADE;
-
-
---
--- Name: song_request_playlist_votes song_request_playlist_votes_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: song_request_playlist_votes song_request_playlist_votes_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.song_request_playlist_votes
-    ADD CONSTRAINT song_request_playlist_votes_playlist_id_fkey FOREIGN KEY (playlist_id) REFERENCES public.song_request_playlists(id) ON DELETE CASCADE;
+    ADD CONSTRAINT song_request_playlist_votes_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.song_request_playlist_items(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: song_request_playlist_votes song_request_playlist_votes_playlist_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.song_request_playlist_votes
+    ADD CONSTRAINT song_request_playlist_votes_playlist_id_fkey_t FOREIGN KEY (tenant_id, playlist_id) REFERENCES public.song_request_playlists(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17662,11 +19674,11 @@ ALTER TABLE ONLY public.song_request_trusted
 
 
 --
--- Name: sound_alert_reward_files sound_alert_reward_files_media_file_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: sound_alert_reward_files sound_alert_reward_files_media_file_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sound_alert_reward_files
-    ADD CONSTRAINT sound_alert_reward_files_media_file_id_fkey FOREIGN KEY (media_file_id) REFERENCES public.timer_media_files(id) ON DELETE SET NULL;
+    ADD CONSTRAINT sound_alert_reward_files_media_file_id_fkey_t FOREIGN KEY (tenant_id, media_file_id) REFERENCES public.timer_media_files(tenant_id, id) ON DELETE SET NULL (media_file_id);
 
 
 --
@@ -17718,6 +19730,110 @@ ALTER TABLE ONLY public.tcg_free_pack_claims
 
 
 --
+-- Name: tenant_addons tenant_addons_capability_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_addons
+    ADD CONSTRAINT tenant_addons_capability_key_fkey FOREIGN KEY (capability_key) REFERENCES public.capabilities(key) ON UPDATE CASCADE;
+
+
+--
+-- Name: tenant_addons tenant_addons_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_addons
+    ADD CONSTRAINT tenant_addons_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_buyer_mfa tenant_buyer_mfa_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_buyer_mfa
+    ADD CONSTRAINT tenant_buyer_mfa_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_buyer_recovery_codes tenant_buyer_recovery_codes_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_buyer_recovery_codes
+    ADD CONSTRAINT tenant_buyer_recovery_codes_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_credentials tenant_credentials_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_credentials
+    ADD CONSTRAINT tenant_credentials_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_entitlement_overrides tenant_entitlement_overrides_capability_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_entitlement_overrides
+    ADD CONSTRAINT tenant_entitlement_overrides_capability_key_fkey FOREIGN KEY (capability_key) REFERENCES public.capabilities(key) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: tenant_entitlement_overrides tenant_entitlement_overrides_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_entitlement_overrides
+    ADD CONSTRAINT tenant_entitlement_overrides_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_keys tenant_keys_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_keys
+    ADD CONSTRAINT tenant_keys_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_members tenant_members_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_members
+    ADD CONSTRAINT tenant_members_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_members tenant_members_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_members
+    ADD CONSTRAINT tenant_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: tenant_provider_config tenant_provider_config_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_provider_config
+    ADD CONSTRAINT tenant_provider_config_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: tenant_subscriptions tenant_subscriptions_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_subscriptions
+    ADD CONSTRAINT tenant_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id);
+
+
+--
+-- Name: tenant_subscriptions tenant_subscriptions_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_subscriptions
+    ADD CONSTRAINT tenant_subscriptions_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: tier_history tier_history_changed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17750,19 +19866,27 @@ ALTER TABLE ONLY public.tips_configs
 
 
 --
--- Name: tournament_blue_shell_rules tournament_blue_shell_rules_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: title_game_sync_settings title_game_sync_settings_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.title_game_sync_settings
+    ADD CONSTRAINT title_game_sync_settings_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: tournament_blue_shell_rules tournament_blue_shell_rules_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_blue_shell_rules
-    ADD CONSTRAINT tournament_blue_shell_rules_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_blue_shell_rules_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_divisions tournament_divisions_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_divisions tournament_divisions_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_divisions
-    ADD CONSTRAINT tournament_divisions_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_divisions_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -17774,283 +19898,283 @@ ALTER TABLE ONLY public.tournament_editions
 
 
 --
--- Name: tournament_fortnite_configs tournament_fortnite_configs_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_configs tournament_fortnite_configs_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_configs
-    ADD CONSTRAINT tournament_fortnite_configs_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_configs_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_files tournament_fortnite_files_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_files tournament_fortnite_files_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_files
-    ADD CONSTRAINT tournament_fortnite_files_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_files_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_games tournament_fortnite_games_session_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_games tournament_fortnite_games_session_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_games
-    ADD CONSTRAINT tournament_fortnite_games_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.tournament_fortnite_sessions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_games_session_id_fkey_t FOREIGN KEY (tenant_id, session_id) REFERENCES public.tournament_fortnite_sessions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_group_teams tournament_fortnite_group_teams_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_group_teams
-    ADD CONSTRAINT tournament_fortnite_group_teams_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.tournament_fortnite_groups(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_fortnite_group_teams tournament_fortnite_group_teams_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_group_teams tournament_fortnite_group_teams_group_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_group_teams
-    ADD CONSTRAINT tournament_fortnite_group_teams_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.tournament_teams(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_group_teams_group_id_fkey_t FOREIGN KEY (tenant_id, group_id) REFERENCES public.tournament_fortnite_groups(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_groups tournament_fortnite_groups_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_group_teams tournament_fortnite_group_teams_team_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_fortnite_group_teams
+    ADD CONSTRAINT tournament_fortnite_group_teams_team_id_fkey_t FOREIGN KEY (tenant_id, team_id) REFERENCES public.tournament_teams(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: tournament_fortnite_groups tournament_fortnite_groups_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_groups
-    ADD CONSTRAINT tournament_fortnite_groups_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_groups_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_reports tournament_fortnite_reports_game_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_reports
-    ADD CONSTRAINT tournament_fortnite_reports_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.tournament_fortnite_games(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_fortnite_reports tournament_fortnite_reports_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_reports tournament_fortnite_reports_game_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_reports
-    ADD CONSTRAINT tournament_fortnite_reports_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.tournament_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_reports_game_id_fkey_t FOREIGN KEY (tenant_id, game_id) REFERENCES public.tournament_fortnite_games(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_reports tournament_fortnite_reports_screenshot_file_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_reports
-    ADD CONSTRAINT tournament_fortnite_reports_screenshot_file_id_fkey FOREIGN KEY (screenshot_file_id) REFERENCES public.tournament_fortnite_files(id) ON DELETE SET NULL;
-
-
---
--- Name: tournament_fortnite_reports tournament_fortnite_reports_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_reports tournament_fortnite_reports_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_reports
-    ADD CONSTRAINT tournament_fortnite_reports_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.tournament_teams(id) ON DELETE SET NULL;
+    ADD CONSTRAINT tournament_fortnite_reports_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.tournament_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_result_audit tournament_fortnite_result_audit_game_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_reports tournament_fortnite_reports_screenshot_file_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_fortnite_reports
+    ADD CONSTRAINT tournament_fortnite_reports_screenshot_file_id_fkey_t FOREIGN KEY (tenant_id, screenshot_file_id) REFERENCES public.tournament_fortnite_files(tenant_id, id) ON DELETE SET NULL (screenshot_file_id);
+
+
+--
+-- Name: tournament_fortnite_reports tournament_fortnite_reports_team_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_fortnite_reports
+    ADD CONSTRAINT tournament_fortnite_reports_team_id_fkey_t FOREIGN KEY (tenant_id, team_id) REFERENCES public.tournament_teams(tenant_id, id) ON DELETE SET NULL (team_id);
+
+
+--
+-- Name: tournament_fortnite_result_audit tournament_fortnite_result_audit_game_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_result_audit
-    ADD CONSTRAINT tournament_fortnite_result_audit_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.tournament_fortnite_games(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_result_audit_game_id_fkey_t FOREIGN KEY (tenant_id, game_id) REFERENCES public.tournament_fortnite_games(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_result_audit tournament_fortnite_result_audit_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_result_audit
-    ADD CONSTRAINT tournament_fortnite_result_audit_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.tournament_teams(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_fortnite_result_audit tournament_fortnite_result_audit_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_result_audit tournament_fortnite_result_audit_team_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_result_audit
-    ADD CONSTRAINT tournament_fortnite_result_audit_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_result_audit_team_id_fkey_t FOREIGN KEY (tenant_id, team_id) REFERENCES public.tournament_teams(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_results tournament_fortnite_results_game_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_result_audit tournament_fortnite_result_audit_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_fortnite_result_audit
+    ADD CONSTRAINT tournament_fortnite_result_audit_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: tournament_fortnite_results tournament_fortnite_results_game_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_results
-    ADD CONSTRAINT tournament_fortnite_results_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.tournament_fortnite_games(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_results_game_id_fkey_t FOREIGN KEY (tenant_id, game_id) REFERENCES public.tournament_fortnite_games(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_results tournament_fortnite_results_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_results tournament_fortnite_results_team_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_results
-    ADD CONSTRAINT tournament_fortnite_results_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.tournament_teams(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_results_team_id_fkey_t FOREIGN KEY (tenant_id, team_id) REFERENCES public.tournament_teams(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_session_checkins tournament_fortnite_session_checkins_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_fortnite_session_checkins
-    ADD CONSTRAINT tournament_fortnite_session_checkins_participant_id_fkey FOREIGN KEY (participant_id) REFERENCES public.tournament_participants(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_fortnite_session_checkins tournament_fortnite_session_checkins_session_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_session_checkins tournament_fortnite_session_checkins_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_session_checkins
-    ADD CONSTRAINT tournament_fortnite_session_checkins_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.tournament_fortnite_sessions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_session_checkins_participant_id_fkey_t FOREIGN KEY (tenant_id, participant_id) REFERENCES public.tournament_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_sessions tournament_fortnite_sessions_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_session_checkins tournament_fortnite_session_checkins_session_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_fortnite_session_checkins
+    ADD CONSTRAINT tournament_fortnite_session_checkins_session_id_fkey_t FOREIGN KEY (tenant_id, session_id) REFERENCES public.tournament_fortnite_sessions(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: tournament_fortnite_sessions tournament_fortnite_sessions_group_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_sessions
-    ADD CONSTRAINT tournament_fortnite_sessions_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.tournament_fortnite_groups(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_sessions_group_id_fkey_t FOREIGN KEY (tenant_id, group_id) REFERENCES public.tournament_fortnite_groups(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_fortnite_sessions tournament_fortnite_sessions_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_fortnite_sessions tournament_fortnite_sessions_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_fortnite_sessions
-    ADD CONSTRAINT tournament_fortnite_sessions_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_fortnite_sessions_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_games tournament_games_tournament_match_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_games
-    ADD CONSTRAINT tournament_games_tournament_match_id_fkey FOREIGN KEY (tournament_match_id) REFERENCES public.tournament_matches(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_games tournament_games_winner_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_games tournament_games_tournament_match_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_games
-    ADD CONSTRAINT tournament_games_winner_team_id_fkey FOREIGN KEY (winner_team_id) REFERENCES public.tournament_teams(id);
+    ADD CONSTRAINT tournament_games_tournament_match_id_fkey_t FOREIGN KEY (tenant_id, tournament_match_id) REFERENCES public.tournament_matches(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_lp_snapshots tournament_lp_snapshots_tournament_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_games tournament_games_winner_team_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_games
+    ADD CONSTRAINT tournament_games_winner_team_id_fkey_t FOREIGN KEY (tenant_id, winner_team_id) REFERENCES public.tournament_teams(tenant_id, id);
+
+
+--
+-- Name: tournament_lp_snapshots tournament_lp_snapshots_tournament_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_lp_snapshots
-    ADD CONSTRAINT tournament_lp_snapshots_tournament_participant_id_fkey FOREIGN KEY (tournament_participant_id) REFERENCES public.tournament_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_lp_snapshots_tournament_participant_id_fkey_t FOREIGN KEY (tenant_id, tournament_participant_id) REFERENCES public.tournament_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_matches tournament_matches_team_a_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_matches
-    ADD CONSTRAINT tournament_matches_team_a_id_fkey FOREIGN KEY (team_a_id) REFERENCES public.tournament_teams(id);
-
-
---
--- Name: tournament_matches tournament_matches_team_b_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_matches tournament_matches_team_a_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_matches
-    ADD CONSTRAINT tournament_matches_team_b_id_fkey FOREIGN KEY (team_b_id) REFERENCES public.tournament_teams(id);
+    ADD CONSTRAINT tournament_matches_team_a_id_fkey_t FOREIGN KEY (tenant_id, team_a_id) REFERENCES public.tournament_teams(tenant_id, id);
 
 
 --
--- Name: tournament_matches tournament_matches_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_matches
-    ADD CONSTRAINT tournament_matches_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_matches tournament_matches_winner_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_matches tournament_matches_team_b_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_matches
-    ADD CONSTRAINT tournament_matches_winner_team_id_fkey FOREIGN KEY (winner_team_id) REFERENCES public.tournament_teams(id);
+    ADD CONSTRAINT tournament_matches_team_b_id_fkey_t FOREIGN KEY (tenant_id, team_b_id) REFERENCES public.tournament_teams(tenant_id, id);
 
 
 --
--- Name: tournament_overlay_configs tournament_overlay_configs_tournament_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_matches tournament_matches_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_matches
+    ADD CONSTRAINT tournament_matches_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: tournament_matches tournament_matches_winner_team_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_matches
+    ADD CONSTRAINT tournament_matches_winner_team_id_fkey_t FOREIGN KEY (tenant_id, winner_team_id) REFERENCES public.tournament_teams(tenant_id, id);
+
+
+--
+-- Name: tournament_overlay_configs tournament_overlay_configs_tournament_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_overlay_configs
-    ADD CONSTRAINT tournament_overlay_configs_tournament_participant_id_fkey FOREIGN KEY (tournament_participant_id) REFERENCES public.tournament_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_overlay_configs_tournament_participant_id_fkey_t FOREIGN KEY (tenant_id, tournament_participant_id) REFERENCES public.tournament_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_participants tournament_participants_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_participants
-    ADD CONSTRAINT tournament_participants_account_id_fkey FOREIGN KEY (account_id) REFERENCES public.accounts(id);
-
-
---
--- Name: tournament_participants tournament_participants_game_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_participants tournament_participants_account_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_participants
-    ADD CONSTRAINT tournament_participants_game_account_id_fkey FOREIGN KEY (game_account_id) REFERENCES public.linked_game_accounts(id) ON DELETE SET NULL;
+    ADD CONSTRAINT tournament_participants_account_id_fkey_t FOREIGN KEY (tenant_id, account_id) REFERENCES public.accounts(tenant_id, id);
 
 
 --
--- Name: tournament_participants tournament_participants_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_participants
-    ADD CONSTRAINT tournament_participants_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.tournament_teams(id);
-
-
---
--- Name: tournament_participants tournament_participants_tournament_division_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_participants tournament_participants_game_account_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_participants
-    ADD CONSTRAINT tournament_participants_tournament_division_id_fkey FOREIGN KEY (tournament_division_id) REFERENCES public.tournament_divisions(id);
+    ADD CONSTRAINT tournament_participants_game_account_id_fkey_t FOREIGN KEY (tenant_id, game_account_id) REFERENCES public.linked_game_accounts(tenant_id, id) ON DELETE SET NULL (game_account_id);
 
 
 --
--- Name: tournament_participants tournament_participants_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_participants tournament_participants_team_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_participants
-    ADD CONSTRAINT tournament_participants_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_participants_team_id_fkey_t FOREIGN KEY (tenant_id, team_id) REFERENCES public.tournament_teams(tenant_id, id);
 
 
 --
--- Name: tournament_prize_tiers tournament_prize_tiers_tournament_division_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_participants tournament_participants_tournament_division_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_participants
+    ADD CONSTRAINT tournament_participants_tournament_division_id_fkey_t FOREIGN KEY (tenant_id, tournament_division_id) REFERENCES public.tournament_divisions(tenant_id, id);
+
+
+--
+-- Name: tournament_participants tournament_participants_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_participants
+    ADD CONSTRAINT tournament_participants_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: tournament_prize_tiers tournament_prize_tiers_tournament_division_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_prize_tiers
-    ADD CONSTRAINT tournament_prize_tiers_tournament_division_id_fkey FOREIGN KEY (tournament_division_id) REFERENCES public.tournament_divisions(id);
+    ADD CONSTRAINT tournament_prize_tiers_tournament_division_id_fkey_t FOREIGN KEY (tenant_id, tournament_division_id) REFERENCES public.tournament_divisions(tenant_id, id);
 
 
 --
--- Name: tournament_prize_tiers tournament_prize_tiers_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_prize_tiers tournament_prize_tiers_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_prize_tiers
-    ADD CONSTRAINT tournament_prize_tiers_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_prize_tiers_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_punishment_types tournament_punishment_types_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_punishment_types tournament_punishment_types_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_punishment_types
-    ADD CONSTRAINT tournament_punishment_types_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_punishment_types_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -18062,11 +20186,11 @@ ALTER TABLE ONLY public.tournament_riot_configs
 
 
 --
--- Name: tournament_rule_documents tournament_rule_documents_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_rule_documents tournament_rule_documents_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_rule_documents
-    ADD CONSTRAINT tournament_rule_documents_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_rule_documents_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -18086,83 +20210,83 @@ ALTER TABLE ONLY public.tournament_shell_events
 
 
 --
--- Name: tournament_shell_events tournament_shell_events_punishment_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_shell_events tournament_shell_events_punishment_type_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_shell_events
-    ADD CONSTRAINT tournament_shell_events_punishment_type_id_fkey FOREIGN KEY (punishment_type_id) REFERENCES public.tournament_punishment_types(id);
+    ADD CONSTRAINT tournament_shell_events_punishment_type_id_fkey_t FOREIGN KEY (tenant_id, punishment_type_id) REFERENCES public.tournament_punishment_types(tenant_id, id);
 
 
 --
--- Name: tournament_shell_events tournament_shell_events_source_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_shell_events
-    ADD CONSTRAINT tournament_shell_events_source_participant_id_fkey FOREIGN KEY (source_participant_id) REFERENCES public.tournament_participants(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_shell_events tournament_shell_events_target_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_shell_events tournament_shell_events_source_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_shell_events
-    ADD CONSTRAINT tournament_shell_events_target_participant_id_fkey FOREIGN KEY (target_participant_id) REFERENCES public.tournament_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_shell_events_source_participant_id_fkey_t FOREIGN KEY (tenant_id, source_participant_id) REFERENCES public.tournament_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_shell_events tournament_shell_events_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.tournament_shell_events
-    ADD CONSTRAINT tournament_shell_events_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
-
-
---
--- Name: tournament_shell_events tournament_shell_events_trigger_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_shell_events tournament_shell_events_target_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_shell_events
-    ADD CONSTRAINT tournament_shell_events_trigger_id_fkey FOREIGN KEY (trigger_id) REFERENCES public.tournament_shell_triggers(id);
+    ADD CONSTRAINT tournament_shell_events_target_participant_id_fkey_t FOREIGN KEY (tenant_id, target_participant_id) REFERENCES public.tournament_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_shell_inventories tournament_shell_inventories_tournament_participant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_shell_events tournament_shell_events_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_shell_events
+    ADD CONSTRAINT tournament_shell_events_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: tournament_shell_events tournament_shell_events_trigger_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tournament_shell_events
+    ADD CONSTRAINT tournament_shell_events_trigger_id_fkey_t FOREIGN KEY (tenant_id, trigger_id) REFERENCES public.tournament_shell_triggers(tenant_id, id);
+
+
+--
+-- Name: tournament_shell_inventories tournament_shell_inventories_tournament_participant_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_shell_inventories
-    ADD CONSTRAINT tournament_shell_inventories_tournament_participant_id_fkey FOREIGN KEY (tournament_participant_id) REFERENCES public.tournament_participants(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_shell_inventories_tournament_participant_id_fkey_t FOREIGN KEY (tenant_id, tournament_participant_id) REFERENCES public.tournament_participants(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_shell_triggers tournament_shell_triggers_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_shell_triggers tournament_shell_triggers_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_shell_triggers
-    ADD CONSTRAINT tournament_shell_triggers_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_shell_triggers_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_sponsors tournament_sponsors_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_sponsors tournament_sponsors_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_sponsors
-    ADD CONSTRAINT tournament_sponsors_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_sponsors_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_teams tournament_teams_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_teams tournament_teams_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_teams
-    ADD CONSTRAINT tournament_teams_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_teams_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: tournament_win_conditions tournament_win_conditions_tournament_edition_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: tournament_win_conditions tournament_win_conditions_tournament_edition_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.tournament_win_conditions
-    ADD CONSTRAINT tournament_win_conditions_tournament_edition_id_fkey FOREIGN KEY (tournament_edition_id) REFERENCES public.tournament_editions(id) ON DELETE CASCADE;
+    ADD CONSTRAINT tournament_win_conditions_tournament_edition_id_fkey_t FOREIGN KEY (tenant_id, tournament_edition_id) REFERENCES public.tournament_editions(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -18174,11 +20298,11 @@ ALTER TABLE ONLY public.upgrade_attempt_log
 
 
 --
--- Name: upgrade_attempt_log upgrade_attempt_log_instance_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: upgrade_attempt_log upgrade_attempt_log_instance_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.upgrade_attempt_log
-    ADD CONSTRAINT upgrade_attempt_log_instance_id_fkey FOREIGN KEY (instance_id) REFERENCES public.player_card_instances(id);
+    ADD CONSTRAINT upgrade_attempt_log_instance_id_fkey_t FOREIGN KEY (tenant_id, instance_id) REFERENCES public.player_card_instances(tenant_id, id);
 
 
 --
@@ -18190,11 +20314,27 @@ ALTER TABLE ONLY public.upgrade_attempt_log
 
 
 --
--- Name: user_achievements user_achievements_achievement_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: usage_counters usage_counters_capability_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.usage_counters
+    ADD CONSTRAINT usage_counters_capability_key_fkey FOREIGN KEY (capability_key) REFERENCES public.capabilities(key) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: usage_counters usage_counters_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.usage_counters
+    ADD CONSTRAINT usage_counters_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: user_achievements user_achievements_achievement_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.user_achievements
-    ADD CONSTRAINT user_achievements_achievement_id_fkey FOREIGN KEY (achievement_id) REFERENCES public.xp_achievements(id) ON DELETE CASCADE;
+    ADD CONSTRAINT user_achievements_achievement_id_fkey_t FOREIGN KEY (tenant_id, achievement_id) REFERENCES public.xp_achievements(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -18262,6 +20402,22 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: users users_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: viewer_token_epoch viewer_token_epoch_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.viewer_token_epoch
+    ADD CONSTRAINT viewer_token_epoch_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: watchtime_command_configs watchtime_command_configs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -18278,11 +20434,11 @@ ALTER TABLE ONLY public.wheel_pending_deliveries
 
 
 --
--- Name: wheel_pending_deliveries wheel_pending_deliveries_spin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_pending_deliveries wheel_pending_deliveries_spin_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_pending_deliveries
-    ADD CONSTRAINT wheel_pending_deliveries_spin_id_fkey FOREIGN KEY (spin_id) REFERENCES public.wheel_spins(id) ON DELETE CASCADE;
+    ADD CONSTRAINT wheel_pending_deliveries_spin_id_fkey_t FOREIGN KEY (tenant_id, spin_id) REFERENCES public.wheel_spins(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -18294,19 +20450,19 @@ ALTER TABLE ONLY public.wheel_pending_deliveries
 
 
 --
--- Name: wheel_pending_deliveries wheel_pending_deliveries_wheel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_pending_deliveries wheel_pending_deliveries_wheel_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_pending_deliveries
-    ADD CONSTRAINT wheel_pending_deliveries_wheel_id_fkey FOREIGN KEY (wheel_id) REFERENCES public.wheels(id) ON DELETE CASCADE;
+    ADD CONSTRAINT wheel_pending_deliveries_wheel_id_fkey_t FOREIGN KEY (tenant_id, wheel_id) REFERENCES public.wheels(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: wheel_raffle_configs wheel_raffle_configs_wheel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_raffle_configs wheel_raffle_configs_wheel_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_raffle_configs
-    ADD CONSTRAINT wheel_raffle_configs_wheel_id_fkey FOREIGN KEY (wheel_id) REFERENCES public.wheels(id) ON DELETE CASCADE;
+    ADD CONSTRAINT wheel_raffle_configs_wheel_id_fkey_t FOREIGN KEY (tenant_id, wheel_id) REFERENCES public.wheels(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -18318,27 +20474,27 @@ ALTER TABLE ONLY public.wheel_raffle_entries
 
 
 --
--- Name: wheel_raffle_entries wheel_raffle_entries_wheel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_raffle_entries wheel_raffle_entries_wheel_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_raffle_entries
-    ADD CONSTRAINT wheel_raffle_entries_wheel_id_fkey FOREIGN KEY (wheel_id) REFERENCES public.wheels(id) ON DELETE CASCADE;
+    ADD CONSTRAINT wheel_raffle_entries_wheel_id_fkey_t FOREIGN KEY (tenant_id, wheel_id) REFERENCES public.wheels(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: wheel_segments wheel_segments_wheel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_segments wheel_segments_wheel_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_segments
-    ADD CONSTRAINT wheel_segments_wheel_id_fkey FOREIGN KEY (wheel_id) REFERENCES public.wheels(id) ON DELETE CASCADE;
+    ADD CONSTRAINT wheel_segments_wheel_id_fkey_t FOREIGN KEY (tenant_id, wheel_id) REFERENCES public.wheels(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: wheel_spins wheel_spins_result_segment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_spins wheel_spins_result_segment_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_spins
-    ADD CONSTRAINT wheel_spins_result_segment_id_fkey FOREIGN KEY (result_segment_id) REFERENCES public.wheel_segments(id) ON DELETE SET NULL;
+    ADD CONSTRAINT wheel_spins_result_segment_id_fkey_t FOREIGN KEY (tenant_id, result_segment_id) REFERENCES public.wheel_segments(tenant_id, id) ON DELETE SET NULL (result_segment_id);
 
 
 --
@@ -18350,19 +20506,19 @@ ALTER TABLE ONLY public.wheel_spins
 
 
 --
--- Name: wheel_spins wheel_spins_wheel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_spins wheel_spins_wheel_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_spins
-    ADD CONSTRAINT wheel_spins_wheel_id_fkey FOREIGN KEY (wheel_id) REFERENCES public.wheels(id) ON DELETE CASCADE;
+    ADD CONSTRAINT wheel_spins_wheel_id_fkey_t FOREIGN KEY (tenant_id, wheel_id) REFERENCES public.wheels(tenant_id, id) ON DELETE CASCADE;
 
 
 --
--- Name: wheel_wallet_sources wheel_wallet_sources_wheel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: wheel_wallet_sources wheel_wallet_sources_wheel_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.wheel_wallet_sources
-    ADD CONSTRAINT wheel_wallet_sources_wheel_id_fkey FOREIGN KEY (wheel_id) REFERENCES public.wheels(id) ON DELETE CASCADE;
+    ADD CONSTRAINT wheel_wallet_sources_wheel_id_fkey_t FOREIGN KEY (tenant_id, wheel_id) REFERENCES public.wheels(tenant_id, id) ON DELETE CASCADE;
 
 
 --
@@ -18390,12 +20546,2989 @@ ALTER TABLE ONLY public.wheels
 
 
 --
--- Name: xp_store_purchases xp_store_purchases_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: xp_store_purchases xp_store_purchases_item_id_fkey_t; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.xp_store_purchases
-    ADD CONSTRAINT xp_store_purchases_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.xp_store_items(id) ON DELETE CASCADE;
+    ADD CONSTRAINT xp_store_purchases_item_id_fkey_t FOREIGN KEY (tenant_id, item_id) REFERENCES public.xp_store_items(tenant_id, id) ON DELETE CASCADE;
 
+
+--
+-- Name: accounts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: admin_mod_actions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.admin_mod_actions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ai_usage_logs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.ai_usage_logs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: banned_words; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.banned_words ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: billing_profiles; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.billing_profiles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: bot_tokens; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.bot_tokens ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: channel_bot_entries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.channel_bot_entries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: channel_emote_reports; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.channel_emote_reports ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: channel_emote_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.channel_emote_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: channel_emote_uploaders; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.channel_emote_uploaders ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: channel_emotes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.channel_emotes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: channel_followers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.channel_followers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: chat_messages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: chat_overlay_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.chat_overlay_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: clip_command_blocks; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.clip_command_blocks ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: clip_command_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.clip_command_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: clip_command_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.clip_command_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: coin_discount_uses; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.coin_discount_uses ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: coin_flags; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.coin_flags ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: coin_pending_orders; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.coin_pending_orders ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: coin_purchases; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.coin_purchases ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: coin_referrals; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.coin_referrals ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: coin_transactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.coin_transactions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: coin_transfers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.coin_transfers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: command_counters; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.command_counters ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: command_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.command_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: command_uses; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.command_uses ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: credential_access_log; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.credential_access_log ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: credit_purchases; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.credit_purchases ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: custom_commands; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.custom_commands ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: decatron_ai_channel_config; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.decatron_ai_channel_config ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: decatron_ai_channel_permissions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.decatron_ai_channel_permissions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: decatron_ai_usage; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.decatron_ai_usage ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: decatron_chat_conversations; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.decatron_chat_conversations ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: decatron_chat_messages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.decatron_chat_messages ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: decatron_chat_permissions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.decatron_chat_permissions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: desktop_devices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.desktop_devices ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: discord_alert_messages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.discord_alert_messages ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: discord_guild_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.discord_guild_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: discord_live_alerts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.discord_live_alerts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: discord_template_bindings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.discord_template_bindings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: discord_welcome_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.discord_welcome_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: entitlement_events; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.entitlement_events ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_alerts_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.event_alerts_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: follow_alert_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.follow_alert_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: follow_alert_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.follow_alert_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: follower_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.follower_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_achievements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_achievements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_banners; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_banners ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_command_aliases; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_command_aliases ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_command_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_command_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_integration_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_integration_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_inventory; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_inventory ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_item_restrictions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_item_restrictions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_items; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_items ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_linked_accounts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_linked_accounts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_overlay_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_overlay_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_participants; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_participants ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_preferences; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_preferences ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_pull_logs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_pull_logs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_rarity_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_rarity_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_rarity_restrictions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_rarity_restrictions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_showcases; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_showcases ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_sound_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_sound_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_user_achievements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_user_achievements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_viewer_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_viewer_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: gacha_wishlists; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.gacha_wishlists ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: game_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.game_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: game_overlay_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.game_overlay_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: game_session_snapshots; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.game_session_snapshots ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: giveaway_blacklist; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.giveaway_blacklist ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: giveaway_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.giveaway_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: giveaway_participants; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.giveaway_participants ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: giveaway_sessions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.giveaway_sessions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: giveaway_winner_cooldowns; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.giveaway_winner_cooldowns ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: giveaway_winners; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.giveaway_winners ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: global_emote_requests; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.global_emote_requests ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: global_emotes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.global_emotes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: linked_game_accounts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.linked_game_accounts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: live_overlay_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.live_overlay_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: live_translation_access; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.live_translation_access ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: live_translation_sessions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.live_translation_sessions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: live_translation_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.live_translation_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: lol_coach_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.lol_coach_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: lol_prediction_bets; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.lol_prediction_bets ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: lol_prediction_points; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.lol_prediction_points ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: lol_predictions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.lol_predictions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: micro_game_commands; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.micro_game_commands ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: moderation_command_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.moderation_command_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: moderation_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.moderation_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: moderation_filters; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.moderation_filters ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: moderation_logs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.moderation_logs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: moderation_panic; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.moderation_panic ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: multiview_layouts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.multiview_layouts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: now_playing_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.now_playing_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: oauth_access_tokens; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.oauth_access_tokens ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: oauth_applications; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.oauth_applications ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: oauth_authorization_codes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.oauth_authorization_codes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: oauth_refresh_tokens; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.oauth_refresh_tokens ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: pet_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.pet_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: pet_seen_chatters; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.pet_seen_chatters ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: player_card_instances; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.player_card_instances ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: player_pack_inventory; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.player_pack_inventory ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: player_pity_counter; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.player_pity_counter ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: public_command_overrides; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.public_command_overrides ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: raffle_participants; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.raffle_participants ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: raffle_winners; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.raffle_winners ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: raffles; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.raffles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: rank_card_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.rank_card_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: rank_card_level_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.rank_card_level_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ruleta_command_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.ruleta_command_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ruleta_mod_restores; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.ruleta_mod_restores ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: scripted_commands; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.scripted_commands ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: shoutout_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.shoutout_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: shoutout_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.shoutout_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_bans; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_bans ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_listen_daily; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_listen_daily ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_listen_tracks; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_listen_tracks ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_listen_unplayable; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_listen_unplayable ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_listen_visitors; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_listen_visitors ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_pending; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_pending ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_playlist_items; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_playlist_items ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_playlist_votes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_playlist_votes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_playlists; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_playlists ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_queue; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_queue ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: song_request_trusted; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.song_request_trusted ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sound_alert_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sound_alert_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sound_alert_files; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sound_alert_files ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sound_alert_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sound_alert_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sound_alert_reward_files; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sound_alert_reward_files ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: speak_chat_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.speak_chat_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: speak_chat_usage_backup; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.speak_chat_usage_backup ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stream_chat_activities; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stream_chat_activities ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: stream_watch_times; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.stream_watch_times ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: supporter_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.supporter_payments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: system_admins; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.system_admins ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: system_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tcg_free_pack_claims; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tcg_free_pack_claims ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_addons; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_addons ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_buyer_mfa; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_buyer_mfa ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_buyer_recovery_codes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_buyer_recovery_codes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_credentials; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_credentials ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_entitlement_overrides; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_entitlement_overrides ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: accounts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.accounts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: admin_mod_actions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.admin_mod_actions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: ai_usage_logs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.ai_usage_logs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: banned_words tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.banned_words USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: billing_profiles tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.billing_profiles USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: bot_tokens tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.bot_tokens USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: channel_bot_entries tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.channel_bot_entries USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: channel_emote_reports tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.channel_emote_reports USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: channel_emote_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.channel_emote_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: channel_emote_uploaders tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.channel_emote_uploaders USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: channel_emotes tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.channel_emotes USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: channel_followers tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.channel_followers USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: chat_messages tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.chat_messages USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: chat_overlay_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.chat_overlay_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: clip_command_blocks tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.clip_command_blocks USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: clip_command_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.clip_command_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: clip_command_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.clip_command_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: coin_discount_uses tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.coin_discount_uses USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: coin_flags tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.coin_flags USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: coin_pending_orders tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.coin_pending_orders USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: coin_purchases tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.coin_purchases USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: coin_referrals tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.coin_referrals USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: coin_transactions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.coin_transactions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: coin_transfers tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.coin_transfers USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: command_counters tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.command_counters USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: command_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.command_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: command_uses tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.command_uses USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: credential_access_log tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.credential_access_log USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: credit_purchases tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.credit_purchases USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: custom_commands tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.custom_commands USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: decatron_ai_channel_config tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.decatron_ai_channel_config USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: decatron_ai_channel_permissions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.decatron_ai_channel_permissions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: decatron_ai_usage tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.decatron_ai_usage USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: decatron_chat_conversations tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.decatron_chat_conversations USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: decatron_chat_messages tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.decatron_chat_messages USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: decatron_chat_permissions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.decatron_chat_permissions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: desktop_devices tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.desktop_devices USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: discord_alert_messages tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.discord_alert_messages USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: discord_guild_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.discord_guild_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: discord_live_alerts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.discord_live_alerts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: discord_template_bindings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.discord_template_bindings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: discord_welcome_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.discord_welcome_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: entitlement_events tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.entitlement_events USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: event_alerts_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.event_alerts_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: follow_alert_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.follow_alert_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: follow_alert_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.follow_alert_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: follower_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.follower_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_achievements tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_achievements USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_banners tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_banners USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_command_aliases tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_command_aliases USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_command_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_command_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_integration_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_integration_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_inventory tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_inventory USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_item_restrictions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_item_restrictions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_items tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_items USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_linked_accounts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_linked_accounts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_overlay_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_overlay_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_participants tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_participants USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_preferences tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_preferences USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_pull_logs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_pull_logs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_rarity_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_rarity_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_rarity_restrictions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_rarity_restrictions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_showcases tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_showcases USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_sound_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_sound_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_user_achievements tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_user_achievements USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_viewer_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_viewer_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: gacha_wishlists tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.gacha_wishlists USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: game_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.game_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: game_overlay_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.game_overlay_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: game_session_snapshots tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.game_session_snapshots USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: giveaway_blacklist tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.giveaway_blacklist USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: giveaway_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.giveaway_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: giveaway_participants tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.giveaway_participants USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: giveaway_sessions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.giveaway_sessions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: giveaway_winner_cooldowns tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.giveaway_winner_cooldowns USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: giveaway_winners tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.giveaway_winners USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: global_emote_requests tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.global_emote_requests USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: global_emotes tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.global_emotes USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: linked_game_accounts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.linked_game_accounts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: live_overlay_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.live_overlay_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: live_translation_access tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.live_translation_access USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: live_translation_sessions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.live_translation_sessions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: live_translation_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.live_translation_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: lol_coach_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.lol_coach_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: lol_prediction_bets tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.lol_prediction_bets USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: lol_prediction_points tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.lol_prediction_points USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: lol_predictions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.lol_predictions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: micro_game_commands tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.micro_game_commands USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: moderation_command_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.moderation_command_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: moderation_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.moderation_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: moderation_filters tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.moderation_filters USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: moderation_logs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.moderation_logs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: moderation_panic tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.moderation_panic USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: multiview_layouts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.multiview_layouts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: now_playing_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.now_playing_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: oauth_access_tokens tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.oauth_access_tokens USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: oauth_applications tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.oauth_applications USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: oauth_authorization_codes tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.oauth_authorization_codes USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: oauth_refresh_tokens tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.oauth_refresh_tokens USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: pet_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.pet_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: pet_seen_chatters tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.pet_seen_chatters USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: player_card_instances tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.player_card_instances USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: player_pack_inventory tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.player_pack_inventory USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: player_pity_counter tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.player_pity_counter USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: public_command_overrides tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.public_command_overrides USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: raffle_participants tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.raffle_participants USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: raffle_winners tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.raffle_winners USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: raffles tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.raffles USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: rank_card_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.rank_card_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: rank_card_level_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.rank_card_level_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: ruleta_command_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.ruleta_command_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: ruleta_mod_restores tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.ruleta_mod_restores USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: scripted_commands tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.scripted_commands USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: shoutout_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.shoutout_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: shoutout_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.shoutout_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_bans tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_bans USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_listen_daily tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_listen_daily USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_listen_tracks tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_listen_tracks USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_listen_unplayable tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_listen_unplayable USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_listen_visitors tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_listen_visitors USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_pending tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_pending USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_playlist_items tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_playlist_items USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_playlist_votes tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_playlist_votes USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_playlists tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_playlists USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_queue tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_queue USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: song_request_trusted tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.song_request_trusted USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: sound_alert_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.sound_alert_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: sound_alert_files tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.sound_alert_files USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: sound_alert_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.sound_alert_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: sound_alert_reward_files tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.sound_alert_reward_files USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: speak_chat_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.speak_chat_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: speak_chat_usage_backup tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.speak_chat_usage_backup USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: stream_chat_activities tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.stream_chat_activities USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: stream_watch_times tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.stream_watch_times USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: supporter_payments tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.supporter_payments USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: system_admins tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.system_admins USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: system_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.system_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tcg_free_pack_claims tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tcg_free_pack_claims USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_addons tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_addons USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_buyer_mfa tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_buyer_mfa USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_buyer_recovery_codes tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_buyer_recovery_codes USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_credentials tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_credentials USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_entitlement_overrides tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_entitlement_overrides USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_keys tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_keys USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_provider_config tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_provider_config USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_subscriptions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_subscriptions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tier_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tier_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_configs_backup_tiers tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_configs_backup_tiers USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_event_cooldowns tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_event_cooldowns USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_event_logs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_event_logs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_happyhour tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_happyhour USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_manual_happyhour tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_manual_happyhour USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_media_files tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_media_files USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_schedules tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_schedules USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_session_backups tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_session_backups USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_sessions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_sessions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_states tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_states USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timer_templates tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timer_templates USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: timers tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.timers USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tips_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tips_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tips_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tips_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: title_game_sync_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.title_game_sync_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: title_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.title_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_blue_shell_rules tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_blue_shell_rules USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_divisions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_divisions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_editions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_editions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_files tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_files USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_games tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_games USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_group_teams tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_group_teams USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_groups tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_groups USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_reports tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_reports USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_result_audit tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_result_audit USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_results tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_results USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_session_checkins tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_session_checkins USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_fortnite_sessions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_fortnite_sessions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_games tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_games USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_lp_snapshots tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_lp_snapshots USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_matches tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_matches USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_overlay_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_overlay_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_participants tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_participants USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_prize_tiers tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_prize_tiers USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_punishment_types tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_punishment_types USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_riot_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_riot_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_rule_documents tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_rule_documents USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_shell_events tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_shell_events USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_shell_inventories tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_shell_inventories USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_shell_triggers tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_shell_triggers USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_sponsors tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_sponsors USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_teams tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_teams USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tournament_win_conditions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tournament_win_conditions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tts_credit_balances tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tts_credit_balances USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tts_credit_ledger tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tts_credit_ledger USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: upgrade_attempt_log tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.upgrade_attempt_log USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: usage_counters tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.usage_counters USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_access tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_access USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_achievements tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_achievements USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_channel_permissions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_channel_permissions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_coins tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_coins USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_fortnite_sprites tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_fortnite_sprites USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_riot_accounts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_riot_accounts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_spirit_notification_prefs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_spirit_notification_prefs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_strikes tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_strikes USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_subscription_tiers tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_subscription_tiers USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_xp tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_xp USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: user_xp_global tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.user_xp_global USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: username_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.username_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: users tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.users USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: viewer_token_epoch tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.viewer_token_epoch USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: watchtime_command_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.watchtime_command_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheel_pending_deliveries tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheel_pending_deliveries USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheel_raffle_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheel_raffle_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheel_raffle_entries tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheel_raffle_entries USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheel_segments tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheel_segments USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheel_spins tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheel_spins USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheel_wallet_sources tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheel_wallet_sources USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheel_wallets tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheel_wallets USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: wheels tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wheels USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_achievements tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_achievements USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_boosts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_boosts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_configs tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_configs USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_roles tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_roles USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_seasonal tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_seasonal USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_store_items tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_store_items USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_store_purchases tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_store_purchases USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: xp_transactions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.xp_transactions USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_keys; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_keys ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_provider_config; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_provider_config ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_subscriptions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_subscriptions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tier_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tier_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_configs_backup_tiers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_configs_backup_tiers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_event_cooldowns; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_event_cooldowns ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_event_logs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_event_logs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_happyhour; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_happyhour ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_manual_happyhour; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_manual_happyhour ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_media_files; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_media_files ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_schedules; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_schedules ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_session_backups; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_session_backups ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_sessions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_sessions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_states; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_states ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timer_templates; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timer_templates ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: timers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.timers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tips_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tips_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tips_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tips_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: title_game_sync_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.title_game_sync_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: title_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.title_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_blue_shell_rules; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_blue_shell_rules ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_divisions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_divisions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_editions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_editions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_files; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_files ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_games; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_games ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_group_teams; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_group_teams ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_groups; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_groups ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_reports; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_reports ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_result_audit; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_result_audit ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_results; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_results ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_session_checkins; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_session_checkins ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_fortnite_sessions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_fortnite_sessions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_games; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_games ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_lp_snapshots; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_lp_snapshots ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_matches; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_matches ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_overlay_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_overlay_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_participants; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_participants ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_prize_tiers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_prize_tiers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_punishment_types; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_punishment_types ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_riot_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_riot_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_rule_documents; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_rule_documents ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_shell_events; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_shell_events ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_shell_inventories; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_shell_inventories ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_shell_triggers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_shell_triggers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_sponsors; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_sponsors ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_teams; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_teams ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tournament_win_conditions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tournament_win_conditions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tts_credit_balances; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tts_credit_balances ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tts_credit_ledger; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tts_credit_ledger ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: upgrade_attempt_log; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.upgrade_attempt_log ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: usage_counters; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.usage_counters ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_access; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_access ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_achievements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_achievements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_channel_permissions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_channel_permissions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_coins; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_coins ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_fortnite_sprites; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_fortnite_sprites ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_riot_accounts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_riot_accounts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_spirit_notification_prefs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_spirit_notification_prefs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_strikes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_strikes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_subscription_tiers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_subscription_tiers ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_xp; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_xp ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_xp_global; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_xp_global ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: username_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.username_history ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: users; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: viewer_token_epoch; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.viewer_token_epoch ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: watchtime_command_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.watchtime_command_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheel_pending_deliveries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheel_pending_deliveries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheel_raffle_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheel_raffle_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheel_raffle_entries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheel_raffle_entries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheel_segments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheel_segments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheel_spins; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheel_spins ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheel_wallet_sources; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheel_wallet_sources ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheel_wallets; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheel_wallets ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wheels; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wheels ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_achievements; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_achievements ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_boosts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_boosts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_configs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_configs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_roles; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_roles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_seasonal; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_seasonal ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_store_items; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_store_items ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_store_purchases; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_store_purchases ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: xp_transactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.xp_transactions ENABLE ROW LEVEL SECURITY;
 
 --
 -- PostgreSQL database dump complete

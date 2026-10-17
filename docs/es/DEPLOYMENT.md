@@ -221,7 +221,10 @@ cd /var/www/html/decatron/Decatron/decatron
 # Cargar el esquema base en una base vacía
 psql -U decatron_user -d decatron_prod -f Decatron.Data/Schema/baseline.sql
 
-# Después, aplicar los scripts agregados tras el 2026-10-10 (ejemplo)
+# Datos que toda instalación necesita: el tenant #1 y el catálogo de capacidades
+psql -U decatron_user -d decatron_prod -f Decatron.Data/Migrations/Seed_Platform_Base.sql
+
+# Después, aplicar solo los scripts agregados tras el 2026-10-17 (los anteriores ya están dentro del baseline) (ejemplo)
 psql -U decatron_user -d decatron_prod -f Decatron.Data/Migrations/NOMBRE_DEL_SCRIPT.sql
 ```
 

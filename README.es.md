@@ -179,9 +179,10 @@ Completa como mínimo la cadena de conexión a la base de datos, `JwtSettings` y
 sudo -u postgres psql -c "CREATE USER decatron_user WITH PASSWORD 'tu_contraseña';"
 sudo -u postgres psql -c "CREATE DATABASE decatron OWNER decatron_user;"
 psql -U decatron_user -d decatron -f Decatron.Data/Schema/baseline.sql
+psql -U decatron_user -d decatron -f Decatron.Data/Migrations/Seed_Platform_Base.sql
 ```
 
-El backend **no** crea ni migra tablas al iniciar. `Decatron.Data/Schema/baseline.sql` es una copia del esquema solo con estructura (2026-10-10); los cambios posteriores son los scripts SQL de `Decatron.Data/Migrations/`, que se aplican a mano.
+El backend **no** crea ni migra tablas al iniciar. `Decatron.Data/Schema/baseline.sql` es una copia del esquema solo con estructura (2026-10-17, incluye la plataforma multi-tenant); `Seed_Platform_Base.sql` agrega los datos que toda instalación necesita (el tenant #1 y el catálogo de capacidades). Los cambios posteriores son los scripts SQL de `Decatron.Data/Migrations/` agregados después de esa fecha, que se aplican a mano.
 
 ### Ejecución
 

@@ -107,6 +107,7 @@ El dueño de la plataforma tiene rutas de administración equivalentes bajo `/ap
 ## 8. Notas de operación
 
 - Los cambios de esquema viven en `Decatron.Data/Migrations/` y se aplican a mano antes de reiniciar el backend (`Add_Tenant_Credentials.sql`, `Add_Platform_Signups.sql`, `Add_Buyer_Mfa.sql`, entre otros).
+- Una instalación nueva carga `Schema/baseline.sql` y después `Migrations/Seed_Platform_Base.sql` (tenant #1, el catálogo de capacidades y el plan interno). Los planes comerciales no se incluyen: para abrir el registro de compradores los creas tú, y hace falta al menos un plan con la clave `sandbox`.
 - Un tenant creado a mano también necesita su fila en `tenant_subscriptions`; sin ella el tenant no está operativo y queda pausado.
 - `*.decatron.top` resuelve por un registro DNS comodín y un certificado comodín; nginx sirve la misma aplicación de una sola página y envía `/api`, `/hubs` y las cargas al backend.
 - Eventos de log que conviene vigilar: `tenant.ambiguous` (un usuario con sesión cuyo tenant no se pudo resolver), `eventsub.tenant.start`, `discord.gateway.mem`, `tenant.purge.due`, `buyer.denied`.

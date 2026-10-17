@@ -179,9 +179,10 @@ Fill in at least the database connection string, `JwtSettings` and `TwitchSettin
 sudo -u postgres psql -c "CREATE USER decatron_user WITH PASSWORD 'your_password';"
 sudo -u postgres psql -c "CREATE DATABASE decatron OWNER decatron_user;"
 psql -U decatron_user -d decatron -f Decatron.Data/Schema/baseline.sql
+psql -U decatron_user -d decatron -f Decatron.Data/Migrations/Seed_Platform_Base.sql
 ```
 
-The backend does **not** create or migrate tables at startup. `Decatron.Data/Schema/baseline.sql` is a structure-only snapshot of the schema (2026-10-10); later changes are the SQL scripts in `Decatron.Data/Migrations/`, applied by hand.
+The backend does **not** create or migrate tables at startup. `Decatron.Data/Schema/baseline.sql` is a structure-only snapshot of the schema (2026-10-17, includes the multi-tenant platform); `Seed_Platform_Base.sql` adds the data every installation needs (tenant #1 and the capability catalog). Later changes are the SQL scripts in `Decatron.Data/Migrations/` added after that date, applied by hand.
 
 ### Run
 

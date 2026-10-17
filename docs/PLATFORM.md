@@ -107,6 +107,7 @@ The platform owner has equivalent admin routes under `/api/admin/platform/` (wai
 ## 8. Operating notes
 
 - Schema changes live in `Decatron.Data/Migrations/` and are applied by hand before restarting the backend (`Add_Tenant_Credentials.sql`, `Add_Platform_Signups.sql`, `Add_Buyer_Mfa.sql`, among others).
+- A fresh installation loads `Schema/baseline.sql` and then `Migrations/Seed_Platform_Base.sql` (tenant #1, the capability catalog and the internal plan). Commercial plans are not shipped: to open buyer sign-up you create them yourself, and at least a plan with the key `sandbox` is required.
 - A tenant created by hand also needs its row in `tenant_subscriptions`; without it the tenant is not operational and is paused.
 - `*.decatron.top` resolves through a wildcard DNS record and a wildcard certificate; nginx serves the same single-page app and sends `/api`, `/hubs` and uploads to the backend.
 - Log events to watch: `tenant.ambiguous` (an authenticated user whose tenant could not be resolved), `eventsub.tenant.start`, `discord.gateway.mem`, `tenant.purge.due`, `buyer.denied`.

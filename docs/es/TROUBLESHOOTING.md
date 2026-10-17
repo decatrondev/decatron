@@ -418,7 +418,7 @@ El backend no crea tablas. Si una función falla con "relation ... does not exis
 sudo -u postgres psql -d decatron_prod -c "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"
 ```
 
-En producción hay más de 240 tablas. Carga `Decatron.Data/Schema/baseline.sql` en una base vacía y aplica los scripts de `Decatron.Data/Migrations/` agregados después (consulta [DEPLOYMENT.md](DEPLOYMENT.md#crear-el-esquema)).
+En producción hay más de 270 tablas. Carga `Decatron.Data/Schema/baseline.sql` en una base vacía y aplica los scripts de `Decatron.Data/Migrations/` agregados después (consulta [DEPLOYMENT.md](DEPLOYMENT.md#crear-el-esquema)).
 
 **6. Tablas con el propietario equivocado**
 
