@@ -627,6 +627,43 @@
         "quota.storage_mb": "Almacenamiento (MB)",
         "quota.timers": "Timers"
       }
+    },
+    "mfa": {
+      "title": "Verificación en dos pasos",
+      "help": "Protege tus credenciales: con la verificación activa, guardar, cambiar o quitar la app de Twitch, el bot, Discord o tus llaves pide un código de tu app autenticadora (vale 10 minutos).",
+      "on": "Activada",
+      "off": "Desactivada",
+      "recoveryLeft_one": "{{count}} código de recuperación disponible",
+      "recoveryLeft_other": "{{count}} códigos de recuperación disponibles",
+      "recommend": "Es opcional por ahora, pero te recomendamos activarla antes de cargar credenciales reales.",
+      "enable": "Activar",
+      "scan": "Escanea el código con tu app autenticadora (Google Authenticator, Authy, 1Password…) y escribe el código de 6 dígitos que te muestra.",
+      "qrAlt": "Código QR para tu app autenticadora",
+      "manual": "¿No puedes escanear? Escribe esta clave en la app:",
+      "activate": "Confirmar y activar",
+      "codeLabel": "Código",
+      "codeHint": "Código de 6 dígitos de tu app, o un código de recuperación.",
+      "setupCodeHint": "El código de 6 dígitos que muestra la app.",
+      "codesWarning": "Guarda estos códigos ahora: es la única vez que se muestran. Cada uno sirve una sola vez si pierdes tu app.",
+      "download": "Descargar",
+      "saved": "Ya los guardé",
+      "regen": "Nuevos códigos de recuperación",
+      "regenText": "Escribe un código para generar códigos nuevos. Los anteriores dejarán de servir.",
+      "regenConfirm": "Generar códigos",
+      "disable": "Desactivar",
+      "disableText": "Escribe un código para desactivar la verificación en dos pasos. Tus credenciales quedarán protegidas solo por el enlace de tu correo.",
+      "disableConfirm": "Desactivar",
+      "disabledOk": "Verificación en dos pasos desactivada.",
+      "stepUpTitle": "Confirma que eres tú",
+      "stepUpText": "Esta acción toca tus credenciales. Escribe el código de tu app autenticadora (o uno de recuperación) para continuar.",
+      "verify": "Verificar",
+      "errors": {
+        "invalid_code": "Código incorrecto. Revisa que el reloj de tu teléfono esté en hora e intenta de nuevo.",
+        "locked": "Demasiados intentos fallidos. Espera 15 minutos antes de intentar de nuevo.",
+        "already_enabled": "La verificación en dos pasos ya está activa.",
+        "not_enabled": "La verificación en dos pasos no está activa.",
+        "generic": "No pudimos completar la acción. Intenta de nuevo."
+      }
     }
   },
   "tenantLogin": {

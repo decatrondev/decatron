@@ -107,6 +107,7 @@ namespace Decatron.Controllers
 
         /// <summary>Carga la app de Twitch del comprador. La URL de retorno y los permisos son los de la plataforma (el comprador no los cambia).</summary>
         [HttpPut("twitch-app")]
+        [RequireStepUp]
         public async Task<IActionResult> SaveTwitchApp([FromBody] TwitchAppBody body)
         {
             if (await RequireActiveAsync() is { } stop) return stop;
@@ -131,6 +132,7 @@ namespace Decatron.Controllers
         }
 
         [HttpDelete("twitch-app")]
+        [RequireStepUp]
         public async Task<IActionResult> DeleteTwitchApp()
         {
             await _eventSub.StopAsync(Tid);
@@ -142,6 +144,7 @@ namespace Decatron.Controllers
 
         /// <summary>Enlace de un solo proposito (30 min) para autorizar la cuenta del bot iniciando sesion en Twitch con ella.</summary>
         [HttpPost("bot-link")]
+        [RequireStepUp]
         public async Task<IActionResult> CreateBotLink()
         {
             if (await RequireActiveAsync() is { } stop) return stop;
@@ -154,6 +157,7 @@ namespace Decatron.Controllers
         }
 
         [HttpDelete("bot")]
+        [RequireStepUp]
         public async Task<IActionResult> DeleteBot()
         {
             await _eventSub.StopAsync(Tid);
@@ -191,6 +195,7 @@ namespace Decatron.Controllers
         };
 
         [HttpPut("byo/{provider}")]
+        [RequireStepUp]
         public async Task<IActionResult> SaveByo(string provider, [FromBody] ByoBody body)
         {
             if (!ByoProviders.IsKnown(provider)) return BadRequest(new { success = false, code = "unknown_provider" });
@@ -216,6 +221,7 @@ namespace Decatron.Controllers
         }
 
         [HttpDelete("byo/{provider}")]
+        [RequireStepUp]
         public async Task<IActionResult> DeleteByo(string provider)
         {
             if (!ByoProviders.IsKnown(provider)) return BadRequest(new { success = false, code = "unknown_provider" });
@@ -228,6 +234,7 @@ namespace Decatron.Controllers
         // ── Discord ──
 
         [HttpPut("discord-bot")]
+        [RequireStepUp]
         public async Task<IActionResult> SaveDiscordBot([FromBody] DiscordBotBody body)
         {
             if (await RequireActiveAsync() is { } stop) return stop;
@@ -246,6 +253,7 @@ namespace Decatron.Controllers
         public async Task<IActionResult> RestartDiscordBot() => Ok(new { success = true, gateway = await _gateway.StartAsync(Tid) });
 
         [HttpDelete("discord-bot")]
+        [RequireStepUp]
         public async Task<IActionResult> DeleteDiscordBot()
         {
             await _gateway.StopAsync(Tid);

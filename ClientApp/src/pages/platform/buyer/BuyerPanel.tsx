@@ -6,6 +6,8 @@ import { Alert, Button, Card, Field, Input, Spinner } from '../../../components/
 import PlatformShell from '../PlatformShell';
 import BuyerSetup from './BuyerSetup';
 import BuyerTransparency from './BuyerTransparency';
+import BuyerSecurity from './BuyerSecurity';
+import BuyerStepUp from './BuyerStepUp';
 import { useTurnstile } from '../useTurnstile';
 
 // La sesión del comprador va aparte de la del streamer: otra clave y su propio encabezado (nunca toca el login de Twitch).
@@ -77,9 +79,11 @@ function Home() {
                             <div><dt className="text-sm text-ds-faint">{t('buyer.role')}</dt><dd className="text-ds-text font-semibold">{t('buyer.owner')}</dd></div>
                         </dl>
                     </Card>
+                    <BuyerSecurity />
                     <BuyerSetup />
                     <BuyerTransparency />
                     <Button variant="secondary" onClick={logout}>{t('buyer.logout')}</Button>
+                    <BuyerStepUp />
                 </>}
             </div>
         </PlatformShell>
