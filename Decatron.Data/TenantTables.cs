@@ -206,6 +206,7 @@ public static class TenantTables
         "user_xp",
         "user_xp_global",
         "username_history",
+        "users", // Fase A2: una fila por (tenant, persona de Twitch)
         "viewer_token_epoch",
         "watchtime_command_configs",
         "wheel_pending_deliveries",

@@ -171,7 +171,7 @@ namespace Decatron.Services
             try
             {
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                using var connection = new Npgsql.NpgsqlConnection(connectionString);
+                using var connection = Decatron.Core.Interfaces.TenantNpgsql.Create(connectionString);
                 await connection.OpenAsync();
 
                 const string query = @"
