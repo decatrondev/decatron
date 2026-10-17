@@ -444,7 +444,7 @@
         "quota.commands": "Commands",
         "quota.timers": "Timers",
         "quota.storage_mb": "Storage (MB)",
-        "quota.emails_month": "Emails per month",
+        "byo.email": "Own email key",
         "module.commands": "Module: commands",
         "module.timers": "Module: timers",
         "module.moderation": "Module: moderation",
@@ -650,7 +650,7 @@
         "quota.channels": "Connected channels",
         "quota.chat_messages_month": "Chat messages per month",
         "quota.commands": "Custom commands",
-        "quota.emails_month": "Emails per month",
+        "byo.email": "Email with your own key",
         "quota.storage_mb": "Storage (MB)",
         "quota.timers": "Timers"
       }

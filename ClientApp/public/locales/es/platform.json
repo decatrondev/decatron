@@ -444,7 +444,7 @@
         "quota.commands": "Comandos",
         "quota.timers": "Timers",
         "quota.storage_mb": "Almacenamiento (MB)",
-        "quota.emails_month": "Correos por mes",
+        "byo.email": "Llave propia de correo",
         "module.commands": "Módulo: comandos",
         "module.timers": "Módulo: timers",
         "module.moderation": "Módulo: moderación",
@@ -650,7 +650,7 @@
         "quota.channels": "Canales conectados",
         "quota.chat_messages_month": "Mensajes de chat al mes",
         "quota.commands": "Comandos personalizados",
-        "quota.emails_month": "Correos al mes",
+        "byo.email": "Correo con tu llave",
         "quota.storage_mb": "Almacenamiento (MB)",
         "quota.timers": "Timers"
       }

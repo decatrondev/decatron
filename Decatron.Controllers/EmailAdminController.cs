@@ -201,6 +201,26 @@ namespace Decatron.Controllers
             return Ok(logs);
         }
 
+        // ─── Proveedor de envío ─────────────────────────────────────────────────────
+
+        [HttpGet("provider")]
+        public async Task<IActionResult> GetProvider()
+        {
+            var (resend, smtp) = _emailService.Configured();
+            return Ok(new { provider = await _emailService.GetProviderAsync(), resendConfigured = resend, smtpConfigured = smtp });
+        }
+
+        [HttpPut("provider")]
+        public async Task<IActionResult> SetProvider([FromBody] ProviderRequest req)
+        {
+            var provider = (req.Provider ?? "").Trim().ToLowerInvariant();
+            if (provider != "resend" && provider != "smtp") return BadRequest(new { error = "invalid_provider" });
+            var (resend, smtp) = _emailService.Configured();
+            if ((provider == "resend" && !resend) || (provider == "smtp" && !smtp)) return BadRequest(new { error = "not_configured" });
+            await _emailService.SetProviderAsync(provider, User.FindFirst("Email")?.Value ?? User.Identity?.Name ?? "admin");
+            return Ok(new { provider });
+        }
+
         // ─── Preview / Test ─────────────────────────────────────────────────────────
 
         [HttpPost("preview")]
@@ -209,7 +229,8 @@ namespace Decatron.Controllers
             var (success, resendId, error) = await _emailService.SendEmailAsync(
                 req.TestEmail ?? "support@decatron.net",
                 req.Subject ?? "Test Email",
-                req.HtmlContent ?? "<p>Test</p>"
+                req.HtmlContent ?? "<p>Test</p>",
+                allowFallback: false   // la prueba debe mostrar el error del proveedor elegido, no taparlo con Resend
             );
 
             return Ok(new { success, resendId, error });
@@ -231,6 +252,11 @@ namespace Decatron.Controllers
         public string Name { get; set; } = string.Empty;
         public long TemplateId { get; set; }
         public List<long> RecipientIds { get; set; } = new();
+    }
+
+    public class ProviderRequest
+    {
+        public string? Provider { get; set; }
     }
 
     public class PreviewRequest

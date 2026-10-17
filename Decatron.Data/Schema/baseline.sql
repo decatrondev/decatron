@@ -5151,6 +5151,20 @@ CREATE TABLE public.platform_approved_emails (
 
 
 --
+-- Name: platform_mail_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platform_mail_settings (
+    id integer DEFAULT 1 NOT NULL,
+    provider character varying(10) DEFAULT 'resend'::character varying NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_by character varying(254),
+    CONSTRAINT platform_mail_settings_id_check CHECK ((id = 1)),
+    CONSTRAINT platform_mail_settings_provider_check CHECK (((provider)::text = ANY ((ARRAY['resend'::character varying, 'smtp'::character varying])::text[])))
+);
+
+
+--
 -- Name: platform_signups; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13163,6 +13177,14 @@ ALTER TABLE ONLY public.plans
 
 ALTER TABLE ONLY public.platform_approved_emails
     ADD CONSTRAINT platform_approved_emails_pkey PRIMARY KEY (email);
+
+
+--
+-- Name: platform_mail_settings platform_mail_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_mail_settings
+    ADD CONSTRAINT platform_mail_settings_pkey PRIMARY KEY (id);
 
 
 --

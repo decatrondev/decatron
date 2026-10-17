@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, Send, History } from 'lucide-react';
+import { ArrowLeft, FileText, Send, History, Server } from 'lucide-react';
 import TemplatesTab from './TemplatesTab';
 import CampaignsTab from './CampaignsTab';
 import LogsTab from './LogsTab';
+import ProviderTab from './ProviderTab';
 
 const tabs = [
     { id: 'templates', label: 'Templates', icon: FileText },
     { id: 'campaigns', label: 'Campañas', icon: Send },
     { id: 'logs', label: 'Historial', icon: History },
+    { id: 'provider', label: 'Proveedor', icon: Server },
 ];
 
 export default function EmailManagement() {
@@ -24,7 +26,7 @@ export default function EmailManagement() {
                 </button>
                 <div>
                     <h1 className="text-3xl font-black text-ds-text">Email Campaigns</h1>
-                    <p className="text-ds-soft mt-1">Crea templates visuales y envía emails a streamers via Resend</p>
+                    <p className="text-ds-soft mt-1">Crea templates visuales y envía emails a streamers (proveedor configurable en la pestaña Proveedor)</p>
                 </div>
             </div>
 
@@ -48,6 +50,7 @@ export default function EmailManagement() {
             {activeTab === 'templates' && <TemplatesTab />}
             {activeTab === 'campaigns' && <CampaignsTab />}
             {activeTab === 'logs' && <LogsTab />}
+            {activeTab === 'provider' && <ProviderTab />}
         </div>
     );
 }
