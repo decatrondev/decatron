@@ -9,7 +9,8 @@
     "includes": "What's included",
     "faq": "FAQ",
     "join": "Join the waitlist",
-    "bot": "Decatron for streamers"
+    "bot": "Decatron for streamers",
+    "plans": "Plans"
   },
   "hero": {
     "tag": "waitlist open",
@@ -663,8 +664,8 @@
       "recoveryLeft_one": "{{count}} recovery code available",
       "recoveryLeft_other": "{{count}} recovery codes available",
       "recommend": "It is required for the owner: without it the panel stays locked. Turn it on to continue.",
-            "requiredTitle": "Turn on two-step verification",
-            "requiredText": "To protect your project's credentials, the owner must have two-step verification on before using the panel. It takes a minute: you need an authenticator app on your phone.",
+      "requiredTitle": "Turn on two-step verification",
+      "requiredText": "To protect your project's credentials, the owner must have two-step verification on before using the panel. It takes a minute: you need an authenticator app on your phone.",
       "enable": "Turn on",
       "scan": "Scan the code with your authenticator app (Google Authenticator, Authy, 1Password…) and type the 6-digit code it shows.",
       "qrAlt": "QR code for your authenticator app",
@@ -777,6 +778,80 @@
       "channel_quota_reached": "This space already uses all the channels in its plan. Ask whoever manages it to upgrade the plan.",
       "account_other_tenant": "This account already belongs to another Decatron space.",
       "access_denied": "You cancelled the authorization on Twitch. To sign in you need to accept the permissions."
+    }
+  },
+  "plans": {
+    "meta": {
+      "title": "Plans — Decatron",
+      "description": "Plans and pricing to run your own streaming bot with your credentials and your brand."
+    },
+    "eyebrow": "Plans and pricing",
+    "title": "Choose your bot's plan.",
+    "subtitle": "Every plan includes commands, timers and moderation. The other modules come with higher tiers or can be bought one by one.",
+    "periodLabel": "Billing period",
+    "period": {
+      "1": "1 month",
+      "3": "3 months",
+      "6": "6 months",
+      "9": "9 months",
+      "12": "12 months"
+    },
+    "save": "−{{pct}}%",
+    "perMonth": "per month",
+    "usd": "USD {{amount}}",
+    "billed": "{{amount}} in a single payment for {{months}}",
+    "billedMonthly": "{{amount}} per month",
+    "pen": "≈ S/ {{amount}} per month",
+    "channels_one": "{{count}} channel",
+    "channels_other": "{{count}} channels",
+    "admins_one": "{{count}} admin",
+    "admins_other": "{{count}} admins",
+    "includesBase": "Includes:",
+    "includesMore": "Everything in {{plan}}, plus:",
+    "cta": "Try it for 7 days",
+    "ctaNote": "No card needed. Sign-up is by approval from the waitlist.",
+    "custom": {
+      "name": "Exclusivo",
+      "price": "Custom, from USD 199 per month",
+      "text": "Channels, admins and limits tailored to you, with everything in Studio.",
+      "cta": "Tell us about your case"
+    },
+    "addons": {
+      "title": "Single modules",
+      "subtitle": "Only missing one? Add it to your plan without moving up a tier. A plan plus its modules never costs more than the next plan.",
+      "module": "Module",
+      "price": "Price",
+      "from": "Sold separately on plans below {{plan}}",
+      "month": "USD {{amount}} per month"
+    },
+    "notes": {
+      "title": "Before you pay",
+      "igv": "Prices are in US dollars (USD) and include VAT (IGV) in Peru. Outside Peru the price is the same, without VAT.",
+      "pen": "You are charged in Peruvian soles at the current exchange rate (today 1 USD = S/ {{rate}}).",
+      "trial": "Every plan can be tried free for 7 days.",
+      "refunds": "There are no refunds: the 7-day trial exists so you can decide before you pay."
+    },
+    "loading": "Loading prices…",
+    "error": "We couldn't load the prices. Please try again in a moment.",
+    "retry": "Try again",
+    "modules": {
+      "commands": "Commands",
+      "moderation": "Moderation",
+      "timers": "Timers",
+      "clips": "Clips",
+      "giveaways": "Giveaways",
+      "overlays": "Overlays (chat, shoutout, Now Playing)",
+      "roulette": "Roulette",
+      "song_request": "Song requests",
+      "discord": "Discord",
+      "live_translation": "Live translation",
+      "multiview": "Multi-view",
+      "pets": "Pets",
+      "spirits": "Fortnite Spirits",
+      "tournaments": "Tournaments",
+      "tts": "Text to speech (TTS)",
+      "game_overlays": "Game overlays",
+      "lol_coach": "LoL coach"
     }
   }
 }

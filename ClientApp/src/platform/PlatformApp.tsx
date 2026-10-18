@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { BrandProvider } from '../brand/BrandContext';
 import PlatformLanding from '../pages/platform/PlatformLanding';
 import { PlatformConfirm, PlatformNotFound } from '../pages/platform/PlatformConfirm';
+import PlatformPlans from '../pages/platform/PlatformPlans';
 import PlatformSignup from '../pages/platform/PlatformSignup';
 import PlatformSignupConfirm from '../pages/platform/PlatformSignupConfirm';
 import '../i18n/config';
@@ -15,6 +16,7 @@ export default function PlatformApp() {
                 <Routes>
                     <Route path="/" element={<PlatformLanding />} />
                     <Route path="/lista-de-espera/confirmar" element={<PlatformConfirm />} />
+                    <Route path="/planes" element={<PlatformPlans />} />
                     <Route path="/registro" element={<PlatformSignup />} />
                     <Route path="/registro/confirmar" element={<PlatformSignupConfirm />} />
                     <Route path="*" element={<PlatformNotFound />} />

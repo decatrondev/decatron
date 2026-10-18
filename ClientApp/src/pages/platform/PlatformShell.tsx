@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BrandMark } from '../../brand/BrandMark';
 import { DsRoot, Button } from '../../components/ds';
@@ -37,6 +37,7 @@ function LanguageToggle() {
 export default function PlatformShell({ children, showNav = true, brandName }: { children: ReactNode; showNav?: boolean; brandName?: string }) {
     const { t, i18n } = useTranslation('platform');
     const { pathname, hash } = useLocation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         document.title = brandName || t('meta.title');
@@ -51,7 +52,7 @@ export default function PlatformShell({ children, showNav = true, brandName }: {
         document.getElementById(hash.slice(1))?.scrollIntoView();
     }, [pathname, hash]);
 
-    const goJoin = () => document.getElementById('lista')?.scrollIntoView({ behavior: 'smooth' });
+    const goJoin = () => (pathname === '/' ? document.getElementById('lista')?.scrollIntoView({ behavior: 'smooth' }) : navigate('/#lista'));
     const nav = [
         ['que-es', t('nav.what')], ['como', t('nav.how')], ['incluye', t('nav.includes')], ['preguntas', t('nav.faq')],
     ] as const;
@@ -73,6 +74,7 @@ export default function PlatformShell({ children, showNav = true, brandName }: {
                             {nav.map(([id, label]) => (
                                 <Link key={id} to={`/#${id}`} className="hover:text-ds-text transition-colors">{label}</Link>
                             ))}
+                            <Link to="/planes" className={pathname === '/planes' ? 'text-ds-text font-semibold' : 'hover:text-ds-text transition-colors'}>{t('nav.plans')}</Link>
                         </nav>
                     )}
                     <div className="flex items-center gap-4">
