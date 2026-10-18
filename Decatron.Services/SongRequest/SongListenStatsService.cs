@@ -376,11 +376,13 @@ namespace Decatron.Services.SongRequest
     {
         private readonly SongListenStatsService _stats;
         private readonly ILogger<SongListenStatsCleanupService> _logger;
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
 
-        public SongListenStatsCleanupService(SongListenStatsService stats, ILogger<SongListenStatsCleanupService> logger)
+        public SongListenStatsCleanupService(SongListenStatsService stats, ILogger<SongListenStatsCleanupService> logger, Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
             _stats = stats;
             _logger = logger;
+            _tenants = tenants;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -396,7 +398,8 @@ namespace Decatron.Services.SongRequest
                     _stats.PurgeMemory();
                     if (DateTime.UtcNow - lastDb > TimeSpan.FromHours(24))
                     {
-                        await _stats.PurgeDatabaseAsync(stoppingToken);
+                        // La tabla lleva RLS: sin recorrer los tenants solo se borraban los oyentes viejos del #1 y los de los demás se quedaban para siempre.
+                        await _tenants.ForEachTenantAsync("song-listen-purge", _ => _stats.PurgeDatabaseAsync(stoppingToken), stoppingToken);
                         lastDb = DateTime.UtcNow;
                     }
                 }
