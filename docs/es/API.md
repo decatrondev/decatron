@@ -202,6 +202,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 
 | Método | Ruta | Acceso |
 |---|---|---|
+| `POST` | `/api/platform/buyer/billing/auto/disable` | JWT |
 | `POST` | `/api/platform/buyer/billing/checkout` | JWT |
 | `GET` | `/api/platform/buyer/billing/culqi-key` | JWT |
 | `GET` | `/api/platform/buyer/billing/payments/{paymentId}/download/{formato}` | JWT |

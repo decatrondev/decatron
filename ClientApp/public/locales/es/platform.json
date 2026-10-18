@@ -901,7 +901,22 @@
       "title": "Cobro automático",
       "soon": "Próximamente",
       "text": "Guarda tu tarjeta y renovamos tu plan por ti unos días antes de que venza. Podrás cancelarlo cuando quieras.",
-      "label": "Renovar automáticamente"
+      "label": "Renovar automáticamente",
+      "on": "Activo",
+      "off": "No activado",
+      "optIn": "Renovar automáticamente con esta tarjeta",
+      "optInHint": "Guardamos tu tarjeta en nuestro proveedor de pagos (nosotros nunca vemos el número) y cobramos la renovación unos 3 días antes de que venza, al mismo precio. Si falla, reintentamos hasta 3 veces y te avisamos. Puedes cancelarlo cuando quieras; no se devuelve el periodo ya pagado.",
+      "address": "Dirección",
+      "city": "Ciudad",
+      "phone": "Teléfono",
+      "dataHint": "El proveedor de pagos exige dirección, ciudad y teléfono para guardar la tarjeta. No los guardamos nosotros.",
+      "activeText": "Tu plan se renueva solo con {{card}} (activado el {{since}}), unos 3 días antes de vencer. Si el cobro falla reintentamos hasta 3 veces y te avisamos por correo.",
+      "offText": "Actívalo con la casilla «Renovar automáticamente» al pagar tu plan: guardamos la tarjeta y renovamos por ti unos días antes de que venza.",
+      "cancel": "Cancelar cobro automático",
+      "cancelConfirm": "Se borrará la tarjeta guardada y tendrás que renovar a mano. Tu plan sigue activo hasta su fecha de fin; no se devuelve el periodo ya pagado.",
+      "cancelYes": "Sí, cancelar",
+      "cancelNo": "Mantener",
+      "cancelled": "Cobro automático cancelado y tarjeta borrada."
     },
     "history": "Historial de pagos",
     "noPayments": "Aún no tienes pagos.",
@@ -954,7 +969,13 @@
       "file_unavailable": "El archivo no está disponible todavía.",
       "downgrade_not_available": "Para bajar de plan, espera a que venza el periodo actual y compra el plan menor al renovar (tienes 5 días de gracia). No se devuelve dinero.",
       "period_locked": "Mientras tu plan está vigente no se puede cambiar el periodo. Podrás hacerlo al renovar.",
-      "nothing_to_change": "No hay nada nuevo que cobrar: lo que elegiste ya está incluido en tu periodo."
+      "nothing_to_change": "No hay nada nuevo que cobrar: lo que elegiste ya está incluido en tu periodo.",
+      "auto_disabled": "El cobro automático todavía no está habilitado.",
+      "address_invalid": "Escribe una dirección de entre 6 y 99 caracteres.",
+      "city_invalid": "Escribe una ciudad de entre 3 y 29 caracteres.",
+      "phone_invalid": "Escribe un teléfono de entre 6 y 14 caracteres.",
+      "auto_data_required": "Para guardar la tarjeta completa dirección, ciudad y teléfono.",
+      "card_failed": "No se pudo guardar la tarjeta. Revisa los datos e intenta de nuevo."
     },
     "noExpiry": "Sin vencimiento",
     "owned": "ya incluido en tu periodo",
@@ -964,6 +985,7 @@
     "prorationPaid": "Lo que ya pagaste por tu plan actual",
     "prorationDays": "Pagas solo la diferencia por los {{days}} días que faltan de {{period}}. Tu plan sigue terminando en la misma fecha.",
     "prorationAdds": "Incluye: {{modules}}.",
-    "toPayToday": "A pagar hoy"
+    "toPayToday": "A pagar hoy",
+    "paidAuto": "Pago recibido y cobro automático activado. Tu plan está activo hasta el {{date}} y lo renovaremos unos 3 días antes."
   }
 }

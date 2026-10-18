@@ -202,6 +202,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 
 | Method | Route | Access |
 |---|---|---|
+| `POST` | `/api/platform/buyer/billing/auto/disable` | JWT |
 | `POST` | `/api/platform/buyer/billing/checkout` | JWT |
 | `GET` | `/api/platform/buyer/billing/culqi-key` | JWT |
 | `GET` | `/api/platform/buyer/billing/payments/{paymentId}/download/{formato}` | JWT |

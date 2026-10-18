@@ -901,7 +901,22 @@
       "title": "Automatic billing",
       "soon": "Coming soon",
       "text": "Save your card and we renew your plan for you a few days before it expires. You can cancel any time.",
-      "label": "Renew automatically"
+      "label": "Renew automatically",
+      "on": "On",
+      "off": "Off",
+      "optIn": "Renew automatically with this card",
+      "optInHint": "We save your card with our payment provider (we never see the number) and charge the renewal about 3 days before it expires, at the same price. If it fails we retry up to 3 times and let you know. You can cancel any time; the period already paid is not refunded.",
+      "address": "Address",
+      "city": "City",
+      "phone": "Phone",
+      "dataHint": "The payment provider requires an address, city and phone to save the card. We do not store them.",
+      "activeText": "Your plan renews by itself with {{card}} (turned on {{since}}), about 3 days before it expires. If the charge fails we retry up to 3 times and e-mail you.",
+      "offText": "Turn it on with the «Renew automatically» box when you pay: we save the card and renew for you a few days before it expires.",
+      "cancel": "Cancel automatic billing",
+      "cancelConfirm": "The saved card will be deleted and you will have to renew by hand. Your plan stays active until its end date; the period already paid is not refunded.",
+      "cancelYes": "Yes, cancel",
+      "cancelNo": "Keep it",
+      "cancelled": "Automatic billing cancelled and card deleted."
     },
     "history": "Payment history",
     "noPayments": "You have no payments yet.",
@@ -954,7 +969,13 @@
       "file_unavailable": "The file is not available yet.",
       "downgrade_not_available": "To move to a lower plan, wait until the current period ends and buy the lower plan when you renew (you have 5 days of grace). Money is not refunded.",
       "period_locked": "The period cannot be changed while your plan is active. You can do it when you renew.",
-      "nothing_to_change": "There is nothing new to charge: what you chose is already included in your period."
+      "nothing_to_change": "There is nothing new to charge: what you chose is already included in your period.",
+      "auto_disabled": "Automatic billing is not enabled yet.",
+      "address_invalid": "Enter an address between 6 and 99 characters.",
+      "city_invalid": "Enter a city between 3 and 29 characters.",
+      "phone_invalid": "Enter a phone between 6 and 14 characters.",
+      "auto_data_required": "To save the card, fill in address, city and phone.",
+      "card_failed": "The card could not be saved. Check the details and try again."
     },
     "noExpiry": "No expiry",
     "owned": "already in your period",
@@ -964,6 +985,7 @@
     "prorationPaid": "What you already paid for your current plan",
     "prorationDays": "You only pay the difference for the {{days}} days left of {{period}}. Your plan still ends on the same date.",
     "prorationAdds": "Includes: {{modules}}.",
-    "toPayToday": "To pay today"
+    "toPayToday": "To pay today",
+    "paidAuto": "Payment received and automatic billing turned on. Your plan is active until {{date}} and we will renew it about 3 days before."
   }
 }

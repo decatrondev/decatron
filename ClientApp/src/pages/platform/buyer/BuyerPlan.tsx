@@ -14,7 +14,7 @@ export interface BillingState {
     subscription: { plan: string; planName: string; status: string; periodMonths: number | null; startsAt: string; endsAt: string | null; graceUntil: string | null;
         sandboxEndsAt: string | null; daysLeft: number | null; graceDaysLeft: number | null } | null;
     addons: { key: string; endsAt: string | null }[];
-    profile: { legalName: string | null; country: string | null; docType: string | null; docNumber: string | null; email: string | null; payMode: string; hasSavedCard: boolean } | null;
+    profile: { legalName: string | null; country: string | null; docType: string | null; docNumber: string | null; email: string | null; payMode: string; hasSavedCard: boolean; cardLast4?: string | null; cardBrand?: string | null; autoSince?: string | null } | null;
     billable: boolean; checkoutEnabled: boolean; autoAvailable: boolean; penPerUsd: number;
 }
 interface Plan { key: string; name: string; modules: string[]; prices: Record<string, number> }
@@ -76,6 +76,11 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
     const [docNumber, setDocNumber] = useState('');
     const [email, setEmail] = useState('');
     const [factura, setFactura] = useState(false);
+    const [autoRenew, setAutoRenew] = useState(false);
+    const [address, setAddress] = useState('');
+    const [city, setCity] = useState('');
+    const [phone, setPhone] = useState('');
+    const [confirmOff, setConfirmOff] = useState(false);
 
     const [quote, setQuote] = useState<Quote | null>(null);
     const [quoteErr, setQuoteErr] = useState('');
@@ -145,6 +150,7 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
         setNote(null);
         if (!legalName.trim()) { setNote({ ok: false, text: err('name_required') }); return; }
         if (factura && docType !== 'RUC') { setNote({ ok: false, text: err('factura_needs_ruc') }); return; }
+        if (autoRenew && (address.trim().length < 6 || city.trim().length < 3 || phone.trim().length < 6)) { setNote({ ok: false, text: err('auto_data_required') }); return; }
         setBusy(true);
         try {
             await buyerApi.put('/platform/buyer/billing/profile', { legalName, country, docType, docNumber, email });
@@ -152,8 +158,10 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
             const r = await buyerApi.post('/platform/buyer/billing/checkout', {
                 planKey, months, addons: picked, country, token: c.token, email: email.trim(), firstName: c.firstName, lastName: c.lastName,
                 legalName, docType, docNumber, preferFactura: factura,
+                autoRenew: autoRenew && state!.autoAvailable, address, city, phone,
             });
-            setNote({ ok: true, text: t('billing.paid', { date: date(r.data.endsAt) }) });
+            setNote({ ok: true, text: t(r.data.autoRenew ? 'billing.paidAuto' : 'billing.paid', { date: date(r.data.endsAt) }) });
+            setAutoRenew(false);
             reload(); await loadPayments();
         } catch (e: any) {
             const code = e?.response?.data?.code;
@@ -246,6 +254,19 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
                                 </div>
                             </div>
                             <Checkbox checked={factura} onChange={e => setFactura(e.target.checked)} label={t('billing.factura')} />
+                            {state.autoAvailable && (
+                                <div className="space-y-3">
+                                    <Checkbox checked={autoRenew} onChange={e => setAutoRenew(e.target.checked)} label={t('billing.auto.optIn')} />
+                                    {autoRenew && <>
+                                        <p className="text-sm text-ds-faint">{t('billing.auto.optInHint')}</p>
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            <Field label={t('billing.auto.address')}><Input value={address} maxLength={99} onChange={e => setAddress(e.target.value)} /></Field>
+                                            <Field label={t('billing.auto.city')}><Input value={city} maxLength={29} onChange={e => setCity(e.target.value)} /></Field>
+                                            <Field label={t('billing.auto.phone')} hint={t('billing.auto.dataHint')}><Input value={phone} maxLength={14} inputMode="tel" onChange={e => setPhone(e.target.value)} /></Field>
+                                        </div>
+                                    </>}
+                                </div>
+                            )}
 
                             {quoteErr && <Alert tone="warn">{err(quoteErr)}</Alert>}
                             {quote && (
@@ -277,9 +298,25 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
             {owner && (
                 <Card>
                     <div className="p-5 space-y-3">
-                        <div className="flex flex-wrap items-center gap-3"><h2 className="text-xl font-bold text-ds-text">{t('billing.auto.title')}</h2><Badge>{t('billing.auto.soon')}</Badge></div>
-                        <p className="text-sm text-ds-soft">{t('billing.auto.text')}</p>
-                        <Switch checked={false} disabled label={t('billing.auto.label')} />
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h2 className="text-xl font-bold text-ds-text">{t('billing.auto.title')}</h2>
+                            {!state.autoAvailable ? <Badge>{t('billing.auto.soon')}</Badge> : state.profile?.payMode === 'auto' && state.profile.hasSavedCard ? <Badge tone="ok">{t('billing.auto.on')}</Badge> : <Badge>{t('billing.auto.off')}</Badge>}
+                        </div>
+                        {state.autoAvailable && state.profile?.payMode === 'auto' && state.profile.hasSavedCard ? <>
+                            <p className="text-sm text-ds-soft">{t('billing.auto.activeText', { card: `${state.profile.cardBrand ?? ''} •••• ${state.profile.cardLast4 ?? ''}`.trim(), since: date(state.profile.autoSince ?? null) })}</p>
+                            {!confirmOff
+                                ? <Button variant="secondary" onClick={() => setConfirmOff(true)}>{t('billing.auto.cancel')}</Button>
+                                : <div className="space-y-2">
+                                    <Alert tone="warn">{t('billing.auto.cancelConfirm')}</Alert>
+                                    <div className="flex gap-2">
+                                        <Button variant="danger" onClick={async () => { try { await buyerApi.post('/platform/buyer/billing/auto/disable'); setConfirmOff(false); setNote({ ok: true, text: t('billing.auto.cancelled') }); reload(); } catch { setNote({ ok: false, text: err('generic') }); } }}>{t('billing.auto.cancelYes')}</Button>
+                                        <Button variant="ghost" onClick={() => setConfirmOff(false)}>{t('billing.auto.cancelNo')}</Button>
+                                    </div>
+                                </div>}
+                        </> : <>
+                            <p className="text-sm text-ds-soft">{state.autoAvailable ? t('billing.auto.offText') : t('billing.auto.text')}</p>
+                            {!state.autoAvailable && <Switch checked={false} disabled label={t('billing.auto.label')} />}
+                        </>}
                     </div>
                 </Card>
             )}
