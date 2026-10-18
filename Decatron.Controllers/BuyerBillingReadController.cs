@@ -54,11 +54,11 @@ namespace Decatron.Controllers
                 profile = s.Profile is null ? null : new
                 {
                     legalName = s.Profile.LegalName, country = s.Profile.Country, docType = s.Profile.DocType, docNumber = s.Profile.DocNumber,
-                    email = s.Profile.BillingEmail, payMode = s.Profile.PayMode, hasSavedCard = s.Profile.HasSavedCard,
+                    email = s.Profile.BillingEmail, payMode = s.Profile.PayMode, hasSavedCard = s.Profile.HasSavedCard, cardLast4 = s.Profile.CardLast4, cardBrand = s.Profile.CardBrand, autoSince = s.Profile.AutoEnabledAt,
                 },
                 billable = sub is not null && sub.PlanKey != "internal",
                 checkoutEnabled = _cfg.GetValue<bool?>("Platform:Billing:CheckoutEnabled") ?? false,
-                autoAvailable = false,
+                autoAvailable = _cfg.GetValue<bool?>("Platform:Billing:AutoRenewEnabled") ?? false,
                 penPerUsd = await _rate.PenPerUsdAsync(HttpContext.RequestAborted),
             });
         }

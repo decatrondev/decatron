@@ -78,12 +78,14 @@ public sealed class BillingReminders
 
         string planName = ""; DateTime endsAt = default; DateTime? graceUntil = null; string status = "";
         await using (var q = new NpgsqlCommand(@"SELECT p.name, s.ends_at, s.grace_until, s.status FROM tenant_subscriptions s JOIN plans p ON p.id = s.plan_id
-              WHERE s.tenant_id = @t AND s.status IN ('active','past_due') AND s.ends_at IS NOT NULL AND p.key NOT IN ('internal','sandbox') LIMIT 1", c))
+              WHERE s.tenant_id = @t AND s.status IN ('active','past_due') AND s.ends_at IS NOT NULL AND p.key NOT IN ('internal','sandbox')
+                AND NOT EXISTS (SELECT 1 FROM tenant_billing_profile bp WHERE bp.tenant_id = s.tenant_id AND bp.pay_mode = 'auto' AND bp.culqi_card_id IS NOT NULL) LIMIT 1", c))   // quien paga solo no recibe «renueva»: el cobro automático avisa si falla
         {
             q.Parameters.AddWithValue("t", id);
             await using var r = await q.ExecuteReaderAsync(ct);
             if (!await r.ReadAsync(ct)) return 0;
-            planName = r.GetString(0); endsAt = r.GetFieldValue<DateTimeOffset>(1).UtcDateTime; graceUntil = r.IsDBNull(2) ? null : r.GetFieldValue<DateTimeOffset>(2).UtcDateTime;   // instantes UTC: con Npgsql legacy GetDateTime da la hora local y la comparación con UtcNow se desfasa 5 h status = r.GetString(3);
+            // instantes UTC: con Npgsql legacy GetDateTime da la hora local y la comparación con UtcNow se desfasa 5 h
+            planName = r.GetString(0); endsAt = r.GetFieldValue<DateTimeOffset>(1).UtcDateTime; graceUntil = r.IsDBNull(2) ? null : r.GetFieldValue<DateTimeOffset>(2).UtcDateTime; status = r.GetString(3);
         }
 
         string? kind = status == "past_due" && graceUntil is { } g && g > now ? BillingNotices.Grace

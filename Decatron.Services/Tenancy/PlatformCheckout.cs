@@ -111,7 +111,9 @@ public sealed class PlatformCheckout
             else
             {
                 // A mitad de periodo: subir de plan o sumar módulos. El periodo se mantiene y todo termina en la misma fecha.
-                if (curMonths is not { } m0 || req.Months != m0) return Fail<Offer>("period_locked");
+                if (planIdx == curIdx && addonLines.Count == 0) return Fail<Offer>("renew_window");   // mismo plan y sin módulos: aún no toca renovar
+                if (curMonths is not { } m0) return Fail<Offer>("change_not_available");
+                if (req.Months != m0) return Fail<Offer>("period_locked");
                 return await MidPeriodAsync(c, tenantId, req, planId, planTotal, nextTotal, planIdx, curIdx, curPlan!, m0, subStarts!.Value, endsAt!.Value, now, addonLines, country, ct);
             }
         }
@@ -230,6 +232,44 @@ public sealed class PlatformCheckout
         cmd.Parameters.AddWithValue("c", country.ToUpperInvariant()); cmd.Parameters.AddWithValue("dt", (object?)docType?.Trim() ?? DBNull.Value);
         cmd.Parameters.AddWithValue("dn", (object?)docNumber?.Trim() ?? DBNull.Value); cmd.Parameters.AddWithValue("e", (object?)email?.Trim() ?? DBNull.Value);
         await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    /// <summary>Tarjeta guardada y modo de pago del tenant. Los ids son del proveedor; nunca hay número de tarjeta.</summary>
+    public sealed record AutoProfile(string? CustomerId, string? CardId, string PayMode, string? LegalName, string? DocType, string? DocNumber, string? Email, string? Country);
+
+    public async Task<AutoProfile?> GetAutoAsync(long tenantId, CancellationToken ct = default)
+    {
+        await using var c = Open(tenantId);
+        await c.OpenAsync(ct);
+        await using var q = new NpgsqlCommand("SELECT culqi_customer_id, culqi_card_id, pay_mode, legal_name, doc_type, doc_number, billing_email, country FROM tenant_billing_profile WHERE tenant_id = @t", c);
+        q.Parameters.AddWithValue("t", tenantId);
+        await using var r = await q.ExecuteReaderAsync(ct);
+        if (!await r.ReadAsync(ct)) return null;
+        string? S(int i) => r.IsDBNull(i) ? null : r.GetString(i);
+        return new AutoProfile(S(0), S(1), r.GetString(2), S(3), S(4), S(5), S(6), S(7));
+    }
+
+    /// <summary>Activa el cobro automático con la tarjeta guardada (el perfil de facturación ya existe: se guarda antes de cobrar).</summary>
+    public async Task SaveAutoAsync(long tenantId, string customerId, string cardId, string? last4, string? brand, CancellationToken ct = default)
+    {
+        await using var c = Open(tenantId);
+        await c.OpenAsync(ct);
+        await using var cmd = new NpgsqlCommand(@"UPDATE tenant_billing_profile SET culqi_customer_id=@cu, culqi_card_id=@cd, card_last4=@l4, card_brand=@br,
+              pay_mode='auto', auto_enabled_at=now(), updated_at=now() WHERE tenant_id=@t", c);
+        cmd.Parameters.AddWithValue("t", tenantId); cmd.Parameters.AddWithValue("cu", customerId); cmd.Parameters.AddWithValue("cd", cardId);
+        cmd.Parameters.AddWithValue("l4", (object?)last4 ?? DBNull.Value); cmd.Parameters.AddWithValue("br", (object?)brand ?? DBNull.Value);
+        await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    /// <summary>Vuelve al modo manual y olvida la tarjeta. Devuelve el id de la tarjeta que había (para borrarla en el proveedor) o null.</summary>
+    public async Task<string?> DisableAutoAsync(long tenantId, CancellationToken ct = default)
+    {
+        await using var c = Open(tenantId);
+        await c.OpenAsync(ct);
+        await using var cmd = new NpgsqlCommand(@"UPDATE tenant_billing_profile p SET culqi_card_id=NULL, card_last4=NULL, card_brand=NULL, pay_mode='manual', auto_enabled_at=NULL, updated_at=now()
+              FROM (SELECT culqi_card_id FROM tenant_billing_profile WHERE tenant_id=@t) old WHERE p.tenant_id=@t RETURNING old.culqi_card_id", c);
+        cmd.Parameters.AddWithValue("t", tenantId);
+        return await cmd.ExecuteScalarAsync(ct) as string;
     }
 
     public async Task MarkFailedAsync(long tenantId, long paymentId, bool isTest = false, CancellationToken ct = default)

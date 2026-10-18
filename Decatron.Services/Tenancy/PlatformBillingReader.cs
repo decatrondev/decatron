@@ -12,7 +12,7 @@ public sealed class PlatformBillingReader
 {
     public sealed record Subscription(string PlanKey, string PlanName, string Status, int? PeriodMonths, DateTime StartsAt, DateTime? EndsAt, DateTime? GraceUntil, DateTime? SandboxEndsAt);
     public sealed record Addon(string Key, DateTime? EndsAt);
-    public sealed record Profile(string? LegalName, string? Country, string? DocType, string? DocNumber, string? BillingEmail, string PayMode, bool HasSavedCard);
+    public sealed record Profile(string? LegalName, string? Country, string? DocType, string? DocNumber, string? BillingEmail, string PayMode, bool HasSavedCard, string? CardLast4 = null, string? CardBrand = null, DateTime? AutoEnabledAt = null);
     public sealed record State(Subscription? Subscription, IReadOnlyList<Addon> Addons, Profile? Profile);
     public sealed record Payment(long Id, string Purpose, string? PlanKey, int PeriodMonths, decimal AmountUsd, decimal? AmountPen, string Status, bool IsTest,
         DateTime CreatedAt, DateTime? PaidAt, DateTime? PeriodEnds, string[] Addons, string? InvoiceType, string? InvoiceNumber, bool CanDownload);
@@ -55,13 +55,13 @@ public sealed class PlatformBillingReader
         }
 
         Profile? profile = null;
-        await using (var q = new NpgsqlCommand(@"SELECT legal_name, country, doc_type, doc_number, billing_email, pay_mode, culqi_card_id IS NOT NULL
+        await using (var q = new NpgsqlCommand(@"SELECT legal_name, country, doc_type, doc_number, billing_email, pay_mode, culqi_card_id IS NOT NULL, card_last4, card_brand, auto_enabled_at
               FROM tenant_billing_profile WHERE tenant_id = @t", c))
         {
             q.Parameters.AddWithValue("t", tenantId);
             await using var r = await q.ExecuteReaderAsync(ct);
             if (await r.ReadAsync(ct))
-                profile = new Profile(Str(r, 0), Str(r, 1), Str(r, 2), Str(r, 3), Str(r, 4), r.GetString(5), r.GetBoolean(6));
+                profile = new Profile(Str(r, 0), Str(r, 1), Str(r, 2), Str(r, 3), Str(r, 4), r.GetString(5), r.GetBoolean(6), Str(r, 7), Str(r, 8), TsN(r, 9));
         }
         return new State(sub, addons, profile);
     }

@@ -34,6 +34,9 @@ namespace Decatron.Controllers
         /// <summary>Apagado por defecto: cobrar de verdad solo se enciende con la autorización del dueño de la plataforma (<c>Platform:Billing:CheckoutEnabled</c>, recarga en caliente).</summary>
         private bool CheckoutEnabled => _cfg.GetValue<bool?>("Platform:Billing:CheckoutEnabled") ?? false;
 
+        /// <summary>Apagado por defecto: guardar la tarjeta y renovar solo (<c>Platform:Billing:AutoRenewEnabled</c>, recarga en caliente).</summary>
+        private bool AutoEnabled => _cfg.GetValue<bool?>("Platform:Billing:AutoRenewEnabled") ?? false;
+
         private long Tid => TenantAmbient.Current!.Value;
 
         public class QuoteBody
@@ -54,6 +57,11 @@ namespace Decatron.Controllers
             public string? DocType { get; set; }
             public string? DocNumber { get; set; }
             public bool PreferFactura { get; set; }
+            /// <summary>Guardar la tarjeta y renovar solo. El proveedor exige dirección, ciudad y teléfono para crear al cliente; solo se envían a él, no se guardan aquí.</summary>
+            public bool AutoRenew { get; set; }
+            public string? Address { get; set; }
+            public string? City { get; set; }
+            public string? Phone { get; set; }
         }
 
         private static PlatformCheckout.Request ToRequest(QuoteBody b)
@@ -128,6 +136,16 @@ namespace Decatron.Controllers
             return File(archivo.Contenido, archivo.ContentType, archivo.NombreArchivo);
         }
 
+        /// <summary>Cancela el cobro automático: es inmediato, borra la tarjeta guardada y el plan sigue hasta su fecha de fin (no se devuelve el periodo ya pagado).</summary>
+        [HttpPost("auto/disable")]
+        public async Task<IActionResult> DisableAuto()
+        {
+            var card = await _checkout.DisableAutoAsync(Tid);
+            if (card is not null) await _provider.DeleteCardAsync(card);
+            _log.LogInformation("tenant.billing.auto.off tenant={Tenant}", Tid);
+            return Ok(new { success = true });
+        }
+
         [HttpPost("checkout")]
         [RequireStepUp]
         public async Task<IActionResult> Checkout([FromBody] CheckoutBody body)
@@ -138,6 +156,15 @@ namespace Decatron.Controllers
             if (!r.Ok) return Error(r.Error!);
             var o = r.Value!;
 
+            if (body.AutoRenew)
+            {
+                if (!AutoEnabled) return StatusCode(403, new { success = false, code = "auto_disabled" });
+                var addr = body.Address?.Trim(); var city = body.City?.Trim(); var phone = body.Phone?.Trim();
+                if (addr is not { Length: >= 6 and <= 99 }) return Error("address_invalid");
+                if (city is not { Length: >= 3 and <= 29 }) return Error("city_invalid");
+                if (phone is not { Length: >= 6 and <= 14 }) return Error("phone_invalid");
+            }
+
             var rate = await _rate.PenPerUsdAsync(HttpContext.RequestAborted);
             var pen = PlatformPricing.ToPen(o.Quote.TotalUsd, rate);
             await _checkout.SaveProfileAsync(Tid, body.LegalName, o.TaxCountry, body.DocType, body.DocNumber, body.Email);
@@ -146,7 +173,23 @@ namespace Decatron.Controllers
             var paymentId = await _checkout.CreatePendingAsync(Tid, o, _provider.Name, rate, isTest: false,
                 new PlatformCheckout.Customer(body.LegalName?.Trim(), body.DocType?.Trim(), body.DocNumber?.Trim(), body.Email!.Trim(), body.PreferFactura));
             var order = $"PLAT-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
-            var charge = await _provider.ChargeAsync(new ProviderChargeRequest(PlatformPricing.ToCentimos(pen), "PEN", body.Email!.Trim(), body.Token!,
+
+            // Con cobro automático la tarjeta se guarda ANTES de cobrar (el token se consume al guardarla) y el cobro sale de la tarjeta guardada.
+            var source = body.Token!;
+            ProviderCard? saved = null;
+            if (body.AutoRenew)
+            {
+                var prior = await _checkout.GetAutoAsync(Tid);
+                saved = await _provider.SaveCardAsync(new ProviderCustomer(prior?.CustomerId, string.IsNullOrWhiteSpace(body.FirstName) ? "Cliente" : body.FirstName!.Trim(),
+                    string.IsNullOrWhiteSpace(body.LastName) ? "Decatron" : body.LastName!.Trim(), body.Email!.Trim(), body.Address!.Trim(), body.City!.Trim(), o.TaxCountry, body.Phone!.Trim()), source);
+                if (!saved.Ok)
+                {
+                    await _checkout.MarkFailedAsync(Tid, paymentId, saved.IsTest);
+                    return StatusCode(402, new { success = false, code = "card_failed", message = saved.UserMessage });
+                }
+                source = saved.CardId!;
+            }
+            var charge = await _provider.ChargeAsync(new ProviderChargeRequest(PlatformPricing.ToCentimos(pen), "PEN", body.Email!.Trim(), source,
                 o.Kind is "upgrade" or "addons" ? $"Decatron Plataforma - cambio a plan {o.PlanKey} ({o.Proration!.RemainingDays} d)" : $"Decatron Plataforma - plan {o.PlanKey} ({o.Months} m)", order,
                 string.IsNullOrWhiteSpace(body.FirstName) ? "Cliente" : body.FirstName!, string.IsNullOrWhiteSpace(body.LastName) ? "Decatron" : body.LastName!,
                 new Dictionary<string, string> { ["tenant_id"] = Tid.ToString(), ["payment_id"] = paymentId.ToString(), ["platform"] = "decatron-platform" }));
@@ -158,12 +201,19 @@ namespace Decatron.Controllers
             }
             if (!charge.Ok)
             {
+                if (saved?.CardId is { } orphan) await _provider.DeleteCardAsync(orphan);   // no se queda con una tarjeta que no llegó a cobrar
                 await _checkout.MarkFailedAsync(Tid, paymentId, charge.IsTest);
                 return StatusCode(402, new { success = false, code = "charge_failed", message = charge.UserMessage });
             }
             await _checkout.ConfirmAsync(Tid, paymentId, charge.ChargeId!, charge.IsTest);
+            if (saved?.CardId is { } cardId)
+            {
+                var prior = await _checkout.GetAutoAsync(Tid);
+                await _checkout.SaveAutoAsync(Tid, saved.CustomerId!, cardId, saved.Last4, saved.Brand);
+                if (prior?.CardId is { } oldCard && oldCard != cardId) await _provider.DeleteCardAsync(oldCard);   // la tarjeta nueva reemplaza a la anterior
+            }
             _log.LogInformation("tenant.billing.charged tenant={Tenant} payment={Payment} test={Test}", Tid, paymentId, charge.IsTest);
-            return Ok(new { success = true, paymentId, plan = o.PlanKey, endsAt = o.EndsAt, totalUsd = o.Quote.TotalUsd, totalPen = pen, isTest = charge.IsTest });
+            return Ok(new { success = true, paymentId, plan = o.PlanKey, endsAt = o.EndsAt, totalUsd = o.Quote.TotalUsd, totalPen = pen, isTest = charge.IsTest, autoRenew = saved?.CardId != null });
         }
     }
 }

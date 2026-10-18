@@ -6833,6 +6833,23 @@ ALTER SEQUENCE public.tenant_addons_id_seq OWNED BY public.tenant_addons.id;
 
 
 --
+-- Name: tenant_autopay_attempts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_autopay_attempts (
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    cycle_ends timestamp with time zone NOT NULL,
+    attempt smallint NOT NULL,
+    status character varying(8) NOT NULL,
+    error character varying(200),
+    payment_id bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenant_autopay_attempts_attempt_check CHECK (((attempt >= 1) AND (attempt <= 3))),
+    CONSTRAINT tenant_autopay_attempts_status_check CHECK (((status)::text = ANY ((ARRAY['started'::character varying, 'paid'::character varying, 'failed'::character varying, 'review'::character varying])::text[])))
+);
+
+
+--
 -- Name: tenant_billing_profile; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6848,6 +6865,8 @@ CREATE TABLE public.tenant_billing_profile (
     culqi_card_id character varying(80),
     auto_enabled_at timestamp with time zone,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    card_last4 character varying(4),
+    card_brand character varying(20),
     CONSTRAINT tenant_billing_profile_pay_mode_check CHECK (((pay_mode)::text = ANY ((ARRAY['manual'::character varying, 'auto'::character varying])::text[])))
 );
 
@@ -13710,6 +13729,14 @@ ALTER TABLE ONLY public.tenant_addons
 
 
 --
+-- Name: tenant_autopay_attempts tenant_autopay_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_autopay_attempts
+    ADD CONSTRAINT tenant_autopay_attempts_pkey PRIMARY KEY (tenant_id, cycle_ends, attempt);
+
+
+--
 -- Name: tenant_billing_profile tenant_billing_profile_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -20111,6 +20138,14 @@ ALTER TABLE ONLY public.tenant_addons
 
 
 --
+-- Name: tenant_autopay_attempts tenant_autopay_attempts_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_autopay_attempts
+    ADD CONSTRAINT tenant_autopay_attempts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: tenant_billing_profile tenant_billing_profile_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21805,6 +21840,12 @@ ALTER TABLE public.tcg_free_pack_claims ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenant_addons ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: tenant_autopay_attempts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_autopay_attempts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: tenant_billing_profile; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -22831,6 +22872,13 @@ CREATE POLICY tenant_isolation ON public.tcg_free_pack_claims USING ((tenant_id 
 --
 
 CREATE POLICY tenant_isolation ON public.tenant_addons USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_autopay_attempts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_autopay_attempts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --
