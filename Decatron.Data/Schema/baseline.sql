@@ -86,6 +86,21 @@ $$;
 
 
 --
+-- Name: platform_payments_all(timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.platform_payments_all(p_from timestamp with time zone, p_to timestamp with time zone) RETURNS TABLE(id bigint, tenant_id bigint, slug text, plan_key text, period_months smallint, provider character varying, provider_charge_id character varying, amount_usd numeric, amount_pen numeric, paid_at timestamp with time zone, invoice_status character varying, invoice_type character varying, invoice_series character varying, invoice_number integer, invoice_document_id integer)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT p.id, p.tenant_id, t.slug::text, pl.key::text, p.period_months, p.provider, p.provider_charge_id, p.amount_usd, p.amount_pen, p.paid_at,
+         p.invoice_status, p.invoice_type, p.invoice_series, p.invoice_number, p.invoice_document_id
+  FROM tenant_payments p JOIN tenants t ON t.id = p.tenant_id LEFT JOIN plans pl ON pl.id = p.plan_id
+  WHERE p.status = 'paid' AND NOT p.is_test AND p.paid_at >= p_from AND p.paid_at < p_to
+$$;
+
+
+--
 -- Name: update_timer_config_updated_at(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -7058,13 +7073,25 @@ CREATE TABLE public.tenant_payments (
     tax_treatment character varying(12) DEFAULT 'igv'::character varying NOT NULL,
     status character varying(10) DEFAULT 'pending'::character varying NOT NULL,
     is_test boolean DEFAULT false NOT NULL,
-    invoice_id character varying(60),
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     paid_at timestamp with time zone,
     addons text[] DEFAULT '{}'::text[] NOT NULL,
     period_starts timestamp with time zone,
     period_ends timestamp with time zone,
     tax_country character varying(2),
+    customer_name character varying(200),
+    customer_doc_type character varying(12),
+    customer_doc_number character varying(30),
+    customer_email character varying(254),
+    prefer_factura boolean DEFAULT false NOT NULL,
+    invoice_status character varying(12),
+    invoice_document_id integer,
+    invoice_type character varying(12),
+    invoice_series character varying(8),
+    invoice_number integer,
+    invoice_error text,
+    invoice_attempts integer DEFAULT 0 NOT NULL,
+    invoice_last_attempt_at timestamp with time zone,
     CONSTRAINT tenant_payments_amount_usd_check CHECK ((amount_usd >= (0)::numeric)),
     CONSTRAINT tenant_payments_period_months_check CHECK ((period_months = ANY (ARRAY[1, 3, 6, 9, 12]))),
     CONSTRAINT tenant_payments_provider_check CHECK (((provider)::text = ANY ((ARRAY['culqi'::character varying, 'paypal'::character varying, 'mercadopago'::character varying, 'manual'::character varying])::text[]))),

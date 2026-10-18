@@ -145,6 +145,8 @@ public class PlatformCheckoutTests : IDisposable
         Assert.True(Scalar<bool>(A, "SELECT (SELECT ends_at FROM tenant_subscriptions) = (SELECT ends_at FROM tenant_addons WHERE capability_key='zz.mod_b')"));
         Assert.Equal("paid", Scalar<string>(A, $"SELECT status FROM tenant_payments WHERE id={id}"));
         Assert.True(Scalar<bool>(A, $"SELECT is_test FROM tenant_payments WHERE id={id}"));
+        Assert.True(Scalar<bool>(A, "SELECT abs(extract(epoch FROM (ends_at - (now() + interval '3 months')))) < 3600 FROM tenant_subscriptions"));   // la fecha escrita por la app es la real, sin desfase
+        Assert.Null(Scalar<string>(A, $"SELECT invoice_status FROM tenant_payments WHERE id={id}"));                                         // pago de prueba: nunca se factura
         Assert.Equal(62.70m, Scalar<decimal>(A, $"SELECT amount_usd FROM tenant_payments WHERE id={id}"));   // 54,15 + 8,55, bajo el tope de Pro (111,15)
     }
 
@@ -175,6 +177,22 @@ public class PlatformCheckoutTests : IDisposable
         Assert.Equal("new", (await svc.QuoteAsync(A, Req("creator", 1))).Value!.Kind);            // piloto sin ends_at
         Exec(App!, A, "UPDATE tenant_subscriptions SET status='suspended'");
         Assert.Equal("suspended", (await svc.QuoteAsync(A, Req("creator", 1))).Error);
+    }
+
+    [Fact(DisplayName = "Un pago real confirmado nace PENDING de comprobante y el admin lo ve entre tenants")]
+    public async Task Pago_real_queda_pendiente_de_comprobante()
+    {
+        if (!Available) return;
+        Sub(A, "semilla", "sandbox", null);
+        var svc = Make();
+        var o = (await svc.QuoteAsync(A, Req())).Value!;
+        var id = await svc.CreatePendingAsync(A, o, "culqi", 3.8m, isTest: false, new PlatformCheckout.Customer("Cliente S.A.", "RUC", "20123456789", "c@example.test", true));
+        await svc.ConfirmAsync(A, id, "chr_live_x", isTest: false);
+        Assert.Equal("PENDING", Scalar<string>(A, $"SELECT invoice_status FROM tenant_payments WHERE id={id}"));
+        Assert.Equal("Cliente S.A.", Scalar<string>(A, $"SELECT customer_name FROM tenant_payments WHERE id={id}"));
+        // El P&L del dueño (corre como tenant 1) ve el pago de otro tenant solo por la función; la tabla directa no.
+        Assert.Equal(0L, Scalar<long>(1, "SELECT count(*) FROM tenant_payments"));
+        Assert.Equal(1L, Scalar<long>(1, "SELECT count(*) FROM platform_payments_all(now() - interval '1 day', now() + interval '1 day') WHERE tenant_id = 9101"));
     }
 
     [Fact(DisplayName = "Un pago de un tenant no se ve en otro")]

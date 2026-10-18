@@ -26,11 +26,13 @@ public sealed class TenantLifecycle : BackgroundService
     private readonly TenantGrace _grace;
     private readonly BillingReminders _reminders;
     private DateTime _lastReminders = DateTime.MinValue;
+    private readonly PlatformInvoiceService _invoices;
+    private DateTime _lastInvoices = DateTime.MinValue;
     private DateTime _lastDueCheck = DateTime.MinValue;
 
     public TenantLifecycle(IEntitlements ent, ITenantCredentialStore store, TenantEventSubHub hub, DiscordTenantGateway gateway,
-        TenantEventSubSync sync, TenantDataAdmin data, TenantGrace grace, BillingReminders reminders, IConfiguration cfg, ILogger<TenantLifecycle> log)
-    { _reminders = reminders; _grace = grace; _data = data; _ent = ent; _store = store; _hub = hub; _gateway = gateway; _sync = sync; _cfg = cfg; _log = log; }
+        TenantEventSubSync sync, TenantDataAdmin data, TenantGrace grace, BillingReminders reminders, PlatformInvoiceService invoices, IConfiguration cfg, ILogger<TenantLifecycle> log)
+    { _invoices = invoices; _reminders = reminders; _grace = grace; _data = data; _ent = ent; _store = store; _hub = hub; _gateway = gateway; _sync = sync; _cfg = cfg; _log = log; }
 
     public IReadOnlyCollection<long> Paused { get { lock (_paused) return _paused.ToArray(); } }
 
@@ -48,6 +50,13 @@ public sealed class TenantLifecycle : BackgroundService
                 _lastReminders = DateTime.UtcNow;
                 try { await _reminders.SweepAsync(ct); }
                 catch (Exception ex) when (ex is not OperationCanceledException) { _log.LogWarning("tenant.billing.reminder.failed {Type}", ex.GetType().Name); }
+            }
+            // Comprobantes de los pagos de plan (Fase 7.6): cada 5 min; solo hay trabajo si algún pago real quedó PENDING
+            if (DateTime.UtcNow - _lastInvoices > TimeSpan.FromMinutes(5))
+            {
+                _lastInvoices = DateTime.UtcNow;
+                try { await _invoices.ProcessPendingAsync(ct); }
+                catch (Exception ex) when (ex is not OperationCanceledException) { _log.LogWarning("tenant.billing.invoice.failed {Type}", ex.GetType().Name); }
             }
             try { await PassAsync(ct); }
             catch (Exception ex) when (ex is not OperationCanceledException) { _log.LogWarning("tenant.lifecycle.failed {Type}", ex.GetType().Name); }

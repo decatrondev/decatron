@@ -97,7 +97,29 @@ namespace Decatron.Services.Finance
                     $"{p.CreditsReceived:N0} créditos"));
             }
 
+            // 4. Planes de la plataforma (tenants). tenant_payments tiene RLS y el admin corre como tenant 1: la lectura cruza tenants solo por la funcion platform_payments_all.
+            var plans = await _db.Database.SqlQueryRaw<PlatformPaymentRow>(
+                @"SELECT id AS ""Id"", slug AS ""Slug"", plan_key AS ""PlanKey"", period_months AS ""Months"", provider AS ""Provider"", provider_charge_id AS ""ChargeId"",
+                         amount_usd AS ""AmountUsd"", amount_pen AS ""AmountPen"", paid_at AS ""PaidAt"", invoice_status AS ""InvoiceStatus"", invoice_type AS ""InvoiceType"",
+                         invoice_series AS ""InvoiceSeries"", invoice_number AS ""InvoiceNumber"", invoice_document_id AS ""InvoiceDocumentId""
+                  FROM platform_payments_all({0}, {1})", fromUtc, toUtc).ToListAsync(ct);
+            foreach (var p in plans)
+            {
+                var pen = p.AmountPen ?? p.AmountUsd * rate;
+                rows.Add(new IncomeRow("platform", p.Id, null, p.Slug, DateTime.SpecifyKind(p.PaidAt, DateTimeKind.Utc), pen, pen / rate, p.Provider, p.ChargeId,
+                    p.InvoiceStatus, p.InvoiceType, Number(p.InvoiceSeries, p.InvoiceNumber), p.InvoiceDocumentId,
+                    $"Plan {p.PlanKey} ({p.Months} m)"));
+            }
+
             return rows.OrderByDescending(r => r.At).ToList();
+        }
+
+        private sealed class PlatformPaymentRow
+        {
+            public long Id { get; set; } public string Slug { get; set; } = ""; public string? PlanKey { get; set; } public short Months { get; set; }
+            public string Provider { get; set; } = ""; public string? ChargeId { get; set; } public decimal AmountUsd { get; set; } public decimal? AmountPen { get; set; }
+            public DateTime PaidAt { get; set; } public string? InvoiceStatus { get; set; } public string? InvoiceType { get; set; } public string? InvoiceSeries { get; set; }
+            public int? InvoiceNumber { get; set; } public int? InvoiceDocumentId { get; set; }
         }
 
         private static string? Number(string? series, int? number) =>

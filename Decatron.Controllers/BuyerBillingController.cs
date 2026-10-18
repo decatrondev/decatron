@@ -49,6 +49,7 @@ namespace Decatron.Controllers
             public string? LegalName { get; set; }
             public string? DocType { get; set; }
             public string? DocNumber { get; set; }
+            public bool PreferFactura { get; set; }
         }
 
         private static PlatformCheckout.Request ToRequest(QuoteBody b)
@@ -87,7 +88,8 @@ namespace Decatron.Controllers
             await _checkout.SaveProfileAsync(Tid, body.LegalName, o.TaxCountry, body.DocType, body.DocNumber, body.Email);
 
             // El pendiente se crea antes de cobrar: si algo se corta entre el cobro y la confirmación queda rastro para revisar a mano.
-            var paymentId = await _checkout.CreatePendingAsync(Tid, o, _provider.Name, rate, isTest: false);
+            var paymentId = await _checkout.CreatePendingAsync(Tid, o, _provider.Name, rate, isTest: false,
+                new PlatformCheckout.Customer(body.LegalName?.Trim(), body.DocType?.Trim(), body.DocNumber?.Trim(), body.Email!.Trim(), body.PreferFactura));
             var order = $"PLAT-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
             var charge = await _provider.ChargeAsync(new ProviderChargeRequest(PlatformPricing.ToCentimos(pen), "PEN", body.Email!.Trim(), body.Token!,
                 $"Decatron Plataforma - plan {o.PlanKey} ({o.Months} m)", order,

@@ -25,7 +25,7 @@ interface Summary {
 interface IncomeRow { source: string; id: number; login: string | null; at: string; amountPen: number; amountUsd: number; gateway: string; chargeId: string | null; invoiceStatus: string | null; invoiceType: string | null; invoiceNumber: string | null; concept: string; feePen: number }
 interface FixedCost { id: number; concept: string; amount: number; currency: string; periodicity: string; startsOn: string; endsOn: string | null; notes: string | null }
 
-const SOURCE_LABEL: Record<string, string> = { tier: 'Tiers', donation: 'Donaciones', coins: 'DecaCoins', credits: 'Créditos' };
+const SOURCE_LABEL: Record<string, string> = { tier: 'Tiers', donation: 'Donaciones', coins: 'DecaCoins', credits: 'Créditos', platform: 'Suscripciones' };
 const COST_LABEL: Record<string, string> = { ai: 'IA (LLM)', live_translation: 'Traducción en vivo (Deepgram)', speak_chat: 'Speak Chat (voz)', event_alerts: 'Alertas (voz)', timer_alerts: 'Timers (voz)', lol_coach: 'Coach (voz)', tips: 'Donaciones (voz)', other: 'Otros' };
 const PERIODICITY: Record<string, string> = { monthly: 'Mensual', yearly: 'Anual', one_time: 'Único' };
 const card = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';

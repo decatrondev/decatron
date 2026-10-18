@@ -21,6 +21,8 @@ public sealed class PlatformCheckout
     public sealed record Request(string PlanKey, int Months, IReadOnlyList<string> Addons, string Country);
     public sealed record Offer(long PlanId, string PlanKey, string Kind, int Months, PlatformPricing.Quote Quote, string TaxTreatment, string TaxCountry,
         PlatformPricing.TaxSplit Tax, DateTime StartsAt, DateTime EndsAt);
+    /// <summary>Datos del comprobante, congelados con el pago.</summary>
+    public sealed record Customer(string? Name, string? DocType, string? DocNumber, string? Email, bool PreferFactura);
     public sealed record Result<T>(T? Value, string? Error)
     {
         public bool Ok => Error is null;
@@ -110,13 +112,17 @@ public sealed class PlatformCheckout
     private static Result<T> Fail<T>(string code) => new(default, code);
 
     /// <summary>Guarda el pago pendiente con todo lo necesario para aplicarlo después. Devuelve su id.</summary>
-    public async Task<long> CreatePendingAsync(long tenantId, Offer o, string provider, decimal penPerUsd, bool isTest, CancellationToken ct = default)
+    public async Task<long> CreatePendingAsync(long tenantId, Offer o, string provider, decimal penPerUsd, bool isTest, Customer? customer = null, CancellationToken ct = default)
     {
         await using var c = Open(tenantId);
         await c.OpenAsync(ct);
         await using var cmd = new NpgsqlCommand(@"INSERT INTO tenant_payments
-              (purpose, plan_id, period_months, provider, amount_usd, pen_per_usd, amount_pen, tax_treatment, tax_country, status, is_test, addons, period_starts, period_ends)
-              VALUES (@purpose, @plan, @m, @prov, @usd, @rate, @pen, @tax, @cc, 'pending', @test, @addons, @s, @e) RETURNING id", c);
+              (purpose, plan_id, period_months, provider, amount_usd, pen_per_usd, amount_pen, tax_treatment, tax_country, status, is_test, addons, period_starts, period_ends,
+               customer_name, customer_doc_type, customer_doc_number, customer_email, prefer_factura)
+              VALUES (@purpose, @plan, @m, @prov, @usd, @rate, @pen, @tax, @cc, 'pending', @test, @addons, @s, @e, @cn, @cdt, @cdn, @ce, @pf) RETURNING id", c);
+        cmd.Parameters.AddWithValue("cn", (object?)customer?.Name ?? DBNull.Value); cmd.Parameters.AddWithValue("cdt", (object?)customer?.DocType ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("cdn", (object?)customer?.DocNumber ?? DBNull.Value); cmd.Parameters.AddWithValue("ce", (object?)customer?.Email ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("pf", customer?.PreferFactura ?? false);
         cmd.Parameters.AddWithValue("purpose", o.Kind == "renew" ? "renewal" : "plan");
         cmd.Parameters.AddWithValue("plan", o.PlanId); cmd.Parameters.AddWithValue("m", (short)o.Months); cmd.Parameters.AddWithValue("prov", provider);
         cmd.Parameters.AddWithValue("usd", o.Quote.TotalUsd); cmd.Parameters.AddWithValue("rate", penPerUsd);
@@ -172,7 +178,8 @@ public sealed class PlatformCheckout
             starts = r.GetDateTime(3); ends = r.GetDateTime(4); taxTreatment = r.IsDBNull(5) ? null : r.GetString(5); taxCountry = r.IsDBNull(6) ? null : r.GetString(6);
         }
 
-        await using (var up = new NpgsqlCommand(@"UPDATE tenant_payments SET status='paid', provider_charge_id=@c, is_test=@test, paid_at=now() WHERE id=@i", c, tx))
+        await using (var up = new NpgsqlCommand(@"UPDATE tenant_payments SET status='paid', provider_charge_id=@c, is_test=@test, paid_at=now(),
+              invoice_status = CASE WHEN @test OR COALESCE(amount_pen, 0) <= 0 THEN NULL ELSE 'PENDING' END WHERE id=@i", c, tx))
         {
             up.Parameters.AddWithValue("test", isTest); up.Parameters.AddWithValue("c", chargeId); up.Parameters.AddWithValue("i", paymentId);
             await up.ExecuteNonQueryAsync(ct);
