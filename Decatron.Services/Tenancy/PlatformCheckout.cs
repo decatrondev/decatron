@@ -19,8 +19,11 @@ public sealed class PlatformCheckout
     public static readonly TimeSpan RenewWindow = TimeSpan.FromDays(7);
 
     public sealed record Request(string PlanKey, int Months, IReadOnlyList<string> Addons, string Country);
+    /// <summary>Cambio a mitad de periodo: total del periodo con el cambio, lo ya pagado por el plan actual y los días que faltan (el cobro es la diferencia prorrateada).</summary>
+    public sealed record Proration(decimal NewPeriodUsd, decimal CurrentPeriodUsd, int RemainingDays, int PeriodDays);
+    /// <summary><c>Kind</c>: <c>new</c> (alta), <c>renew</c>, <c>upgrade</c> (subir de plan a mitad de periodo) o <c>addons</c> (sumar módulos al plan vigente).</summary>
     public sealed record Offer(long PlanId, string PlanKey, string Kind, int Months, PlatformPricing.Quote Quote, string TaxTreatment, string TaxCountry,
-        PlatformPricing.TaxSplit Tax, DateTime StartsAt, DateTime EndsAt);
+        PlatformPricing.TaxSplit Tax, DateTime StartsAt, DateTime EndsAt, Proration? Proration = null);
     /// <summary>Datos del comprobante, congelados con el pago.</summary>
     public sealed record Customer(string? Name, string? DocType, string? DocNumber, string? Email, bool PreferFactura);
     public sealed record Result<T>(T? Value, string? Error)
@@ -81,28 +84,104 @@ public sealed class PlatformCheckout
         }
 
         // Estado actual de la suscripción: decide si es alta o renovación
-        string? curPlan = null, status = null; DateTime? endsAt = null;
-        await using (var q = new NpgsqlCommand(@"SELECT p.key, s.status, s.ends_at FROM tenant_subscriptions s JOIN plans p ON p.id = s.plan_id
+        string? curPlan = null, status = null; DateTime? endsAt = null, subStarts = null; int? curMonths = null;
+        await using (var q = new NpgsqlCommand(@"SELECT p.key, s.status, s.ends_at, s.starts_at, s.period_months FROM tenant_subscriptions s JOIN plans p ON p.id = s.plan_id
               WHERE s.tenant_id = @t AND s.status <> 'cancelled' LIMIT 1", c))
         {
             q.Parameters.AddWithValue("t", tenantId);
             await using var r = await q.ExecuteReaderAsync(ct);
-            if (await r.ReadAsync(ct)) { curPlan = r.GetString(0); status = r.GetString(1); endsAt = r.IsDBNull(2) ? null : r.GetFieldValue<DateTimeOffset>(2).UtcDateTime; }
+            if (await r.ReadAsync(ct))
+            {
+                curPlan = r.GetString(0); status = r.GetString(1); endsAt = r.IsDBNull(2) ? null : r.GetFieldValue<DateTimeOffset>(2).UtcDateTime;
+                subStarts = r.GetFieldValue<DateTimeOffset>(3).UtcDateTime; curMonths = r.IsDBNull(4) ? null : r.GetInt16(4);
+            }
         }
         if (curPlan == "internal") return Fail<Offer>("not_billable");
         if (status == "suspended") return Fail<Offer>("suspended");
 
         string kind; DateTime starts;
         var live = status == "active" && endsAt is { } e && e > now;
-        if (!live) { kind = "new"; starts = now; }                                   // sandbox, sin fecha (pilotos), vencido o en gracia
-        else if (curPlan != req.PlanKey) return Fail<Offer>("change_not_available");  // subir de plan a mitad de periodo: más adelante
-        else if (endsAt!.Value - now > RenewWindow) return Fail<Offer>("renew_window");
-        else { kind = "renew"; starts = endsAt.Value; }
+        if (!live) { kind = "new"; starts = now; }                                   // sandbox, sin fecha (pilotos), vencido o en gracia: cualquier plan
+        else
+        {
+            var curIdx = Array.IndexOf(PaidPlans, curPlan);
+            if (curIdx < 0) return Fail<Offer>("change_not_available");              // plan a medida: se maneja a mano
+            if (planIdx < curIdx) return Fail<Offer>("downgrade_not_available");     // bajar nunca devuelve dinero: se compra el plan menor al vencer o en la gracia
+            if (planIdx == curIdx && endsAt!.Value - now <= RenewWindow) { kind = "renew"; starts = endsAt.Value; }
+            else
+            {
+                // A mitad de periodo: subir de plan o sumar módulos. El periodo se mantiene y todo termina en la misma fecha.
+                if (curMonths is not { } m0 || req.Months != m0) return Fail<Offer>("period_locked");
+                return await MidPeriodAsync(c, tenantId, req, planId, planTotal, nextTotal, planIdx, curIdx, curPlan!, m0, subStarts!.Value, endsAt!.Value, now, addonLines, country, ct);
+            }
+        }
 
         var quote = PlatformPricing.Build(planTotal, addonLines, nextTotal);
         var treatment = TaxTreatmentFor(country);
         return new Result<Offer>(new Offer(planId, req.PlanKey, kind, req.Months, quote, treatment, country,
             PlatformPricing.Split(quote.TotalUsd, treatment), starts, starts.AddMonths(req.Months)), null);
+    }
+
+    /// <summary>
+    /// Cobro de un cambio a mitad de periodo: la diferencia entre el total del periodo CON el cambio y el del plan actual con sus módulos, prorrateada por los días que faltan
+    /// (<see cref="PlatformPricing.UpgradeCharge"/>). Los módulos ya comprados se conservan hasta el fin del periodo; pedir menos no devuelve nada.
+    /// </summary>
+    private async Task<Result<Offer>> MidPeriodAsync(NpgsqlConnection c, long tenantId, Request req, long planId, decimal planTotal, decimal? nextTotal, int planIdx, int curIdx, string curPlan,
+        int months, DateTime subStarts, DateTime endsAt, DateTime now, List<(string Key, decimal Usd)> requested, string country, CancellationToken ct)
+    {
+        var owned = new List<string>();
+        await using (var q = new NpgsqlCommand(@"SELECT capability_key FROM tenant_addons WHERE tenant_id = @t AND source = 'purchase' AND starts_at <= now() AND (ends_at IS NULL OR ends_at > now())", c))
+        {
+            q.Parameters.AddWithValue("t", tenantId);
+            await using var r = await q.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct)) owned.Add(r.GetString(0));
+        }
+        var newKeys = requested.Where(a => !owned.Contains(a.Key)).ToList();
+        if (planIdx == curIdx && newKeys.Count == 0) return Fail<Offer>(requested.Count == 0 ? "renew_window" : "nothing_to_change");   // mismo plan y nada nuevo: aún no toca renovar
+
+        // Total del periodo actual: plan vigente + módulos comprados, con el tope de siempre
+        var curPlanPrice = await PlanPriceAsync(c, curPlan, months, ct);
+        if (curPlanPrice is not { } cp) return Fail<Offer>("change_not_available");
+        decimal? curNext = null;
+        if (curIdx + 1 < PaidPlans.Length && await PlanPriceAsync(c, PaidPlans[curIdx + 1], months, ct) is { } cn) curNext = cn.Total;
+        var curLines = new List<(string Key, decimal Usd)>();
+        foreach (var k in owned)
+            if (await AddonPriceAsync(c, k, months, ct) is { } price) curLines.Add((k, price));
+        var current = PlatformPricing.Build(cp.Total, curLines, curNext);
+
+        // Total del periodo con el cambio: plan nuevo + (módulos ya comprados que el plan nuevo aún no incluye) + módulos pedidos
+        var newLines = new List<(string Key, decimal Usd)>();
+        foreach (var k in owned)
+        {
+            if (await PlanIncludesAsync(c, planId, k, ct)) continue;
+            if (await AddonPriceAsync(c, k, months, ct) is { } price) newLines.Add((k, price));
+        }
+        newLines.AddRange(newKeys);
+        var target = PlatformPricing.Build(planTotal, newLines, nextTotal);
+
+        var periodDays = Math.Max(1, (int)Math.Round((endsAt - subStarts).TotalDays));
+        var remaining = Math.Max(1, (int)Math.Ceiling((endsAt - now).TotalDays));
+        var charge = PlatformPricing.UpgradeCharge(target.TotalUsd, current.TotalUsd, periodDays, remaining);
+        if (charge <= 0) return Fail<Offer>("nothing_to_change");
+
+        var treatment = TaxTreatmentFor(country);
+        var shown = new PlatformPricing.Quote(target.PlanUsd, newKeys.Select(a => new PlatformPricing.QuoteLine(a.Key, a.Usd)).ToList(), newKeys.Sum(a => a.Usd), charge, target.Capped);
+        return new Result<Offer>(new Offer(planId, req.PlanKey, planIdx > curIdx ? "upgrade" : "addons", months, shown, treatment, country,
+            PlatformPricing.Split(charge, treatment), now, endsAt, new Proration(target.TotalUsd, current.TotalUsd, remaining, periodDays)), null);
+    }
+
+    private static async Task<decimal?> AddonPriceAsync(NpgsqlConnection c, string key, int months, CancellationToken ct)
+    {
+        await using var q = new NpgsqlCommand("SELECT price_usd FROM addon_prices WHERE capability_key = @k AND period_months = @m AND active", c);
+        q.Parameters.AddWithValue("k", key); q.Parameters.AddWithValue("m", (short)months);
+        return await q.ExecuteScalarAsync(ct) is decimal d ? d : null;
+    }
+
+    private static async Task<bool> PlanIncludesAsync(NpgsqlConnection c, long planId, string key, CancellationToken ct)
+    {
+        await using var q = new NpgsqlCommand("SELECT 1 FROM plan_entitlements WHERE plan_id = @p AND capability_key = @k AND value >= 1", c);
+        q.Parameters.AddWithValue("p", planId); q.Parameters.AddWithValue("k", key);
+        return await q.ExecuteScalarAsync(ct) is not null;
     }
 
     private static async Task<(long Id, decimal Total)?> PlanPriceAsync(NpgsqlConnection c, string planKey, int months, CancellationToken ct)
@@ -128,7 +207,7 @@ public sealed class PlatformCheckout
         cmd.Parameters.AddWithValue("cn", (object?)customer?.Name ?? DBNull.Value); cmd.Parameters.AddWithValue("cdt", (object?)customer?.DocType ?? DBNull.Value);
         cmd.Parameters.AddWithValue("cdn", (object?)customer?.DocNumber ?? DBNull.Value); cmd.Parameters.AddWithValue("ce", (object?)customer?.Email ?? DBNull.Value);
         cmd.Parameters.AddWithValue("pf", customer?.PreferFactura ?? false);
-        cmd.Parameters.AddWithValue("purpose", o.Kind == "renew" ? "renewal" : "plan");
+        cmd.Parameters.AddWithValue("purpose", o.Kind switch { "renew" => "renewal", "upgrade" or "addons" => "addon", _ => "plan" });
         cmd.Parameters.AddWithValue("plan", o.PlanId); cmd.Parameters.AddWithValue("m", (short)o.Months); cmd.Parameters.AddWithValue("prov", provider);
         cmd.Parameters.AddWithValue("usd", o.Quote.TotalUsd); cmd.Parameters.AddWithValue("rate", penPerUsd);
         cmd.Parameters.AddWithValue("pen", PlatformPricing.ToPen(o.Quote.TotalUsd, penPerUsd));
@@ -171,8 +250,8 @@ public sealed class PlatformCheckout
         await c.OpenAsync(ct);
         await using var tx = await c.BeginTransactionAsync(ct);
 
-        long planId; short months; string[] addons; DateTime starts, ends; string? taxTreatment, taxCountry;
-        await using (var q = new NpgsqlCommand(@"SELECT plan_id, period_months, addons, period_starts, period_ends, tax_treatment, tax_country, status
+        long planId; short months; string[] addons; DateTime starts, ends; string? taxTreatment, taxCountry; string purpose;
+        await using (var q = new NpgsqlCommand(@"SELECT plan_id, period_months, addons, period_starts, period_ends, tax_treatment, tax_country, status, purpose
               FROM tenant_payments WHERE id = @i FOR UPDATE", c, tx))
         {
             q.Parameters.AddWithValue("i", paymentId);
@@ -180,7 +259,7 @@ public sealed class PlatformCheckout
             if (!await r.ReadAsync(ct)) throw new InvalidOperationException("payment_not_found");
             if (r.GetString(7) == "paid") return false;
             planId = r.GetInt64(0); months = r.GetInt16(1); addons = (string[])r.GetValue(2);
-            starts = r.GetFieldValue<DateTimeOffset>(3).UtcDateTime; ends = r.GetFieldValue<DateTimeOffset>(4).UtcDateTime; taxTreatment = r.IsDBNull(5) ? null : r.GetString(5); taxCountry = r.IsDBNull(6) ? null : r.GetString(6);
+            starts = r.GetFieldValue<DateTimeOffset>(3).UtcDateTime; ends = r.GetFieldValue<DateTimeOffset>(4).UtcDateTime; taxTreatment = r.IsDBNull(5) ? null : r.GetString(5); taxCountry = r.IsDBNull(6) ? null : r.GetString(6); purpose = r.GetString(8);
         }
 
         await using (var up = new NpgsqlCommand(@"UPDATE tenant_payments SET status='paid', provider_charge_id=@c, is_test=@test, paid_at=now(),
@@ -194,6 +273,14 @@ public sealed class PlatformCheckout
         var subStarts = starts;
         // tenant_subscriptions usa otros valores que tenant_payments: igv_18 / export_0
         var subTax = taxTreatment == "igv" ? "igv_18" : taxTreatment == "export" ? "export_0" : null;
+        if (purpose == "addon")
+        {
+            // Cambio a mitad de periodo: solo cambia el plan y se suman módulos; el periodo y la fecha de fin NO se tocan (los módulos nuevos terminan en ella).
+            await using var up2 = new NpgsqlCommand("UPDATE tenant_subscriptions SET plan_id=@p, updated_at=now() WHERE tenant_id=@t AND status <> 'cancelled'", c, tx);
+            up2.Parameters.AddWithValue("p", planId); up2.Parameters.AddWithValue("t", tenantId);
+            await up2.ExecuteNonQueryAsync(ct);
+        }
+        else
         await using (var sub = new NpgsqlCommand(@"UPDATE tenant_subscriptions SET plan_id=@p, period_months=@m, status='active', starts_at=@s, ends_at=@e,
               grace_until=NULL, sandbox_ends_at=NULL, tax_country=@cc, tax_treatment=@tax, updated_at=now() WHERE tenant_id=@t AND status <> 'cancelled'", c, tx))
         {

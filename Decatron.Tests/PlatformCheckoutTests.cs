@@ -179,6 +179,70 @@ public class PlatformCheckoutTests : IDisposable
         Assert.Equal("suspended", (await svc.QuoteAsync(A, Req("creator", 1))).Error);
     }
 
+    private static void Live(long tenant, string plan, int months, int daysLeft, int periodDays = 30)
+        => Exec(App!, tenant, $@"INSERT INTO tenant_subscriptions (tenant_id, plan_id, status, period_months, starts_at, ends_at)
+            SELECT {tenant}, id, 'active', {months}, now() + interval '{daysLeft - periodDays} days', now() + interval '{daysLeft} days' FROM plans WHERE key='{plan}'");
+
+    [Fact(DisplayName = "Subir de plan a mitad de periodo cobra la diferencia prorrateada por los dias que faltan")]
+    public async Task Subir_de_plan_prorratea()
+    {
+        if (!Available) return;
+        Live(A, "semilla", 1, 15);                                          // 15 de 30 dias restantes
+        var r = await Make().QuoteAsync(A, Req("creator", 1));
+        Assert.True(r.Ok, r.Error);
+        Assert.Equal("upgrade", r.Value!.Kind);
+        Assert.Equal(5m, r.Value.Quote.TotalUsd);                           // (19 - 9) * 15/30
+        Assert.Equal(19m, r.Value.Proration!.NewPeriodUsd);
+        Assert.Equal(9m, r.Value.Proration.CurrentPeriodUsd);
+        Assert.Equal(15, r.Value.Proration.RemainingDays);
+        Assert.Equal("igv", r.Value.TaxTreatment);
+        Assert.Equal(4.24m, r.Value.Tax.Base);                              // 5 / 1.18
+    }
+
+    [Fact(DisplayName = "Sumar un modulo al plan vigente cobra solo su parte del periodo restante")]
+    public async Task Sumar_modulo_prorratea()
+    {
+        if (!Available) return;
+        Live(A, "semilla", 1, 15);
+        var r = await Make().QuoteAsync(A, Req("semilla", 1, "PE", "zz.mod_b"));   // zz.mod_b: 3 USD/mes
+        Assert.True(r.Ok, r.Error);
+        Assert.Equal("addons", r.Value!.Kind);
+        Assert.Equal(1.5m, r.Value.Quote.TotalUsd);                                // 3 * 15/30
+        Assert.Single(r.Value.Quote.Addons);
+    }
+
+    [Fact(DisplayName = "Bajar de plan, cambiar el periodo o no cambiar nada a mitad de periodo se rechaza con su codigo")]
+    public async Task Cambios_no_permitidos()
+    {
+        if (!Available) return;
+        Live(A, "creator", 1, 15);
+        var svc = Make();
+        Assert.Equal("downgrade_not_available", (await svc.QuoteAsync(A, Req("semilla", 1))).Error);
+        Assert.Equal("period_locked", (await svc.QuoteAsync(A, Req("creator", 3, "PE", "zz.mod_b"))).Error);
+        Assert.Equal("renew_window", (await svc.QuoteAsync(A, Req("creator", 1))).Error);             // mismo plan, nada nuevo, aun no toca renovar
+    }
+
+    [Fact(DisplayName = "Confirmar un cambio a mitad de periodo mueve el plan, suma el modulo y NO toca la fecha de fin")]
+    public async Task Confirmar_cambio_conserva_fin()
+    {
+        if (!Available) return;
+        Live(A, "semilla", 1, 15);
+        var endsBefore = Scalar<DateTime>(A, "SELECT ends_at FROM tenant_subscriptions");
+        var svc = Make();
+        var o = (await svc.QuoteAsync(A, Req("creator", 1, "PE", "zz.mod_b"))).Value!;
+        Assert.Equal("upgrade", o.Kind);
+        var id = await svc.CreatePendingAsync(A, o, "culqi", 3.8m, isTest: true);
+        Assert.Equal("addon", Scalar<string>(A, $"SELECT purpose FROM tenant_payments WHERE id={id}"));
+        Assert.True(await svc.ConfirmAsync(A, id, "chr_test_cambio", true));
+        Assert.False(await svc.ConfirmAsync(A, id, "chr_test_cambio", true));
+        Assert.Equal("creator", Scalar<string>(A, "SELECT p.key FROM tenant_subscriptions s JOIN plans p ON p.id = s.plan_id"));
+        Assert.Equal(endsBefore, Scalar<DateTime>(A, "SELECT ends_at FROM tenant_subscriptions"));            // la fecha de fin no se movio
+        Assert.True(Scalar<bool>(A, "SELECT period_months = 1 FROM tenant_subscriptions"));
+        Assert.True(Scalar<bool>(A, "SELECT a.ends_at = s.ends_at AND a.starts_at <= now() FROM tenant_addons a, tenant_subscriptions s WHERE a.capability_key='zz.mod_b'"));
+        // ya con el modulo: pedirlo otra vez no cobra nada
+        Assert.Equal("nothing_to_change", (await svc.QuoteAsync(A, Req("creator", 1, "PE", "zz.mod_b"))).Error);
+    }
+
     [Fact(DisplayName = "Un pago real confirmado nace PENDING de comprobante y el admin lo ve entre tenants")]
     public async Task Pago_real_queda_pendiente_de_comprobante()
     {

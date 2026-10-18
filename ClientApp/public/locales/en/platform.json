@@ -943,7 +943,7 @@
       "plan_not_for_sale": "That plan is not for sale.",
       "addon_unavailable": "A chosen module is not available for that period.",
       "addon_included": "A chosen module is already included in the plan.",
-      "change_not_available": "You can't change plans while the current one is active. You will be able to do it when you renew.",
+      "change_not_available": "Your current plan is managed by hand. Contact us to change it.",
       "renew_window": "It's too early to renew: you can do it in the 7 days before it expires.",
       "not_billable": "This workspace is not billed.",
       "suspended": "This workspace is suspended. Contact us to reactivate it.",
@@ -951,8 +951,19 @@
       "token_required": "The card details are missing.",
       "charge_failed": "The charge could not be made. Check your card and try again.",
       "needs_review": "Your payment is under review. Please don't pay again: we'll write to you soon.",
-      "file_unavailable": "The file is not available yet."
+      "file_unavailable": "The file is not available yet.",
+      "downgrade_not_available": "To move to a lower plan, wait until the current period ends and buy the lower plan when you renew (you have 5 days of grace). Money is not refunded.",
+      "period_locked": "The period cannot be changed while your plan is active. You can do it when you renew.",
+      "nothing_to_change": "There is nothing new to charge: what you chose is already included in your period."
     },
-    "noExpiry": "No expiry"
+    "noExpiry": "No expiry",
+    "owned": "already in your period",
+    "changeTitle": "Change plan or add modules",
+    "periodLocked": "While your plan is active the period stays the same. You can change it when you renew.",
+    "prorationNew": "Period total with {{plan}}",
+    "prorationPaid": "What you already paid for your current plan",
+    "prorationDays": "You only pay the difference for the {{days}} days left of {{period}}. Your plan still ends on the same date.",
+    "prorationAdds": "Includes: {{modules}}.",
+    "toPayToday": "To pay today"
   }
 }

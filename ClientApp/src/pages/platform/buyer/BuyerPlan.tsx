@@ -20,8 +20,9 @@ export interface BillingState {
 interface Plan { key: string; name: string; modules: string[]; prices: Record<string, number> }
 interface Addon { key: string; includedIn: string | null; prices: Record<string, number> }
 interface Quote {
-    kind: 'new' | 'renew'; plan: string; months: number; planUsd: number; addons: { key: string; usd: number }[]; addonsUsd: number; capped: boolean;
+    kind: 'new' | 'renew' | 'upgrade' | 'addons'; plan: string; months: number; planUsd: number; addons: { key: string; usd: number }[]; addonsUsd: number; capped: boolean;
     totalUsd: number; taxTreatment: 'igv' | 'export'; baseUsd: number; igvUsd: number; totalPen: number; penPerUsd: number; startsAt: string; endsAt: string;
+    proration?: { newPeriodUsd: number; currentPeriodUsd: number; remainingDays: number; periodDays: number } | null;
 }
 interface Payment {
     id: number; purpose: string; plan: string | null; periodMonths: number; amountUsd: number; amountPen: number | null; status: string; isTest: boolean;
@@ -109,7 +110,17 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
         }
     }, [state, catalog]);
 
+    // Plan vigente y a mitad de periodo: solo se puede subir de plan o sumar módulos, y el periodo se mantiene (salvo al renovar, en los 7 días previos al vencimiento).
+    const curKey = state?.subscription?.plan ?? '';
+    const midPeriod = state?.phase === 'active' && !!state.subscription?.endsAt && (catalog?.plans.some(p => p.key === curKey) ?? false);
+    const inRenewWindow = midPeriod && (state!.subscription!.daysLeft ?? 99) <= 7;
+    const curIdx = catalog?.plans.findIndex(p => p.key === curKey) ?? -1;
+    const plans = catalog ? (midPeriod ? catalog.plans.filter((_, i) => i >= curIdx) : catalog.plans) : [];
+    const monthsLocked = midPeriod && !(planKey === curKey && inRenewWindow);
+    const lockedMonths = state?.subscription?.periodMonths ?? 1;
+    const owned = state?.addons.map(a => a.key) ?? [];
     const plan = catalog?.plans.find(p => p.key === planKey);
+    useEffect(() => { if (monthsLocked) setMonths(lockedMonths); }, [monthsLocked, lockedMonths]);
     const offered = useMemo(() => (catalog?.addons ?? []).filter(a => a.key.startsWith('module.') && plan && !plan.modules.includes(a.key) && a.prices[String(months)] != null), [catalog, plan, months]);
     useEffect(() => { setPicked(p => p.filter(k => offered.some(a => a.key === k))); }, [offered]);
 
@@ -193,23 +204,25 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
             {canBuy && (
                 <Card>
                     <div className="p-5 space-y-5">
-                        <h2 className="text-xl font-bold text-ds-text">{sub && state.phase === 'active' ? t('billing.renewTitle') : t('billing.buyTitle')}</h2>
+                        <h2 className="text-xl font-bold text-ds-text">{midPeriod && !inRenewWindow ? t('billing.changeTitle') : sub && state.phase === 'active' ? t('billing.renewTitle') : t('billing.buyTitle')}</h2>
                         {!state.checkoutEnabled && <Alert tone="info">{t('billing.disabled')}</Alert>}
                         {key?.testMode && <Alert tone="warn">{t('billing.testMode')}</Alert>}
                         {!catalog ? <div className="text-center"><Spinner /></div> : <>
                             <Field label={t('billing.choosePlan')}>
-                                <Segmented value={planKey} onChange={setPlanKey} items={catalog.plans.map(p => ({ id: p.key, label: p.name }))} />
+                                <Segmented value={planKey} onChange={setPlanKey} items={plans.map(p => ({ id: p.key, label: p.name }))} />
                             </Field>
-                            <Field label={t('plans.periodLabel')}>
+                            <Field label={t('plans.periodLabel')} hint={monthsLocked ? t('billing.periodLocked') : undefined}>
                                 <div className="max-w-full overflow-x-auto [&_button]:whitespace-nowrap">
-                                    <Segmented value={String(months)} onChange={id => setMonths(Number(id))}
-                                        items={PERIODS.filter(m => catalog.plans.every(p => p.prices[String(m)] != null)).map(m => ({ id: String(m), label: t(`plans.period.${m}`) }))} />
+                                    <Segmented value={String(months)} onChange={id => { if (!monthsLocked) setMonths(Number(id)); }}
+                                        items={(monthsLocked ? [lockedMonths] : PERIODS.filter(m => catalog.plans.every(p => p.prices[String(m)] != null))).map(m => ({ id: String(m), label: t(`plans.period.${m}`) }))} />
                                 </div>
                             </Field>
                             {offered.length > 0 && (
                                 <Field label={t('billing.chooseAddons')} hint={t('billing.addonsHint')}>
                                     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2">
-                                        {offered.map(a => (
+                                        {offered.map(a => owned.includes(a.key) ? (
+                                            <Checkbox key={a.key} checked disabled label={`${modName(a.key)} · ${t('billing.owned')}`} />
+                                        ) : (
                                             <Checkbox key={a.key} checked={picked.includes(a.key)} onChange={e => setPicked(p => (e.target.checked ? [...p, a.key] : p.filter(k => k !== a.key)))}
                                                 label={`${modName(a.key)} · ${t('plans.usd', { amount: money.format(a.prices[String(months)]) })}`} />
                                         ))}
@@ -237,12 +250,17 @@ export default function BuyerPlan({ state, owner, reload }: { state: BillingStat
                             {quoteErr && <Alert tone="warn">{err(quoteErr)}</Alert>}
                             {quote && (
                                 <div className="rounded-xl border border-ds-border-soft p-4 space-y-1.5 text-sm">
-                                    <div className="flex justify-between"><span className="text-ds-soft">{plan?.name} · {t(`plans.period.${quote.months}`)}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(quote.planUsd) })}</span></div>
-                                    {quote.addons.map(a => <div key={a.key} className="flex justify-between"><span className="text-ds-soft">{modName(a.key)}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(a.usd) })}</span></div>)}
+                                    {quote.proration ? <>
+                                        <div className="flex justify-between"><span className="text-ds-soft">{t('billing.prorationNew', { plan: plan?.name })}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(quote.proration.newPeriodUsd) })}</span></div>
+                                        <div className="flex justify-between"><span className="text-ds-soft">{t('billing.prorationPaid')}</span><span className="text-ds-text">− {t('plans.usd', { amount: money.format(quote.proration.currentPeriodUsd) })}</span></div>
+                                        <p className="text-ds-faint">{t('billing.prorationDays', { days: quote.proration.remainingDays, period: quote.proration.periodDays })}</p>
+                                    </> : <div className="flex justify-between"><span className="text-ds-soft">{plan?.name} · {t(`plans.period.${quote.months}`)}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(quote.planUsd) })}</span></div>}
+                                    {!quote.proration && quote.addons.map(a => <div key={a.key} className="flex justify-between"><span className="text-ds-soft">{modName(a.key)}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(a.usd) })}</span></div>)}
                                     {quote.capped && <p className="text-ds-faint">{t('billing.capped')}</p>}
+                                    {quote.proration && quote.addons.length > 0 && <p className="text-ds-faint">{t('billing.prorationAdds', { modules: quote.addons.map(a => modName(a.key)).join(', ') })}</p>}
                                     <div className="flex justify-between"><span className="text-ds-soft">{quote.taxTreatment === 'igv' ? t('billing.taxBase') : t('billing.taxExport')}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(quote.baseUsd) })}</span></div>
                                     {quote.taxTreatment === 'igv' && <div className="flex justify-between"><span className="text-ds-soft">{t('billing.igv')}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(quote.igvUsd) })}</span></div>}
-                                    <div className="flex justify-between border-t border-ds-border-soft pt-2 font-semibold text-base"><span className="text-ds-text">{t('billing.total')}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(quote.totalUsd) })}</span></div>
+                                    <div className="flex justify-between border-t border-ds-border-soft pt-2 font-semibold text-base"><span className="text-ds-text">{quote.proration ? t('billing.toPayToday') : t('billing.total')}</span><span className="text-ds-text">{t('plans.usd', { amount: money.format(quote.totalUsd) })}</span></div>
                                     <div className="flex justify-between"><span className="text-ds-soft">{t('billing.chargedPen', { rate: money.format(quote.penPerUsd) })}</span><span className="text-ds-text">S/ {money.format(quote.totalPen)}</span></div>
                                     <p className="text-ds-faint pt-1">{t('billing.validUntil', { date: date(quote.endsAt) })}</p>
                                 </div>

@@ -74,6 +74,7 @@ namespace Decatron.Controllers
                 planUsd = o.Quote.PlanUsd, addons = o.Quote.Addons.Select(a => new { key = a.Key, usd = a.Usd }), addonsUsd = o.Quote.AddonsUsd, capped = o.Quote.Capped,
                 totalUsd = o.Quote.TotalUsd, taxTreatment = o.TaxTreatment, baseUsd = o.Tax.Base, igvUsd = o.Tax.Igv,
                 totalPen = PlatformPricing.ToPen(o.Quote.TotalUsd, rate), penPerUsd = rate, startsAt = o.StartsAt, endsAt = o.EndsAt,
+                proration = o.Proration is null ? null : new { newPeriodUsd = o.Proration.NewPeriodUsd, currentPeriodUsd = o.Proration.CurrentPeriodUsd, remainingDays = o.Proration.RemainingDays, periodDays = o.Proration.PeriodDays },
             });
         }
 
@@ -146,7 +147,7 @@ namespace Decatron.Controllers
                 new PlatformCheckout.Customer(body.LegalName?.Trim(), body.DocType?.Trim(), body.DocNumber?.Trim(), body.Email!.Trim(), body.PreferFactura));
             var order = $"PLAT-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
             var charge = await _provider.ChargeAsync(new ProviderChargeRequest(PlatformPricing.ToCentimos(pen), "PEN", body.Email!.Trim(), body.Token!,
-                $"Decatron Plataforma - plan {o.PlanKey} ({o.Months} m)", order,
+                o.Kind is "upgrade" or "addons" ? $"Decatron Plataforma - cambio a plan {o.PlanKey} ({o.Proration!.RemainingDays} d)" : $"Decatron Plataforma - plan {o.PlanKey} ({o.Months} m)", order,
                 string.IsNullOrWhiteSpace(body.FirstName) ? "Cliente" : body.FirstName!, string.IsNullOrWhiteSpace(body.LastName) ? "Decatron" : body.LastName!,
                 new Dictionary<string, string> { ["tenant_id"] = Tid.ToString(), ["payment_id"] = paymentId.ToString(), ["platform"] = "decatron-platform" }));
 

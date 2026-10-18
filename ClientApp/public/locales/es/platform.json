@@ -943,7 +943,7 @@
       "plan_not_for_sale": "Ese plan no está a la venta.",
       "addon_unavailable": "Un módulo elegido no está disponible para ese periodo.",
       "addon_included": "Un módulo elegido ya viene incluido en el plan.",
-      "change_not_available": "Por ahora no se puede cambiar de plan mientras el actual esté vigente. Podrás hacerlo al renovar.",
+      "change_not_available": "Tu plan actual se maneja a mano. Escríbenos para cambiarlo.",
       "renew_window": "Aún falta mucho para el vencimiento: podrás renovar en los 7 días previos.",
       "not_billable": "Este espacio no se cobra.",
       "suspended": "Este espacio está suspendido. Escríbenos para reactivarlo.",
@@ -951,8 +951,19 @@
       "token_required": "Faltan los datos de la tarjeta.",
       "charge_failed": "No se pudo hacer el cobro. Revisa tu tarjeta e intenta de nuevo.",
       "needs_review": "Tu pago está en revisión. No intentes pagar otra vez: te escribiremos pronto.",
-      "file_unavailable": "El archivo no está disponible todavía."
+      "file_unavailable": "El archivo no está disponible todavía.",
+      "downgrade_not_available": "Para bajar de plan, espera a que venza el periodo actual y compra el plan menor al renovar (tienes 5 días de gracia). No se devuelve dinero.",
+      "period_locked": "Mientras tu plan está vigente no se puede cambiar el periodo. Podrás hacerlo al renovar.",
+      "nothing_to_change": "No hay nada nuevo que cobrar: lo que elegiste ya está incluido en tu periodo."
     },
-    "noExpiry": "Sin vencimiento"
+    "noExpiry": "Sin vencimiento",
+    "owned": "ya incluido en tu periodo",
+    "changeTitle": "Cambiar de plan o sumar módulos",
+    "periodLocked": "Mientras tu plan está vigente, el periodo se mantiene. Podrás cambiarlo al renovar.",
+    "prorationNew": "Total del periodo con {{plan}}",
+    "prorationPaid": "Lo que ya pagaste por tu plan actual",
+    "prorationDays": "Pagas solo la diferencia por los {{days}} días que faltan de {{period}}. Tu plan sigue terminando en la misma fecha.",
+    "prorationAdds": "Incluye: {{modules}}.",
+    "toPayToday": "A pagar hoy"
   }
 }
