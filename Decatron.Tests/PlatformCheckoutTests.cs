@@ -195,6 +195,35 @@ public class PlatformCheckoutTests : IDisposable
         Assert.Equal(1L, Scalar<long>(1, "SELECT count(*) FROM platform_payments_all(now() - interval '1 day', now() + interval '1 day') WHERE tenant_id = 9101"));
     }
 
+    [Fact(DisplayName = "Las fechas de la compra son instantes reales: empieza ahora (no 5 h despues) y el modulo esta activo de inmediato")]
+    public async Task Fechas_sin_desfase_de_zona()
+    {
+        if (!Available) return;
+        Sub(A, "semilla", "sandbox", null);
+        var svc = Make();
+        var o = (await svc.QuoteAsync(A, Req(addons: "zz.mod_b"))).Value!;
+        var id = await svc.CreatePendingAsync(A, o, "culqi", 3.8m, isTest: true);
+        await svc.ConfirmAsync(A, id, "chr_test_zona", true);
+        // Regresion 2026-10-18: un DateTime UTC suelto se guardaba como hora local y quedaba 5 h en el futuro (el modulo comprado no se activaba hasta 5 h despues)
+        Assert.True(Scalar<double>(A, "SELECT abs(extract(epoch FROM (starts_at - now())))::float8 FROM tenant_subscriptions") < 60, "starts_at debe ser ahora");
+        Assert.True(Scalar<bool>(A, "SELECT starts_at <= now() FROM tenant_addons WHERE capability_key='zz.mod_b'"), "el modulo debe estar activo ya");
+        Assert.True(Scalar<bool>(A, "SELECT ends_at = starts_at + interval '1 month' FROM tenant_subscriptions"));
+        Assert.True(Scalar<bool>(A, "SELECT s.ends_at = a.ends_at FROM tenant_subscriptions s, tenant_addons a WHERE a.capability_key='zz.mod_b'"));
+    }
+
+    [Fact(DisplayName = "Un cobro fallido de prueba queda marcado como prueba")]
+    public async Task Fallido_conserva_is_test()
+    {
+        if (!Available) return;
+        Sub(A, "semilla", "sandbox", null);
+        var svc = Make();
+        var o = (await svc.QuoteAsync(A, Req())).Value!;
+        var id = await svc.CreatePendingAsync(A, o, "culqi", 3.8m, isTest: false);
+        await svc.MarkFailedAsync(A, id, isTest: true);
+        Assert.Equal("failed", Scalar<string>(A, $"SELECT status FROM tenant_payments WHERE id={id}"));
+        Assert.True(Scalar<bool>(A, $"SELECT is_test FROM tenant_payments WHERE id={id}"));
+    }
+
     [Fact(DisplayName = "Un pago de un tenant no se ve en otro")]
     public async Task Aislamiento()
     {

@@ -42,8 +42,7 @@ public sealed class PlatformBillingReader
             q.Parameters.AddWithValue("t", tenantId);
             await using var r = await q.ExecuteReaderAsync(ct);
             if (await r.ReadAsync(ct))
-                sub = new Subscription(r.GetString(0), r.GetString(1), r.GetString(2), r.IsDBNull(3) ? null : r.GetInt16(3), r.GetDateTime(4),
-                    r.IsDBNull(5) ? null : r.GetDateTime(5), r.IsDBNull(6) ? null : r.GetDateTime(6), r.IsDBNull(7) ? null : r.GetDateTime(7));
+                sub = new Subscription(r.GetString(0), r.GetString(1), r.GetString(2), r.IsDBNull(3) ? null : r.GetInt16(3), Ts(r, 4), TsN(r, 5), TsN(r, 6), TsN(r, 7));
         }
 
         var addons = new List<Addon>();
@@ -52,7 +51,7 @@ public sealed class PlatformBillingReader
         {
             q.Parameters.AddWithValue("t", tenantId);
             await using var r = await q.ExecuteReaderAsync(ct);
-            while (await r.ReadAsync(ct)) addons.Add(new Addon(r.GetString(0), r.IsDBNull(1) ? null : r.GetDateTime(1)));
+            while (await r.ReadAsync(ct)) addons.Add(new Addon(r.GetString(0), TsN(r, 1)));
         }
 
         Profile? profile = null;
@@ -82,7 +81,7 @@ public sealed class PlatformBillingReader
         await using var r = await q.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
             list.Add(new Payment(r.GetInt64(0), r.GetString(1), Str(r, 2), r.GetInt16(3), r.GetDecimal(4), r.IsDBNull(5) ? null : r.GetDecimal(5), r.GetString(6), r.GetBoolean(7),
-                r.GetDateTime(8), r.IsDBNull(9) ? null : r.GetDateTime(9), r.IsDBNull(10) ? null : r.GetDateTime(10), (string[])r.GetValue(11), Str(r, 12),
+                Ts(r, 8), TsN(r, 9), TsN(r, 10), (string[])r.GetValue(11), Str(r, 12),
                 r.IsDBNull(13) || r.IsDBNull(14) ? null : $"{r.GetString(13)}-{r.GetInt32(14):D8}", r.GetBoolean(15)));
         return list;
     }
@@ -156,4 +155,7 @@ public sealed class PlatformBillingReader
     }
 
     private static string? Str(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : r.GetString(i);
+    // Con Npgsql en modo legacy GetDateTime devuelve la hora local del servidor y compararla con UtcNow se equivoca 5 h: siempre como instante UTC.
+    private static DateTime Ts(NpgsqlDataReader r, int i) => r.GetFieldValue<DateTimeOffset>(i).UtcDateTime;
+    private static DateTime? TsN(NpgsqlDataReader r, int i) => r.IsDBNull(i) ? null : Ts(r, i);
 }

@@ -37,6 +37,11 @@ public sealed class PlatformCheckout
 
     private NpgsqlConnection Open(long tenant) => TenantNpgsql.Create(_cs, tenant);
 
+    // El proceso corre con Npgsql.EnableLegacyTimestampBehavior: un DateTime suelto se guarda como «timestamp» y el servidor lo lee en su zona (America/Lima),
+    // así que una hora UTC quedaba 5 h en el futuro. Las fechas de la compra viajan siempre como instantes (timestamptz, UTC) y se leen como DateTimeOffset.
+    private static NpgsqlParameter Tz(string name, DateTime utc)
+        => new(name, NpgsqlTypes.NpgsqlDbType.TimestampTz) { Value = new DateTimeOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc)) };
+
     /// <summary>País de 2 letras → tratamiento de IGV: Perú paga IGV incluido; el resto es exportación de servicios.</summary>
     public static string TaxTreatmentFor(string country) => string.Equals(country, "PE", StringComparison.OrdinalIgnoreCase) ? "igv" : "export";
 
@@ -82,7 +87,7 @@ public sealed class PlatformCheckout
         {
             q.Parameters.AddWithValue("t", tenantId);
             await using var r = await q.ExecuteReaderAsync(ct);
-            if (await r.ReadAsync(ct)) { curPlan = r.GetString(0); status = r.GetString(1); endsAt = r.IsDBNull(2) ? null : r.GetDateTime(2); }
+            if (await r.ReadAsync(ct)) { curPlan = r.GetString(0); status = r.GetString(1); endsAt = r.IsDBNull(2) ? null : r.GetFieldValue<DateTimeOffset>(2).UtcDateTime; }
         }
         if (curPlan == "internal") return Fail<Offer>("not_billable");
         if (status == "suspended") return Fail<Offer>("suspended");
@@ -129,7 +134,7 @@ public sealed class PlatformCheckout
         cmd.Parameters.AddWithValue("pen", PlatformPricing.ToPen(o.Quote.TotalUsd, penPerUsd));
         cmd.Parameters.AddWithValue("tax", o.TaxTreatment); cmd.Parameters.AddWithValue("cc", o.TaxCountry); cmd.Parameters.AddWithValue("test", isTest);
         cmd.Parameters.AddWithValue("addons", o.Quote.Addons.Select(a => a.Key).ToArray());
-        cmd.Parameters.AddWithValue("s", o.StartsAt); cmd.Parameters.AddWithValue("e", o.EndsAt);
+        cmd.Parameters.Add(Tz("s", o.StartsAt)); cmd.Parameters.Add(Tz("e", o.EndsAt));
         return (long)(await cmd.ExecuteScalarAsync(ct))!;
     }
 
@@ -148,12 +153,12 @@ public sealed class PlatformCheckout
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    public async Task MarkFailedAsync(long tenantId, long paymentId, CancellationToken ct = default)
+    public async Task MarkFailedAsync(long tenantId, long paymentId, bool isTest = false, CancellationToken ct = default)
     {
         await using var c = Open(tenantId);
         await c.OpenAsync(ct);
-        await using var cmd = new NpgsqlCommand("UPDATE tenant_payments SET status='failed' WHERE id=@i AND status='pending'", c);
-        cmd.Parameters.AddWithValue("i", paymentId);
+        await using var cmd = new NpgsqlCommand("UPDATE tenant_payments SET status='failed', is_test=@test WHERE id=@i AND status='pending'", c);
+        cmd.Parameters.AddWithValue("i", paymentId); cmd.Parameters.AddWithValue("test", isTest);
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
@@ -175,7 +180,7 @@ public sealed class PlatformCheckout
             if (!await r.ReadAsync(ct)) throw new InvalidOperationException("payment_not_found");
             if (r.GetString(7) == "paid") return false;
             planId = r.GetInt64(0); months = r.GetInt16(1); addons = (string[])r.GetValue(2);
-            starts = r.GetDateTime(3); ends = r.GetDateTime(4); taxTreatment = r.IsDBNull(5) ? null : r.GetString(5); taxCountry = r.IsDBNull(6) ? null : r.GetString(6);
+            starts = r.GetFieldValue<DateTimeOffset>(3).UtcDateTime; ends = r.GetFieldValue<DateTimeOffset>(4).UtcDateTime; taxTreatment = r.IsDBNull(5) ? null : r.GetString(5); taxCountry = r.IsDBNull(6) ? null : r.GetString(6);
         }
 
         await using (var up = new NpgsqlCommand(@"UPDATE tenant_payments SET status='paid', provider_charge_id=@c, is_test=@test, paid_at=now(),
@@ -192,7 +197,7 @@ public sealed class PlatformCheckout
         await using (var sub = new NpgsqlCommand(@"UPDATE tenant_subscriptions SET plan_id=@p, period_months=@m, status='active', starts_at=@s, ends_at=@e,
               grace_until=NULL, sandbox_ends_at=NULL, tax_country=@cc, tax_treatment=@tax, updated_at=now() WHERE tenant_id=@t AND status <> 'cancelled'", c, tx))
         {
-            sub.Parameters.AddWithValue("p", planId); sub.Parameters.AddWithValue("m", months); sub.Parameters.AddWithValue("s", subStarts); sub.Parameters.AddWithValue("e", ends);
+            sub.Parameters.AddWithValue("p", planId); sub.Parameters.AddWithValue("m", months); sub.Parameters.Add(Tz("s", subStarts)); sub.Parameters.Add(Tz("e", ends));
             sub.Parameters.AddWithValue("cc", (object?)taxCountry ?? DBNull.Value); sub.Parameters.AddWithValue("tax", (object?)subTax ?? DBNull.Value);
             sub.Parameters.AddWithValue("t", tenantId);
             if (await sub.ExecuteNonQueryAsync(ct) == 0)
@@ -200,7 +205,7 @@ public sealed class PlatformCheckout
                 await using var ins = new NpgsqlCommand(@"INSERT INTO tenant_subscriptions (tenant_id, plan_id, period_months, status, starts_at, ends_at, tax_country, tax_treatment)
                       VALUES (@t, @p, @m, 'active', @s, @e, @cc, @tax)", c, tx);
                 ins.Parameters.AddWithValue("t", tenantId); ins.Parameters.AddWithValue("p", planId); ins.Parameters.AddWithValue("m", months);
-                ins.Parameters.AddWithValue("s", subStarts); ins.Parameters.AddWithValue("e", ends);
+                ins.Parameters.Add(Tz("s", subStarts)); ins.Parameters.Add(Tz("e", ends));
                 ins.Parameters.AddWithValue("cc", (object?)taxCountry ?? DBNull.Value); ins.Parameters.AddWithValue("tax", (object?)subTax ?? DBNull.Value);
                 await ins.ExecuteNonQueryAsync(ct);
             }
@@ -213,7 +218,7 @@ public sealed class PlatformCheckout
             del.Parameters.AddWithValue("t", tenantId); del.Parameters.AddWithValue("k", key);
             await del.ExecuteNonQueryAsync(ct);
             await using var ins = new NpgsqlCommand(@"INSERT INTO tenant_addons (tenant_id, capability_key, value, starts_at, ends_at, source) VALUES (@t, @k, 1, @s, @e, 'purchase')", c, tx);
-            ins.Parameters.AddWithValue("t", tenantId); ins.Parameters.AddWithValue("k", key); ins.Parameters.AddWithValue("s", subStarts); ins.Parameters.AddWithValue("e", ends);
+            ins.Parameters.AddWithValue("t", tenantId); ins.Parameters.AddWithValue("k", key); ins.Parameters.Add(Tz("s", subStarts)); ins.Parameters.Add(Tz("e", ends));
             await ins.ExecuteNonQueryAsync(ct);
         }
 

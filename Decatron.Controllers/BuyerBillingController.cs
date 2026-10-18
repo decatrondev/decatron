@@ -157,7 +157,7 @@ namespace Decatron.Controllers
             }
             if (!charge.Ok)
             {
-                await _checkout.MarkFailedAsync(Tid, paymentId);
+                await _checkout.MarkFailedAsync(Tid, paymentId, charge.IsTest);
                 return StatusCode(402, new { success = false, code = "charge_failed", message = charge.UserMessage });
             }
             await _checkout.ConfirmAsync(Tid, paymentId, charge.ChargeId!, charge.IsTest);

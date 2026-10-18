@@ -68,6 +68,9 @@ public sealed class BillingReminders
         return sent;
     }
 
+    // El vencimiento viaja como instante (timestamptz, UTC): un DateTime suelto se guardaría como hora local con Npgsql legacy.
+    private static NpgsqlParameter E(DateTime utc) => new("e", NpgsqlTypes.NpgsqlDbType.TimestampTz) { Value = new DateTimeOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc)) };
+
     private async Task<int> ForTenantAsync(long id, string name, string slug, DateTime now, CancellationToken ct)
     {
         await using var c = TenantNpgsql.Create(_cs, id);
@@ -80,7 +83,7 @@ public sealed class BillingReminders
             q.Parameters.AddWithValue("t", id);
             await using var r = await q.ExecuteReaderAsync(ct);
             if (!await r.ReadAsync(ct)) return 0;
-            planName = r.GetString(0); endsAt = r.GetDateTime(1); graceUntil = r.IsDBNull(2) ? null : r.GetDateTime(2); status = r.GetString(3);
+            planName = r.GetString(0); endsAt = r.GetFieldValue<DateTimeOffset>(1).UtcDateTime; graceUntil = r.IsDBNull(2) ? null : r.GetFieldValue<DateTimeOffset>(2).UtcDateTime;   // instantes UTC: con Npgsql legacy GetDateTime da la hora local y la comparación con UtcNow se desfasa 5 h status = r.GetString(3);
         }
 
         string? kind = status == "past_due" && graceUntil is { } g && g > now ? BillingNotices.Grace
@@ -90,14 +93,14 @@ public sealed class BillingReminders
         // ¿Ya se mandó este umbral para este vencimiento? Se reserva la fila antes de enviar: un reinicio a medias no repite el correo.
         await using (var ins = new NpgsqlCommand("INSERT INTO tenant_billing_reminders (tenant_id, ends_at, kind) VALUES (@t, @e, @k) ON CONFLICT DO NOTHING", c))
         {
-            ins.Parameters.AddWithValue("t", id); ins.Parameters.AddWithValue("e", endsAt); ins.Parameters.AddWithValue("k", kind);
+            ins.Parameters.AddWithValue("t", id); ins.Parameters.Add(E(endsAt)); ins.Parameters.AddWithValue("k", kind);
             if (await ins.ExecuteNonQueryAsync(ct) == 0) return 0;
         }
 
         async Task ReleaseAsync()
         {
             await using var del = new NpgsqlCommand("DELETE FROM tenant_billing_reminders WHERE tenant_id=@t AND ends_at=@e AND kind=@k", c);
-            del.Parameters.AddWithValue("t", id); del.Parameters.AddWithValue("e", endsAt); del.Parameters.AddWithValue("k", kind);
+            del.Parameters.AddWithValue("t", id); del.Parameters.Add(E(endsAt)); del.Parameters.AddWithValue("k", kind);
             await del.ExecuteNonQueryAsync(ct);
         }
 
