@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { Clock, Gift, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap, Trophy, Languages, Gamepad2, Smile } from 'lucide-react';
+import { Clock, Gift, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap, Trophy, Languages, Gamepad2, Smile, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
+import { usePlanModules } from '../../contexts/PlanModulesContext';
 
 function parseJwtClaims(token: string | null): Record<string, string> {
     if (!token) return {};
@@ -25,11 +27,15 @@ interface FeatureCard {
     // Kick" para esa sesion. Ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md
     // seccion 8, item 3.
     kickVerified?: boolean;
+    // Módulo del plan que necesita (module.<nombre>); sin él la tarjeta sale marcada «No incluido».
+    module?: string;
 }
 
 export default function FeaturesHub() {
     const navigate = useNavigate();
     const { hasMinimumLevel } = usePermissions();
+    const { has: planHas } = usePlanModules();
+    const { t } = useTranslation('layout');
 
     const isKickSession = useMemo(() => {
         const claims = parseJwtClaims(localStorage.getItem('token'));
@@ -49,14 +55,16 @@ export default function FeaturesHub() {
             name: 'Timers',
             description: 'Mensajes automaticos que se envian en intervalos regulares',
             icon: <Clock className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/timers'
+            route: '/features/timers',
+            module: 'timers'
         },
         {
             id: 'giveaways',
             name: 'Giveaways',
             description: 'Crea y gestiona sorteos para tu comunidad',
             icon: <Gift className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/giveaways'
+            route: '/features/giveaways',
+            module: 'giveaways'
         },
         {
             id: 'decatron-chat',
@@ -77,7 +85,8 @@ export default function FeaturesHub() {
             name: 'Speak Chat',
             description: 'Lee los mensajes del chat en voz alta con voz estándar o premium',
             icon: <Mic className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/speak-chat'
+            route: '/features/speak-chat',
+            module: 'tts'
         },
         {
             id: 'gacha',
@@ -91,7 +100,8 @@ export default function FeaturesHub() {
             name: 'Torneos',
             description: 'Torneo de LoL estilo SoloQ Climb con ranking en vivo (Milestone 0, en desarrollo)',
             icon: <Trophy className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/torneos'
+            route: '/features/torneos',
+            module: 'tournaments'
         },
         {
             id: 'spirits',
@@ -107,14 +117,16 @@ export default function FeaturesHub() {
             name: 'Traducción en vivo',
             description: 'Tus viewers te escuchan doblado a su idioma desde la extensión; cada uno elige el suyo y nadie más lo nota',
             icon: <Languages className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/live-translation'
+            route: '/features/live-translation',
+            module: 'live_translation'
         },
         {
             id: 'lol-coach',
             name: 'Decatron Coach · LoL',
             description: 'Un coach con IA que comenta tu selección de campeón, te da runas y build al lockear y opina al terminar. Con Decatron Desktop',
             icon: <Gamepad2 className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/lol-coach'
+            route: '/features/lol-coach',
+            module: 'lol_coach'
         },
         {
             id: 'decatron-ai',
@@ -143,12 +155,13 @@ export default function FeaturesHub() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
                 {visibleCards.map((card) => {
-                    const kickUnverified = isKickSession && !card.kickVerified;
+                    const notIncluded = !!card.module && !planHas(card.module);
+                    const kickUnverified = !notIncluded && isKickSession && !card.kickVerified;
 
                     return (
                         <div
                             key={card.id}
-                            className={`bg-ds-surface rounded-lg p-6 border border-ds-border transition-all ${kickUnverified ? 'opacity-60' : ''}`}
+                            className={`bg-ds-surface rounded-lg p-6 border border-ds-border transition-all ${kickUnverified || notIncluded ? 'opacity-60' : ''}`}
                             title={kickUnverified ? 'Todavía no verificado para Kick — se habilita de a uno, card por card.' : undefined}
                         >
                             <div className="flex items-start justify-between mb-4">
@@ -170,8 +183,16 @@ export default function FeaturesHub() {
                                 )}
                             </div>
 
+                            {notIncluded && (
+                                <p className="mb-4 -mt-2 text-xs font-bold text-ds-soft flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" aria-hidden />{t('planModules.badge')}</p>
+                            )}
                             <div className="flex items-center justify-end pt-4 border-t border-ds-border">
-                                {kickUnverified ? (
+                                {notIncluded ? (
+                                    <button disabled className="ds-btn ds-btn--secondary">
+                                        <Settings className="w-4 h-4" />
+                                        {t('planModules.unavailable')}
+                                    </button>
+                                ) : kickUnverified ? (
                                     <button
                                         disabled
                                         className="ds-btn ds-btn--secondary"

@@ -210,6 +210,7 @@ import { MultiviewDoc } from './pages/docs/MultiviewDoc';
 import SpiritCollection from './pages/SpiritCollection';
 import MySpiritCollection from './pages/me/MySpiritCollection';
 import { PermissionsProvider } from './contexts/PermissionsContext';
+import { PlanModulesProvider } from './contexts/PlanModulesContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './components/ui/Toast';
 import './i18n/config'; // Initialize i18next
@@ -231,6 +232,7 @@ function App() {
             <BrandProvider>
             <ToastProvider>
                 <PermissionsProvider>
+                <PlanModulesProvider>
                     <LanguageProvider>
                         <PreviewBanner />
                         <Routes>
@@ -588,6 +590,7 @@ function App() {
                         </Routes>
                         <OverlayAutoUpdate />
                     </LanguageProvider>
+                </PlanModulesProvider>
                 </PermissionsProvider>
             </ToastProvider>
             </BrandProvider>

@@ -3,6 +3,12 @@ import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, Che
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
+import { usePlanModules } from '../../contexts/PlanModulesContext';
+
+// Módulo del plan que necesita cada tarjeta (las que no están aquí dependen solo de module.overlays).
+const OVERLAY_MODULE: Record<string, string> = {
+    timer: 'timers', giveaways: 'giveaways', 'song-request': 'song_request', games: 'game_overlays', pets: 'pets', wheel: 'roulette',
+};
 
 function parseJwtClaims(token: string | null): Record<string, string> {
     if (!token) return {};
@@ -28,6 +34,7 @@ interface Overlay {
 export default function Overlays() {
     const { t } = useTranslation(['overlays', 'common']);
     const { hasMinimumLevel, loading } = usePermissions();
+    const { has: planHas } = usePlanModules();
     const navigate = useNavigate();
 
     // Ninguno de estos overlays fue verificado todavia contra una sesion de
@@ -246,6 +253,7 @@ export default function Overlays() {
                         key={overlay.id}
                         overlay={overlay}
                         kickUnverified={isKickSession && overlay.status === 'active' && !overlay.kickReady}
+                        notIncluded={!!OVERLAY_MODULE[overlay.id] && !planHas(OVERLAY_MODULE[overlay.id])}
                         onConfigure={() => handleConfigure(overlay.id)}
                     />
                 ))}
@@ -257,17 +265,18 @@ export default function Overlays() {
 interface OverlayCardProps {
     overlay: Overlay;
     kickUnverified: boolean;
+    notIncluded: boolean;
     onConfigure: () => void;
 }
 
-function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps) {
-    const { t } = useTranslation(['overlays']);
+function OverlayCard({ overlay, kickUnverified, notIncluded, onConfigure }: OverlayCardProps) {
+    const { t } = useTranslation(['overlays', 'layout']);
     const [expanded, setExpanded] = useState(false);
-    const isActive = overlay.status === 'active' && !kickUnverified;
+    const isActive = overlay.status === 'active' && !kickUnverified && !notIncluded;
 
     return (
         <div
-            className={`bg-ds-surface rounded-lg p-5 border border-ds-border transition-all flex flex-col ${kickUnverified ? 'opacity-60' : ''}`}
+            className={`bg-ds-surface rounded-lg p-5 border border-ds-border transition-all flex flex-col ${kickUnverified || notIncluded ? 'opacity-60' : ''}`}
             title={kickUnverified ? 'Todavía no verificado para Kick — se habilita de a uno, card por card.' : undefined}
         >
             {/* Header */}
@@ -283,7 +292,7 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
                         ? 'bg-ds-ok/10 text-ds-ok '
                         : 'bg-ds-raised border border-ds-border text-ds-soft'
                 }`}>
-                    {isActive ? t('overlays:status.available') : kickUnverified ? 'Próximamente en Kick' : t('overlays:status.comingSoon')}
+                    {isActive ? t('overlays:status.available') : notIncluded ? t('layout:planModules.badge') : kickUnverified ? 'Próximamente en Kick' : t('overlays:status.comingSoon')}
                 </div>
             </div>
 
@@ -342,7 +351,7 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
                         className="ds-btn ds-btn--secondary"
                     >
                         <Settings className="w-4 h-4" />
-                        {t('overlays:comingSoonButton')}
+                        {notIncluded ? t('layout:planModules.unavailable') : t('overlays:comingSoonButton')}
                     </button>
                 )}
             </div>

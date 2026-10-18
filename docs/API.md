@@ -158,6 +158,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 **Platform routes.** The multi-tenant platform (`/api/platform/` for the buyer, `/api/admin/platform/` for the platform owner) is documented in [PLATFORM.md](PLATFORM.md) with its access rules. The buyer routes appear below simply as `JWT`, but they also require a buyer session (`scope=buyer`) that belongs to the owner of the tenant of the Host, and the ones that change credentials ask for the recent two-step verification token; the admin routes are left out of this list.
 
 <!-- BEGIN GENERATED ENDPOINTS -->
+
 ### Analytics
 
 | Method | Route | Access |
@@ -853,6 +854,12 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/pets/models/{id}/sign` | JWT |
 | `GET` | `/api/pets/overlay/{channel}` | JWT |
 | `POST` | `/api/pets/test` | JWT + `overlays` |
+
+### Platform Modules
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/platform/my-modules` | JWT |
 
 ### Platform Signup
 

@@ -60,5 +60,12 @@
     "owner": "Owner",
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "planModules": {
+    "title": "Not included in your plan",
+    "text": "Your current plan does not include this module. The rest of the panel keeps working as usual.",
+    "back": "Back to home",
+    "badge": "Not included in your plan",
+    "unavailable": "Not included"
   }
 }

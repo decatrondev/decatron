@@ -60,5 +60,12 @@
     "owner": "Propietario",
     "settings": "Configuración",
     "logout": "Cerrar Sesión"
+  },
+  "planModules": {
+    "title": "No incluido en tu plan",
+    "text": "Tu plan actual no incluye este módulo. El resto del panel sigue funcionando con normalidad.",
+    "back": "Volver al inicio",
+    "badge": "No incluido en tu plan",
+    "unavailable": "No incluido"
   }
 }

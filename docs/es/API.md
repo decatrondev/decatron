@@ -158,6 +158,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 **Rutas de la plataforma.** La plataforma multi-tenant (`/api/platform/` para el comprador, `/api/admin/platform/` para el dueño de la plataforma) se documenta en [PLATFORM.md](PLATFORM.md) con sus reglas de acceso. Las rutas del comprador aparecen abajo simplemente como `JWT`, pero además exigen una sesión de comprador (`scope=buyer`) que pertenezca al dueño del tenant del Host, y las que cambian credenciales piden el token reciente de la verificación en dos pasos; las rutas de administración quedan fuera de esta lista.
 
 <!-- BEGIN GENERATED ENDPOINTS -->
+
 ### Analytics
 
 | Método | Ruta | Acceso |
@@ -853,6 +854,12 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/pets/models/{id}/sign` | JWT |
 | `GET` | `/api/pets/overlay/{channel}` | JWT |
 | `POST` | `/api/pets/test` | JWT + `overlays` |
+
+### Platform Modules
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/platform/my-modules` | JWT |
 
 ### Platform Signup
 

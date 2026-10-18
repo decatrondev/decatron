@@ -9,6 +9,8 @@ import ChannelSwitcher from './ChannelSwitcher';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTokenMonitor } from '../hooks/useTokenMonitor';
 import { notifyTokenRemoved } from '../utils/tokenEvents';
+import { usePlanModules, moduleForPath } from '../contexts/PlanModulesContext';
+import ModuleNotIncluded from './ModuleNotIncluded';
 
 function parseJwtClaims(token: string | null): Record<string, string> {
     if (!token) return {};
@@ -26,6 +28,8 @@ export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isSystemOwner, setIsSystemOwner] = useState(false);
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const { has: planHas } = usePlanModules();
+    const routeModule = moduleForPath(location.pathname);
 
     // Parse JWT to get auth provider info — re-parse on route changes (token may have changed)
     const jwtClaims = useMemo(() => parseJwtClaims(localStorage.getItem('token')), [location.pathname]);
@@ -116,14 +120,14 @@ export default function Layout() {
                                 seccion 8.16. El resto (overlays, moderacion, discord,
                                 analytics) se habilita para Kick de a uno, verificando
                                 cada uno primero — no se asume que tambien sirven. */}
-                            <NavLink to="/commands" icon={<Zap />} label={t('layout:navigation.commands.title')} active={location.pathname.startsWith('/commands')} />
+                            {planHas('commands') && <NavLink to="/commands" icon={<Zap />} label={t('layout:navigation.commands.title')} active={location.pathname.startsWith('/commands')} />}
 
                             {/* Overlays: visible para Kick, pero todavia sin ningun
                                 overlay verificado de ese lado — Overlays.tsx marca
                                 cada card como "Proximamente en Kick" hasta que se
                                 confirme card por card, mismo criterio que Default
                                 Commands (plan seccion 8.17). */}
-                            <NavLink to="/overlays" icon={<Target />} label={t('layout:navigation.overlays.title')} active={location.pathname.startsWith('/overlays')} />
+                            {planHas('overlays') && <NavLink to="/overlays" icon={<Target />} label={t('layout:navigation.overlays.title')} active={location.pathname.startsWith('/overlays')} />}
 
                             {/* Funciones: visible para Kick. Sound Alerts (el primero
                                 verificado en Kick, plan seccion 8, item 3) ahora vive
@@ -131,12 +135,12 @@ export default function Layout() {
                                 "Proximamente en Kick" hasta verificarse. */}
                             <NavLink to="/features" icon={<Target />} label={t('layout:navigation.features.title')} active={location.pathname === '/features'} />
                             <NavLink to="/credits" icon={<Coins />} label={t('layout:navigation.credits')} active={location.pathname.startsWith('/credits')} />
-                            <NavLink to="/multi" icon={<Tv2 />} label={t('layout:navigation.multiview', 'Multi-view')} active={false} />
+                            {planHas('multiview') && <NavLink to="/multi" icon={<Tv2 />} label={t('layout:navigation.multiview', 'Multi-view')} active={false} />}
 
                             {hasTwitchAccess && (
                                 <>
-                                    <NavLink to="/moderation" icon={<Shield />} label={t('layout:navigation.moderation.title')} active={location.pathname.startsWith('/moderation')} />
-                                    <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />
+                                    {planHas('moderation') && <NavLink to="/moderation" icon={<Shield />} label={t('layout:navigation.moderation.title')} active={location.pathname.startsWith('/moderation')} />}
+                                    {planHas('discord') && <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />}
                                     <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />
                                 </>
                             )}
@@ -217,7 +221,7 @@ export default function Layout() {
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ds-accent"></div>
                         </div>
                     ) : (
-                        <Outlet />
+                        routeModule && !planHas(routeModule) ? <ModuleNotIncluded /> : <Outlet />
                     )}
                 </main>
             </div>

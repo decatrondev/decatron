@@ -1,19 +1,16 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Server, TrendingUp, Coins, Palette, ShoppingBag, BarChart3, Settings, Dices, Zap, Receipt, FileText, Sparkles } from 'lucide-react';
+import api from '../../services/api';
+import { Trophy, Server, Coins, Palette, ShoppingBag, BarChart3, Settings, Dices, Zap, Receipt, FileText, Sparkles } from 'lucide-react';
 
-// Mock data — will be replaced with real API calls
-const MOCK_USER = {
-    username: 'AnthonyDeca',
-    displayName: 'AnthonyDeca',
-    avatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png',
-    globalLevel: 42,
-    globalXp: 45200,
-    globalXpRequired: 58000,
-    coins: 1250,
-    totalServers: 5,
-    totalBadges: 12,
-    totalMessages: 15420,
-};
+function parseJwtClaims(token: string | null): Record<string, string> {
+    if (!token) return {};
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(window.atob(base64));
+    } catch { return {}; }
+}
 
 function formatNumber(n: number): string {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -37,8 +34,14 @@ const SECTIONS = [
 
 export default function MeOverview() {
     const navigate = useNavigate();
-    const user = MOCK_USER;
-    const progress = Math.round((user.globalXp / user.globalXpRequired) * 100);
+    const claims = parseJwtClaims(localStorage.getItem('token'));
+    const displayName = claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '';
+    const avatarUrl = claims.ProfileImage || '';
+    const [coins, setCoins] = useState<number | null>(null);
+
+    useEffect(() => {
+        api.get('/coins/balance').then(r => setCoins(typeof r.data?.balance === 'number' ? r.data.balance : null)).catch(() => setCoins(null));
+    }, []);
 
     return (
         <div className="panel-scale space-y-6">
@@ -48,46 +51,26 @@ export default function MeOverview() {
                 <p className="text-ds-soft mt-2">Tu progreso en la plataforma Decatron</p>
             </div>
 
-            {/* Rank Card Preview */}
-            <div className="bg-gradient-to-r from-[#1a1b1e] to-[#2d2f36] rounded-lg p-6 border border-ds-border">
+            {/* Perfil: solo datos reales de la sesión (nivel, XP, servidores e insignias vuelven cuando exista su backend) */}
+            <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
                 <div className="flex items-center gap-6">
                     <div className="w-20 h-20 rounded-full bg-ds-raised flex items-center justify-center text-2xl font-black text-ds-text overflow-hidden flex-shrink-0">
-                        {user.avatarUrl ? (
-                            <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
+                        {avatarUrl ? (
+                            <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                         ) : (
-                            user.username[0]
+                            displayName[0]?.toUpperCase() || '?'
                         )}
                     </div>
-                    <div className="flex-1">
-                        <h2 className="text-xl font-black text-ds-text">{user.displayName}</h2>
-                        <p className="text-ds-soft text-sm mb-2">Nivel {user.globalLevel} Global</p>
-                        <div className="w-full bg-ds-raised rounded-full h-2.5">
-                            <div
-                                className="bg-ds-accent h-2.5 rounded-full transition-all"
-                                style={{ width: `${progress}%` }}
-                            />
-                        </div>
-                        <p className="text-xs text-ds-soft mt-1">
-                            {formatNumber(user.globalXp)} / {formatNumber(user.globalXpRequired)} XP — {progress}%
-                        </p>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-xl font-black text-ds-text truncate">{displayName || 'Mi cuenta'}</h2>
+                        {coins !== null && (
+                            <p className="text-ds-soft text-sm flex items-center gap-1.5 mt-1">
+                                <Coins className="w-4 h-4 text-[#eab308]" />
+                                {formatNumber(coins)} DecaCoins
+                            </p>
+                        )}
                     </div>
                 </div>
-            </div>
-
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                    { label: 'Nivel Global', value: user.globalLevel.toString(), icon: TrendingUp, color: 'text-ds-accent-text' },
-                    { label: 'Servidores', value: user.totalServers.toString(), icon: Server, color: 'text-ds-ok' },
-                    { label: 'Badges', value: user.totalBadges.toString(), icon: Trophy, color: 'text-ds-warn' },
-                    { label: 'DecaCoins', value: formatNumber(user.coins), icon: Coins, color: 'text-[#eab308]' },
-                ].map((stat) => (
-                    <div key={stat.label} className="bg-ds-surface rounded-lg p-4 border border-ds-border text-center">
-                        <stat.icon className={`w-5 h-5 mx-auto mb-1 ${stat.color}`} />
-                        <p className="text-xl font-black text-ds-text">{stat.value}</p>
-                        <p className="text-xs text-ds-soft">{stat.label}</p>
-                    </div>
-                ))}
             </div>
 
             {/* Section Cards */}

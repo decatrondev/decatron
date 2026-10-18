@@ -1,6 +1,7 @@
-import { Zap, MessageSquare, Code, Terminal, Settings, Clock, Globe, Crosshair, Clapperboard } from 'lucide-react';
+import { Zap, MessageSquare, Code, Terminal, Settings, Clock, Globe, Crosshair, Clapperboard, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePlanModules } from '../../contexts/PlanModulesContext';
 
 interface CommandCard {
     id: string;
@@ -8,11 +9,14 @@ interface CommandCard {
     description: string;
     icon: React.ReactNode;
     route: string;
+    module?: string;
 }
 
 export default function CommandsHub() {
     const navigate = useNavigate();
     const { t: tClip } = useTranslation('clipcommand');
+    const { t } = useTranslation('layout');
+    const { has: planHas } = usePlanModules();
 
     const cards: CommandCard[] = [
         {
@@ -55,14 +59,16 @@ export default function CommandsHub() {
             name: 'Ruleta',
             description: 'Ruleta rusa con timeout — probabilidad, duración y mensajes configurables',
             icon: <Crosshair className="w-6 h-6 text-ds-accent-text" />,
-            route: '/commands/ruleta'
+            route: '/commands/ruleta',
+            module: 'roulette'
         },
         {
             id: 'clip',
             name: tClip('hub.name'),
             description: tClip('hub.description'),
             icon: <Clapperboard className="w-6 h-6 text-ds-accent-text" />,
-            route: '/commands/clip'
+            route: '/commands/clip',
+            module: 'clips'
         },
         {
             id: 'public',
@@ -85,10 +91,12 @@ export default function CommandsHub() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
-                {cards.map((card) => (
+                {cards.map((card) => {
+                    const notIncluded = !!card.module && !planHas(card.module);
+                    return (
                     <div
                         key={card.id}
-                        className="bg-ds-surface rounded-lg p-6 border border-ds-border transition-all"
+                        className={`bg-ds-surface rounded-lg p-6 border border-ds-border transition-all ${notIncluded ? 'opacity-60' : ''}`}
                     >
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
@@ -104,17 +112,22 @@ export default function CommandsHub() {
                             </div>
                         </div>
 
+                        {notIncluded && (
+                            <p className="mb-4 -mt-2 text-xs font-bold text-ds-soft flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" aria-hidden />{t('planModules.badge')}</p>
+                        )}
                         <div className="flex items-center justify-end pt-4 border-t border-ds-border">
                             <button
                                 onClick={() => navigate(card.route)}
-                                className="ds-btn ds-btn--primary"
+                                disabled={notIncluded}
+                                className={notIncluded ? 'ds-btn ds-btn--secondary' : 'ds-btn ds-btn--primary'}
                             >
                                 <Settings className="w-4 h-4" />
-                                Configurar
+                                {notIncluded ? t('planModules.unavailable') : 'Configurar'}
                             </button>
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
