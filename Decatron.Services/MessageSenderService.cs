@@ -149,6 +149,21 @@ namespace Decatron.Services
 
                 if (response.IsSuccessStatusCode)
                 {
+                    // Twitch responde 200 aunque descarte el mensaje (solo seguidores/suscriptores/emotes, AutoMod, bloqueos): is_sent lo dice.
+                    var body = await response.Content.ReadAsStringAsync();
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        var first = doc.RootElement.GetProperty("data")[0];
+                        if (first.TryGetProperty("is_sent", out var sent) && sent.ValueKind == JsonValueKind.False)
+                        {
+                            var drop = first.TryGetProperty("drop_reason", out var d) && d.ValueKind == JsonValueKind.Object
+                                ? $"{d.GetProperty("code").GetString()} - {d.GetProperty("message").GetString()}" : "sin detalle";
+                            _logger.LogWarning($"⚠️ Twitch descartó el mensaje del bot en [{channel}]: {drop}");
+                            return;
+                        }
+                    }
+                    catch (Exception) { /* respuesta con otra forma: se trata como enviada */ }
                     _logger.LogInformation($"📤 [{channel}] Bot: {message}");
                 }
                 else
