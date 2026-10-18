@@ -2,7 +2,8 @@
   "loading": "Authenticating...",
   "header": {
     "title": "Dashboard",
-    "subtitle": "Welcome to your Decatron control panel"
+    "subtitle": "Welcome to your Decatron control panel",
+    "subtitleTenant": "Welcome to your {{name}} control panel"
   },
   "botModAlert": {
     "title": "⚠️ Important: Give the bot mod in your chat",

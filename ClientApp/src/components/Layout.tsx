@@ -11,6 +11,7 @@ import { useTokenMonitor } from '../hooks/useTokenMonitor';
 import { notifyTokenRemoved } from '../utils/tokenEvents';
 import { usePlanModules, moduleForPath } from '../contexts/PlanModulesContext';
 import ModuleNotIncluded from './ModuleNotIncluded';
+import { isTenantHost, loadTenantName } from '../platform/tenantHost';
 
 function parseJwtClaims(token: string | null): Record<string, string> {
     if (!token) return {};
@@ -30,6 +31,12 @@ export default function Layout() {
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const { has: planHas } = usePlanModules();
     const routeModule = moduleForPath(location.pathname);
+
+    // En el subdominio de un tenant el panel lleva el nombre de ese proyecto, no la marca de Decatron.
+    const [tenantName, setTenantName] = useState<string | null>(null);
+    useEffect(() => {
+        loadTenantName().then(n => { if (n) { setTenantName(n); document.title = n; } });
+    }, []);
 
     // Parse JWT to get auth provider info — re-parse on route changes (token may have changed)
     const jwtClaims = useMemo(() => parseJwtClaims(localStorage.getItem('token')), [location.pathname]);
@@ -77,7 +84,11 @@ export default function Layout() {
             <aside className={`panel-scale fixed md:static inset-y-0 left-0 z-50 w-64 bg-ds-surface border-r border-ds-border transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
                 <div className="p-6 border-b border-ds-border flex-shrink-0">
                     <Link to="/dashboard" className="flex items-center">
-                        <BrandMark slot="panel-sidebar" fallback={<><img src={decatronLockup} alt="Decatron" className="h-10 object-contain dark:hidden" /><img src="/brand/decatron-lockup-light.png" alt="Decatron" className="h-10 object-contain hidden dark:block" /></>} />
+                        {isTenantHost() ? (
+                            <span className="text-xl font-black text-ds-text truncate">{tenantName ?? '\u00a0'}</span>
+                        ) : (
+                            <BrandMark slot="panel-sidebar" fallback={<><img src={decatronLockup} alt="Decatron" className="h-10 object-contain dark:hidden" /><img src="/brand/decatron-lockup-light.png" alt="Decatron" className="h-10 object-contain hidden dark:block" /></>} />
+                        )}
                     </Link>
                 </div>
 
