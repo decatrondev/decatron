@@ -10,13 +10,16 @@ namespace Decatron.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<UserTokenRefreshBackgroundService> _logger;
         private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(30); // Check every 30 minutes
+        private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
 
         public UserTokenRefreshBackgroundService(
             IServiceProvider serviceProvider,
-            ILogger<UserTokenRefreshBackgroundService> logger)
+            ILogger<UserTokenRefreshBackgroundService> logger,
+            Decatron.Services.Tenancy.TenantTaskRunner tenants)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _tenants = tenants;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -32,12 +35,14 @@ namespace Decatron.Services
                 {
                     _logger.LogInformation("User Token Refresh Background Service is running token refresh check");
 
-                    // Create a scope to resolve scoped services
-                    using (var scope = _serviceProvider.CreateScope())
+                    // Un tenant a la vez: la seguridad por filas deja ver solo a los usuarios del tenant en curso, y el token de un
+                    // streamer de otro tenant se renueva con la app de Twitch de ese tenant. Sin esto sus tokens vencían sin que nadie los renovara.
+                    await _tenants.ForEachTenantAsync("user-token-refresh", async _ =>
                     {
+                        using var scope = _serviceProvider.CreateScope();
                         var refreshService = scope.ServiceProvider.GetRequiredService<IUserTokenRefreshService>();
                         await refreshService.RefreshExpiringTokensAsync();
-                    }
+                    }, stoppingToken);
                 }
                 catch (Exception ex)
                 {
