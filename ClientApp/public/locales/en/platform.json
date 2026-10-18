@@ -828,7 +828,7 @@
     "notes": {
       "title": "Before you pay",
       "igv": "Prices are in US dollars (USD) and include VAT (IGV) in Peru. Outside Peru the price is the same, without VAT.",
-      "pen": "You are charged in Peruvian soles at the current exchange rate (today 1 USD = S/ {{rate}}).",
+      "pen": "You are charged in Peruvian soles at a fixed exchange rate set by Decatron (1 USD = S/ {{rate}}), which does not follow the market rate.",
       "trial": "Every plan can be tried free for 7 days.",
       "refunds": "There are no refunds: the 7-day trial exists so you can decide before you pay."
     },
