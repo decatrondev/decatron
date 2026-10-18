@@ -25,10 +25,11 @@ namespace Decatron.Controllers
         private readonly Microsoft.Extensions.Configuration.IConfiguration _cfg;
         private readonly PlatformBillingReader _reader;
         private readonly Decatron.Services.ISupporterInvoiceService _invoiceFiles;
+        private readonly Decatron.Services.IPaymentModeService _mode;
 
         public BuyerBillingController(PlatformCheckout checkout, IPaymentProvider provider, ExchangeRate rate, Microsoft.Extensions.Configuration.IConfiguration cfg,
-            PlatformBillingReader reader, Decatron.Services.ISupporterInvoiceService invoiceFiles, ILogger<BuyerBillingController> log)
-        { _checkout = checkout; _provider = provider; _rate = rate; _cfg = cfg; _reader = reader; _invoiceFiles = invoiceFiles; _log = log; }
+            PlatformBillingReader reader, Decatron.Services.ISupporterInvoiceService invoiceFiles, Decatron.Services.IPaymentModeService mode, ILogger<BuyerBillingController> log)
+        { _checkout = checkout; _provider = provider; _rate = rate; _cfg = cfg; _reader = reader; _invoiceFiles = invoiceFiles; _mode = mode; _log = log; }
 
         /// <summary>Apagado por defecto: cobrar de verdad solo se enciende con la autorización del dueño de la plataforma (<c>Platform:Billing:CheckoutEnabled</c>, recarga en caliente).</summary>
         private bool CheckoutEnabled => _cfg.GetValue<bool?>("Platform:Billing:CheckoutEnabled") ?? false;
@@ -74,6 +75,14 @@ namespace Decatron.Controllers
                 totalUsd = o.Quote.TotalUsd, taxTreatment = o.TaxTreatment, baseUsd = o.Tax.Base, igvUsd = o.Tax.Igv,
                 totalPen = PlatformPricing.ToPen(o.Quote.TotalUsd, rate), penPerUsd = rate, startsAt = o.StartsAt, endsAt = o.EndsAt,
             });
+        }
+
+        /// <summary>Llave pública de Culqi del MISMO modo con el que se cobrará (prueba o real), para tokenizar la tarjeta en el navegador. El nginx de decatron.top no deja pasar /api/coins.</summary>
+        [HttpGet("culqi-key")]
+        public async Task<IActionResult> CulqiKey()
+        {
+            var (publicKey, _, isTest) = await _mode.GetLlavesAsync(HttpContext.RequestAborted);
+            return Ok(new { success = true, publicKey, testMode = isTest, penPerUsd = await _rate.PenPerUsdAsync(HttpContext.RequestAborted) });
         }
 
         public sealed class ProfileBody

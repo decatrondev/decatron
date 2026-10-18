@@ -760,7 +760,8 @@
         "member_not_found": "That person is no longer on the team.",
         "cannot_remove_self": "You cannot remove yourself."
       }
-    }
+    },
+    "tabPlan": "Plan"
   },
   "tenantLogin": {
     "subtitle": "Sign in with Twitch to manage {{name}}.",
@@ -853,5 +854,105 @@
       "game_overlays": "Game overlays",
       "lol_coach": "LoL coach"
     }
+  },
+  "billing": {
+    "current": "Your plan",
+    "phase": {
+      "none": "No plan",
+      "internal": "Internal",
+      "sandbox": "Trial",
+      "suspended": "Suspended",
+      "active": "Up to date",
+      "grace": "Grace period",
+      "expired": "Expired"
+    },
+    "trialEnds": "Trial ends",
+    "renewsOn": "Expires on",
+    "period": "Period",
+    "addons": "Single modules",
+    "noPlan": "You don't have a plan assigned yet.",
+    "internal": "This workspace uses an internal plan: it is not billed.",
+    "readOnly": "Only the owner can buy or renew the plan. You can see the status and the history.",
+    "buyTitle": "Choose a plan",
+    "renewTitle": "Renew your plan",
+    "disabled": "Online payment is not enabled yet. You can see what your plan would cost; we'll let you know when payments open.",
+    "testMode": "Billing is in test mode: no real card will be charged.",
+    "choosePlan": "Plan",
+    "chooseAddons": "Single modules",
+    "addonsHint": "A plan plus its modules never costs more than the next plan.",
+    "legalName": "Name or company name",
+    "email": "Email for the receipt",
+    "country": "Country",
+    "docType": "Document type",
+    "docNumber": "Number",
+    "factura": "I want an invoice (requires a RUC)",
+    "taxBase": "Taxable base",
+    "taxExport": "Export of services (no VAT)",
+    "igv": "VAT / IGV (18%)",
+    "total": "Total",
+    "chargedPen": "Charged in soles (1 USD = S/ {{rate}})",
+    "capped": "The cap was applied: modules never exceed the price of the next plan.",
+    "validUntil": "Your plan will be active until {{date}}.",
+    "finePrint": "The price includes VAT in Peru. There are no refunds: the 7-day trial is there to decide before you pay.",
+    "pay": "Pay USD {{usd}} (S/ {{pen}})",
+    "payShort": "Pay",
+    "paid": "Payment received. Your plan is active until {{date}}.",
+    "auto": {
+      "title": "Automatic billing",
+      "soon": "Coming soon",
+      "text": "Save your card and we renew your plan for you a few days before it expires. You can cancel any time.",
+      "label": "Renew automatically"
+    },
+    "history": "Payment history",
+    "noPayments": "You have no payments yet.",
+    "colDate": "Date",
+    "colConcept": "Item",
+    "colAmount": "Amount",
+    "colStatus": "Status",
+    "colInvoice": "Receipt",
+    "status": {
+      "paid": "Paid",
+      "failed": "Failed",
+      "pending": "Processing",
+      "refunded": "Refunded"
+    },
+    "test": "Test",
+    "invoicePending": "Being prepared",
+    "grace": {
+      "title": "Your plan has expired",
+      "text_one": "It expired on {{ends}}. The bot keeps working until {{until}} ({{count}} day). Renew so you don't lose it.",
+      "text_other": "It expired on {{ends}}. The bot keeps working until {{until}} ({{count}} days). Renew so you don't lose it.",
+      "renew": "Renew now"
+    },
+    "expired": {
+      "title": "Your plan has expired and the bot is paused",
+      "text": "It expired on {{ends}}. Your data is kept for 30 days and everything comes back when you pay.",
+      "renew": "Pay and reactivate"
+    },
+    "errors": {
+      "generic": "We couldn't complete the action. Please try again.",
+      "country_required": "Choose your country.",
+      "name_required": "Enter your name or company name.",
+      "doc_type_invalid": "The document type is not valid.",
+      "doc_number_invalid": "The document number is not valid.",
+      "ruc_invalid": "The RUC must have 11 digits.",
+      "dni_invalid": "The DNI must have 8 digits.",
+      "email_invalid": "Enter a valid email.",
+      "factura_needs_ruc": "To ask for an invoice you need a RUC.",
+      "invalid_period": "The period is not valid.",
+      "plan_not_for_sale": "That plan is not for sale.",
+      "addon_unavailable": "A chosen module is not available for that period.",
+      "addon_included": "A chosen module is already included in the plan.",
+      "change_not_available": "You can't change plans while the current one is active. You will be able to do it when you renew.",
+      "renew_window": "It's too early to renew: you can do it in the 7 days before it expires.",
+      "not_billable": "This workspace is not billed.",
+      "suspended": "This workspace is suspended. Contact us to reactivate it.",
+      "checkout_disabled": "Online payment is not enabled yet.",
+      "token_required": "The card details are missing.",
+      "charge_failed": "The charge could not be made. Check your card and try again.",
+      "needs_review": "Your payment is under review. Please don't pay again: we'll write to you soon.",
+      "file_unavailable": "The file is not available yet."
+    },
+    "noExpiry": "No expiry"
   }
 }

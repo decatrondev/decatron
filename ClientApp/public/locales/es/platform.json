@@ -760,7 +760,8 @@
         "member_not_found": "Esa persona ya no está en el equipo.",
         "cannot_remove_self": "No puedes quitarte a ti mismo."
       }
-    }
+    },
+    "tabPlan": "Plan"
   },
   "tenantLogin": {
     "subtitle": "Inicia sesión con Twitch para administrar {{name}}.",
@@ -853,5 +854,105 @@
       "game_overlays": "Overlays de juego",
       "lol_coach": "Coach de LoL"
     }
+  },
+  "billing": {
+    "current": "Tu plan",
+    "phase": {
+      "none": "Sin plan",
+      "internal": "Interno",
+      "sandbox": "En prueba",
+      "suspended": "Suspendido",
+      "active": "Al día",
+      "grace": "En gracia",
+      "expired": "Vencido"
+    },
+    "trialEnds": "La prueba termina",
+    "renewsOn": "Vence el",
+    "period": "Periodo",
+    "addons": "Módulos sueltos",
+    "noPlan": "Todavía no tienes un plan asignado.",
+    "internal": "Este espacio usa un plan interno: no se cobra.",
+    "readOnly": "Solo el propietario puede comprar o renovar el plan. Tú puedes ver el estado y el historial.",
+    "buyTitle": "Elegir un plan",
+    "renewTitle": "Renovar tu plan",
+    "disabled": "El pago en línea todavía no está habilitado. Puedes ver cuánto costaría tu plan; te avisaremos cuando abramos los cobros.",
+    "testMode": "El cobro está en modo de prueba: no se cargará ninguna tarjeta real.",
+    "choosePlan": "Plan",
+    "chooseAddons": "Módulos sueltos",
+    "addonsHint": "Los módulos y el plan juntos nunca cuestan más que el plan siguiente.",
+    "legalName": "Nombre o razón social",
+    "email": "Correo para el comprobante",
+    "country": "País",
+    "docType": "Tipo de documento",
+    "docNumber": "Número",
+    "factura": "Quiero factura (requiere RUC)",
+    "taxBase": "Base imponible",
+    "taxExport": "Exportación de servicios (sin IGV)",
+    "igv": "IGV (18 %)",
+    "total": "Total",
+    "chargedPen": "Se cobra en soles (1 USD = S/ {{rate}})",
+    "capped": "Se aplicó el tope: los módulos nunca superan el precio del plan siguiente.",
+    "validUntil": "Tu plan quedará activo hasta el {{date}}.",
+    "finePrint": "El precio incluye IGV en Perú. No hay reembolsos: la prueba de 7 días es para decidir antes de pagar.",
+    "pay": "Pagar USD {{usd}} (S/ {{pen}})",
+    "payShort": "Pagar",
+    "paid": "Pago recibido. Tu plan está activo hasta el {{date}}.",
+    "auto": {
+      "title": "Cobro automático",
+      "soon": "Próximamente",
+      "text": "Guarda tu tarjeta y renovamos tu plan por ti unos días antes de que venza. Podrás cancelarlo cuando quieras.",
+      "label": "Renovar automáticamente"
+    },
+    "history": "Historial de pagos",
+    "noPayments": "Aún no tienes pagos.",
+    "colDate": "Fecha",
+    "colConcept": "Concepto",
+    "colAmount": "Monto",
+    "colStatus": "Estado",
+    "colInvoice": "Comprobante",
+    "status": {
+      "paid": "Pagado",
+      "failed": "Fallido",
+      "pending": "En proceso",
+      "refunded": "Reembolsado"
+    },
+    "test": "Prueba",
+    "invoicePending": "En preparación",
+    "grace": {
+      "title": "Tu plan venció",
+      "text_one": "Venció el {{ends}}. El bot sigue funcionando hasta el {{until}} ({{count}} día). Renueva para no perderlo.",
+      "text_other": "Venció el {{ends}}. El bot sigue funcionando hasta el {{until}} ({{count}} días). Renueva para no perderlo.",
+      "renew": "Renovar ahora"
+    },
+    "expired": {
+      "title": "Tu plan venció y el bot está en pausa",
+      "text": "Venció el {{ends}}. Tus datos se conservan 30 días y al pagar todo se reactiva.",
+      "renew": "Pagar y reactivar"
+    },
+    "errors": {
+      "generic": "No pudimos completar la acción. Intenta de nuevo.",
+      "country_required": "Elige tu país.",
+      "name_required": "Escribe tu nombre o razón social.",
+      "doc_type_invalid": "El tipo de documento no es válido.",
+      "doc_number_invalid": "El número de documento no es válido.",
+      "ruc_invalid": "El RUC debe tener 11 dígitos.",
+      "dni_invalid": "El DNI debe tener 8 dígitos.",
+      "email_invalid": "Escribe un correo válido.",
+      "factura_needs_ruc": "Para pedir factura necesitas un RUC.",
+      "invalid_period": "El periodo no es válido.",
+      "plan_not_for_sale": "Ese plan no está a la venta.",
+      "addon_unavailable": "Un módulo elegido no está disponible para ese periodo.",
+      "addon_included": "Un módulo elegido ya viene incluido en el plan.",
+      "change_not_available": "Por ahora no se puede cambiar de plan mientras el actual esté vigente. Podrás hacerlo al renovar.",
+      "renew_window": "Aún falta mucho para el vencimiento: podrás renovar en los 7 días previos.",
+      "not_billable": "Este espacio no se cobra.",
+      "suspended": "Este espacio está suspendido. Escríbenos para reactivarlo.",
+      "checkout_disabled": "El pago en línea todavía no está habilitado.",
+      "token_required": "Faltan los datos de la tarjeta.",
+      "charge_failed": "No se pudo hacer el cobro. Revisa tu tarjeta e intenta de nuevo.",
+      "needs_review": "Tu pago está en revisión. No intentes pagar otra vez: te escribiremos pronto.",
+      "file_unavailable": "El archivo no está disponible todavía."
+    },
+    "noExpiry": "Sin vencimiento"
   }
 }

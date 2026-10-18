@@ -10,6 +10,8 @@ import BuyerTeam from './BuyerTeam';
 import BuyerTransparency from './BuyerTransparency';
 import BuyerSecurity from './BuyerSecurity';
 import BuyerStepUp from './BuyerStepUp';
+import BuyerPlan, { GraceBanner, type BillingState } from './BuyerPlan';
+import buyerApi from '../../../services/buyerApi';
 import { useTurnstile } from '../useTurnstile';
 
 // La sesión del comprador va aparte de la del streamer: otra clave y su propio encabezado (nunca toca el login de Twitch).
@@ -33,14 +35,20 @@ type Me = {
     mfa?: { enabled: boolean; required: boolean };
 };
 
-function Home() {
+function Home({ initialTab }: { initialTab?: string }) {
     const { t } = useTranslation('platform');
     const nav = useNavigate();
     const [params] = useSearchParams();
     const [me, setMe] = useState<Me | null>(null);
     const [error, setError] = useState(false);
     const exchanged = useRef(false);
-    const [tab, setTab] = useState(params.get('tab') === 'equipo' ? 'team' : 'home');
+    const [tab, setTab] = useState(initialTab ?? (params.get('tab') === 'equipo' ? 'team' : 'home'));
+    const [billing, setBilling] = useState<BillingState | null>(null);
+
+    // Estado de facturación (plan, vencimiento, gracia): alimenta el aviso fijo y la pestaña Plan. Si falla, el panel sigue sin ellos.
+    const loadBilling = useCallback(() => {
+        buyerApi.get('/platform/buyer/billing/state').then(r => setBilling(r.data)).catch(() => setBilling(null));
+    }, []);
 
     const load = useCallback(async () => {
         const token = getToken();
@@ -49,7 +57,8 @@ function Home() {
         if (r.status === 401 || r.status === 403) { setToken(''); nav('/panel/login', { replace: true }); return; }
         if (!r.ok) { setError(true); return; }
         setMe(await r.json());
-    }, [nav]);
+        loadBilling();
+    }, [nav, loadBilling]);
 
     useEffect(() => {
         const code = params.get('code');
@@ -83,6 +92,7 @@ function Home() {
                             <div><dt className="text-sm text-ds-faint">{t('buyer.role')}</dt><dd className="text-ds-text font-semibold">{t(me.buyer.role === 'owner' ? 'buyer.owner' : 'buyer.adminRole')}</dd></div>
                         </dl>
                     </Card>
+                    {!me.mfa?.required && <GraceBanner state={billing} owner={me.buyer.role === 'owner'} onRenew={() => { setTab('plan'); nav('/panel/plan'); }} />}
                     {me.mfa?.required ? <>
                         <Alert tone="warn">
                             <strong className="block">{t('buyer.mfa.requiredTitle')}</strong>
@@ -90,14 +100,15 @@ function Home() {
                         </Alert>
                         <BuyerSecurity onChange={() => { load().catch(() => setError(true)); }} />
                     </> : me.buyer.role === 'owner' ? <>
-                        <Tabs value={tab} onChange={setTab} items={[{ id: 'home', label: t('buyer.tabHome') }, { id: 'team', label: t('buyer.tabTeam') }]} />
-                        {tab === 'team' ? <BuyerTeam /> : <>
+                        <Tabs value={tab} onChange={setTab} items={[{ id: 'home', label: t('buyer.tabHome') }, { id: 'plan', label: t('buyer.tabPlan') }, { id: 'team', label: t('buyer.tabTeam') }]} />
+                        {tab === 'plan' ? <BuyerPlan state={billing} owner reload={loadBilling} /> : tab === 'team' ? <BuyerTeam /> : <>
                             <BuyerSecurity onChange={() => { load().catch(() => setError(true)); }} />
                             <BuyerSetup />
                             <BuyerTransparency />
                         </>}
                     </> : <>
                         <Alert tone="info">{t('buyer.adminNotice')}</Alert>
+                        <BuyerPlan state={billing} owner={false} reload={loadBilling} />
                         <BuyerSetupReadOnly />
                         <BuyerTransparency />
                     </>}
@@ -251,6 +262,7 @@ export default function BuyerPanel() {
             <Route path="login" element={<Login />} />
             <Route path="entrar" element={<Enter />} />
             <Route path="invitacion" element={<Invitation />} />
+            <Route path="plan" element={<Home initialTab="plan" />} />
             <Route path="*" element={<Home />} />
         </Routes>
     );

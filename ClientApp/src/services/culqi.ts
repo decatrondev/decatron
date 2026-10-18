@@ -7,7 +7,7 @@ import api from './api';
 /** Solo por si el backend no lo informa: el valor histórico. El real llega con la clave pública. */
 export const PEN_PER_USD_FALLBACK = 3.80;
 
-function loadCulqiScript(): Promise<void> {
+export function loadCulqiScript(): Promise<void> {
     return new Promise((resolve, reject) => {
         const w = window as any;
         if (w.CulqiCheckout) { resolve(); return; }
@@ -33,13 +33,19 @@ export async function openCulqiCheckout(amountUsd: number, title: string): Promi
     if (!keyData.publicKey) throw new Error('Culqi no configurado');
     // El monto que se muestra tiene que ser exactamente el que se va a cobrar.
     const amountPen = Math.round(amountUsd * (keyData.penPerUsd || PEN_PER_USD_FALLBACK) * 100);
+    return openCulqiWithKey(keyData.publicKey, amountPen, title);
+}
+
+/** Abre el checkout con una llave pública y un monto en céntimos de sol ya calculados (el panel de la plataforma los trae de su propio servidor). */
+export async function openCulqiWithKey(publicKey: string, amountPen: number, title: string, lang: 'es' | 'en' = 'es'): Promise<CulqiResult> {
+    await loadCulqiScript();
     return new Promise((resolve, reject) => {
         const config = {
             settings: { title, currency: 'PEN', amount: amountPen },
             client: { email: '' },
-            options: { lang: 'es', modal: true, installments: false, paymentMethods: { tarjeta: true, yape: true, billetera: false, bancaMovil: false, agente: false, cuotealo: false } },
+            options: { lang, modal: true, installments: false, paymentMethods: { tarjeta: true, yape: true, billetera: false, bancaMovil: false, agente: false, cuotealo: false } },
         };
-        const culqi = new (window as any).CulqiCheckout(keyData.publicKey, config);
+        const culqi = new (window as any).CulqiCheckout(publicKey, config);
         culqi.culqi = () => {
             if (culqi.token) {
                 const r = { token: culqi.token.id, email: culqi.token.email || '', firstName: culqi.token.first_name || '', lastName: culqi.token.last_name || '' };
