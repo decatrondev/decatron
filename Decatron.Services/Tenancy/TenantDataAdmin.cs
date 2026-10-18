@@ -244,6 +244,7 @@ public sealed class TenantDataAdmin
             await t.OpenAsync(ct);
             await using var q = new NpgsqlCommand(@"SELECT 1 FROM tenant_subscriptions WHERE tenant_id=@t AND (
                 (status='cancelled' AND updated_at < now() - make_interval(days => @d)) OR
+                (status='past_due' AND grace_until IS NOT NULL AND grace_until < now() - make_interval(days => @d)) OR
                 (status='sandbox' AND sandbox_ends_at IS NOT NULL AND sandbox_ends_at < now() - make_interval(days => @d)))", t);
             q.Parameters.AddWithValue("t", id); q.Parameters.AddWithValue("d", days);
             if (await q.ExecuteScalarAsync(ct) != null) due.Add(id);

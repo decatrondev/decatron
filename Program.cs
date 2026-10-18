@@ -373,6 +373,7 @@ try
     builder.Services.AddSingleton<Decatron.Controllers.BuyerSessions>();       // Fase A-C: sesion del comprador
     builder.Services.AddSingleton<Decatron.Services.TurnstileVerifier>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantDataAdmin>();
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantGrace>(); // Fase 7.3: gracia al vencer
     builder.Services.AddHostedService<Decatron.Services.Tenancy.EntitlementsFlusher>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantBotUserToken>();

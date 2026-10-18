@@ -83,6 +83,10 @@ namespace Decatron.Services
         /// <returns>Ruta local del clip descargado o null si falla</returns>
         public async Task<ClipDownloadResult> DownloadClipAsync(string clipUrl, string username)
         {
+            // Plataforma: el archivo de clips es del #1 (red social de clips). Un tenant no descarga al VPS hasta que exista R2 por tenant (FASE7_DISENO.md §11).
+            if (Decatron.Core.Interfaces.TenantAmbient.Current is long tenant && tenant != 1)
+                return new ClipDownloadResult { Success = false, Error = "tenant_no_download" };
+
             try
             {
                 // Validar URL - solo permitir URLs de Twitch clips

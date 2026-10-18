@@ -23,11 +23,12 @@ public sealed class TenantLifecycle : BackgroundService
     private readonly ILogger<TenantLifecycle> _log;
     private readonly HashSet<long> _paused = new();
     private readonly TenantDataAdmin _data;
+    private readonly TenantGrace _grace;
     private DateTime _lastDueCheck = DateTime.MinValue;
 
     public TenantLifecycle(IEntitlements ent, ITenantCredentialStore store, TenantEventSubHub hub, DiscordTenantGateway gateway,
-        TenantEventSubSync sync, TenantDataAdmin data, IConfiguration cfg, ILogger<TenantLifecycle> log)
-    { _data = data; _ent = ent; _store = store; _hub = hub; _gateway = gateway; _sync = sync; _cfg = cfg; _log = log; }
+        TenantEventSubSync sync, TenantDataAdmin data, TenantGrace grace, IConfiguration cfg, ILogger<TenantLifecycle> log)
+    { _grace = grace; _data = data; _ent = ent; _store = store; _hub = hub; _gateway = gateway; _sync = sync; _cfg = cfg; _log = log; }
 
     public IReadOnlyCollection<long> Paused { get { lock (_paused) return _paused.ToArray(); } }
 
@@ -37,6 +38,8 @@ public sealed class TenantLifecycle : BackgroundService
         var every = TimeSpan.FromSeconds(Math.Max(15, _cfg.GetValue<int?>("Platform:Lifecycle:IntervalSeconds") ?? 60));
         while (!ct.IsCancellationRequested)
         {
+            try { await _grace.SweepAsync(ct); } // antes de la pasada: un plan recién vencido entra en gracia y no se pausa
+            catch (Exception ex) when (ex is not OperationCanceledException) { _log.LogWarning("tenant.grace.failed {Type}", ex.GetType().Name); }
             try { await PassAsync(ct); }
             catch (Exception ex) when (ex is not OperationCanceledException) { _log.LogWarning("tenant.lifecycle.failed {Type}", ex.GetType().Name); }
             // Aviso (no borra): tenants cuyo plazo de guarda venció; el dueño decide desde /admin/platform-tenants
