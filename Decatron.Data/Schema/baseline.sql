@@ -10,7 +10,7 @@
 --   psql -U decatron_user -d decatron -f Decatron.Data/Migrations/Seed_Platform_Base.sql
 --
 -- This snapshot already includes the multi-tenant platform (tenants, row-level security policies,
--- app_tenant_id(), plans and entitlements, buyer sign-up, two-step verification and team invitation tables).
+-- app_tenant_id(), plans and entitlements, buyer sign-up, two-step verification, team invitation and billing tables).
 -- It does NOT contain data: Seed_Platform_Base.sql creates tenant #1 and the capability catalog,
 -- which every installation needs (users and channels reference tenant #1 by default).
 --
@@ -21,7 +21,8 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-10-17
+-- Snapshot date: 2026-10-18
+--
 --
 --
 -- PostgreSQL database dump
@@ -6787,6 +6788,26 @@ ALTER SEQUENCE public.tenant_addons_id_seq OWNED BY public.tenant_addons.id;
 
 
 --
+-- Name: tenant_billing_profile; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_billing_profile (
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    legal_name character varying(200),
+    country character varying(2),
+    doc_type character varying(12),
+    doc_number character varying(30),
+    billing_email character varying(254),
+    pay_mode character varying(6) DEFAULT 'manual'::character varying NOT NULL,
+    culqi_customer_id character varying(80),
+    culqi_card_id character varying(80),
+    auto_enabled_at timestamp with time zone,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenant_billing_profile_pay_mode_check CHECK (((pay_mode)::text = ANY ((ARRAY['manual'::character varying, 'auto'::character varying])::text[])))
+);
+
+
+--
 -- Name: tenant_buyer_mfa; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6953,6 +6974,56 @@ CREATE TABLE public.tenant_members (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT tenant_members_role_check CHECK (((role)::text = ANY ((ARRAY['owner'::character varying, 'admin'::character varying, 'viewer'::character varying])::text[])))
 );
+
+
+--
+-- Name: tenant_payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_payments (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    purpose character varying(12) NOT NULL,
+    plan_id bigint,
+    capability_key character varying(80),
+    period_months smallint NOT NULL,
+    provider character varying(16) NOT NULL,
+    provider_charge_id character varying(120),
+    amount_usd numeric(10,2) NOT NULL,
+    pen_per_usd numeric(10,4),
+    amount_pen numeric(12,2),
+    tax_treatment character varying(12) DEFAULT 'igv'::character varying NOT NULL,
+    status character varying(10) DEFAULT 'pending'::character varying NOT NULL,
+    is_test boolean DEFAULT false NOT NULL,
+    invoice_id character varying(60),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    paid_at timestamp with time zone,
+    CONSTRAINT tenant_payments_amount_usd_check CHECK ((amount_usd >= (0)::numeric)),
+    CONSTRAINT tenant_payments_period_months_check CHECK ((period_months = ANY (ARRAY[1, 3, 6, 9, 12]))),
+    CONSTRAINT tenant_payments_provider_check CHECK (((provider)::text = ANY ((ARRAY['culqi'::character varying, 'paypal'::character varying, 'mercadopago'::character varying, 'manual'::character varying])::text[]))),
+    CONSTRAINT tenant_payments_purpose_check CHECK (((purpose)::text = ANY ((ARRAY['plan'::character varying, 'addon'::character varying, 'renewal'::character varying])::text[]))),
+    CONSTRAINT tenant_payments_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'paid'::character varying, 'failed'::character varying, 'refunded'::character varying])::text[]))),
+    CONSTRAINT tenant_payments_tax_treatment_check CHECK (((tax_treatment)::text = ANY ((ARRAY['igv'::character varying, 'export'::character varying])::text[])))
+);
+
+
+--
+-- Name: tenant_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenant_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenant_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenant_payments_id_seq OWNED BY public.tenant_payments.id;
 
 
 --
@@ -11353,6 +11424,13 @@ ALTER TABLE ONLY public.tenant_invitations ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: tenant_payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_payments ALTER COLUMN id SET DEFAULT nextval('public.tenant_payments_id_seq'::regclass);
+
+
+--
 -- Name: tenant_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -13516,6 +13594,14 @@ ALTER TABLE ONLY public.tenant_addons
 
 
 --
+-- Name: tenant_billing_profile tenant_billing_profile_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_billing_profile
+    ADD CONSTRAINT tenant_billing_profile_pkey PRIMARY KEY (tenant_id);
+
+
+--
 -- Name: tenant_buyer_mfa tenant_buyer_mfa_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -13577,6 +13663,14 @@ ALTER TABLE ONLY public.tenant_keys
 
 ALTER TABLE ONLY public.tenant_members
     ADD CONSTRAINT tenant_members_pkey PRIMARY KEY (tenant_id, user_id);
+
+
+--
+-- Name: tenant_payments tenant_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_payments
+    ADD CONSTRAINT tenant_payments_pkey PRIMARY KEY (id);
 
 
 --
@@ -17239,6 +17333,13 @@ CREATE INDEX ix_tenant_invitations_token ON public.tenant_invitations USING btre
 
 
 --
+-- Name: ix_tenant_payments_tenant; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tenant_payments_tenant ON public.tenant_payments USING btree (tenant_id, created_at DESC);
+
+
+--
 -- Name: ix_users_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -18237,6 +18338,13 @@ CREATE UNIQUE INDEX ux_t_xp_store_items_b80bb7740288fda1f201890375a60c8f ON publ
 --
 
 CREATE UNIQUE INDEX ux_tenant_invitations_live ON public.tenant_invitations USING btree (tenant_id, lower((email)::text)) WHERE ((used_at IS NULL) AND (cancelled_at IS NULL));
+
+
+--
+-- Name: ux_tenant_payments_charge; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_tenant_payments_charge ON public.tenant_payments USING btree (provider, provider_charge_id) WHERE (provider_charge_id IS NOT NULL);
 
 
 --
@@ -19864,6 +19972,14 @@ ALTER TABLE ONLY public.tenant_addons
 
 
 --
+-- Name: tenant_billing_profile tenant_billing_profile_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_billing_profile
+    ADD CONSTRAINT tenant_billing_profile_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: tenant_buyer_mfa tenant_buyer_mfa_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -19933,6 +20049,22 @@ ALTER TABLE ONLY public.tenant_members
 
 ALTER TABLE ONLY public.tenant_members
     ADD CONSTRAINT tenant_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: tenant_payments tenant_payments_plan_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_payments
+    ADD CONSTRAINT tenant_payments_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.plans(id);
+
+
+--
+-- Name: tenant_payments tenant_payments_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_payments
+    ADD CONSTRAINT tenant_payments_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
 
 
 --
@@ -21526,6 +21658,12 @@ ALTER TABLE public.tcg_free_pack_claims ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenant_addons ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: tenant_billing_profile; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_billing_profile ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: tenant_buyer_mfa; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -22543,6 +22681,13 @@ CREATE POLICY tenant_isolation ON public.tenant_addons USING ((tenant_id = ( SEL
 
 
 --
+-- Name: tenant_billing_profile tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_billing_profile USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
 -- Name: tenant_buyer_mfa tenant_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -22582,6 +22727,13 @@ CREATE POLICY tenant_isolation ON public.tenant_invitations USING ((tenant_id = 
 --
 
 CREATE POLICY tenant_isolation ON public.tenant_keys USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_payments tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_payments USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --
@@ -23170,6 +23322,12 @@ CREATE POLICY tenant_isolation ON public.xp_transactions USING ((tenant_id = ( S
 --
 
 ALTER TABLE public.tenant_keys ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tenant_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_payments ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: tenant_provider_config; Type: ROW SECURITY; Schema: public; Owner: -
