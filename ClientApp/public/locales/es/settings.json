@@ -152,7 +152,7 @@
   "sections": {
     "platforms": {
       "title": "Plataformas",
-      "description": "Una sola cuenta de Decatron une tus canales. Vincula las plataformas que uses."
+      "description": "Una sola cuenta de {{brand}} une tus canales. Vincula las plataformas que uses."
     },
     "plan": {
       "title": "Plan",
@@ -172,7 +172,7 @@
     },
     "integrations": {
       "title": "Integraciones",
-      "description": "Conecta Decatron con tu servidor de Discord y con la app de escritorio."
+      "description": "Conecta {{brand}} con tu servidor de Discord y con la app de escritorio."
     },
     "accessLevel": {
       "title": "Tu nivel de acceso"

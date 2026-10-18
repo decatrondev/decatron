@@ -1,6 +1,7 @@
 import { CheckCircle, MessageSquare } from 'lucide-react';
 import api from '../../services/api';
 import { useTranslation } from 'react-i18next';
+import { useTenantName } from '../../hooks/useTenantName';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import { SettingsGroup, SettingsRow, ReadOnlyNotice, Linked, PlatformIcon, TierBadge, linkButton, unlinkButton } from './parts';
 import type { SettingsCtx } from './types';
@@ -9,10 +10,11 @@ import TitleGameSyncGroup from './TitleGameSyncGroup';
 /** Pestaña «Mi cuenta»: plataformas vinculadas, plan e idioma. */
 export default function AccountTab({ s }: { s: SettingsCtx }) {
     const { t } = useTranslation(['settings', 'common']);
+    const tenantName = useTenantName();
     const { userInfo, accountTier, identity, jwtClaims, authProvider, linkedKick, linkedTwitch, loadAccountChannels, addToast, viewerIsOwner, twitchLinked, discordLinked, kickLinked } = s;
     return (
         <div className="space-y-6 4xl:space-y-8">
-            <SettingsGroup title={t('settings:sections.platforms.title')} description={t('settings:sections.platforms.description')}>
+            <SettingsGroup title={t('settings:sections.platforms.title')} description={t('settings:sections.platforms.description', { brand: tenantName ?? 'Decatron' })}>
                 {!viewerIsOwner ? (
                     <>
                         <ReadOnlyNotice text={t('settings:header.readOnly', { login: identity?.owner.login ?? userInfo.login })} />

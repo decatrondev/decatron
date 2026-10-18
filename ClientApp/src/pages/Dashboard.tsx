@@ -2,7 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { notifyTokenChanged } from '../utils/tokenEvents';
-import { loadTenantName } from '../platform/tenantHost';
+import { useTenantName } from '../hooks/useTenantName';
 import {
     Radio,
     Settings,
@@ -32,8 +32,7 @@ function parseJwt(token: string | null): Record<string, string> {
 
 export default function Dashboard() {
     const { t } = useTranslation(['dashboard', 'common']);
-    const [tenantName, setTenantName] = useState<string | null>(null);
-    useEffect(() => { loadTenantName().then(setTenantName); }, []);
+    const tenantName = useTenantName();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [botStatus, setBotStatus] = useState<any>(null);
@@ -97,7 +96,7 @@ export default function Dashboard() {
                             Bienvenido, {displayName}
                         </h1>
                         <p className="text-ds-soft">
-                            Tu panel de Decatron
+                            Tu panel de {tenantName ?? 'Decatron'}
                         </p>
                     </div>
 
@@ -188,7 +187,7 @@ export default function Dashboard() {
                             Bienvenido, {displayName}
                         </h1>
                         <p className="text-ds-soft">
-                            Tu panel de Decatron
+                            Tu panel de {tenantName ?? 'Decatron'}
                         </p>
                     </div>
 
