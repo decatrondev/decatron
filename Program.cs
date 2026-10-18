@@ -376,6 +376,8 @@ try
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantGrace>(); // Fase 7.3: gracia al vencer
     builder.Services.AddSingleton<Decatron.Services.Tenancy.IBillingMailer, Decatron.Services.Tenancy.BillingMailer>(); // Fase 7.4: recordatorios de vencimiento
     builder.Services.AddSingleton<Decatron.Services.Tenancy.BillingReminders>();
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformCheckout>(); // Fase 7.5: compra de plan
+    builder.Services.AddScoped<Decatron.Services.Tenancy.IPaymentProvider, Decatron.Services.Tenancy.CulqiPaymentProvider>();
     builder.Services.AddHostedService<Decatron.Services.Tenancy.EntitlementsFlusher>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantBotUserToken>();

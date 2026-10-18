@@ -20,9 +20,9 @@ public sealed class TenantDataAdmin
     // Tablas del tenant que nunca salen en una exportación (secretos y registros internos de acceso).
     private static readonly HashSet<string> ExportExcluded = new(StringComparer.OrdinalIgnoreCase)
         { "tenant_credentials", "tenant_keys", "credential_access_log", "bot_tokens" };
-    // Se conservan al borrar: son de solo inserción para la app (auditoría).
+    // Se conservan al borrar: son de solo inserción para la app (auditoría y libro de pagos).
     private static readonly HashSet<string> PurgeKeep = new(StringComparer.OrdinalIgnoreCase)
-        { "credential_access_log", "entitlement_events" };
+        { "credential_access_log", "entitlement_events", "tenant_payments" };   // tenant_payments: libro contable, solo se inserta
     private static readonly Regex Secretish = new(@"token|secret|password|passwd|api_?key|stream_?key|private_?key|authorization", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private readonly string? _cs;
