@@ -377,6 +377,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.Tenancy.IBillingMailer, Decatron.Services.Tenancy.BillingMailer>(); // Fase 7.4: recordatorios de vencimiento
     builder.Services.AddSingleton<Decatron.Services.Tenancy.BillingReminders>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformCheckout>(); // Fase 7.5: compra de plan
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformBillingReader>(); // Fase 7.7: lecturas del panel de facturación y catálogo de planes
     builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformInvoiceService>(); // Fase 7.6: comprobantes de los pagos de plan
     builder.Services.AddScoped<Decatron.Services.Tenancy.IPaymentProvider, Decatron.Services.Tenancy.CulqiPaymentProvider>();
     builder.Services.AddHostedService<Decatron.Services.Tenancy.EntitlementsFlusher>();

@@ -23,9 +23,12 @@ namespace Decatron.Controllers
         private readonly ExchangeRate _rate;
         private readonly ILogger<BuyerBillingController> _log;
         private readonly Microsoft.Extensions.Configuration.IConfiguration _cfg;
+        private readonly PlatformBillingReader _reader;
+        private readonly Decatron.Services.ISupporterInvoiceService _invoiceFiles;
 
-        public BuyerBillingController(PlatformCheckout checkout, IPaymentProvider provider, ExchangeRate rate, Microsoft.Extensions.Configuration.IConfiguration cfg, ILogger<BuyerBillingController> log)
-        { _checkout = checkout; _provider = provider; _rate = rate; _cfg = cfg; _log = log; }
+        public BuyerBillingController(PlatformCheckout checkout, IPaymentProvider provider, ExchangeRate rate, Microsoft.Extensions.Configuration.IConfiguration cfg,
+            PlatformBillingReader reader, Decatron.Services.ISupporterInvoiceService invoiceFiles, ILogger<BuyerBillingController> log)
+        { _checkout = checkout; _provider = provider; _rate = rate; _cfg = cfg; _reader = reader; _invoiceFiles = invoiceFiles; _log = log; }
 
         /// <summary>Apagado por defecto: cobrar de verdad solo se enciende con la autorización del dueño de la plataforma (<c>Platform:Billing:CheckoutEnabled</c>, recarga en caliente).</summary>
         private bool CheckoutEnabled => _cfg.GetValue<bool?>("Platform:Billing:CheckoutEnabled") ?? false;
@@ -71,6 +74,48 @@ namespace Decatron.Controllers
                 totalUsd = o.Quote.TotalUsd, taxTreatment = o.TaxTreatment, baseUsd = o.Tax.Base, igvUsd = o.Tax.Igv,
                 totalPen = PlatformPricing.ToPen(o.Quote.TotalUsd, rate), penPerUsd = rate, startsAt = o.StartsAt, endsAt = o.EndsAt,
             });
+        }
+
+        public sealed class ProfileBody
+        {
+            public string? LegalName { get; set; }
+            public string? Country { get; set; }
+            public string? DocType { get; set; }
+            public string? DocNumber { get; set; }
+            public string? Email { get; set; }
+        }
+
+        private static readonly string[] DocTypes = { "DNI", "RUC", "CE", "PASAPORTE", "OTRO" };
+
+        /// <summary>Datos del comprobante. Se guardan aparte del cobro para que el comprador los deje listos antes de pagar.</summary>
+        [HttpPut("profile")]
+        public async Task<IActionResult> SaveProfile([FromBody] ProfileBody b)
+        {
+            var country = (b.Country ?? "").Trim().ToUpperInvariant();
+            if (country.Length != 2) return Error("country_required");
+            var name = b.LegalName?.Trim();
+            if (string.IsNullOrEmpty(name) || name.Length > 200) return Error("name_required");
+            var docType = b.DocType?.Trim().ToUpperInvariant();
+            if (!string.IsNullOrEmpty(docType) && !DocTypes.Contains(docType)) return Error("doc_type_invalid");
+            var doc = b.DocNumber?.Trim();
+            if (doc is { Length: > 30 }) return Error("doc_number_invalid");
+            if (docType == "RUC" && (doc is null || doc.Length != 11 || !doc.All(char.IsDigit))) return Error("ruc_invalid");
+            if (docType == "DNI" && (doc is null || doc.Length != 8 || !doc.All(char.IsDigit))) return Error("dni_invalid");
+            var email = b.Email?.Trim();
+            if (string.IsNullOrEmpty(email) || email.Length > 254 || !System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$")) return Error("email_invalid");
+            await _checkout.SaveProfileAsync(Tid, name, country, string.IsNullOrEmpty(docType) ? null : docType, string.IsNullOrEmpty(doc) ? null : doc, email);
+            return Ok(new { success = true });
+        }
+
+        /// <summary>PDF, XML o CDR del comprobante de un pago del tenant (solo el del propio tenant: la fila pasa por RLS y se vuelve a filtrar por tenant).</summary>
+        [HttpGet("payments/{paymentId:long}/download/{formato}")]
+        public async Task<IActionResult> Download(long paymentId, string formato)
+        {
+            var documentId = await _reader.InvoiceDocumentIdAsync(Tid, paymentId, HttpContext.RequestAborted);
+            if (documentId == null) return NotFound(new { success = false, code = "no_invoice" });
+            var archivo = await _invoiceFiles.DescargarAsync(documentId.Value, formato, HttpContext.RequestAborted);
+            if (archivo == null) return NotFound(new { success = false, code = "file_unavailable" });
+            return File(archivo.Contenido, archivo.ContentType, archivo.NombreArchivo);
         }
 
         [HttpPost("checkout")]
