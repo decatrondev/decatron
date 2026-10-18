@@ -85,6 +85,9 @@ namespace Decatron.Services
                         while (await rd.ReadAsync(stoppingToken)) otherTenantUsers.Add(rd.GetInt64(0));
                     }
                     activeUsers = activeUsers.Where(u => !otherTenantUsers.Contains(u.Id)).ToList();
+                    // Y los que el bot de otro tenant ya atiende con la misma cuenta de Twitch (ver ITenantResolver.IsServedByOtherTenant).
+                    var resolver = scope.ServiceProvider.GetRequiredService<Decatron.Core.Interfaces.ITenantResolver>();
+                    activeUsers = activeUsers.Where(u => !resolver.IsServedByOtherTenant(u.TwitchId)).ToList();
 
                     _logger.LogInformation($"📊 Encontrados {activeUsers.Count} usuarios activos");
 

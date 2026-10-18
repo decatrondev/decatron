@@ -324,6 +324,16 @@ namespace Decatron.Services
             try
             {
                 using var scope = _serviceProvider.CreateScope();
+
+                // Un streamer con cuenta en el #1 y bot activado en el tenant de su proyecto lo atiende ese tenant: aquí no se procesa
+                // (su suscripción en el conduit del #1 puede seguir viva) para no responder dos veces.
+                var canal = datosEvento?["broadcaster_user_id"]?.ToString() ?? datosEvento?["to_broadcaster_user_id"]?.ToString();
+                if (scope.ServiceProvider.GetService<Decatron.Core.Interfaces.ITenantResolver>()?.IsServedByOtherTenant(canal) == true)
+                {
+                    _logger.LogDebug("eventsub.skip_served_elsewhere type={Type} broadcaster={Broadcaster}", eventType, canal);
+                    return;
+                }
+
                 var handler = scope.ServiceProvider.GetRequiredService<EventSubNotificationHandler>();
                 await handler.ManejarEvento(eventType, datosEvento);
             }

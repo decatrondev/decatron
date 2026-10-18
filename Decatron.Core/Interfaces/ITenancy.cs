@@ -44,4 +44,11 @@ public interface ITenantResolver
 
     /// <summary>Host del request (decatron.top y subdominios llegarán en la Fase 8).</summary>
     TenantResolution ByHost(string? host);
+
+    /// <summary>
+    /// El canal de Twitch con ese id lo atiende el bot de OTRO tenant (distinto del #1) porque su streamer lo tiene activado allí.
+    /// El #1 lo usa para no suscribirlo ni procesar sus eventos y así no responder dos veces (su cuenta puede existir en los dos tenants).
+    /// Ante cualquier fallo al leer devuelve false: el #1 sigue como siempre.
+    /// </summary>
+    bool IsServedByOtherTenant(string? twitchId);
 }
