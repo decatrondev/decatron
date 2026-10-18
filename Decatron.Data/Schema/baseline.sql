@@ -5152,6 +5152,36 @@ CREATE TABLE public.platform_approved_emails (
 
 
 --
+-- Name: platform_billing_emails; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platform_billing_emails (
+    id bigint NOT NULL,
+    tenant_id bigint NOT NULL,
+    sent_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: platform_billing_emails_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.platform_billing_emails_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: platform_billing_emails_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.platform_billing_emails_id_seq OWNED BY public.platform_billing_emails.id;
+
+
+--
 -- Name: platform_mail_settings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6805,6 +6835,39 @@ CREATE TABLE public.tenant_billing_profile (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT tenant_billing_profile_pay_mode_check CHECK (((pay_mode)::text = ANY ((ARRAY['manual'::character varying, 'auto'::character varying])::text[])))
 );
+
+
+--
+-- Name: tenant_billing_reminders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tenant_billing_reminders (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    ends_at timestamp with time zone NOT NULL,
+    kind character varying(8) NOT NULL,
+    sent_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenant_billing_reminders_kind_check CHECK (((kind)::text = ANY ((ARRAY['d7'::character varying, 'd3'::character varying, 'd1'::character varying, 'grace'::character varying])::text[])))
+);
+
+
+--
+-- Name: tenant_billing_reminders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tenant_billing_reminders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tenant_billing_reminders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tenant_billing_reminders_id_seq OWNED BY public.tenant_billing_reminders.id;
 
 
 --
@@ -11158,6 +11221,13 @@ ALTER TABLE ONLY public.plans ALTER COLUMN id SET DEFAULT nextval('public.plans_
 
 
 --
+-- Name: platform_billing_emails id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_billing_emails ALTER COLUMN id SET DEFAULT nextval('public.platform_billing_emails_id_seq'::regclass);
+
+
+--
 -- Name: platform_signups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -11400,6 +11470,13 @@ ALTER TABLE ONLY public.system_admins ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.tenant_addons ALTER COLUMN id SET DEFAULT nextval('public.tenant_addons_id_seq'::regclass);
+
+
+--
+-- Name: tenant_billing_reminders id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_billing_reminders ALTER COLUMN id SET DEFAULT nextval('public.tenant_billing_reminders_id_seq'::regclass);
 
 
 --
@@ -13258,6 +13335,14 @@ ALTER TABLE ONLY public.platform_approved_emails
 
 
 --
+-- Name: platform_billing_emails platform_billing_emails_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_billing_emails
+    ADD CONSTRAINT platform_billing_emails_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: platform_mail_settings platform_mail_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -13599,6 +13684,22 @@ ALTER TABLE ONLY public.tenant_addons
 
 ALTER TABLE ONLY public.tenant_billing_profile
     ADD CONSTRAINT tenant_billing_profile_pkey PRIMARY KEY (tenant_id);
+
+
+--
+-- Name: tenant_billing_reminders tenant_billing_reminders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_billing_reminders
+    ADD CONSTRAINT tenant_billing_reminders_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tenant_billing_reminders tenant_billing_reminders_tenant_id_ends_at_kind_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_billing_reminders
+    ADD CONSTRAINT tenant_billing_reminders_tenant_id_ends_at_kind_key UNIQUE (tenant_id, ends_at, kind);
 
 
 --
@@ -17249,6 +17350,13 @@ CREATE INDEX ix_live_translation_sessions_user_started ON public.live_translatio
 
 
 --
+-- Name: ix_platform_billing_emails_sent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_platform_billing_emails_sent ON public.platform_billing_emails USING btree (sent_at);
+
+
+--
 -- Name: ix_platform_signups_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -19980,6 +20088,14 @@ ALTER TABLE ONLY public.tenant_billing_profile
 
 
 --
+-- Name: tenant_billing_reminders tenant_billing_reminders_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tenant_billing_reminders
+    ADD CONSTRAINT tenant_billing_reminders_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: tenant_buyer_mfa tenant_buyer_mfa_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21664,6 +21780,12 @@ ALTER TABLE public.tenant_addons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenant_billing_profile ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: tenant_billing_reminders; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.tenant_billing_reminders ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: tenant_buyer_mfa; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -22685,6 +22807,13 @@ CREATE POLICY tenant_isolation ON public.tenant_addons USING ((tenant_id = ( SEL
 --
 
 CREATE POLICY tenant_isolation ON public.tenant_billing_profile USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: tenant_billing_reminders tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.tenant_billing_reminders USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --

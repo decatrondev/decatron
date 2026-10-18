@@ -374,6 +374,8 @@ try
     builder.Services.AddSingleton<Decatron.Services.TurnstileVerifier>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantDataAdmin>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantGrace>(); // Fase 7.3: gracia al vencer
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.IBillingMailer, Decatron.Services.Tenancy.BillingMailer>(); // Fase 7.4: recordatorios de vencimiento
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.BillingReminders>();
     builder.Services.AddHostedService<Decatron.Services.Tenancy.EntitlementsFlusher>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantAppTokens>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.TenantBotUserToken>();
