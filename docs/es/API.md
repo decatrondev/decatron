@@ -198,6 +198,23 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 |---|---|---|
 | `GET` | `/api/brand` | Público |
 
+### Buyer Billing
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `POST` | `/api/platform/buyer/billing/checkout` | JWT |
+| `GET` | `/api/platform/buyer/billing/culqi-key` | JWT |
+| `GET` | `/api/platform/buyer/billing/payments/{paymentId}/download/{formato}` | JWT |
+| `PUT` | `/api/platform/buyer/billing/profile` | JWT |
+| `POST` | `/api/platform/buyer/billing/quote` | JWT |
+
+### Buyer Billing Read
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/platform/buyer/billing/payments` | JWT |
+| `GET` | `/api/platform/buyer/billing/state` | JWT |
+
 ### Buyer Mfa
 
 | Método | Ruta | Acceso |
@@ -860,6 +877,12 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/platform/my-modules` | JWT |
+
+### Platform Public Plans
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/platform/plans` | Público |
 
 ### Platform Signup
 

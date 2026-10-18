@@ -2,7 +2,7 @@
 
 Este documento describe la plataforma multi-tenant que convive con el bot de Decatron: un comprador recibe un espacio aislado en `slug.decatron.top`, carga su propia app de Twitch, su cuenta de bot, su bot de Discord y sus llaves de API, y sus streamers inician sesión ahí. El bot de `decatron.net` es el tenant **#1** y sigue funcionando igual que siempre.
 
-Todo lo que se dice aquí sale del código. Los planes, los precios y el lanzamiento público siguen en definición; solo se describe lo que ya funciona.
+Todo lo que se dice aquí sale del código. El lanzamiento público sigue en definición y el cobro está construido pero apagado; solo se describe lo que ya funciona.
 
 ## 1. Tenants y aislamiento
 
@@ -39,6 +39,20 @@ Las capacidades son filas, no código. El catálogo (`capabilities`) tiene cuatr
 - **Correo.** Hay dos caminos de correo separados. El correo de la plataforma (enlaces de acceso, invitaciones del equipo, lista de espera) es de Decatron y sale por Resend o por el servidor de correo propio de Decatron (SMTP), a elección desde el panel de administración en Correo → Proveedor (`platform_mail_settings`; la contraseña SMTP vive en `appsettings.Secrets.json`, nunca en la base; si el servidor propio falla con un correo real, se reintenta por Resend). El correo que un tenant envía a sus propios usuarios debe usar la llave de Resend del propio tenant (`byo.email`); nunca pasa por la llave de Decatron y no hay cuota de correos.
 - La exportación y el borrado de un tenant son herramientas solo del dueño (`GET .../export`, `POST .../purge`). El borrado pide el slug como confirmación y solo funciona con un tenant que no está operativo.
 
+### Precios y cobro
+
+El cobro está construido y apagado: nadie puede ser cobrado hasta que se encienda `Platform:Billing:CheckoutEnabled` (los recordatorios tienen su propio interruptor, `Platform:Billing:RemindersEnabled`). La lista pública de precios es `decatron.top/planes`; los montos viven en la base de datos (`plan_prices`, `addon_prices`), nunca en la página ni en este documento, y `GET /api/platform/plans` los entrega.
+
+- **Qué se vende.** Cuatro planes de pago (`semilla`, `creator`, `pro`, `studio`); `exclusivo` se cotiza a mano. Los precios están en dólares y **incluyen IGV en Perú**; fuera de Perú el precio es el mismo sin IGV (exportación de servicios). Periodos de 1, 3, 6, 9 o 12 meses, cada uno con su precio por plan (los periodos largos llevan descuento). Los **módulos sueltos** se pueden agregar a un plan que no los incluye; un plan más sus módulos nunca cuesta más que el plan siguiente (el total se recorta y el presupuesto lo avisa).
+- **Cómo se cobra.** Con Culqi, en soles, al tipo de cambio de `finance_settings.pen_per_usd` (tarjeta y Yape). El comprador abre `/panel/plan`, elige plan, periodo y módulos y llena los datos de facturación (nombre, país, documento, correo; la factura exige RUC). El servidor calcula el presupuesto (`PlatformPricing`: base, IGV, total en dólares y soles, fecha de fin); el navegador solo lo muestra y envía el token de la tarjeta.
+- **Pago.** Solo el dueño, con el paso del 2FA si está activo. Guarda un pago pendiente (`tenant_payments`) que recuerda lo comprado, cobra el token y, si sale bien, confirma en **una sola transacción**: fija el plan y el periodo, crea los módulos con la misma fecha de fin y borra la gracia. Confirmar dos veces no hace nada. Alcance actual: una compra nueva (sandbox, sin fecha de fin, vencido o en gracia) o la renovación del mismo plan en los 7 días previos al vencimiento; subir de plan o agregar módulos a mitad de periodo responde `change_not_available`. Un cobro sin id del proveedor queda en el log para revisión manual (`tenant.billing.review`).
+- **Gracia.** Cuando un plan de pago pasa su fecha de fin, `TenantGrace` escribe `grace_until` (`Platform:Billing:GraceDays`, 5 por defecto) y el estado `past_due`. Durante la gracia el bot sigue funcionando y el panel muestra un aviso fijo arriba; al terminar, el tenant se pausa como cualquier otro que no está operativo. Los datos se guardan 30 días y pagar reactiva. Los planes internos, el sandbox y las suscripciones sin fecha de fin (el piloto) nunca se tocan.
+- **Recordatorios.** A 7, 3 y 1 días del fin y al empezar la gracia, un correo con el enlace al panel. Uno por umbral y suscripción (`tenant_billing_reminders`), con su propio tope diario (`Platform:Billing:ReminderMaxPerDay`, 100) contado aparte de la lista de espera (`platform_billing_emails`). Apagados por defecto.
+- **Comprobantes.** Cada pago pagado recibe un comprobante SUNAT por DecatronAPI, con la misma regla fiscal y la misma empresa emisora que los créditos y los DecaCoins (boleta o factura según el documento). Los pagos de prueba nunca se facturan. El comprador descarga el PDF o el XML desde el historial. Las suscripciones aparecen en la pantalla de finanzas del dueño como una fuente propia.
+- **Sin reembolsos.** La prueba de 7 días existe para que el comprador decida antes de pagar; un cargo duplicado o erróneo se corrige a mano.
+- **Libro contable.** `tenant_payments` es un libro contable: nunca se borra, ni siquiera al purgar un tenant. La única lectura entre tenants es la función `platform_payments_all`, que usa la pantalla de finanzas del dueño.
+- **Clips.** El `!so` y el `!clip` de un tenant distinto del #1 no descargan el clip al servidor (el archivo de clips compartido es del tenant #1).
+
 ## 4. La cuenta del comprador
 
 El comprador es independiente de Twitch: se identifica por correo y es `owner` en `tenant_members`.
@@ -47,7 +61,7 @@ El comprador es independiente de Twitch: se identifica por correo y es `owner` e
 2. Se envía por correo un enlace de un solo uso, válido 30 minutos. El tenant se crea **solo al confirmar el enlace**, en una transacción: tenant, cuenta del dueño, membresía y suscripción sandbox. La respuesta a una solicitud nunca revela si un correo existe.
 3. **Volver a entrar:** `slug.decatron.top/panel/login` envía un enlace de un solo uso de 15 minutos, válido solo en ese host.
 4. **Sesión:** un JWT de 8 horas con el claim `tnt` (el tenant) y `scope=buyer`. `TenantMiddleware` responde 403 si el claim no coincide con el Host, y una sesión de comprador solo abre `/api/platform/`, `/api/auth/`, `/api/brand` y `/api/design/tokens`, nunca las pantallas del streamer. Se entrega por el código de canje de 60 segundos (`/api/auth/exchange`), no por la URL.
-5. **Panel** (`slug.decatron.top/panel`): el comprador carga la app de Twitch, vincula el bot, reabre la conexión de EventSub y, si quiere, agrega un bot de Discord y llaves propias. Cada acción vuelve a comprobar en la base de datos que quien llama sigue siendo el dueño (o, en las rutas de lectura, administrador).
+5. **Panel** (`slug.decatron.top/panel`): el comprador carga la app de Twitch, vincula el bot, reabre la conexión de EventSub y, si quiere, agrega un bot de Discord y llaves propias. La pestaña **Plan** (`/panel/plan`) muestra el plan, el vencimiento y el historial de pagos, y es donde el dueño compra o renueva; los administradores la ven en solo lectura. Un aviso de gracia o de vencimiento queda fijo arriba en todas las pestañas. Cada acción vuelve a comprobar en la base de datos que quien llama sigue siendo el dueño (o, en las rutas de lectura, administrador).
 
 ### Equipo (administradores)
 
@@ -96,6 +110,7 @@ Públicos (el tenant sale del Host donde aplica):
 | `POST` | `/api/platform/buyer/login-link`, `/api/platform/buyer/login-confirm` | Entrada del comprador con enlace por correo |
 | `POST` | `/api/platform/buyer/team/accept` | Un administrador invitado acepta (token de un solo uso, solo en el host del tenant) |
 | `GET` | `/api/platform/tenant-info` | Nombre, si está listo y permisos que pide un subdominio de tenant |
+| `GET` | `/api/platform/plans` | Lista de precios de `decatron.top/planes`: planes de pago con precio por periodo, módulos incluidos y módulos sueltos (se lee de la base; caché de 5 minutos) |
 
 Dueño (JWT con `scope=buyer`, dueño del tenant del Host):
 
@@ -107,6 +122,11 @@ Dueño (JWT con `scope=buyer`, dueño del tenant del Host):
 | `PUT` `DELETE` | `/api/platform/buyer/discord-bot` | Bot de Discord (paso de verificación); `POST .../discord-bot/restart` lo reconecta |
 | `PUT` `DELETE` | `/api/platform/buyer/byo/{provider}` | Llaves propias (paso de verificación); `POST .../byo/{provider}/test` prueba una llave |
 | `GET` `POST` | `/api/platform/buyer/mfa`, `/mfa/setup`, `/mfa/confirm`, `/mfa/verify`, `/mfa/recovery-codes`, `/mfa/disable` | Verificación en dos pasos |
+| `POST` | `/api/platform/buyer/billing/quote` | Presupuesto de un plan, periodo y módulos (base, IGV, total en dólares y soles, fechas) |
+| `POST` | `/api/platform/buyer/billing/checkout` | Cobra y aplica la compra (paso de verificación). `403 checkout_disabled` mientras el cobro esté apagado |
+| `GET` | `/api/platform/buyer/billing/culqi-key` | Llave pública de Culqi del modo con el que se cobrará (prueba o real) |
+| `PUT` | `/api/platform/buyer/billing/profile` | Datos de facturación del comprobante (nombre, país, documento, correo) |
+| `GET` | `/api/platform/buyer/billing/payments/{id}/download/{pdf\|xml\|cdr}` | Archivo del comprobante de un pago pagado del tenant |
 
 Equipo (solo el dueño; invitar y quitar piden el paso del 2FA si está activado):
 
@@ -122,6 +142,8 @@ Dueño o administrador (rutas de solo lectura):
 |--------|------|----------|
 | `GET` | `/api/platform/buyer/me`, `/state`, `/transparency` | Resumen (con el rol real), estado de las conexiones sin pistas de credenciales, plan y permisos |
 | `POST` | `/api/platform/buyer/eventsub/restart` | Reabrir la conexión de EventSub |
+| `GET` | `/api/platform/buyer/billing/state` | Fase del plan (`active`, `grace`, `expired`, `sandbox`...), vencimiento, módulos y datos de facturación sin ids de tarjeta |
+| `GET` | `/api/platform/buyer/billing/payments` | Historial de pagos con el número de comprobante |
 
 El dueño de la plataforma tiene rutas de administración equivalentes bajo `/api/admin/platform/` (lista de espera, correos aprobados, tenants, planes, ajustes, complementos, exportación y borrado). Son solo para administradores y se documentan aquí a nivel de arquitectura.
 
@@ -139,6 +161,10 @@ El dueño de la plataforma tiene rutas de administración equivalentes bajo `/ap
 | `Platform:EventSub:TenantShardCount` | 1 (1-10) | Shards del conduit por tenant |
 | `Platform:Discord:MaxGateways` | 20 | Gateways de Discord simultáneos |
 | `Platform:Lifecycle:IntervalSeconds` / `:PurgeAfterDays` | 60 / 30 | Pulso del ciclo de vida y plazo de guarda antes de marcar un borrado |
+| `Platform:Billing:CheckoutEnabled` | apagado | Permite que `POST .../billing/checkout` cobre; se recarga en caliente |
+| `Platform:Billing:RemindersEnabled` | apagado | Envía los recordatorios de 7/3/1 días y de gracia; se recarga en caliente |
+| `Platform:Billing:GraceDays` | 5 | Días de gracia tras vencer un plan de pago |
+| `Platform:Billing:ReminderMaxPerDay` | 100 | Tope diario de correos de recordatorio (aparte del de la lista de espera) |
 
 ## 8. Notas de operación
 

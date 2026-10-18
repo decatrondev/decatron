@@ -2,7 +2,7 @@
 
 This document describes the multi-tenant platform that sits next to the Decatron bot: a buyer gets an isolated space at `slug.decatron.top`, loads their own Twitch app, bot account, Discord bot and API keys, and their streamers sign in there. The bot at `decatron.net` is tenant **#1** and keeps working exactly as before.
 
-Everything here comes from the code. Plans, prices and the public launch are still being defined; only what already runs is described.
+Everything here comes from the code. The public launch is still being defined, and billing is built but off; only what already runs is described.
 
 ## 1. Tenants and isolation
 
@@ -39,6 +39,20 @@ Capabilities are rows, not code. The catalog (`capabilities`) has four groups: `
 - **Email.** There are two separate mail paths. Platform mail (sign-in links, team invitations, waitlist) is Decatron's own and goes out through Resend or through Decatron's own mail server (SMTP), chosen from the admin panel under Email → Provider (`platform_mail_settings`; the SMTP password lives in `appsettings.Secrets.json`, never in the database; if the own server fails on a real email it is retried through Resend). Email a tenant sends to its own users must use the tenant's own Resend key (`byo.email`); it never goes through Decatron's key and there is no email quota.
 - Export and purge of a tenant are owner-only tools (`GET .../export`, `POST .../purge`). A purge asks for the slug as confirmation and only works on a tenant that is not operational.
 
+### Prices and billing
+
+Billing is built and switched off: nobody can be charged until `Platform:Billing:CheckoutEnabled` is turned on (reminders have their own switch, `Platform:Billing:RemindersEnabled`). The public price list is `decatron.top/planes`; the amounts live in the database (`plan_prices`, `addon_prices`), never in the page or in this document, and `GET /api/platform/plans` serves them.
+
+- **What is for sale.** Four paid plans (`semilla`, `creator`, `pro`, `studio`); `exclusivo` is quoted by hand. Prices are in US dollars and **include IGV in Peru**; outside Peru the price is the same with no IGV (export of services). Periods of 1, 3, 6, 9 or 12 months, each with its own price per plan (longer periods carry a discount). **Single modules** can be added to a plan that does not include them; a plan plus its modules never costs more than the next plan (the total is capped and the quote says so).
+- **How it is charged.** Culqi, in soles, at the exchange rate in `finance_settings.pen_per_usd` (card and Yape). The buyer opens `/panel/plan`, picks plan, period and modules and fills in the billing data (name, country, document, e-mail; invoice needs a RUC). The server computes the quote (`PlatformPricing`: base, IGV, total in dollars and soles, end date); the browser only shows it and sends the card token.
+- **Checkout.** Owner only, with the 2FA step-up if enabled. It stores a pending payment (`tenant_payments`) that remembers what was bought, charges the token and, on success, confirms in **one transaction**: it sets the plan and period, creates the modules with the same end date and clears the grace period. Confirming twice does nothing. Scope today: a new purchase (sandbox, no end date, expired or in grace) or a renewal of the same plan in the 7 days before it expires; moving up a plan or adding modules in the middle of a period answers `change_not_available`. A charge with no id from the provider is logged for manual review (`tenant.billing.review`).
+- **Grace period.** When a paid plan passes its end date, `TenantGrace` sets `grace_until` (`Platform:Billing:GraceDays`, 5 by default) and the status `past_due`. During grace the bot keeps working and the panel shows a fixed notice at the top; when it ends the tenant is paused like any other that is not operational. Data is kept 30 days and paying reactivates. Internal plans, sandbox and subscriptions with no end date (the pilot) are never touched.
+- **Reminders.** At 7, 3 and 1 days before the end date and when grace starts, an e-mail with a link to the panel. One per threshold and subscription (`tenant_billing_reminders`), with their own daily cap (`Platform:Billing:ReminderMaxPerDay`, 100) counted apart from the waiting list (`platform_billing_emails`). Off by default.
+- **Receipts.** Each paid payment gets a SUNAT receipt through DecatronAPI, with the same fiscal rule and issuing company as credits and DecaCoins (boleta or factura by document). Test payments are never invoiced. The buyer downloads PDF or XML from the history. Subscriptions appear in the owner's finance screen as their own source.
+- **No refunds.** The 7-day trial exists so the buyer decides before paying; a duplicate or wrong charge is fixed by hand.
+- **Ledger.** `tenant_payments` is an accounting ledger: it is never deleted, not even when a tenant is purged. The only read across tenants is the function `platform_payments_all`, used by the owner's finance screen.
+- **Clips.** `!so` and `!clip` of a tenant other than #1 do not download the clip to the server (the shared clip archive belongs to tenant #1).
+
 ## 4. The buyer account
 
 The buyer is independent of Twitch: they are identified by e-mail and are an `owner` in `tenant_members`.
@@ -47,7 +61,7 @@ The buyer is independent of Twitch: they are identified by e-mail and are an `ow
 2. A one-use link, valid 30 minutes, is e-mailed. The tenant is created **only when the link is confirmed**, in one transaction: tenant, owner account, membership and sandbox subscription. The answer to a request never reveals whether an e-mail exists.
 3. **Signing in again:** `slug.decatron.top/panel/login` sends a 15-minute one-use link, valid only on that host.
 4. **Session:** an 8-hour JWT with the claim `tnt` (the tenant) and `scope=buyer`. `TenantMiddleware` answers 403 if the claim does not match the Host, and a buyer session can only open `/api/platform/`, `/api/auth/`, `/api/brand` and `/api/design/tokens`, never the streamer screens. It is delivered through the 60-second exchange code (`/api/auth/exchange`), not in the URL.
-5. **Panel** (`slug.decatron.top/panel`): the buyer loads the Twitch app, links the bot, reopens the EventSub connection, optionally adds a Discord bot and own keys. Every action re-checks in the database that the caller is still the owner (or, for the read routes, an administrator).
+5. **Panel** (`slug.decatron.top/panel`): the buyer loads the Twitch app, links the bot, reopens the EventSub connection, optionally adds a Discord bot and own keys. The **Plan** tab (`/panel/plan`) shows the plan, expiry and payment history, and is where the owner buys or renews; administrators see it read-only. A grace or expiry notice stays fixed at the top of every tab. Every action re-checks in the database that the caller is still the owner (or, for the read routes, an administrator).
 
 ### Team (administrators)
 
@@ -96,6 +110,7 @@ Public (the tenant comes from the Host where it applies):
 | `POST` | `/api/platform/buyer/login-link`, `/api/platform/buyer/login-confirm` | Buyer sign-in by e-mail link |
 | `POST` | `/api/platform/buyer/team/accept` | An invited administrator accepts (one-use token, only on the tenant's host) |
 | `GET` | `/api/platform/tenant-info` | Name, readiness and requested scopes of a tenant subdomain |
+| `GET` | `/api/platform/plans` | Price list for `decatron.top/planes`: paid plans with price per period, included modules and single modules (read from the database; cached 5 minutes) |
 
 Owner (JWT with `scope=buyer`, owner of the tenant of the Host):
 
@@ -107,6 +122,11 @@ Owner (JWT with `scope=buyer`, owner of the tenant of the Host):
 | `PUT` `DELETE` | `/api/platform/buyer/discord-bot` | Discord bot (step-up); `POST .../discord-bot/restart` reconnects |
 | `PUT` `DELETE` | `/api/platform/buyer/byo/{provider}` | Own keys (step-up); `POST .../byo/{provider}/test` checks a key |
 | `GET` `POST` | `/api/platform/buyer/mfa`, `/mfa/setup`, `/mfa/confirm`, `/mfa/verify`, `/mfa/recovery-codes`, `/mfa/disable` | Two-step verification |
+| `POST` | `/api/platform/buyer/billing/quote` | Quote for a plan, period and modules (base, IGV, total in dollars and soles, dates) |
+| `POST` | `/api/platform/buyer/billing/checkout` | Charge and apply the purchase (step-up). `403 checkout_disabled` while billing is off |
+| `GET` | `/api/platform/buyer/billing/culqi-key` | Public Culqi key of the mode that will be charged (test or live) |
+| `PUT` | `/api/platform/buyer/billing/profile` | Billing data for the receipt (name, country, document, e-mail) |
+| `GET` | `/api/platform/buyer/billing/payments/{id}/download/{pdf\|xml\|cdr}` | Receipt file of a paid payment of the tenant |
 
 Team (owner only; invite and remove need the 2FA step-up when enabled):
 
@@ -122,6 +142,8 @@ Owner or administrator (read-only routes):
 |--------|-------|---------|
 | `GET` | `/api/platform/buyer/me`, `/state`, `/transparency` | Summary (with the real role), connection state without credential hints, plan and permissions |
 | `POST` | `/api/platform/buyer/eventsub/restart` | Reopen the EventSub connection |
+| `GET` | `/api/platform/buyer/billing/state` | Plan phase (`active`, `grace`, `expired`, `sandbox`...), expiry, modules, billing data without card ids |
+| `GET` | `/api/platform/buyer/billing/payments` | Payment history with receipt number |
 
 The platform owner has equivalent admin routes under `/api/admin/platform/` (waiting list, approved e-mails, tenants, plans, overrides, add-ons, export and purge). They are admin-only and documented here at architecture level.
 
@@ -139,6 +161,10 @@ The platform owner has equivalent admin routes under `/api/admin/platform/` (wai
 | `Platform:EventSub:TenantShardCount` | 1 (1-10) | Conduit shards per tenant |
 | `Platform:Discord:MaxGateways` | 20 | Simultaneous Discord gateways |
 | `Platform:Lifecycle:IntervalSeconds` / `:PurgeAfterDays` | 60 / 30 | Lifecycle tick and retention before a purge is flagged |
+| `Platform:Billing:CheckoutEnabled` | off | Allows `POST .../billing/checkout` to charge; hot-reloaded |
+| `Platform:Billing:RemindersEnabled` | off | Sends the 7/3/1-day and grace reminders; hot-reloaded |
+| `Platform:Billing:GraceDays` | 5 | Days of grace after a paid plan expires |
+| `Platform:Billing:ReminderMaxPerDay` | 100 | Daily cap of reminder e-mails (separate from the waiting-list cap) |
 
 ## 8. Operating notes
 
