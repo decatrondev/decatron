@@ -68,11 +68,13 @@ El panel muestra lo que el comprador necesita para decidir con claridad (`GET /a
 
 `slug.decatron.top/login` muestra el nombre del tenant como marca, solo el botón de Twitch (Kick y Discord usan las apps de Decatron, no las del tenant) y la lista de permisos. Se alimenta del endpoint público `GET /api/platform/tenant-info`. El login usa siempre la aplicación de Twitch propia del tenant; si el tenant no tiene una, o no está activo, la página lo dice en lugar de redirigir.
 
-## 5. Verificación en dos pasos (opcional)
+## 5. Verificación en dos pasos (obligatoria para el dueño)
 
 - **Método:** TOTP (RFC 6238, SHA-1, 6 dígitos, 30 s, un paso de desfase de reloj) y 8 códigos de recuperación de un solo uso. Un código se acepta una sola vez (se guarda el último paso usado).
 - **Almacenamiento:** el secreto va cifrado con `SecretVault`; los códigos de recuperación se guardan solo como hash; las tablas `tenant_buyer_mfa` y `tenant_buyer_recovery_codes` tienen seguridad por filas. Cada evento va a `credential_access_log` (`mfa_setup`, `mfa_enable`, `mfa_ok`, `mfa_fail`, `mfa_locked`, `mfa_recovery`, `mfa_codes`, `mfa_disable`).
 - **Bloqueo:** 5 fallos seguidos bloquean la cuenta 15 minutos.
+- **Obligatoria para el dueño.** Mientras `Platform:RequireOwnerMfa` esté encendida (por defecto), un dueño sin 2FA recibe `403 mfa_required` en toda ruta del comprador salvo `GET /buyer/me` (que informa `mfa.required`) y las propias rutas del 2FA; el panel muestra entonces solo la pantalla para activarlo. A los administradores no se les pide (son de solo lectura). Desactivar el 2FA se permite, pero el panel vuelve a bloquearse hasta activarlo de nuevo.
+- **Avisos de seguridad por correo** al dueño cuando se desactiva el 2FA y cuando se usa un código de recuperación (best effort: un correo que falle nunca bloquea la acción).
 - **Qué protege:** guardar, reemplazar o quitar la app de Twitch, el bot, el bot de Discord o una llave propia (y generar el enlace del bot). Con el 2FA activo, esas acciones necesitan el encabezado `X-Step-Up`, un token firmado que devuelve `POST /api/platform/buyer/mfa/verify` tras un código válido. Dura 10 minutos y está atado al tenant, al usuario y a la activación vigente, así que desactivar y volver a activar el 2FA invalida los tokens anteriores. Sin 2FA las acciones funcionan como antes; el panel recomienda activarlo.
 - Desactivar el 2FA y regenerar los códigos de recuperación exigen un código válido en la misma petición.
 

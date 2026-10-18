@@ -68,11 +68,13 @@ The panel shows what the buyer needs to decide with open eyes (`GET /api/platfor
 
 `slug.decatron.top/login` shows the tenant's name as the brand, only the Twitch button (Kick and Discord use Decatron's own apps, not the tenant's), and the list of permissions. It is fed by the public `GET /api/platform/tenant-info`. The login always uses the tenant's own Twitch application; if the tenant has none, or is not active, the page says so instead of redirecting.
 
-## 5. Two-step verification (optional)
+## 5. Two-step verification (required for the owner)
 
 - **Method:** TOTP (RFC 6238, SHA-1, 6 digits, 30 s, one step of clock drift) plus 8 one-use recovery codes. A code is accepted once (the last used step is stored).
 - **Storage:** the secret is encrypted with `SecretVault`; recovery codes are stored only as hashes; tables `tenant_buyer_mfa` and `tenant_buyer_recovery_codes` have row-level security. Every event goes to `credential_access_log` (`mfa_setup`, `mfa_enable`, `mfa_ok`, `mfa_fail`, `mfa_locked`, `mfa_recovery`, `mfa_codes`, `mfa_disable`).
 - **Lockout:** 5 failures in a row lock the account for 15 minutes.
+- **Required for the owner.** While `Platform:RequireOwnerMfa` is on (default), an owner without 2FA gets `403 mfa_required` on every buyer route except `GET /buyer/me` (which reports `mfa.required`) and the 2FA routes themselves; the panel then shows only the activation screen. Administrators are not asked for it (they are read-only). Turning 2FA off is allowed but locks the panel again until it is re-enabled.
+- **Security notices by email** to the owner when 2FA is turned off and when a recovery code is used (best effort: a failed email never blocks the action).
 - **What it protects:** saving, replacing or removing the Twitch app, the bot, the Discord bot or an own key (and generating the bot link). With 2FA on, those actions need the header `X-Step-Up`, a signed token that `POST /api/platform/buyer/mfa/verify` returns after a valid code. It lasts 10 minutes and is tied to the tenant, the user and the current activation, so turning 2FA off and on again invalidates old tokens. Without 2FA the actions work as before; the panel recommends enabling it.
 - Disabling 2FA and regenerating recovery codes require a valid code in the same request.
 

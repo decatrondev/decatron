@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -44,11 +45,12 @@ namespace Decatron.Controllers
         private readonly TenantProvisioner _provisioner;
         private readonly BuyerSessions _sessions;
         private readonly TenantTeam _team;
+        private readonly BuyerMfa _mfa;
 
         public PlatformSignupController(DecatronDbContext db, EmailService email, IConfiguration config, ILogger<PlatformSignupController> log,
-            TurnstileVerifier turnstile, TenantProvisioner provisioner, BuyerSessions sessions, TenantTeam team)
+            TurnstileVerifier turnstile, TenantProvisioner provisioner, BuyerSessions sessions, TenantTeam team, BuyerMfa mfa)
         {
-            _db = db; _email = email; _config = config; _log = log; _turnstile = turnstile; _provisioner = provisioner; _sessions = sessions; _team = team;
+            _db = db; _email = email; _config = config; _log = log; _turnstile = turnstile; _provisioner = provisioner; _sessions = sessions; _team = team; _mfa = mfa;
         }
 
         /// <summary>Misma cuenta de correos por día que la lista de espera (la cuota de Resend la comparte todo el bot).</summary>
@@ -279,7 +281,7 @@ namespace Decatron.Controllers
 
         /// <summary>Resumen del tenant para el comprador con sesión (alcance buyer). Lo ven el dueño y los admins; el rol sale de la base, no del token.</summary>
         [HttpGet("api/platform/buyer/me")]
-        [Authorize, RequireBuyerMember]
+        [Authorize, RequireBuyerMember, AllowWithoutMfa]
         public async Task<IActionResult> BuyerMe()
         {
             var tenantId = TenantAmbient.Current;
@@ -297,6 +299,7 @@ namespace Decatron.Controllers
             await using var r = await cmd.ExecuteReaderAsync();
             if (!await r.ReadAsync()) return NotFound(new { success = false });
             var ends = r.IsDBNull(6) ? (DateTime?)null : r.GetDateTime(6);
+            var mfaOn = await _mfa.EnabledAtAsync(tenantId.Value, long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value)) is not null;
             return Ok(new
             {
                 success = true,
@@ -304,6 +307,8 @@ namespace Decatron.Controllers
                 plan = new { key = r.IsDBNull(3) ? null : r.GetString(3), name = r.IsDBNull(4) ? null : r.GetString(4), status = r.IsDBNull(5) ? null : r.GetString(5), sandboxEndsAt = ends,
                              daysLeft = ends is null ? (int?)null : Math.Max(0, (int)Math.Ceiling((ends.Value.ToUniversalTime() - DateTime.UtcNow).TotalDays)) },
                 buyer = new { email, role = HttpContext.Items[BuyerAccess.RoleItem] as string ?? "admin" },
+                // El dueño sin 2FA ve solo la pantalla de activarlo mientras Platform:RequireOwnerMfa este encendido (el servidor lo hace cumplir en cada ruta).
+                mfa = new { enabled = mfaOn, required = mfaOn == false && (HttpContext.Items[BuyerAccess.RoleItem] as string) == "owner" && _config.GetValue("Platform:RequireOwnerMfa", true) },
             });
         }
 

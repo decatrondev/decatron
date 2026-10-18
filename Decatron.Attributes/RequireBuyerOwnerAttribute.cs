@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Decatron.Core.Interfaces;
 using Decatron.Data;
+using Decatron.Services.Tenancy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Decatron.Attributes
@@ -46,8 +48,22 @@ namespace Decatron.Attributes
                 context.Result = new ForbidResult(); return;
             }
             http.Items[RoleItem] = role;
+
+            // 2FA obligatorio para el dueño (Platform:RequireOwnerMfa, encendido por defecto): hasta activarlo solo funciona lo marcado con [AllowWithoutMfa].
+            if (role == "owner" && http.RequestServices.GetService<IConfiguration>()?.GetValue("Platform:RequireOwnerMfa", true) != false
+                && !context.ActionDescriptor.EndpointMetadata.OfType<AllowWithoutMfaAttribute>().Any()
+                && http.RequestServices.GetService<BuyerMfa>() is { } mfa
+                && await mfa.EnabledAtAsync(tenantId.Value, userId) is null)
+            {
+                log?.LogInformation("buyer.denied reason=mfa_required tenant={Tenant} user={User}", tenantId, userId);
+                context.Result = new ObjectResult(new { success = false, code = "mfa_required" }) { StatusCode = 403 };
+            }
         }
     }
+
+    /// <summary>El dueño sin 2FA activado puede usar esta acción. Solo para lo necesario para activarlo: el propio 2FA y el resumen (/me) que le dice que debe hacerlo.</summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    public class AllowWithoutMfaAttribute : Attribute { }
 
     /// <summary>Plataforma, Fase A (pieza D): solo el comprador que SIGUE siendo owner del tenant del Host. Todo lo que toca credenciales, equipo o 2FA va con este filtro.</summary>
     public class RequireBuyerOwnerAttribute : Attribute, IAsyncAuthorizationFilter

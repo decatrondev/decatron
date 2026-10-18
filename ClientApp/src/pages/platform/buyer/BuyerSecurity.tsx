@@ -12,7 +12,7 @@ type Mode = 'idle' | 'setup' | 'codes' | 'disable' | 'regen';
 
 const BASE = '/platform/buyer/mfa';
 
-export default function BuyerSecurity() {
+export default function BuyerSecurity({ onChange }: { onChange?: () => void } = {}) {
     const { t } = useTranslation('platform');
     const [status, setStatus] = useState<Status | null>(null);
     const [failed, setFailed] = useState(false);
@@ -62,7 +62,7 @@ export default function BuyerSecurity() {
         catch (err) { setError(errText(err)); }
         setBusy(false);
     };
-    const disable = withCode('disable', () => { setMode('idle'); setNote(t('buyer.mfa.disabledOk')); });
+    const disable = withCode('disable', () => { setMode('idle'); setNote(t('buyer.mfa.disabledOk')); onChange?.(); });
     const regen = withCode('recovery-codes', d => { setCodes(d.recoveryCodes); setMode('codes'); });
 
     const copyCodes = () => navigator.clipboard?.writeText(codes.join('\n')).then(() => setNote(t('buyer.setup.copied'))).catch(() => { /* sin portapapeles */ });
@@ -132,7 +132,7 @@ export default function BuyerSecurity() {
                     <div className="flex flex-wrap gap-2">
                         <Button variant="secondary" onClick={copyCodes}><Copy className="w-4 h-4 mr-1.5" aria-hidden />{t('tenants.copy')}</Button>
                         <Button variant="secondary" onClick={downloadCodes}><Download className="w-4 h-4 mr-1.5" aria-hidden />{t('buyer.mfa.download')}</Button>
-                        <Button onClick={() => { setCodes([]); reset(); }}>{t('buyer.mfa.saved')}</Button>
+                        <Button onClick={() => { setCodes([]); reset(); onChange?.(); }}>{t('buyer.mfa.saved')}</Button>
                     </div>
                 </div>
             )}

@@ -217,8 +217,8 @@ public sealed class BuyerMfa
         return codes.Select(x => $"{x[..4]}-{x[4..]}").ToArray();
     }
 
-    /// <summary>Comprueba un codigo TOTP o uno de recuperacion. Aplica el bloqueo por fallos y no deja reutilizar un codigo.</summary>
-    public async Task<MfaResult> VerifyAsync(long tenantId, long userId, string input, CancellationToken ct = default)
+    /// <summary>Comprueba un codigo TOTP o uno de recuperacion (onRecovery se llama si fue de recuperacion). Aplica el bloqueo por fallos y no deja reutilizar un codigo.</summary>
+    public async Task<MfaResult> VerifyAsync(long tenantId, long userId, string input, CancellationToken ct = default, Action<bool>? onRecovery = null)
     {
         var code = Normalize(input);
         await using var c = await OpenAsync(tenantId, ct);
@@ -261,6 +261,7 @@ public sealed class BuyerMfa
             { reset.Parameters.AddWithValue("t", tenantId); reset.Parameters.AddWithValue("u", userId); await reset.ExecuteNonQueryAsync(ct); }
             await LogAsync(c, tx, tenantId, userId, action, ct);
             await tx.CommitAsync(ct);
+            if (action == "mfa_recovery") onRecovery?.Invoke(true); // el controlador avisa por correo: un codigo de recuperacion gastado es una señal
             return MfaResult.Ok;
         }
 

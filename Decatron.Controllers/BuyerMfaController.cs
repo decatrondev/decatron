@@ -2,10 +2,12 @@ using System.Security.Claims;
 using Decatron.Attributes;
 using Decatron.Core.Interfaces;
 using Decatron.Core.Settings;
+using Decatron.Services;
 using Decatron.Services.Tenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Decatron.Controllers
 {
@@ -14,13 +16,51 @@ namespace Decatron.Controllers
     /// recuperacion y desactivar. Desactivar y regenerar exigen un codigo valido en la misma peticion. El tenant sale del Host.
     /// </summary>
     [ApiController]
+    [AllowWithoutMfa]   // el dueño sin 2FA tiene que poder activarlo
     [Route("api/platform/buyer/mfa")]
     [Authorize, RequireBuyerOwner]
     public class BuyerMfaController : ControllerBase
     {
         private readonly BuyerMfa _mfa;
         private readonly IOptions<JwtSettings> _jwt;
-        public BuyerMfaController(BuyerMfa mfa, IOptions<JwtSettings> jwt) { _mfa = mfa; _jwt = jwt; }
+        private readonly TenantCredentialsService _tenants;
+        private readonly EmailService _email;
+        private readonly IConfiguration _config;
+        private readonly ILogger<BuyerMfaController> _log;
+        public BuyerMfaController(BuyerMfa mfa, IOptions<JwtSettings> jwt, TenantCredentialsService tenants, EmailService email, IConfiguration config, ILogger<BuyerMfaController> log)
+        { _mfa = mfa; _jwt = jwt; _tenants = tenants; _email = email; _config = config; _log = log; }
+
+        /// <summary>Verifica el codigo y, si fue uno de recuperacion, avisa por correo al dueño.</summary>
+        private async Task<MfaResult> CheckAsync(string? code)
+        {
+            var recovery = false;
+            var r = await _mfa.VerifyAsync(Tid, Uid, code ?? "", onRecovery: _ => recovery = true);
+            if (recovery) await NoticeAsync(BuyerNotices.MfaRecovery);
+            return r;
+        }
+
+        /// <summary>Aviso de seguridad por correo. Nunca hace fallar la peticion ni gasta el tope de correos de la lista de espera: son pocos y no se pueden perder por eso.</summary>
+        private async Task NoticeAsync(string kind)
+        {
+            try
+            {
+                var to = User.FindFirst("Email")?.Value;
+                var tenant = await _tenants.FindAsync(Tid);
+                if (string.IsNullOrWhiteSpace(to) || tenant is null) return;
+                string locale = "es";
+                await using (var c = TenantNpgsql.Create(_config["ConnectionStrings:DefaultConnection"], Tid))
+                {
+                    await c.OpenAsync();
+                    await using var cmd = new NpgsqlCommand("SELECT preferred_language FROM users WHERE id = @u", c);
+                    cmd.Parameters.AddWithValue("u", Uid);
+                    locale = (await cmd.ExecuteScalarAsync()) as string == "en" ? "en" : "es";
+                }
+                var (subject, html) = BuyerNotices.Build(locale, kind, tenant.Name, PlatformSignupController.TenantUrl(tenant.Slug) + "/panel");
+                var (sent, _, error) = await _email.SendEmailAsync(to, subject, html, "Decatron <support@decatron.net>");
+                if (!sent) _log.LogWarning("Aviso de 2FA ({Kind}) no enviado: {Error}", kind, error);
+            }
+            catch (Exception ex) { _log.LogWarning(ex, "Aviso de 2FA ({Kind}) fallo", kind); }
+        }
 
         public sealed class CodeBody { public string? Code { get; set; } }
 
@@ -64,7 +104,7 @@ namespace Decatron.Controllers
         [HttpPost("verify")]
         public async Task<IActionResult> Verify([FromBody] CodeBody body)
         {
-            var bad = Reject(await _mfa.VerifyAsync(Tid, Uid, body.Code ?? ""));
+            var bad = Reject(await CheckAsync(body.Code));
             if (bad is not null) return bad;
             var enabledAt = await _mfa.EnabledAtAsync(Tid, Uid);
             if (enabledAt is null) return BadRequest(new { success = false, code = "not_enabled" });
@@ -74,7 +114,7 @@ namespace Decatron.Controllers
         [HttpPost("recovery-codes")]
         public async Task<IActionResult> Regenerate([FromBody] CodeBody body)
         {
-            var bad = Reject(await _mfa.VerifyAsync(Tid, Uid, body.Code ?? ""));
+            var bad = Reject(await CheckAsync(body.Code));
             if (bad is not null) return bad;
             return Ok(new { success = true, recoveryCodes = await _mfa.RegenerateRecoveryAsync(Tid, Uid) });
         }
@@ -82,9 +122,10 @@ namespace Decatron.Controllers
         [HttpPost("disable")]
         public async Task<IActionResult> Disable([FromBody] CodeBody body)
         {
-            var bad = Reject(await _mfa.VerifyAsync(Tid, Uid, body.Code ?? ""));
+            var bad = Reject(await CheckAsync(body.Code));
             if (bad is not null) return bad;
             await _mfa.DisableAsync(Tid, Uid);
+            await NoticeAsync(BuyerNotices.MfaOff);
             return Ok(new { success = true });
         }
     }

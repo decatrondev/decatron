@@ -30,6 +30,7 @@ type Me = {
     tenant: { slug: string; name: string; status: string };
     plan: { key: string | null; name: string | null; status: string | null; sandboxEndsAt: string | null; daysLeft: number | null };
     buyer: { email: string; role: 'owner' | 'admin' };
+    mfa?: { enabled: boolean; required: boolean };
 };
 
 function Home() {
@@ -82,10 +83,16 @@ function Home() {
                             <div><dt className="text-sm text-ds-faint">{t('buyer.role')}</dt><dd className="text-ds-text font-semibold">{t(me.buyer.role === 'owner' ? 'buyer.owner' : 'buyer.adminRole')}</dd></div>
                         </dl>
                     </Card>
-                    {me.buyer.role === 'owner' ? <>
+                    {me.mfa?.required ? <>
+                        <Alert tone="warn">
+                            <strong className="block">{t('buyer.mfa.requiredTitle')}</strong>
+                            {t('buyer.mfa.requiredText')}
+                        </Alert>
+                        <BuyerSecurity onChange={() => { load().catch(() => setError(true)); }} />
+                    </> : me.buyer.role === 'owner' ? <>
                         <Tabs value={tab} onChange={setTab} items={[{ id: 'home', label: t('buyer.tabHome') }, { id: 'team', label: t('buyer.tabTeam') }]} />
                         {tab === 'team' ? <BuyerTeam /> : <>
-                            <BuyerSecurity />
+                            <BuyerSecurity onChange={() => { load().catch(() => setError(true)); }} />
                             <BuyerSetup />
                             <BuyerTransparency />
                         </>}
