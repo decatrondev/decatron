@@ -541,8 +541,11 @@ namespace Decatron.Controllers
         /// decatron.net salvo /overlay/, que sigue sirviéndose para las escenas de OBS ya guardadas), así que los links
         /// nuevos se dan con decatron.net. FrontendUrl no se cambia porque lo usan otros flujos (login).
         /// </summary>
-        private static string PublicFrontendUrl(string? configured)
+        private string PublicFrontendUrl(string? configured)
         {
+            // Un tenant da sus enlaces con SU subdominio (slug.decatron.top sirve /overlay/, /hubs/ y la SPA); el #1 sigue con decatron.net.
+            if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1 && Request.Host.HasValue)
+                return $"https://{Request.Host.Value}";
             var url = (configured ?? "").TrimEnd('/');
             return url.Replace("://twitch.decatron.net", "://decatron.net", StringComparison.OrdinalIgnoreCase);
         }

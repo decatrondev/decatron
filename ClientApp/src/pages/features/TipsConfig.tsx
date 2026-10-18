@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { TipsSettings, TipStatistics, RecentTip } from './tips-extension/types/config';
 import { CURRENCIES } from './tips-extension/types/config';
+import { isTenantHost } from '../../platform/tenantHost';
 import type { TipsAlertConfig } from './tips-extension/types';
 import { DEFAULT_TIPS_OVERLAY_CONFIG, DEFAULT_TIPS_ALERT_CONFIG, DEFAULT_TIPS_BASE_ALERT } from './tips-extension/constants/defaults';
 import { GeneralTab, PageTab, AlertsTab, TimerTab, SecurityTab, HistoryTab } from './tips-extension/components/tabs';
@@ -89,8 +90,10 @@ export default function TipsConfig() {
     const [recentTips, setRecentTips] = useState<RecentTip[]>([]);
     const [statsPeriod, setStatsPeriod] = useState<string>('month');
 
-    const tipsUrl = `https://decatron.net/tip/${channelName}`;
-    const overlayUrl = `https://decatron.net/overlay/tips?channel=${channelName}`;
+    // En el subdominio de un tenant los enlaces salen con ese subdominio; en el resto, decatron.net de siempre.
+    const siteBase = isTenantHost() ? window.location.origin : 'https://decatron.net';
+    const tipsUrl = `${siteBase}/tip/${channelName}`;
+    const overlayUrl = `${siteBase}/overlay/tips?channel=${channelName}`;
 
     // Handle PayPal OAuth callback
     useEffect(() => {
