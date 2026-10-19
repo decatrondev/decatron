@@ -437,6 +437,7 @@ try
     builder.Services.AddScoped<WheelRaffleService>();
     builder.Services.AddScoped<NowPlayingService>();
     builder.Services.AddScoped<IEventAlertsService, EventAlertsService>();
+    builder.Services.AddSingleton<Decatron.Services.Tts.FishTtsClient>();
     builder.Services.AddScoped<ITtsService, TtsService>();
 
     // Piper: síntesis auto-alojada, el motor del nivel gratuito.

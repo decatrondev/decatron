@@ -26,6 +26,7 @@ namespace Decatron.Services
         private readonly IConfiguration _config;
         private readonly Decatron.Services.Finance.CreditRates _rates;
         private readonly ITtsService _ttsService;
+        private readonly Decatron.Services.Tts.FishTtsClient _fish;
         private readonly PiperTtsService _piperService;
 
         // Las tarifas por motor ya no viven acá: salen de credit_rates y las edita el
@@ -69,8 +70,10 @@ namespace Decatron.Services
             IConfiguration config,
             ITtsService ttsService,
             PiperTtsService piperService,
-            Decatron.Services.Finance.CreditRates rates)
+            Decatron.Services.Finance.CreditRates rates,
+            Decatron.Services.Tts.FishTtsClient fish)
         {
+            _fish = fish;
             _context = context;
             _logger = logger;
             _config = config;
@@ -395,6 +398,20 @@ namespace Decatron.Services
             if (string.Equals(provider, "piper", StringComparison.OrdinalIgnoreCase))
                 return await GenerateWithPiperAsync(userId, text, voice, language, feature);
 
+            // Fish Audio: voz clonada. Se cobra por bytes UTF-8 (la unidad de Fish) y el audio usa el mismo caché que Polly.
+            // Una voz que no es un id de Fish (p. ej. el «Lupe» de Polly que dejó una configuración vieja) se cambia por la predeterminada.
+            var isFish = string.Equals(provider, "fish", StringComparison.OrdinalIgnoreCase);
+            var units = text.Length;
+            if (isFish)
+            {
+                engine = "fish";
+                if (!Decatron.Services.Tts.FishTtsClient.LooksLikeVoiceId(voice)) voice = _fish.DefaultVoiceId;
+                // Sin voz válida ni predeterminada, o sin llave: no se intenta, se lee con la voz estándar
+                if (!Decatron.Services.Tts.FishTtsClient.LooksLikeVoiceId(voice) || !_fish.IsConfigured)
+                    return await FallbackToStandardAsync(userId, text, language, feature, "Fish no está configurado");
+                units = Decatron.Services.Tts.FishTtsClient.BillableBytes(text);
+            }
+
             // Si el audio ya está en caché no se llama a AWS, así que no se cobra nada.
             // Se comprueba antes para no ensuciar el libro mayor con cobro + devolución.
             if (await _ttsService.IsCachedAsync(text, voice, engine, language))
@@ -402,14 +419,14 @@ namespace Decatron.Services
                 var cachedResult = await _ttsService.GenerateWithInfoAsync(text, voice, engine, language, channelName);
                 if (cachedResult.Success)
                 {
-                    await RecordCacheHitAsync(userId, text.Length, feature, voice, language);
+                    await RecordCacheHitAsync(userId, units, feature, voice, language);
                     return cachedResult.Url;
                 }
                 // El caché falló (archivo borrado): se sigue por el camino normal
             }
 
             // Cobrar antes de llamar a AWS; si falla la síntesis, se devuelve.
-            var charge = await TryConsumeAsync(userId, text.Length, engine, feature, voice, language);
+            var charge = await TryConsumeAsync(userId, units, engine, feature, voice, language);
 
             if (!charge.Allowed)
             {
@@ -425,15 +442,16 @@ namespace Decatron.Services
 
                 if (!result.Success)
                 {
-                    await RefundAsync(userId, charge.CreditsCharged, feature, "Polly no devolvió audio");
-                    return await FallbackToStandardAsync(userId, text, language, feature, "Polly no devolvió audio");
+                    var motor = isFish ? "Fish" : "Polly";
+                    await RefundAsync(userId, charge.CreditsCharged, feature, $"{motor} no devolvió audio");
+                    return await FallbackToStandardAsync(userId, text, language, feature, $"{motor} no devolvió audio");
                 }
 
                 // Un acierto de caché no le cuesta nada a nadie
                 if (result.FromCache && charge.CreditsCharged > 0)
                 {
                     await RefundAsync(userId, charge.CreditsCharged, feature, "Audio servido desde caché");
-                    await RecordCacheHitAsync(userId, text.Length, feature, voice, language);
+                    await RecordCacheHitAsync(userId, units, feature, voice, language);
                 }
 
                 return result.Url;
@@ -442,7 +460,7 @@ namespace Decatron.Services
             {
                 await RefundAsync(userId, charge.CreditsCharged, feature, "Error generando audio");
                 _logger.LogError(ex, "[TtsCredits] Error generando audio de {Feature} para {UserId}", feature, userId);
-                return await FallbackToStandardAsync(userId, text, language, feature, "error de Polly");
+                return await FallbackToStandardAsync(userId, text, language, feature, "error del motor de voz");
             }
         }
 

@@ -22,13 +22,16 @@ namespace Decatron.Services
         private readonly ILogger<TtsService> _logger;
         private readonly string _cachePath;
         private readonly string _publicUrlBase;
+        private readonly Decatron.Services.Tts.FishTtsClient _fish;
 
         public TtsService(
             AmazonPollyClient pollyClient,
             DecatronDbContext context,
             ILogger<TtsService> logger,
-            IOptions<AwsPollySettings> settings)
+            IOptions<AwsPollySettings> settings,
+            Decatron.Services.Tts.FishTtsClient fish)
         {
+            _fish = fish;
             _pollyClient = pollyClient;
             _context = context;
             _logger = logger;
@@ -80,26 +83,37 @@ namespace Decatron.Services
                 return new TtsGenerationResult(BuildPublicUrl(cached.FilePath), FromCache: true);
             }
 
-            // Fase 5.8: la cuenta de AWS Polly es de Decatron; un tenant no la usa (su voz va por Piper o por su propia llave)
-            if ((Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1) return TtsGenerationResult.Failed();
+            // Fish Audio: el audio sale de la API de Fish (voz clonada) y se guarda en el mismo caché que el de Polly.
+            var isFish = engine.Equals("fish", StringComparison.OrdinalIgnoreCase);
 
-            // Cache miss - call Polly
+            // Fase 5.8: la cuenta de AWS Polly es de Decatron; un tenant no la usa (su voz va por Piper o por su propia llave)
+            if (!isFish && (Decatron.Core.Interfaces.TenantAmbient.Current ?? 1) != 1) return TtsGenerationResult.Failed();
+
+            // Cache miss - call Polly o Fish
             try
             {
-                var engineEnum = engine.Equals("neural", StringComparison.OrdinalIgnoreCase)
-                    ? Engine.Neural
-                    : Engine.Standard;
-
-                var request = new SynthesizeSpeechRequest
+                Stream audioStream;
+                if (isFish)
                 {
-                    Text = text,
-                    VoiceId = new VoiceId(voiceId),
-                    Engine = engineEnum,
-                    LanguageCode = languageCode,
-                    OutputFormat = OutputFormat.Mp3
-                };
+                    audioStream = new MemoryStream(await _fish.SynthesizeAsync(text, voiceId));
+                }
+                else
+                {
+                    var engineEnum = engine.Equals("neural", StringComparison.OrdinalIgnoreCase)
+                        ? Engine.Neural
+                        : Engine.Standard;
 
-                var response = await _pollyClient.SynthesizeSpeechAsync(request);
+                    var request = new SynthesizeSpeechRequest
+                    {
+                        Text = text,
+                        VoiceId = new VoiceId(voiceId),
+                        Engine = engineEnum,
+                        LanguageCode = languageCode,
+                        OutputFormat = OutputFormat.Mp3
+                    };
+
+                    audioStream = (await _pollyClient.SynthesizeSpeechAsync(request)).AudioStream;
+                }
 
                 // Build file path: cachePath/channelName/voiceId/engine/hash.mp3
                 // Sanitize channelName to prevent path traversal
@@ -112,8 +126,9 @@ namespace Decatron.Services
 
                 using (var fileStream = File.Create(filePath))
                 {
-                    await response.AudioStream.CopyToAsync(fileStream);
+                    await audioStream.CopyToAsync(fileStream);
                 }
+                audioStream.Dispose();
 
                 var fileSize = new FileInfo(filePath).Length;
 
@@ -151,7 +166,7 @@ namespace Decatron.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[TTS] Failed to generate audio via Polly for voice {Voice}", voiceId);
+                _logger.LogError(ex, "[TTS] Failed to generate audio ({Engine}) for voice {Voice}", engine, voiceId);
                 return TtsGenerationResult.Failed();
             }
         }

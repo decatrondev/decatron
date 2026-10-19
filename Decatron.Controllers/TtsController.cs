@@ -65,7 +65,7 @@ namespace Decatron.Controllers
                 // Esta generación cuesta igual que una alerta en vivo: cobra créditos.
                 // Y como cualquier otra, si Polly no puede se cae a voz estándar en vez
                 // de devolver un error — el respaldo lo aplica el servicio de créditos.
-                var provider = request.Provider == "piper" ? "piper" : "polly";
+                var provider = request.Provider is "piper" or "fish" ? request.Provider : "polly";
 
                 var url = await _creditService.GenerateWithCreditsAsync(
                     channelOwnerId,

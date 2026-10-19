@@ -408,7 +408,7 @@ namespace Decatron.Services
                 // ya no existe: se leen como piper.
                 var rawEngine = voice.ValueKind != JsonValueKind.Undefined &&
                     voice.TryGetProperty("engine", out var eng) ? eng.GetString() ?? "piper" : "piper";
-                var engine = rawEngine == "polly" ? "polly" : "piper";
+                var engine = rawEngine is "polly" or "fish" ? rawEngine : "piper";
 
                 // Cada catálogo de voces se guarda por separado para que cambiar de motor
                 // no arruine la elección del otro. `voice` es el campo antiguo, que se
@@ -420,8 +420,13 @@ namespace Decatron.Services
                 var standardVoice = voice.ValueKind != JsonValueKind.Undefined &&
                     voice.TryGetProperty("standardVoice", out var sv) ? sv.GetString() : null;
 
+                // Fish: vacío = la voz predeterminada del servidor (el catálogo de voces llega después)
+                var fishVoice = voice.ValueKind != JsonValueKind.Undefined &&
+                    voice.TryGetProperty("fishVoice", out var fv) ? fv.GetString() : null;
+
                 var voiceId = engine == "polly"
                     ? (!string.IsNullOrEmpty(pollyVoice) ? pollyVoice : legacyVoice ?? "Lupe")
+                    : engine == "fish" ? (fishVoice ?? "")
                     : (standardVoice ?? "");
                 var languageCode = voice.ValueKind != JsonValueKind.Undefined &&
                     voice.TryGetProperty("languageCode", out var lc) ? lc.GetString() ?? "es-US" : "es-US";

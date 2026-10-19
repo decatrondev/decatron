@@ -177,7 +177,7 @@ namespace Decatron.Controllers
                 // El panel manda en `engine` el proveedor elegido. Cualquier cosa que no
                 // sea "polly" es voz estándar, incluido el "browser" de configuraciones
                 // viejas: ese motor ya no existe.
-                var provider = body?.Engine == "polly" ? "polly" : "piper";
+                var provider = body?.Engine is "polly" or "fish" ? body.Engine : "piper";
 
                 // Con Piper, vacío significa "la voz por defecto de ese idioma"; con
                 // Polly hace falta un nombre concreto.
