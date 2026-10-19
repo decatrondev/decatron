@@ -650,7 +650,33 @@ namespace Decatron.Services
                     return;
                 }
 
-                // NOTA: IRC ya guardó el mensaje en BD (para logs), no duplicar
+                // El IRC es el respaldo que guarda el historial; no siempre recibe (canales de otros tenants, o unido sin
+                // recibir). Pasados unos segundos, si no hay una fila igual, EventSub la guarda.
+                var histChannel = channel; var histUser = username; var histUserId = userId; var histMsg = message; var histTs = timestamp;
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(4));
+                        using var histScope = _serviceProvider.CreateScope();
+                        var tenantShadow = histScope.ServiceProvider.GetRequiredService<Decatron.Services.Tenancy.TenantShadow>();
+                        using var chatTenant = tenantShadow.Enter("EventSub.ChatHistory", histChannel);
+                        var histDb = histScope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                        var desde = histTs.AddSeconds(-30);
+                        var existe = await histDb.ChatMessages.AnyAsync(m => m.Channel == histChannel && m.UserId == histUserId
+                            && m.Message == histMsg && m.Timestamp >= desde);
+                        if (existe) return;
+                        histDb.ChatMessages.Add(new ChatMessage
+                        {
+                            Channel = histChannel, Username = histUser, UserId = histUserId, Message = histMsg, Timestamp = histTs
+                        });
+                        await histDb.SaveChangesAsync();
+                    }
+                    catch (Exception histEx)
+                    {
+                        _logger.LogWarning(histEx, "[EventSub] No se pudo guardar el historial de [{Channel}]", histChannel);
+                    }
+                });
 
                 // Log indicando procesamiento desde EventSub
                 _logger.LogInformation($"📩 [EventSub] [{channel}] {username}: {message}");
