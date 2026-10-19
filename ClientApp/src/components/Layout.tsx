@@ -131,7 +131,7 @@ export default function Layout() {
                                 seccion 8.16. El resto (overlays, moderacion, discord,
                                 analytics) se habilita para Kick de a uno, verificando
                                 cada uno primero — no se asume que tambien sirven. */}
-                            {planHas('commands') && <NavLink to="/commands" icon={<Zap />} label={t('layout:navigation.commands.title')} active={location.pathname.startsWith('/commands')} />}
+                            <NavLink to="/commands" icon={<Zap />} label={t('layout:navigation.commands.title')} active={location.pathname.startsWith('/commands')} />
 
                             {/* Overlays: visible para Kick, pero todavia sin ningun
                                 overlay verificado de ese lado — Overlays.tsx marca

@@ -57,7 +57,6 @@ const ROUTE_MODULES: [string, string | string[]][] = [
     ['/commands/scripting', 'cmd_scripting'],
     ['/commands/watchtime', 'cmd_watchtime'],
     ['/commands/public', 'cmd_public'],
-    ['/commands', 'commands'],
     ['/features/moderation/banned-words', 'mod_banned_words'],
     ['/features/moderation/links', 'mod_links'],
     ['/features/moderation/spam', 'mod_spam'],

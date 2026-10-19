@@ -11,7 +11,6 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/commands")]
     [Authorize]
-    [Decatron.Core.Interfaces.RequiresModule("module.commands")]
     public class CommandsController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

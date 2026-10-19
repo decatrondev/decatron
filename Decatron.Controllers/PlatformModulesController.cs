@@ -16,12 +16,12 @@ namespace Decatron.Controllers
         public static readonly string[] Modules =
         {
             "module.analytics", "module.bots", "module.clips", "module.cmd_custom", "module.cmd_followage", "module.cmd_game", "module.cmd_micro",
-            "module.cmd_public", "module.cmd_scripting", "module.cmd_title", "module.cmd_watchtime", "module.commands", "module.credits",
+            "module.cmd_public", "module.cmd_scripting", "module.cmd_title", "module.cmd_watchtime", "module.credits",
             "module.decatron_ai", "module.decatron_chat", "module.developer", "module.discord", "module.emotes", "module.followers", "module.gacha",
             "module.game_overlays", "module.giveaways", "module.live_translation", "module.lol_coach", "module.mod_banned_words",
-            "module.mod_commands", "module.mod_history", "module.mod_links", "module.mod_raids", "module.mod_spam", "module.moderation",
+            "module.mod_commands", "module.mod_history", "module.mod_links", "module.mod_raids", "module.mod_spam",
             "module.multiview", "module.ov_chat", "module.ov_event_alerts", "module.ov_goals", "module.ov_live", "module.ov_now_playing",
-            "module.ov_shoutout", "module.ov_sound_alerts", "module.overlays", "module.pets", "module.roulette", "module.song_request",
+            "module.ov_shoutout", "module.ov_sound_alerts", "module.pets", "module.roulette", "module.song_request",
             "module.spirits", "module.timers", "module.tips", "module.tournaments", "module.tts",
         };
 

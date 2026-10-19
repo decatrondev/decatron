@@ -50,7 +50,11 @@ public interface IEntitlements
     void Invalidate(long? tenantId = null);
 }
 
-/// <summary>Exige un módulo del plan. Sin él responde 403 <c>module_not_included</c> (la UI muestra «agregar módulo»).</summary>
+/// <summary>
+/// Exige un módulo del plan. Sin él responde 403 <c>module_not_included</c> (la UI muestra «agregar módulo»).
+/// Con varias claves separadas por coma basta con que el plan traiga UNA (vistas que reúnen varios módulos, p. ej. la configuración de moderación).
+/// Varios atributos en la misma acción se exigen todos.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
 public sealed class RequiresModuleAttribute : Attribute, IAsyncActionFilter
 {
@@ -63,7 +67,10 @@ public sealed class RequiresModuleAttribute : Attribute, IAsyncActionFilter
         var ent = sp.GetService<IEntitlements>();
         if (ent is null) { await next(); return; } // sin servicio registrado (pruebas) no se bloquea nada
         var tenant = sp.GetService<ITenantContext>()?.TenantId;
-        if (!await ent.HasAsync(Capability, tenant, live: false, context.HttpContext.RequestAborted))
+        var any = false;
+        foreach (var key in Capability.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            if (await ent.HasAsync(key, tenant, live: false, context.HttpContext.RequestAborted)) { any = true; break; }
+        if (!any)
         {
             context.Result = new ObjectResult(new { error = "module_not_included", module = Capability }) { StatusCode = StatusCodes.Status403Forbidden };
             return;

@@ -14,7 +14,7 @@ public class PlatformModulesTests
 
         var usados = Directory.GetDirectories(dir!.FullName, "Decatron.*").Where(d => !d.EndsWith("Decatron.Tests"))
             .SelectMany(d => Directory.GetFiles(d, "*.cs", SearchOption.AllDirectories)).Where(f => !f.Contains("/obj/") && !f.Contains("/bin/"))
-            .SelectMany(f => Regex.Matches(File.ReadAllText(f), @"RequiresModule\(""(module\.[a-z_]+)""\)").Select(m => m.Groups[1].Value))
+            .SelectMany(f => Regex.Matches(File.ReadAllText(f), @"RequiresModule\(""([a-z_.,]+)""\)").SelectMany(m => m.Groups[1].Value.Split(',')))
             .Distinct().ToList();
 
         Assert.NotEmpty(usados);

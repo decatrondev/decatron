@@ -19,7 +19,7 @@ namespace Decatron.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    [Decatron.Core.Interfaces.RequiresModule("module.moderation")]
+    [Decatron.Core.Interfaces.RequiresModule("module.mod_banned_words,module.mod_links,module.mod_spam,module.mod_commands,module.mod_raids,module.mod_history")]
     public class ModerationController : ControllerBase
     {
         // Severidad con la que arranca un filtro que el canal nunca configuró
