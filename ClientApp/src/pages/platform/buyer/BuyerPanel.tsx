@@ -75,7 +75,7 @@ function Home({ initialTab }: { initialTab?: string }) {
 
     return (
         <PlatformShell showNav={false}>
-            <div className="max-w-2xl mx-auto px-5 py-16 space-y-6">
+            <div className="max-w-2xl xl:max-w-3xl 2xl:max-w-5xl mx-auto px-5 py-16 space-y-6">
                 {error && <Alert tone="danger">{t('buyer.errorLoad')}</Alert>}
                 {!me && !error && <div className="text-center"><Spinner /></div>}
                 {me && <>
@@ -84,7 +84,7 @@ function Home({ initialTab }: { initialTab?: string }) {
                         <p className="text-ds-soft mt-1">{me.tenant.slug}.decatron.top</p>
                     </div>
                     <Card>
-                        <dl className="grid sm:grid-cols-2 gap-4 p-5">
+                        <dl className="grid sm:grid-cols-2 2xl:grid-cols-4 gap-4 p-5">
                             <div><dt className="text-sm text-ds-faint">{t('buyer.plan')}</dt><dd className="text-ds-text font-semibold">{me.plan.name ?? '—'}</dd></div>
                             <div><dt className="text-sm text-ds-faint">{t('buyer.sandboxLeft')}</dt>
                                 <dd className="text-ds-text font-semibold">{me.plan.daysLeft == null ? '—' : t('buyer.days', { count: me.plan.daysLeft })}</dd></div>

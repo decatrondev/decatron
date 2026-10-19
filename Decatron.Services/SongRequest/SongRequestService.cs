@@ -56,6 +56,7 @@ namespace Decatron.Services.SongRequest
         private readonly SongRequestPlayerRegistry _players;
         private readonly IConfiguration _configuration;
         private readonly ILogger<SongRequestService> _logger;
+        private readonly Decatron.Core.Interfaces.ITenantResolver _tenants;
 
         public SongRequestService(
             DecatronDbContext db,
@@ -63,8 +64,10 @@ namespace Decatron.Services.SongRequest
             IHubContext<SongRequestHub> hub,
             SongRequestPlayerRegistry players,
             IConfiguration configuration,
-            ILogger<SongRequestService> logger)
+            ILogger<SongRequestService> logger,
+            Decatron.Core.Interfaces.ITenantResolver tenants)
         {
+            _tenants = tenants;
             _db = db;
             _resolver = resolver;
             _hub = hub;
@@ -73,8 +76,15 @@ namespace Decatron.Services.SongRequest
             _logger = logger;
         }
 
-        public string PublicQueueUrl(string channelLogin) =>
-            $"{(_configuration["SongRequest:PublicBaseUrl"] ?? "https://decatron.net").TrimEnd('/')}/sr/{channelLogin.ToLowerInvariant()}";
+        public string PublicQueueUrl(string channelLogin)
+        {
+            // Un tenant de la plataforma da su enlace con su subdominio; el bot propio (#1) sigue con decatron.net.
+            var slug = Decatron.Core.Interfaces.TenantAmbient.Current is long tid && tid != 1 ? _tenants.SlugOf(tid) : null;
+            var baseUrl = slug != null
+                ? $"https://{slug}.{Decatron.Services.Tenancy.TenantResolver.PlatformDomain}"
+                : (_configuration["SongRequest:PublicBaseUrl"] ?? "https://decatron.net").TrimEnd('/');
+            return $"{baseUrl}/sr/{channelLogin.ToLowerInvariant()}";
+        }
 
         // ── Config ───────────────────────────────────────────────────────────
 

@@ -78,6 +78,9 @@ public sealed class TenantResolver : ITenantResolver
     public bool IsServedByOtherTenant(string? twitchId)
         => !string.IsNullOrEmpty(twitchId) && _Get().ServedElsewhere.Contains(twitchId);
 
+    public string? SlugOf(long tenantId)
+        => tenantId == DefaultTenantId ? null : _Get().BySlug.FirstOrDefault(kv => kv.Value == tenantId).Key;
+
     public TenantResolution ByHost(string? host)
     {
         var slug = SlugFromHost(host);

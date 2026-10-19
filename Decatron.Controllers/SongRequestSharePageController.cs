@@ -63,7 +63,7 @@ namespace Decatron.Controllers
             ShareMeta? meta = null;
             try
             {
-                var key = $"sr-share:{channel.ToLowerInvariant()}:{code?.ToLowerInvariant()}";
+                var key = $"sr-share:{Request.Host.Host.ToLowerInvariant()}:{channel.ToLowerInvariant()}:{code?.ToLowerInvariant()}";
                 if (!_cache.TryGetValue(key, out meta))
                 {
                     meta = await BuildMetaAsync(channel.Trim().ToLowerInvariant(), code, ct);
@@ -104,7 +104,9 @@ namespace Decatron.Controllers
 
             var english = user.PreferredLanguage != null && user.PreferredLanguage.StartsWith("en", StringComparison.OrdinalIgnoreCase);
             var name = string.IsNullOrWhiteSpace(user.DisplayName) ? channel : user.DisplayName;
-            var channelUrl = $"{_baseUrl}/sr/{channel}";
+            // En el subdominio de un tenant la vista previa apunta a ese mismo subdominio.
+            var baseUrl = Decatron.Services.Tenancy.TenantResolver.SlugFromHost(Request.Host.Host) != null ? $"https://{Request.Host.Host}" : _baseUrl;
+            var channelUrl = $"{baseUrl}/sr/{channel}";
 
             if (code == null)
             {

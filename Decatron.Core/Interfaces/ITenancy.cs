@@ -51,4 +51,7 @@ public interface ITenantResolver
     /// Ante cualquier fallo al leer devuelve false: el #1 sigue como siempre.
     /// </summary>
     bool IsServedByOtherTenant(string? twitchId);
+
+    /// <summary>Subdominio (slug.decatron.top) de un tenant activo distinto del #1; null para el #1 o si no existe.</summary>
+    string? SlugOf(long tenantId);
 }
