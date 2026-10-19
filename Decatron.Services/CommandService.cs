@@ -50,17 +50,28 @@ namespace Decatron.Services
             ["!djoin"] = "module.roulette", ["!drueda"] = "module.roulette",
             ["!raffle"] = "module.giveaways", ["!join"] = "module.giveaways",
             ["!spirit"] = "module.spirits", ["!spirits"] = "module.spirits",
-            ["!strikes"] = "module.moderation", ["!resetstrikes"] = "module.moderation", ["!permit"] = "module.moderation", ["!nuke"] = "module.moderation",
-            ["!addword"] = "module.moderation", ["!delword"] = "module.moderation",
-            ["!commands"] = "module.commands",
+            ["!strikes"] = "module.mod_commands", ["!resetstrikes"] = "module.mod_commands", ["!permit"] = "module.mod_commands", ["!nuke"] = "module.mod_commands",
+            ["!addword"] = "module.mod_banned_words", ["!delword"] = "module.mod_banned_words",
+            ["!addlink"] = "module.mod_links", ["!dellink"] = "module.mod_links",
+            ["!panico"] = "module.mod_raids", ["!pánico"] = "module.mod_raids", ["!panic"] = "module.mod_raids",
+            ["!commands"] = "module.cmd_public",
+            ["!title"] = "module.cmd_title", ["!t"] = "module.cmd_title",
+            ["!game"] = "module.cmd_game", ["!g"] = "module.cmd_game",
+            ["!followage"] = "module.cmd_followage", ["!watchtime"] = "module.cmd_watchtime",
+            ["!gacha"] = "module.gacha", ["!gc"] = "module.gacha",
+            ["!ia"] = "module.decatron_ai", ["!so"] = "module.ov_shoutout",
         };
 
         /// <summary>El tenant ambiente tiene el módulo. El #1 siempre; si la base no responde, el chat en vivo sigue (live: true).</summary>
         private async Task<bool> ModuleOnAsync(string module) =>
             _entitlements is null || await _entitlements.HasAsync(module, null, live: true);
 
+        // Comandos de Game Overlays y del Coach de LoL: se llenan al registrarlos (cada alias es una instancia con su Name).
+        private readonly Dictionary<string, string> _overlayCommandModule = new(StringComparer.OrdinalIgnoreCase);
+
         private Task<bool> CommandModuleOnAsync(string commandName) =>
-            ModuleByCommand.TryGetValue(commandName, out var module) ? ModuleOnAsync(module) : Task.FromResult(true);
+            ModuleByCommand.TryGetValue(commandName, out var module) || _overlayCommandModule.TryGetValue(commandName, out module)
+                ? ModuleOnAsync(module) : Task.FromResult(true);
 
         public CommandService(
             ILogger<CommandService> logger,
@@ -269,6 +280,8 @@ namespace Decatron.Services
                 RegisterCommand(new Commands.RankStepCommand("rankdown", -1, log, _serviceScopeFactory));
                 RegisterCommand(new Commands.WinLossCommand("win", true, log, _serviceScopeFactory));
                 RegisterCommand(new Commands.WinLossCommand("loss", false, log, _serviceScopeFactory));
+                foreach (var cmd in _commands.Values.OfType<Commands.GameOverlayCommandBase>())
+                    _overlayCommandModule[cmd.Name] = cmd is Commands.LolCoachCommandBase ? "module.lol_coach" : "module.game_overlays";
                 _logger.LogInformation("✅ Comandos de Game Overlays registrados (!rango !lp !sesion !ultimas !cuentas !juego !setrango !rankup !rankdown !win !loss)");
             }
             catch (Exception ex)
@@ -758,31 +771,32 @@ namespace Decatron.Services
                 }
 
                 // Fase 5.4: sin el módulo de comandos del plan no hay comandos propios (crear/editar/borrar, micro y custom)
-                var commandsOn = await ModuleOnAsync("module.commands");
+                var customOn = await ModuleOnAsync("module.cmd_custom");
+                var microOn = await ModuleOnAsync("module.cmd_micro");
 
                 // 2. COMANDOS ESPECIALES del servidor
-                if (commandName == "!crear" && commandsOn)
+                if (commandName == "!crear" && customOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !crear por {username} en {channel}");
                     await ProcessCreateCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
                     return;
                 }
 
-                if (commandName == "!editcom" && commandsOn)
+                if (commandName == "!editcom" && customOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !editcom por {username} en {channel}");
                     await ProcessEditCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
                     return;
                 }
 
-                if (commandName == "!delcom" && commandsOn)
+                if (commandName == "!delcom" && customOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !delcom por {username} en {channel}");
                     await ProcessDeleteCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
                     return;
                 }
 
-                if (commandName == "!g" && commandsOn)
+                if (commandName == "!g" && microOn)
                 {
                     _logger.LogInformation($"Ejecutando comando !g por {username} en {channel}");
                     await ProcessGCommand(username, channel, chatMessage);
@@ -790,7 +804,7 @@ namespace Decatron.Services
                 }
 
                 // 3a. MICRO COMANDOS EN KICK: se guardan por cuenta (login de la fila principal), no por el id numérico del chat de Kick
-                if (commandsOn && platform == "kick" && commandName.StartsWith("!") && channelUserId != null)
+                if (microOn && platform == "kick" && commandName.StartsWith("!") && channelUserId != null)
                 {
                     var microOwner = await _kickTitleCategory.MicroOwnerLoginAsync(channelUserId.Value);
                     if (microOwner != null && _microCommandsCache.TryGetValue(microOwner, out var kickMicros)
@@ -803,7 +817,7 @@ namespace Decatron.Services
                 }
 
                 // 3. MICRO COMANDOS (requieren !)
-                if (commandsOn && commandName.StartsWith("!"))
+                if (microOn && commandName.StartsWith("!"))
                 {
                     var baseCommand = commandName.Substring(1);
                     if (_microCommandsCache.ContainsKey(channel) &&
@@ -822,7 +836,7 @@ namespace Decatron.Services
                 }
 
                 // 4. COMANDOS CUSTOM del streamer (de la BD)
-                if (commandsOn) await ProcessCustomCommandAsync(username, channel, commandName, chatMessage);
+                if (customOn) await ProcessCustomCommandAsync(username, channel, commandName, chatMessage);
 
                 _logger.LogDebug($"Comando desconocido: {commandName} por {username} en {channel}");
             }
@@ -845,8 +859,12 @@ namespace Decatron.Services
                 var isScripted = await scriptingService.IsScriptedCommandAsync(channel, commandName);
                 if (isScripted)
                 {
-                    _logger.LogInformation("[DEBUG] Executing scripted command {Cmd}", commandName);
-                    await ExecuteScriptedCommand(commandName, username, channel, fullMessage, scriptingService);
+                    // Sin el módulo de scripting del plan, el script no corre (ni se cae a un comando normal con ese nombre)
+                    if (await ModuleOnAsync("module.cmd_scripting"))
+                    {
+                        _logger.LogInformation("[DEBUG] Executing scripted command {Cmd}", commandName);
+                        await ExecuteScriptedCommand(commandName, username, channel, fullMessage, scriptingService);
+                    }
                     return;
                 }
 
