@@ -14,6 +14,7 @@ namespace Decatron.Custom.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.cmd_custom")]
     public class CustomCommandsController : ControllerBase
     {
         private readonly DecatronDbContext _context;

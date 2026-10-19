@@ -20,6 +20,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/tts")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.tts")]
     public class TtsVoicesController : ControllerBase
     {
         private readonly PiperTtsService _piper;

@@ -10,6 +10,7 @@ using System.Security.Claims;
 namespace Decatron.Controllers
 {
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.cmd_public")]
     public class PublicCommandsController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

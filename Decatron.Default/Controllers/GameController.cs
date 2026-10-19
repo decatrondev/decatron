@@ -17,6 +17,7 @@ namespace Decatron.Default.Controllers
     [ApiController]
     [Route("api/commands/game")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.cmd_game")]
     public class GameCommandController : ControllerBase
     {
         private readonly IConfiguration _configuration;

@@ -19,6 +19,7 @@ namespace Decatron.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Decatron.Core.Interfaces.RequiresModule("module.tips")]
     public class TipsController : ControllerBase
     {
         private readonly ITipsService _tipsService;

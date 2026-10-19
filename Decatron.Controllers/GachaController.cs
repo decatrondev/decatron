@@ -12,6 +12,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/gacha")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.gacha")]
     public class GachaController : ControllerBase
     {
         private readonly IGachaService _gachaService;

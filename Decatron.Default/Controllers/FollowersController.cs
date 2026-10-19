@@ -13,6 +13,7 @@ namespace Decatron.Default.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.followers")]
     public class FollowersController : ControllerBase
     {
         private readonly DecatronDbContext _context;

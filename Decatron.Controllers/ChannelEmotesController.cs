@@ -17,6 +17,7 @@ namespace Decatron.Controllers
     [Authorize]
     [Route("api/channel-emotes")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.emotes")]
     public class ChannelEmotesController : ControllerBase
     {
         private readonly DecatronDbContext _db;

@@ -12,7 +12,8 @@ public class PlatformModulesTests
         while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Decatron.csproj"))) dir = dir.Parent;
         Assert.NotNull(dir);
 
-        var usados = Directory.GetFiles(Path.Combine(dir!.FullName, "Decatron.Controllers"), "*.cs")
+        var usados = Directory.GetDirectories(dir!.FullName, "Decatron.*").Where(d => !d.EndsWith("Decatron.Tests"))
+            .SelectMany(d => Directory.GetFiles(d, "*.cs", SearchOption.AllDirectories)).Where(f => !f.Contains("/obj/") && !f.Contains("/bin/"))
             .SelectMany(f => Regex.Matches(File.ReadAllText(f), @"RequiresModule\(""(module\.[a-z_]+)""\)").Select(m => m.Groups[1].Value))
             .Distinct().ToList();
 

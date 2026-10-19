@@ -12,6 +12,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.ov_goals")]
     public class GoalsController : ControllerBase
     {
         private readonly GoalsService _goalsService;

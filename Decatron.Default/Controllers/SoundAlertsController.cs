@@ -19,6 +19,7 @@ namespace Decatron.Default.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.ov_sound_alerts")]
     public class SoundAlertsController : ControllerBase
     {
         private readonly Decatron.Core.Interfaces.IEntitlements? _entitlements;

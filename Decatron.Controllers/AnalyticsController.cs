@@ -14,6 +14,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/analytics")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.analytics")]
     public class AnalyticsController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

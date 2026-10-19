@@ -19,7 +19,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    [Decatron.Core.Interfaces.RequiresModule("module.overlays")]
+    [Decatron.Core.Interfaces.RequiresModule("module.ov_event_alerts")]
     public class EventAlertsController : ControllerBase
     {
         private readonly IEventAlertsService _eventAlertsService;

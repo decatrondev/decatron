@@ -15,6 +15,7 @@ namespace Decatron.Default.Controllers
     [Authorize]
     [Route("api/timer/media")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.timers")]
     public class TimerMediaController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

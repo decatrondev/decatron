@@ -13,6 +13,7 @@ namespace Decatron.Discord;
 [Route("api/discord/alerts")]
 [Authorize]
 [RequirePermission("settings", "control_total")]
+[Decatron.Core.Interfaces.RequiresModule("module.discord")]
 public class DiscordLiveAlertsController : ControllerBase
 {
     private readonly DecatronDbContext _dbContext;

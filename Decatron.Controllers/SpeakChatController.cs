@@ -19,6 +19,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/speakchat")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.tts")]
     public class SpeakChatController : ControllerBase
     {
         private readonly ISpeakChatService _speakChatService;

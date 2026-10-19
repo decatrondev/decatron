@@ -17,6 +17,7 @@ namespace Decatron.Default.Controllers
     [Authorize]
     [Route("api/decatron-ai")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.decatron_ai")]
     public class DecatronAIController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

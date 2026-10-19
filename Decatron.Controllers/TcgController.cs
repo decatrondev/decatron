@@ -15,6 +15,7 @@ namespace Decatron.Controllers
     [Route("api/tcg")]
     [Authorize]
     [Decatron.Attributes.TcgAccessExceptionFilter]
+    [Decatron.Core.Interfaces.RequiresModule("module.gacha")]
     public class TcgController : ControllerBase
     {
         private readonly TcgCardsService _tcgService;

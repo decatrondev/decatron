@@ -18,6 +18,7 @@ namespace Decatron.Controllers
     [Authorize]
     [Route("api/botlist")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.bots")]
     public class BotListController : ControllerBase
     {
         // Cantidad de bots propios por canal: un tope de seguridad, no un límite de uso

@@ -14,6 +14,7 @@ namespace Decatron.Default.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.ov_shoutout")]
     public class ShoutoutController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

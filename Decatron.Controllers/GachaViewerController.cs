@@ -15,6 +15,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/gacha/viewer")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.gacha")]
     public class GachaViewerController : ControllerBase
     {
         private readonly DecatronDbContext _context;

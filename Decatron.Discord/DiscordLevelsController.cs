@@ -14,6 +14,7 @@ namespace Decatron.Discord;
 [Route("api/discord/levels")]
 [Authorize]
 [RequirePermission("settings", "control_total")]
+[Decatron.Core.Interfaces.RequiresModule("module.discord")]
 public class DiscordLevelsController : ControllerBase
 {
     private readonly DecatronDbContext _db;

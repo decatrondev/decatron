@@ -14,6 +14,7 @@ namespace Decatron.Scripting.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.cmd_scripting")]
     public class ScriptsController : ControllerBase
     {
         private readonly DecatronDbContext _context;

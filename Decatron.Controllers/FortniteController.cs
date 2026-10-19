@@ -9,6 +9,7 @@ namespace Decatron.Controllers
 {
     [ApiController]
     [Route("api/fortnite")]
+    [Decatron.Core.Interfaces.RequiresModule("module.spirits")]
     public class FortniteController : ControllerBase
     {
         private readonly IFortniteService _fortniteService;

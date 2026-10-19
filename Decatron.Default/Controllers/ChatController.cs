@@ -19,6 +19,7 @@ namespace Decatron.Default.Controllers
     [Authorize]
     [Route("api/chat")]
     [ApiController]
+    [Decatron.Core.Interfaces.RequiresModule("module.decatron_chat")]
     public class ChatController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

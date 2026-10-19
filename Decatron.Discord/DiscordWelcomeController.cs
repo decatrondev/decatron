@@ -13,6 +13,7 @@ namespace Decatron.Discord;
 [Route("api/discord/welcome")]
 [Authorize]
 [RequirePermission("settings", "control_total")]
+[Decatron.Core.Interfaces.RequiresModule("module.discord")]
 public class DiscordWelcomeController : ControllerBase
 {
     private readonly DecatronDbContext _dbContext;

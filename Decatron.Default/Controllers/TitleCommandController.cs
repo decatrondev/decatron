@@ -19,6 +19,7 @@ namespace Decatron.Default.Controllers
     [ApiController]
     [Route("api/commands/title")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.cmd_title")]
     public class TitleCommandController : ControllerBase
     {
         private readonly IConfiguration _configuration;

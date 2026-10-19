@@ -10,6 +10,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/watchtime")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.cmd_watchtime")]
     public class WatchtimeController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;

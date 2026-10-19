@@ -8,6 +8,7 @@ namespace Decatron.Controllers
 {
     [ApiController]
     [Route("api/gacha/public")]
+    [Decatron.Core.Interfaces.RequiresModule("module.gacha")]
     public class GachaPublicController : ControllerBase
     {
         private readonly DecatronDbContext _context;

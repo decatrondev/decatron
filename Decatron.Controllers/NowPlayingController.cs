@@ -16,7 +16,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/nowplaying")]
     [Authorize]
-    [Decatron.Core.Interfaces.RequiresModule("module.overlays")]
+    [Decatron.Core.Interfaces.RequiresModule("module.ov_now_playing")]
     public class NowPlayingController : ControllerBase
     {
         private readonly NowPlayingService _nowPlayingService;

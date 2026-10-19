@@ -94,6 +94,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// GET /api/moderation/banned-words - Lista todas las palabras prohibidas del canal
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_banned_words")]
         [HttpGet("banned-words")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> GetBannedWords()
@@ -133,6 +134,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// POST /api/moderation/banned-words - Agrega una nueva palabra prohibida
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_banned_words")]
         [HttpPost("banned-words")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> AddBannedWord([FromBody] AddBannedWordRequest request)
@@ -204,6 +206,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// DELETE /api/moderation/banned-words/:id - Elimina una palabra prohibida
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_banned_words")]
         [HttpDelete("banned-words/{id}")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> DeleteBannedWord(long id)
@@ -242,6 +245,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// POST /api/moderation/banned-words/import - Importar palabras desde JSON
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_banned_words")]
         [HttpPost("banned-words/import")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> ImportBannedWords([FromBody] ImportBannedWordsRequest request)
@@ -584,6 +588,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// GET /api/moderation/commands - Interruptor, rol mínimo y parámetros de los comandos de moderación
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_commands")]
         [HttpGet("commands")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> GetCommands()
@@ -607,6 +612,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// PUT /api/moderation/commands - Guarda la configuración de los comandos (lo inválido se corrige a los valores por defecto)
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_commands")]
         [HttpPut("commands")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> UpdateCommands([FromBody] JsonElement body)
@@ -639,6 +645,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// GET /api/moderation/panic - Configuración y estado del modo pánico
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_raids")]
         [HttpGet("panic")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> GetPanic([FromServices] Decatron.Services.Moderation.PanicModeService panic)
@@ -670,6 +677,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// PUT /api/moderation/panic - Guarda la configuración del modo pánico
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_raids")]
         [HttpPut("panic")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> UpdatePanic([FromBody] JsonElement body, [FromServices] Decatron.Services.Moderation.PanicModeService panic)
@@ -696,6 +704,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// POST /api/moderation/panic/activate | deactivate - Botón del dashboard
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_raids")]
         [HttpPost("panic/{mode}")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> TogglePanic(string mode, [FromServices] Decatron.Services.Moderation.PanicModeService panic)
@@ -751,6 +760,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// GET /api/moderation/history - Historial de sanciones y acciones de mods, del más nuevo al más viejo
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_history")]
         [HttpGet("history")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> GetHistory(
@@ -815,6 +825,7 @@ namespace Decatron.Controllers
         /// POST /api/moderation/history/{id}/undo - Quita el timeout o ban en Twitch y devuelve el strike.
         /// Un mensaje borrado no se puede recuperar: en ese caso solo se devuelve el strike.
         /// </summary>
+        [Decatron.Core.Interfaces.RequiresModule("module.mod_history")]
         [HttpPost("history/{id:long}/undo")]
         [RequirePermission("moderation")]
         public async Task<IActionResult> UndoAction(long id, [FromServices] Decatron.Services.Moderation.ChatModeratorFactory moderators)

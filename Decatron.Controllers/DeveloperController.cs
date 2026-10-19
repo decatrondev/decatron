@@ -13,6 +13,7 @@ namespace Decatron.Controllers
     [ApiController]
     [Route("api/developer")]
     [Authorize] // Requiere sesión de usuario
+    [Decatron.Core.Interfaces.RequiresModule("module.developer")]
     public class DeveloperController : ControllerBase
     {
         private readonly IOAuthService _oauthService;

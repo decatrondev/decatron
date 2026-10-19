@@ -16,6 +16,7 @@ namespace Decatron.Default.Controllers
     [ApiController]
     [Route("api/commands/microcommands")]
     [Authorize]
+    [Decatron.Core.Interfaces.RequiresModule("module.cmd_micro")]
     public class MicroCommandsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
