@@ -139,7 +139,7 @@ export default function FeaturesHub() {
     ];
 
     const visibleCards = cards.filter(card =>
-        !card.requiresControlTotal || hasMinimumLevel('control_total')
+        (!card.requiresControlTotal || hasMinimumLevel('control_total')) && (!card.module || planHas(card.module))
     );
 
     return (

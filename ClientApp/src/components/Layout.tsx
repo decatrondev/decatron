@@ -112,7 +112,7 @@ export default function Layout() {
 
                     {/* Mi Perfil — Single button, hub page */}
                     <NavLink to="/me" icon={<User />} label="Mi Perfil" active={location.pathname === '/me' || location.pathname.startsWith('/me/') && !location.pathname.startsWith('/me/spirits')} />
-                    <NavLink to="/me/spirits" icon={<Zap className="text-ds-accent-text" />} label="Fortnite Spirits" active={location.pathname === '/me/spirits'} />
+                    {planHas('spirits') && <NavLink to="/me/spirits" icon={<Zap className="text-ds-accent-text" />} label="Fortnite Spirits" active={location.pathname === '/me/spirits'} />}
 
                     {/* Dashboard & Settings */}
                     <hr className="my-2 border-ds-border" />

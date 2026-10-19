@@ -248,7 +248,7 @@ export default function Overlays() {
 
             {/* Grid de overlays */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
-                {overlays.map((overlay) => (
+                {overlays.filter(overlay => !OVERLAY_MODULE[overlay.id] || planHas(OVERLAY_MODULE[overlay.id])).map((overlay) => (
                     <OverlayCard
                         key={overlay.id}
                         overlay={overlay}

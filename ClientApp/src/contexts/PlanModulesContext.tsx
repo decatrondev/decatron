@@ -42,6 +42,7 @@ export const usePlanModules = () => useContext(PlanModulesContext);
 
 // Módulo que exige cada ruta del panel (la más específica gana). Lo que no está aquí no depende del plan.
 const ROUTE_MODULES: [string, string][] = [
+    ['/me/spirits', 'spirits'],
     ['/commands/ruleta', 'roulette'],
     ['/commands/clip', 'clips'],
     ['/commands', 'commands'],
