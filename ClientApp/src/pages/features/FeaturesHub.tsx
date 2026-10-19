@@ -48,7 +48,8 @@ export default function FeaturesHub() {
             name: 'Emotes propios',
             description: 'Los emotes de tu comunidad: súbelos, apruébalos y decide quién puede subir los suyos. Se ven en tu overlay de chat',
             icon: <Smile className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/emotes'
+            route: '/features/emotes',
+            module: 'emotes'
         },
         {
             id: 'timers',
@@ -71,14 +72,16 @@ export default function FeaturesHub() {
             name: 'Decatron Chat',
             description: 'Chat integrado con funciones avanzadas de moderacion',
             icon: <MessageSquare className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/decatron-chat'
+            route: '/features/decatron-chat',
+            module: 'decatron_chat'
         },
         {
             id: 'tips',
             name: 'Tips',
             description: 'Recibe donaciones de tu comunidad via PayPal',
             icon: <DollarSign className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/tips'
+            route: '/features/tips',
+            module: 'tips'
         },
         {
             id: 'speak-chat',
@@ -93,7 +96,8 @@ export default function FeaturesHub() {
             name: 'Gacha System',
             description: 'Sistema de cartas coleccionables con donaciones y probabilidades',
             icon: <Dices className="w-6 h-6 text-ds-accent-text" />,
-            route: '/features/gacha'
+            route: '/features/gacha',
+            module: 'gacha'
         },
         {
             id: 'torneos',
@@ -109,6 +113,7 @@ export default function FeaturesHub() {
             description: 'Colección visual de Fortnite Spirits. Tus viewers trackean cuáles tienen con comandos de Twitch y Discord',
             icon: <Zap className="w-6 h-6 text-ds-accent-text" />,
             route: '/me/spirits',
+            module: 'spirits',
             buttonLabel: 'Ver colección',
             kickVerified: true // Es por cuenta, no por canal — ver plan seccion 8.10.
         },
@@ -134,6 +139,7 @@ export default function FeaturesHub() {
             description: 'Inteligencia artificial para tu bot con respuestas contextuales',
             icon: <Cpu className="w-6 h-6 text-ds-accent-text" />,
             route: '/features/decatron-ai',
+            module: 'decatron_ai',
             requiresControlTotal: true
         }
     ];

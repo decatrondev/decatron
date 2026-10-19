@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { FilterSwitch, fetchModerationOverview, saveModerationFilter, type ModerationFilterState, type ModerationPlatform } from './moderation/filterSwitch';
 import { SPAM_FILTERS } from './moderation/SpamFilters';
 import api from '../../services/api';
+import { usePlanModules } from '../../contexts/PlanModulesContext';
 
 interface ModerationCard {
     key: string;
@@ -14,6 +15,8 @@ interface ModerationCard {
     group?: string[];
     icon: React.ReactNode;
     route: string;
+    /** Módulo del plan que necesita la tarjeta. */
+    module: string;
 }
 
 // Los filtros solo se muestran si el backend los conoce
@@ -22,46 +25,54 @@ const CARDS: ModerationCard[] = [
         key: 'banned_words',
         filter: 'banned_words',
         icon: <ShieldBan className="w-6 h-6 shrink-0 text-ds-accent-text" />,
-        route: '/features/moderation/banned-words'
+        route: '/features/moderation/banned-words',
+        module: 'mod_banned_words'
     },
     {
         key: 'links',
         filter: 'links',
         icon: <Link2 className="w-6 h-6 shrink-0 text-ds-accent-text" />,
-        route: '/features/moderation/links'
+        route: '/features/moderation/links',
+        module: 'mod_links'
     },
     {
         key: 'spam',
         group: SPAM_FILTERS.map(f => f.key),
         icon: <MessageSquareWarning className="w-6 h-6 shrink-0 text-ds-accent-text" />,
-        route: '/features/moderation/spam'
+        route: '/features/moderation/spam',
+        module: 'mod_spam'
     },
     {
         key: 'raids',
         group: ['account_age', 'bot_phrases'],
         icon: <Siren className="w-6 h-6 shrink-0 text-ds-accent-text" />,
-        route: '/features/moderation/raids'
+        route: '/features/moderation/raids',
+        module: 'mod_raids'
     },
     {
         key: 'commands',
         icon: <Terminal className="w-6 h-6 shrink-0 text-ds-accent-text" />,
-        route: '/features/moderation/commands'
+        route: '/features/moderation/commands',
+        module: 'mod_commands'
     },
     {
         key: 'bots',
         icon: <Bot className="w-6 h-6 shrink-0 text-ds-accent-text" />,
-        route: '/features/bots'
+        route: '/features/bots',
+        module: 'bots'
     },
     {
         key: 'history',
         icon: <History className="w-6 h-6 shrink-0 text-ds-accent-text" />,
-        route: '/features/moderation/history'
+        route: '/features/moderation/history',
+        module: 'mod_history'
     }
 ];
 
 export default function ModerationHub() {
     const { t } = useTranslation('moderation');
     const navigate = useNavigate();
+    const { has: planHas } = usePlanModules();
     const [filters, setFilters] = useState<ModerationFilterState[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [panicActive, setPanicActive] = useState(false);
@@ -88,7 +99,7 @@ export default function ModerationHub() {
         }
     };
 
-    const cards = CARDS.filter(card => !card.filter || !filters || filters.some(f => f.key === card.filter));
+    const cards = CARDS.filter(card => planHas(card.module) && (!card.filter || !filters || filters.some(f => f.key === card.filter)));
 
     return (
         <div className="panel-scale space-y-6">

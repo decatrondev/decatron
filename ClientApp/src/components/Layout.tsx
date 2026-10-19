@@ -9,7 +9,7 @@ import ChannelSwitcher from './ChannelSwitcher';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTokenMonitor } from '../hooks/useTokenMonitor';
 import { notifyTokenRemoved } from '../utils/tokenEvents';
-import { usePlanModules, moduleForPath } from '../contexts/PlanModulesContext';
+import { usePlanModules, moduleForPath, OVERLAY_MODULES, MODERATION_MODULES } from '../contexts/PlanModulesContext';
 import ModuleNotIncluded from './ModuleNotIncluded';
 import { isTenantHost, loadTenantName } from '../platform/tenantHost';
 
@@ -138,21 +138,21 @@ export default function Layout() {
                                 cada card como "Proximamente en Kick" hasta que se
                                 confirme card por card, mismo criterio que Default
                                 Commands (plan seccion 8.17). */}
-                            {planHas('overlays') && <NavLink to="/overlays" icon={<Target />} label={t('layout:navigation.overlays.title')} active={location.pathname.startsWith('/overlays')} />}
+                            {planHas(OVERLAY_MODULES) && <NavLink to="/overlays" icon={<Target />} label={t('layout:navigation.overlays.title')} active={location.pathname.startsWith('/overlays')} />}
 
                             {/* Funciones: visible para Kick. Sound Alerts (el primero
                                 verificado en Kick, plan seccion 8, item 3) ahora vive
                                 en Overlays; el resto de FeaturesHub se marca
                                 "Proximamente en Kick" hasta verificarse. */}
                             <NavLink to="/features" icon={<Target />} label={t('layout:navigation.features.title')} active={location.pathname === '/features'} />
-                            <NavLink to="/credits" icon={<Coins />} label={t('layout:navigation.credits')} active={location.pathname.startsWith('/credits')} />
+                            {planHas('credits') && <NavLink to="/credits" icon={<Coins />} label={t('layout:navigation.credits')} active={location.pathname.startsWith('/credits')} />}
                             {planHas('multiview') && <NavLink to="/multi" icon={<Tv2 />} label={t('layout:navigation.multiview', 'Multi-view')} active={false} />}
 
                             {hasTwitchAccess && (
                                 <>
-                                    {planHas('moderation') && <NavLink to="/moderation" icon={<Shield />} label={t('layout:navigation.moderation.title')} active={location.pathname.startsWith('/moderation')} />}
+                                    {planHas(MODERATION_MODULES) && <NavLink to="/moderation" icon={<Shield />} label={t('layout:navigation.moderation.title')} active={location.pathname.startsWith('/moderation')} />}
                                     {planHas('discord') && <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />}
-                                    <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />
+                                    {planHas('analytics') && <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />}
                                 </>
                             )}
 

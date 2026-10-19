@@ -31,28 +31,32 @@ export default function CommandsHub() {
             name: 'Microcommands',
             description: 'Comandos rapidos y sencillos para respuestas automaticas',
             icon: <MessageSquare className="w-6 h-6 text-ds-accent-text" />,
-            route: '/commands/microcommands'
+            route: '/commands/microcommands',
+            module: 'cmd_micro'
         },
         {
             id: 'custom',
             name: 'Custom Commands',
             description: 'Crea comandos personalizados con variables y logica avanzada',
             icon: <Code className="w-6 h-6 text-ds-accent-text" />,
-            route: '/commands/custom'
+            route: '/commands/custom',
+            module: 'cmd_custom'
         },
         {
             id: 'scripting',
             name: 'Scripting',
             description: 'Scripts con condicionales para respuestas dinamicas',
             icon: <Terminal className="w-6 h-6 text-ds-accent-text" />,
-            route: '/commands/scripting'
+            route: '/commands/scripting',
+            module: 'cmd_scripting'
         },
         {
             id: 'watchtime',
             name: 'Watchtime',
             description: 'Muestra cuánto tiempo lleva un viewer viendo el stream actual',
             icon: <Clock className="w-6 h-6 text-ds-accent-text" />,
-            route: '/commands/watchtime'
+            route: '/commands/watchtime',
+            module: 'cmd_watchtime'
         },
         {
             id: 'ruleta',
@@ -75,7 +79,8 @@ export default function CommandsHub() {
             name: 'Vista Pública',
             description: 'Elige qué comandos ve la gente en tu página pública de comandos',
             icon: <Globe className="w-6 h-6 text-ds-accent-text" />,
-            route: '/commands/public'
+            route: '/commands/public',
+            module: 'cmd_public'
         }
     ];
 

@@ -7,6 +7,7 @@ import { usePlanModules } from '../../contexts/PlanModulesContext';
 
 // Módulo del plan que necesita cada tarjeta (las que no están aquí dependen solo de module.overlays).
 const OVERLAY_MODULE: Record<string, string> = {
+    chat: 'ov_chat', shoutout: 'ov_shoutout', 'sound-alerts': 'ov_sound_alerts', 'event-alerts': 'ov_event_alerts', 'now-playing': 'ov_now_playing', live: 'ov_live', gacha: 'gacha',
     timer: 'timers', giveaways: 'giveaways', 'song-request': 'song_request', games: 'game_overlays', pets: 'pets', wheel: 'roulette',
 };
 

@@ -20,6 +20,7 @@ import {
     Link2
 } from 'lucide-react';
 import api from '../services/api';
+import { usePlanModules } from '../contexts/PlanModulesContext';
 
 function parseJwt(token: string | null): Record<string, string> {
     if (!token) return {};
@@ -33,6 +34,7 @@ function parseJwt(token: string | null): Record<string, string> {
 export default function Dashboard() {
     const { t } = useTranslation(['dashboard', 'common']);
     const tenantName = useTenantName();
+    const { has: planHas } = usePlanModules();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [botStatus, setBotStatus] = useState<any>(null);
@@ -370,6 +372,7 @@ export default function Dashboard() {
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.default.description')}</p>
                             </button>
 
+                            {planHas('cmd_micro') && (
                             <button
                                 onClick={() => navigate('/commands/microcommands')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -377,7 +380,9 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:commands.microcommands.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.microcommands.description')}</p>
                             </button>
+                            )}
 
+                            {planHas('cmd_custom') && (
                             <button
                                 onClick={() => navigate('/commands/custom')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -385,7 +390,9 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:commands.custom.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.custom.description')}</p>
                             </button>
+                            )}
 
+                            {planHas('cmd_scripting') && (
                             <button
                                 onClick={() => navigate('/commands/scripting')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -393,6 +400,7 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:commands.scripting.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:commands.scripting.description')}</p>
                             </button>
+                            )}
                         </div>
                     </div>
 
@@ -411,6 +419,7 @@ export default function Dashboard() {
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:overlays.viewAll.description')}</p>
                             </button>
 
+                            {planHas('ov_shoutout') && (
                             <button
                                 onClick={() => navigate('/overlays/shoutout')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -418,7 +427,9 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:overlays.shoutout.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:overlays.shoutout.description')}</p>
                             </button>
+                            )}
 
+                            {planHas('ov_sound_alerts') && (
                             <button
                                 onClick={() => navigate('/overlays/sound-alerts')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -426,6 +437,7 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:overlays.soundAlerts.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:overlays.soundAlerts.description')}</p>
                             </button>
+                            )}
                         </div>
                     </div>
 
@@ -436,6 +448,7 @@ export default function Dashboard() {
                             {t('dashboard:features.title')}
                         </h3>
                         <div className="space-y-3">
+                            {planHas('giveaways') && (
                             <button
                                 onClick={() => navigate('/features/giveaways')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -443,7 +456,9 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:features.giveaways.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:features.giveaways.description')}</p>
                             </button>
+                            )}
 
+                            {planHas('followers') && (
                             <button
                                 onClick={() => navigate('/followers')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -451,7 +466,9 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:features.followers.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:features.followers.description')}</p>
                             </button>
+                            )}
 
+                            {planHas('mod_banned_words') && (
                             <button
                                 onClick={() => navigate('/features/moderation/banned-words')}
                                 className="w-full p-3 bg-ds-bg border border-ds-border hover:border-ds-accent rounded-lg transition-colors text-left"
@@ -459,6 +476,7 @@ export default function Dashboard() {
                                 <p className="font-bold text-ds-text text-sm">{t('dashboard:features.bannedWords.title')}</p>
                                 <p className="text-xs text-ds-soft mt-1">{t('dashboard:features.bannedWords.description')}</p>
                             </button>
+                            )}
                         </div>
                     </div>
                 </div>
