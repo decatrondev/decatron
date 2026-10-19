@@ -30,6 +30,7 @@ public class AutoRenewalTests : IDisposable
         }
         public Task<ProviderCard> SaveCardAsync(ProviderCustomer customer, string token, CancellationToken ct = default) => Task.FromResult(new ProviderCard(true, "cus_x", "crd_x", "1111", "Visa", null, true));
         public Task<bool> DeleteCardAsync(string cardId, CancellationToken ct = default) { Deleted.Add(cardId); return Task.FromResult(true); }
+        public Task<ProviderChargeInfo?> GetChargeAsync(string chargeId, CancellationToken ct = default) => Task.FromResult<ProviderChargeInfo?>(null);
     }
 
     private sealed class FakeMailer : IBillingMailer

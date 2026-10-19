@@ -377,6 +377,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.Tenancy.IBillingMailer, Decatron.Services.Tenancy.BillingMailer>(); // Fase 7.4: recordatorios de vencimiento
     builder.Services.AddSingleton<Decatron.Services.Tenancy.BillingReminders>();
     builder.Services.AddSingleton<Decatron.Services.Tenancy.AutoRenewal>(); // Fase 7.8: cobro automático con tarjeta guardada (apagado: Platform:Billing:AutoRenewEnabled)
+    builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformWebhooks>(); // Fase 7.5b: avisos de Culqi (red de seguridad; sin secreto configurado el endpoint no existe)
     builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformCheckout>(); // Fase 7.5: compra de plan
     builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformBillingReader>(); // Fase 7.7: lecturas del panel de facturación y catálogo de planes
     builder.Services.AddSingleton<Decatron.Services.Tenancy.PlatformInvoiceService>(); // Fase 7.6: comprobantes de los pagos de plan

@@ -5317,6 +5317,38 @@ ALTER SEQUENCE public.platform_waitlist_id_seq OWNED BY public.platform_waitlist
 
 
 --
+-- Name: platform_webhook_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.platform_webhook_events (
+    id bigint NOT NULL,
+    provider character varying(12) DEFAULT 'culqi'::character varying NOT NULL,
+    received_at timestamp with time zone DEFAULT now() NOT NULL,
+    body text NOT NULL,
+    result character varying(200)
+);
+
+
+--
+-- Name: platform_webhook_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.platform_webhook_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: platform_webhook_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.platform_webhook_events_id_seq OWNED BY public.platform_webhook_events.id;
+
+
+--
 -- Name: player_card_instances; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11299,6 +11331,13 @@ ALTER TABLE ONLY public.platform_waitlist_emails ALTER COLUMN id SET DEFAULT nex
 
 
 --
+-- Name: platform_webhook_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_webhook_events ALTER COLUMN id SET DEFAULT nextval('public.platform_webhook_events_id_seq'::regclass);
+
+
+--
 -- Name: player_card_instances id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -13422,6 +13461,14 @@ ALTER TABLE ONLY public.platform_waitlist_emails
 
 ALTER TABLE ONLY public.platform_waitlist
     ADD CONSTRAINT platform_waitlist_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: platform_webhook_events platform_webhook_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.platform_webhook_events
+    ADD CONSTRAINT platform_webhook_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -17454,6 +17501,13 @@ CREATE INDEX ix_platform_waitlist_ip ON public.platform_waitlist USING btree (ip
 --
 
 CREATE INDEX ix_platform_waitlist_token ON public.platform_waitlist USING btree (confirm_token_hash) WHERE ((confirm_token_hash)::text <> ''::text);
+
+
+--
+-- Name: ix_platform_webhook_events_received; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_platform_webhook_events_received ON public.platform_webhook_events USING btree (received_at);
 
 
 --

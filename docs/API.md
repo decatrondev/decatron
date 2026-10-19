@@ -913,6 +913,12 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `POST` | `/api/platform/waitlist` | Public |
 | `POST` | `/api/platform/waitlist/confirm` | Public |
 
+### Platform Webhook
+
+| Method | Route | Access |
+|---|---|---|
+| `POST` | `/api/platform/webhooks/culqi/{secret}` | Public |
+
 ### Public Commands
 
 | Method | Route | Access |

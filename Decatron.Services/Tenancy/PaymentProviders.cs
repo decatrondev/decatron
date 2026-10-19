@@ -14,7 +14,12 @@ public interface IPaymentProvider
     Task<ProviderCard> SaveCardAsync(ProviderCustomer customer, string token, CancellationToken ct = default);
     /// <summary>Borra la tarjeta guardada (cancelar el cobro automático). Mejor esfuerzo: false si el proveedor no la pudo borrar.</summary>
     Task<bool> DeleteCardAsync(string cardId, CancellationToken ct = default);
+    /// <summary>Consulta un cargo al proveedor (la única fuente de verdad para los avisos). null si no existe o no se pudo leer.</summary>
+    Task<ProviderChargeInfo?> GetChargeAsync(string chargeId, CancellationToken ct = default);
 }
+
+/// <param name="Authorized">El proveedor lo autorizó (en Culqi <c>outcome.type = venta_exitosa</c>); NO es <c>paid</c>, que solo indica que ya se abonó al comercio.</param>
+public sealed record ProviderChargeInfo(string Id, bool Authorized, int AmountCentavos, int RefundedCentavos, bool IsTest, IReadOnlyDictionary<string, string> Metadata);
 
 /// <param name="ExistingCustomerId">Si el comprador ya tiene cliente en el proveedor se reutiliza; si no, se crea con los demás datos.</param>
 public sealed record ProviderCustomer(string? ExistingCustomerId, string FirstName, string LastName, string Email, string Address, string City, string CountryCode, string Phone);
@@ -31,8 +36,9 @@ public sealed class CulqiPaymentProvider : IPaymentProvider
     private readonly IPaymentModeService _mode;
     private readonly IHttpClientFactory _http;
     private readonly ILogger<CulqiPaymentProvider> _log;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _cfg;
 
-    public CulqiPaymentProvider(IPaymentModeService mode, IHttpClientFactory http, ILogger<CulqiPaymentProvider> log) { _mode = mode; _http = http; _log = log; }
+    public CulqiPaymentProvider(IPaymentModeService mode, IHttpClientFactory http, Microsoft.Extensions.Configuration.IConfiguration cfg, ILogger<CulqiPaymentProvider> log) { _mode = mode; _http = http; _cfg = cfg; _log = log; }
 
     public string Name => "culqi";
 
@@ -129,5 +135,35 @@ public sealed class CulqiPaymentProvider : IPaymentProvider
             return resp.IsSuccessStatusCode;
         }
         catch (HttpRequestException ex) { _log.LogWarning(ex, "No se pudo borrar una tarjeta guardada"); return false; }
+    }
+
+    public async Task<ProviderChargeInfo?> GetChargeAsync(string chargeId, CancellationToken ct = default)
+    {
+        try
+        {
+            // La llave sale del propio id (chr_test_ / chr_live_): un aviso puede ser de un modo distinto al que está activo hoy.
+            var isTest = chargeId.StartsWith("chr_test_", StringComparison.OrdinalIgnoreCase);
+            var secret = _cfg[isTest ? "CulqiSettingsTest:SecretKey" : "CulqiSettings:SecretKey"];
+            if (string.IsNullOrWhiteSpace(secret)) return null;
+            using var client = _http.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secret);
+            var resp = await client.GetAsync($"https://api.culqi.com/v2/charges/{Uri.EscapeDataString(chargeId)}", ct);
+            if (!resp.IsSuccessStatusCode) return null;
+            using var d = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct));
+            var r = d.RootElement;
+            if (!r.TryGetProperty("id", out var idEl) || idEl.GetString() is not { Length: > 0 } id) return null;
+            var authorized = r.TryGetProperty("outcome", out var oc) && oc.ValueKind == JsonValueKind.Object && oc.TryGetProperty("type", out var ot) && ot.GetString() == "venta_exitosa";
+            var amount = r.TryGetProperty("amount", out var am) && am.TryGetInt32(out var a) ? a : 0;
+            var refunded = r.TryGetProperty("amount_refunded", out var rf) && rf.TryGetInt32(out var rr) ? rr : 0;
+            var meta = new Dictionary<string, string>();
+            if (r.TryGetProperty("metadata", out var m) && m.ValueKind == JsonValueKind.Object)
+                foreach (var p in m.EnumerateObject()) meta[p.Name] = p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() ?? "" : p.Value.ToString();
+            return new ProviderChargeInfo(id, authorized, amount, refunded, isTest, meta);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
+        {
+            _log.LogWarning(ex, "No se pudo consultar el cargo en Culqi");
+            return null;
+        }
     }
 }
