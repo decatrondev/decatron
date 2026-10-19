@@ -21,4 +21,36 @@ public class PlatformModulesTests
         var lista = File.ReadAllText(Path.Combine(dir.FullName, "Decatron.Controllers", "PlatformModulesController.cs"));
         foreach (var m in usados) Assert.Contains($"\"{m}\"", lista);
     }
+
+    [Fact(DisplayName = "Mis módulos: todo módulo que el panel nombra (rutas, tarjetas, menú, Dashboard) existe en el catálogo")]
+    public void PanelSoloNombraModulosDelCatalogo()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "Decatron.csproj"))) dir = dir.Parent;
+        Assert.NotNull(dir);
+
+        var lista = File.ReadAllText(Path.Combine(dir!.FullName, "Decatron.Controllers", "PlatformModulesController.cs"));
+        var catalogo = Regex.Matches(lista, @"""module\.([a-z_]+)""").Select(m => m.Groups[1].Value).ToHashSet();
+        Assert.True(catalogo.Count >= 45, "El catálogo del endpoint debe listar los 45 módulos");
+
+        var src = Path.Combine(dir.FullName, "ClientApp", "src");
+        var nombrados = new HashSet<string>();
+        foreach (var f in Directory.GetFiles(src, "*.tsx", SearchOption.AllDirectories).Concat(Directory.GetFiles(src, "*.ts", SearchOption.AllDirectories)))
+        {
+            var t = File.ReadAllText(f);
+            foreach (Match m in Regex.Matches(t, @"planHas\('([a-z_]+)'\)")) nombrados.Add(m.Groups[1].Value);
+            foreach (Match m in Regex.Matches(t, @"\bmodule: '([a-z_]+)'")) nombrados.Add(m.Groups[1].Value);
+        }
+        // Rutas y grupos del contexto, y el mapa de tarjetas de overlays
+        var ctx = File.ReadAllText(Path.Combine(src, "contexts", "PlanModulesContext.tsx"));
+        foreach (Match m in Regex.Matches(ctx, @"\['/[^']*', '([a-z_]+)'\]")) nombrados.Add(m.Groups[1].Value);
+        foreach (Match b in Regex.Matches(ctx, @"(?:OVERLAY_MODULES|MODERATION_MODULES) = \[([^\]]*)\]"))
+            foreach (Match m in Regex.Matches(b.Groups[1].Value, @"'([a-z_]+)'")) nombrados.Add(m.Groups[1].Value);
+        var ov = Regex.Match(File.ReadAllText(Path.Combine(src, "pages", "features", "Overlays.tsx")), @"OVERLAY_MODULE: Record<string, string> = \{([^}]*)\}");
+        foreach (Match m in Regex.Matches(ov.Groups[1].Value, @":\s*'([a-z_]+)'")) nombrados.Add(m.Groups[1].Value);
+
+        Assert.NotEmpty(nombrados);
+        var faltan = nombrados.Where(n => !catalogo.Contains(n)).ToList();
+        Assert.True(faltan.Count == 0, "El panel nombra módulos que no existen en el catálogo: " + string.Join(", ", faltan));
+    }
 }

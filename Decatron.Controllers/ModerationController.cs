@@ -33,16 +33,30 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _dbContext;
         private readonly ModerationService _moderationService;
         private readonly ILogger<ModerationController> _logger;
+        private readonly Decatron.Core.Interfaces.IEntitlements _entitlements;
 
         public ModerationController(
             DecatronDbContext dbContext,
             ModerationService moderationService,
-            ILogger<ModerationController> logger)
+            ILogger<ModerationController> logger,
+            Decatron.Core.Interfaces.IEntitlements entitlements)
         {
             _dbContext = dbContext;
             _moderationService = moderationService;
             _logger = logger;
+            _entitlements = entitlements;
         }
+
+        // Plataforma: módulo del plan que cubre cada filtro (palabras, links, el bot de raids y todo lo demás como anti-spam).
+        private static string ModuleForFilter(string key) => key switch
+        {
+            "banned_words" => "module.mod_banned_words",
+            "links" => "module.mod_links",
+            BotPhrasesFilter.FilterKey => "module.mod_raids",
+            _ => "module.mod_spam"
+        };
+
+        private Task<bool> FilterAllowedAsync(string key) => _entitlements.HasAsync(ModuleForFilter(key), null, live: false, HttpContext.RequestAborted);
 
         /// <summary>
         /// Obtiene el ID del usuario autenticado
@@ -464,6 +478,10 @@ namespace Decatron.Controllers
                 }
 
                 var hits = await _moderationService.TestMessageAsync(username, request.Message);
+                var allowedHits = new List<(FilterHit Hit, bool Enabled)>();
+                foreach (var h in hits)
+                    if (await FilterAllowedAsync(h.Hit.FilterKey)) allowedHits.Add(h);
+                hits = allowedHits;
                 if (!string.IsNullOrEmpty(request.Filter))
                     hits = hits.Where(h => h.Hit.FilterKey == request.Filter).ToList();
                 if (hits.Count == 0)
@@ -512,7 +530,11 @@ namespace Decatron.Controllers
                     .Where(f => f.ChannelName == username)
                     .ToListAsync();
 
-                var filters = _moderationService.FilterKeys.Select(key =>
+                var allowedKeys = new List<string>();
+                foreach (var k in _moderationService.FilterKeys)
+                    if (await FilterAllowedAsync(k)) allowedKeys.Add(k);
+
+                var filters = allowedKeys.Select(key =>
                 {
                     var row = rows.FirstOrDefault(r => r.FilterKey == key);
                     return new
@@ -546,6 +568,9 @@ namespace Decatron.Controllers
             {
                 if (!_moderationService.FilterKeys.Contains(key))
                     return NotFound(new { success = false, message = "Filtro desconocido" });
+
+                if (!await FilterAllowedAsync(key))
+                    return StatusCode(403, new { error = "module_not_included", module = ModuleForFilter(key) });
 
                 if (request.Severity != null && request.Severity is not ("leve" or "medio" or "severo"))
                     return BadRequest(new { success = false, message = "Severidad inválida" });

@@ -672,7 +672,8 @@ namespace Decatron.Services
                 if (platform == "kick" && commandName is "!title" or "!t" or "!game" or "!g" && channelUserId != null)
                 {
                     var kickCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
-                    if (await _kickTitleCategory.TryHandleAsync(kickCtx, _messageSender))
+                    // Plataforma: el mismo módulo del plan que en Twitch (cmd_title / cmd_game)
+                    if (await CommandModuleOnAsync(commandName) && await _kickTitleCategory.TryHandleAsync(kickCtx, _messageSender))
                         return;
                 }
 
