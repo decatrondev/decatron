@@ -392,7 +392,9 @@ namespace Decatron.Controllers
                     var provider = ttsConfig.TryGetProperty("provider", out var provProp)
                         ? provProp.GetString() ?? "polly" : "polly";
 
-                    var voice = provider == "piper"
+                    var voice = provider == "fish"
+                        ? (ttsConfig.TryGetProperty("fishVoice", out var fvProp) ? fvProp.GetString() ?? "" : "")
+                        : provider == "piper"
                         ? (ttsConfig.TryGetProperty("standardVoice", out var svProp) ? svProp.GetString() ?? "" : "")
                         : (ttsConfig.TryGetProperty("voice", out var voiceProp) ? voiceProp.GetString() ?? "Lupe" : "Lupe");
 

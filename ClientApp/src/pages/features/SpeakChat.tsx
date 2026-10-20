@@ -5,6 +5,7 @@ import {
     Filter, Monitor, TestTube2, ChevronDown, ChevronUp, Lock, AlertCircle
 } from 'lucide-react';
 import api from '../../services/api';
+import { FISH_VOICES } from './fishVoices';
 import {
     useVoiceCatalog,
     standardVoicesForLanguage,
@@ -75,11 +76,6 @@ interface SpeakChatConfigData {
 }
 
 // ===================== DEFAULTS =====================
-
-// Voces de personaje (Fish Audio). Por ahora es una lista fija; cuando exista el catálogo del admin vendrá del servidor.
-const FISH_VOICES = [
-    { id: '4eb30374137749b9a377f06674a3ca22', name: 'Toji · español latino' },
-];
 
 const defaultRoles: RoleConfig = { everyone: true, subscriber: false, vip: false, moderator: false, broadcaster: true };
 

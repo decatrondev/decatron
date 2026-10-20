@@ -107,6 +107,8 @@ interface TipAlertData {
     ttsTemplateVolume?: number;
     ttsUserMessageUrl?: string;
     ttsUserMessageVolume?: number;
+    /** Turno de voz del canal: al terminar la voz se avisa al servidor para que suene la siguiente */
+    audioTurnId?: string | null;
 
     // Legacy alertConfig (backward compatibility)
     alertConfig?: {
@@ -408,6 +410,9 @@ export default function TipsOverlay() {
         if (tip.ttsUserMessageUrl && alertIdRef.current === alertId) {
             console.log('[TipsOverlay] [4/4] TTS message:', tip.ttsUserMessageUrl);
             await playAudio(tip.ttsUserMessageUrl, tip.ttsUserMessageVolume ?? 80);
+        }
+        if (tip.audioTurnId) {
+            connectionRef.current?.invoke('AudioTurnEnded', channelName, tip.audioTurnId).catch(() => {});
         }
     };
 

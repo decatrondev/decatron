@@ -52,6 +52,7 @@ namespace Decatron.Services
         private readonly DecatronDbContext _context;
         private readonly ILogger<TipsService> _logger;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
         private readonly TimerEventService _timerEventService;
         private readonly ITtsService _ttsService;
         private readonly ITtsCreditService _creditService;
@@ -64,8 +65,10 @@ namespace Decatron.Services
             TimerEventService timerEventService,
             ITtsService ttsService,
             ITtsCreditService creditService,
-            IGachaService gachaService)
+            IGachaService gachaService,
+            Decatron.Core.Services.ChannelAudioGate audioGate)
         {
+            _audioGate = audioGate;
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
@@ -288,6 +291,7 @@ namespace Decatron.Services
 
         private async Task SendTipAlert(TipHistory tip, TipsConfig? config)
         {
+            Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
                 // Check if we have the new tips alert config with tiers
@@ -361,6 +365,14 @@ namespace Decatron.Services
 
                 if (ttsConfig?.Enabled == true && config != null)
                 {
+                    // Una voz a la vez por canal (ver ChannelAudioGate). Sin turno la alerta sale igual, sin voz.
+                    audioTurn = await _audioGate.RequestAsync(tip.ChannelName, "tips");
+                    if (audioTurn == null)
+                        _logger.LogInformation("[Tips] {Channel}: alerta sin voz, el canal tenía demasiadas voces en espera", tip.ChannelName);
+                }
+
+                if (audioTurn != null && ttsConfig?.Enabled == true && config != null)
+                {
                     // Generate TTS for template
                     if (!string.IsNullOrEmpty(ttsConfig.Template))
                     {
@@ -403,6 +415,13 @@ namespace Decatron.Services
                             tip.ChannelName,
                             ttsConfig.Provider ?? "polly");
                         ttsUserMessageVolume = ttsConfig.UserMessageVolume ?? 80;
+                    }
+
+                    // Sin ningún audio no hay nada que esperar
+                    if (string.IsNullOrEmpty(ttsTemplateUrl) && string.IsNullOrEmpty(ttsUserMessageUrl))
+                    {
+                        audioTurn.Release();
+                        audioTurn = null;
                     }
                 }
 
@@ -575,6 +594,7 @@ namespace Decatron.Services
                     // [4/4] TTS user message
                     ttsUserMessageUrl = ttsUserMessageUrl ?? "",
                     ttsUserMessageVolume,
+                    audioTurnId = audioTurn?.Id,
 
                     // Display
                     duration,
@@ -590,11 +610,23 @@ namespace Decatron.Services
                     !string.IsNullOrEmpty(ttsTemplateUrl));
 
                 await _overlayNotificationService.SendToChannel(tip.ChannelName, "ShowTipAlert", alertData);
+
+                // El turno dura lo que dure la alerta con voz: el overlay avisa al terminar (si no, vence por tiempo)
+                if (audioTurn != null)
+                {
+                    if (!Decatron.Hubs.OverlayHub.HasActiveClients(tip.ChannelName)) audioTurn.Release();
+                    else
+                    {
+                        var spoken = (tip.Message?.Length ?? 0) + 40;
+                        audioTurn.Arm(TimeSpan.FromSeconds(Math.Clamp(spoken / 12.0 + (duration / 1000.0) + 45, 45, 120)));
+                    }
+                }
                 _logger.LogInformation("[Tips] Alert sent for tip from {Donor} (tier: {Tier})", tip.DonorName, matchedTier?.Name ?? "base");
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "[Tips] Failed to send tip alert");
+                audioTurn?.Release();
             }
         }
 
@@ -742,9 +774,12 @@ namespace Decatron.Services
             /// <summary>Id de la voz de Piper cuando Provider es "piper" (es_MX-claude-high).</summary>
             public string? StandardVoice { get; set; }
 
+            /// <summary>Id de la voz de personaje (Fish) cuando Provider es "fish"; vacío = la predeterminada del servidor.</summary>
+            public string? FishVoice { get; set; }
+
             /// <summary>La voz que toca según el proveedor elegido.</summary>
             public string SelectedVoice =>
-                Provider == "piper" ? (StandardVoice ?? "") : (Voice ?? "Lupe");
+                Provider == "fish" ? (FishVoice ?? "") : Provider == "piper" ? (StandardVoice ?? "") : (Voice ?? "Lupe");
         }
 
         private static string FormatAmount(decimal amount, string currency)

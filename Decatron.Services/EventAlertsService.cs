@@ -274,7 +274,10 @@ namespace Decatron.Services
                     var provider = ttsCfg.TryGetProperty("provider", out var pvp)
                         ? pvp.GetString() ?? "polly" : "polly";
 
-                    var voice = provider == "piper"
+                    // "fish" es la voz de personaje: vacío = la predeterminada del servidor
+                    var voice = provider == "fish"
+                        ? (ttsCfg.TryGetProperty("fishVoice", out var fvp) ? fvp.GetString() ?? "" : "")
+                        : provider == "piper"
                         ? (ttsCfg.TryGetProperty("standardVoice", out var svp) ? svp.GetString() ?? "" : "")
                         : (ttsCfg.TryGetProperty("voice", out var vp) ? vp.GetString() ?? "Lupe" : "Lupe");
 

@@ -283,8 +283,9 @@ export interface TtsConfig {
   // servidor; 'polly' gasta créditos premium. Ausente = 'polly' para no cambiar lo ya
   // configurado. 'browser' es el motor viejo, que se lee como 'piper': no llegaba a
   // sonar dentro de OBS.
-  provider?: 'polly' | 'piper' | 'browser';
+  provider?: 'polly' | 'piper' | 'fish' | 'browser';
   standardVoice?: string;  // Id de la voz de Piper, ej: "es_MX-claude-high"
+  fishVoice?: string;      // Id de la voz de personaje (Fish Audio); vacío = la predeterminada del servidor
 
   // Template TTS (mensaje configurado: "¡Gracias {username}!")
   template: string;        // Texto a leer, con variables: {username}, {amount}, etc.

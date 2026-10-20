@@ -14,6 +14,7 @@ import {
   languageLabel,
   describeVoiceMismatch,
 } from '../../../../components/tts/useVoiceCatalog';
+import { FISH_VOICES } from '../../fishVoices';
 
 // Las voces y los idiomas vienen del servidor, no de una lista escrita aquí. La que
 // había en este archivo tenía 21 voces, la de Speak Chat 16, y ninguna coincidía con lo
@@ -148,8 +149,12 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
   // Ausente = polly, para no cambiar lo ya configurado. "browser" es el motor viejo,
   // que ya no existe: se lee como voz estándar, que es lo que hace lo que aquella
   // prometía.
-  const provider = config.provider === 'piper' || config.provider === 'browser' ? 'piper' : 'polly';
+  // 'fish' es la voz de personaje: cae a la estándar si falla, así que usa los idiomas de la estándar.
+  const provider = config.provider === 'fish' ? 'fish'
+    : config.provider === 'piper' || config.provider === 'browser' ? 'piper' : 'polly';
   const usingStandard = provider === 'piper';
+  const usingFish = provider === 'fish';
+  const usingPolly = provider === 'polly';
 
   const voicesForThisLanguage = standardVoicesForLanguage(voiceCatalog, config.languageCode);
   const voiceMismatch = describeVoiceMismatch(voiceCatalog, config.voice, config.languageCode);
@@ -157,9 +162,9 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
   // Los idiomas dependen de lo elegido antes: del proveedor y, en premium, también de la
   // calidad. Antes solo se miraba el proveedor, así que con alta calidad seguían saliendo
   // los idiomas que solo existen en normal y el selector de voces quedaba vacío.
-  const languageOptions = usingStandard
-    ? languagesFor(voiceCatalog, 'piper')
-    : languagesFor(voiceCatalog, 'polly', config.engine);
+  const languageOptions = usingPolly
+    ? languagesFor(voiceCatalog, 'polly', config.engine)
+    : languagesFor(voiceCatalog, 'piper');
 
   return (
     <div className={`rounded-lg border-2 transition-all ${
@@ -180,7 +185,9 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             </div>
             {config.enabled && (
               <div className="text-xs text-ds-accent-text mt-0.5 3xl:text-sm">
-                {usingStandard
+                {usingFish
+                  ? `🎭 ${(FISH_VOICES.find(v => v.id === config.fishVoice) ?? FISH_VOICES[0]).name} · voz de personaje`
+                  : usingStandard
                   ? `🆓 ${voiceCatalog.standard.voices.find(v => v.id === config.standardVoice)?.name ?? 'Voz automática'} · estándar · ${config.languageCode}`
                   : `🎙️ ${voiceCatalog.premium.voices.find(v => v.id === config.voice)?.name ?? config.voice} · ${config.engine === 'neural' ? 'alta calidad' : 'normal'} · ${languageLabel(voiceCatalog, config.languageCode)}`}
               </div>
@@ -213,7 +220,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             {/* Motor de voz: la decisión que más cambia el resultado, así que va primero */}
             <div className="mb-4">
               <label className={labelClass}>Motor de voz</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   onClick={() => onChange({ provider: 'piper' })}
                   className={`px-3 py-3 rounded-lg text-left transition-all border-2 ${
@@ -228,7 +235,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                 <button
                   onClick={() => onChange({ provider: 'polly' })}
                   className={`px-3 py-3 rounded-lg text-left transition-all border-2 ${
-                    !usingStandard
+                    usingPolly
                       ? 'bg-ds-accent/10 border-ds-accent text-ds-accent-text '
                       : 'bg-ds-surface border-ds-border text-ds-soft hover:border-ds-accent'
                   }`}
@@ -236,9 +243,27 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                   <div className="text-sm font-bold 3xl:text-base">🎙️ Voz premium</div>
                   <div className="text-xs mt-0.5 opacity-80 3xl:text-sm">Gasta créditos premium. Más idiomas, incluido japonés.</div>
                 </button>
+                <button
+                  onClick={() => onChange({ provider: 'fish' })}
+                  className={`px-3 py-3 rounded-lg text-left transition-all border-2 ${
+                    usingFish
+                      ? 'bg-ds-accent/10 border-ds-accent text-ds-accent-text '
+                      : 'bg-ds-surface border-ds-border text-ds-soft hover:border-ds-accent'
+                  }`}
+                >
+                  <div className="text-sm font-bold 3xl:text-base">🎭 Voz de personaje</div>
+                  <div className="text-xs mt-0.5 opacity-80 3xl:text-sm">Gasta créditos premium. Voces con carácter propio.</div>
+                </button>
               </div>
 
-              {!usingStandard && (
+              {usingFish && (
+                <p className="text-xs text-ds-soft mt-2 3xl:text-sm">
+                  Si te quedas sin créditos premium o la voz falla, la alerta no se queda muda: se lee
+                  con tu voz estándar.
+                </p>
+              )}
+
+              {usingPolly && (
                 <p className="text-xs text-ds-soft mt-2 3xl:text-sm">
                   Si te quedas sin créditos premium la alerta no se queda muda: se lee con
                   tu voz estándar{voiceCatalog.standard.voices.length > 0 && voicesForThisLanguage.length === 0
@@ -249,7 +274,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             </div>
 
             {/* Calidad primero: es lo que decide el precio y lo que recorta los idiomas */}
-            {!usingStandard && (
+            {usingPolly && (
               <div className="mb-4">
                 <label className={labelClass}>Calidad</label>
                 <select
@@ -272,7 +297,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             {/* Configuraciones guardadas antes de que existiera el filtro: la voz y el
                 idioma pueden no cuadrar. El filtro nuevo impide crearlas, no arregla las
                 que ya están, así que hay que decirlo. */}
-            {!usingStandard && voiceMismatch && (
+            {usingPolly && voiceMismatch && (
               <div className="mb-4 px-3 py-2 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-xs text-ds-warn 3xl:text-sm">
                 ⚠️ {voiceMismatch}
               </div>
@@ -290,7 +315,12 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                   <option key={l.code} value={l.code}>{l.label}</option>
                 ))}
               </select>
-              {usingStandard ? (
+              {usingFish ? (
+                <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
+                  La voz de personaje habla con su propio idioma. Este idioma se usa si hay que
+                  leer la alerta con la voz estándar de respaldo.
+                </p>
+              ) : usingStandard ? (
                 <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
                   El japonés y el coreano solo están en voz premium.
                 </p>
@@ -329,8 +359,22 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
               </div>
             )}
 
+            {/* Voz de personaje */}
+            {usingFish && (
+              <div className="mb-4">
+                <label className={labelClass}>Voz de personaje</label>
+                <select
+                  value={config.fishVoice || FISH_VOICES[0].id}
+                  onChange={e => onChange({ fishVoice: e.target.value })}
+                  className={inputClass}
+                >
+                  {FISH_VOICES.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                </select>
+              </div>
+            )}
+
             {/* Voz de Polly */}
-            {!usingStandard && (
+            {usingPolly && (
             <div className="mb-4">
               <label className={labelClass}>Voz</label>
               {compatibleVoices.length > 0 ? (

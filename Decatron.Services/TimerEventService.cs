@@ -136,9 +136,12 @@ namespace Decatron.Services
         /// <summary>Id de la voz de Piper cuando provider es "piper" (es_MX-claude-high).</summary>
         public string standardVoice { get; set; } = "";
 
+        /// <summary>Id de la voz de personaje (Fish) cuando provider es "fish"; vacío = la predeterminada del servidor.</summary>
+        public string fishVoice { get; set; } = "";
+
         /// <summary>La voz que toca según el proveedor elegido.</summary>
         public string SelectedVoice =>
-            provider == "piper" ? (standardVoice ?? "") : (voice ?? "Lupe");
+            provider == "fish" ? (fishVoice ?? "") : provider == "piper" ? (standardVoice ?? "") : (voice ?? "Lupe");
     }
 
     public class AlertDefaultConfig
