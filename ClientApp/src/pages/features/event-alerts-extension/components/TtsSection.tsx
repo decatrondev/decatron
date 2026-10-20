@@ -14,7 +14,7 @@ import {
   languageLabel,
   describeVoiceMismatch,
 } from '../../../../components/tts/useVoiceCatalog';
-import { FISH_VOICES } from '../../fishVoices';
+import { useFishVoices, fishVoiceLabel, fishCostPer100 } from '../../fishVoices';
 
 // Las voces y los idiomas vienen del servidor, no de una lista escrita aquí. La que
 // había en este archivo tenía 21 voces, la de Speak Chat 16, y ninguna coincidía con lo
@@ -153,6 +153,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
   const provider = config.provider === 'fish' ? 'fish'
     : config.provider === 'piper' || config.provider === 'browser' ? 'piper' : 'polly';
   const usingStandard = provider === 'piper';
+  const { voices: fishVoices, creditsPerByte: fishCreditsPerByte } = useFishVoices();
   const usingFish = provider === 'fish';
   const usingPolly = provider === 'polly';
 
@@ -186,7 +187,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             {config.enabled && (
               <div className="text-xs text-ds-accent-text mt-0.5 3xl:text-sm">
                 {usingFish
-                  ? `🎭 ${(FISH_VOICES.find(v => v.id === config.fishVoice) ?? FISH_VOICES[0]).name} · voz de personaje`
+                  ? `🎭 ${(fishVoices.find(v => v.id === config.fishVoice) ?? fishVoices[0])?.name ?? 'Voz de personaje'} · voz de personaje`
                   : usingStandard
                   ? `🆓 ${voiceCatalog.standard.voices.find(v => v.id === config.standardVoice)?.name ?? 'Voz automática'} · estándar · ${config.languageCode}`
                   : `🎙️ ${voiceCatalog.premium.voices.find(v => v.id === config.voice)?.name ?? config.voice} · ${config.engine === 'neural' ? 'alta calidad' : 'normal'} · ${languageLabel(voiceCatalog, config.languageCode)}`}
@@ -364,12 +365,16 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
               <div className="mb-4">
                 <label className={labelClass}>Voz de personaje</label>
                 <select
-                  value={config.fishVoice || FISH_VOICES[0].id}
+                  value={config.fishVoice || fishVoices[0]?.id || ''}
                   onChange={e => onChange({ fishVoice: e.target.value })}
                   className={inputClass}
                 >
-                  {FISH_VOICES.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  {fishVoices.length === 0 && <option value="">No hay voces de personaje disponibles</option>}
+                  {fishVoices.map(v => <option key={v.id} value={v.id}>{fishVoiceLabel(v)}</option>)}
                 </select>
+                {fishCreditsPerByte > 0 && (
+                  <p className="text-xs text-ds-soft mt-1">Unos {fishCostPer100(fishCreditsPerByte)} créditos cada 100 caracteres.</p>
+                )}
               </div>
             )}
 

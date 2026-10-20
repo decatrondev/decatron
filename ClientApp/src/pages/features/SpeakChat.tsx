@@ -5,7 +5,7 @@ import {
     Filter, Monitor, TestTube2, ChevronDown, ChevronUp, Lock, AlertCircle
 } from 'lucide-react';
 import api from '../../services/api';
-import { FISH_VOICES } from './fishVoices';
+import { useFishVoices, fishVoiceLabel, fishCostPer100 } from './fishVoices';
 import {
     useVoiceCatalog,
     standardVoicesForLanguage,
@@ -150,6 +150,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 // ===================== COMPONENT =====================
 
 export default function SpeakChat() {
+    const { voices: fishVoices, creditsPerByte: fishCreditsPerByte } = useFishVoices();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<TabId>('global');
     const [loading, setLoading] = useState(true);
@@ -269,7 +270,7 @@ export default function SpeakChat() {
                 message: testMessage,
                 // Cada motor tiene su propio catálogo de voces
                 voice: config.voice.engine === 'polly' ? config.voice.pollyVoice
-                    : config.voice.engine === 'fish' ? (config.voice.fishVoice || FISH_VOICES[0].id)
+                    : config.voice.engine === 'fish' ? (config.voice.fishVoice || fishVoices[0]?.id || '')
                     : config.voice.standardVoice,
                 engine: config.voice.engine,
                 // Sin esto la prueba sonaría siempre en estándar y no se podría
@@ -832,14 +833,15 @@ export default function SpeakChat() {
                                 <div>
                                     <label className={labelClass}>Voz de personaje</label>
                                     <select
-                                        value={config.voice.fishVoice || FISH_VOICES[0].id}
+                                        value={config.voice.fishVoice || fishVoices[0]?.id || ''}
                                         onChange={e => setConfig(c => ({ ...c, voice: { ...c.voice, fishVoice: e.target.value } }))}
                                         className={inputClass}
                                     >
-                                        {FISH_VOICES.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                        {fishVoices.length === 0 && <option value="">No hay voces de personaje disponibles</option>}
+                                        {fishVoices.map(v => <option key={v.id} value={v.id}>{fishVoiceLabel(v)}</option>)}
                                     </select>
                                     <p className="text-xs text-ds-soft mt-1">
-                                        Gasta créditos premium, más que la voz estándar. Si te quedas sin créditos
+                                        Gasta créditos premium{fishCreditsPerByte > 0 ? ` (unos ${fishCostPer100(fishCreditsPerByte)} cada 100 caracteres)` : ''}, más que la voz estándar. Si te quedas sin créditos
                                         o la voz falla, el chat no se queda mudo: se lee con voz estándar.
                                     </p>
                                 </div>

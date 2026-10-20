@@ -82,4 +82,35 @@ public class FishTtsClientTests
         Assert.Equal(106, FishTtsClient.BillableBytes(frase));
         Assert.True(FishTtsClient.BillableBytes(frase) > frase.Length);
     }
+
+    private const string ModelJson = """
+        {"_id":"4eb30374137749b9a377f06674a3ca22","title":"Toji","languages":["es"],"visibility":"public","dmca_taken_down":false,
+         "like_count":215,"task_count":44921,"state":"trained","author":{"nickname":"JOA549582"},
+         "samples":[{"text":"hola","audio":"https://muestra/a.mp3"}]}
+        """;
+
+    [Fact]
+    public async Task GetModel_LeeLosDatosPublicos_YUn404EsNull()
+    {
+        var ok = await Client(new Handler(HttpStatusCode.OK, System.Text.Encoding.UTF8.GetBytes(ModelJson))).GetModelAsync("4eb30374137749b9a377f06674a3ca22");
+        Assert.NotNull(ok);
+        Assert.Equal("Toji", ok!.Title);
+        Assert.Equal("JOA549582", ok.Author);
+        Assert.Equal(new[] { "es" }, ok.Languages);
+        Assert.Equal("https://muestra/a.mp3", ok.SampleUrl);
+        Assert.False(ok.TakenDown);
+        Assert.Equal("public", ok.Visibility);
+
+        Assert.Null(await Client(new Handler(HttpStatusCode.NotFound)).GetModelAsync("4eb30374137749b9a377f06674a3ca22"));
+        Assert.Null(await Client(new Handler(HttpStatusCode.OK)).GetModelAsync("Lupe")); // no es un id: ni se consulta
+    }
+
+    [Fact]
+    public async Task Buscar_DevuelveLosItems_SinEnviarLlave()
+    {
+        var h = new Handler(HttpStatusCode.OK, System.Text.Encoding.UTF8.GetBytes("{\"items\":[" + ModelJson + "]}"));
+        var found = await Client(h).SearchModelsAsync("toji", "es");
+        Assert.Single(found);
+        Assert.Null(h.Calls[0].Auth);
+    }
 }

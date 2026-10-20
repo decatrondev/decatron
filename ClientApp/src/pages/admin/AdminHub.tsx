@@ -36,6 +36,7 @@ const GROUPS: AdminGroup[] = [
             { id: 'ai-costs', name: 'Costos de IA', description: 'Gasto por modelo y saldo de créditos de los proveedores', icon: <CircleDollarSign className={ic} />, route: '/admin/ai-costs', ready: true },
             { id: 'live-translation', name: 'Traducción en vivo', description: 'Uso, costo estimado por proveedor, sesiones activas y límites', icon: <Languages className={ic} />, route: '/admin/live-translation', ready: true },
             { id: 'tts-lab', name: 'Laboratorio de voces', description: 'Compara las voces de Piper (gratis, en el servidor) con Polly: calidad, tiempo y coste', icon: <Mic className={ic} />, route: '/admin/tts-lab', ready: true },
+            { id: 'fish-voices', name: 'Voces de personaje', description: 'Catálogo de voces de Fish Audio: buscar, probar, aprobar y anotar la licencia', icon: <Mic className={ic} />, route: '/admin/fish-voices', ready: true },
         ],
     },
     {

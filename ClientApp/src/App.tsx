@@ -60,6 +60,7 @@ import DevDocs from './pages/admin/DevDocs';
 import TtsLab from './pages/admin/TtsLab';
 import DesignGuide from './pages/admin/DesignGuide';
 import TtsCreditsAdmin from './pages/admin/TtsCreditsAdmin';
+import FishVoicesAdmin from './pages/admin/FishVoicesAdmin';
 import LiveTranslationAdmin from './pages/admin/LiveTranslationAdmin';
 import AiCostsAdmin from './pages/admin/AiCostsAdmin';
 import ProjectAnalysis from './pages/admin/ProjectAnalysis';
@@ -400,6 +401,7 @@ function App() {
                     <Route path="admin/clip-command" element={<SafeRoute name="Clip Admin"><ClipCommandAdmin /></SafeRoute>} />
                     <Route path="admin/discord-server" element={<SafeRoute name="Discord Server"><DiscordServerAdmin /></SafeRoute>} />
                     <Route path="admin/tts-credits" element={<SafeRoute name="TTS Credits"><TtsCreditsAdmin /></SafeRoute>} />
+                    <Route path="admin/fish-voices" element={<SafeRoute name="Fish Voices"><FishVoicesAdmin /></SafeRoute>} />
                     <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />
                     {/* Absorbido por Finanzas → Costos (plan FINANZAS_PLAN.md fase 5); la ruta vieja sigue viva para enlaces guardados. */}
                     <Route path="admin/ai-costs" element={<SafeRoute name="AI Costs Admin"><AiCostsAdmin /></SafeRoute>} />

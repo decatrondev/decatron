@@ -15,6 +15,11 @@ namespace Decatron.Services.Tts
         public FishTtsException(int status, string message) : base(message) { Status = status; }
     }
 
+    /// <summary>Datos públicos de una voz de Fish (búsqueda y consulta por id; no gastan saldo).</summary>
+    public sealed record FishModelInfo(
+        string Id, string Title, string[] Languages, string? Author, string? SampleUrl, string? SampleText,
+        int Likes, int Uses, string? Visibility, bool TakenDown, string? State);
+
     /// <summary>
     /// TTS de Fish Audio que devuelve el mp3 completo, para que el audio pase por el caché y el cobro de créditos como los de
     /// Polly y Piper (alertas, Speak Chat, tips, timers). La traducción en vivo usa <c>FishAudioTtsEngine</c>, que hace streaming.
@@ -103,6 +108,54 @@ namespace Decatron.Services.Tts
                 return bytes;
             }
             finally { gate.Release(); }
+        }
+
+        /// <summary>Busca voces públicas por título. No pide llave ni gasta saldo.</summary>
+        public async Task<List<FishModelInfo>> SearchModelsAsync(string? title, string? language, int pageSize = 12, CancellationToken ct = default)
+        {
+            var q = new List<string> { $"page_size={Math.Clamp(pageSize, 1, 30)}", "sort_by=score" };
+            if (!string.IsNullOrWhiteSpace(title)) q.Add("title=" + Uri.EscapeDataString(title.Trim()));
+            if (!string.IsNullOrWhiteSpace(language)) q.Add("language=" + Uri.EscapeDataString(language.Trim()));
+            using var res = await Public().GetAsync("https://api.fish.audio/model?" + string.Join("&", q), ct);
+            if (!res.IsSuccessStatusCode) throw new FishTtsException((int)res.StatusCode, $"Fish búsqueda {(int)res.StatusCode}");
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync(ct));
+            var list = new List<FishModelInfo>();
+            if (doc.RootElement.TryGetProperty("items", out var items))
+                foreach (var it in items.EnumerateArray()) list.Add(ParseModel(it));
+            return list;
+        }
+
+        /// <summary>Consulta una voz por id. Null si Fish ya no la devuelve (404); otro error lanza <see cref="FishTtsException"/>.</summary>
+        public async Task<FishModelInfo?> GetModelAsync(string voiceId, CancellationToken ct = default)
+        {
+            if (!LooksLikeVoiceId(voiceId)) return null;
+            using var res = await Public().GetAsync("https://api.fish.audio/model/" + voiceId.Trim(), ct);
+            if ((int)res.StatusCode == 404) return null;
+            if (!res.IsSuccessStatusCode) throw new FishTtsException((int)res.StatusCode, $"Fish modelo {(int)res.StatusCode}");
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync(ct));
+            return ParseModel(doc.RootElement);
+        }
+
+        private HttpClient Public()
+        {
+            var http = _http.CreateClient("fish-tts");
+            http.Timeout = TimeSpan.FromSeconds(15);
+            return http;
+        }
+
+        private static FishModelInfo ParseModel(JsonElement e)
+        {
+            string? Str(JsonElement x, string n) => x.TryGetProperty(n, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+            int Int(JsonElement x, string n) => x.TryGetProperty(n, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : 0;
+            var langs = e.TryGetProperty("languages", out var l) && l.ValueKind == JsonValueKind.Array
+                ? l.EnumerateArray().Select(x => x.GetString() ?? "").Where(x => x != "").ToArray() : Array.Empty<string>();
+            string? sample = null, sampleText = null;
+            if (e.TryGetProperty("samples", out var sm) && sm.ValueKind == JsonValueKind.Array && sm.GetArrayLength() > 0)
+            { sample = Str(sm[0], "audio"); sampleText = Str(sm[0], "text"); }
+            var author = e.TryGetProperty("author", out var a) && a.ValueKind == JsonValueKind.Object ? Str(a, "nickname") : null;
+            var takenDown = e.TryGetProperty("dmca_taken_down", out var d) && d.ValueKind == JsonValueKind.True;
+            return new FishModelInfo(Str(e, "_id") ?? "", Str(e, "title") ?? "", langs, author, sample, sampleText,
+                Int(e, "like_count"), Int(e, "task_count"), Str(e, "visibility"), takenDown, Str(e, "state"));
         }
 
         private SemaphoreSlim Gate()
