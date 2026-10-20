@@ -152,6 +152,10 @@ namespace Decatron.Services.Tts
             string? sample = null, sampleText = null;
             if (e.TryGetProperty("samples", out var sm) && sm.ValueKind == JsonValueKind.Array && sm.GetArrayLength() > 0)
             { sample = Str(sm[0], "audio"); sampleText = Str(sm[0], "text"); }
+            // La consulta por id devuelve la muestra con un enlace firmado que caduca; la búsqueda trae el permanente. Se guarda el permanente.
+            const string signedMarker = "/fish-platform-data/";
+            if (sample != null && sample.Contains(signedMarker, StringComparison.Ordinal))
+                sample = "https://platform.r2.fish.audio/" + sample[(sample.IndexOf(signedMarker, StringComparison.Ordinal) + signedMarker.Length)..].Split('?')[0];
             var author = e.TryGetProperty("author", out var a) && a.ValueKind == JsonValueKind.Object ? Str(a, "nickname") : null;
             var takenDown = e.TryGetProperty("dmca_taken_down", out var d) && d.ValueKind == JsonValueKind.True;
             return new FishModelInfo(Str(e, "_id") ?? "", Str(e, "title") ?? "", langs, author, sample, sampleText,

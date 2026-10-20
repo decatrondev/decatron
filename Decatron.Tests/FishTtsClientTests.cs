@@ -101,6 +101,11 @@ public class FishTtsClientTests
         Assert.False(ok.TakenDown);
         Assert.Equal("public", ok.Visibility);
 
+        // El enlace firmado (que caduca) de la consulta por id se guarda como el permanente
+        var firmado = ModelJson.Replace("https://muestra/a.mp3", "https://x.r2.cloudflarestorage.com/fish-platform-data/task/abc.mp3?X-Amz-Signature=zzz");
+        var m2 = await Client(new Handler(HttpStatusCode.OK, System.Text.Encoding.UTF8.GetBytes(firmado))).GetModelAsync("4eb30374137749b9a377f06674a3ca22");
+        Assert.Equal("https://platform.r2.fish.audio/task/abc.mp3", m2!.SampleUrl);
+
         Assert.Null(await Client(new Handler(HttpStatusCode.NotFound)).GetModelAsync("4eb30374137749b9a377f06674a3ca22"));
         Assert.Null(await Client(new Handler(HttpStatusCode.OK)).GetModelAsync("Lupe")); // no es un id: ni se consulta
     }
