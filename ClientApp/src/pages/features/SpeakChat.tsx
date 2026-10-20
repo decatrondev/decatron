@@ -5,6 +5,7 @@ import {
     Filter, Monitor, TestTube2, ChevronDown, ChevronUp, Lock, AlertCircle
 } from 'lucide-react';
 import api from '../../services/api';
+import FishVoiceRequestBox from './FishVoiceRequestBox';
 import { useFishVoices, fishVoiceLabel, fishCostPer100 } from './fishVoices';
 import {
     useVoiceCatalog,
@@ -844,6 +845,7 @@ export default function SpeakChat() {
                                         Gasta créditos premium{fishCreditsPerByte > 0 ? ` (unos ${fishCostPer100(fishCreditsPerByte)} cada 100 caracteres)` : ''}, más que la voz estándar. Si te quedas sin créditos
                                         o la voz falla, el chat no se queda mudo: se lee con voz estándar.
                                     </p>
+                                    <FishVoiceRequestBox />
                                 </div>
                             ) : config.voice.engine === 'polly' ? (
                                 <div>

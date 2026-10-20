@@ -36,6 +36,16 @@ interface SearchHit {
     inCatalog: boolean;
 }
 
+interface VoiceRequest {
+    id: number;
+    login?: string | null;
+    description: string;
+    referenceId?: string | null;
+    status: 'pending' | 'approved' | 'rejected';
+    adminNote?: string | null;
+    createdAt: string;
+}
+
 type License = 'commercial' | 'noncommercial' | 'unknown';
 
 const LICENSE_LABEL: Record<License, string> = {
@@ -66,6 +76,10 @@ export default function FishVoicesAdmin() {
     const [searching, setSearching] = useState(false);
     // Licencia y nota que se anotan al aprobar, por id de voz
     const [drafts, setDrafts] = useState<Record<string, { license: License; note: string }>>({});
+    const [requests, setRequests] = useState<VoiceRequest[]>([]);
+    // Solicitud que se resuelve al aprobar la próxima voz de la búsqueda
+    const [activeReq, setActiveReq] = useState<number | null>(null);
+    const [rejectNotes, setRejectNotes] = useState<Record<number, string>>({});
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const load = useCallback(async () => {
@@ -79,7 +93,14 @@ export default function FishVoicesAdmin() {
         }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    const loadRequests = useCallback(async () => {
+        try {
+            const res = await api.get('/admin/tts-fish-voices/requests');
+            setRequests(res.data.requests ?? []);
+        } catch { /* la cola es secundaria */ }
+    }, []);
+
+    useEffect(() => { load(); loadRequests(); }, [load, loadRequests]);
 
     const play = (url: string) => {
         audioRef.current?.pause();
@@ -108,13 +129,43 @@ export default function FishVoicesAdmin() {
     const approve = async (hit: SearchHit) => {
         const d = draftOf(hit.id);
         try {
-            await api.post('/admin/tts-fish-voices', { referenceId: hit.id, name: hit.title, license: d.license, licenseNote: d.note });
+            await api.post('/admin/tts-fish-voices', { referenceId: hit.id, name: hit.title, license: d.license, licenseNote: d.note, requestId: activeReq });
+            if (activeReq) { setActiveReq(null); await loadRequests(); }
             setMsg({ ok: true, text: `«${hit.title}» aprobada` });
             setHits(h => h?.map(x => x.id === hit.id ? { ...x, inCatalog: true } : x) ?? null);
             await load();
         } catch (e: any) {
             setMsg({ ok: false, text: e?.response?.data?.message ?? 'No se pudo aprobar' });
         }
+    };
+
+    // Aprueba directo cuando la solicitud trae el id de Fish (Fish verifica que sea pública)
+    const approveRequestById = async (r: VoiceRequest) => {
+        const d = draftOf('req' + r.id);
+        try {
+            await api.post('/admin/tts-fish-voices', { referenceId: r.referenceId, license: d.license, licenseNote: d.note, requestId: r.id });
+            setMsg({ ok: true, text: 'Solicitud aprobada' });
+            await Promise.all([load(), loadRequests()]);
+        } catch (e: any) {
+            setMsg({ ok: false, text: e?.response?.data?.message ?? 'No se pudo aprobar' });
+        }
+    };
+
+    const reject = async (r: VoiceRequest) => {
+        try {
+            await api.post(`/admin/tts-fish-voices/requests/${r.id}/reject`, { note: rejectNotes[r.id] ?? '' });
+            setMsg({ ok: true, text: 'Solicitud rechazada' });
+            if (activeReq === r.id) setActiveReq(null);
+            await loadRequests();
+        } catch (e: any) {
+            setMsg({ ok: false, text: e?.response?.data?.message ?? 'No se pudo rechazar' });
+        }
+    };
+
+    const searchForRequest = (r: VoiceRequest) => {
+        setActiveReq(r.id);
+        setQ(r.description.slice(0, 60));
+        document.getElementById('fish-search')?.scrollIntoView({ behavior: 'smooth' });
     };
 
     const patch = async (v: CatalogVoice, body: Record<string, unknown>, ok: string) => {
@@ -147,6 +198,51 @@ export default function FishVoicesAdmin() {
                     {msg.text}
                 </div>
             )}
+            {requests.some(r => r.status === 'pending') && (
+                <div className={cardClass + 'space-y-4'}>
+                    <h2 className="text-lg font-black text-ds-text">Solicitudes de los streamers</h2>
+                    <div className="space-y-3">
+                        {requests.filter(r => r.status === 'pending').map(r => (
+                            <div key={r.id} className={'rounded-lg border p-4 space-y-3 ' + (activeReq === r.id ? 'border-ds-accent' : 'border-ds-border')}>
+                                <div>
+                                    <p className="font-black text-ds-text">{r.description}</p>
+                                    <p className="text-xs text-ds-soft">
+                                        {r.login ?? 'usuario'} · {fmtDate(r.createdAt)}{r.referenceId ? ` · id de Fish: ${r.referenceId}` : ''}
+                                    </p>
+                                </div>
+                                {r.referenceId && (
+                                    <div className="grid gap-3 md:grid-cols-[220px_1fr_auto] items-end">
+                                        <div>
+                                            <label className={labelClass}>Licencia</label>
+                                            <select className={inputClass} value={draftOf('req' + r.id).license} onChange={e => setDraft('req' + r.id, { license: e.target.value as License })}>
+                                                {(Object.keys(LICENSE_LABEL) as License[]).map(k => <option key={k} value={k}>{LICENSE_LABEL[k]}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Nota de licencia</label>
+                                            <input className={inputClass} value={draftOf('req' + r.id).note} onChange={e => setDraft('req' + r.id, { note: e.target.value })} placeholder="Qué dice el autor sobre el uso" />
+                                        </div>
+                                        <button className="ds-btn ds-btn--primary" onClick={() => approveRequestById(r)}>Aprobar</button>
+                                    </div>
+                                )}
+                                <div className="flex flex-wrap items-end gap-3">
+                                    <button className="ds-btn ds-btn--secondary ds-btn--sm" onClick={() => searchForRequest(r)}>
+                                        Buscar en Fish y aprobar
+                                    </button>
+                                    <input
+                                        className={inputClass + ' flex-1 min-w-[200px]'}
+                                        value={rejectNotes[r.id] ?? ''}
+                                        onChange={e => setRejectNotes(n => ({ ...n, [r.id]: e.target.value }))}
+                                        placeholder="Motivo del rechazo (lo ve el streamer)"
+                                    />
+                                    <button className="ds-btn ds-btn--secondary ds-btn--sm" onClick={() => reject(r)}>Rechazar</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <div className={cardClass + 'space-y-4'}>
                 <h2 className="text-lg font-black text-ds-text">Voces del catálogo</h2>
                 {loading ? (
@@ -213,8 +309,14 @@ export default function FishVoicesAdmin() {
                 )}
             </div>
 
-            <div className={cardClass + 'space-y-4'}>
+            <div id="fish-search" className={cardClass + 'space-y-4'}>
                 <h2 className="text-lg font-black text-ds-text">Buscar en Fish</h2>
+                {activeReq && (
+                    <p className="text-xs font-bold text-ds-accent">
+                        Al aprobar una voz de esta búsqueda se resuelve la solicitud #{activeReq}.{' '}
+                        <button className="underline" onClick={() => setActiveReq(null)}>Quitar</button>
+                    </p>
+                )}
                 <p className="text-xs text-ds-soft">Todo es gratis: la búsqueda, la muestra del autor y aprobar no generan audio ni gastan saldo de Fish.</p>
                 <form className="flex flex-wrap gap-3 items-end" onSubmit={e => { e.preventDefault(); search(); }}>
                     <div className="flex-1 min-w-[200px]">

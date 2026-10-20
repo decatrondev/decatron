@@ -37,7 +37,11 @@ namespace Decatron.Controllers
             public string? Name { get; set; }
             public string? License { get; set; }
             public string? LicenseNote { get; set; }
+            /// <summary>Solicitud de un streamer que esta aprobación resuelve (opcional).</summary>
+            public long? RequestId { get; set; }
         }
+
+        public class RejectRequest { public string? Note { get; set; } }
 
         public class UpdateRequest
         {
@@ -54,6 +58,32 @@ namespace Decatron.Controllers
             var voices = await _db.TtsFishVoices.AsNoTracking()
                 .OrderByDescending(v => v.Active).ThenBy(v => v.Name).ToListAsync();
             return Ok(new { success = true, voices });
+        }
+
+        /// <summary>Solicitudes de voz de los streamers (pendientes primero).</summary>
+        [HttpGet("requests")]
+        public async Task<IActionResult> Requests()
+        {
+            var rows = await (from r in _db.TtsFishVoiceRequests.AsNoTracking()
+                              join u in _db.Users.AsNoTracking() on r.UserId equals u.Id into uj
+                              from u in uj.DefaultIfEmpty()
+                              orderby r.Status == "pending" ? 0 : 1, r.CreatedAt descending
+                              select new { r.Id, r.UserId, login = u != null ? u.Login : null, r.Description, r.ReferenceId, r.Status, r.AdminNote, r.VoiceId, r.CreatedAt, r.ResolvedAt })
+                             .Take(100).ToListAsync();
+            return Ok(new { success = true, requests = rows });
+        }
+
+        [HttpPost("requests/{id:long}/reject")]
+        public async Task<IActionResult> Reject(long id, [FromBody] RejectRequest req)
+        {
+            var r = await _db.TtsFishVoiceRequests.FirstOrDefaultAsync(x => x.Id == id);
+            if (r == null) return NotFound(new { success = false, message = "Solicitud no encontrada" });
+            if (r.Status != "pending") return BadRequest(new { success = false, message = "La solicitud ya fue resuelta" });
+            r.Status = "rejected";
+            r.AdminNote = string.IsNullOrWhiteSpace(req?.Note) ? null : req!.Note!.Trim();
+            r.ResolvedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
         }
 
         /// <summary>Busca voces públicas en Fish. No gasta saldo.</summary>
@@ -101,7 +131,7 @@ namespace Decatron.Controllers
             var voice = await _db.TtsFishVoices.FirstOrDefaultAsync(v => v.ReferenceId == id);
             if (voice == null)
             {
-                voice = new FishVoice { ReferenceId = id, CreatedBy = GetUserId() };
+                voice = new FishVoice { ReferenceId = id, CreatedBy = GetUserId(), Source = req.RequestId != null ? "request" : "admin" };
                 _db.TtsFishVoices.Add(voice);
             }
             voice.Name = string.IsNullOrWhiteSpace(req.Name) ? model.Title : req.Name.Trim();
@@ -113,6 +143,16 @@ namespace Decatron.Controllers
             voice.Active = true;
             voice.InactiveReason = null;
             voice.LastCheckedAt = DateTimeOffset.UtcNow;
+            if (req.RequestId != null)
+            {
+                var r = await _db.TtsFishVoiceRequests.FirstOrDefaultAsync(x => x.Id == req.RequestId && x.Status == "pending");
+                if (r != null)
+                {
+                    r.Status = "approved";
+                    r.VoiceId = id;
+                    r.ResolvedAt = DateTimeOffset.UtcNow;
+                }
+            }
             await _db.SaveChangesAsync();
             _logger.LogInformation("[FishVoices] Voz aprobada: {Name} ({Id}) licencia {License}", voice.Name, id, license);
             return Ok(new { success = true, voice });

@@ -234,6 +234,7 @@ namespace Decatron.Data
         public DbSet<Decatron.Core.Models.Finance.FixedCost> FixedCosts { get; set; }
         public DbSet<Decatron.Core.Models.Finance.CreditRate> CreditRates { get; set; }
         public DbSet<Decatron.Core.Models.Tts.FishVoice> TtsFishVoices { get; set; }
+        public DbSet<Decatron.Core.Models.Tts.FishVoiceRequest> TtsFishVoiceRequests { get; set; }
         public DbSet<Decatron.Core.Models.Credits.CreditPackage> CreditPackages { get; set; }
         public DbSet<Decatron.Core.Models.Credits.CreditPurchase> CreditPurchases { get; set; }
         public DbSet<CoinTransaction> CoinTransactions { get; set; }

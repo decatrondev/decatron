@@ -534,6 +534,13 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/EventAlerts/config/overlay/{channelName}` | JWT |
 | `POST` | `/api/EventAlerts/test` | JWT |
 
+### Fish Voice Requests
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| `GET` | `/api/tts/fish-voice-requests` | JWT |
+| `POST` | `/api/tts/fish-voice-requests` | JWT |
+
 ### Fish Voices
 
 | Método | Ruta | Acceso |
@@ -1564,6 +1571,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/wheel/wheels/{id}/spins` | JWT + `overlays` |
 | `GET` | `/api/wheel/wheels/{id}/spins/export` | JWT + `overlays` |
 | `POST` | `/api/wheel/wheels/{id}/test-spin` | JWT + `overlays` |
+
 <!-- END GENERATED ENDPOINTS -->
 
 ---

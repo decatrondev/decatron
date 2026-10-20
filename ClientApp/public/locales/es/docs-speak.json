@@ -252,6 +252,10 @@
           },
           {
             "t": "p",
+            "x": "¿No está la voz que quieres? Debajo del desplegable está «Solicítala»: escribe el nombre del personaje o pega el enlace de la voz en fish.audio. Puedes tener hasta 3 solicitudes en revisión a la vez y ver el estado de cada una (en revisión, aprobada o rechazada con el motivo). Si se aprueba, la voz aparece en la lista para todos."
+          },
+          {
+            "t": "p",
             "x": "La cuota estándar de cada plan y las tarifas vigentes de las voces premium están en la página de créditos (`/credits`). Las voces premium solo están disponibles si tu cuenta tiene créditos o es ilimitada."
           }
         ]

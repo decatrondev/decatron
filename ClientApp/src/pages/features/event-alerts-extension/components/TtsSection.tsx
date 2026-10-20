@@ -14,6 +14,7 @@ import {
   languageLabel,
   describeVoiceMismatch,
 } from '../../../../components/tts/useVoiceCatalog';
+import FishVoiceRequestBox from '../../FishVoiceRequestBox';
 import { useFishVoices, fishVoiceLabel, fishCostPer100 } from '../../fishVoices';
 
 // Las voces y los idiomas vienen del servidor, no de una lista escrita aquí. La que
@@ -375,6 +376,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                 {fishCreditsPerByte > 0 && (
                   <p className="text-xs text-ds-soft mt-1">Unos {fishCostPer100(fishCreditsPerByte)} créditos cada 100 caracteres.</p>
                 )}
+                <FishVoiceRequestBox />
               </div>
             )}
 

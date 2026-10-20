@@ -252,6 +252,10 @@
           },
           {
             "t": "p",
+            "x": "Can't find the voice you want? Under the dropdown there is a «Request it» link: write the character's name or paste the voice's fish.audio link. You can have up to 3 requests under review at once and see the status of each one (under review, approved, or rejected with the reason). If it is approved, the voice appears in the list for everyone."
+          },
+          {
+            "t": "p",
             "x": "Each plan's standard quota and the current premium voice rates are on the credits page (`/credits`). Premium voices are only available if your account has credits or is unlimited."
           }
         ]

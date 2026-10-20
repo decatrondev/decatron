@@ -21,7 +21,7 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-10-19
+-- Snapshot date: 2026-10-20
 --
 --
 --
@@ -9228,6 +9228,43 @@ CREATE TABLE public.tts_fish_voices (
 
 
 --
+-- Name: tts_fish_voice_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tts_fish_voice_requests (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    description text NOT NULL,
+    reference_id character varying(32),
+    status character varying(10) DEFAULT 'pending'::character varying NOT NULL,
+    admin_note text,
+    voice_id character varying(32),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    resolved_at timestamp with time zone,
+    CONSTRAINT chk_tts_fish_voice_requests_status CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'rejected'::character varying])::text[])))
+);
+
+
+--
+-- Name: tts_fish_voice_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tts_fish_voice_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tts_fish_voice_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tts_fish_voice_requests_id_seq OWNED BY public.tts_fish_voice_requests.id;
+
+
+--
 -- Name: upgrade_attempt_log; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11962,6 +11999,13 @@ ALTER TABLE ONLY public.tts_credit_ledger ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: tts_fish_voice_requests id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tts_fish_voice_requests ALTER COLUMN id SET DEFAULT nextval('public.tts_fish_voice_requests_id_seq'::regclass);
+
+
+--
 -- Name: upgrade_attempt_log id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -14331,6 +14375,14 @@ ALTER TABLE ONLY public.tts_credit_balances
 
 ALTER TABLE ONLY public.tts_credit_ledger
     ADD CONSTRAINT tts_credit_ledger_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tts_fish_voice_requests tts_fish_voice_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tts_fish_voice_requests
+    ADD CONSTRAINT tts_fish_voice_requests_pkey PRIMARY KEY (id);
 
 
 --
@@ -17587,6 +17639,20 @@ CREATE INDEX ix_tenant_invitations_token ON public.tenant_invitations USING btre
 --
 
 CREATE INDEX ix_tenant_payments_tenant ON public.tenant_payments USING btree (tenant_id, created_at DESC);
+
+
+--
+-- Name: ix_tts_fish_voice_requests_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tts_fish_voice_requests_status ON public.tts_fish_voice_requests USING btree (status, created_at);
+
+
+--
+-- Name: ix_tts_fish_voice_requests_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tts_fish_voice_requests_user ON public.tts_fish_voice_requests USING btree (user_id);
 
 
 --
