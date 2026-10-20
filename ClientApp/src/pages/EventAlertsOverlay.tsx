@@ -69,6 +69,8 @@ interface EventAlertData {
     ttsUrl?: string;
     ttsVolume?: number;
     waitForSound?: boolean;
+    /** Turno de voz del canal: al terminar la voz se avisa al servidor para que suene la siguiente */
+    audioTurnId?: string | null;
     // Config
     duration?: number;
     animationIn?: string;
@@ -218,6 +220,7 @@ export default function EventAlertsOverlay() {
             connection.onreconnected(async () => {
                 try {
                     await connection.invoke('JoinChannel', channel);
+                    await connection.invoke('RegisterOverlay', channel, 'event_alerts').catch(() => {});
                 } catch (err) {
                     console.error('[EventAlertsOverlay] Error re-uniéndose al canal:', err);
                 }
@@ -236,6 +239,7 @@ export default function EventAlertsOverlay() {
                     return;
                 }
                 await connection.invoke('JoinChannel', channel);
+                await connection.invoke('RegisterOverlay', channel, 'event_alerts').catch(() => {});
                 connectionRef.current = connection;
             } catch (err) {
                 if (!stopped) {
@@ -600,6 +604,9 @@ export default function EventAlertsOverlay() {
         }
         // La alerta no termina antes que el sonido
         await sounds;
+        if (data.audioTurnId) {
+            connectionRef.current?.invoke('AudioTurnEnded', channel, data.audioTurnId).catch(() => {});
+        }
     };
 
     // ============================================================================

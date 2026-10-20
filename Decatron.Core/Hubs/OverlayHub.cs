@@ -74,12 +74,14 @@ namespace Decatron.Hubs
 
         private readonly ITenantResolver _tenants;
         private readonly IConfiguration _config;
+        private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
 
         // Un aviso por canal cada hora (Fase 2 plataforma, modo sombra).
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _tenantSeen = new();
 
-        public OverlayHub(ILogger<OverlayHub> logger, ITenantResolver tenants, IConfiguration config)
+        public OverlayHub(ILogger<OverlayHub> logger, ITenantResolver tenants, IConfiguration config, Decatron.Core.Services.ChannelAudioGate audioGate)
         {
+            _audioGate = audioGate;
             _logger = logger;
             _tenants = tenants;
             _config = config;
@@ -133,6 +135,17 @@ namespace Decatron.Hubs
             _logger.LogInformation(
                 "Overlay {Type} registrado en {Channel} (conectados ahora: {Detalle})",
                 overlayType, channel, DescribeOverlays(channel));
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// El overlay terminó de reproducir la voz del turno <paramref name="turnId"/>: el canal queda libre
+        /// para la siguiente (ver <see cref="Decatron.Core.Services.ChannelAudioGate"/>).
+        /// </summary>
+        public Task AudioTurnEnded(string channel, string turnId)
+        {
+            if (!string.IsNullOrEmpty(channel) && !string.IsNullOrEmpty(turnId))
+                _audioGate.Complete(channel, turnId);
             return Task.CompletedTask;
         }
 

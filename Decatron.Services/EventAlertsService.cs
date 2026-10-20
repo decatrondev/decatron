@@ -20,6 +20,7 @@ namespace Decatron.Services
         private readonly ITtsService _ttsService;
         private readonly ITtsCreditService _creditService;
         private readonly IMessageSender _messageSender;
+        private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
 
         // Cooldown tracking: key = "channelName:eventType", value = last trigger time
         private static readonly ConcurrentDictionary<string, DateTime> _lastAlertTimes = new();
@@ -33,8 +34,10 @@ namespace Decatron.Services
             OverlayNotificationService overlayNotificationService,
             ITtsService ttsService,
             ITtsCreditService creditService,
-            IMessageSender messageSender)
+            IMessageSender messageSender,
+            Decatron.Core.Services.ChannelAudioGate audioGate)
         {
+            _audioGate = audioGate;
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
@@ -123,6 +126,7 @@ namespace Decatron.Services
             int? level = null,
             bool hypeTrainCompleted = false)
         {
+            Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
                 var config = await GetConfigByChannel(channelName);
@@ -280,9 +284,15 @@ namespace Decatron.Services
                     ttsUserMessageVolume = ttsCfg.TryGetProperty("userMessageVolume", out var uvP) ? uvP.GetInt32() : legacyVolume;
                     ttsVolume = legacyVolume; // Legacy
 
+                    // Una voz a la vez por canal (ver ChannelAudioGate). Si el canal tiene demasiadas voces en
+                    // espera, la alerta sale igual pero sin voz: lo visual no se pierde y no se cobra la síntesis.
+                    audioTurn = await _audioGate.RequestAsync(channelName, "event_alerts");
+                    if (audioTurn == null)
+                        _logger.LogInformation("[EventAlerts] {Channel}: alerta {EventType} sin voz, el canal tenía demasiadas voces en espera", channelName, eventType);
+
                     // [3/4] TTS del template ("¡Gracias {username}!")
                     var ttsTemplate = ttsCfg.TryGetProperty("template", out var tp) ? tp.GetString() ?? "" : "";
-                    if (!string.IsNullOrWhiteSpace(ttsTemplate))
+                    if (audioTurn != null && !string.IsNullOrWhiteSpace(ttsTemplate))
                     {
                         var templateText = ReplaceVariables(ttsTemplate, username, amount, tierLabel, months ?? amount, level ?? 1, null);
                         if (!string.IsNullOrWhiteSpace(templateText))
@@ -294,13 +304,19 @@ namespace Decatron.Services
                     }
 
                     // [4/4] TTS del mensaje del usuario (bits, subs con mensaje)
-                    if (ttsCfg.TryGetProperty("readUserMessage", out var readMsg) && readMsg.GetBoolean() &&
+                    if (audioTurn != null && ttsCfg.TryGetProperty("readUserMessage", out var readMsg) && readMsg.GetBoolean() &&
                         !string.IsNullOrEmpty(userMessage))
                     {
                         var maxChars = ttsCfg.TryGetProperty("maxChars", out var mc) ? mc.GetInt32() : 150;
                         var truncated = userMessage.Length > maxChars ? userMessage[..maxChars] : userMessage;
-                        if (!string.IsNullOrWhiteSpace(truncated))
+                        if (!string.IsNullOrWhiteSpace(truncated) && _audioGate.SpokenByOtherSource(channelName, "event_alerts", truncated))
                         {
+                            // Otro módulo (Speak Chat) ya leyó ese mensaje: la alerta dice solo su plantilla
+                            _logger.LogInformation("[EventAlerts] {Channel}: mensaje de {User} no se lee, otro módulo ya lo leyó", channelName, username);
+                        }
+                        else if (!string.IsNullOrWhiteSpace(truncated))
+                        {
+                            _audioGate.Remember(channelName, "event_alerts", truncated);
                             ttsUserMessageUrl = await _creditService.GenerateWithCreditsAsync(
                                 config.UserId, truncated, voice, engine, lang, "event_alerts", channelName,
                                 provider);
@@ -309,6 +325,13 @@ namespace Decatron.Services
 
                     // Legacy: combinar ambos para compatibilidad hacia atrás
                     ttsUrl = ttsTemplateUrl ?? ttsUserMessageUrl;
+
+                    // Sin ningún audio no hay nada que esperar
+                    if (audioTurn != null && ttsUrl == null)
+                    {
+                        audioTurn.Release();
+                        audioTurn = null;
+                    }
                 }
 
                 // Media
@@ -656,6 +679,7 @@ namespace Decatron.Services
                     ttsUrl = ttsUrl ?? "",
                     ttsVolume,
                     waitForSound,
+                    audioTurnId = audioTurn?.Id,
 
                     duration,
                     // Las de siempre y las nuevas del rediseño (slide-bounce, flip, rotate, glitch); otra = fundido
@@ -679,12 +703,26 @@ namespace Decatron.Services
                 await _overlayNotificationService.SendToChannel(channelName, "ShowEventAlert", alertData);
                 _logger.LogInformation("[EventAlerts] Alert sent successfully");
 
+                // El turno dura lo que dure la alerta con voz: el overlay avisa al terminar. Sin overlay
+                // conectado no hay quien avise; si el aviso se pierde, vence por el texto leído más el margen
+                // del sonido/video.
+                if (audioTurn != null)
+                {
+                    if (!Hubs.OverlayHub.HasActiveClients(channelName)) audioTurn.Release();
+                    else
+                    {
+                        var spoken = (message?.Length ?? 0) + (userMessage?.Length ?? 0);
+                        audioTurn.Arm(TimeSpan.FromSeconds(Math.Clamp(spoken / 12.0 + (duration / 1000.0) + 45, 45, 120)));
+                    }
+                }
+
                 // Enviar mensaje al chat si está configurado
                 await SendChatMessageIfEnabled(alertConfig, channelName, username, amount, tierLabel, months ?? amount, level ?? 1, userMessage);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[EventAlerts] Error triggering alert for {EventType} in {Channel}", eventType, channelName);
+                audioTurn?.Release();
             }
         }
 

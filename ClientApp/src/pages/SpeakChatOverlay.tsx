@@ -31,6 +31,8 @@ interface SpeakChatMessage {
     username: string;
     message: string;
     audioUrl?: string;
+    /** Turno de voz del canal: al terminar el audio se avisa al servidor para que suene la siguiente */
+    audioTurnId?: string | null;
     volume: number;
     /** "none" = el servidor no pudo generar audio; el mensaje sale solo como burbuja */
     ttsEngine: 'polly' | 'piper' | 'none';
@@ -89,6 +91,7 @@ export default function SpeakChatOverlay() {
     // Cola y estado de procesamiento
     const queueRef = useRef<QueueItem[]>([]);
     const isProcessingRef = useRef(false);
+    const connectionRef = useRef<signalR.HubConnection | null>(null);
 
     // ===================== AUDIO CONTEXT UNLOCK =====================
     useEffect(() => {
@@ -175,6 +178,10 @@ export default function SpeakChatOverlay() {
 
         // Reproducir audio
         await playAudio(item);
+        // Avisar que la voz terminó, sin esperar a que se oculte la burbuja (si no, la siguiente voz del canal esperaría de más)
+        if (item.audioTurnId && channel) {
+            connectionRef.current?.invoke('AudioTurnEnded', channel, item.audioTurnId).catch(() => {});
+        }
 
         // Esperar duración mínima visible
         await sleep(Math.max((cfg.duration ?? 5000), 500));
@@ -214,6 +221,7 @@ export default function SpeakChatOverlay() {
             .withAutomaticReconnect([0, 2000, 5000, 10000, 20000, 30000])
             .configureLogging(signalR.LogLevel.Error) // Silencia warnings de métodos no registrados
             .build();
+        connectionRef.current = connection;
 
         // Registrar handlers para TODOS los eventos del hub para evitar spam en consola
         connection.on('SpeakChatMessage', (data) => {

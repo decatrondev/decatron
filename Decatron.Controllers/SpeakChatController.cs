@@ -28,6 +28,7 @@ namespace Decatron.Controllers
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly ILogger<SpeakChatController> _logger;
         private readonly DecatronDbContext _dbContext;
+        private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
 
         public SpeakChatController(
             ISpeakChatService speakChatService,
@@ -35,8 +36,10 @@ namespace Decatron.Controllers
             ITtsCreditService creditService,
             OverlayNotificationService overlayNotificationService,
             ILogger<SpeakChatController> logger,
-            DecatronDbContext dbContext)
+            DecatronDbContext dbContext,
+            Decatron.Core.Services.ChannelAudioGate audioGate)
         {
+            _audioGate = audioGate;
             _speakChatService = speakChatService;
             _ttsService = ttsService;
             _creditService = creditService;
@@ -98,7 +101,18 @@ namespace Decatron.Controllers
                 var configJson = JsonSerializer.Serialize(body.Config);
                 await _speakChatService.SaveConfigAsync(channelOwnerId, channelName, configJson);
 
-                _logger.LogInformation("[SpeakChat] Config guardada para {Channel}", channelName);
+                // Qué reglas quedaron encendidas, para poder reconstruir después quién cambió qué
+                var reglas = "";
+                try
+                {
+                    var cfgGuardada = JsonSerializer.Deserialize<JsonElement>(configJson);
+                    if (cfgGuardada.TryGetProperty("activation", out var act) && act.TryGetProperty("rules", out var rs) && rs.ValueKind == JsonValueKind.Array)
+                        reglas = string.Join(", ", rs.EnumerateArray().Select(r =>
+                            (r.TryGetProperty("type", out var t) ? t.GetString() : "?") + "=" +
+                            (r.TryGetProperty("enabled", out var en) && en.ValueKind == JsonValueKind.True ? "sí" : "no")));
+                }
+                catch { /* el registro nunca rompe el guardado */ }
+                _logger.LogInformation("[SpeakChat] Config guardada para {Channel} (usuario {UserId}). Reglas: {Reglas}", channelName, channelOwnerId, reglas);
                 return Ok(new { success = true, message = "Configuración guardada" });
             }
             catch (Exception ex)
@@ -148,6 +162,7 @@ namespace Decatron.Controllers
         [RequirePermission("overlays")]
         public async Task<IActionResult> SendTest([FromBody] SpeakChatTestRequest body)
         {
+            Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
                 var channelOwnerId = GetChannelOwnerId();
@@ -187,6 +202,13 @@ namespace Decatron.Controllers
 
                 // La prueba cobra igual que un mensaje real, o no sirve para probar nada
                 var pollyEngine = body?.PollyEngine ?? "standard";
+
+                // Misma regla que un mensaje real: una voz a la vez por canal
+                audioTurn = await _audioGate.RequestAsync(channelName, "speak_chat");
+                if (audioTurn == null)
+                    return StatusCode(429, new { success = false, message = "El canal tiene demasiadas voces en espera. Prueba de nuevo en unos segundos." });
+                _audioGate.Remember(channelName, "speak_chat", text);
+
                 var audioUrl = await _creditService.GenerateWithCreditsAsync(
                     channelOwnerId, text, voiceId, pollyEngine, languageCode, "speak_chat", channelName,
                     provider);
@@ -202,6 +224,7 @@ namespace Decatron.Controllers
                     username = channelName,
                     message = text,
                     audioUrl,
+                    audioTurnId = audioUrl != null ? audioTurn.Id : null,
                     volume = 80,
                     ttsEngine,
                     voice = voiceId,
@@ -211,11 +234,15 @@ namespace Decatron.Controllers
                     isTest = true
                 });
 
+                if (audioUrl == null || Decatron.Hubs.OverlayHub.CountOverlays(channelName, "speak_chat") == 0) audioTurn.Release();
+                else audioTurn.Arm(TimeSpan.FromSeconds(Math.Clamp(text.Length / 12.0 + 6, 8, 60)));
+
                 return Ok(new { success = true, message = "Test enviado al overlay" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[SpeakChat] Error al enviar test");
+                audioTurn?.Release();
                 return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
         }

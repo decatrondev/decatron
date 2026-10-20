@@ -29,6 +29,7 @@ namespace Decatron.Controllers
         private readonly ITtsService _ttsService;
         private readonly ITtsCreditService _creditService;
         private readonly IMessageSender _messageSender;
+        private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
 
         public EventAlertsController(
             IEventAlertsService eventAlertsService,
@@ -37,8 +38,10 @@ namespace Decatron.Controllers
             Decatron.Services.OverlayNotificationService overlayNotificationService,
             ITtsService ttsService,
             ITtsCreditService creditService,
-            IMessageSender messageSender)
+            IMessageSender messageSender,
+            Decatron.Core.Services.ChannelAudioGate audioGate)
         {
+            _audioGate = audioGate;
             _eventAlertsService = eventAlertsService;
             _logger = logger;
             _dbContext = dbContext;
@@ -286,6 +289,7 @@ namespace Decatron.Controllers
         [HttpPost("test")]
         public async Task<IActionResult> TestAlert([FromBody] JsonElement body)
         {
+            Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
                 var channelOwnerId = GetChannelOwnerId();
@@ -398,8 +402,11 @@ namespace Decatron.Controllers
                     ttsUserMessageVolume = ttsConfig.TryGetProperty("userMessageVolume", out var uvP) ? uvP.GetInt32() : legacyVolume;
                     ttsVolume = legacyVolume;
 
+                    // Misma regla que la alerta real: una voz a la vez por canal; sin turno sale sin voz
+                    audioTurn = await _audioGate.RequestAsync(channelName, "event_alerts");
+
                     // [3/4] TTS del template ("¡Gracias {username}!")
-                    if (!string.IsNullOrWhiteSpace(template))
+                    if (audioTurn != null && !string.IsNullOrWhiteSpace(template))
                     {
                         // Mismas reglas que la alerta real: si la prueba sustituye distinto,
                         // deja de servir para probar. No incluye el mensaje del usuario.
@@ -421,12 +428,17 @@ namespace Decatron.Controllers
 
                     // [4/4] TTS del mensaje del usuario
                     var readUserMsg = ttsConfig.TryGetProperty("readUserMessage", out var rumProp) && rumProp.GetBoolean();
-                    if (readUserMsg && !string.IsNullOrEmpty(message))
+                    if (audioTurn != null && readUserMsg && !string.IsNullOrEmpty(message))
                     {
                         var maxChars = ttsConfig.TryGetProperty("maxChars", out var mcProp) ? mcProp.GetInt32() : 150;
                         var truncated = message.Length > maxChars ? message[..maxChars] : message;
-                        if (!string.IsNullOrWhiteSpace(truncated))
+                        if (!string.IsNullOrWhiteSpace(truncated) && _audioGate.SpokenByOtherSource(channelName, "event_alerts", truncated))
                         {
+                            _logger.LogInformation("[EventAlerts] Test en {Channel}: el mensaje no se lee, otro módulo ya lo leyó", channelName);
+                        }
+                        else if (!string.IsNullOrWhiteSpace(truncated))
+                        {
+                            _audioGate.Remember(channelName, "event_alerts", truncated);
                             _logger.LogInformation("🔊 [EventAlerts] Generando TTS UserMessage: '{Text}' con voz {Voice}", truncated, voice);
                             ttsUserMessageUrl = await _creditService.GenerateWithCreditsAsync(
                                 channelOwnerId, truncated, voice, engine, languageCode, "event_alerts", channelName,
@@ -436,6 +448,12 @@ namespace Decatron.Controllers
 
                     // Legacy: primer URL disponible para compatibilidad hacia atrás
                     ttsUrl = ttsTemplateUrl ?? ttsUserMessageUrl;
+
+                    if (audioTurn != null && ttsUrl == null)
+                    {
+                        audioTurn.Release();
+                        audioTurn = null;
+                    }
 
                     if (string.IsNullOrWhiteSpace(ttsTemplateUrl) && string.IsNullOrWhiteSpace(ttsUserMessageUrl))
                     {
@@ -768,6 +786,7 @@ namespace Decatron.Controllers
                     ttsUrl = ttsUrl ?? "",
                     ttsVolume,
                     waitForSound,
+                    audioTurnId = audioTurn?.Id,
 
                     duration,
                     animationIn = animationIn ?? "fadeIn",
@@ -785,6 +804,12 @@ namespace Decatron.Controllers
                 // Enviar via SignalR
                 await _overlayNotificationService.SendToChannel(channelName, "ShowEventAlert", testData);
 
+                if (audioTurn != null)
+                {
+                    if (!Decatron.Hubs.OverlayHub.HasActiveClients(channelName)) audioTurn.Release();
+                    else audioTurn.Arm(TimeSpan.FromSeconds(Math.Clamp(((message?.Length ?? 0) / 12.0) + (duration / 1000.0) + 45, 45, 120)));
+                }
+
                 // Enviar mensaje de chat si está configurado
                 await SendChatMessageIfEnabled(alertConfig, channelName, username ?? "TestUser", amount, "Tier 1", amount, amount, message);
 
@@ -796,6 +821,7 @@ namespace Decatron.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ [EventAlerts] Error enviando test alert");
+                audioTurn?.Release();
                 return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
         }

@@ -542,6 +542,7 @@ try
     builder.Services.AddScoped<Decatron.Services.UsernameUpdateService>();
     builder.Services.AddSingleton<ICommandStateService, CommandStateService>();
     builder.Services.AddSingleton<OverlayNotificationService>();
+    builder.Services.AddSingleton<Decatron.Core.Services.ChannelAudioGate>();   // un turno de voz por canal entre Speak Chat y Event Alerts
 
     // AWS Polly client
     var pollySettings = builder.Configuration.GetSection("AwsPolly").Get<AwsPollySettings>();

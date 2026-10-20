@@ -20,6 +20,7 @@ namespace Decatron.Services
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly ITtsService _ttsService;
         private readonly ITtsCreditService _creditService;
+        private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
 
         // Cooldown global por canal: key = channelName
         private static readonly ConcurrentDictionary<string, DateTime> _globalCooldowns = new();
@@ -38,8 +39,10 @@ namespace Decatron.Services
             ILogger<SpeakChatService> logger,
             OverlayNotificationService overlayNotificationService,
             ITtsService ttsService,
-            ITtsCreditService creditService)
+            ITtsCreditService creditService,
+            Decatron.Core.Services.ChannelAudioGate audioGate)
         {
+            _audioGate = audioGate;
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
@@ -149,6 +152,7 @@ namespace Decatron.Services
                 }
 
                 var activated = false;
+                var activatedBy = "";
                 var textToSpeak = message;
 
                 if (activation.TryGetProperty("rules", out var rulesArr) && rulesArr.ValueKind == JsonValueKind.Array)
@@ -227,11 +231,14 @@ namespace Decatron.Services
                             }
                         }
 
-                        if (activated) break;
+                        if (activated) { activatedBy = ruleType ?? "?"; break; }
                     }
                 }
 
                 if (!activated) return;
+
+                // Qué regla leyó el mensaje: si algo suena y no debería, aquí está el porqué
+                _logger.LogInformation("[SpeakChat] {Channel}: {User} activó la regla '{Regla}'", channelName, username, activatedBy);
 
                 await SpeakAsync(cfg, channelName, username, userId, textToSpeak);
             }
@@ -317,6 +324,7 @@ namespace Decatron.Services
         /// </summary>
         private async Task SpeakAsync(JsonElement cfg, string channelName, string username, string userId, string textToSpeak)
         {
+            Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
                 // ===== FILTROS =====
@@ -451,6 +459,27 @@ namespace Decatron.Services
                     var pollyEngine = voice.ValueKind != JsonValueKind.Undefined &&
                         voice.TryGetProperty("pollyEngine", out var pe) ? pe.GetString() ?? "standard" : "standard";
 
+                    // Si otro módulo (p. ej. Event Alerts con «leer el mensaje») ya lo dijo, no se repite
+                    if (_audioGate.SpokenByOtherSource(channelName, "speak_chat", textToSpeak))
+                    {
+                        _logger.LogInformation(
+                            "[SpeakChat] {Channel}: mensaje de {User} omitido, otro módulo ya lo leyó",
+                            channelName, username);
+                        return;
+                    }
+
+                    // Una voz a la vez por canal: se pide el turno antes de sintetizar para que
+                    // lo que se descarte por espera no se genere ni se cobre.
+                    audioTurn = await _audioGate.RequestAsync(channelName, "speak_chat");
+                    if (audioTurn == null)
+                    {
+                        _logger.LogInformation(
+                            "[SpeakChat] {Channel}: mensaje de {User} descartado, el canal tenía demasiadas voces en espera",
+                            channelName, username);
+                        return;
+                    }
+
+                    _audioGate.Remember(channelName, "speak_chat", textToSpeak);
                     audioUrl = await _creditService.GenerateWithCreditsAsync(
                         channelUser.Id, textToSpeak, voiceId, pollyEngine,
                         languageCode, "speak_chat", channelName, engine);
@@ -467,6 +496,7 @@ namespace Decatron.Services
                     username,
                     message = textToSpeak,
                     audioUrl,
+                    audioTurnId = audioUrl != null ? audioTurn?.Id : null,
                     volume,
                     ttsEngine,
                     voice = voiceId,
@@ -482,6 +512,14 @@ namespace Decatron.Services
                 // esta línea no había forma de distinguir "no se generó" de "no había
                 // nadie escuchando", y las dos se ven igual desde el chat.
                 var listeners = Hubs.OverlayHub.CountOverlays(channelName, "speak_chat");
+
+                // El turno dura lo que dure la voz: el overlay avisa al terminar. Sin audio o sin overlay
+                // no hay quien avise, así que se suelta ya; si el aviso se pierde, vence por texto.
+                if (audioTurn != null)
+                {
+                    if (audioUrl == null || listeners == 0) audioTurn.Release();
+                    else audioTurn.Arm(TimeSpan.FromSeconds(Math.Clamp(textToSpeak.Length / 12.0 + 6, 8, 60)));
+                }
                 if (listeners == 0)
                 {
                     _logger.LogWarning(
@@ -498,6 +536,7 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[SpeakChat] Error generando TTS en {Channel}", channelName);
+                audioTurn?.Release();
             }
         }
 
