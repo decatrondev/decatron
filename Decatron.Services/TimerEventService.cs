@@ -228,6 +228,7 @@ namespace Decatron.Services
         private readonly IMessageSender _messageSender;
         private readonly ITtsService _ttsService;
         private readonly ITtsCreditService _creditService;
+        private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
 
         public TimerEventService(
             DecatronDbContext dbContext,
@@ -235,7 +236,8 @@ namespace Decatron.Services
             ILogger<TimerEventService> logger,
             IMessageSender messageSender,
             ITtsService ttsService,
-            ITtsCreditService creditService)
+            ITtsCreditService creditService,
+            Decatron.Core.Services.ChannelAudioGate audioGate)
         {
             _dbContext = dbContext;
             _overlayNotificationService = overlayNotificationService;
@@ -243,6 +245,7 @@ namespace Decatron.Services
             _messageSender = messageSender;
             _ttsService = ttsService;
             _creditService = creditService;
+            _audioGate = audioGate;
         }
 
         // ========================================================================
@@ -380,11 +383,11 @@ namespace Decatron.Services
                 var alertEventConfig = alertsConfig?.events?.bits;
 
                 // Generar TTS
-                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume) =
+                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn) =
                     await GenerateTtsUrlsAsync(alertEventConfig?.GetTts(), channelLower, userName, bitsAmount, null);
 
                 if (isTest) {
-                    await _overlayNotificationService.SendTimerEventAlertAsync(
+                    await SendEventAlertWithTurnAsync(
                         channelLower,
                         new {
                             eventType = "bits",
@@ -397,13 +400,14 @@ namespace Decatron.Services
                             ttsTemplateUrl,
                             ttsTemplateVolume,
                             ttsUserMessageUrl,
-                            ttsUserMessageVolume
-                        });
+                            ttsUserMessageVolume,
+                            audioTurnId = audioTurn?.Id
+                        }, audioTurn);
                     return true;
                 }
 
                 var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
-                if (timerState == null || timerState.Status == "stopped") return false;
+                if (timerState == null || timerState.Status == "stopped") { audioTurn?.Release(); return false; }
 
                 var result = await AddTimeToTimerAsync(
                     timerState,
@@ -414,11 +418,11 @@ namespace Decatron.Services
                     $"{bitsAmount} bits"
                 );
 
-                if (!result) return false;
+                if (!result) { audioTurn?.Release(); return false; }
 
                 await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
 
-                await _overlayNotificationService.SendTimerEventAlertAsync(
+                await SendEventAlertWithTurnAsync(
                     channelLower,
                     new {
                         eventType = "bits",
@@ -431,8 +435,9 @@ namespace Decatron.Services
                         ttsTemplateUrl,
                         ttsTemplateVolume,
                         ttsUserMessageUrl,
-                        ttsUserMessageVolume
-                    });
+                        ttsUserMessageVolume,
+                        audioTurnId = audioTurn?.Id
+                    }, audioTurn);
 
                 return true;
             }
@@ -503,12 +508,12 @@ namespace Decatron.Services
                 var emoji = isPrime ? "👑" : "🎉";
 
                 // Generar TTS
-                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume) =
+                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn) =
                     await GenerateTtsUrlsAsync(alertEventConfig?.GetTts(), channelLower, userName, months, null);
 
                 if (isTest)
                 {
-                     await _overlayNotificationService.SendTimerEventAlertAsync(
+                     await SendEventAlertWithTurnAsync(
                         channelLower,
                         new
                         {
@@ -526,13 +531,14 @@ namespace Decatron.Services
                             ttsTemplateUrl,
                             ttsTemplateVolume,
                             ttsUserMessageUrl,
-                            ttsUserMessageVolume
-                        });
+                            ttsUserMessageVolume,
+                            audioTurnId = audioTurn?.Id
+                        }, audioTurn);
                     return true;
                 }
 
                 var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
-                if (timerState == null || timerState.Status == "stopped") return false;
+                if (timerState == null || timerState.Status == "stopped") { audioTurn?.Release(); return false; }
 
                 var result = await AddTimeToTimerAsync(
                     timerState,
@@ -542,11 +548,11 @@ namespace Decatron.Services
                     new { tier = tier, tierName = tierName, months = months, isPrime = isPrime },
                     months > 1 ? $"Sub {tierName} · {months} meses" : $"Sub {tierName}"
                 );
-                if (!result) return false;
+                if (!result) { audioTurn?.Release(); return false; }
 
                 await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
 
-                await _overlayNotificationService.SendTimerEventAlertAsync(
+                await SendEventAlertWithTurnAsync(
                     channelLower,
                     new
                     {
@@ -564,8 +570,9 @@ namespace Decatron.Services
                         ttsTemplateUrl,
                         ttsTemplateVolume,
                         ttsUserMessageUrl,
-                        ttsUserMessageVolume
-                    });
+                        ttsUserMessageVolume,
+                        audioTurnId = audioTurn?.Id
+                    }, audioTurn);
 
                 return true;
             }
@@ -608,12 +615,12 @@ namespace Decatron.Services
                 var alertEventConfig = alertsConfig?.events?.gift;
 
                 // Generar TTS
-                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume) =
+                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn) =
                     await GenerateTtsUrlsAsync(alertEventConfig?.GetTts(), channelLower, userName, total, null);
 
                 if (isTest)
                 {
-                    await _overlayNotificationService.SendTimerEventAlertAsync(
+                    await SendEventAlertWithTurnAsync(
                         channelLower,
                         new
                         {
@@ -629,13 +636,14 @@ namespace Decatron.Services
                             ttsTemplateUrl,
                             ttsTemplateVolume,
                             ttsUserMessageUrl,
-                            ttsUserMessageVolume
-                        });
+                            ttsUserMessageVolume,
+                            audioTurnId = audioTurn?.Id
+                        }, audioTurn);
                     return true;
                 }
 
                 var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
-                if (timerState == null || timerState.Status == "stopped") return false;
+                if (timerState == null || timerState.Status == "stopped") { audioTurn?.Release(); return false; }
 
                 var result = await AddTimeToTimerAsync(
                     timerState,
@@ -645,11 +653,11 @@ namespace Decatron.Services
                     new { total = total },
                     $"{total} subs de regalo"
                 );
-                if (!result) return false;
+                if (!result) { audioTurn?.Release(); return false; }
 
                 await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
 
-                await _overlayNotificationService.SendTimerEventAlertAsync(
+                await SendEventAlertWithTurnAsync(
                     channelLower,
                     new
                     {
@@ -665,8 +673,9 @@ namespace Decatron.Services
                         ttsTemplateUrl,
                         ttsTemplateVolume,
                         ttsUserMessageUrl,
-                        ttsUserMessageVolume
-                    });
+                        ttsUserMessageVolume,
+                        audioTurnId = audioTurn?.Id
+                    }, audioTurn);
 
                 return true;
             }
@@ -743,12 +752,12 @@ namespace Decatron.Services
                 var alertEventConfig = alertsConfig?.events?.raid;
 
                 // Generar TTS
-                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume) =
+                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn) =
                     await GenerateTtsUrlsAsync(alertEventConfig?.GetTts(), channelLower, raiderName, viewers, null);
 
                 if (isTest)
                 {
-                    await _overlayNotificationService.SendTimerEventAlertAsync(
+                    await SendEventAlertWithTurnAsync(
                         channelLower,
                         new
                         {
@@ -764,13 +773,14 @@ namespace Decatron.Services
                             ttsTemplateUrl,
                             ttsTemplateVolume,
                             ttsUserMessageUrl,
-                            ttsUserMessageVolume
-                        });
+                            ttsUserMessageVolume,
+                            audioTurnId = audioTurn?.Id
+                        }, audioTurn);
                     return true;
                 }
 
                 var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
-                if (timerState == null || timerState.Status == "stopped") return false;
+                if (timerState == null || timerState.Status == "stopped") { audioTurn?.Release(); return false; }
 
                 var result = await AddTimeToTimerAsync(
                     timerState,
@@ -780,11 +790,11 @@ namespace Decatron.Services
                     new { viewers = viewers },
                     $"Raid de {viewers} viewers"
                 );
-                if (!result) return false;
+                if (!result) { audioTurn?.Release(); return false; }
 
                 await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
 
-                await _overlayNotificationService.SendTimerEventAlertAsync(
+                await SendEventAlertWithTurnAsync(
                     channelLower,
                     new
                     {
@@ -800,8 +810,9 @@ namespace Decatron.Services
                         ttsTemplateUrl,
                         ttsTemplateVolume,
                         ttsUserMessageUrl,
-                        ttsUserMessageVolume
-                    });
+                        ttsUserMessageVolume,
+                        audioTurnId = audioTurn?.Id
+                    }, audioTurn);
 
                 return true;
             }
@@ -842,12 +853,12 @@ namespace Decatron.Services
                 var alertEventConfig = alertsConfig?.events?.hypetrain;
 
                 // Generar TTS
-                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume) =
+                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn) =
                     await GenerateTtsUrlsAsync(alertEventConfig?.GetTts(), channelLower, channelName, level, null);
 
                 if (isTest)
                 {
-                    await _overlayNotificationService.SendTimerEventAlertAsync(
+                    await SendEventAlertWithTurnAsync(
                         channelLower,
                         new
                         {
@@ -862,13 +873,14 @@ namespace Decatron.Services
                             ttsTemplateUrl,
                             ttsTemplateVolume,
                             ttsUserMessageUrl,
-                            ttsUserMessageVolume
-                        });
+                            ttsUserMessageVolume,
+                            audioTurnId = audioTurn?.Id
+                        }, audioTurn);
                     return true;
                 }
 
                 var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
-                if (timerState == null || timerState.Status == "stopped") return false;
+                if (timerState == null || timerState.Status == "stopped") { audioTurn?.Release(); return false; }
 
                 var result = await AddTimeToTimerAsync(
                     timerState,
@@ -878,11 +890,11 @@ namespace Decatron.Services
                     new { level = level },
                     $"Hype Train nivel {level}"
                 );
-                if (!result) return false;
+                if (!result) { audioTurn?.Release(); return false; }
 
                 await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
 
-                await _overlayNotificationService.SendTimerEventAlertAsync(
+                await SendEventAlertWithTurnAsync(
                     channelLower,
                     new
                     {
@@ -897,8 +909,9 @@ namespace Decatron.Services
                         ttsTemplateUrl,
                         ttsTemplateVolume,
                         ttsUserMessageUrl,
-                        ttsUserMessageVolume
-                    });
+                        ttsUserMessageVolume,
+                        audioTurnId = audioTurn?.Id
+                    }, audioTurn);
 
                 return true;
             }
@@ -965,7 +978,7 @@ namespace Decatron.Services
                 var formattedAmount = FormatCurrency(amount, currency);
 
                 // Generar TTS (con moneda formateada)
-                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume) =
+                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn) =
                     await GenerateTtsUrlsAsync(alertEventConfig?.GetTts(), channelLower, donorName, (int)amount, message, formattedAmount, currency);
                 var alertMessage = $"+{FormatTime(secondsToAdd)} por {formattedAmount} de {donorName}! 💰";
                 if (!string.IsNullOrEmpty(message))
@@ -975,7 +988,7 @@ namespace Decatron.Services
 
                 if (isTest)
                 {
-                    await _overlayNotificationService.SendTimerEventAlertAsync(
+                    await SendEventAlertWithTurnAsync(
                         channelLower,
                         new
                         {
@@ -993,13 +1006,14 @@ namespace Decatron.Services
                             ttsTemplateUrl,
                             ttsTemplateVolume,
                             ttsUserMessageUrl,
-                            ttsUserMessageVolume
-                        });
+                            ttsUserMessageVolume,
+                            audioTurnId = audioTurn?.Id
+                        }, audioTurn);
                     return true;
                 }
 
                 var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
-                if (timerState == null || timerState.Status == "stopped") return false;
+                if (timerState == null || timerState.Status == "stopped") { audioTurn?.Release(); return false; }
 
                 var result = await AddTimeToTimerAsync(
                     timerState,
@@ -1010,11 +1024,11 @@ namespace Decatron.Services
                     $"Tip {amount} {currency}"
                 );
 
-                if (!result) return false;
+                if (!result) { audioTurn?.Release(); return false; }
 
                 await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
 
-                await _overlayNotificationService.SendTimerEventAlertAsync(
+                await SendEventAlertWithTurnAsync(
                     channelLower,
                     new
                     {
@@ -1032,8 +1046,9 @@ namespace Decatron.Services
                         ttsTemplateUrl,
                         ttsTemplateVolume,
                         ttsUserMessageUrl,
-                        ttsUserMessageVolume
-                    });
+                        ttsUserMessageVolume,
+                        audioTurnId = audioTurn?.Id
+                    }, audioTurn);
 
                 return true;
             }
@@ -1097,12 +1112,12 @@ namespace Decatron.Services
                 var alertEventConfig = alertsConfig?.events?.follow;
 
                 // Generar TTS
-                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume) =
+                var (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn) =
                     await GenerateTtsUrlsAsync(alertEventConfig?.GetTts(), channelLower, userName, null, null);
 
                 if (isTest)
                 {
-                    await _overlayNotificationService.SendTimerEventAlertAsync(
+                    await SendEventAlertWithTurnAsync(
                         channelLower,
                         new
                         {
@@ -1117,8 +1132,9 @@ namespace Decatron.Services
                             ttsTemplateUrl,
                             ttsTemplateVolume,
                             ttsUserMessageUrl,
-                            ttsUserMessageVolume
-                        });
+                            ttsUserMessageVolume,
+                            audioTurnId = audioTurn?.Id
+                        }, audioTurn);
                     return true;
                 }
 
@@ -1126,12 +1142,12 @@ namespace Decatron.Services
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var isInCooldown = await IsInCooldownAsync(channelLower, "follow", userId, cooldownSeconds);
-                    if (isInCooldown) return false;
+                    if (isInCooldown) { audioTurn?.Release(); return false; }
                 }
 
                 // 4. Validar timer activo
                 var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
-                if (timerState == null || timerState.Status == "stopped") return false;
+                if (timerState == null || timerState.Status == "stopped") { audioTurn?.Release(); return false; }
 
                 // 5. Añadir tiempo
                 var result = await AddTimeToTimerAsync(
@@ -1141,7 +1157,7 @@ namespace Decatron.Services
                     userName,
                     new { time = secondsToAdd }
                 );
-                if (!result) return false;
+                if (!result) { audioTurn?.Release(); return false; }
 
                 // 6. Actualizar cooldown
                 if (!string.IsNullOrEmpty(userId))
@@ -1153,7 +1169,7 @@ namespace Decatron.Services
                 await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
 
                 // 9. Emitir alerta visual al overlay
-                await _overlayNotificationService.SendTimerEventAlertAsync(
+                await SendEventAlertWithTurnAsync(
                     channelLower,
                     new
                     {
@@ -1168,8 +1184,9 @@ namespace Decatron.Services
                         ttsTemplateUrl,
                         ttsTemplateVolume,
                         ttsUserMessageUrl,
-                        ttsUserMessageVolume
-                    });
+                        ttsUserMessageVolume,
+                        audioTurnId = audioTurn?.Id
+                    }, audioTurn);
 
                 return true;
             }
@@ -1600,7 +1617,7 @@ namespace Decatron.Services
         /// <summary>
         /// Genera URLs TTS para template y mensaje del usuario
         /// </summary>
-        private async Task<(string ttsTemplateUrl, int ttsTemplateVolume, string ttsUserMessageUrl, int ttsUserMessageVolume)> GenerateTtsUrlsAsync(
+        private async Task<(string ttsTemplateUrl, int ttsTemplateVolume, string ttsUserMessageUrl, int ttsUserMessageVolume, Decatron.Core.Services.AudioTurn audioTurn)> GenerateTtsUrlsAsync(
             TtsEventConfig ttsConfig,
             string channelName,
             string userName,
@@ -1616,7 +1633,7 @@ namespace Decatron.Services
 
             if (ttsConfig == null || !ttsConfig.enabled)
             {
-                return (null, 80, null, 80);
+                return (null, 80, null, 80, null);
             }
 
             // Los créditos se cobran al dueño del canal
@@ -1624,7 +1641,15 @@ namespace Decatron.Services
             if (channelOwnerId == null)
             {
                 _logger.LogWarning("[TIMER TTS] Canal {Channel} no encontrado, sin TTS", channelName);
-                return (null, ttsTemplateVolume, null, ttsUserMessageVolume);
+                return (null, ttsTemplateVolume, null, ttsUserMessageVolume, null);
+            }
+
+            // Una voz a la vez por canal (ver ChannelAudioGate). Sin turno la alerta sale igual, sin voz.
+            var audioTurn = await _audioGate.RequestAsync(channelName, "timers");
+            if (audioTurn == null)
+            {
+                _logger.LogInformation("[TIMER TTS] {Channel}: alerta sin voz, el canal tenía demasiadas voces en espera", channelName);
+                return (null, ttsTemplateVolume, null, ttsUserMessageVolume, null);
             }
 
             // Formatear moneda para TTS (texto legible, no símbolos)
@@ -1714,7 +1739,34 @@ namespace Decatron.Services
                 _logger.LogError(ex, "[TIMER TTS] Error generando TTS");
             }
 
-            return (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume);
+            // Sin ningún audio no hay nada que esperar
+            if (string.IsNullOrEmpty(ttsTemplateUrl) && string.IsNullOrEmpty(ttsUserMessageUrl))
+            {
+                audioTurn.Release();
+                audioTurn = null;
+            }
+
+            return (ttsTemplateUrl, ttsTemplateVolume, ttsUserMessageUrl, ttsUserMessageVolume, audioTurn);
+        }
+
+        /// <summary>
+        /// Envía la alerta al overlay y arma el turno de voz: el overlay avisa al terminar de hablar
+        /// (si no, vence por tiempo; sin overlay conectado se suelta de inmediato).
+        /// </summary>
+        private async Task SendEventAlertWithTurnAsync(string channel, object payload, Decatron.Core.Services.AudioTurn audioTurn)
+        {
+            try
+            {
+                await _overlayNotificationService.SendTimerEventAlertAsync(channel, payload);
+            }
+            finally
+            {
+                if (audioTurn != null)
+                {
+                    if (!Decatron.Hubs.OverlayHub.HasActiveClients(channel)) audioTurn.Release();
+                    else audioTurn.Arm(TimeSpan.FromSeconds(60));
+                }
+            }
         }
 
         /// <summary>

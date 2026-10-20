@@ -133,6 +133,8 @@ interface TimerEventAlert {
     ttsTemplateVolume?: number;
     ttsUserMessageUrl?: string;
     ttsUserMessageVolume?: number;
+    // Turno de voz del canal: se avisa al servidor al terminar (ver ChannelAudioGate)
+    audioTurnId?: string | null;
 }
 
 // ============================================================================
@@ -458,6 +460,10 @@ export default function TimerOverlay() {
             }
         } catch (err) {
             console.error('[OVERLAY] Audio sequence error:', err);
+        } finally {
+            if (alert.audioTurnId) {
+                connectionRef.current?.invoke('AudioTurnEnded', channelRef.current, alert.audioTurnId).catch(() => {});
+            }
         }
     };
 
