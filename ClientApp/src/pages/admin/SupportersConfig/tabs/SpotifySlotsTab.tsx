@@ -90,7 +90,7 @@ export function SpotifySlotsTab() {
             <div className={CARD}>
                 <h3 className="font-black text-ds-text text-lg mb-1">Solicitudes</h3>
                 <p className="text-xs text-ds-soft mb-4">
-                    Arriba los cupos activos; abajo la lista de espera, ordenada por tier (fundador, premium, supporter, free) y después por fecha de pedido. La asignación sigue siendo a mano: el #1 es a quien le toca.
+                    Arriba los cupos activos; abajo la lista de espera, ordenada por tier (fundador, patrocinador, premium, supporter, free) y después por fecha de pedido. La asignación sigue siendo a mano: el #1 es a quien le toca.
                 </p>
                 {requests.length === 0 ? (
                     <p className="text-sm text-ds-soft py-4 text-center">No hay solicitudes de slots de Spotify</p>
@@ -126,6 +126,7 @@ export function SpotifySlotsTab() {
                                         <td className="py-3 px-3">
                                             <span className={`text-xs font-bold px-2 py-1 rounded ${
                                                 req.tier === 'fundador' ? 'bg-ds-warn/20 text-ds-warn' :
+                                req.tier === 'patrocinador' ? 'bg-ds-accent/20 text-ds-accent-text' :
                                                 req.tier === 'premium' ? 'bg-ds-accent/20 text-ds-accent-text' :
                                                 req.tier === 'supporter' ? 'bg-ds-accent/20 text-ds-accent-text' :
                                                 'bg-ds-raised text-ds-soft'

@@ -68,6 +68,7 @@ interface Comprobante {
 const TIER_LABEL: Record<string, string> = {
     supporter: 'Supporter',
     premium: 'Premium',
+    patrocinador: 'Patrocinador',
     fundador: 'Fundador',
 };
 

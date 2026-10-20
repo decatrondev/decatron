@@ -64,6 +64,7 @@ export function CodesTab() {
         { value: 'all', label: 'Todos los tiers' },
         { value: 'supporter', label: '⚡ Supporter' },
         { value: 'premium', label: '💎 Premium' },
+        { value: 'patrocinador', label: '🏅 Patrocinador' },
         { value: 'fundador', label: '🌟 Fundador' },
     ];
 

@@ -41,9 +41,14 @@
                 "Even more quantities and more monthly credits."
               ],
               [
-                "Fundador 🌟",
+                "Patrocinador 🏅",
                 "US$ 25 per month or US$ 100 permanent",
-                "The highest limits (some uncapped), suggestions with priority on the roadmap and a section of their own on the page."
+                "Quantities between Premium and Fundador, monthly credits (or a one-time bonus if permanent) and more standard voice."
+              ],
+              [
+                "Fundador 🌟",
+                "By invitation (not sold)",
+                "The highest limits (some unlimited), suggestions with priority on the roadmap and its own section on the page."
               ]
             ]
           },
@@ -103,7 +108,7 @@
           {
             "t": "ol",
             "items": [
-              "On `/supporters`, choose Monthly or Permanent (only the Fundador plan has the permanent option).",
+              "On `/supporters`, choose Monthly or Permanent (only the Patrocinador plan has the permanent option).",
               "If you have a discount code, type it under “¿Tienes un código de descuento?” and press “Aplicar”: you will see the discount as a percentage or in dollars.",
               "Press “Tarjeta / Yape” on the chosen plan. “Así saldrá tu comprobante” appears: check the type, name, document and total. If you have a RUC you can choose Boleta or Factura.",
               "Press “Continuar al pago” and pay in the Culqi window.",
@@ -202,7 +207,7 @@
   },
   "plans": {
     "title": "Plans: what each one includes",
-    "subtitle": "Quantities, credits and extras of Supporter, Premium and Fundador",
+    "subtitle": "Quantities, credits and extras of Supporter, Premium, Patrocinador and Fundador",
     "sections": [
       {
         "id": "idea",
@@ -225,6 +230,7 @@
               "Free",
               "Supporter",
               "Premium",
+              "Patrocinador",
               "Fundador"
             ],
             "rows": [
@@ -233,6 +239,7 @@
                 "0",
                 "150,000",
                 "500,000",
+                "800,000 per month (monthly) · one-time bonus of 3,000,000 (permanent)",
                 "1,500,000"
               ],
               [
@@ -240,6 +247,7 @@
                 "1,000,000",
                 "3,000,000",
                 "6,000,000",
+                "8,000,000",
                 "10,000,000"
               ],
               [
@@ -247,6 +255,7 @@
                 "150",
                 "400",
                 "1,000",
+                "2,000",
                 "3,000"
               ]
             ]
@@ -259,7 +268,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Song Request playlists and songs, wheels and segments, game overlays and accounts, histories, media storage and Polly voice characters also grow with the plan. Their exact values are in the public “Qué cambia en cada plan” table on `/supporters`, which is read from the same limits the bot applies (“Sin tope” means unlimited)."
+            "x": "Song Request playlists and songs, wheels and segments, game overlays and accounts, histories, media storage and standard voice also grow with the plan. Their exact values are in the public “Qué cambia en cada plan” table on `/supporters`, which is read from the same limits the bot applies (“Sin tope” means unlimited)."
           },
           {
             "t": "note",
@@ -280,7 +289,8 @@
             "t": "ul",
             "items": [
               "Supporter and Premium: a badge (⚡ and 💎) next to your name on the public `/supporters` page.",
-              "Fundador: an exclusive 🌟 badge, a Founders section on the page, and suggestions with priority on the roadmap. With the permanent plan, your name stays as a Founder.",
+              "Patrocinador: a 🏅 badge next to your name. The monthly plan gives 800,000 premium credits every month; the permanent plan gives a one-time bonus of 3,000,000 credits that do not expire (after that you buy packs). Both include 8,000,000 standard voice characters per month.",
+              "Fundador: an invitation-only rank, not sold. An exclusive 🌟 badge, a Founders section on the page and suggestions with priority on the roadmap.",
               "All paid plans allow hiding the Decatron card in the Song Request overlay and game overlays."
             ]
           }

@@ -36,6 +36,7 @@ public class XpService
         ["free"] = 1.0,
         ["supporter"] = 1.25,
         ["premium"] = 1.5,
+        ["patrocinador"] = 1.75,
         ["fundador"] = 2.0,
     };
 

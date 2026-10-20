@@ -78,18 +78,20 @@ const TIERS: TierDef[] = [
         perkKeys: ['premiumBenefits6'],
     },
     {
-        id: 'fundador',
-        name: 'Fundador',
-        badgeEmoji: '\ud83c\udf1f',
-        color: '#f59e0b',
-        bgLight: 'bg-amber-50',
-        bgDark: 'dark:bg-amber-950/30',
-        borderActive: 'border-amber-400',
-        textColor: 'text-amber-600 dark:text-amber-400',
+        // Fundador ya no se vende: se otorga por invitación. El rango público de 25 USD/mes y
+        // 100 USD permanente es Patrocinador.
+        id: 'patrocinador',
+        name: 'Patrocinador',
+        badgeEmoji: '\ud83c\udfc5',
+        color: '#10b981',
+        bgLight: 'bg-emerald-50',
+        bgDark: 'dark:bg-emerald-950/30',
+        borderActive: 'border-emerald-400',
+        textColor: 'text-emerald-600 dark:text-emerald-400',
         monthlyPrice: 25,
         permanentPrice: 100,
         highlighted: false,
-        perkKeys: ['fundadorBenefits3', 'fundadorBenefits4', 'fundadorBenefits5'],
+        perkKeys: ['patrocinadorBenefits1'],
     },
 ];
 
@@ -189,7 +191,10 @@ function TierCards() {
         if (v('wheels') !== undefined) out.push(v('wheels')! < 0 ? t('bWheelsUnlimited') : t('bWheels', { n: v('wheels') }));
         if (v('gamesAccounts') !== undefined) out.push(t('bGames', { n: v('gamesAccounts') }));
         if (v('storageBytes') !== undefined) out.push(t('bStorage', { size: fmtSize(v('storageBytes')!) }));
-        if (v('pollyChars') !== undefined && v('pollyChars')! > 0) out.push(t('bVoice', { n: v('pollyChars')!.toLocaleString() }));
+        // Créditos premium: el mensual se renueva cada mes; el permanente da un bono único
+        if (billingType === 'permanent' && (v('creditsOnce') ?? 0) > 0) out.push(t('bCreditsOnce', { n: v('creditsOnce')!.toLocaleString() }));
+        else if ((v('creditsMonthly') ?? 0) > 0) out.push(t('bCreditsMonthly', { n: v('creditsMonthly')!.toLocaleString() }));
+        if (v('standardChars') !== undefined && v('standardChars')! > 0) out.push(t('bVoice', { n: v('standardChars')!.toLocaleString() }));
         if (v('songHidePromo')) out.push(t('bHidePromo'));
         return out;
     };

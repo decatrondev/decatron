@@ -20,6 +20,7 @@ export interface PublicSupporter {
 export const TIER_META: Record<string, { label: string; emoji: string; color: string }> = {
     supporter: { label: 'Supporter', emoji: '⚡', color: '#3a67c8' },
     premium:   { label: 'Premium',   emoji: '💎', color: '#8b5cf6' },
+    patrocinador: { label: 'Patrocinador', emoji: '🏅', color: '#10b981' },
     fundador:  { label: 'Fundador',  emoji: '🌟', color: '#f59e0b' },
 };
 
@@ -84,8 +85,8 @@ export function SupNav() {
 export function SupHero({ config, supporters }: { config: PublicConfig; supporters: PublicSupporter[] }) {
     const { t } = useTranslation('supporters');
     const people = useMemo(() => {
-        const order: Record<string, number> = { fundador: 0, premium: 1, supporter: 2 };
-        return supporters.filter(s => s.tier !== 'admin').sort((a, b) => (order[a.tier] ?? 3) - (order[b.tier] ?? 3));
+        const order: Record<string, number> = { fundador: 0, patrocinador: 1, premium: 2, supporter: 3 };
+        return supporters.filter(s => s.tier !== 'admin').sort((a, b) => (order[a.tier] ?? 4) - (order[b.tier] ?? 4));
     }, [supporters]);
     const progress = config.monthlyGoal > 0 ? Math.min(100, (config.monthlyRaised / config.monthlyGoal) * 100) : 0;
     const shown = people.slice(0, 8);
@@ -245,7 +246,10 @@ export function PlanComparison() {
         { title: t('tGroupMultiview'), rows: [
             { key: 'multiviewSlots', label: t('rMultiviewSlots'), fmt: num }, { key: 'multiviewLayouts', label: t('rMultiviewLayouts'), fmt: num } ] },
         { title: t('tGroupStorage'), rows: [
-            { key: 'storageBytes', label: t('rStorage'), fmt: bytes }, { key: 'pollyChars', label: t('rPolly'), fmt: (v) => v === 0 ? <span className="text-[#3f4652]">{t('tableNo')}</span> : num(v) } ] },
+            { key: 'storageBytes', label: t('rStorage'), fmt: bytes }, { key: 'standardChars', label: t('rPolly'), fmt: (v) => v === 0 ? <span className="text-[#3f4652]">{t('tableNo')}</span> : num(v) } ] },
+        { title: t('tGroupCredits'), rows: [
+            { key: 'creditsMonthly', label: t('rCreditsMonthly'), fmt: (v) => v === 0 ? <span className="text-[#3f4652]">{t('tableNo')}</span> : num(v) },
+            { key: 'creditsOnce', label: t('rCreditsOnce'), fmt: (v) => v === 0 ? <span className="text-[#3f4652]">{t('tableNo')}</span> : num(v) } ] },
     ];
     const head = (tier: string) => tier === 'free' ? t('tableFree') : TIER_META[tier]?.label ?? tier;
 
@@ -267,7 +271,7 @@ export function PlanComparison() {
                         </thead>
                         {groups.map(g => (
                             <tbody key={g.title}>
-                                <tr><th colSpan={5} scope="colgroup" className="text-left px-4 pt-6 pb-2 font-mono text-xs text-pub-accent-hi font-normal border-t border-pub-border"># {g.title}</th></tr>
+                                <tr><th colSpan={data.tiers.length + 1} scope="colgroup" className="text-left px-4 pt-6 pb-2 font-mono text-xs text-pub-accent-hi font-normal border-t border-pub-border"># {g.title}</th></tr>
                                 {g.rows.map(r => (
                                     <tr key={r.key} className="border-t border-pub-border-soft">
                                         <th scope="row" className="text-left px-4 py-2.5 font-medium text-[#b4bccb]">{r.label}</th>

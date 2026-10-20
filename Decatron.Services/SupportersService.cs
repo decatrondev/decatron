@@ -85,6 +85,7 @@ namespace Decatron.Services
         {
             ["supporter"] = new TierDurationConfig { IsPermanent = false, Duration = 1, Unit = "months" },
             ["premium"]   = new TierDurationConfig { IsPermanent = false, Duration = 1, Unit = "months" },
+            ["patrocinador"] = new TierDurationConfig { IsPermanent = false, Duration = 1, Unit = "months" },
             ["fundador"]  = new TierDurationConfig { IsPermanent = false, Duration = 1, Unit = "months" },
         };
     }
@@ -265,7 +266,8 @@ namespace Decatron.Services
         {
             "supporter" => 1,
             "premium"   => 2,
-            "fundador"  => 3,
+            "patrocinador" => 3,
+            "fundador"  => 4,
             _           => 0, // free, null o cualquier cosa que no reconozcamos
         };
 

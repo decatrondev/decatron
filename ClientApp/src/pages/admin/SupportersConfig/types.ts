@@ -40,7 +40,7 @@ export interface DiscountCode {
     code: string;
     discountType: 'fixed' | 'percent';
     discountValue: number;
-    appliesTo: 'all' | 'supporter' | 'premium' | 'fundador';
+    appliesTo: 'all' | 'supporter' | 'premium' | 'patrocinador' | 'fundador';
     maxUses: number | null;
     usedCount: number;
     expiresAt: string | null;
@@ -66,4 +66,4 @@ export interface SpotifySlotRequest {
 }
 
 export type TierDuration = { isPermanent: boolean; duration: number; unit: DurationUnit };
-export type TierId = 'supporter' | 'premium' | 'fundador';
+export type TierId = 'supporter' | 'premium' | 'patrocinador' | 'fundador';

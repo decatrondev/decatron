@@ -51,6 +51,12 @@ namespace Decatron.Services.GameData
                 AllowedRotationModes = new[] { "none", "interval", "active_first" },
                 PollingIntervalSeconds = 60, MaxRecentMatches = 20, SessionHistoryDays = 365, CanHidePromo = true,
             },
+            ["patrocinador"] = new()
+            {
+                MaxAccountsPerGame = 7, MaxInstances = 10,
+                AllowedRotationModes = new[] { "none", "interval", "active_first" },
+                PollingIntervalSeconds = 60, MaxRecentMatches = 20, SessionHistoryDays = 730, CanHidePromo = true,
+            },
             ["fundador"] = new()
             {
                 MaxAccountsPerGame = HardMaxAccountsPerGame, MaxInstances = int.MaxValue,

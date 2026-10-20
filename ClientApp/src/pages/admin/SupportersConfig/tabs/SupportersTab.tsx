@@ -35,6 +35,7 @@ export function SupportersTab() {
     const TIER_BADGE: Record<string, string> = {
         supporter: 'bg-ds-accent/10 text-ds-accent-text ',
         premium: 'bg-ds-accent/10 text-ds-accent-text ',
+        patrocinador: 'bg-ds-accent/10 text-ds-accent-text ',
         fundador: 'bg-ds-warn/10 text-ds-warn ',
     };
 

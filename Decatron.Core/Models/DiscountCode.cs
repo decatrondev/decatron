@@ -25,7 +25,7 @@ namespace Decatron.Core.Models
         [Column("discount_value")]
         public decimal DiscountValue { get; set; }
 
-        /// <summary>"all" | "supporter" | "premium" | "fundador"</summary>
+        /// <summary>"all" | "supporter" | "premium" | "patrocinador" | "fundador"</summary>
         [MaxLength(20)]
         [Column("applies_to")]
         public string AppliesTo { get; set; } = "all";

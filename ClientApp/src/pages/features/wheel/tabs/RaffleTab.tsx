@@ -246,7 +246,7 @@ export function RaffleTab({
                     <Toggle on={!!fuentes.supporterTier?.enabled} onChange={v => setFuente('supporterTier', { enabled: v })} />
                     {fuentes.supporterTier?.enabled && (
                         <div className="flex items-center gap-2 ml-3 flex-wrap">
-                            {(['supporter', 'premium', 'fundador'] as const).map(tier => (
+                            {(['supporter', 'premium', 'patrocinador', 'fundador'] as const).map(tier => (
                                 <label key={tier} className="flex items-center gap-1.5 text-xs text-ds-soft">
                                     {tier}
                                     <input

@@ -25,12 +25,11 @@ export const DEFAULT_TIERS: TierConfig[] = [
         monthlyPrice: 5,
         permanentPrice: null,
         benefits: [
-            '50 comandos personalizados',
-            '10 variantes por alerta',
-            '2 overlays por tipo',
+            'Comandos y timers sin tope',
+            '15 variantes por alerta',
             'AI Commands',
-            'Analytics 90 días',
-            'Timer history 90 días',
+            'Analytics 180 días',
+            '150.000 créditos premium al mes',
             'Badge ⚡ en la página pública',
         ],
         highlighted: false,
@@ -43,29 +42,27 @@ export const DEFAULT_TIERS: TierConfig[] = [
         monthlyPrice: 15,
         permanentPrice: null,
         benefits: [
-            '100 comandos personalizados',
-            '15 variantes por alerta',
-            '4 overlays por tipo',
+            'Comandos y timers sin tope',
+            'Variantes por alerta sin tope',
             'AI Commands',
-            'Analytics 365 días + exportar CSV',
-            'Timer history 365 días + backups',
+            'Analytics sin tope + exportar CSV y PDF',
+            '500.000 créditos premium al mes',
             'Badge 💎 en la página pública',
         ],
         highlighted: true,
     },
     {
-        id: 'fundador',
-        name: 'Fundador',
-        badgeEmoji: '🌟',
-        color: '#f59e0b',
+        id: 'patrocinador',
+        name: 'Patrocinador',
+        badgeEmoji: '🏅',
+        color: '#10b981',
         monthlyPrice: 25,
         permanentPrice: 100,
         benefits: [
-            'Comandos, variantes y overlays ilimitados',
-            'Analytics y timer history ilimitados',
-            'Sugerencias con prioridad en el roadmap',
-            'Sección especial de Fundadores',
-            'Badge 🌟 FUNDADOR exclusivo',
+            'Todo lo de Premium con topes más altos',
+            '800.000 créditos premium al mes (mensual) o 3.000.000 una sola vez (permanente)',
+            'Voz estándar: 8 M de caracteres al mes',
+            'Badge 🏅 en la página pública',
         ],
         highlighted: false,
     },
@@ -76,6 +73,7 @@ export const DEFAULT_TIERS: TierConfig[] = [
 export const TIER_LABELS: Record<string, string> = {
     supporter: '⚡ Supporter',
     premium: '💎 Premium',
+    patrocinador: '🏅 Patrocinador',
     fundador: '🌟 Fundador',
     free: 'Free',
 };
@@ -115,12 +113,14 @@ export const UNIT_MS: Record<DurationUnit, number> = {
 export const TIER_OPTIONS: { id: TierId; label: string; color: string }[] = [
     { id: 'supporter', label: '⚡ Supporter', color: '#3b82f6' },
     { id: 'premium',   label: '💎 Premium',   color: '#8b5cf6' },
-    { id: 'fundador',  label: '🌟 Fundador',  color: '#f59e0b' },
+    { id: 'patrocinador', label: '🏅 Patrocinador', color: '#10b981' },
+    { id: 'fundador',  label: '🌟 Fundador (invitación)',  color: '#f59e0b' },
 ];
 
 export const DEFAULT_TIER_DURATIONS: Record<TierId, TierDuration> = {
     supporter: { isPermanent: false, duration: 30, unit: 'days' },
     premium:   { isPermanent: false, duration: 30, unit: 'days' },
+    patrocinador: { isPermanent: false, duration: 30, unit: 'days' },
     fundador:  { isPermanent: false, duration: 30, unit: 'days' },
 };
 

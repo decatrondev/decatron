@@ -111,6 +111,7 @@ const TIER_CONFIG: Record<string, { label: string; color: string; description: s
     free:      { label: 'Free',      color: TIER_NEUTRAL, description: 'Plan gratuito' },
     supporter: { label: '⚡ Supporter', color: TIER_BRAND, description: 'Gracias por apoyar el proyecto' },
     premium:   { label: '💎 Premium',  color: TIER_BRAND, description: 'Acceso completo a todas las funciones' },
+    patrocinador: { label: '🏅 Patrocinador', color: TIER_BRAND, description: 'Gracias por patrocinar el proyecto' },
     fundador:  { label: '🌟 Fundador', color: TIER_BRAND, description: 'Apoyo fundador — gracias por estar desde el principio' },
     admin:     { label: 'Admin',     color: TIER_BRAND, description: 'Acceso total de administrador' },
 };

@@ -1261,7 +1261,8 @@
         "supporter": "Supporter",
         "premium": "Premium",
         "fundador": "Founder",
-        "admin": "Admin"
+        "admin": "Admin",
+        "patrocinador": "Patrocinador"
       },
       "unlimited": "No limit",
       "units": {

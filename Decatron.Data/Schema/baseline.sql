@@ -9619,7 +9619,7 @@ CREATE TABLE public.user_subscription_tiers (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
-    CONSTRAINT chk_valid_tier CHECK (((tier)::text = ANY (ARRAY[('free'::character varying)::text, ('supporter'::character varying)::text, ('premium'::character varying)::text, ('fundador'::character varying)::text, ('admin'::character varying)::text])))
+    CONSTRAINT chk_valid_tier CHECK (((tier)::text = ANY (ARRAY[('free'::character varying)::text, ('supporter'::character varying)::text, ('premium'::character varying)::text, ('patrocinador'::character varying)::text, ('fundador'::character varying)::text, ('admin'::character varying)::text])))
 );
 
 

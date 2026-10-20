@@ -21,6 +21,7 @@ namespace Decatron.Services.LiveTranslation
             ["free"] = new() { Tier = "free", MaxListeners = 20, DefaultListeners = 10 },
             ["supporter"] = new() { Tier = "supporter", MaxListeners = 100, DefaultListeners = 50 },
             ["premium"] = new() { Tier = "premium", MaxListeners = 300, DefaultListeners = 100 },
+            ["patrocinador"] = new() { Tier = "patrocinador", MaxListeners = 600, DefaultListeners = 150 },
             ["fundador"] = new() { Tier = "fundador", MaxListeners = 1000, DefaultListeners = 200 },
         };
 

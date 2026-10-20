@@ -296,6 +296,7 @@ public class RankCardGenerator
         {
             ["supporter"] = new Rgba32(59, 130, 246),
             ["premium"] = new Rgba32(168, 85, 247),
+            ["patrocinador"] = new Rgba32(16, 185, 129),
             ["fundador"] = new Rgba32(245, 158, 11),
         };
 

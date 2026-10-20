@@ -22,6 +22,7 @@ namespace Decatron.Core.Helpers
                 ["free"]      = 0,
                 ["supporter"] = 150_000,
                 ["premium"]   = 500_000,
+                ["patrocinador"] = 1_000_000,
                 ["fundador"]  = 2_000_000,
                 [AdminTier]   = Unlimited
             };
@@ -38,6 +39,7 @@ namespace Decatron.Core.Helpers
                 ["free"]      = 500L * 1024 * 1024,
                 ["supporter"] = 2L * 1024 * 1024 * 1024,
                 ["premium"]   = 5L * 1024 * 1024 * 1024,
+                ["patrocinador"] = 10L * 1024 * 1024 * 1024,
                 ["fundador"]  = 15L * 1024 * 1024 * 1024,
                 [AdminTier]   = Unlimited
             };
@@ -52,6 +54,7 @@ namespace Decatron.Core.Helpers
                 ["free"]      = 2,
                 ["supporter"] = 5,
                 ["premium"]   = 15,
+                ["patrocinador"] = 40,
                 ["fundador"]  = Unlimited,
                 [AdminTier]   = Unlimited
             };
@@ -67,6 +70,7 @@ namespace Decatron.Core.Helpers
                 ["free"]      = 12,
                 ["supporter"] = 24,
                 ["premium"]   = 48,
+                ["patrocinador"] = 48,
                 ["fundador"]  = 48,
                 [AdminTier]   = 48
             };
@@ -85,6 +89,7 @@ namespace Decatron.Core.Helpers
                 ["free"]      = 30,
                 ["supporter"] = 90,
                 ["premium"]   = 365,
+                ["patrocinador"] = 730,
                 ["fundador"]  = Unlimited,
                 [AdminTier]   = Unlimited
             };
@@ -109,7 +114,7 @@ namespace Decatron.Core.Helpers
         /// monetizacion indirecta de una feature que es gratis para todos.
         /// </summary>
         public static bool PuedeOcultarMarcaDeAgua(string tier) =>
-            tier is "premium" or "fundador" or AdminTier;
+            tier is "premium" or "patrocinador" or "fundador" or AdminTier;
 
         /// <summary>Valor sentinela para "sin límite".</summary>
         public const long Unlimited = -1;
@@ -122,8 +127,9 @@ namespace Decatron.Core.Helpers
         private static readonly IReadOnlyDictionary<string, int> TierRank =
             new Dictionary<string, int>
             {
-                [AdminTier]   = 4,
-                ["fundador"]  = 3,
+                [AdminTier]   = 5,
+                ["fundador"]  = 4,
+                ["patrocinador"] = 3,
                 ["premium"]   = 2,
                 ["supporter"] = 1,
                 ["free"]      = 0,

@@ -41,8 +41,13 @@
                 "Aún más cantidades y más créditos mensuales."
               ],
               [
-                "Fundador 🌟",
+                "Patrocinador 🏅",
                 "US$ 25 al mes o US$ 100 permanente",
+                "Cantidades entre Premium y Fundador, créditos mensuales (o un bono único si es permanente) y más voz estándar."
+              ],
+              [
+                "Fundador 🌟",
+                "Por invitación (no se vende)",
                 "Los límites más altos (algunos sin tope), sugerencias con prioridad en el roadmap y una sección propia en la página."
               ]
             ]
@@ -103,7 +108,7 @@
           {
             "t": "ol",
             "items": [
-              "En `/supporters`, elige Mensual o Permanente (solo el plan Fundador tiene la opción permanente).",
+              "En `/supporters`, elige Mensual o Permanente (solo el plan Patrocinador tiene la opción permanente).",
               "Si tienes un código de descuento, escríbelo en «¿Tienes un código de descuento?» y pulsa «Aplicar»: verás el descuento en porcentaje o en dólares.",
               "Pulsa «Tarjeta / Yape» en el plan elegido. Aparece «Así saldrá tu comprobante»: revisa el tipo, el nombre, el documento y el total. Si tienes RUC puedes elegir Boleta o Factura.",
               "Pulsa «Continuar al pago» y paga en la ventana de Culqi.",
@@ -202,7 +207,7 @@
   },
   "plans": {
     "title": "Planes: qué incluye cada uno",
-    "subtitle": "Cantidades, créditos y extras de Supporter, Premium y Fundador",
+    "subtitle": "Cantidades, créditos y extras de Supporter, Premium, Patrocinador y Fundador",
     "sections": [
       {
         "id": "idea",
@@ -225,6 +230,7 @@
               "Gratis",
               "Supporter",
               "Premium",
+              "Patrocinador",
               "Fundador"
             ],
             "rows": [
@@ -233,6 +239,7 @@
                 "0",
                 "150 000",
                 "500 000",
+                "800 000 al mes (mensual) · bono único de 3 000 000 (permanente)",
                 "1 500 000"
               ],
               [
@@ -240,6 +247,7 @@
                 "1 000 000",
                 "3 000 000",
                 "6 000 000",
+                "8 000 000",
                 "10 000 000"
               ],
               [
@@ -247,6 +255,7 @@
                 "150",
                 "400",
                 "1 000",
+                "2 000",
                 "3 000"
               ]
             ]
@@ -259,7 +268,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Playlists y canciones de Song Request, ruedas y gajos, overlays y cuentas de juegos, historiales, almacenamiento de medios y caracteres de voz Polly también crecen con el plan. Sus valores exactos están en la tabla pública «Qué cambia en cada plan» de `/supporters`, que se lee de los mismos límites que aplica el bot («Sin tope» significa ilimitado)."
+            "x": "Playlists y canciones de Song Request, ruedas y gajos, overlays y cuentas de juegos, historiales, almacenamiento de medios y voz estándar también crecen con el plan. Sus valores exactos están en la tabla pública «Qué cambia en cada plan» de `/supporters`, que se lee de los mismos límites que aplica el bot («Sin tope» significa ilimitado)."
           },
           {
             "t": "note",
@@ -280,7 +289,8 @@
             "t": "ul",
             "items": [
               "Supporter y Premium: una insignia (⚡ y 💎) junto a tu nombre en la página pública `/supporters`.",
-              "Fundador: insignia 🌟 exclusiva, una sección de Fundadores en la página, y sugerencias con prioridad en el roadmap. Con el plan permanente, tu nombre queda como Fundador.",
+              "Patrocinador: insignia 🏅 junto a tu nombre. El plan mensual da 800 000 créditos premium cada mes; el permanente da un bono único de 3 000 000 de créditos que no caducan (después compras paquetes). Los dos incluyen 8 000 000 de caracteres de voz estándar al mes.",
+              "Fundador: rango por invitación, no se vende. Insignia 🌟 exclusiva, una sección de Fundadores en la página y sugerencias con prioridad en el roadmap.",
               "Todos los planes de pago permiten ocultar la tarjeta de Decatron en el overlay de Song Request y en los overlays de juegos."
             ]
           }

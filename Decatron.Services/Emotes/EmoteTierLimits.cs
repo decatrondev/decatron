@@ -19,6 +19,7 @@ namespace Decatron.Services.Emotes
             ["free"] = new() { Tier = "free", MaxEmotes = 150 },
             ["supporter"] = new() { Tier = "supporter", MaxEmotes = 400 },
             ["premium"] = new() { Tier = "premium", MaxEmotes = 1000 },
+            ["patrocinador"] = new() { Tier = "patrocinador", MaxEmotes = 2000 },
             ["fundador"] = new() { Tier = "fundador", MaxEmotes = 3000 },
         };
 

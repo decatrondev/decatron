@@ -567,7 +567,8 @@ namespace Decatron.Services
         /// </summary>
         public static int TierRank(string? tier) => tier?.ToLowerInvariant() switch
         {
-            "fundador" or "admin" => 3,
+            "fundador" or "admin" => 4,
+            "patrocinador" => 3,
             "premium" => 2,
             "supporter" => 1,
             _ => 0,

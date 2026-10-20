@@ -132,7 +132,7 @@ namespace Decatron.Controllers
             try
             {
                 var plans = new List<object>();
-                foreach (var tier in new[] { "free", "supporter", "premium", "fundador" })
+                foreach (var tier in new[] { "free", "supporter", "premium", "patrocinador", "fundador" })
                 {
                     plans.Add(new
                     {

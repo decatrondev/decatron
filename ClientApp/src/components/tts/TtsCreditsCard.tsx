@@ -57,6 +57,7 @@ const TIER_LABEL: Record<string, string> = {
     free: 'Free',
     supporter: 'Supporter',
     premium: 'Premium',
+    patrocinador: 'Patrocinador',
     fundador: 'Fundador',
     admin: 'Admin',
 };

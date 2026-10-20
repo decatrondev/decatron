@@ -85,7 +85,7 @@ namespace Decatron.Controllers
                 return tier switch
                 {
                     "admin" => 365 * 10,
-                    "premium" => 365 * 10,
+                    "premium" or "patrocinador" or "fundador" => 365 * 10,
                     "supporter" => 180,
                     _ => 30
                 };

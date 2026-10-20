@@ -30,6 +30,7 @@ namespace Decatron.Services.SongRequest
             ["free"] = new() { Tier = "free", MaxPlaylists = 3, MaxItemsPerPlaylist = 500, HistoryDays = 30, MaxTemplates = 3, CanHidePromo = false },
             ["supporter"] = new() { Tier = "supporter", MaxPlaylists = 10, MaxItemsPerPlaylist = 1000, HistoryDays = 90, MaxTemplates = 10, CanHidePromo = true },
             ["premium"] = new() { Tier = "premium", MaxPlaylists = 25, MaxItemsPerPlaylist = 2500, HistoryDays = 365, MaxTemplates = 25, CanHidePromo = true },
+            ["patrocinador"] = new() { Tier = "patrocinador", MaxPlaylists = 50, MaxItemsPerPlaylist = 3500, HistoryDays = 730, MaxTemplates = 50, CanHidePromo = true },
             ["fundador"] = new() { Tier = "fundador", MaxPlaylists = HardMaxPlaylists, MaxItemsPerPlaylist = 5000, HistoryDays = int.MaxValue, MaxTemplates = HardMaxTemplates, CanHidePromo = true },
         };
 

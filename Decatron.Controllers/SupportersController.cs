@@ -32,7 +32,8 @@ namespace Decatron.Controllers
         {
             ["supporter"] = new() { ["monthly"] = 5.00m },
             ["premium"]   = new() { ["monthly"] = 15.00m },
-            ["fundador"]  = new() { ["monthly"] = 25.00m, ["permanent"] = 100.00m },
+            // Fundador ya no se vende: se otorga por invitación (asignación manual del dueño).
+            ["patrocinador"] = new() { ["monthly"] = 25.00m, ["permanent"] = 100.00m },
         };
 
         private readonly IBillingProfileService _billing;
@@ -143,7 +144,7 @@ namespace Decatron.Controllers
                 static long N(int v) => v == int.MaxValue ? Unl : v;
                 static long L(long v) => v < 0 || v == long.MaxValue ? Unl : v;
 
-                var tiers = new[] { "free", "supporter", "premium", "fundador" };
+                var tiers = new[] { "free", "supporter", "premium", "patrocinador", "fundador" };
                 var rows = new Dictionary<string, Dictionary<string, long>>();
                 void Add(string key, Func<string, long> f)
                     => rows[key] = tiers.ToDictionary(t => t, f);
@@ -152,17 +153,20 @@ namespace Decatron.Controllers
                 var segments = new Dictionary<string, long>();
                 var wheelHistory = new Dictionary<string, long>();
                 var storage = new Dictionary<string, long>();
-                var polly = new Dictionary<string, long>();
+                var standard = new Dictionary<string, long>();
                 foreach (var t in tiers)
                 {
                     wheels[t]       = L(await Decatron.Core.Helpers.TierResolver.GetWheelLimitAsync(_db, t));
                     segments[t]     = L(await Decatron.Core.Helpers.TierResolver.GetWheelSegmentLimitAsync(_db, t));
                     wheelHistory[t] = L(await Decatron.Core.Helpers.TierResolver.GetWheelHistoryDaysAsync(_db, t));
                     storage[t]      = L(await Decatron.Core.Helpers.TierResolver.GetStorageBytesLimitAsync(_db, t));
-                    polly[t]        = L(await Decatron.Core.Helpers.TierResolver.GetPollyCharLimitAsync(_db, t));
+                    standard[t]     = Decatron.Services.TtsCreditService.StandardCreditsFor(t);
                 }
                 rows["wheels"] = wheels; rows["wheelSegments"] = segments; rows["wheelHistoryDays"] = wheelHistory;
-                rows["storageBytes"] = storage; rows["pollyChars"] = polly;
+                rows["storageBytes"] = storage; rows["standardChars"] = standard;
+                // Créditos premium: mensuales (se renuevan cada mes) y el bono único del permanente (no caduca)
+                Add("creditsMonthly", t => Decatron.Services.TtsCreditService.MonthlyPremiumCreditsFor(t));
+                Add("creditsOnce",    t => t == "patrocinador" ? Decatron.Services.TtsCreditService.PatrocinadorPermanentBonus : 0);
 
                 Add("songPlaylists",     t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).MaxPlaylists));
                 Add("songItems",         t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).MaxItemsPerPlaylist));
@@ -272,7 +276,7 @@ namespace Decatron.Controllers
             if (string.IsNullOrWhiteSpace(req.TwitchLogin))
                 return BadRequest(new { error = "twitchLogin es obligatorio" });
 
-            var validTiers = new[] { "free", "supporter", "premium", "fundador" };
+            var validTiers = new[] { "free", "supporter", "premium", "patrocinador", "fundador" };
             if (!Array.Exists(validTiers, t => t == req.Tier))
                 return BadRequest(new { error = $"Tier inválido: {req.Tier}" });
 

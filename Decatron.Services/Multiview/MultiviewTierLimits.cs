@@ -22,6 +22,7 @@ namespace Decatron.Services.Multiview
             ["free"] = new() { Tier = "free", MaxSlots = 4, MaxLayouts = 3 },
             ["supporter"] = new() { Tier = "supporter", MaxSlots = 6, MaxLayouts = 10 },
             ["premium"] = new() { Tier = "premium", MaxSlots = 9, MaxLayouts = 25 },
+            ["patrocinador"] = new() { Tier = "patrocinador", MaxSlots = 10, MaxLayouts = 50 },
             ["fundador"] = new() { Tier = "fundador", MaxSlots = HardMaxSlots, MaxLayouts = 100 },
         };
 

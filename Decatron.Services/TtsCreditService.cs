@@ -38,8 +38,28 @@ namespace Decatron.Services
             ["free"]      = 0,
             ["supporter"] = 150_000,
             ["premium"]   = 500_000,
+            ["patrocinador"] = 800_000,
+            // Patrocinador permanente: sin cuota mensual; recibe un bono único (ver PatrocinadorPermanentBonus)
+            [PatrocinadorPermanentKey] = 0,
             ["fundador"]  = 1_500_000,
         };
+
+        /// <summary>
+        /// Clave de cuota del Patrocinador permanente (tier_expires_at NULL): el rango es el mismo
+        /// «patrocinador» y cambia solo cómo se acreditan los créditos: bono único, no cuota mensual.
+        /// </summary>
+        private const string PatrocinadorPermanentKey = "patrocinador_permanent";
+
+        /// <summary>Bono único (créditos premium, bolsa «purchased», no caduca) del Patrocinador permanente.</summary>
+        public const long PatrocinadorPermanentBonus = 3_000_000;
+
+        /// <summary>Créditos premium mensuales del rango (para mostrarlos en /supporters). 0 si no tiene.</summary>
+        public static long MonthlyPremiumCreditsFor(string tier) =>
+            _tierMonthlyCredits.TryGetValue(tier, out var q) ? q : 0;
+
+        /// <summary>Cuota mensual de voz estándar del rango (para mostrarla en /supporters).</summary>
+        public static long StandardCreditsFor(string tier) =>
+            _tierStandardCredits.TryGetValue(tier, out var q) ? q : 0;
 
         /// <summary>Créditos mensuales para cuentas sin tier, solo durante la transición.</summary>
         private const long TransitionMonthlyCredits = 20_000;
@@ -58,6 +78,8 @@ namespace Decatron.Services
             ["free"]      = 1_000_000,
             ["supporter"] = 3_000_000,
             ["premium"]   = 6_000_000,
+            ["patrocinador"] = 8_000_000,
+            [PatrocinadorPermanentKey] = 8_000_000,
             ["fundador"]  = 10_000_000,
         };
 
@@ -112,7 +134,7 @@ namespace Decatron.Services
             var cost = await CalculateCostAsync(chars, engine);
 
             // Los tiers ilimitados (admin) no consumen ni bloquean
-            var tier = await TierResolver.GetEffectiveTierAsync(_context, userId);
+            var tier = await ResolveQuotaTierAsync(userId);
             if (await IsUnlimitedAsync(tier))
             {
                 await AddLedgerEntryAsync(new TtsCreditLedgerEntry
@@ -196,7 +218,7 @@ namespace Decatron.Services
             if (chars <= 0)
                 return new CreditConsumeResult(true, 0, 0);
 
-            var tier = await TierResolver.GetEffectiveTierAsync(_context, userId);
+            var tier = await ResolveQuotaTierAsync(userId);
 
             if (await IsUnlimitedAsync(tier))
             {
@@ -339,7 +361,7 @@ namespace Decatron.Services
                 }
             }
 
-            var tier = await TierResolver.GetEffectiveTierAsync(_context, userId);
+            var tier = await ResolveQuotaTierAsync(userId);
             var balance = await GetOrCreateBalanceAsync(userId, tier);
 
             // Las bolsas mensuales se recalculan solas: si al retirar se bajara lo
@@ -548,7 +570,7 @@ namespace Decatron.Services
 
         public async Task<CreditBalanceInfo> GetBalanceAsync(long userId)
         {
-            var tier = await TierResolver.GetEffectiveTierAsync(_context, userId);
+            var tier = await ResolveQuotaTierAsync(userId);
             var balance = await GetOrCreateBalanceAsync(userId, tier);
             var unlimited = await IsUnlimitedAsync(tier);
 
@@ -586,6 +608,40 @@ namespace Decatron.Services
         /// Devuelve el saldo del canal, creándolo si no existe y reiniciando la bolsa
         /// mensual si cambió el mes. Reinicio perezoso: sin cron.
         /// </summary>
+        /// <summary>
+        /// Tier efectivo para calcular cuotas. Igual que el tier de la cuenta salvo el Patrocinador
+        /// permanente, que usa su propia clave: no recibe cuota mensual de créditos premium.
+        /// </summary>
+        private async Task<string> ResolveQuotaTierAsync(long userId)
+        {
+            var details = await TierResolver.GetEffectiveTierDetailsAsync(_context, userId);
+            return details.Tier == "patrocinador" && details.TierExpiresAt == null
+                ? PatrocinadorPermanentKey
+                : details.Tier;
+        }
+
+        /// <summary>
+        /// Acredita una sola vez el bono del Patrocinador permanente. Idempotente: el índice único
+        /// (gateway, external_id) del libro mayor impide repetirlo.
+        /// </summary>
+        private async Task GrantPermanentBonusOnceAsync(long userId, TtsCreditBalance balance)
+        {
+            var externalId = $"patrocinador-permanent:{userId}";
+            if (await _context.TtsCreditLedger.AnyAsync(e => e.Gateway == "tier-bonus" && e.ExternalId == externalId))
+                return;
+
+            balance.PurchasedBalance += PatrocinadorPermanentBonus;
+            balance.UpdatedAt = DateTimeOffset.UtcNow;
+            _context.TtsCreditLedger.Add(new TtsCreditLedgerEntry
+            {
+                UserId = userId, Type = "grant_gift", Credits = PatrocinadorPermanentBonus, Bucket = "purchased",
+                Feature = "admin", Gateway = "tier-bonus", ExternalId = externalId,
+                Note = "Bono único del plan Patrocinador permanente"
+            });
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("[TtsCredits] Bono único de Patrocinador permanente acreditado a {UserId}", userId);
+        }
+
         private async Task<TtsCreditBalance> GetOrCreateBalanceAsync(long userId, string tier)
         {
             var currentPeriod = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
@@ -615,6 +671,8 @@ namespace Decatron.Services
                 });
 
                 await _context.SaveChangesAsync();
+                if (tier == PatrocinadorPermanentKey)
+                    await GrantPermanentBonusOnceAsync(userId, balance);
                 return balance;
             }
 
@@ -710,6 +768,9 @@ namespace Decatron.Services
 
                 await _context.SaveChangesAsync();
             }
+
+            if (tier == PatrocinadorPermanentKey)
+                await GrantPermanentBonusOnceAsync(userId, balance);
 
             return balance;
         }
