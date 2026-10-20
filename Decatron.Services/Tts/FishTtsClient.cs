@@ -82,32 +82,54 @@ namespace Decatron.Services.Tts
             };
             if (!string.IsNullOrWhiteSpace(voiceId)) body["reference_id"] = voiceId.Trim();
 
-            var gate = Gate();
-            await gate.WaitAsync(ct);
-            try
+            // Fish limita las peticiones simultáneas (5 en Starter) y a veces responde 429/503: se reintenta con una espera corta
+            // en vez de dejar el chat sin voz. 402, 404 o 422 no se reintentan (sin saldo o voz inservible: no se arreglan esperando).
+            var attempts = Math.Clamp(int.TryParse(_config["FishAudio:RetryAttempts"], out var ra) ? ra : 3, 1, 5);
+            var baseDelay = Math.Clamp(int.TryParse(_config["FishAudio:RetryDelayMs"], out var rd) ? rd : 700, 0, 5000);
+            for (var attempt = 1; ; attempt++)
             {
-                var http = _http.CreateClient("fish-tts");
-                http.Timeout = TimeSpan.FromSeconds(30);
-                using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.fish.audio/v1/tts")
+                var gate = Gate();
+                await gate.WaitAsync(ct);
+                TimeSpan? wait = null;
+                try
                 {
-                    Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
-                };
-                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-                req.Headers.TryAddWithoutValidation("model", model);
+                    var http = _http.CreateClient("fish-tts");
+                    http.Timeout = TimeSpan.FromSeconds(30);
+                    using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.fish.audio/v1/tts")
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
+                    };
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
+                    req.Headers.TryAddWithoutValidation("model", model);
 
-                using var res = await http.SendAsync(req, ct);
-                if (!res.IsSuccessStatusCode)
-                {
+                    using var res = await http.SendAsync(req, ct);
+                    if (res.IsSuccessStatusCode)
+                    {
+                        var bytes = await res.Content.ReadAsByteArrayAsync(ct);
+                        if (bytes.Length == 0) throw new FishTtsException(204, "Fish TTS devolvió audio vacío");
+                        return bytes;
+                    }
+
+                    var status = (int)res.StatusCode;
                     var err = await res.Content.ReadAsStringAsync(ct);
-                    if ((int)res.StatusCode == 402)
+                    if (status == 402)
                         _logger.LogWarning("[FishTts] Sin saldo de API en Fish (402)");
-                    throw new FishTtsException((int)res.StatusCode, $"Fish TTS {(int)res.StatusCode}: {(err.Length > 200 ? err[..200] : err)}");
+                    var retryable = status is 429 or 502 or 503 or 504;
+                    if (!retryable || attempt >= attempts)
+                        throw new FishTtsException(status, $"Fish TTS {status}: {(err.Length > 200 ? err[..200] : err)}");
+
+                    // Retry-After manda si Fish lo indica (con tope para no dejar un turno de audio colgado)
+                    var hinted = res.Headers.RetryAfter?.Delta;
+                    wait = hinted is { } d && d > TimeSpan.Zero
+                        ? TimeSpan.FromMilliseconds(Math.Min(d.TotalMilliseconds, 5000))
+                        : TimeSpan.FromMilliseconds(baseDelay * attempt);
+                    _logger.LogInformation("[FishTts] Fish respondió {Status}; reintento {Attempt}/{Max} en {Ms} ms", status, attempt + 1, attempts, (int)wait.Value.TotalMilliseconds);
                 }
-                var bytes = await res.Content.ReadAsByteArrayAsync(ct);
-                if (bytes.Length == 0) throw new FishTtsException(204, "Fish TTS devolvió audio vacío");
-                return bytes;
+                finally { gate.Release(); }
+
+                // La espera va fuera del semáforo: otra petición puede usar el cupo mientras tanto
+                if (wait is { } w && w > TimeSpan.Zero) await Task.Delay(w, ct);
             }
-            finally { gate.Release(); }
         }
 
         /// <summary>Busca voces públicas por título. No pide llave ni gasta saldo.</summary>

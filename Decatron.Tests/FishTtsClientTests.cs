@@ -66,6 +66,49 @@ public class FishTtsClientTests
         Assert.Equal(esperado, ex.Status);
     }
 
+    /// <summary>Responde con la secuencia dada (la última se repite) y cuenta las llamadas.</summary>
+    private sealed class Sequence(params HttpStatusCode[] codes) : HttpMessageHandler
+    {
+        public int Calls;
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage r, CancellationToken ct)
+        {
+            var code = codes[Math.Min(Calls, codes.Length - 1)];
+            Calls++;
+            return Task.FromResult(new HttpResponseMessage(code) { Content = new ByteArrayContent(new byte[] { 1, 2, 3 }) });
+        }
+    }
+    private static FishTtsClient FastRetry(HttpMessageHandler h) => new(new Factory(h), new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+    { ["FishAudio:ApiKey"] = "fish-del-uno", ["FishAudio:RetryDelayMs"] = "1" }).Build(), NullLogger<FishTtsClient>.Instance, new Byo(new()));
+
+    [Fact]
+    public async Task LimiteDeFish_429_SeReintentaYTerminaBien()
+    {
+        var h = new Sequence(HttpStatusCode.TooManyRequests, HttpStatusCode.TooManyRequests, HttpStatusCode.OK);
+        var bytes = await FastRetry(h).SynthesizeAsync("hola", "");
+        Assert.Equal(3, bytes.Length);
+        Assert.Equal(3, h.Calls);
+    }
+
+    [Fact]
+    public async Task LimiteDeFish_SiPersiste_FallaConSuCodigoTrasLosIntentos()
+    {
+        var h = new Sequence(HttpStatusCode.TooManyRequests);
+        var ex = await Assert.ThrowsAsync<FishTtsException>(() => FastRetry(h).SynthesizeAsync("hola", ""));
+        Assert.Equal(429, ex.Status);
+        Assert.Equal(3, h.Calls);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.PaymentRequired)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    public async Task SinSaldoOVozInservible_NoSeReintenta(HttpStatusCode code)
+    {
+        var h = new Sequence(code, HttpStatusCode.OK);
+        await Assert.ThrowsAsync<FishTtsException>(() => FastRetry(h).SynthesizeAsync("hola", ""));
+        Assert.Equal(1, h.Calls);
+    }
+
     [Fact]
     public void Voz_SoloSeAceptaUnIdDeFish_NoUnNombreDePolly()
     {

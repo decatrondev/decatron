@@ -313,6 +313,9 @@ El usuario IAM necesita `polly:SynthesizeSpeech` (por ejemplo la política `Amaz
 | `FishAudio:Model` | string | `s1` | Modelo de FishAudio |
 | `FishAudio:DefaultVoiceId` | string | | Voz de personaje que se usa cuando la pedida no es una voz activa del catálogo (`tts_fish_voices`). Debe ser una de ellas |
 | `FishAudio:MaxConcurrent` | int | `4` | Peticiones simultáneas a Fish (el nivel de entrada permite 5) |
+| `FishAudio:RetryAttempts` | int | `3` | Intentos por audio cuando Fish responde 429, 502, 503 o 504 (de 1 a 5); 402, 404 y 422 nunca se reintentan |
+| `FishAudio:RetryDelayMs` | int | `700` | Espera base entre intentos, multiplicada por el número de intento; un `Retry-After` de Fish manda (con tope de 5 s) |
+| `FishAudio:MaxPrivateVoices` | int | `10` | Voces de personaje propias por canal para el rango Patrocinador o superior |
 
 ---
 

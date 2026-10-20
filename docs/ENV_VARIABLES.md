@@ -313,6 +313,9 @@ The IAM user needs `polly:SynthesizeSpeech` (for example the `AmazonPollyReadOnl
 | `FishAudio:Model` | string | `s1` | FishAudio model |
 | `FishAudio:DefaultVoiceId` | string | | Character voice used when the requested one is not an active voice of the catalog (`tts_fish_voices`). Must be one of them |
 | `FishAudio:MaxConcurrent` | int | `4` | Simultaneous requests to Fish (the entry tier allows 5) |
+| `FishAudio:RetryAttempts` | int | `3` | Attempts per audio when Fish answers 429, 502, 503 or 504 (1 to 5); 402, 404 and 422 are never retried |
+| `FishAudio:RetryDelayMs` | int | `700` | Base wait between attempts, multiplied by the attempt number; a `Retry-After` from Fish wins (capped at 5 s) |
+| `FishAudio:MaxPrivateVoices` | int | `10` | Own character voices per channel for the Patrocinador rank or higher |
 
 ---
 
