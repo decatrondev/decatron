@@ -21,7 +21,7 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-10-18
+-- Snapshot date: 2026-10-19
 --
 --
 --
@@ -9206,6 +9206,28 @@ ALTER SEQUENCE public.tts_credit_ledger_id_seq OWNED BY public.tts_credit_ledger
 
 
 --
+-- Name: tts_fish_voices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tts_fish_voices (
+    reference_id character varying(32) NOT NULL,
+    name text NOT NULL,
+    languages text DEFAULT ''::text NOT NULL,
+    author text,
+    sample_url text,
+    license character varying(20) DEFAULT 'unknown'::character varying NOT NULL,
+    license_note text,
+    active boolean DEFAULT true NOT NULL,
+    inactive_reason character varying(20),
+    source character varying(20) DEFAULT 'admin'::character varying NOT NULL,
+    created_by bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_checked_at timestamp with time zone,
+    CONSTRAINT chk_tts_fish_voices_license CHECK (((license)::text = ANY ((ARRAY['commercial'::character varying, 'noncommercial'::character varying, 'unknown'::character varying])::text[])))
+);
+
+
+--
 -- Name: upgrade_attempt_log; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14312,6 +14334,14 @@ ALTER TABLE ONLY public.tts_credit_ledger
 
 
 --
+-- Name: tts_fish_voices tts_fish_voices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tts_fish_voices
+    ADD CONSTRAINT tts_fish_voices_pkey PRIMARY KEY (reference_id);
+
+
+--
 -- Name: upgrade_attempt_log upgrade_attempt_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17557,6 +17587,13 @@ CREATE INDEX ix_tenant_invitations_token ON public.tenant_invitations USING btre
 --
 
 CREATE INDEX ix_tenant_payments_tenant ON public.tenant_payments USING btree (tenant_id, created_at DESC);
+
+
+--
+-- Name: ix_tts_fish_voices_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tts_fish_voices_active ON public.tts_fish_voices USING btree (active);
 
 
 --

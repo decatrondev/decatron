@@ -318,18 +318,23 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Each event can read its message aloud. There are two engines:"
+            "x": "Each event can read its message aloud. There are three engines:"
           },
           {
             "t": "ul",
             "items": [
               "Standard voice: included in your plan.",
-              "Premium voice: spends premium credits and offers more languages. If you run out of credits, the alert is not left silent: it is read with the standard voice."
+              "Premium voice: spends premium credits and offers more languages. If you run out of credits, the alert is not left silent: it is read with the standard voice.",
+              "Character voice: a Fish Audio character voice, which spends premium credits per byte of text. If you run out of credits, the alert is read with the standard voice."
             ]
           },
           {
             "t": "p",
             "x": "You can read the alert message, the user's message (with a maximum number of characters) and choose whether the voice waits for the alert sound to finish. The general voice is set in General and each event can change it."
+          },
+          {
+            "t": "p",
+            "x": "In each channel only one voice plays at a time among event alerts, tips, timers and Speak Chat: the rest wait for their turn."
           },
           {
             "t": "note",

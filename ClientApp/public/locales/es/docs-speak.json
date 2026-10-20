@@ -238,8 +238,17 @@
                 "Premium (AWS Polly)",
                 "Más voces e idiomas, incluido japonés. Hay dos calidades: Normal y Alta calidad.",
                 "Créditos por carácter; Alta calidad cuesta más que Normal."
+              ],
+              [
+                "Voz de personaje (Fish Audio)",
+                "Voces de personajes elegidas por el equipo de Decatron. Aparecen en el desplegable «Voz de personaje» del motor.",
+                "Créditos por byte de texto (una vocal con tilde o la «ñ» pesan 2 bytes). La tarifa vigente está en `/credits`."
               ]
             ]
+          },
+          {
+            "t": "p",
+            "x": "Las voces de personaje salen de un catálogo que aprueba Decatron, con su idioma y su autor. Si una voz deja de estar disponible, se lee con la voz predeterminada del catálogo. Si te quedas sin créditos o la síntesis falla, el chat no se queda mudo: se lee con la voz estándar."
           },
           {
             "t": "p",
@@ -274,6 +283,29 @@
           {
             "t": "p",
             "x": "La pestaña Testing muestra tus créditos TTS, y la pestaña Voz un resumen de tu saldo: la cuota del mes (se reinicia el día 1), los comprados (no caducan) y los caracteres de voz estándar que te quedan. Compra créditos desde la página de créditos."
+          }
+        ]
+      },
+      {
+        "id": "cola",
+        "title": "Una voz a la vez",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En cada canal suena una sola voz a la vez entre Speak Chat, las alertas de eventos, los tips y los temporizadores. Las que llegan mientras otra habla esperan su turno, por orden de llegada."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Pueden esperar hasta 10 voces por canal; si se llena la fila se descarta la más antigua.",
+              "Una voz que espera más de 30 segundos se descarta: la alerta sale igual, sin voz, y no se cobra.",
+              "Si Speak Chat y las alertas de eventos van a leer el mismo texto en menos de 30 segundos (por ejemplo, el mensaje de unos bits), solo se lee una vez."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El turno se libera cuando el overlay avisa que terminó de hablar. Si hay dos overlays de Speak Chat abiertos a la vez, el audio se oirá duplicado: deja uno solo."
           }
         ]
       }

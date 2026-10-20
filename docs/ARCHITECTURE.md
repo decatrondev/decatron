@@ -894,7 +894,7 @@ Modules 01-21 come from the original codebase audit; later modules are appended 
 | 29 | **Moderation (chat)** | Banned words, links, spam and raid filters, strikes, permits, panic mode, action history, Twitch and Kick | `ModerationController`, `Decatron.Services/Moderation/*` (`ChatModerator`, `PanicModeService`), `Decatron.Services/Commands/*` (nuke, permit, panic, strikes) | `features/moderation/`, `ModerationHub.tsx` |
 | 30 | **Fortnite / Spirits** | Fortnite account linking through Epic, spirit collection and notifications, public gallery | `FortniteController`, `EpicAuthController`, `FortniteService`, `SpiritNotifySweepBackgroundService`, `SpiritsCommand` | `me/MySpiritCollection.tsx`, `SpiritCollection.tsx`, `SpritesGallery.tsx`, `settings/EpicAccountsSettings.tsx` |
 | 31 | **Chat overlay and emotes** | Chat overlay for OBS with badges and emotes, channel emotes and platform-wide global emotes, public emote pages | `ChatOverlayController`, `ChannelEmotesController`, `GlobalEmotesController`, `PublicEmotesController`, `Decatron.Services/ChatOverlay/*`, `Decatron.Services/Emotes/*` | `ChatOverlay.tsx`, `features/ChatOverlayConfig.tsx`, `features/ChannelEmotes.tsx`, `ChannelEmotesPublic.tsx`, `GlobalEmotesPublic.tsx` |
-| 32 | **Speak Chat / TTS** | Chat messages and channel point redemptions read aloud (filters, voice generation, overlay delivery), TTS voices and credits | `SpeakChatController`, `SpeakChatService`, `TtsVoicesController`, `TtsCredits*Controller`, `TtsCreditService`, `PiperTtsService`, `PollyVoiceCatalogService` | `features/SpeakChat.tsx`, `SpeakChatOverlay.tsx` |
+| 32 | **Speak Chat / TTS** | Chat messages and channel point redemptions read aloud (filters, voice generation, overlay delivery), TTS voices (standard, Polly and Fish Audio character voices) and credits, one voice at a time per channel | `SpeakChatController`, `SpeakChatService`, `TtsVoicesController`, `TtsCredits*Controller`, `TtsCreditService`, `PiperTtsService`, `PollyVoiceCatalogService`, `FishTtsClient`, `FishVoicesController`, `FishVoicesAdminController`, `FishVoiceHealthService`, `ChannelAudioGate` | `features/SpeakChat.tsx`, `SpeakChatOverlay.tsx`, `features/fishVoices.ts`, `admin/FishVoicesAdmin.tsx` |
 | 33 | **Credits and payments** | Unified credit balance for paid features (AI, TTS), credit packages, card payments (Culqi), invoices, billing profiles, DeCa coins | `CreditPurchaseController`, `CoinController`, `AiCreditGate`, `CoinService`, `BillingProfileService`, `SupporterInvoiceService` | `Credits.tsx`, `me/MeCoins.tsx`, `me/MeBilling.tsx`, `me/MeInvoices.tsx` |
 | 34 | **Game overlays and Riot** | In-game data overlays (match state, live match), game accounts, promos, LoL coach | `GameOverlaysController`, `LiveOverlaysController`, `RiotAccountController`, `GameAccountsController`, `LolCoachController`, `Decatron.Services/GameData/*` | `features/game-overlays/`, `features/live-overlay/`, `GameOverlay.tsx`, `LiveOverlay.tsx`, `features/LolCoachConfig.tsx` |
 | 35 | **Pets** | Pet shown on the channel overlay; channel events (alerts, chat, commands) trigger its reactions | `PetsController`, `Decatron.Services/Pets/*` | `features/pets/`, `PetsOverlay.tsx` |
@@ -907,6 +907,15 @@ Modules 01-21 come from the original codebase audit; later modules are appended 
 | 42 | **Multi-tenant platform** | Isolated spaces at `slug.decatron.top`: per-tenant credentials, plans and limits, buyer account with e-mail sign-up, transparency of permissions and plan, optional two-step verification. See [PLATFORM.md](PLATFORM.md) | `TenantMiddleware`, `PlatformSignupController`, `BuyerTenantController`, `BuyerMfaController`, `PlatformTenantInfoController`, `Decatron.Services/Tenancy/*` | `pages/platform/*`, `platform/` |
 
 ---
+
+### Character voices and the audio queue
+
+Character voices are Fish Audio voices. They are one more engine of `TtsCreditService.GenerateWithCreditsAsync` (`provider = "fish"`), so they use the same file cache, charge and refund as Polly and Piper.
+
+- **Catalog.** Only voices in `tts_fish_voices` with `active = true` are offered (`GET /api/tts/fish-voices`, read by the Speak Chat, Event Alerts, Tips and Timers selectors) and synthesized. Any other id (deleted, inactive or invented) is replaced by `FishAudio:DefaultVoiceId`; without a usable default or key the text is read with the standard voice. The platform owner manages the catalog at `/admin/fish-voices` (`GET/POST/PATCH /api/admin/tts-fish-voices`, `GET .../search`): search Fish, play the author's sample, approve with the licence noted (`commercial`, `noncommercial` or `unknown`; the licence is the author's and Fish does not guarantee commercial use) and activate or deactivate. Searching and listening to samples need no key and spend no balance; nothing in the catalog generates audio.
+- **Health check.** `FishVoiceHealthService` asks Fish about every active voice once a day (the first run, 5 minutes after startup). A voice Fish no longer returns (404) becomes inactive with reason `missing`; one that was taken down or is no longer public becomes inactive with reason `takedown`. A network error changes nothing.
+- **Cost.** Fish bills per UTF-8 byte, so the unit is bytes (the `fish` row of `credit_rates`). The platform owner's channel uses the key in `FishAudio:ApiKey`; any other tenant uses its own key (BYO) and, without one, the voice is off. Fish's API has its own prepaid balance, separate from any Fish plan. `FishAudio:MaxConcurrent` limits simultaneous requests (default 4; Fish's entry tier allows 5).
+- **One voice at a time.** `ChannelAudioGate` gives each channel one audio turn shared by Speak Chat, Event Alerts, Tips and Timers. A module asks for the turn before synthesizing (what is discarded is neither generated nor charged), keeps it while the overlay plays and releases it when the overlay calls `AudioTurnEnded` on `/hubs/overlay` or, if that never arrives, when the time the module armed runs out. Turns are served in order of arrival; up to 10 can wait per channel (the oldest is dropped when full) and one that waits more than 30 s is dropped, so the alert is shown without voice. Speak Chat and Event Alerts also skip a text that the other one read or queued less than 30 s ago.
 
 ### Credits and payments
 
@@ -1086,7 +1095,7 @@ graph LR
 | **Kick** | OAuth2 (`KickSettings`) | Login, webhooks, API calls and chat messages | Push-based + on-demand |
 | **Discord** | Bot token + OAuth2 (`DiscordSettings`) | Slash commands, XP, welcome images, live alerts | Gateway + `DiscordAlertPollingService` |
 | **Culqi** | API keys (`CulqiSettings`, `CulqiSettingsTest`) | Card payments for credit packages and tiers | On-demand |
-| **Deepgram / FishAudio** | API keys | Live translation speech-to-text and text-to-speech | Streaming |
+| **Deepgram / FishAudio** | API keys | Live translation speech-to-text and text-to-speech; Fish also generates the character voices of Speak Chat, alerts, tips and timers | Streaming (translation), on-demand and cached (character voices) |
 | **Riot API** | API keys (`RiotApi`) | Account data and match polling for tournaments and game overlays | `TournamentRiotPollingService`, `GameDataPollingService` |
 | **Epic Games** | OAuth2 (`EpicSettings`) | Fortnite account linking | On-demand |
 
@@ -1162,6 +1171,7 @@ graph TD
 | `DiscordBotService` | Persistent | Runs the Discord bot connection and slash commands |
 | `DiscordAlertPollingService` | 1 min | Checks live streams for Discord live alerts |
 | `StoreExpirationService` | 2 min | Expires Discord store items |
+| `FishVoiceHealthService` | 24 h | Marks a Fish character voice inactive when Fish no longer returns it or it is no longer public |
 
 **Startup sequence in `Program.cs`** (after the app is built): seed the game cache and aliases, refresh all bot tokens, check that yt-dlp is installed (a warning is logged if not), and start `TwitchBotService` through `Task.Run()` (it is not a `BackgroundService`). The bot maintains the persistent IRC connection to Twitch and retries the connection a limited number of times (3) after a disconnect.
 

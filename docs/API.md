@@ -534,6 +534,12 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/EventAlerts/config/overlay/{channelName}` | JWT |
 | `POST` | `/api/EventAlerts/test` | JWT |
 
+### Fish Voices
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/tts/fish-voices` | JWT |
+
 ### Followers
 
 | Method | Route | Access |

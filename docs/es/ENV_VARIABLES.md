@@ -309,8 +309,10 @@ El usuario IAM necesita `polly:SynthesizeSpeech` (por ejemplo la política `Amaz
 | Clave | Tipo | Por defecto | Descripción |
 |-------|------|-------------|-------------|
 | `Deepgram:ApiKey` | string | | Llave de Deepgram (reconocimiento de voz y TTS Aura) usada por la traducción en vivo |
-| `FishAudio:ApiKey` | string | | Llave de FishAudio (motor de TTS de la traducción en vivo) |
+| `FishAudio:ApiKey` | string | | Llave de FishAudio (motor de TTS de la traducción en vivo y de las voces de personaje). Su saldo de API es prepago y aparte de cualquier plan de Fish |
 | `FishAudio:Model` | string | `s1` | Modelo de FishAudio |
+| `FishAudio:DefaultVoiceId` | string | | Voz de personaje que se usa cuando la pedida no es una voz activa del catálogo (`tts_fish_voices`). Debe ser una de ellas |
+| `FishAudio:MaxConcurrent` | int | `4` | Peticiones simultáneas a Fish (el nivel de entrada permite 5) |
 
 ---
 
@@ -441,7 +443,7 @@ Para permitir otro origen, edita el bloque `AddCors` de `Program.cs`. Una segund
 | API de Last.fm | Now Playing (alternativa a Spotify) | Gratis |
 | Google Gemini, OpenRouter | Funciones de IA | Planes gratuitos y modelos de pago |
 | AWS Polly | Texto a voz | De pago (hay nivel gratuito) |
-| Deepgram, FishAudio | Traducción en vivo | De pago |
+| Deepgram, FishAudio | Traducción en vivo; voces de personaje (Fish) | De pago |
 | API de Riot, Epic Games | Torneos, overlays de juegos, Fortnite | Gratis |
 | Resend | Correo | Nivel gratuito y de pago |
 | MySQL + GachaVerse | Vinculación con GachaVerse | Solo si usas GachaVerse |

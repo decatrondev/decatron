@@ -318,18 +318,23 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Cada evento puede leer su mensaje en voz alta. Hay dos motores:"
+            "x": "Cada evento puede leer su mensaje en voz alta. Hay tres motores:"
           },
           {
             "t": "ul",
             "items": [
               "Voz estándar: incluida en tu plan.",
-              "Voz premium: gasta créditos premium y ofrece más idiomas. Si te quedas sin créditos, la alerta no se queda muda: se lee con la voz estándar."
+              "Voz premium: gasta créditos premium y ofrece más idiomas. Si te quedas sin créditos, la alerta no se queda muda: se lee con la voz estándar.",
+              "Voz de personaje: una voz de personaje de Fish Audio, que gasta créditos premium por byte de texto. Si te quedas sin créditos, la alerta se lee con la voz estándar."
             ]
           },
           {
             "t": "p",
             "x": "Puedes leer el mensaje de la alerta, el mensaje del usuario (con un máximo de caracteres) y elegir si la voz espera a que termine el sonido de la alerta. La voz general se define en General y cada evento puede cambiarla."
+          },
+          {
+            "t": "p",
+            "x": "En cada canal suena una sola voz a la vez entre alertas de eventos, tips, temporizadores y Speak Chat: las demás esperan su turno."
           },
           {
             "t": "note",

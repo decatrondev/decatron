@@ -309,8 +309,10 @@ The IAM user needs `polly:SynthesizeSpeech` (for example the `AmazonPollyReadOnl
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `Deepgram:ApiKey` | string | | Deepgram key (speech-to-text and Aura TTS) used by live translation |
-| `FishAudio:ApiKey` | string | | FishAudio key (TTS engine of live translation) |
+| `FishAudio:ApiKey` | string | | FishAudio key (TTS engine of live translation and of the character voices). Its API balance is prepaid and separate from any Fish plan |
 | `FishAudio:Model` | string | `s1` | FishAudio model |
+| `FishAudio:DefaultVoiceId` | string | | Character voice used when the requested one is not an active voice of the catalog (`tts_fish_voices`). Must be one of them |
+| `FishAudio:MaxConcurrent` | int | `4` | Simultaneous requests to Fish (the entry tier allows 5) |
 
 ---
 
@@ -441,7 +443,7 @@ To allow another origin, edit the `AddCors` block in `Program.cs`. A second poli
 | Last.fm API | Now Playing (alternative to Spotify) | Free |
 | Google Gemini, OpenRouter | AI features | Free tiers and paid models |
 | AWS Polly | Text-to-speech | Paid (free tier available) |
-| Deepgram, FishAudio | Live translation | Paid |
+| Deepgram, FishAudio | Live translation; character voices (Fish) | Paid |
 | Riot API, Epic Games | Tournaments, game overlays, Fortnite | Free |
 | Resend | E-mail | Free tier and paid |
 | MySQL + GachaVerse | GachaVerse linking | Only if you use GachaVerse |
