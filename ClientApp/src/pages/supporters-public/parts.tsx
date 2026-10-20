@@ -276,7 +276,7 @@ export function PlanComparison() {
                                     <tr key={r.key} className="border-t border-pub-border-soft">
                                         <th scope="row" className="text-left px-4 py-2.5 font-medium text-[#b4bccb]">{r.label}</th>
                                         {data.tiers.map(tier => (
-                                            <td key={tier} className="px-4 py-2.5 text-center tabular-nums text-white">{r.fmt(data.rows[r.key]?.[tier] ?? 0)}</td>
+                                            <td key={tier} className="px-4 py-2.5 text-center tabular-nums text-white">{r.key === 'creditsMonthly' && tier === 'fundador' ? <span className="text-[#8b93a3]">{t('tableDiscretion')}</span> : r.fmt(data.rows[r.key]?.[tier] ?? 0)}</td>
                                         ))}
                                     </tr>
                                 ))}

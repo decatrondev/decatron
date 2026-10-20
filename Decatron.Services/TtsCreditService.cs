@@ -41,7 +41,9 @@ namespace Decatron.Services
             ["patrocinador"] = 800_000,
             // Patrocinador permanente: sin cuota mensual; recibe un bono único (ver PatrocinadorPermanentBonus)
             [PatrocinadorPermanentKey] = 0,
-            ["fundador"]  = 1_500_000,
+            // Fundador no se vende y no tiene cuota automática: el dueño le otorga créditos a su discreción
+            // (grant_gift). Antes tenía 1.500.000 al mes; ver ConvertFundadorQuotaOnceAsync.
+            ["fundador"]  = 0,
         };
 
         /// <summary>
@@ -621,6 +623,39 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Al quitar la cuota mensual automática de Fundador, lo que le quedaba del mes en curso se pasa una sola
+        /// vez a la bolsa de comprados (no vence), para que lo use hasta agotarlo. Idempotente: el marcador del
+        /// libro mayor (gateway «tier-change») impide repetirlo, y los regalos posteriores del dueño no se tocan.
+        /// </summary>
+        private async Task ConvertFundadorQuotaOnceAsync(long userId, TtsCreditBalance balance, DateTime currentPeriod)
+        {
+            var externalId = $"fundador-quota-removal:{userId}";
+            if (await _context.TtsCreditLedger.AnyAsync(e => e.Gateway == "tier-change" && e.ExternalId == externalId))
+                return;
+
+            var remaining = balance.MonthlyPeriod == currentPeriod
+                ? Math.Max(0, balance.MonthlyGranted - balance.MonthlyUsed)
+                : 0;
+            if (remaining > 0)
+            {
+                balance.PurchasedBalance += remaining;
+                // Se cierran las dos cifras del mes (lo gastado ya está en el libro mayor): con un «usado» viejo
+                // por encima de lo otorgado, los regalos mensuales posteriores se recortarían al normalizar.
+                balance.MonthlyGranted = 0;
+                balance.MonthlyUsed = 0;
+                balance.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+            _context.TtsCreditLedger.Add(new TtsCreditLedgerEntry
+            {
+                UserId = userId, Type = "grant_gift", Credits = remaining, Bucket = "purchased",
+                Feature = "admin", Gateway = "tier-change", ExternalId = externalId,
+                Note = "Fundador ya no tiene cuota mensual automática: lo que le quedaba del mes pasa a créditos que no vencen"
+            });
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("[TtsCredits] Fundador {UserId}: {Remaining} créditos del mes pasan a comprados", userId, remaining);
+        }
+
+        /// <summary>
         /// Acredita una sola vez el bono del Patrocinador permanente. Idempotente: el índice único
         /// (gateway, external_id) del libro mayor impide repetirlo.
         /// </summary>
@@ -675,6 +710,9 @@ namespace Decatron.Services
                     await GrantPermanentBonusOnceAsync(userId, balance);
                 return balance;
             }
+
+            if (tier == "fundador")
+                await ConvertFundadorQuotaOnceAsync(userId, balance, currentPeriod);
 
             if (balance.MonthlyPeriod < currentPeriod)
             {
