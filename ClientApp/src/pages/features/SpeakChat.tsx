@@ -69,12 +69,17 @@ interface SpeakChatConfigData {
     // compatibilidad, pero cada motor tiene ya su propio campo.
     // `engine` es el proveedor (estándar o premium); `pollyEngine`, la calidad dentro de
     // Polly, que es lo que decide el multiplicador de créditos.
-    voice: { engine: 'piper' | 'polly'; voice: string; pollyVoice: string; standardVoice: string; pollyEngine: 'standard' | 'neural'; languageCode: string; volume: number };
+    voice: { engine: 'piper' | 'polly' | 'fish'; voice: string; pollyVoice: string; standardVoice: string; fishVoice?: string; pollyEngine: 'standard' | 'neural'; languageCode: string; volume: number };
     filters: { globalCooldownSeconds: number; perUserCooldownSeconds: number; maxChars: number; blockedWords: string[]; blockedUsers: string[] };
     overlay: { showBubble: boolean; position: string; fontSize: number; backgroundColor: string; textColor: string; duration: number };
 }
 
 // ===================== DEFAULTS =====================
+
+// Voces de personaje (Fish Audio). Por ahora es una lista fija; cuando exista el catálogo del admin vendrá del servidor.
+const FISH_VOICES = [
+    { id: '4eb30374137749b9a377f06674a3ca22', name: 'Toji · español latino' },
+];
 
 const defaultRoles: RoleConfig = { everyone: true, subscriber: false, vip: false, moderator: false, broadcaster: true };
 
@@ -267,7 +272,9 @@ export default function SpeakChat() {
             await api.post('/speakchat/test', {
                 message: testMessage,
                 // Cada motor tiene su propio catálogo de voces
-                voice: config.voice.engine === 'polly' ? config.voice.pollyVoice : config.voice.standardVoice,
+                voice: config.voice.engine === 'polly' ? config.voice.pollyVoice
+                    : config.voice.engine === 'fish' ? (config.voice.fishVoice || FISH_VOICES[0].id)
+                    : config.voice.standardVoice,
                 engine: config.voice.engine,
                 // Sin esto la prueba sonaría siempre en estándar y no se podría
                 // comprobar la voz neural antes de dejarla puesta.
@@ -730,16 +737,17 @@ export default function SpeakChat() {
                             {/* Motor */}
                             <div>
                                 <label className={labelClass}>Motor de voz</label>
-                                <div className="flex gap-3">
+                                <div className="flex flex-wrap gap-3">
                                     {[
                                         { id: 'piper', label: '🆓 Voz estándar', available: true },
                                         { id: 'polly', label: '🎙️ Voz premium', available: !!isPollyAvailable },
+                                        { id: 'fish', label: '🎭 Voz de personaje', available: !!isPollyAvailable },
                                     ].map(opt => (
                                         <button
                                             key={opt.id}
                                             onClick={() => opt.available && setConfig(c => ({ ...c, voice: { ...c.voice, engine: opt.id as any } }))}
                                             disabled={!opt.available}
-                                            className={`flex-1 py-3 px-4 rounded-lg border-2 text-sm font-bold transition-all ${
+                                            className={`flex-1 min-w-[10rem] py-3 px-4 rounded-lg border-2 text-sm font-bold transition-all ${
                                                 config.voice.engine === opt.id
                                                     ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text'
                                                     : opt.available
@@ -806,7 +814,12 @@ export default function SpeakChat() {
                                 >
                                     {languageOptions.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
                                 </select>
-                                {config.voice.engine !== 'polly' ? (
+                                {config.voice.engine === 'fish' ? (
+                                    <p className="text-xs text-ds-soft mt-1">
+                                        La voz de personaje habla con su propio idioma. Este idioma se usa si hay que
+                                        leer el mensaje con la voz estándar de respaldo.
+                                    </p>
+                                ) : config.voice.engine !== 'polly' ? (
                                     <p className="text-xs text-ds-soft mt-1">
                                         El japonés y el coreano solo están en voz premium.
                                     </p>
@@ -819,7 +832,22 @@ export default function SpeakChat() {
                             </div>
 
                             {/* Voz — el catálogo depende del motor */}
-                            {config.voice.engine === 'polly' ? (
+                            {config.voice.engine === 'fish' ? (
+                                <div>
+                                    <label className={labelClass}>Voz de personaje</label>
+                                    <select
+                                        value={config.voice.fishVoice || FISH_VOICES[0].id}
+                                        onChange={e => setConfig(c => ({ ...c, voice: { ...c.voice, fishVoice: e.target.value } }))}
+                                        className={inputClass}
+                                    >
+                                        {FISH_VOICES.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                    </select>
+                                    <p className="text-xs text-ds-soft mt-1">
+                                        Gasta créditos premium, más que la voz estándar. Si te quedas sin créditos
+                                        o la voz falla, el chat no se queda mudo: se lee con voz estándar.
+                                    </p>
+                                </div>
+                            ) : config.voice.engine === 'polly' ? (
                                 <div>
                                     <label className={labelClass}>Voz (AWS Polly)</label>
                                     <select
