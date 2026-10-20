@@ -252,7 +252,7 @@
           },
           {
             "t": "p",
-            "x": "Can't find the voice you want? Under the dropdown there is a «Request it» link: write the character's name or paste the voice's fish.audio link. You can have up to 3 requests under review at once and see the status of each one (under review, approved, or rejected with the reason). If it is approved, the voice appears in the list for everyone."
+            "x": "Can't find the voice you want? Under the dropdown there is a «Request a character voice» card: write the character's name or paste the voice's fish.audio link and press «Solicitar voz». You can have up to 3 requests under review at once and see the status of each one (under review, approved, or rejected with the reason). If it is approved, the voice appears in the list for everyone. With the Patrocinador rank (or higher) the card is called «Your own voices»: you search Fish, listen to the sample and add up to 10 voices to your list without waiting for approval; they show in your dropdown with the «mía» mark, only in your channel and while you keep the rank. The licence of each voice is its author's."
           },
           {
             "t": "p",

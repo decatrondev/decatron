@@ -546,6 +546,9 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | Método | Ruta | Acceso |
 |---|---|---|
 | `GET` | `/api/tts/fish-voices` | JWT |
+| `POST` | `/api/tts/fish-voices/mine` | JWT |
+| `DELETE` | `/api/tts/fish-voices/mine/{id}` | JWT |
+| `GET` | `/api/tts/fish-voices/search` | JWT |
 
 ### Followers
 

@@ -46,6 +46,18 @@ interface VoiceRequest {
     createdAt: string;
 }
 
+interface UserVoice {
+    userId: number;
+    login?: string | null;
+    referenceId: string;
+    name: string;
+    languages: string;
+    author?: string | null;
+    sampleUrl?: string | null;
+    active: boolean;
+    inactiveReason?: string | null;
+}
+
 type License = 'commercial' | 'noncommercial' | 'unknown';
 
 const LICENSE_LABEL: Record<License, string> = {
@@ -58,6 +70,7 @@ const INACTIVE_LABEL: Record<string, string> = {
     manual: 'Desactivada por el admin',
     missing: 'Fish ya no la devuelve',
     takedown: 'Retirada o ya no es pública',
+    admin: 'Desactivada por el admin',
 };
 
 const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
@@ -76,6 +89,7 @@ export default function FishVoicesAdmin() {
     const [searching, setSearching] = useState(false);
     // Licencia y nota que se anotan al aprobar, por id de voz
     const [drafts, setDrafts] = useState<Record<string, { license: License; note: string }>>({});
+    const [userVoices, setUserVoices] = useState<UserVoice[]>([]);
     const [requests, setRequests] = useState<VoiceRequest[]>([]);
     // Solicitud que se resuelve al aprobar la próxima voz de la búsqueda
     const [activeReq, setActiveReq] = useState<number | null>(null);
@@ -100,7 +114,24 @@ export default function FishVoicesAdmin() {
         } catch { /* la cola es secundaria */ }
     }, []);
 
-    useEffect(() => { load(); loadRequests(); }, [load, loadRequests]);
+    const loadUserVoices = useCallback(async () => {
+        try {
+            const res = await api.get('/admin/tts-fish-voices/user-voices');
+            setUserVoices(res.data.voices ?? []);
+        } catch { /* secundario */ }
+    }, []);
+
+    const toggleUserVoice = async (v: UserVoice) => {
+        try {
+            await api.patch(`/admin/tts-fish-voices/user-voices/${v.userId}/${v.referenceId}`, { active: !v.active });
+            setMsg({ ok: true, text: v.active ? 'Voz desactivada para ese canal' : 'Voz reactivada' });
+            await loadUserVoices();
+        } catch (e: any) {
+            setMsg({ ok: false, text: e?.response?.data?.message ?? 'No se pudo guardar' });
+        }
+    };
+
+    useEffect(() => { load(); loadRequests(); loadUserVoices(); }, [load, loadRequests, loadUserVoices]);
 
     const play = (url: string) => {
         audioRef.current?.pause();
@@ -308,6 +339,38 @@ export default function FishVoicesAdmin() {
                     </div>
                 )}
             </div>
+
+            {userVoices.length > 0 && (
+                <div className={cardClass + 'space-y-4'}>
+                    <h2 className="text-lg font-black text-ds-text">Voces propias de los Patrocinadores</h2>
+                    <p className="text-xs text-ds-soft">Las agregan ellos mismos sin aprobación y solo suenan en su canal. Si una te preocupa (licencia, contenido), desactívala: no podrán volver a agregarla.</p>
+                    <div className="space-y-2">
+                        {userVoices.map(v => (
+                            <div key={v.userId + v.referenceId} className={'flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ds-border p-3 ' + (v.active ? '' : 'opacity-70')}>
+                                <div>
+                                    <p className="font-bold text-ds-text">{v.name} <span className="text-xs font-normal text-ds-soft">· {v.login ?? 'usuario ' + v.userId}</span></p>
+                                    <p className="text-xs text-ds-soft">
+                                        {v.languages || 'sin idioma'}{v.author ? ` · ${v.author}` : ''} · {v.referenceId}
+                                        {!v.active ? ` · inactiva (${INACTIVE_LABEL[v.inactiveReason ?? ''] ?? v.inactiveReason ?? ''})` : ''}
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    {v.sampleUrl && (
+                                        <button className="ds-btn ds-btn--secondary ds-btn--sm" onClick={() => play(v.sampleUrl!)}>
+                                            <Volume2 className="w-4 h-4" /> Muestra
+                                        </button>
+                                    )}
+                                    {(v.active || v.inactiveReason === 'admin') && (
+                                        <button className="ds-btn ds-btn--secondary ds-btn--sm" onClick={() => toggleUserVoice(v)}>
+                                            {v.active ? 'Desactivar' : 'Reactivar'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div id="fish-search" className={cardClass + 'space-y-4'}>
                 <h2 className="text-lg font-black text-ds-text">Buscar en Fish</h2>

@@ -412,9 +412,16 @@ namespace Decatron.Services
         // Consulta
         // ─────────────────────────────────────────────────────────────────────
 
-        /// <summary>¿La voz de Fish está en el catálogo del admin y activa? (tts_fish_voices)</summary>
-        private Task<bool> IsApprovedFishVoiceAsync(string voiceId)
-            => _context.TtsFishVoices.AsNoTracking().AnyAsync(v => v.ReferenceId == voiceId && v.Active);
+        /// <summary>
+        /// ¿Se puede sintetizar esta voz de Fish para este usuario? Sí si está activa en el catálogo del admin
+        /// (tts_fish_voices) o si es una voz propia activa de un usuario con rango Patrocinador o superior.
+        /// </summary>
+        private async Task<bool> IsApprovedFishVoiceAsync(long userId, string voiceId)
+        {
+            if (await _context.TtsFishVoices.AsNoTracking().AnyAsync(v => v.ReferenceId == voiceId && v.Active)) return true;
+            if (!await _context.TtsFishUserVoices.AsNoTracking().AnyAsync(v => v.UserId == userId && v.ReferenceId == voiceId && v.Active)) return false;
+            return Decatron.Services.Tts.FishVoiceAccess.CanUsePrivateVoices(await TierResolver.GetEffectiveTierAsync(_context, userId));
+        }
 
         public async Task<string?> GenerateWithCreditsAsync(
             long userId, string text, string voice, string engine,
@@ -434,10 +441,10 @@ namespace Decatron.Services
             {
                 engine = "fish";
                 // Solo se sintetizan las voces aprobadas y activas del catálogo; otra (borrada, inactiva o inventada) se cambia por la predeterminada
-                if (!Decatron.Services.Tts.FishTtsClient.LooksLikeVoiceId(voice) || !await IsApprovedFishVoiceAsync(voice))
+                if (!Decatron.Services.Tts.FishTtsClient.LooksLikeVoiceId(voice) || !await IsApprovedFishVoiceAsync(userId, voice))
                     voice = _fish.DefaultVoiceId;
                 // Sin voz válida ni predeterminada, o sin llave: no se intenta, se lee con la voz estándar
-                if (!Decatron.Services.Tts.FishTtsClient.LooksLikeVoiceId(voice) || !_fish.IsConfigured || !await IsApprovedFishVoiceAsync(voice))
+                if (!Decatron.Services.Tts.FishTtsClient.LooksLikeVoiceId(voice) || !_fish.IsConfigured || !await IsApprovedFishVoiceAsync(userId, voice))
                     return await FallbackToStandardAsync(userId, text, language, feature, "Fish no está configurado");
                 units = Decatron.Services.Tts.FishTtsClient.BillableBytes(text);
             }

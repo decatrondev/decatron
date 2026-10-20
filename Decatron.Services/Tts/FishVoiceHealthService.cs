@@ -67,6 +67,31 @@ namespace Decatron.Services.Tts
                 catch (HttpRequestException) { }
             }
             await db.SaveChangesAsync(ct);
+
+            // Voces propias de los Patrocinadores: se consulta cada id una sola vez aunque lo usen varios
+            var own = await db.TtsFishUserVoices.Where(v => v.Active).ToListAsync(ct);
+            foreach (var group in own.GroupBy(v => v.ReferenceId))
+            {
+                try
+                {
+                    var model = await fish.GetModelAsync(group.Key, ct);
+                    string? reason = model == null ? "missing"
+                        : (model.TakenDown || !string.Equals(model.Visibility, "public", StringComparison.OrdinalIgnoreCase)) ? "takedown" : null;
+                    foreach (var v in group)
+                    {
+                        v.LastCheckedAt = DateTimeOffset.UtcNow;
+                        if (reason != null) { v.Active = false; v.InactiveReason = reason; }
+                    }
+                    if (reason != null)
+                        _logger.LogWarning("[FishVoices] Voz propia {Id}: {Reason}, queda inactiva para {Count} canal(es)", group.Key, reason, group.Count());
+                }
+                catch (FishTtsException ex)
+                {
+                    _logger.LogInformation("[FishVoices] Voz propia {Id}: no se pudo consultar ({Msg}), se deja como está", group.Key, ex.Message);
+                }
+                catch (HttpRequestException) { }
+            }
+            await db.SaveChangesAsync(ct);
         }
     }
 }

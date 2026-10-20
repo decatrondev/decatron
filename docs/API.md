@@ -546,6 +546,9 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | Method | Route | Access |
 |---|---|---|
 | `GET` | `/api/tts/fish-voices` | JWT |
+| `POST` | `/api/tts/fish-voices/mine` | JWT |
+| `DELETE` | `/api/tts/fish-voices/mine/{id}` | JWT |
+| `GET` | `/api/tts/fish-voices/search` | JWT |
 
 ### Followers
 

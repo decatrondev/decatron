@@ -235,6 +235,7 @@ namespace Decatron.Data
         public DbSet<Decatron.Core.Models.Finance.CreditRate> CreditRates { get; set; }
         public DbSet<Decatron.Core.Models.Tts.FishVoice> TtsFishVoices { get; set; }
         public DbSet<Decatron.Core.Models.Tts.FishVoiceRequest> TtsFishVoiceRequests { get; set; }
+        public DbSet<Decatron.Core.Models.Tts.FishUserVoice> TtsFishUserVoices { get; set; }
         public DbSet<Decatron.Core.Models.Credits.CreditPackage> CreditPackages { get; set; }
         public DbSet<Decatron.Core.Models.Credits.CreditPurchase> CreditPurchases { get; set; }
         public DbSet<CoinTransaction> CoinTransactions { get; set; }
@@ -359,6 +360,7 @@ namespace Decatron.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Core.Models.Tts.FishUserVoice>().HasKey(v => new { v.UserId, v.ReferenceId });
 
             modelBuilder.Entity<Core.Models.Platform.TenantMember>().HasKey(m => new { m.TenantId, m.UserId });
 

@@ -252,7 +252,7 @@
           },
           {
             "t": "p",
-            "x": "¿No está la voz que quieres? Debajo del desplegable está «Solicítala»: escribe el nombre del personaje o pega el enlace de la voz en fish.audio. Puedes tener hasta 3 solicitudes en revisión a la vez y ver el estado de cada una (en revisión, aprobada o rechazada con el motivo). Si se aprueba, la voz aparece en la lista para todos."
+            "x": "¿No está la voz que quieres? Debajo del desplegable hay una tarjeta «Solicitar una voz de personaje»: escribe el nombre del personaje o pega el enlace de la voz en fish.audio y pulsa «Solicitar voz». Puedes tener hasta 3 solicitudes en revisión a la vez y ver el estado de cada una (en revisión, aprobada o rechazada con el motivo). Si se aprueba, la voz aparece en la lista para todos. Con el rango Patrocinador (o superior) la tarjeta se llama «Tus voces propias»: buscas en Fish, escuchas la muestra y agregas hasta 10 voces a tu lista sin esperar aprobación; aparecen en tu desplegable con la marca «mía», solo en tu canal y mientras conserves el rango. La licencia de cada voz es la de su autor."
           },
           {
             "t": "p",

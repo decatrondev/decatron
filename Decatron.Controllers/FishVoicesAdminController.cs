@@ -86,6 +86,34 @@ namespace Decatron.Controllers
             return Ok(new { success = true });
         }
 
+        /// <summary>Voces propias que agregaron los Patrocinadores (todas, activas e inactivas).</summary>
+        [HttpGet("user-voices")]
+        public async Task<IActionResult> UserVoices()
+        {
+            var rows = await (from v in _db.TtsFishUserVoices.AsNoTracking()
+                              join u in _db.Users.AsNoTracking() on v.UserId equals u.Id into uj
+                              from u in uj.DefaultIfEmpty()
+                              orderby v.Active descending, v.CreatedAt descending
+                              select new { v.UserId, login = u != null ? u.Login : null, referenceId = v.ReferenceId, v.Name, v.Languages, v.Author, v.SampleUrl, v.Active, v.InactiveReason, v.CreatedAt })
+                             .Take(300).ToListAsync();
+            return Ok(new { success = true, voices = rows });
+        }
+
+        /// <summary>El dueño de la plataforma desactiva (o reactiva) una voz propia: queda registrada y el usuario no puede volver a agregarla.</summary>
+        [HttpPatch("user-voices/{userId:long}/{referenceId}")]
+        public async Task<IActionResult> UpdateUserVoice(long userId, string referenceId, [FromBody] UpdateRequest req)
+        {
+            var voice = await _db.TtsFishUserVoices.FirstOrDefaultAsync(v => v.UserId == userId && v.ReferenceId == referenceId);
+            if (voice == null) return NotFound(new { success = false, message = "Voz no encontrada" });
+            if (req.Active.HasValue)
+            {
+                voice.Active = req.Active.Value;
+                voice.InactiveReason = req.Active.Value ? null : "admin";
+            }
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
         /// <summary>Busca voces públicas en Fish. No gasta saldo.</summary>
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string? q, [FromQuery] string? language)

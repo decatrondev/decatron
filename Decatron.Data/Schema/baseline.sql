@@ -9228,6 +9228,24 @@ CREATE TABLE public.tts_fish_voices (
 
 
 --
+-- Name: tts_fish_user_voices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tts_fish_user_voices (
+    user_id bigint NOT NULL,
+    reference_id character varying(32) NOT NULL,
+    name text NOT NULL,
+    languages text DEFAULT ''::text NOT NULL,
+    author text,
+    sample_url text,
+    active boolean DEFAULT true NOT NULL,
+    inactive_reason character varying(20),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_checked_at timestamp with time zone
+);
+
+
+--
 -- Name: tts_fish_voice_requests; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14378,6 +14396,14 @@ ALTER TABLE ONLY public.tts_credit_ledger
 
 
 --
+-- Name: tts_fish_user_voices tts_fish_user_voices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tts_fish_user_voices
+    ADD CONSTRAINT tts_fish_user_voices_pkey PRIMARY KEY (user_id, reference_id);
+
+
+--
 -- Name: tts_fish_voice_requests tts_fish_voice_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -17639,6 +17665,13 @@ CREATE INDEX ix_tenant_invitations_token ON public.tenant_invitations USING btre
 --
 
 CREATE INDEX ix_tenant_payments_tenant ON public.tenant_payments USING btree (tenant_id, created_at DESC);
+
+
+--
+-- Name: ix_tts_fish_user_voices_ref; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tts_fish_user_voices_ref ON public.tts_fish_user_voices USING btree (reference_id);
 
 
 --
