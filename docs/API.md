@@ -1122,6 +1122,8 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `POST` | `/api/speakchat/config` | JWT + `overlays` |
 | `GET` | `/api/speakchat/history` | JWT + `overlays` |
 | `GET` | `/api/speakchat/config/overlay/{channelName}` | JWT |
+| `GET` | `/api/speakchat/resolve/{alias}` | Public |
+| `GET` | `/api/speakchat/status` | JWT + `overlays` |
 | `POST` | `/api/speakchat/overlay/reload` | JWT + `overlays` |
 | `POST` | `/api/speakchat/test` | JWT + `overlays` |
 | `GET` | `/api/speakchat/usage` | JWT + `overlays` |

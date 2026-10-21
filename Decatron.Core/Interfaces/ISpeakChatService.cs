@@ -29,7 +29,11 @@ namespace Decatron.Core.Interfaces
             // Twitch reparte la insignia de lead_moderator EN LUGAR de la de moderator,
             // así que un mod líder llega aquí con isModerator=false. Sin este dato se le
             // niega el TTS aunque tenga más rango que un moderador normal.
-            bool isLeadModerator = false);
+            bool isLeadModerator = false,
+            // "twitch" o "kick": de dónde llegó el mensaje. Cada regla elige en qué plataformas lee.
+            string platform = "twitch",
+            // Dónde contestar (aviso de «sin saldo»): login de Twitch o id de Kick. Sin valor, el canal.
+            string? replyChannel = null);
 
         /// <summary>
         /// Punto de entrada desde el evento de canje de puntos de canal.

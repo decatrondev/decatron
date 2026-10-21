@@ -40,6 +40,8 @@ export interface ActivationRule {
     minBits?: number;
     rewardId?: string;
     roles?: RoleConfig;
+    /** En qué plataformas lee la regla (comando, rol y todos); sin valor = solo Twitch, como antes de existir la opción. */
+    platform?: 'all' | 'twitch' | 'kick';
     /** Solo en comandos: voz propia (manda sobre la del canal en lo que define). */
     voice?: RuleVoice;
     /** Solo en comandos: enfriamientos propios; sin valor heredan los del canal. */

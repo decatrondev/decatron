@@ -73,7 +73,7 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             )}
-                            {rule.type !== 'all' && (
+                            {(
                                 <button
                                     onClick={() => setExpandedRules(e => ({ ...e, [idx]: !e[idx] }))}
                                     className="ds-btn ds-btn--ghost ds-icon-btn"
@@ -85,7 +85,7 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                         </div>
 
                         {/* Body expandible */}
-                        {expandedRules[idx] && rule.type !== 'all' && (
+                        {expandedRules[idx] && (
                             <div className="border-t border-ds-border p-6 space-y-5 bg-ds-bg">
 
                                 {rule.type === 'command' && (
@@ -172,7 +172,25 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                                     </div>
                                 )}
 
+                                {/* Plataformas: Kick no tiene bits ni puntos de Twitch, así que esas dos reglas son solo de Twitch */}
+                                {(rule.type === 'command' || rule.type === 'roles' || rule.type === 'all') && (
+                                    <div>
+                                        <label className={labelClass}>{t('platform.label')}</label>
+                                        <select
+                                            value={rule.platform ?? 'twitch'}
+                                            onChange={e => updateRule(idx, { platform: e.target.value as 'all' | 'twitch' | 'kick' })}
+                                            className={`${inputClass} w-full sm:w-72`}
+                                        >
+                                            <option value="all">{t('platform.all')}</option>
+                                            <option value="twitch">{t('platform.twitch')}</option>
+                                            <option value="kick">{t('platform.kick')}</option>
+                                        </select>
+                                        <p className="text-xs text-ds-soft mt-1">{t('platform.hint')}</p>
+                                    </div>
+                                )}
+
                                 {/* Roles */}
+                                {rule.type !== 'all' && (
                                 <div>
                                     <label className={labelClass}>¿Quién puede usar esta regla?</label>
                                     <div className="flex flex-wrap gap-2">
@@ -193,6 +211,7 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                                         ))}
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
                     </div>

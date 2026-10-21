@@ -14,11 +14,11 @@ export const defaultConfig: SpeakChatConfigData = {
     global: { enabled: false },
     activation: {
         rules: [
-            { type: 'command', enabled: false, commandName: '!tts', roles: { ...defaultRoles } },
+            { type: 'command', enabled: false, commandName: '!tts', platform: 'all', roles: { ...defaultRoles } },
             { type: 'bits', enabled: false, minBits: 100, roles: { ...defaultRoles } },
             { type: 'channelPoints', enabled: false, rewardId: '', roles: { ...defaultRoles } },
-            { type: 'roles', enabled: false, roles: { everyone: false, subscriber: true, vip: true, moderator: true, broadcaster: true } },
-            { type: 'all', enabled: false },
+            { type: 'roles', enabled: false, platform: 'all', roles: { everyone: false, subscriber: true, vip: true, moderator: true, broadcaster: true } },
+            { type: 'all', enabled: false, platform: 'all' },
         ]
     },
     voice: {

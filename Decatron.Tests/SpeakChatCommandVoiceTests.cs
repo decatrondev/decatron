@@ -94,4 +94,16 @@ public class SpeakChatCommandVoiceTests
         Assert.True(SpeakChatCommandVoice.ShouldNotify("canalx", "!rey", t0.AddMinutes(4), cinco));
         Assert.True(SpeakChatCommandVoice.ShouldNotify("canalx", "!goku", t0.AddMinutes(5), cinco));
     }
+
+    [Theory]
+    [InlineData("""{}""", "twitch", true)]
+    [InlineData("""{}""", "kick", false)]
+    [InlineData("""{"platform":"all"}""", "kick", true)]
+    [InlineData("""{"platform":"all"}""", "twitch", true)]
+    [InlineData("""{"platform":"kick"}""", "kick", true)]
+    [InlineData("""{"platform":"kick"}""", "twitch", false)]
+    [InlineData("""{"platform":"twitch"}""", "kick", false)]
+    [InlineData("""{"platform":7}""", "twitch", true)]
+    public void Cada_regla_elige_las_plataformas_y_sin_el_campo_lee_solo_twitch(string rule, string platform, bool esperado) =>
+        Assert.Equal(esperado, SpeakChatCommandVoice.PlatformAllows(J(rule), platform));
 }

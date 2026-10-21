@@ -75,6 +75,22 @@ namespace Decatron.Services
         public static bool FallsBackToStandard(JsonElement rule) =>
             rule.ValueKind == JsonValueKind.Object && rule.TryGetProperty("noBalance", out var p) && p.GetString() == "standard";
 
+        /// <summary>
+        /// ¿La regla lee mensajes de esa plataforma? Valores: «all», «twitch» o «kick». Una regla guardada antes de que
+        /// existiera la opción no trae el campo y sigue leyendo solo Twitch, como hasta ahora.
+        /// </summary>
+        public static bool PlatformAllows(JsonElement rule, string platform)
+        {
+            var value = rule.ValueKind == JsonValueKind.Object && rule.TryGetProperty("platform", out var p) &&
+                p.ValueKind == JsonValueKind.String ? p.GetString() : null;
+            return (value ?? "twitch") switch
+            {
+                "all" => true,
+                "kick" => platform == "kick",
+                _ => platform == "twitch",
+            };
+        }
+
         private static readonly Dictionary<string, DateTime> _lastNotice = new();
         private static readonly object _noticeLock = new();
 

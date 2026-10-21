@@ -76,5 +76,27 @@
     "limitReached": "Llegaste al tope de tu rango.",
     "remove": "Quitar este comando",
     "duplicate": "Otro comando usa el mismo nombre: solo funcionará el primero de la lista."
+  },
+  "links": {
+    "all": "Todo",
+    "allHint": "Los mensajes de Twitch y de Kick en una sola fuente de OBS. Es el que recomendamos.",
+    "twitch": "Solo Twitch",
+    "kick": "Solo Kick",
+    "advancedTitle": "Avanzado: un enlace por plataforma",
+    "perPlatform": "Úsalos solo si quieres separar la voz de cada plataforma en escenas distintas.",
+    "warnMixedTitle": "Dos fuentes de voz se pisan",
+    "warnMixed": "Tienes conectado el enlace «Todo» y también uno de una sola plataforma. Si están activos a la vez, cada mensaje sonará repetido. Quita uno de los dos en OBS.",
+    "warnRepeatedTitle": "La misma fuente está conectada más de una vez",
+    "warnRepeated": "Hay dos fuentes iguales abiertas en OBS. Si están en escenas distintas está bien; si suenan a la vez, cada mensaje sonará repetido.",
+    "linkOtherHint": "Cuando vincules tu otro canal (Twitch o Kick), aquí aparecerá el enlace «Todo» para leer ambos chats.",
+    "copy": "Copiar",
+    "copied": "¡Copiado!"
+  },
+  "platform": {
+    "label": "Plataformas en las que lee",
+    "all": "Twitch y Kick",
+    "twitch": "Solo Twitch",
+    "kick": "Solo Kick",
+    "hint": "Las reglas de bits y de puntos de canal son solo de Twitch. Para leer Kick, usa el enlace «Todo» (o «Solo Kick») en OBS."
   }
 }

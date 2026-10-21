@@ -112,7 +112,9 @@ namespace Decatron.Services
             int bitsAmount,
             string? channelPointsRewardId,
             Dictionary<string, object>? metadata,
-            bool isLeadModerator = false)
+            bool isLeadModerator = false,
+            string platform = "twitch",
+            string? replyChannel = null)
         {
             try
             {
@@ -166,6 +168,9 @@ namespace Decatron.Services
                     {
                         if (!rule.TryGetProperty("enabled", out var ruleEnabled) || !ruleEnabled.GetBoolean())
                             continue;
+
+                        // Cada regla elige en qué plataformas lee (sin el campo: solo Twitch)
+                        if (!SpeakChatCommandVoice.PlatformAllows(rule, platform)) continue;
 
                         var ruleType = rule.TryGetProperty("type", out var rt) ? rt.GetString() : null;
 
@@ -247,7 +252,7 @@ namespace Decatron.Services
                 // Qué regla leyó el mensaje: si algo suena y no debería, aquí está el porqué
                 _logger.LogInformation("[SpeakChat] {Channel}: {User} activó la regla '{Regla}'", channelName, username, activatedBy);
 
-                await SpeakAsync(cfg, channelName, username, userId, textToSpeak, activatedRule, activatedCommand);
+                await SpeakAsync(cfg, channelName, username, userId, textToSpeak, activatedRule, activatedCommand, platform, replyChannel);
             }
             catch (Exception ex)
             {
@@ -330,7 +335,7 @@ namespace Decatron.Services
         /// chat y el de canjes de puntos.
         /// </summary>
         private async Task SpeakAsync(JsonElement cfg, string channelName, string username, string userId, string textToSpeak,
-            JsonElement? rule = null, string command = "")
+            JsonElement? rule = null, string command = "", string platform = "twitch", string? replyChannel = null)
         {
             Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
@@ -495,7 +500,7 @@ namespace Decatron.Services
                                 "[SpeakChat] {Channel}: {Cmd} sin saldo ({Available} de {Cost} créditos), el mensaje de {User} no suena",
                                 channelName, command, balance.TotalAvailable, cost, username);
                             if (SpeakChatCommandVoice.ShouldNotify(channelName, command, DateTime.UtcNow, TimeSpan.FromMinutes(5)))
-                                await _messageSender.SendMessageAsync(channelName,
+                                await _messageSender.SendMessageAsync(replyChannel ?? channelName,
                                     $"🎤 {command} no sonó: el canal se quedó sin créditos de voz.");
                             return;
                         }
@@ -537,6 +542,7 @@ namespace Decatron.Services
                 {
                     username,
                     message = textToSpeak,
+                    platform,
                     audioUrl,
                     audioTurnId = audioUrl != null ? audioTurn?.Id : null,
                     volume,
@@ -553,7 +559,9 @@ namespace Decatron.Services
                 // aun así no oírse nada, porque el overlay no está puesto en OBS. Sin
                 // esta línea no había forma de distinguir "no se generó" de "no había
                 // nadie escuchando", y las dos se ven igual desde el chat.
-                var listeners = Hubs.OverlayHub.CountOverlays(channelName, "speak_chat");
+                // Solo cuentan los overlays que dejan pasar la plataforma del mensaje: uno «solo Twitch» no suena con Kick
+                var variants = Hubs.OverlayHub.CountOverlayVariants(channelName, "speak_chat");
+                var listeners = variants.GetValueOrDefault("all") + variants.GetValueOrDefault(platform);
 
                 // El turno dura lo que dure la voz: el overlay avisa al terminar. Sin audio o sin overlay
                 // no hay quien avise, así que se suelta ya; si el aviso se pierde, vence por texto.

@@ -4,6 +4,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import api from '../../services/api';
 import { useFishVoices } from './fishVoices';
 import { useVoiceCatalog, standardVoicesForLanguage } from '../../components/tts/useVoiceCatalog';
+import { useOverlayStatus } from '../../components/overlay-editor/OverlayLinks';
 import { cardClass, defaultConfig, defaultRoles, deepMerge, TABS } from './speakchat/shared';
 import type { ActivationRule, ChannelPointsReward, CreditUsage, RoleConfig, SpeakChatConfigData, TabId, VoiceCommandLimits } from './speakchat/types';
 import GlobalTab from './speakchat/GlobalTab';
@@ -33,8 +34,9 @@ export default function SpeakChat() {
     const [rewardsError, setRewardsError] = useState(false);
     const [reloading, setReloading] = useState(false);
     const [testMessage, setTestMessage] = useState('Hola, este es un mensaje de prueba del Speak Chat');
-    const [overlayUrl, setOverlayUrl] = useState('');
-    const [copiedUrl, setCopiedUrl] = useState(false);
+    const [frontendBase, setFrontendBase] = useState('');
+    const [fallbackChannel, setFallbackChannel] = useState('tu-canal');
+    const { status, loaded: statusLoaded } = useOverlayStatus('/speakchat/status');
     const [blockedWordsText, setBlockedWordsText] = useState('');
     const [blockedUsersText, setBlockedUsersText] = useState('');
     const { catalog: voiceCatalog } = useVoiceCatalog();
@@ -63,7 +65,8 @@ export default function SpeakChat() {
             const info = await api.get('/settings/frontend-info').catch(() => null);
             const channel = info?.data?.channel?.login ?? 'tu-canal';
             const base = info?.data?.frontendUrl ?? window.location.origin;
-            setOverlayUrl(`${base}/overlay/speak-chat?channel=${channel}`);
+            setFrontendBase(base);
+            setFallbackChannel(channel);
         } catch { /* usa defaults */ }
         finally { setLoading(false); }
     };
@@ -170,7 +173,7 @@ export default function SpeakChat() {
     const addCommand = () => {
         const idx = config.activation.rules.length;
         const rule: ActivationRule = {
-            type: 'command', enabled: true, commandName: '!', roles: { ...defaultRoles },
+            type: 'command', enabled: true, commandName: '!', platform: 'all', roles: { ...defaultRoles },
             voice: { engine: 'piper', standardVoice: standardVoicesForLanguage(voiceCatalog, config.voice.languageCode)[0]?.id ?? '' },
         };
         setConfig(c => ({ ...c, activation: { rules: [...c.activation.rules, rule] } }));
@@ -182,10 +185,10 @@ export default function SpeakChat() {
         setExpandedRules({});
     };
 
-    const copyOverlayUrl = () => {
-        navigator.clipboard.writeText(overlayUrl);
-        setCopiedUrl(true);
-        setTimeout(() => setCopiedUrl(false), 2000);
+    // Con los dos canales vinculados el enlace sale de la clave de la cuenta; con uno solo se mantiene el de siempre
+    const overlayLink = (source?: 'all' | 'twitch' | 'kick') => {
+        const key = source && status.overlayKey ? status.overlayKey : fallbackChannel;
+        return `${frontendBase}/overlay/speak-chat?channel=${key}${source ? `&source=${source}` : ''}`;
     };
 
 
@@ -260,7 +263,7 @@ export default function SpeakChat() {
             {activeTab === 'global' && (
                 <GlobalTab
                     config={config} setConfig={setConfig}
-                    overlayUrl={overlayUrl} copiedUrl={copiedUrl} copyOverlayUrl={copyOverlayUrl}
+                    overlayLink={overlayLink} status={status} statusLoaded={statusLoaded}
                     historyKey={historyKey}
                 />
             )}

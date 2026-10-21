@@ -222,6 +222,24 @@
         ]
       },
       {
+        "id": "twitch-y-kick",
+        "title": "Twitch y Kick",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Speak Chat lee también el chat de Kick. Cada regla de comando, de rol y de «todos los mensajes» elige dónde lee: Twitch y Kick, solo Twitch o solo Kick. Las reglas de bits y de puntos de canal son solo de Twitch. Las reglas que ya tenías siguen leyendo solo Twitch hasta que cambies esta opción."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Con los dos canales vinculados, en la pestaña Global aparece el enlace «Todo» (recomendado): un solo overlay en OBS que reproduce Twitch y Kick con una única cola de voz. Debajo, en Avanzado, los enlaces «Solo Twitch» y «Solo Kick».",
+              "Cada enlace muestra si está conectado en OBS ahora. Si el enlace «Todo» y uno de una sola plataforma están conectados a la vez, el panel te avisa de que cada mensaje sonaría repetido.",
+              "La configuración y los créditos son los de tu cuenta (el canal principal), también cuando entras con Kick. Los enlaces antiguos siguen funcionando."
+            ]
+          }
+        ]
+      },
+      {
         "id": "roles",
         "title": "Quién puede usar cada regla",
         "blocks": [

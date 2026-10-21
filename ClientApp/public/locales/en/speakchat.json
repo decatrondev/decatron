@@ -76,5 +76,27 @@
     "limitReached": "You reached your rank's limit.",
     "remove": "Remove this command",
     "duplicate": "Another command uses the same name: only the first one in the list will work."
+  },
+  "links": {
+    "all": "All",
+    "allHint": "Twitch and Kick messages in a single OBS source. This is the one we recommend.",
+    "twitch": "Twitch only",
+    "kick": "Kick only",
+    "advancedTitle": "Advanced: one link per platform",
+    "perPlatform": "Use them only if you want each platform's voice in separate scenes.",
+    "warnMixedTitle": "Two voice sources overlap",
+    "warnMixed": "The «All» link and a single-platform link are both connected. If they are active at once, every message will play twice. Remove one of them in OBS.",
+    "warnRepeatedTitle": "The same source is connected more than once",
+    "warnRepeated": "Two identical sources are open in OBS. If they are in different scenes that's fine; if they play at once, every message will play twice.",
+    "linkOtherHint": "When you link your other channel (Twitch or Kick), the «All» link will appear here to read both chats.",
+    "copy": "Copy",
+    "copied": "Copied!"
+  },
+  "platform": {
+    "label": "Platforms it reads from",
+    "all": "Twitch and Kick",
+    "twitch": "Twitch only",
+    "kick": "Kick only",
+    "hint": "Bits and channel-points rules are Twitch-only. To read Kick, use the «All» (or «Kick only») link in OBS."
   }
 }

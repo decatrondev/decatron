@@ -29,6 +29,7 @@ namespace Decatron.Controllers
         private readonly ILogger<SpeakChatController> _logger;
         private readonly DecatronDbContext _dbContext;
         private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
+        private readonly Decatron.Services.Accounts.AccountChannelResolver _accounts;
 
         public SpeakChatController(
             ISpeakChatService speakChatService,
@@ -37,8 +38,10 @@ namespace Decatron.Controllers
             OverlayNotificationService overlayNotificationService,
             ILogger<SpeakChatController> logger,
             DecatronDbContext dbContext,
-            Decatron.Core.Services.ChannelAudioGate audioGate)
+            Decatron.Core.Services.ChannelAudioGate audioGate,
+            Decatron.Services.Accounts.AccountChannelResolver accounts)
         {
+            _accounts = accounts;
             _audioGate = audioGate;
             _speakChatService = speakChatService;
             _ttsService = ttsService;
@@ -57,7 +60,7 @@ namespace Decatron.Controllers
         {
             try
             {
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await OwnerAsync();
                 var config = await _speakChatService.GetConfigAsync(channelOwnerId);
 
                 if (config == null)
@@ -99,7 +102,7 @@ namespace Decatron.Controllers
                 if (body?.Config == null)
                     return BadRequest(new { success = false, message = "Config es requerida" });
 
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await OwnerAsync();
                 var channelName = await GetChannelUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(channelName))
@@ -148,7 +151,7 @@ namespace Decatron.Controllers
         {
             try
             {
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await OwnerAsync();
                 limit = Math.Clamp(limit, 1, 100);
                 var rows = await _dbContext.SpeakChatConfigHistory.AsNoTracking()
                     .Where(h => h.UserId == channelOwnerId)
@@ -185,7 +188,9 @@ namespace Decatron.Controllers
         {
             try
             {
-                var config = await _speakChatService.GetConfigByChannelAsync(channelName);
+                // El enlace del overlay puede traer el login de Twitch, kick_<id> o el id de Kick: se lee la config de la cuenta
+                var resolvedAlias = await _accounts.ResolveAliasAsync(channelName);
+                var config = await _speakChatService.GetConfigByChannelAsync(resolvedAlias?.Account.OverlayKey ?? channelName);
 
                 if (config == null || !config.IsEnabled)
                     return Ok(new { success = true, config = (object?)null });
@@ -209,6 +214,57 @@ namespace Decatron.Controllers
         }
 
         // ============================
+        // GET /api/speakchat/resolve/{alias}
+        // A qué clave unirse y qué mostraba ese enlace antes (público, sin sesión). Lo pregunta el overlay de OBS.
+        // ============================
+        [HttpGet("resolve/{alias}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResolveChannel(string alias)
+        {
+            try
+            {
+                var resolved = await _accounts.ResolveAliasAsync(alias);
+                if (resolved == null) return Ok(new { success = true, found = false });
+                return Ok(new { success = true, found = true, overlayKey = resolved.Account.OverlayKey, variant = resolved.LegacyVariant });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SpeakChat] Error resolviendo el canal del overlay");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        // ============================
+        // GET /api/speakchat/status
+        // Qué overlays de Speak Chat hay conectados en OBS, por variante, y si se pisan.
+        // ============================
+        [HttpGet("status")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> GetStatus()
+        {
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var counts = Decatron.Hubs.OverlayHub.CountOverlayVariants(account.OverlayKey, "speak_chat");
+                var warnings = new List<string>();
+                if (counts["all"] > 0 && (counts["twitch"] > 0 || counts["kick"] > 0)) warnings.Add("mixed");
+                if (counts.Values.Any(c => c > 1)) warnings.Add("repeated");
+                return Ok(new
+                {
+                    success = true, overlayKey = account.OverlayKey, hasTwitch = account.HasTwitch, hasKick = account.HasKick,
+                    total = counts.Values.Sum(), all = counts["all"], twitch = counts["twitch"], kick = counts["kick"], warnings
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SpeakChat] Error obteniendo el estado de los overlays");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        // ============================
         // POST /api/speakchat/test
         // ============================
         [HttpPost("test")]
@@ -218,7 +274,7 @@ namespace Decatron.Controllers
             Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await OwnerAsync();
                 var channelName = await GetChannelUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(channelName))
@@ -309,7 +365,7 @@ namespace Decatron.Controllers
         {
             try
             {
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await OwnerAsync();
                 var balance = await _creditService.GetBalanceAsync(channelOwnerId);
                 var expiresAt = await TierResolver.GetTierExpiryAsync(_dbContext, channelOwnerId);
 
@@ -370,7 +426,7 @@ namespace Decatron.Controllers
         {
             try
             {
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await OwnerAsync();
                 var channelName = await GetChannelUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(channelName))
@@ -467,6 +523,17 @@ namespace Decatron.Controllers
                 return true;
             }
             catch { return false; }
+        }
+
+        /// <summary>
+        /// El dueño de la configuración y los créditos: la fila principal de la cuenta. Una sesión de Kick edita
+        /// lo mismo que una de Twitch (patrón multiplataforma, un solo lugar de configuración).
+        /// </summary>
+        private async Task<long> OwnerAsync()
+        {
+            var id = GetChannelOwnerId();
+            var account = await _accounts.ResolveByUserIdAsync(id);
+            return account?.Principal.UserId ?? id;
         }
 
         private long GetChannelOwnerId()

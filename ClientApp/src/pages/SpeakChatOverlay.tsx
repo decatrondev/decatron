@@ -41,6 +41,8 @@ interface SpeakChatMessage {
     overlay?: Partial<OverlayDisplayConfig>;
     timestamp: string;
     isTest?: boolean;
+    /** De qué plataforma llegó el mensaje */
+    platform?: 'twitch' | 'kick';
 }
 
 interface QueueItem extends SpeakChatMessage {
@@ -78,6 +80,12 @@ function sleep(ms: number): Promise<void> {
 export default function SpeakChatOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') ?? '';
+    // ?source=all|twitch|kick: qué plataformas lee este overlay (sin él, lo que mostraba ese enlace antes)
+    const sourceParam = searchParams.get('source');
+    // Clave real del grupo: puede no ser la del enlace (kick_<id>, KickId) si la cuenta tiene otro canal principal
+    const overlayKeyRef = useRef(channel);
+    // Plataforma que deja pasar este overlay: null = todas
+    const sourceRef = useRef<string | null>(null);
 
     // UI state — solo para render
     const [currentMsg, setCurrentMsg] = useState<QueueItem | null>(null);
@@ -179,8 +187,8 @@ export default function SpeakChatOverlay() {
         // Reproducir audio
         await playAudio(item);
         // Avisar que la voz terminó, sin esperar a que se oculte la burbuja (si no, la siguiente voz del canal esperaría de más)
-        if (item.audioTurnId && channel) {
-            connectionRef.current?.invoke('AudioTurnEnded', channel, item.audioTurnId).catch(() => {});
+        if (item.audioTurnId && overlayKeyRef.current) {
+            connectionRef.current?.invoke('AudioTurnEnded', overlayKeyRef.current, item.audioTurnId).catch(() => {});
         }
 
         // Esperar duración mínima visible
@@ -225,6 +233,8 @@ export default function SpeakChatOverlay() {
 
         // Registrar handlers para TODOS los eventos del hub para evitar spam en consola
         connection.on('SpeakChatMessage', (data) => {
+            // Este overlay solo lee una plataforma: el resto lo atiende otro (o nadie, y el servidor ya soltó el turno)
+            if (sourceRef.current && data?.platform && data.platform !== sourceRef.current) return;
             console.log('[SpeakChat] 📨 Mensaje recibido:', JSON.stringify(data, null, 2));
             enqueue(data);
         });
@@ -245,23 +255,47 @@ export default function SpeakChatOverlay() {
         // recargaba la fuente en OBS a mano. Los otros nueve overlays ya lo hacían.
         connection.onreconnected(async () => {
             try {
-                await connection.invoke('JoinChannel', channel);
-                await connection.invoke('RegisterOverlay', channel, 'speak_chat').catch(() => {});
-                console.log('[SpeakChat] 🔄 Reconectado y reincorporado al canal:', channel);
+                await resolveChannel();
+                await join();
+                console.log('[SpeakChat] 🔄 Reconectado y reincorporado al canal:', overlayKeyRef.current);
             } catch (err) {
                 console.error('[SpeakChat] ❌ Error al reincorporarse al canal:', err);
             }
         });
 
+        // A qué grupo unirse y qué plataformas lee: el enlace puede traer el login de Twitch, kick_<id> o el id de
+        // Kick, pero el servidor emite siempre al grupo de la cuenta. Se pregunta en cada conexión.
+        const resolveChannel = async () => {
+            let legacyVariant: string | null = null;
+            try {
+                const res = await fetch(`/api/speakchat/resolve/${encodeURIComponent(channel)}`);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.success && json.found) {
+                        overlayKeyRef.current = json.overlayKey || channel;
+                        legacyVariant = json.variant || null;
+                    }
+                }
+            } catch { /* sin respuesta se usa el enlace tal cual, como antes */ }
+            const explicit = ['all', 'twitch', 'kick'].includes((sourceParam || '').toLowerCase()) ? (sourceParam as string).toLowerCase() : null;
+            const variant = explicit ?? legacyVariant;
+            sourceRef.current = variant && variant !== 'all' ? variant : null;
+        };
+
+        const join = async () => {
+            await connection.invoke('JoinChannel', overlayKeyRef.current);
+            // Identificarse permite que el servidor avise en los registros cuando genera audio para un canal
+            // sin este overlay puesto. Si el backend es viejo y no conoce el método, el overlay funciona igual.
+            await connection.invoke('RegisterOverlay', overlayKeyRef.current, 'speak_chat').catch(() => {});
+            await connection.invoke('SetOverlayVariant', sourceRef.current ?? 'all').catch(() => {});
+        };
+
         const start = async () => {
             try {
+                await resolveChannel();
                 await connection.start();
-                await connection.invoke('JoinChannel', channel);
-                // Identificarse permite que el servidor avise en los registros cuando
-                // genera audio para un canal sin este overlay puesto. Si el backend es
-                // viejo y no conoce el método, no pasa nada: el overlay funciona igual.
-                await connection.invoke('RegisterOverlay', channel, 'speak_chat').catch(() => {});
-                console.log('[SpeakChat] ✅ SignalR conectado al canal:', channel);
+                await join();
+                console.log('[SpeakChat] ✅ SignalR conectado al canal:', overlayKeyRef.current);
             } catch (e) {
                 console.error('[SpeakChat] ❌ Error SignalR:', e);
                 setTimeout(start, 5000);
@@ -271,7 +305,7 @@ export default function SpeakChatOverlay() {
         start();
 
         return () => { connection.stop(); };
-    }, [channel]); // Solo depende de channel — no se recrea por cambios de config
+    }, [channel, sourceParam]); // Solo depende del enlace — no se recrea por cambios de config
 
     // ===================== AUTO-ACTUALIZACIÓN =====================
     // La fuente de OBS nunca se recarga sola: sin esto se queda con el bundle viejo

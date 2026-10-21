@@ -40,6 +40,9 @@ namespace Decatron.Controllers
         private readonly Services.ChatOverlay.ChatOverlayService _chatOverlay;
 
         private readonly Services.Tenancy.TenantShadow _tenantShadow;
+        private readonly ISpeakChatService _speakChat;
+        private readonly Services.Accounts.AccountChannelResolver _accounts;
+        private readonly IBotListService _botList;
 
         public KickWebhookController(
             DecatronDbContext db,
@@ -49,8 +52,14 @@ namespace Decatron.Controllers
             ISoundAlertTriggerService soundAlertTriggerService,
             Services.ChatOverlay.ChatOverlayService chatOverlay,
             ILogger<KickWebhookController> logger,
-            Services.Tenancy.TenantShadow tenantShadow)
+            Services.Tenancy.TenantShadow tenantShadow,
+            ISpeakChatService speakChat,
+            Services.Accounts.AccountChannelResolver accounts,
+            IBotListService botList)
         {
+            _speakChat = speakChat;
+            _accounts = accounts;
+            _botList = botList;
             _tenantShadow = tenantShadow;
             _chatOverlay = chatOverlay;
             _db = db;
@@ -119,6 +128,8 @@ namespace Decatron.Controllers
                     isModerator: msg.IsModerator, isLeadModerator: false, isVip: msg.IsVip,
                     isSubscriber: msg.IsSubscriber, isBroadcaster: msg.IsBroadcaster,
                     metadata: KickMessageMetadata(msg.Message));
+
+                await SpeakChatFromKickAsync(msg);
             }
 
             if (eventType == "channel.reward.redemption.updated")
@@ -127,6 +138,43 @@ namespace Decatron.Controllers
             }
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Speak Chat con los mensajes de Kick. La cuenta se resuelve por el id de Kick y se lee con la configuración y
+        /// los créditos de su fila principal, igual que en Twitch; el audio sale al grupo del overlay de la cuenta.
+        /// Nunca rompe el webhook.
+        /// </summary>
+        private async Task SpeakChatFromKickAsync(IncomingChatMessage msg)
+        {
+            try
+            {
+                var resolved = await _accounts.ResolveKickIdAsync(msg.Channel);
+                if (resolved == null) return;
+                var account = resolved.Account;
+
+                var botFx = await _botList.GetEffectsAsync("kick", resolved.Matched.UserId, msg.Username);
+                if (botFx is { SkipSpeech: true }) return;
+
+                await _speakChat.ProcessChatMessageAsync(
+                    channelName: account.OverlayKey,
+                    username: msg.Username,
+                    userId: msg.UserId,
+                    message: msg.Message,
+                    isBroadcaster: msg.IsBroadcaster,
+                    isModerator: msg.IsModerator,
+                    isVip: msg.IsVip,
+                    isSubscriber: msg.IsSubscriber,
+                    bitsAmount: 0,
+                    channelPointsRewardId: null,
+                    metadata: KickMessageMetadata(msg.Message),
+                    platform: "kick",
+                    replyChannel: msg.Channel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Kick Webhook] Error en Speak Chat");
+            }
         }
 
         // Kick escribe los emotes dentro del texto como [emote:37226:KEKW]
