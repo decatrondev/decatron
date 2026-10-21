@@ -416,6 +416,10 @@
           {
             "t": "p",
             "x": "If in the last 7 days any reading fell back to the standard voice because the chosen voice could not be generated (no credits, voice unavailable or engine failure), the Credits tab says so, with the count and the most frequent reason."
+          },
+          {
+            "t": "p",
+            "x": "Below the balance, the “Usage” card shows, for the last 7 or 30 days, how many messages were read and how many were discarded (and why: blocked word or user, cooldown, no balance, no overlay connected, voices waiting…), the estimated cost in credits, usage by command, top users and the latest readings. Only the user, command, voice and result are stored, never the message text, for 30 days, and it fills up from when the log was turned on. Credits are an estimate at the current rate."
           }
         ]
       },

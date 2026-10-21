@@ -497,6 +497,38 @@
       "reason_engineError": "Lo más común: el motor de voz falló. Si se repite, avisa al equipo.",
       "reason_other": "Hubo varios motivos.",
       "last": "Última vez: {{date}}."
+    },
+    "usage": {
+      "title": "Uso",
+      "description": "Quién usó qué comando, cuánto costó y qué se descartó.",
+      "lastDays_one": "Último día",
+      "lastDays_other": "Últimos {{count}} días",
+      "empty": "Todavía no hay lecturas registradas en este período. Se empiezan a registrar desde que se activó este registro.",
+      "error": "No se pudo cargar el uso.",
+      "spoken": "Leídos",
+      "discarded": "Descartados",
+      "credits": "Créditos (estimados)",
+      "whyDiscarded": "Por qué se descartaron",
+      "byCommand": "Por comando",
+      "command": "Comando",
+      "noCommand": "sin comando",
+      "byUser": "Quién más lo usó",
+      "userLine_one": "{{count}} lectura · {{credits}} créditos",
+      "userLine_other": "{{count}} lecturas · {{credits}} créditos",
+      "recent": "Lo último",
+      "truncated": "Hay más lecturas de las que se pueden mostrar: los totales usan las 5 000 más recientes.",
+      "note": "Se guarda el usuario, el comando, la voz y el resultado, nunca el texto del mensaje, durante 30 días. Los créditos son una estimación con la tarifa vigente.",
+      "outcome_spoken": "Leído",
+      "outcome_no_audio": "Sin audio (falló la voz)",
+      "outcome_blocked_word": "Palabra bloqueada",
+      "outcome_blocked_user": "Usuario bloqueado",
+      "outcome_cooldown_global": "Enfriamiento global",
+      "outcome_cooldown_user": "Enfriamiento por usuario",
+      "outcome_empty": "Sin texto tras la limpieza",
+      "outcome_no_overlay": "Ningún overlay lo lee",
+      "outcome_no_balance": "Sin saldo",
+      "outcome_queue_full": "Demasiadas voces en espera",
+      "outcome_duplicate": "Ya lo leyó otro módulo"
     }
   }
 }

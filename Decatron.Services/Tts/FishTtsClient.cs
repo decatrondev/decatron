@@ -81,6 +81,11 @@ namespace Decatron.Services.Tts
                 ["latency"] = "balanced",
             };
             if (!string.IsNullOrWhiteSpace(voiceId)) body["reference_id"] = voiceId.Trim();
+            // Estabilidad de la voz: más bajo = más regular, más alto = más expresivo. Sin valor, Fish usa el suyo.
+            // Se lee en caliente de FishAudio:Temperature (0 a 1) y se ignora lo que no sea un número válido.
+            if (double.TryParse(_config["FishAudio:Temperature"], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var temperature)
+                && temperature is >= 0 and <= 1)
+                body["temperature"] = temperature;
 
             // Fish limita las peticiones simultáneas (5 en Starter) y a veces responde 429/503: se reintenta con una espera corta
             // en vez de dejar el chat sin voz. 402, 404 o 422 no se reintentan (sin saldo o voz inservible: no se arreglan esperando).

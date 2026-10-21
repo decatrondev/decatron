@@ -1128,6 +1128,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/speakchat/status` | JWT + `overlays` |
 | `POST` | `/api/speakchat/test` | JWT + `overlays` |
 | `GET` | `/api/speakchat/usage` | JWT + `overlays` |
+| `GET` | `/api/speakchat/usage-log` | JWT + `overlays` |
 
 ### Spotify
 

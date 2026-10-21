@@ -361,6 +361,63 @@ namespace Decatron.Controllers
         }
 
         // ============================
+        // GET /api/speakchat/usage-log?days=7
+        // Quién usó qué comando, cuánto costó y qué se descartó. Sale de speak_chat_usage_log (30 días, sin el texto).
+        // ============================
+        [HttpGet("usage-log")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> GetUsageLog([FromQuery] int days = 7)
+        {
+            try
+            {
+                var ownerId = await OwnerAsync();
+                days = Math.Clamp(days, 1, 30);
+                var since = DateTime.UtcNow.AddDays(-days);
+                var rows = await _dbContext.SpeakChatUsageLog.AsNoTracking()
+                    .Where(l => l.UserId == ownerId && l.CreatedAt >= since)
+                    .OrderByDescending(l => l.CreatedAt)
+                    .Take(5000)
+                    .ToListAsync();
+
+                var outcomes = rows.GroupBy(r => r.Outcome).ToDictionary(g => g.Key, g => g.Count());
+                var spoken = rows.Where(r => r.Outcome == "spoken").ToList();
+
+                return Ok(new
+                {
+                    success = true,
+                    days,
+                    total = rows.Count,
+                    truncated = rows.Count >= 5000,
+                    outcomes,
+                    credits = spoken.Sum(r => r.Credits ?? 0),
+                    byCommand = rows.GroupBy(r => string.IsNullOrEmpty(r.Command) ? r.RuleType : r.Command)
+                        .Select(g => new
+                        {
+                            command = g.Key,
+                            count = g.Count(),
+                            spoken = g.Count(r => r.Outcome == "spoken"),
+                            discarded = g.Count(r => r.Outcome != "spoken" && r.Outcome != "no_audio"),
+                            credits = g.Where(r => r.Outcome == "spoken").Sum(r => r.Credits ?? 0)
+                        })
+                        .OrderByDescending(x => x.count).Take(15).ToList(),
+                    byUser = spoken.GroupBy(r => r.Username)
+                        .Select(g => new { username = g.Key, count = g.Count(), credits = g.Sum(r => r.Credits ?? 0) })
+                        .OrderByDescending(x => x.count).Take(10).ToList(),
+                    recent = rows.Take(25).Select(r => new
+                    {
+                        createdAt = DateTime.SpecifyKind(r.CreatedAt, DateTimeKind.Utc),
+                        r.Username, r.Platform, r.Command, r.RuleType, r.Outcome, r.Engine, r.Voice, r.Credits
+                    }).ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SpeakChat] Error al consultar el registro de uso");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        // ============================
         // GET /api/speakchat/fallbacks
         // Lecturas de los últimos 7 días que cayeron a la voz estándar porque la elegida no pudo generarse.
         // Sale del libro mayor de créditos: no hay tabla nueva.

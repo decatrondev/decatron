@@ -416,6 +416,10 @@
           {
             "t": "p",
             "x": "Si en los últimos 7 días alguna lectura cayó a la voz estándar porque la voz elegida no pudo generarse (sin créditos, voz no disponible o falla del motor), la pestaña Créditos lo avisa con la cantidad y el motivo más frecuente."
+          },
+          {
+            "t": "p",
+            "x": "Debajo del saldo, la tarjeta «Uso» muestra, de los últimos 7 o 30 días, cuántos mensajes se leyeron y cuántos se descartaron (y por qué: palabra o usuario bloqueado, enfriamiento, sin saldo, ningún overlay conectado, voces en espera…), el costo estimado en créditos, el uso por comando, quién más lo usó y las últimas lecturas. Se guarda solo el usuario, el comando, la voz y el resultado, nunca el texto del mensaje, durante 30 días, y empieza a llenarse desde que se activó el registro. Los créditos son una estimación con la tarifa vigente."
           }
         ]
       },

@@ -403,6 +403,14 @@ namespace Decatron.Services
             string? originalMessage = null, Dictionary<string, object>? metadata = null)
         {
             Decatron.Core.Services.AudioTurn? audioTurn = null;
+
+            // Registro de uso: cada mensaje que activó una regla deja una fila (leído o descartado, y por qué)
+            var logEngine = "";
+            var logVoice = "";
+            long? logCredits = null;
+            var logRuleType = rule.HasValue && rule.Value.TryGetProperty("type", out var lrt) ? lrt.GetString() ?? "" : "";
+            Task Log(string outcome) => RecordUsageAsync(channelName, platform, username, logRuleType, command, outcome, logEngine, logVoice, textToSpeak.Length, logCredits);
+
             try
             {
                 // ===== FILTROS =====
@@ -432,6 +440,7 @@ namespace Decatron.Services
                             _logger.LogInformation(
                                 "[SpeakChat] {Channel}: mensaje de {User} descartado por palabra bloqueada",
                                 channelName, username);
+                            await Log("blocked_word");
                             return;
                         }
                     }
@@ -450,12 +459,13 @@ namespace Decatron.Services
                             _logger.LogInformation(
                                 "[SpeakChat] {Channel}: {User} está en la lista de bloqueados",
                                 channelName, username);
+                            await Log("blocked_user");
                             return;
                         }
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(textToSpeak)) return;
+                if (string.IsNullOrWhiteSpace(textToSpeak)) { await Log("empty"); return; }
 
                 // Enfriamientos: se registran solo cuando el mensaje pasó todos los filtros,
                 // para que uno descartado no deje al usuario ni al canal esperando.
@@ -475,6 +485,7 @@ namespace Decatron.Services
                         _logger.LogInformation(
                             "[SpeakChat] {Channel}: descartado por enfriamiento global ({Secs}s)",
                             channelName, globalCooldownSecs);
+                        await Log("cooldown_global");
                         return;
                     }
                 }
@@ -492,6 +503,7 @@ namespace Decatron.Services
                         _logger.LogInformation(
                             "[SpeakChat] {Channel}: {User} en enfriamiento ({Secs}s entre mensajes)",
                             channelName, username, perUserCooldownSecs);
+                        await Log("cooldown_user");
                         return;
                     }
                 }
@@ -532,6 +544,8 @@ namespace Decatron.Services
                     ? (!string.IsNullOrEmpty(pollyVoice) ? pollyVoice : legacyVoice ?? "Lupe")
                     : engine == "fish" ? (fishVoice ?? "")
                     : (standardVoice ?? "");
+                logEngine = engine;
+                logVoice = voiceId;
                 var languageCode = voice.ValueKind != JsonValueKind.Undefined &&
                     voice.TryGetProperty("languageCode", out var lc) ? lc.GetString() ?? "es-US" : "es-US";
                 var volume = voice.ValueKind != JsonValueKind.Undefined &&
@@ -564,6 +578,7 @@ namespace Decatron.Services
                         _logger.LogInformation(
                             "[SpeakChat] {Channel}: mensaje de {User} ({Platform}) sin voz, ningún overlay conectado lo lee. Overlays presentes: {Detalle}",
                             channelName, username, platform, Hubs.OverlayHub.DescribeOverlays(channelName));
+                        await Log("no_overlay");
                         return;
                     }
 
@@ -573,6 +588,7 @@ namespace Decatron.Services
                     {
                         var units = engine == "fish" ? Decatron.Services.Tts.FishTtsClient.BillableBytes(textToSpeak) : textToSpeak.Length;
                         var cost = await _creditService.CalculateCostAsync(units, engine == "fish" ? "fish" : pollyEngine);
+                        logCredits = cost;
                         var balance = await _creditService.GetBalanceAsync(channelUser.Id);
                         if (!balance.IsUnlimited && balance.TotalAvailable < cost)
                         {
@@ -582,6 +598,7 @@ namespace Decatron.Services
                             if (SpeakChatCommandVoice.ShouldNotify(channelName, command, DateTime.UtcNow, TimeSpan.FromMinutes(5)))
                                 await _messageSender.SendMessageAsync(replyChannel ?? channelName,
                                     $"🎤 {command} no sonó: el canal se quedó sin créditos de voz.");
+                            await Log("no_balance");
                             return;
                         }
                     }
@@ -592,6 +609,7 @@ namespace Decatron.Services
                         _logger.LogInformation(
                             "[SpeakChat] {Channel}: mensaje de {User} omitido, otro módulo ya lo leyó",
                             channelName, username);
+                        await Log("duplicate");
                         return;
                     }
 
@@ -603,10 +621,15 @@ namespace Decatron.Services
                         _logger.LogInformation(
                             "[SpeakChat] {Channel}: mensaje de {User} descartado, el canal tenía demasiadas voces en espera",
                             channelName, username);
+                        await Log("queue_full");
                         return;
                     }
 
                     _audioGate.Remember(channelName, "speak_chat", textToSpeak);
+                    if (engine != "piper" && logCredits == null)
+                        logCredits = await _creditService.CalculateCostAsync(
+                            engine == "fish" ? Decatron.Services.Tts.FishTtsClient.BillableBytes(textToSpeak) : textToSpeak.Length,
+                            engine == "fish" ? "fish" : pollyEngine);
                     audioUrl = await _creditService.GenerateWithCreditsAsync(
                         channelUser.Id, textToSpeak, voiceId, pollyEngine,
                         languageCode, "speak_chat", channelName, engine);
@@ -614,6 +637,7 @@ namespace Decatron.Services
 
                 // Sin audio el overlay solo enseña la burbuja: ya no hay a qué caer
                 var ttsEngine = audioUrl != null ? engine : "none";
+                await Log(audioUrl != null ? "spoken" : "no_audio");
 
                 // Leer config overlay
                 cfg.TryGetProperty("overlay", out var overlayConfig);
@@ -667,6 +691,48 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, "[SpeakChat] Error generando TTS en {Channel}", channelName);
                 audioTurn?.Release();
+            }
+        }
+
+        /// <summary>
+        /// Una fila en el registro de uso. Nunca debe romper la lectura: si falla, se anota y se sigue.
+        /// Guarda 30 días; la poda corre de vez en cuando, no en cada mensaje.
+        /// </summary>
+        private async Task RecordUsageAsync(string channelName, string platform, string username, string ruleType, string command,
+            string outcome, string engine, string voice, int chars, long? credits)
+        {
+            try
+            {
+                var ownerId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+                if (ownerId == null) return;
+
+                var row = new SpeakChatUsageLog
+                {
+                    UserId = ownerId.Value,
+                    ChannelName = channelName,
+                    Platform = platform,
+                    Username = username.Length > 100 ? username[..100] : username,
+                    RuleType = ruleType,
+                    Command = command.Length > 100 ? command[..100] : command,
+                    Outcome = outcome,
+                    Engine = engine,
+                    Voice = voice.Length > 100 ? voice[..100] : voice,
+                    Chars = chars,
+                    Credits = engine == "piper" ? null : credits,
+                };
+                _context.SpeakChatUsageLog.Add(row);
+                try { await _context.SaveChangesAsync(); }
+                catch { _context.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Detached; throw; }
+
+                if (Random.Shared.Next(200) == 0)
+                {
+                    var cutoff = DateTime.UtcNow.AddDays(-30);
+                    await _context.SpeakChatUsageLog.Where(l => l.UserId == ownerId.Value && l.CreatedAt < cutoff).ExecuteDeleteAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[SpeakChat] {Channel}: no se pudo registrar el uso", channelName);
             }
         }
 

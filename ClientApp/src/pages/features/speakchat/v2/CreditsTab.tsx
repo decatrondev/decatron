@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import api from '../../../../services/api';
 import CreditsPanel from './CreditsPanel';
+import UsageCard from './UsageCard';
 import type { SpeakChatState } from './useSpeakChatConfig';
 
 interface Fallbacks { days: number; count: number; lastAt: string | null; topReason: string | null }
@@ -29,6 +30,7 @@ export default function CreditsTab({ sc }: { sc: SpeakChatState }) {
                 </div>
             )}
             <CreditsPanel usage={sc.usage} />
+            <UsageCard />
         </div>
     );
 }

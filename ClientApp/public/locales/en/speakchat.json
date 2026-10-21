@@ -497,6 +497,38 @@
       "reason_engineError": "Most common: the voice engine failed. If it keeps happening, let the team know.",
       "reason_other": "There were several reasons.",
       "last": "Last time: {{date}}."
+    },
+    "usage": {
+      "title": "Usage",
+      "description": "Who used which command, what it cost and what was discarded.",
+      "lastDays_one": "Last day",
+      "lastDays_other": "Last {{count}} days",
+      "empty": "No readings recorded in this period yet. Recording starts from when this log was turned on.",
+      "error": "Could not load usage.",
+      "spoken": "Read",
+      "discarded": "Discarded",
+      "credits": "Credits (estimated)",
+      "whyDiscarded": "Why they were discarded",
+      "byCommand": "By command",
+      "command": "Command",
+      "noCommand": "no command",
+      "byUser": "Top users",
+      "userLine_one": "{{count}} reading · {{credits}} credits",
+      "userLine_other": "{{count}} readings · {{credits}} credits",
+      "recent": "Latest",
+      "truncated": "There are more readings than can be shown: the totals use the 5,000 most recent.",
+      "note": "The user, command, voice and result are stored for 30 days, never the message text. Credits are an estimate at the current rate.",
+      "outcome_spoken": "Read",
+      "outcome_no_audio": "No audio (voice failed)",
+      "outcome_blocked_word": "Blocked word",
+      "outcome_blocked_user": "Blocked user",
+      "outcome_cooldown_global": "Global cooldown",
+      "outcome_cooldown_user": "Per-user cooldown",
+      "outcome_empty": "Nothing left after cleanup",
+      "outcome_no_overlay": "No overlay reads it",
+      "outcome_no_balance": "No balance",
+      "outcome_queue_full": "Too many voices waiting",
+      "outcome_duplicate": "Another module already read it"
     }
   }
 }
