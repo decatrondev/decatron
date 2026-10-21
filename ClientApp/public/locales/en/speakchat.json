@@ -13,7 +13,88 @@
     "yes": "yes",
     "no": "no",
     "emptyValue": "empty",
-    "moreChanges": "Showing the first {{count}} changes."
+    "moreChanges": "Showing the first {{count}} changes.",
+    "fields": {
+      "global": {
+        "enabled": "Speak Chat on"
+      },
+      "voice": {
+        "engine": "Channel voice type",
+        "pollyEngine": "Premium voice quality",
+        "pollyVoice": "Premium voice",
+        "standardVoice": "Standard voice",
+        "fishVoice": "Character voice",
+        "voice": "Voice (old format)",
+        "languageCode": "Language",
+        "volume": "Volume"
+      },
+      "filters": {
+        "globalCooldownSeconds": "Global cooldown (s)",
+        "perUserCooldownSeconds": "Per-user cooldown (s)",
+        "maxChars": "Maximum characters",
+        "blockedWordsMode": "Blocked words mode",
+        "blockedWords": "Blocked word",
+        "blockedUsers": "Blocked user"
+      },
+      "overlay": {
+        "showBubble": "Bubble visible",
+        "position": "Bubble position",
+        "fontSize": "Font size",
+        "backgroundColor": "Background color",
+        "textColor": "Text color",
+        "duration": "Visible time (ms)"
+      },
+      "activation": {
+        "rules": {
+          "enabled": "on",
+          "type": "type",
+          "commandName": "command name",
+          "minBits": "minimum bits",
+          "rewardId": "reward",
+          "platform": "platform",
+          "noBalance": "no balance",
+          "cooldownSeconds": "cooldown (s)",
+          "perUserCooldownSeconds": "per-user cooldown (s)",
+          "voice": {
+            "engine": "voice type",
+            "fishVoice": "character voice",
+            "pollyVoice": "premium voice",
+            "standardVoice": "standard voice"
+          },
+          "roles": {
+            "everyone": "permission: everyone",
+            "subscriber": "permission: subscribers",
+            "vip": "permission: VIPs",
+            "moderator": "permission: moderators",
+            "broadcaster": "permission: streamer"
+          }
+        }
+      }
+    },
+    "values": {
+      "piper": "standard voice",
+      "polly": "premium voice",
+      "fish": "character voice",
+      "standard": "normal",
+      "neural": "high quality",
+      "whole": "whole word",
+      "partial": "any fragment",
+      "silence": "stays silent and warns",
+      "all": "Twitch and Kick",
+      "twitch": "Twitch",
+      "kick": "Kick",
+      "command": "command",
+      "bits": "bits",
+      "channelPoints": "channel points",
+      "roles": "by role",
+      "top-left": "top left",
+      "top-center": "top center",
+      "top-right": "top right",
+      "bottom-left": "bottom left",
+      "bottom-center": "bottom center",
+      "bottom-right": "bottom right"
+    },
+    "ruleField": "Rule {{n}} · {{field}}"
   },
   "filters": {
     "wordsMode": "How blocked words are matched",

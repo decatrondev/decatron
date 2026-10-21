@@ -23,12 +23,26 @@ export default function SpeakChatHistory({ refreshKey }: { refreshKey?: number }
         return () => { alive = false; };
     }, [refreshKey]);
 
-    const value = (v: string | null) =>
-        v === null ? t('history.emptyValue')
-            : v === 'true' ? t('history.yes')
-            : v === 'false' ? t('history.no')
-            : v === '' ? t('history.emptyValue')
-            : v;
+    // Los campos se leen por su nombre (no por la ruta técnica): «activation.rules[5].roles.everyone» pasa a «Regla 6 · Permiso: todos»
+    const fieldLabel = (path: string): string => {
+        const rule = path.match(/^activation\.rules\[(\d+)\]\.(.+)$/);
+        const list = path.match(/^filters\.(blockedWords|blockedUsers)\[\d+\]$/);
+        const key = rule ? `activation.rules.${rule[2]}` : list ? `filters.${list[1]}` : path;
+        const label = i18n.exists(`speakchat:history.fields.${key}`) ? t(`history.fields.${key}`) : null;
+        if (!label) return path;
+        return rule ? t('history.ruleField', { n: Number(rule[1]) + 1, field: label }) : label;
+    };
+
+    // Valores con nombre propio (motores, modos, posiciones…); lo demás se muestra tal cual
+    const VALUE_FIELDS = /(^|\.)(engine|pollyEngine|blockedWordsMode|noBalance|position|platform|type)$/;
+    const value = (path: string, v: string | null) => {
+        if (v === null || v === '') return t('history.emptyValue');
+        if (v === 'true') return t('history.yes');
+        if (v === 'false') return t('history.no');
+        const field = path.replace(/\[\d+\]/g, '');
+        if (VALUE_FIELDS.test(field) && i18n.exists(`speakchat:history.values.${v}`)) return t(`history.values.${v}`);
+        return v;
+    };
 
     return (
         <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
@@ -57,8 +71,9 @@ export default function SpeakChatHistory({ refreshKey }: { refreshKey?: number }
                         {open[e.id] && (
                             <ul className="mt-2 space-y-1">
                                 {e.changes.map((c, i) => (
-                                    <li key={i} className="text-xs font-mono text-ds-text break-all">
-                                        {c.path}: <span className="text-ds-soft">{value(c.before)}</span> → {value(c.after)}
+                                    <li key={i} className="text-sm text-ds-text break-words" title={c.path}>
+                                        <span className="font-semibold">{fieldLabel(c.path)}:</span>{' '}
+                                        <span className="text-ds-soft">{value(c.path, c.before)}</span> → {value(c.path, c.after)}
                                     </li>
                                 ))}
                                 {e.changes.length >= MAX_CHANGES && (

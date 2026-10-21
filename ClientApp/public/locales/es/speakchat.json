@@ -13,7 +13,88 @@
     "yes": "sí",
     "no": "no",
     "emptyValue": "vacío",
-    "moreChanges": "Se muestran los primeros {{count}} cambios."
+    "moreChanges": "Se muestran los primeros {{count}} cambios.",
+    "fields": {
+      "global": {
+        "enabled": "Speak Chat activo"
+      },
+      "voice": {
+        "engine": "Tipo de voz del canal",
+        "pollyEngine": "Calidad de la voz premium",
+        "pollyVoice": "Voz premium",
+        "standardVoice": "Voz estándar",
+        "fishVoice": "Voz de personaje",
+        "voice": "Voz (formato anterior)",
+        "languageCode": "Idioma",
+        "volume": "Volumen"
+      },
+      "filters": {
+        "globalCooldownSeconds": "Enfriamiento global (s)",
+        "perUserCooldownSeconds": "Enfriamiento por usuario (s)",
+        "maxChars": "Máximo de caracteres",
+        "blockedWordsMode": "Modo de palabras bloqueadas",
+        "blockedWords": "Palabra bloqueada",
+        "blockedUsers": "Usuario bloqueado"
+      },
+      "overlay": {
+        "showBubble": "Burbuja visible",
+        "position": "Posición de la burbuja",
+        "fontSize": "Tamaño de letra",
+        "backgroundColor": "Color de fondo",
+        "textColor": "Color del texto",
+        "duration": "Duración visible (ms)"
+      },
+      "activation": {
+        "rules": {
+          "enabled": "encendida",
+          "type": "tipo",
+          "commandName": "nombre del comando",
+          "minBits": "bits mínimos",
+          "rewardId": "recompensa",
+          "platform": "plataforma",
+          "noBalance": "sin saldo",
+          "cooldownSeconds": "enfriamiento (s)",
+          "perUserCooldownSeconds": "enfriamiento por usuario (s)",
+          "voice": {
+            "engine": "tipo de voz",
+            "fishVoice": "voz de personaje",
+            "pollyVoice": "voz premium",
+            "standardVoice": "voz estándar"
+          },
+          "roles": {
+            "everyone": "permiso: todos",
+            "subscriber": "permiso: suscriptores",
+            "vip": "permiso: VIPs",
+            "moderator": "permiso: moderadores",
+            "broadcaster": "permiso: streamer"
+          }
+        }
+      }
+    },
+    "values": {
+      "piper": "voz estándar",
+      "polly": "voz premium",
+      "fish": "voz de personaje",
+      "standard": "normal",
+      "neural": "alta calidad",
+      "whole": "palabra completa",
+      "partial": "cualquier fragmento",
+      "silence": "no suena y avisa",
+      "all": "Twitch y Kick",
+      "twitch": "Twitch",
+      "kick": "Kick",
+      "command": "comando",
+      "bits": "bits",
+      "channelPoints": "puntos de canal",
+      "roles": "por rol",
+      "top-left": "arriba izquierda",
+      "top-center": "arriba centro",
+      "top-right": "arriba derecha",
+      "bottom-left": "abajo izquierda",
+      "bottom-center": "abajo centro",
+      "bottom-right": "abajo derecha"
+    },
+    "ruleField": "Regla {{n}} · {{field}}"
   },
   "filters": {
     "wordsMode": "Cómo se buscan las palabras bloqueadas",
