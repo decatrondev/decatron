@@ -16,7 +16,8 @@ interface Hit {
     inCatalog: boolean;
 }
 
-export default function FishMyVoices() {
+/** bare: sin caja propia, para usarlo dentro de una tarjeta de pestaña. */
+export default function FishMyVoices({ bare = false }: { bare?: boolean }) {
     const { voices, maxPrivate, privateCount } = useFishVoices();
     const mine = voices.filter(v => v.private);
     const [q, setQ] = useState('');
@@ -71,7 +72,7 @@ export default function FishMyVoices() {
     };
 
     return (
-        <div className="mt-4 rounded-xl border border-ds-border bg-ds-bg p-4 space-y-3">
+        <div className={bare ? 'space-y-3' : 'mt-4 rounded-xl border border-ds-border bg-ds-bg p-4 space-y-3'}>
             <div>
                 <h3 className="text-sm font-black text-ds-text">🎭 Tus voces propias ({privateCount}/{maxPrivate})</h3>
                 <p className="text-xs text-ds-soft mt-1">

@@ -1,8 +1,7 @@
-// Voces: la voz con la que lee el canal (motor, calidad, idioma, voz y volumen). Los comandos pueden traer la suya (pestaña Comandos).
+// Voz del canal: la voz con la que lee el canal (motor, calidad, idioma, voz y volumen). Los comandos pueden traer la suya (pestaña Comandos).
 import { useTranslation } from 'react-i18next';
 import { Lock } from 'lucide-react';
 import { Card, Field, Slider, inputClass } from '../../../../components/overlay-editor/ui';
-import FishVoiceRequestBox from '../../FishVoiceRequestBox';
 import { fishVoiceLabel, fishCostPer100 } from '../../fishVoices';
 import type { FishVoiceOption } from '../../fishVoices';
 import {
@@ -18,7 +17,7 @@ interface Props {
     fishCreditsPerByte: number;
 }
 
-export default function VoicesTab({ sc, voiceCatalog, fishVoices, fishCreditsPerByte }: Props) {
+export default function ChannelVoiceTab({ sc, voiceCatalog, fishVoices, fishCreditsPerByte }: Props) {
     const { t } = useTranslation('speakchat');
     const { config, setConfig, usage } = sc;
     const v = config.voice;
@@ -104,7 +103,7 @@ export default function VoicesTab({ sc, voiceCatalog, fishVoices, fishCreditsPer
                                     {fishVoices.map(f => <option key={f.id} value={f.id}>{fishVoiceLabel(f)}</option>)}
                                 </select>
                             </Field>
-                            <FishVoiceRequestBox />
+                            <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t('v2.voices.requestHint')}</p>
                         </div>
                     )}
 

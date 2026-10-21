@@ -118,7 +118,17 @@
       "voices": "Voices",
       "filters": "Filters",
       "overlay": "Overlay",
-      "tests": "Tests"
+      "tests": "Tests",
+      "guide": "Guide",
+      "general": "General",
+      "activation": "Activation",
+      "voiceCommands": "Voice commands",
+      "channelVoice": "Channel voice",
+      "library": "Voice library",
+      "requestVoice": "Request voice",
+      "myVoices": "My voices",
+      "credits": "Credits",
+      "history": "History"
     },
     "engine": {
       "piper": "Standard voice",
@@ -247,7 +257,8 @@
       "standardHint": "They are generated on the server, so they sound the same in any OBS.",
       "automatic": "Automatic (the first one for the language)",
       "noStandardVoices": "There are no standard voices for this language. Change the language or use a premium voice.",
-      "volume": "Volume"
+      "volume": "Volume",
+      "requestHint": "Can't find the voice you want? Request it in the Request voice tab."
     },
     "filters": {
       "cooldownsTitle": "Frequency and length",
@@ -306,6 +317,74 @@
       "noOverlay": "No overlay is connected right now: the test will not be heard.",
       "disabled": "Speak Chat is off: turn it on in Summary and save before testing.",
       "unsaved": "You have unsaved changes: the test uses the voice you see here, but the real chat uses what is saved."
+    },
+    "guide": {
+      "title": "How to get it working",
+      "description": "Five steps. Each one shows whether it is done and takes you to the tab where it is changed.",
+      "done": "Done",
+      "step1Title": "Turn Speak Chat on",
+      "step1Body": "While it is off nothing is read, even if you have rules and voices set up.",
+      "step2Title": "Choose the platforms",
+      "step2Body": "Decide whether it reads Twitch chat, Kick chat or both.",
+      "step3Title": "Choose the channel voice",
+      "step3Body": "It now reads with: {{engine}}. Voice commands (like !goku) can bring their own.",
+      "step4Title": "Put the link in OBS",
+      "step4Body": "Add it as a browser source. The status changes to «Connected in OBS» once OBS opens it.",
+      "step5Title": "Send a test",
+      "step5Body": "Check the voice and the bubble without waiting for someone to type in chat.",
+      "goGeneral": "Go to General",
+      "goVoice": "Go to Channel voice",
+      "goOverlay": "Go to Overlay",
+      "goTests": "Go to Tests"
+    },
+    "general": {
+      "title": "Speak Chat",
+      "description": "Turn chat reading on or off and choose which platforms it reads from."
+    },
+    "activation": {
+      "intro": "The ways to trigger Speak Chat: if any rule that is on matches, the message is read. Commands with their own voice (!goku, !thanos…) are in their own tab."
+    },
+    "voiceCommands": {
+      "title": "Voice commands",
+      "description": "Create commands like !goku or !thanos: each one speaks with its own voice and has its own permissions and cooldowns.",
+      "empty": "You have no voice commands yet. Create the first one with «Add voice command».",
+      "nameHint": "The viewer types the command and the text: «!goku hello» reads it with this command's voice."
+    },
+    "library": {
+      "title": "Voice library",
+      "description": "Every voice you can use. Listen to the character ones and set them on the channel with one click.",
+      "search": "Search voice",
+      "fishNote": "These voices spend voice credits when they read; listening to the sample costs nothing.",
+      "langNote": "Voices for the channel's language ({{lang}}). Change it in Channel voice.",
+      "noSample": "These voices have no sample: try them with the «Send test» button.",
+      "empty": "There are no voices to show with this filter.",
+      "mine": "mine",
+      "inUse": "In use",
+      "use": "Use on the channel"
+    },
+    "requestVoice": {
+      "title": "Request a character voice",
+      "description": "Search for the character, listen to the sample and request the voice you like. If approved, it appears in the list for everyone."
+    },
+    "myVoices": {
+      "title": "My voices",
+      "description": "Your own list of character voices. They only play on your channel and need no approval.",
+      "locked": "Own voices unlock with the Patrocinador rank or higher. Meanwhile you can request voices in the Request voice tab.",
+      "seeRanks": "See ranks"
+    },
+    "side": {
+      "preview": "Preview",
+      "status": "Status",
+      "speakChat": "Speak Chat",
+      "on": "On",
+      "off": "Off",
+      "obs": "OBS",
+      "connected_one": "Connected",
+      "connected_other": "Connected ({{count}})",
+      "notConnected": "Not connected",
+      "balance": "Voice balance",
+      "unlimited": "Unlimited",
+      "test": "Send test"
     }
   }
 }

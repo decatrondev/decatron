@@ -25,7 +25,8 @@ interface Hit {
     requested: boolean;
 }
 
-export default function FishVoiceRequestBox() {
+/** mode «request»: siempre el formulario de solicitud, también para Patrocinador (que tiene su propia pestaña de voces propias). */
+export default function FishVoiceRequestBox({ mode = 'auto' }: { mode?: 'auto' | 'request' }) {
     const { t } = useTranslation('speakchat');
     const { canAddPrivate, loading } = useFishVoices();
     const [text, setText] = useState('');
@@ -89,16 +90,19 @@ export default function FishVoiceRequestBox() {
     const sendText = () => submit({ description: text }, () => setText(''));
 
     // Rango Patrocinador o superior: busca y agrega sus propias voces en vez de solicitarlas
-    if (!loading && canAddPrivate) return <FishMyVoices />;
+    if (mode === 'auto' && !loading && canAddPrivate) return <FishMyVoices />;
 
     const statusLabel = (s: MyRequest['status']) => t(`request.status.${s}`);
 
+    const bare = mode === 'request';
     return (
-        <div className="mt-4 rounded-xl border border-ds-border bg-ds-bg p-4 space-y-3">
-            <div>
-                <h3 className="text-sm font-black text-ds-text">🎭 {t('request.title')}</h3>
-                <p className="text-xs text-ds-soft mt-1">{t('request.intro')}</p>
-            </div>
+        <div className={bare ? 'space-y-3' : 'mt-4 rounded-xl border border-ds-border bg-ds-bg p-4 space-y-3'}>
+            {!bare && (
+                <div>
+                    <h3 className="text-sm font-black text-ds-text">🎭 {t('request.title')}</h3>
+                    <p className="text-xs text-ds-soft mt-1">{t('request.intro')}</p>
+                </div>
+            )}
 
             <form className="flex flex-wrap items-end gap-2" onSubmit={e => { e.preventDefault(); search(); }}>
                 <input

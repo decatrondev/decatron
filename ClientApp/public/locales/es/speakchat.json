@@ -118,7 +118,17 @@
       "voices": "Voces",
       "filters": "Filtros",
       "overlay": "Overlay",
-      "tests": "Pruebas"
+      "tests": "Pruebas",
+      "guide": "Guía",
+      "general": "General",
+      "activation": "Activación",
+      "voiceCommands": "Comandos de voz",
+      "channelVoice": "Voz del canal",
+      "library": "Biblioteca de voces",
+      "requestVoice": "Solicitar voz",
+      "myVoices": "Mis voces",
+      "credits": "Créditos",
+      "history": "Historial"
     },
     "engine": {
       "piper": "Voz estándar",
@@ -247,7 +257,8 @@
       "standardHint": "Se generan en el servidor, así que suenan igual en cualquier OBS.",
       "automatic": "Automática (la primera del idioma)",
       "noStandardVoices": "No hay voces estándar para este idioma. Cambia de idioma o usa voz premium.",
-      "volume": "Volumen"
+      "volume": "Volumen",
+      "requestHint": "¿No encuentras la voz que quieres? Pídela en la pestaña Solicitar voz."
     },
     "filters": {
       "cooldownsTitle": "Frecuencia y largo",
@@ -306,6 +317,74 @@
       "noOverlay": "No hay ningún overlay conectado ahora: la prueba no se oirá.",
       "disabled": "Speak Chat está apagado: enciéndelo en Resumen y guarda antes de probar.",
       "unsaved": "Hay cambios sin guardar: la prueba usa la voz que ves aquí, pero el chat real usa lo guardado."
+    },
+    "guide": {
+      "title": "Cómo dejarlo funcionando",
+      "description": "Cinco pasos. Cada uno muestra si ya está hecho y te lleva a la pestaña donde se cambia.",
+      "done": "Hecho",
+      "step1Title": "Enciende Speak Chat",
+      "step1Body": "Mientras esté apagado no se lee nada, aunque tengas reglas y voces configuradas.",
+      "step2Title": "Elige las plataformas",
+      "step2Body": "Decide si lee el chat de Twitch, el de Kick o los dos.",
+      "step3Title": "Elige la voz del canal",
+      "step3Body": "Ahora lee con: {{engine}}. Los comandos de voz (como !goku) pueden traer la suya.",
+      "step4Title": "Pon el enlace en OBS",
+      "step4Body": "Agrégalo como fuente de navegador. El estado cambia a «Conectado en OBS» cuando OBS lo abre.",
+      "step5Title": "Envía una prueba",
+      "step5Body": "Comprueba la voz y la burbuja sin esperar a que alguien escriba en el chat.",
+      "goGeneral": "Ir a General",
+      "goVoice": "Ir a Voz del canal",
+      "goOverlay": "Ir a Overlay",
+      "goTests": "Ir a Pruebas"
+    },
+    "general": {
+      "title": "Speak Chat",
+      "description": "Enciende o apaga la lectura del chat y elige de qué plataformas lee."
+    },
+    "activation": {
+      "intro": "Las formas de activar Speak Chat: si cualquier regla encendida se cumple, el mensaje se lee. Los comandos con voz propia (!goku, !thanos…) están en su pestaña."
+    },
+    "voiceCommands": {
+      "title": "Comandos de voz",
+      "description": "Crea comandos como !goku o !thanos: cada uno habla con su propia voz y tiene sus permisos y enfriamientos.",
+      "empty": "Todavía no tienes comandos de voz. Crea el primero con «Agregar comando de voz».",
+      "nameHint": "El espectador escribe el comando y el texto: «!goku hola» lo lee con la voz de este comando."
+    },
+    "library": {
+      "title": "Biblioteca de voces",
+      "description": "Todas las voces que puedes usar. Escucha las de personaje y déjalas en el canal con un clic.",
+      "search": "Buscar voz",
+      "fishNote": "Estas voces gastan créditos de voz al leer; escuchar la muestra no gasta nada.",
+      "langNote": "Voces del idioma del canal ({{lang}}). Cámbialo en Voz del canal.",
+      "noSample": "Estas voces no tienen muestra: pruébalas con el botón «Enviar prueba».",
+      "empty": "No hay voces para mostrar con este filtro.",
+      "mine": "mía",
+      "inUse": "En uso",
+      "use": "Usar en el canal"
+    },
+    "requestVoice": {
+      "title": "Solicitar una voz de personaje",
+      "description": "Busca el personaje, escucha la muestra y pide la voz que te guste. Si la aprobamos, aparece en la lista para todos."
+    },
+    "myVoices": {
+      "title": "Mis voces",
+      "description": "Tu lista propia de voces de personaje. Solo suenan en tu canal y no necesitan aprobación.",
+      "locked": "Las voces propias se desbloquean con el rango Patrocinador o superior. Mientras tanto puedes pedir voces en la pestaña Solicitar voz.",
+      "seeRanks": "Ver rangos"
+    },
+    "side": {
+      "preview": "Vista previa",
+      "status": "Estado",
+      "speakChat": "Speak Chat",
+      "on": "Activo",
+      "off": "Apagado",
+      "obs": "OBS",
+      "connected_one": "Conectado",
+      "connected_other": "Conectado ({{count}})",
+      "notConnected": "Sin conexión",
+      "balance": "Saldo de voz",
+      "unlimited": "Ilimitado",
+      "test": "Enviar prueba"
     }
   }
 }
