@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Volume2 } from 'lucide-react';
+import api from '../../../../services/api';
 import { Card, inputClass } from '../../../../components/overlay-editor/ui';
 import { standardVoicesForLanguage, premiumVoicesForLanguage } from '../../../../components/tts/useVoiceCatalog';
 import type { VoiceCatalog } from '../../../../components/tts/useVoiceCatalog';
@@ -16,6 +17,7 @@ export default function LibraryTab({ sc, voiceCatalog, fishVoices }: { sc: Speak
     const [kind, setKind] = useState<Kind>('fish');
     const [q, setQ] = useState('');
     const [playError, setPlayError] = useState(false);
+    const [loadingId, setLoadingId] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -31,9 +33,19 @@ export default function LibraryTab({ sc, voiceCatalog, fishVoices }: { sc: Speak
         a.play().catch(() => setPlayError(true));
     };
 
+    // Las voces estándar y premium no traen muestra: el servidor la genera la primera vez y la guarda
+    const playGenerated = async (id: string, engine: 'piper' | 'polly') => {
+        setLoadingId(id); setPlayError(false);
+        try {
+            const res = await api.get('/tts/voice-sample', { params: { engine, voice: id, quality: engine === 'polly' ? config.voice.pollyEngine : undefined } });
+            if (res.data?.url) play(res.data.url); else setPlayError(true);
+        } catch { setPlayError(true); }
+        finally { setLoadingId(null); }
+    };
+
     const use = (patch: Partial<typeof config.voice>) => setConfig(c => ({ ...c, voice: { ...c.voice, ...patch } }));
 
-    const rows: { id: string; name: string; meta: string; sample?: string | null; mine?: boolean; active: boolean; locked: boolean; onUse: () => void }[] =
+    const rows: { id: string; name: string; meta: string; sample?: string | null; generate?: 'piper' | 'polly'; mine?: boolean; active: boolean; locked: boolean; onUse: () => void }[] =
         kind === 'fish'
             ? fishVoices.filter(v => match(v.name)).map(v => ({
                 id: v.id, name: v.name, meta: [v.languages?.split(',').join(', '), v.author].filter(Boolean).join(' · '), sample: v.sampleUrl, mine: v.private,
@@ -43,11 +55,13 @@ export default function LibraryTab({ sc, voiceCatalog, fishVoices }: { sc: Speak
             : kind === 'polly'
                 ? premiumVoicesForLanguage(voiceCatalog, lang, config.voice.pollyEngine).filter(v => match(v.name)).map(v => ({
                     id: v.id, name: v.name, meta: `${v.languageName}${v.gender ? ` · ${v.gender === 'Female' ? 'F' : 'M'}` : ''}`,
+                    generate: 'polly' as const,
                     active: config.voice.engine === 'polly' && config.voice.pollyVoice === v.id, locked: !paid,
                     onUse: () => use({ engine: 'polly', pollyVoice: v.id }),
                 }))
                 : standardVoicesForLanguage(voiceCatalog, lang).filter(v => match(v.name)).map(v => ({
                     id: v.id, name: v.name, meta: `${v.languageName} (${v.quality})`,
+                    generate: 'piper' as const,
                     active: config.voice.engine === 'piper' && config.voice.standardVoice === v.id, locked: false,
                     onUse: () => use({ engine: 'piper', standardVoice: v.id }),
                 }));
@@ -70,8 +84,8 @@ export default function LibraryTab({ sc, voiceCatalog, fishVoices }: { sc: Speak
 
             {kind !== 'fish' && <p className="text-xs 3xl:text-sm text-ds-soft mb-3">{t('v2.library.langNote', { lang })}</p>}
             {kind === 'fish' && <p className="text-xs 3xl:text-sm text-ds-soft mb-3">{t('v2.library.fishNote')}</p>}
-            {kind !== 'fish' && <p className="text-xs 3xl:text-sm text-ds-soft mb-3">{t('v2.library.noSample')}</p>}
-            {playError && <p className="text-xs 3xl:text-sm text-ds-danger mb-3">{t('request.playError')}</p>}
+            {kind !== 'fish' && <p className="text-xs 3xl:text-sm text-ds-soft mb-3">{t('v2.library.generatedNote')}</p>}
+            {playError && <p className="text-xs 3xl:text-sm text-ds-danger mb-3">{t('v2.library.sampleError')}</p>}
 
             {rows.length === 0 ? (
                 <p className="text-sm 3xl:text-base text-ds-soft">{t('v2.library.empty')}</p>
@@ -89,6 +103,11 @@ export default function LibraryTab({ sc, voiceCatalog, fishVoices }: { sc: Speak
                                 {r.sample && (
                                     <button type="button" className="ds-btn ds-btn--secondary ds-btn--sm" onClick={() => play(r.sample!)}>
                                         <Volume2 className="w-4 h-4" /> {t('request.sample')}
+                                    </button>
+                                )}
+                                {r.generate && (
+                                    <button type="button" className="ds-btn ds-btn--secondary ds-btn--sm" disabled={loadingId === r.id} onClick={() => playGenerated(r.id, r.generate!)}>
+                                        <Volume2 className="w-4 h-4" /> {loadingId === r.id ? t('v2.library.loadingSample') : t('request.sample')}
                                     </button>
                                 )}
                                 {r.active ? (

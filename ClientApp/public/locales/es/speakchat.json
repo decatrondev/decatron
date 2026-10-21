@@ -456,11 +456,13 @@
       "search": "Buscar voz",
       "fishNote": "Estas voces gastan créditos de voz al leer; escuchar la muestra no gasta nada.",
       "langNote": "Voces del idioma del canal ({{lang}}). Cámbialo en Voz del canal.",
-      "noSample": "Estas voces no tienen muestra: pruébalas con el botón «Enviar prueba».",
       "empty": "No hay voces para mostrar con este filtro.",
       "mine": "mía",
       "inUse": "En uso",
-      "use": "Usar en el canal"
+      "use": "Usar en el canal",
+      "generatedNote": "La primera vez que escuchas una de estas voces tarda un par de segundos en prepararse; después suena al instante. Escuchar no gasta créditos.",
+      "sampleError": "No se pudo reproducir la muestra. Inténtalo de nuevo.",
+      "loadingSample": "Preparando…"
     },
     "requestVoice": {
       "title": "Solicitar una voz de personaje",

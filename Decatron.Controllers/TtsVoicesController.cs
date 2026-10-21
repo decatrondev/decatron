@@ -25,11 +25,60 @@ namespace Decatron.Controllers
     {
         private readonly PiperTtsService _piper;
         private readonly PollyVoiceCatalogService _pollyCatalog;
+        private readonly Decatron.Core.Interfaces.ITtsService _tts;
 
-        public TtsVoicesController(PiperTtsService piper, PollyVoiceCatalogService pollyCatalog)
+        public TtsVoicesController(PiperTtsService piper, PollyVoiceCatalogService pollyCatalog, Decatron.Core.Interfaces.ITtsService tts)
         {
             _piper = piper;
             _pollyCatalog = pollyCatalog;
+            _tts = tts;
+        }
+
+        // Una frase corta por idioma: la misma para todas las voces, para poder compararlas
+        private static readonly Dictionary<string, string> _sampleText = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["es"] = "Hola, así suena esta voz. Esta es una muestra para que me escuches.",
+            ["en"] = "Hello, this is how this voice sounds. This is a sample so you can hear me.",
+            ["pt"] = "Olá, é assim que esta voz soa. Esta é uma amostra para você me ouvir.",
+            ["fr"] = "Bonjour, voici comment sonne cette voix. Ceci est un échantillon pour m'écouter.",
+            ["de"] = "Hallo, so klingt diese Stimme. Das ist eine Hörprobe, damit du mich hören kannst.",
+            ["it"] = "Ciao, ecco come suona questa voce. Questo è un campione per ascoltarmi.",
+            ["ja"] = "こんにちは、この声はこのように聞こえます。これはサンプルです。",
+            ["ko"] = "안녕하세요, 이 목소리는 이렇게 들립니다. 들어보시라고 만든 샘플입니다.",
+        };
+
+        private static string SampleFor(string language) =>
+            _sampleText.TryGetValue(language.Split('-', '_')[0], out var t) ? t : _sampleText["en"];
+
+        /// <summary>
+        /// Muestra de una voz estándar (Piper) o premium (Polly) para escucharla antes de elegirla.
+        /// La sintetiza una sola vez y queda en el caché del servidor: las siguientes veces solo se
+        /// devuelve el enlace. No cobra créditos a nadie; el costo de Polly por una frase corta es mínimo.
+        /// Solo se sintetizan voces que están en el catálogo.
+        /// </summary>
+        [HttpGet("voice-sample")]
+        public async Task<IActionResult> GetVoiceSample([FromQuery] string engine, [FromQuery] string voice, [FromQuery] string? quality = null)
+        {
+            if (string.IsNullOrWhiteSpace(voice)) return BadRequest(new { success = false, message = "Falta la voz" });
+
+            if (string.Equals(engine, "piper", StringComparison.OrdinalIgnoreCase))
+            {
+                var piperVoice = _piper.ListVoices().FirstOrDefault(v => string.Equals(v.Id, voice, StringComparison.Ordinal));
+                if (piperVoice == null) return NotFound(new { success = false, message = "Voz desconocida" });
+                var r = await _piper.SynthesizeAsync(SampleFor(piperVoice.Language), piperVoice.Id);
+                return r.Success ? Ok(new { success = true, url = r.Url }) : StatusCode(503, new { success = false, message = "No se pudo generar la muestra" });
+            }
+
+            if (string.Equals(engine, "polly", StringComparison.OrdinalIgnoreCase))
+            {
+                var pollyVoice = (await _pollyCatalog.GetVoicesAsync()).FirstOrDefault(v => string.Equals(v.Id, voice, StringComparison.OrdinalIgnoreCase));
+                if (pollyVoice == null) return NotFound(new { success = false, message = "Voz desconocida" });
+                var polyEngine = quality == "neural" && pollyVoice.Engines.Contains("neural", StringComparer.OrdinalIgnoreCase) ? "neural" : "standard";
+                var r = await _tts.GenerateWithInfoAsync(SampleFor(pollyVoice.LanguageCode), pollyVoice.Id, polyEngine, pollyVoice.LanguageCode, null);
+                return r.Success ? Ok(new { success = true, url = r.Url }) : StatusCode(503, new { success = false, message = "No se pudo generar la muestra" });
+            }
+
+            return BadRequest(new { success = false, message = "Motor no válido" });
         }
 
         /// <summary>Nombre legible del hablante, para no enseñar "hfc_male" en el panel.</summary>

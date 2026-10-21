@@ -1499,6 +1499,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 |---|---|---|
 | `GET` | `/api/tts/premium-voices` | JWT |
 | `GET` | `/api/tts/standard-voices` | JWT |
+| `GET` | `/api/tts/voice-sample` | JWT |
 | `GET` | `/api/tts/voices` | JWT |
 
 ### Twitch OAuth Proxy

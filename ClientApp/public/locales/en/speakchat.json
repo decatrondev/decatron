@@ -456,11 +456,13 @@
       "search": "Search voice",
       "fishNote": "These voices spend voice credits when they read; listening to the sample costs nothing.",
       "langNote": "Voices for the channel's language ({{lang}}). Change it in Channel voice.",
-      "noSample": "These voices have no sample: try them with the «Send test» button.",
       "empty": "There are no voices to show with this filter.",
       "mine": "mine",
       "inUse": "In use",
-      "use": "Use on the channel"
+      "use": "Use on the channel",
+      "generatedNote": "The first time you listen to one of these voices it takes a couple of seconds to prepare; after that it plays instantly. Listening costs no credits.",
+      "sampleError": "The sample could not be played. Try again.",
+      "loadingSample": "Preparing…"
     },
     "requestVoice": {
       "title": "Request a character voice",
