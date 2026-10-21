@@ -158,7 +158,6 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 **Rutas de la plataforma.** La plataforma multi-tenant (`/api/platform/` para el comprador, `/api/admin/platform/` para el dueño de la plataforma) se documenta en [PLATFORM.md](PLATFORM.md) con sus reglas de acceso. Las rutas del comprador aparecen abajo simplemente como `JWT`, pero además exigen una sesión de comprador (`scope=buyer`) que pertenezca al dueño del tenant del Host, y las que cambian credenciales piden el token reciente de la verificación en dos pasos; las rutas de administración quedan fuera de esta lista.
 
 <!-- BEGIN GENERATED ENDPOINTS -->
-
 ### Analytics
 
 | Método | Ruta | Acceso |
@@ -1120,11 +1119,13 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 |---|---|---|
 | `GET` | `/api/speakchat/config` | JWT + `overlays` |
 | `POST` | `/api/speakchat/config` | JWT + `overlays` |
-| `GET` | `/api/speakchat/history` | JWT + `overlays` |
 | `GET` | `/api/speakchat/config/overlay/{channelName}` | JWT |
-| `GET` | `/api/speakchat/resolve/{alias}` | Public |
-| `GET` | `/api/speakchat/status` | JWT + `overlays` |
+| `POST` | `/api/speakchat/estimate` | JWT + `overlays` |
+| `GET` | `/api/speakchat/fallbacks` | JWT + `overlays` |
+| `GET` | `/api/speakchat/history` | JWT + `overlays` |
 | `POST` | `/api/speakchat/overlay/reload` | JWT + `overlays` |
+| `GET` | `/api/speakchat/resolve/{alias}` | Público |
+| `GET` | `/api/speakchat/status` | JWT + `overlays` |
 | `POST` | `/api/speakchat/test` | JWT + `overlays` |
 | `GET` | `/api/speakchat/usage` | JWT + `overlays` |
 
@@ -1577,7 +1578,6 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `GET` | `/api/wheel/wheels/{id}/spins` | JWT + `overlays` |
 | `GET` | `/api/wheel/wheels/{id}/spins/export` | JWT + `overlays` |
 | `POST` | `/api/wheel/wheels/{id}/test-spin` | JWT + `overlays` |
-
 <!-- END GENERATED ENDPOINTS -->
 
 ---

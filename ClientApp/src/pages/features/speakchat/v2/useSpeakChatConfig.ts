@@ -16,6 +16,8 @@ function normalize(saved: any): SpeakChatConfigData {
     if (!saved.voice?.pollyVoice && merged.voice.voice) merged.voice.pollyVoice = merged.voice.voice;
     // Una guardada antes de la opción de palabras bloqueadas conserva la coincidencia parcial
     if (!saved.filters?.blockedWordsMode) merged.filters.blockedWordsMode = 'partial';
+    // Y una guardada antes de la limpieza del texto sigue leyendo el texto tal cual, hasta que el canal la active
+    if (!saved.filters?.cleanup) merged.filters.cleanup = { links: 'keep', emotes: false, repeats: false, emojis: false };
     return merged;
 }
 

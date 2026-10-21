@@ -296,6 +296,10 @@ namespace Decatron.Controllers
                 }
 
                 var text = body?.Message ?? "Mensaje de prueba del Speak Chat";
+                // La prueba pasa por la misma limpieza que un mensaje real
+                text = await _speakChatService.CleanForSpeechAsync(channelName, config.ConfigJson, text);
+                if (string.IsNullOrWhiteSpace(text))
+                    return BadRequest(new { success = false, message = "Tras la limpieza no queda nada que leer. Cambia el texto o la limpieza en Filtros." });
                 var languageCode = body?.LanguageCode ?? "es-US";
 
                 // El panel manda en `engine` el proveedor elegido. Cualquier cosa que no
@@ -352,6 +356,100 @@ namespace Decatron.Controllers
             {
                 _logger.LogError(ex, "[SpeakChat] Error al enviar test");
                 audioTurn?.Release();
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        // ============================
+        // GET /api/speakchat/fallbacks
+        // Lecturas de los últimos 7 días que cayeron a la voz estándar porque la elegida no pudo generarse.
+        // Sale del libro mayor de créditos: no hay tabla nueva.
+        // ============================
+        [HttpGet("fallbacks")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> GetFallbacks()
+        {
+            try
+            {
+                var ownerId = await OwnerAsync();
+                var since = DateTimeOffset.UtcNow.AddDays(-7);
+                const string prefix = "Respaldo de voz premium:";
+                var rows = await _dbContext.TtsCreditLedger.AsNoTracking()
+                    .Where(e => e.UserId == ownerId && e.Feature == "speak_chat" && e.CreatedAt >= since
+                                && e.Note != null && e.Note.StartsWith(prefix))
+                    .Select(e => new { e.CreatedAt, e.Note })
+                    .ToListAsync();
+
+                static string Code(string? note)
+                {
+                    var reason = (note ?? "").Substring(prefix.Length).Trim();
+                    if (reason.Contains("sin créditos")) return "noCredits";
+                    if (reason.Contains("no está configurado")) return "notConfigured";
+                    if (reason.Contains("no devolvió audio")) return "noAudio";
+                    if (reason.Contains("error del motor")) return "engineError";
+                    return "other";
+                }
+
+                var top = rows.GroupBy(r => Code(r.Note)).OrderByDescending(g => g.Count()).FirstOrDefault();
+                return Ok(new
+                {
+                    success = true,
+                    days = 7,
+                    count = rows.Count,
+                    lastAt = rows.Count == 0 ? (DateTimeOffset?)null : rows.Max(r => r.CreatedAt),
+                    topReason = top?.Key
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SpeakChat] Error al consultar los respaldos de voz");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        // ============================
+        // POST /api/speakchat/estimate
+        // Lo que costaría leer un texto con la limpieza guardada del canal, sin generar audio ni cobrar.
+        // ============================
+        [HttpPost("estimate")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> Estimate([FromBody] SpeakChatEstimateRequest body)
+        {
+            try
+            {
+                var channelOwnerId = await OwnerAsync();
+                var channelName = await GetChannelUsernameAsync(channelOwnerId);
+                if (string.IsNullOrEmpty(channelName))
+                    return BadRequest(new { success = false, message = "No se pudo identificar el canal" });
+
+                var text = (body?.Message ?? "").Trim();
+                if (text.Length > 600) text = text[..600];
+                var config = await _speakChatService.GetConfigAsync(channelOwnerId);
+                var cleaned = config == null ? text : await _speakChatService.CleanForSpeechAsync(channelName, config.ConfigJson, text);
+
+                // Mismas unidades que el cobro real: Fish por bytes de texto, Polly y la voz estándar por caracteres
+                var provider = body?.Engine is "polly" or "fish" ? body.Engine : "piper";
+                var units = provider == "fish" ? Decatron.Services.Tts.FishTtsClient.BillableBytes(cleaned) : cleaned.Length;
+                long? credits = null;
+                if (provider != "piper")
+                {
+                    var rateEngine = provider == "fish" ? "fish" : (body?.PollyEngine == "neural" ? "neural" : "standard");
+                    credits = await _creditService.CalculateCostAsync(units, rateEngine);
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    cleanedText = cleaned,
+                    units,
+                    unit = provider == "fish" ? "bytes" : "chars",
+                    engine = provider,
+                    credits
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SpeakChat] Error al estimar el costo");
                 return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
         }
@@ -557,6 +655,7 @@ namespace Decatron.Controllers
     }
 
     public record SpeakChatSaveRequest(JsonElement Config);
+    public record SpeakChatEstimateRequest(string? Message, string? Engine, string? PollyEngine);
     public record SpeakChatTestRequest(string? Message, string? Voice, string? Engine, string? LanguageCode, string? PollyEngine);
 
 }

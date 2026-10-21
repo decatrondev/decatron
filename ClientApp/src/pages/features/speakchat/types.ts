@@ -62,6 +62,9 @@ export interface VoiceCommandLimits {
     used: number;
 }
 
+/** Limpieza del texto antes de sintetizarlo. */
+export interface TextCleanup { links: 'keep' | 'remove' | 'replace'; emotes: boolean; repeats: boolean; emojis: boolean }
+
 export interface SpeakChatConfigData {
     global: { enabled: boolean };
     activation: { rules: ActivationRule[] };
@@ -70,7 +73,7 @@ export interface SpeakChatConfigData {
     // `engine` es el proveedor (estándar o premium); `pollyEngine`, la calidad dentro de
     // Polly, que es lo que decide el multiplicador de créditos.
     voice: { engine: 'piper' | 'polly' | 'fish'; voice: string; pollyVoice: string; standardVoice: string; fishVoice?: string; pollyEngine: 'standard' | 'neural'; languageCode: string; volume: number };
-    filters: { globalCooldownSeconds: number; perUserCooldownSeconds: number; maxChars: number; blockedWords: string[]; blockedWordsMode: 'whole' | 'partial'; blockedUsers: string[] };
+    filters: { globalCooldownSeconds: number; perUserCooldownSeconds: number; maxChars: number; blockedWords: string[]; blockedWordsMode: 'whole' | 'partial'; blockedUsers: string[]; cleanup: TextCleanup };
     overlay: { showBubble: boolean; position: string; fontSize: number; backgroundColor: string; textColor: string; duration: number };
 }
 

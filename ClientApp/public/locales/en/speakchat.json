@@ -34,7 +34,13 @@
         "maxChars": "Maximum characters",
         "blockedWordsMode": "Blocked words mode",
         "blockedWords": "Blocked word",
-        "blockedUsers": "Blocked user"
+        "blockedUsers": "Blocked user",
+        "cleanup": {
+          "links": "Cleanup: links",
+          "emotes": "Cleanup: remove emotes",
+          "repeats": "Cleanup: repeated letters",
+          "emojis": "Cleanup: remove emojis"
+        }
       },
       "overlay": {
         "showBubble": "Bubble visible",
@@ -92,7 +98,10 @@
       "top-right": "top right",
       "bottom-left": "bottom left",
       "bottom-center": "bottom center",
-      "bottom-right": "bottom right"
+      "bottom-right": "bottom right",
+      "remove": "remove them",
+      "replace": "replace with “link”",
+      "keep": "leave them"
     },
     "ruleField": "Rule {{n}} · {{field}}"
   },
@@ -343,7 +352,20 @@
       "words": "Blocked words (one per line)",
       "wordsPlaceholder": "spam\noffensive",
       "users": "Blocked users (one per line)",
-      "usersPlaceholder": "user1\nuser2"
+      "usersPlaceholder": "user1\nuser2",
+      "cleanupTitle": "Text cleanup",
+      "cleanupDescription": "What is removed before reading. Whatever is removed is neither read nor charged.",
+      "links": "Links",
+      "linksHint": "Stops an address from being read letter by letter.",
+      "linksRemove": "Remove them",
+      "linksReplace": "Replace with “link”",
+      "linksKeep": "Leave them as they are",
+      "emotes": "Remove emotes",
+      "emotesHint": "Skips Twitch and Kick emotes, plus 7TV, BTTV, FFZ and the channel’s own.",
+      "repeats": "Shorten repeated letters",
+      "repeatsHint": "“heyyyyyy” is read “heyy”; “!!!!!” is read “!”.",
+      "emojis": "Remove emojis and symbols",
+      "emojisHint": "Stops each emoji’s name from being read."
     },
     "overlay": {
       "bubbleTitle": "Message bubble",
@@ -385,7 +407,18 @@
       "failed": "The test could not be sent.",
       "noOverlay": "No overlay is connected right now: the test will not be heard.",
       "disabled": "Speak Chat is off: turn it on in Summary and save before testing.",
-      "unsaved": "You have unsaved changes: the test uses the voice you see here, but the real chat uses what is saved."
+      "unsaved": "You have unsaved changes: the test uses the voice you see here, but the real chat uses what is saved.",
+      "willRead": "It will read:",
+      "nothingToRead": "With the cleanup in Filters there would be nothing left to read.",
+      "costStandard_one": "Standard voice: {{count}} character from your quota, no credits used.",
+      "costStandard_other": "Standard voice: {{count}} characters from your quota, no credits used.",
+      "costPaid_one": "It would cost about {{credits}} credits ({{count}} {{unit}}).",
+      "costPaid_other": "It would cost about {{credits}} credits ({{count}} {{unit}}).",
+      "unit_chars_one": "character",
+      "unit_chars_other": "characters",
+      "unit_bytes_one": "byte of text",
+      "unit_bytes_other": "bytes of text",
+      "estimateSaved": "The estimated cost uses the cleanup already saved."
     },
     "guide": {
       "title": "How to get it working",
@@ -452,6 +485,16 @@
       "balance": "Voice balance",
       "unlimited": "Unlimited",
       "test": "Send test"
+    },
+    "fallbacks": {
+      "summary_one": "{{count}} reading in the last {{days}} days played with the standard voice because the chosen voice could not be generated.",
+      "summary_other": "{{count}} readings in the last {{days}} days played with the standard voice because the chosen voice could not be generated.",
+      "reason_noCredits": "Most common: you ran out of voice credits. Buy credits or wait for your quota on the 1st.",
+      "reason_notConfigured": "Most common: the character voice is not available right now.",
+      "reason_noAudio": "Most common: the voice engine returned no audio.",
+      "reason_engineError": "Most common: the voice engine failed. If it keeps happening, let the team know.",
+      "reason_other": "There were several reasons.",
+      "last": "Last time: {{date}}."
     }
   }
 }

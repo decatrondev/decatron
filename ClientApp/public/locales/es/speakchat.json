@@ -34,7 +34,13 @@
         "maxChars": "Máximo de caracteres",
         "blockedWordsMode": "Modo de palabras bloqueadas",
         "blockedWords": "Palabra bloqueada",
-        "blockedUsers": "Usuario bloqueado"
+        "blockedUsers": "Usuario bloqueado",
+        "cleanup": {
+          "links": "Limpieza: enlaces",
+          "emotes": "Limpieza: quitar emotes",
+          "repeats": "Limpieza: letras repetidas",
+          "emojis": "Limpieza: quitar emojis"
+        }
       },
       "overlay": {
         "showBubble": "Burbuja visible",
@@ -92,7 +98,10 @@
       "top-right": "arriba derecha",
       "bottom-left": "abajo izquierda",
       "bottom-center": "abajo centro",
-      "bottom-right": "abajo derecha"
+      "bottom-right": "abajo derecha",
+      "remove": "quitarlos",
+      "replace": "reemplazar por «enlace»",
+      "keep": "dejarlos"
     },
     "ruleField": "Regla {{n}} · {{field}}"
   },
@@ -343,7 +352,20 @@
       "words": "Palabras bloqueadas (una por línea)",
       "wordsPlaceholder": "spam\nofensivo",
       "users": "Usuarios bloqueados (uno por línea)",
-      "usersPlaceholder": "usuario1\nusuario2"
+      "usersPlaceholder": "usuario1\nusuario2",
+      "cleanupTitle": "Limpieza del texto",
+      "cleanupDescription": "Lo que se quita antes de leer. Lo que se quita no se lee ni se cobra.",
+      "links": "Enlaces",
+      "linksHint": "Evita que se lea una dirección letra por letra.",
+      "linksRemove": "Quitarlos",
+      "linksReplace": "Reemplazar por «enlace»",
+      "linksKeep": "Dejarlos como están",
+      "emotes": "Quitar emotes",
+      "emotesHint": "Omite los emotes de Twitch y Kick, y los de 7TV, BTTV, FFZ y los propios del canal.",
+      "repeats": "Acortar letras repetidas",
+      "repeatsHint": "«holaaaaaa» se lee «holaa»; «!!!!!» se lee «!».",
+      "emojis": "Quitar emojis y símbolos",
+      "emojisHint": "Evita que se lea el nombre de cada emoji."
     },
     "overlay": {
       "bubbleTitle": "Burbuja del mensaje",
@@ -385,7 +407,18 @@
       "failed": "No se pudo enviar la prueba.",
       "noOverlay": "No hay ningún overlay conectado ahora: la prueba no se oirá.",
       "disabled": "Speak Chat está apagado: enciéndelo en Resumen y guarda antes de probar.",
-      "unsaved": "Hay cambios sin guardar: la prueba usa la voz que ves aquí, pero el chat real usa lo guardado."
+      "unsaved": "Hay cambios sin guardar: la prueba usa la voz que ves aquí, pero el chat real usa lo guardado.",
+      "willRead": "Se leerá:",
+      "nothingToRead": "Con la limpieza de Filtros no quedaría nada que leer.",
+      "costStandard_one": "Voz estándar: {{count}} carácter de tu cuota, sin gastar créditos.",
+      "costStandard_other": "Voz estándar: {{count}} caracteres de tu cuota, sin gastar créditos.",
+      "costPaid_one": "Costaría unos {{credits}} créditos ({{count}} {{unit}}).",
+      "costPaid_other": "Costaría unos {{credits}} créditos ({{count}} {{unit}}).",
+      "unit_chars_one": "carácter",
+      "unit_chars_other": "caracteres",
+      "unit_bytes_one": "byte de texto",
+      "unit_bytes_other": "bytes de texto",
+      "estimateSaved": "El costo estimado usa la limpieza ya guardada."
     },
     "guide": {
       "title": "Cómo dejarlo funcionando",
@@ -452,6 +485,16 @@
       "balance": "Saldo de voz",
       "unlimited": "Ilimitado",
       "test": "Enviar prueba"
+    },
+    "fallbacks": {
+      "summary_one": "{{count}} lectura de los últimos {{days}} días sonó con la voz estándar porque la voz elegida no pudo generarse.",
+      "summary_other": "{{count}} lecturas de los últimos {{days}} días sonaron con la voz estándar porque la voz elegida no pudo generarse.",
+      "reason_noCredits": "Lo más común: se quedó sin créditos de voz. Compra créditos o espera tu cuota del día 1.",
+      "reason_notConfigured": "Lo más común: la voz de personaje no está disponible en este momento.",
+      "reason_noAudio": "Lo más común: el motor de voz no devolvió audio.",
+      "reason_engineError": "Lo más común: el motor de voz falló. Si se repite, avisa al equipo.",
+      "reason_other": "Hubo varios motivos.",
+      "last": "Última vez: {{date}}."
     }
   }
 }

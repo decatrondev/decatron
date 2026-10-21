@@ -412,6 +412,10 @@
           {
             "t": "p",
             "x": "The Credits tab shows your voice balance: the monthly quota (it resets on the 1st), purchased credits (they do not expire) and the standard voice characters you have left, with a warning when it runs low and another when it runs out; the balance is also in the fixed right-hand column. Buy credits from the credits page."
+          },
+          {
+            "t": "p",
+            "x": "If in the last 7 days any reading fell back to the standard voice because the chosen voice could not be generated (no credits, voice unavailable or engine failure), the Credits tab says so, with the count and the most frequent reason."
           }
         ]
       },
@@ -476,6 +480,30 @@
         ]
       },
       {
+        "id": "limpieza",
+        "title": "Text cleanup",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Before reading a message, Speak Chat can remove what should not be spoken. It is set in the Filters tab and applied before the maximum length and before charging: whatever is removed is neither read nor paid for."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Links: remove them, replace them with “link” or leave them. Addresses with `http(s)://`, with `www.` and bare domains with a known ending (`.com`, `.tv`, `.gg`…) count; “ok.thanks” is not a link.",
+              "Emotes: Twitch and Kick emotes, 7TV, BTTV and FFZ emotes and the channel’s own are skipped. Third-party emotes are looked up with a wait limit: if the catalog is slow, that message is read without skipping them.",
+              "Repeated letters: “heyyyyyy” is read “heyy” and “!!!!!” is read “!”.",
+              "Emojis and symbols: removed so each one’s name is not read."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Channels that already had Speak Chat saved stay as they were until they turn cleanup on; new channels start with links and emotes removed and repeated letters shortened (emojis are left). If nothing is left after cleanup, the message is dropped. Kick messages are never read as “[emote:123:NAME]” again."
+          }
+        ]
+      },
+      {
         "id": "bloqueos",
         "title": "Block lists",
         "blocks": [
@@ -504,7 +532,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "The Tests tab sends a test message to the overlay (by default “Hello, this is a Speak Chat test message”). It requires Speak Chat to be on and uses your balance like a real message."
+            "x": "The Tests tab sends a test message to the overlay (by default “Hello, this is a Speak Chat test message”). It goes through the same cleanup as a real message. While you type it shows what would be read and what it would cost (credits with premium or character voices; with the standard voice, the characters from your quota), without generating audio or spending anything. It requires Speak Chat to be on, and the test itself does use your balance like a real message."
           }
         ]
       }

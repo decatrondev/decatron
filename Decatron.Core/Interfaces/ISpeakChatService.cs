@@ -47,5 +47,11 @@ namespace Decatron.Core.Interfaces
             string rewardId,
             string? userInput,
             bool isBroadcaster);
+
+        /// <summary>
+        /// El texto tal como lo leería Speak Chat tras la limpieza que el canal eligió en Filtros
+        /// (enlaces, emotes, letras repetidas, emojis). Sirve a la prueba y al estimado de costo.
+        /// </summary>
+        Task<string> CleanForSpeechAsync(string channelName, string configJson, string text);
     }
 }

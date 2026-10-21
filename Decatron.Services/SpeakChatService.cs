@@ -22,6 +22,8 @@ namespace Decatron.Services
         private readonly ITtsCreditService _creditService;
         private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
         private readonly IMessageSender _messageSender;
+        private readonly Decatron.Services.Accounts.AccountChannelResolver _accounts;
+        private readonly Decatron.Services.ChatOverlay.EmoteCatalogService _emotes;
 
         // Cooldown global por canal: key = channelName
         private static readonly ConcurrentDictionary<string, DateTime> _globalCooldowns = new();
@@ -42,8 +44,12 @@ namespace Decatron.Services
             ITtsService ttsService,
             ITtsCreditService creditService,
             Decatron.Core.Services.ChannelAudioGate audioGate,
-            IMessageSender messageSender)
+            IMessageSender messageSender,
+            Decatron.Services.Accounts.AccountChannelResolver accounts,
+            Decatron.Services.ChatOverlay.EmoteCatalogService emotes)
         {
+            _accounts = accounts;
+            _emotes = emotes;
             _messageSender = messageSender;
             _audioGate = audioGate;
             _context = context;
@@ -252,7 +258,7 @@ namespace Decatron.Services
                 // Qué regla leyó el mensaje: si algo suena y no debería, aquí está el porqué
                 _logger.LogInformation("[SpeakChat] {Channel}: {User} activó la regla '{Regla}'", channelName, username, activatedBy);
 
-                await SpeakAsync(cfg, channelName, username, userId, textToSpeak, activatedRule, activatedCommand, platform, replyChannel);
+                await SpeakAsync(cfg, channelName, username, userId, textToSpeak, activatedRule, activatedCommand, platform, replyChannel, message, metadata);
             }
             catch (Exception ex)
             {
@@ -330,18 +336,80 @@ namespace Decatron.Services
             }
         }
 
+        public async Task<string> CleanForSpeechAsync(string channelName, string configJson, string text)
+        {
+            JsonElement cfg;
+            try { cfg = JsonSerializer.Deserialize<JsonElement>(configJson); }
+            catch { return text; }
+            cfg.TryGetProperty("filters", out var filters);
+            return await CleanTextAsync(text, filters, cfg, channelName, null, null);
+        }
+
+        /// <summary>
+        /// Aplica la limpieza elegida en Filtros. Los emotes de Twitch salen de lo que Twitch ya separó
+        /// (<c>text-without-emotes</c>); los de 7TV, BTTV, FFZ y los propios, del catálogo del canal, con un
+        /// tope de espera para que un catálogo lento no retrase la voz.
+        /// </summary>
+        private async Task<string> CleanTextAsync(string text, JsonElement filters, JsonElement cfg, string channelName,
+            string? originalMessage, Dictionary<string, object>? metadata)
+        {
+            try
+            {
+                var options = SpeakChatTextCleaner.Read(filters);
+                HashSet<string>? emoteNames = null;
+
+                if (options.Emotes)
+                {
+                    emoteNames = new HashSet<string>(StringComparer.Ordinal);
+
+                    if (originalMessage != null && metadata != null &&
+                        metadata.TryGetValue("text-without-emotes", out var plain) && plain is string plainText)
+                    {
+                        var kept = new HashSet<string>(plainText.Split(' ', StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
+                        foreach (var w in originalMessage.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                            if (!kept.Contains(w)) emoteNames.Add(w);
+                    }
+
+                    var account = await _accounts.ResolveLoginAsync(channelName);
+                    if (account != null)
+                    {
+                        var load = _emotes.GetMapAsync(account.Account.TwitchId, account.Account.KickId, Decatron.Services.ChatOverlay.EmoteProviders.All);
+                        if (await Task.WhenAny(load, Task.Delay(1500)) == load)
+                            foreach (var name in (await load).Keys) emoteNames.Add(name);
+                        else
+                            _logger.LogInformation("[SpeakChat] {Channel}: el catálogo de emotes tardó, se omiten los de terceros", channelName);
+                    }
+                }
+
+                var language = cfg.TryGetProperty("voice", out var v) && v.ValueKind == JsonValueKind.Object &&
+                    v.TryGetProperty("languageCode", out var lc) ? lc.GetString() ?? "es" : "es";
+                var cleaned = SpeakChatTextCleaner.Clean(text, options, emoteNames, language.StartsWith("es", StringComparison.OrdinalIgnoreCase) ? "enlace" : "link");
+                return cleaned;
+            }
+            catch (Exception ex)
+            {
+                // La limpieza nunca debe dejar el chat mudo: ante cualquier fallo se lee el texto tal cual
+                _logger.LogWarning(ex, "[SpeakChat] {Channel}: falló la limpieza del texto", channelName);
+                return text;
+            }
+        }
+
         /// <summary>
         /// Filtros + generación de voz + envío al overlay. Compartido por el flujo de
         /// chat y el de canjes de puntos.
         /// </summary>
         private async Task SpeakAsync(JsonElement cfg, string channelName, string username, string userId, string textToSpeak,
-            JsonElement? rule = null, string command = "", string platform = "twitch", string? replyChannel = null)
+            JsonElement? rule = null, string command = "", string platform = "twitch", string? replyChannel = null,
+            string? originalMessage = null, Dictionary<string, object>? metadata = null)
         {
             Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
                 // ===== FILTROS =====
                 cfg.TryGetProperty("filters", out var filters);
+
+                // Limpieza del texto (enlaces, emotes, letras repetidas, emojis) antes de recortar y de cobrar
+                textToSpeak = await CleanTextAsync(textToSpeak, filters, cfg, channelName, originalMessage, metadata);
 
                 // Max chars
                 var maxChars = filters.ValueKind != JsonValueKind.Undefined &&

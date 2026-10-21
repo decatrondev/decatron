@@ -412,6 +412,10 @@
           {
             "t": "p",
             "x": "La pestaña Créditos muestra tu saldo de voz: la cuota del mes (se reinicia el día 1), los comprados (no caducan) y los caracteres de voz estándar que te quedan, con un aviso cuando queda poco y otro cuando se agota; el saldo también está en la columna fija de la derecha. Compra créditos desde la página de créditos."
+          },
+          {
+            "t": "p",
+            "x": "Si en los últimos 7 días alguna lectura cayó a la voz estándar porque la voz elegida no pudo generarse (sin créditos, voz no disponible o falla del motor), la pestaña Créditos lo avisa con la cantidad y el motivo más frecuente."
           }
         ]
       },
@@ -476,6 +480,30 @@
         ]
       },
       {
+        "id": "limpieza",
+        "title": "Limpieza del texto",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Antes de leer un mensaje, Speak Chat puede quitarle lo que no conviene que suene. Se elige en la pestaña Filtros y se aplica antes del largo máximo y del cobro: lo que se quita ni se lee ni se paga."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Enlaces: quitarlos, reemplazarlos por «enlace» o dejarlos. Cuentan las direcciones con `http(s)://`, con `www.` y los dominios sueltos con una terminación conocida (`.com`, `.tv`, `.gg`…); «ok.gracias» no es un enlace.",
+              "Emotes: se omiten los de Twitch y Kick, los de 7TV, BTTV y FFZ y los propios del canal. Los emotes de terceros se consultan con un tope de espera: si el catálogo tarda, ese mensaje se lee sin omitirlos.",
+              "Letras repetidas: «holaaaaaa» se lee «holaa» y «!!!!!» se lee «!».",
+              "Emojis y símbolos: se quitan para que no se lea el nombre de cada uno."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los canales que ya tenían Speak Chat guardado siguen como estaban hasta que activen la limpieza; los canales nuevos empiezan con enlaces y emotes quitados y letras repetidas acortadas (emojis se dejan). Si tras la limpieza no queda nada, el mensaje se descarta. Los mensajes de Kick ya no se leen nunca como «[emote:123:NOMBRE]»."
+          }
+        ]
+      },
+      {
         "id": "bloqueos",
         "title": "Listas de bloqueo",
         "blocks": [
@@ -504,7 +532,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "La pestaña Pruebas envía un mensaje de prueba al overlay (por defecto «Hola, este es un mensaje de prueba de Speak Chat»). Requiere Speak Chat activo y gasta de tu saldo como un mensaje real."
+            "x": "La pestaña Pruebas envía un mensaje de prueba al overlay (por defecto «Hola, este es un mensaje de prueba de Speak Chat»). Pasa por la misma limpieza que un mensaje real. Mientras escribes muestra lo que se leería y cuánto costaría (créditos con voz premium o de personaje; con voz estándar, los caracteres de tu cuota), sin generar audio ni gastar nada. Requiere Speak Chat activo y la prueba sí gasta de tu saldo como un mensaje real."
           }
         ]
       }
