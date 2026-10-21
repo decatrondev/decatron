@@ -1,6 +1,10 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { FishVoiceOption } from '../fishVoices';
+import type { VoiceCatalog } from '../../../components/tts/useVoiceCatalog';
+import CommandVoice from './CommandVoice';
 import { cardClass, inputClass, labelClass, sectionTitle, sectionDesc, Toggle, RULE_META } from './shared';
-import type { ActivationRule, ChannelPointsReward, ConfigProps, RoleConfig } from './types';
+import type { ActivationRule, ChannelPointsReward, ConfigProps, RoleConfig, VoiceCommandLimits } from './types';
 
 interface ActivationTabProps extends Pick<ConfigProps, 'config'> {
     rewards: ChannelPointsReward[];
@@ -9,9 +13,21 @@ interface ActivationTabProps extends Pick<ConfigProps, 'config'> {
     setExpandedRules: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
     updateRule: (idx: number, patch: Partial<ActivationRule>) => void;
     updateRoleInRule: (idx: number, role: keyof RoleConfig, value: boolean) => void;
+    voiceCatalog: VoiceCatalog;
+    fishVoices: FishVoiceOption[];
+    paidAvailable: boolean;
+    limits: VoiceCommandLimits;
+    addCommand: () => void;
+    removeRule: (idx: number) => void;
 }
 
-export default function ActivationTab({ config, rewards, rewardsError, expandedRules, setExpandedRules, updateRule, updateRoleInRule }: ActivationTabProps) {
+export default function ActivationTab({ config, rewards, rewardsError, expandedRules, setExpandedRules, updateRule, updateRoleInRule, voiceCatalog, fishVoices, paidAvailable, limits, addCommand, removeRule }: ActivationTabProps) {
+    const { t } = useTranslation('speakchat');
+    const firstCommand = config.activation.rules.findIndex(r => r.type === 'command');
+    const used = config.activation.rules.filter(r => r.type === 'command' && r.voice).length;
+    const atLimit = used >= limits.max;
+    const names = config.activation.rules.filter(r => r.type === 'command').map(r => (r.commandName ?? '').trim().toLowerCase());
+    const isDuplicate = (r: ActivationRule) => r.type === 'command' && names.filter(n => n === (r.commandName ?? '').trim().toLowerCase()).length > 1;
     return (
         <div className="space-y-4">
             <div className={cardClass}>
@@ -20,12 +36,19 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                     Habilita una o más reglas. Si cualquier regla activa se cumple, el mensaje se lee.
                     Puedes tener varias activas al mismo tiempo.
                 </p>
+                <div className="flex flex-wrap items-center gap-3 mt-4">
+                    <button type="button" className="ds-btn ds-btn--secondary ds-btn--sm" onClick={addCommand} disabled={atLimit}>
+                        <Plus className="w-4 h-4" /> {t('commandVoice.add')}
+                    </button>
+                    <span className="text-xs text-ds-soft">{t('commandVoice.counter', { used, max: limits.max })}</span>
+                    {atLimit && <span className="text-xs text-ds-warn">{t('commandVoice.limitReached')}</span>}
+                </div>
             </div>
 
             {config.activation.rules.map((rule, idx) => {
                 const meta = RULE_META[rule.type];
                 return (
-                    <div key={rule.type} className={cardClass + ' !p-0 overflow-hidden'}>
+                    <div key={idx} className={cardClass + ' !p-0 overflow-hidden'}>
                         {/* Header de la regla */}
                         <div className="flex items-center justify-between p-6">
                             <div className="flex items-center gap-4">
@@ -40,6 +63,16 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                                     <p className="text-xs text-ds-soft">{meta.desc}</p>
                                 </div>
                             </div>
+                            <div className="flex items-center gap-2">
+                            {rule.type === 'command' && idx !== firstCommand && (
+                                <button
+                                    onClick={() => removeRule(idx)}
+                                    className="ds-btn ds-btn--ghost ds-icon-btn"
+                                    title={t('commandVoice.remove')}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
                             {rule.type !== 'all' && (
                                 <button
                                     onClick={() => setExpandedRules(e => ({ ...e, [idx]: !e[idx] }))}
@@ -48,6 +81,7 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                                     {expandedRules[idx] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                 </button>
                             )}
+                            </div>
                         </div>
 
                         {/* Body expandible */}
@@ -67,6 +101,16 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                                             Ej: <code className="bg-ds-raised px-1 rounded">!tts Hola streamer</code> → lee "Hola streamer"
                                         </p>
                                     </div>
+                                )}
+
+                                {isDuplicate(rule) && <p className="text-xs text-ds-warn">{t('commandVoice.duplicate')}</p>}
+
+                                {rule.type === 'command' && (
+                                    <CommandVoice
+                                        rule={rule} config={config}
+                                        voiceCatalog={voiceCatalog} fishVoices={fishVoices} paidAvailable={paidAvailable}
+                                        onChange={patch => updateRule(idx, patch)}
+                                    />
                                 )}
 
                                 {rule.type === 'bits' && (

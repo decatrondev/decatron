@@ -61,7 +61,7 @@ namespace Decatron.Controllers
                 var config = await _speakChatService.GetConfigAsync(channelOwnerId);
 
                 if (config == null)
-                    return Ok(new { success = true, config = (object?)null });
+                    return Ok(new { success = true, config = (object?)null, limits = await VoiceCommandLimitsAsync(channelOwnerId, null) });
 
                 return Ok(new
                 {
@@ -70,7 +70,8 @@ namespace Decatron.Controllers
                     {
                         data = JsonSerializer.Deserialize<JsonElement>(config.ConfigJson),
                         isEnabled = config.IsEnabled
-                    }
+                    },
+                    limits = await VoiceCommandLimitsAsync(channelOwnerId, config.ConfigJson)
                 });
             }
             catch (Exception ex)
@@ -78,6 +79,12 @@ namespace Decatron.Controllers
                 _logger.LogError(ex, "[SpeakChat] Error al obtener config");
                 return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
+        }
+
+        private async Task<(int max, int used)> VoiceCommandLimitsAsync(long channelOwnerId, string? configJson)
+        {
+            var tier = await TierResolver.GetEffectiveTierAsync(_dbContext, channelOwnerId);
+            return (SpeakChatCommandVoice.MaxVoiceCommandsFor(tier), SpeakChatCommandVoice.CountVoiceCommands(configJson));
         }
 
         // ============================
@@ -100,6 +107,13 @@ namespace Decatron.Controllers
 
                 var configJson = JsonSerializer.Serialize(body.Config);
                 var configAnterior = (await _speakChatService.GetConfigAsync(channelOwnerId))?.ConfigJson;
+
+                // Comandos con voz propia: el rango pone el tope. Una config que ya lo superaba no se recorta,
+                // solo se impide agregar más.
+                var limites = await VoiceCommandLimitsAsync(channelOwnerId, configAnterior);
+                var despues = SpeakChatCommandVoice.CountVoiceCommands(configJson);
+                if (!SpeakChatCommandVoice.CanSave(limites.used, despues, limites.max))
+                    return BadRequest(new { success = false, message = $"Tu rango permite {limites.max} comandos con voz propia; esta configuración tiene {despues}" });
                 await _speakChatService.SaveConfigAsync(channelOwnerId, channelName, configJson);
                 await RegistrarCambiosAsync(channelOwnerId, channelName, configAnterior, configJson);
 

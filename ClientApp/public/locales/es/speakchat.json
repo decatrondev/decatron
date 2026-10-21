@@ -54,5 +54,27 @@
       "approved": "Aprobada: ya está en la lista",
       "rejected": "Rechazada"
     }
+  },
+  "commandVoice": {
+    "own": "Usar una voz distinta en este comando",
+    "ownHint": "Por ejemplo, !goku habla con la voz de Goku y !tts sigue con la del canal.",
+    "engine": "Tipo de voz",
+    "piper": "Voz estándar (gratis)",
+    "polly": "Voz premium",
+    "fish": "Voz de personaje",
+    "voice": "Voz",
+    "needCredits": "Las voces premium y de personaje necesitan créditos de voz.",
+    "noBalance": "Si no hay saldo",
+    "noBalanceSilence": "No suena y el bot avisa en el chat",
+    "noBalanceStandard": "Leer con la voz estándar",
+    "noBalanceHint": "El aviso en el chat sale como mucho una vez cada 5 minutos.",
+    "cooldown": "Enfriamiento de este comando (segundos)",
+    "cooldownUser": "Enfriamiento por usuario (segundos)",
+    "inherits": "Hereda del canal: {{value}}",
+    "add": "Agregar comando de voz",
+    "counter": "{{used}} de {{max}} comandos con voz propia",
+    "limitReached": "Llegaste al tope de tu rango.",
+    "remove": "Quitar este comando",
+    "duplicate": "Otro comando usa el mismo nombre: solo funcionará el primero de la lista."
   }
 }

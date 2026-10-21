@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import api from '../../services/api';
 import { useFishVoices } from './fishVoices';
-import { useVoiceCatalog } from '../../components/tts/useVoiceCatalog';
+import { useVoiceCatalog, standardVoicesForLanguage } from '../../components/tts/useVoiceCatalog';
 import { cardClass, defaultConfig, defaultRoles, deepMerge, TABS } from './speakchat/shared';
-import type { ActivationRule, ChannelPointsReward, CreditUsage, RoleConfig, SpeakChatConfigData, TabId } from './speakchat/types';
+import type { ActivationRule, ChannelPointsReward, CreditUsage, RoleConfig, SpeakChatConfigData, TabId, VoiceCommandLimits } from './speakchat/types';
 import GlobalTab from './speakchat/GlobalTab';
 import ActivationTab from './speakchat/ActivationTab';
 import VoiceTab from './speakchat/VoiceTab';
@@ -24,6 +24,7 @@ export default function SpeakChat() {
     const [testing, setTesting] = useState(false);
     const [saved, setSaved] = useState<'success' | 'error' | null>(null);
     const [historyKey, setHistoryKey] = useState(0);
+    const [limits, setLimits] = useState<VoiceCommandLimits>({ max: 3, used: 0 });
     const [testError, setTestError] = useState<string | null>(null);
     const [config, setConfig] = useState<SpeakChatConfigData>(defaultConfig);
     const [expandedRules, setExpandedRules] = useState<Record<number, boolean>>({});
@@ -45,6 +46,7 @@ export default function SpeakChat() {
     const loadConfig = async () => {
         try {
             const res = await api.get('/speakchat/config');
+            if (res.data?.limits) setLimits(res.data.limits);
             if (res.data?.config?.data) {
                 const merged = deepMerge(defaultConfig, res.data.config.data);
                 // Configs antiguas guardaban una sola voz (siempre un nombre de Polly)
@@ -113,7 +115,9 @@ export default function SpeakChat() {
             await api.post('/speakchat/config', { config: toSave });
             setSaved('success');
             setHistoryKey(k => k + 1);
-        } catch {
+        } catch (err: any) {
+            // Si el servidor rechazó el guardado (p. ej. por el tope de comandos), se muestra su motivo
+            setTestError(err?.response?.data?.message ?? null);
             setSaved('error');
         } finally {
             setSaving(false);
@@ -160,6 +164,22 @@ export default function SpeakChat() {
         const rules = [...config.activation.rules];
         rules[idx] = { ...rules[idx], roles: { ...(rules[idx].roles ?? defaultRoles), [role]: value } };
         setConfig(c => ({ ...c, activation: { rules } }));
+    };
+
+    /** Comando nuevo con voz de personaje (o estándar si no hay créditos ni voces); queda desplegado para editarlo. */
+    const addCommand = () => {
+        const idx = config.activation.rules.length;
+        const rule: ActivationRule = {
+            type: 'command', enabled: true, commandName: '!', roles: { ...defaultRoles },
+            voice: { engine: 'piper', standardVoice: standardVoicesForLanguage(voiceCatalog, config.voice.languageCode)[0]?.id ?? '' },
+        };
+        setConfig(c => ({ ...c, activation: { rules: [...c.activation.rules, rule] } }));
+        setExpandedRules(e => ({ ...e, [idx]: true }));
+    };
+
+    const removeRule = (idx: number) => {
+        setConfig(c => ({ ...c, activation: { rules: c.activation.rules.filter((_, i) => i !== idx) } }));
+        setExpandedRules({});
     };
 
     const copyOverlayUrl = () => {
@@ -251,6 +271,9 @@ export default function SpeakChat() {
                     rewards={rewards} rewardsError={rewardsError}
                     expandedRules={expandedRules} setExpandedRules={setExpandedRules}
                     updateRule={updateRule} updateRoleInRule={updateRoleInRule}
+                    voiceCatalog={voiceCatalog} fishVoices={fishVoices}
+                    paidAvailable={!!usage && (usage.isUnlimited || usage.totalAvailable > 0)}
+                    limits={limits} addCommand={addCommand} removeRule={removeRule}
                 />
             )}
 

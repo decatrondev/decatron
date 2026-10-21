@@ -40,6 +40,26 @@ export interface ActivationRule {
     minBits?: number;
     rewardId?: string;
     roles?: RoleConfig;
+    /** Solo en comandos: voz propia (manda sobre la del canal en lo que define). */
+    voice?: RuleVoice;
+    /** Solo en comandos: enfriamientos propios; sin valor heredan los del canal. */
+    cooldownSeconds?: number;
+    perUserCooldownSeconds?: number;
+    /** Sin saldo en voz de pago: `silence` (por defecto) no suena; `standard` cae a la voz estándar. */
+    noBalance?: 'silence' | 'standard';
+}
+
+export interface RuleVoice {
+    engine: 'piper' | 'polly' | 'fish';
+    standardVoice?: string;
+    pollyVoice?: string;
+    fishVoice?: string;
+}
+
+/** Tope de comandos con voz propia según el rango, y cuántos hay ya. */
+export interface VoiceCommandLimits {
+    max: number;
+    used: number;
 }
 
 export interface SpeakChatConfigData {

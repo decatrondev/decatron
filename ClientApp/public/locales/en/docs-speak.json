@@ -202,6 +202,26 @@
         ]
       },
       {
+        "id": "voces-por-comando",
+        "title": "Commands with their own voice",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Besides the main command you can add as many as you like with «Add voice command». Each one has its own name (`!goku`, `!narrator`…), its own voice and its own permissions: `!tts` keeps the channel's voice while `!goku` speaks with Goku's."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Own voice: standard (free), premium or character. The last two need voice credits; a Free account can use them if it bought credits.",
+              "If there is no balance (paid voices only): by default the voice does not play and the bot warns in chat, at most once every 5 minutes per command. You can choose to read it with the standard voice instead.",
+              "Own cooldowns: each command can have its own; if left empty it inherits the channel's (Filters tab).",
+              "Limit per rank: how many commands with their own voice you can have depends on your rank (Free 3, Supporter 10, Premium 30, Patrocinador 100, Fundador no practical limit). Dropping rank deletes nothing: you just cannot add more.",
+              "Everything is charged to the channel's credits, like the main voice. Two commands with the same name: only the first one in the list works."
+            ]
+          }
+        ]
+      },
+      {
         "id": "roles",
         "title": "Who can use each rule",
         "blocks": [

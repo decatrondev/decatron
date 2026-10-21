@@ -54,5 +54,27 @@
       "approved": "Approved: it's in the list",
       "rejected": "Rejected"
     }
+  },
+  "commandVoice": {
+    "own": "Use a different voice on this command",
+    "ownHint": "For example, !goku speaks with Goku's voice while !tts keeps the channel's voice.",
+    "engine": "Voice type",
+    "piper": "Standard voice (free)",
+    "polly": "Premium voice",
+    "fish": "Character voice",
+    "voice": "Voice",
+    "needCredits": "Premium and character voices need voice credits.",
+    "noBalance": "If there is no balance",
+    "noBalanceSilence": "It stays silent and the bot warns in chat",
+    "noBalanceStandard": "Read it with the standard voice",
+    "noBalanceHint": "The chat notice goes out at most once every 5 minutes.",
+    "cooldown": "This command's cooldown (seconds)",
+    "cooldownUser": "Per-user cooldown (seconds)",
+    "inherits": "Inherits from the channel: {{value}}",
+    "add": "Add voice command",
+    "counter": "{{used}} of {{max}} commands with their own voice",
+    "limitReached": "You reached your rank's limit.",
+    "remove": "Remove this command",
+    "duplicate": "Another command uses the same name: only the first one in the list will work."
   }
 }

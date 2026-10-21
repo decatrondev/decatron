@@ -21,6 +21,7 @@ namespace Decatron.Services
         private readonly ITtsService _ttsService;
         private readonly ITtsCreditService _creditService;
         private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
+        private readonly IMessageSender _messageSender;
 
         // Cooldown global por canal: key = channelName
         private static readonly ConcurrentDictionary<string, DateTime> _globalCooldowns = new();
@@ -40,8 +41,10 @@ namespace Decatron.Services
             OverlayNotificationService overlayNotificationService,
             ITtsService ttsService,
             ITtsCreditService creditService,
-            Decatron.Core.Services.ChannelAudioGate audioGate)
+            Decatron.Core.Services.ChannelAudioGate audioGate,
+            IMessageSender messageSender)
         {
+            _messageSender = messageSender;
             _audioGate = audioGate;
             _context = context;
             _logger = logger;
@@ -153,6 +156,8 @@ namespace Decatron.Services
 
                 var activated = false;
                 var activatedBy = "";
+                JsonElement? activatedRule = null;
+                var activatedCommand = "";
                 var textToSpeak = message;
 
                 if (activation.TryGetProperty("rules", out var rulesArr) && rulesArr.ValueKind == JsonValueKind.Array)
@@ -196,6 +201,8 @@ namespace Decatron.Services
                                 }
 
                                 activated = true;
+                                activatedRule = rule;
+                                activatedCommand = cmdName;
                                 break;
                             }
                             case "bits":
@@ -240,7 +247,7 @@ namespace Decatron.Services
                 // Qué regla leyó el mensaje: si algo suena y no debería, aquí está el porqué
                 _logger.LogInformation("[SpeakChat] {Channel}: {User} activó la regla '{Regla}'", channelName, username, activatedBy);
 
-                await SpeakAsync(cfg, channelName, username, userId, textToSpeak);
+                await SpeakAsync(cfg, channelName, username, userId, textToSpeak, activatedRule, activatedCommand);
             }
             catch (Exception ex)
             {
@@ -322,7 +329,8 @@ namespace Decatron.Services
         /// Filtros + generación de voz + envío al overlay. Compartido por el flujo de
         /// chat y el de canjes de puntos.
         /// </summary>
-        private async Task SpeakAsync(JsonElement cfg, string channelName, string username, string userId, string textToSpeak)
+        private async Task SpeakAsync(JsonElement cfg, string channelName, string username, string userId, string textToSpeak,
+            JsonElement? rule = null, string command = "")
         {
             Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
@@ -378,11 +386,16 @@ namespace Decatron.Services
 
                 // Enfriamientos: se registran solo cuando el mensaje pasó todos los filtros,
                 // para que uno descartado no deje al usuario ni al canal esperando.
-                var globalCooldownSecs = filters.ValueKind != JsonValueKind.Undefined &&
-                    filters.TryGetProperty("globalCooldownSeconds", out var gcs) ? gcs.GetInt32() : 0;
+                // Un comando puede traer su propio enfriamiento; sin él hereda el del canal
+                var ruleGlobal = rule.HasValue ? SpeakChatCommandVoice.OptionalSeconds(rule.Value, "cooldownSeconds") : null;
+                var rulePerUser = rule.HasValue ? SpeakChatCommandVoice.OptionalSeconds(rule.Value, "perUserCooldownSeconds") : null;
+                var cmdKey = string.IsNullOrEmpty(command) ? "" : "|" + command.ToLowerInvariant();
+                var globalCooldownSecs = ruleGlobal ?? (filters.ValueKind != JsonValueKind.Undefined &&
+                    filters.TryGetProperty("globalCooldownSeconds", out var gcs) ? gcs.GetInt32() : 0);
+                var globalKey = ruleGlobal.HasValue ? channelName + cmdKey : channelName;
                 if (globalCooldownSecs > 0)
                 {
-                    var key = channelName;
+                    var key = globalKey;
                     if (_globalCooldowns.TryGetValue(key, out var lastGlobal) &&
                         (DateTime.UtcNow - lastGlobal).TotalSeconds < globalCooldownSecs)
                     {
@@ -394,11 +407,12 @@ namespace Decatron.Services
                 }
 
                 // Cooldown por usuario
-                var perUserCooldownSecs = filters.ValueKind != JsonValueKind.Undefined &&
-                    filters.TryGetProperty("perUserCooldownSeconds", out var pucs) ? pucs.GetInt32() : 0;
+                var perUserCooldownSecs = rulePerUser ?? (filters.ValueKind != JsonValueKind.Undefined &&
+                    filters.TryGetProperty("perUserCooldownSeconds", out var pucs) ? pucs.GetInt32() : 0);
+                var perUserKey = $"{channelName}{(rulePerUser.HasValue ? cmdKey : "")}:{userId}";
                 if (perUserCooldownSecs > 0)
                 {
-                    var key = $"{channelName}:{userId}";
+                    var key = perUserKey;
                     if (_perUserCooldowns.TryGetValue(key, out var lastUser) &&
                         (DateTime.UtcNow - lastUser).TotalSeconds < perUserCooldownSecs)
                     {
@@ -410,11 +424,15 @@ namespace Decatron.Services
                 }
 
                 // Recién aquí, con los dos enfriamientos superados, se marcan ambos
-                if (globalCooldownSecs > 0) _globalCooldowns[channelName] = DateTime.UtcNow;
-                if (perUserCooldownSecs > 0) _perUserCooldowns[$"{channelName}:{userId}"] = DateTime.UtcNow;
+                if (globalCooldownSecs > 0) _globalCooldowns[globalKey] = DateTime.UtcNow;
+                if (perUserCooldownSecs > 0) _perUserCooldowns[perUserKey] = DateTime.UtcNow;
 
                 // ===== VOZ Y TTS =====
                 cfg.TryGetProperty("voice", out var voice);
+
+                // Un comando con voz propia (!goku) manda sobre la del canal en lo que defina
+                var ownVoice = rule.HasValue && SpeakChatCommandVoice.HasOwnVoice(rule.Value);
+                if (ownVoice) voice = SpeakChatCommandVoice.Merge(voice, rule!.Value.GetProperty("voice"));
 
                 // "piper" es la voz estándar del servidor y el valor por defecto; "polly"
                 // gasta créditos premium. Las configuraciones viejas traen "browser", que
@@ -463,6 +481,25 @@ namespace Decatron.Services
                     // Piper lo ignora, ahí solo hay una calidad por voz.
                     var pollyEngine = voice.ValueKind != JsonValueKind.Undefined &&
                         voice.TryGetProperty("pollyEngine", out var pe) ? pe.GetString() ?? "standard" : "standard";
+
+                    // Voz de pago en un comando con voz propia: sin saldo no suena (a menos que el comando
+                    // pida caer a la estándar). Se comprueba antes de pedir turno, para no ocupar el canal.
+                    if (ownVoice && engine != "piper" && !SpeakChatCommandVoice.FallsBackToStandard(rule!.Value))
+                    {
+                        var units = engine == "fish" ? Decatron.Services.Tts.FishTtsClient.BillableBytes(textToSpeak) : textToSpeak.Length;
+                        var cost = await _creditService.CalculateCostAsync(units, engine == "fish" ? "fish" : pollyEngine);
+                        var balance = await _creditService.GetBalanceAsync(channelUser.Id);
+                        if (!balance.IsUnlimited && balance.TotalAvailable < cost)
+                        {
+                            _logger.LogInformation(
+                                "[SpeakChat] {Channel}: {Cmd} sin saldo ({Available} de {Cost} créditos), el mensaje de {User} no suena",
+                                channelName, command, balance.TotalAvailable, cost, username);
+                            if (SpeakChatCommandVoice.ShouldNotify(channelName, command, DateTime.UtcNow, TimeSpan.FromMinutes(5)))
+                                await _messageSender.SendMessageAsync(channelName,
+                                    $"🎤 {command} no sonó: el canal se quedó sin créditos de voz.");
+                            return;
+                        }
+                    }
 
                     // Si otro módulo (p. ej. Event Alerts con «leer el mensaje») ya lo dijo, no se repite
                     if (_audioGate.SpokenByOtherSource(channelName, "speak_chat", textToSpeak))

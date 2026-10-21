@@ -202,6 +202,26 @@
         ]
       },
       {
+        "id": "voces-por-comando",
+        "title": "Comandos con voz propia",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Además del comando principal puedes agregar los que quieras con «Agregar comando de voz». Cada uno tiene su nombre (`!goku`, `!narrador`…), su propia voz y sus propios permisos: `!tts` sigue con la voz del canal y `!goku` habla con la de Goku."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Voz propia: estándar (gratis), premium o de personaje. Las dos últimas necesitan créditos de voz; una cuenta Free puede usarlas si compró créditos.",
+              "Si no hay saldo (solo voces de pago): por defecto la voz no suena y el bot avisa en el chat, como mucho una vez cada 5 minutos por comando. Puedes elegir que, en su lugar, se lea con la voz estándar.",
+              "Enfriamientos propios: cada comando puede traer el suyo; si lo dejas vacío hereda el del canal (pestaña Filtros).",
+              "Tope por rango: cuántos comandos con voz propia puedes tener depende de tu rango (Free 3, Supporter 10, Premium 30, Patrocinador 100, Fundador sin tope práctico). Si bajas de rango no se borra nada: solo no puedes agregar más.",
+              "Todo se cobra de los créditos del canal, igual que la voz principal. Dos comandos con el mismo nombre: solo funciona el primero de la lista."
+            ]
+          }
+        ]
+      },
+      {
         "id": "roles",
         "title": "Quién puede usar cada regla",
         "blocks": [
