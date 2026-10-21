@@ -92,13 +92,6 @@
     "copy": "Copiar",
     "copied": "¡Copiado!"
   },
-  "sources": {
-    "title": "🌐 Plataformas",
-    "description": "De qué canales vinculados lee Speak Chat. Es una sola decisión para todo el overlay, igual que en Chat en pantalla.",
-    "linked": "Canal vinculado",
-    "notLinked": "Aún no tienes este canal vinculado",
-    "note": "Los comandos, roles y «todos los mensajes» leen las plataformas encendidas aquí. Los bits y los puntos de canal son solo de Twitch."
-  },
   "v2": {
     "page": {
       "title": "Speak Chat",
@@ -194,13 +187,6 @@
       "low": "Te queda poco saldo. Al agotarse, las voces de pago dejan de sonar.",
       "exhausted": "Sin créditos. Las voces premium y de personaje no suenan hasta tu cuota del día 1 o hasta que compres más.",
       "noBalanceRule": "Si falta saldo, un comando con voz de personaje no suena y el bot lo avisa en el chat (como mucho cada 5 minutos). Cada comando puede elegir leer con la voz estándar en su lugar."
-    },
-    "platforms": {
-      "title": "Plataformas",
-      "description": "De qué canales vinculados lee Speak Chat. Es una sola decisión para todo el overlay, igual que en Chat en pantalla.",
-      "linked": "Canal vinculado",
-      "notLinked": "Aún no tienes este canal vinculado",
-      "note": "Los comandos, roles y «todos los mensajes» leen las plataformas encendidas aquí. Los bits y los puntos de canal son solo de Twitch."
     },
     "obs": {
       "title": "Enlace para OBS",
@@ -320,18 +306,16 @@
     },
     "guide": {
       "title": "Cómo dejarlo funcionando",
-      "description": "Cinco pasos. Cada uno muestra si ya está hecho y te lleva a la pestaña donde se cambia.",
+      "description": "Cuatro pasos. Cada uno muestra si ya está hecho y te lleva a la pestaña donde se cambia.",
       "done": "Hecho",
       "step1Title": "Enciende Speak Chat",
       "step1Body": "Mientras esté apagado no se lee nada, aunque tengas reglas y voces configuradas.",
-      "step2Title": "Elige las plataformas",
-      "step2Body": "Decide si lee el chat de Twitch, el de Kick o los dos.",
-      "step3Title": "Elige la voz del canal",
-      "step3Body": "Ahora lee con: {{engine}}. Los comandos de voz (como !goku) pueden traer la suya.",
-      "step4Title": "Pon el enlace en OBS",
-      "step4Body": "Agrégalo como fuente de navegador. El estado cambia a «Conectado en OBS» cuando OBS lo abre.",
-      "step5Title": "Envía una prueba",
-      "step5Body": "Comprueba la voz y la burbuja sin esperar a que alguien escriba en el chat.",
+      "step2Title": "Elige la voz del canal",
+      "step2Body": "Ahora lee con: {{engine}}. Los comandos de voz (como !goku) pueden traer la suya.",
+      "step3Title": "Pon el enlace en OBS",
+      "step3Body": "Agrégalo como fuente de navegador. El enlace «Todo» lee Twitch y Kick juntos; en Overlay también tienes «Solo Twitch» y «Solo Kick» si quieres separarlos. El estado cambia a «Conectado en OBS» cuando OBS lo abre.",
+      "step4Title": "Envía una prueba",
+      "step4Body": "Comprueba la voz y la burbuja sin esperar a que alguien escriba en el chat.",
       "goGeneral": "Ir a General",
       "goVoice": "Ir a Voz del canal",
       "goOverlay": "Ir a Overlay",
@@ -339,7 +323,7 @@
     },
     "general": {
       "title": "Speak Chat",
-      "description": "Enciende o apaga la lectura del chat y elige de qué plataformas lee."
+      "description": "Enciende o apaga la lectura del chat. De qué plataforma lee depende del enlace de OBS que uses (pestaña Overlay)."
     },
     "activation": {
       "intro": "Las formas de activar Speak Chat: si cualquier regla encendida se cumple, el mensaje se lee. Los comandos con voz propia (!goku, !thanos…) están en su pestaña."

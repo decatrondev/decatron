@@ -227,12 +227,12 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Speak Chat lee también el chat de Kick. En la pestaña Global, la tarjeta «Plataformas» tiene un interruptor para Twitch y otro para Kick: es una sola decisión para todo Speak Chat, igual que en Chat en pantalla. Los bits y los puntos de canal son solo de Twitch. Tu configuración anterior sigue leyendo solo Twitch hasta que enciendas Kick."
+            "x": "Speak Chat lee también el chat de Kick. La plataforma se elige con el enlace de OBS, igual que en Chat en pantalla: «Todo» lee Twitch y Kick juntos, «Solo Twitch» y «Solo Kick» sirven para separar escenas. Un comando escrito en una plataforma que ningún overlay conectado lee no se genera ni se cobra. Los bits y los puntos de canal son solo de Twitch. Tus enlaces anteriores siguen leyendo solo Twitch hasta que uses el enlace «Todo»."
           },
           {
             "t": "ul",
             "items": [
-              "Con los dos canales vinculados, en la pestaña Global aparece el enlace «Todo» (recomendado): un solo overlay en OBS que reproduce Twitch y Kick con una única cola de voz. Debajo, en Avanzado, los enlaces «Solo Twitch» y «Solo Kick».",
+              "Con los dos canales vinculados, en Overlay aparece el enlace «Todo» (recomendado): un solo overlay en OBS que reproduce Twitch y Kick con una única cola de voz. Debajo, en Avanzado, los enlaces «Solo Twitch» y «Solo Kick».",
               "Cada enlace muestra si está conectado en OBS ahora. Si el enlace «Todo» y uno de una sola plataforma están conectados a la vez, el panel te avisa de que cada mensaje sonaría repetido.",
               "La configuración y los créditos son los de tu cuenta (el canal principal), también cuando entras con Kick. Los enlaces antiguos siguen funcionando."
             ]

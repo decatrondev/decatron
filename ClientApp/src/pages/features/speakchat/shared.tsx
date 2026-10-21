@@ -11,7 +11,7 @@ import type { CreditUsage, RoleConfig, SpeakChatConfigData, TabId } from './type
 export const defaultRoles: RoleConfig = { everyone: true, subscriber: false, vip: false, moderator: false, broadcaster: true };
 
 export const defaultConfig: SpeakChatConfigData = {
-    global: { enabled: false, sources: { twitch: true, kick: true } },
+    global: { enabled: false },
     activation: {
         rules: [
             { type: 'command', enabled: false, commandName: '!tts', roles: { ...defaultRoles } },

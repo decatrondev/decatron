@@ -39,28 +39,6 @@ export default function GlobalTab({ config, setConfig, overlayLink, status, stat
             </div>
 
             <div className={cardClass}>
-                <p className={sectionTitle}>{t('sources.title')}</p>
-                <p className={sectionDesc}>{t('sources.description')}</p>
-                <div className="space-y-3">
-                    {(['twitch', 'kick'] as const).map(p => (
-                        <div key={p} className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-sm font-bold text-ds-text">{p === 'twitch' ? 'Twitch' : 'Kick'}</p>
-                                <p className="text-xs text-ds-soft">
-                                    {(p === 'twitch' ? status.hasTwitch : status.hasKick) ? t('sources.linked') : t('sources.notLinked')}
-                                </p>
-                            </div>
-                            <Toggle
-                                checked={config.global.sources?.[p] ?? false}
-                                onChange={v => setConfig(c => ({ ...c, global: { ...c.global, sources: { twitch: true, kick: false, ...c.global.sources, [p]: v } } }))}
-                            />
-                        </div>
-                    ))}
-                </div>
-                <p className="text-xs text-ds-soft mt-3">{t('sources.note')}</p>
-            </div>
-
-            <div className={cardClass}>
                 <p className={sectionTitle}>🔗 URL del Overlay (OBS)</p>
                 <p className={sectionDesc}>
                     Agrega esta URL como Browser Source en OBS Studio. Con plan pago funciona directo en OBS.

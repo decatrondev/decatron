@@ -149,14 +149,6 @@ namespace Decatron.Services
                     return;
                 }
 
-                // Fuentes generales: qué plataformas lee Speak Chat (Twitch, Kick). Mandan sobre las reglas.
-                cfg.TryGetProperty("global", out var globalCfg);
-                if (!SpeakChatCommandVoice.SourceAllows(globalCfg, platform))
-                {
-                    _logger.LogInformation("[SpeakChat] {Channel}: mensaje de {User} ignorado, la fuente {Platform} está apagada", channelName, username, platform);
-                    return;
-                }
-
                 // ===== REGLAS DE ACTIVACIÓN =====
                 if (!cfg.TryGetProperty("activation", out var activation))
                 {
@@ -494,6 +486,18 @@ namespace Decatron.Services
                     // Piper lo ignora, ahí solo hay una calidad por voz.
                     var pollyEngine = voice.ValueKind != JsonValueKind.Undefined &&
                         voice.TryGetProperty("pollyEngine", out var pe) ? pe.GetString() ?? "standard" : "standard";
+
+                    // La plataforma se elige con el enlace de OBS (Todo, Solo Twitch, Solo Kick), como en Chat en pantalla.
+                    // Si ningún overlay conectado deja pasar la plataforma del mensaje, nadie lo oiría: no se genera
+                    // (y no se cobra). Un overlay viejo que no declaró variante cuenta como «Todo».
+                    var accepting = Hubs.OverlayHub.CountOverlayVariants(channelName, "speak_chat");
+                    if (accepting.GetValueOrDefault("all") + accepting.GetValueOrDefault(platform) == 0)
+                    {
+                        _logger.LogInformation(
+                            "[SpeakChat] {Channel}: mensaje de {User} ({Platform}) sin voz, ningún overlay conectado lo lee. Overlays presentes: {Detalle}",
+                            channelName, username, platform, Hubs.OverlayHub.DescribeOverlays(channelName));
+                        return;
+                    }
 
                     // Voz de pago en un comando con voz propia: sin saldo no suena (a menos que el comando
                     // pida caer a la estándar). Se comprueba antes de pedir turno, para no ocupar el canal.

@@ -227,12 +227,12 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Speak Chat also reads Kick chat. In the Global tab, the «Platforms» card has a switch for Twitch and one for Kick: a single choice for all of Speak Chat, like On-screen chat. Bits and channel points are Twitch-only. Your previous setup keeps reading Twitch only until you turn Kick on."
+            "x": "Speak Chat also reads Kick chat. The platform is chosen with the OBS link, like On-screen chat: «All» reads Twitch and Kick together, «Twitch only» and «Kick only» separate scenes. A command typed on a platform that no connected overlay reads is neither generated nor charged. Bits and channel points are Twitch-only. Your previous links keep reading Twitch only until you use the «All» link."
           },
           {
             "t": "ul",
             "items": [
-              "With both channels linked, the Global tab shows the «All» link (recommended): a single OBS overlay that plays Twitch and Kick with one voice queue. Below, under Advanced, the «Twitch only» and «Kick only» links.",
+              "With both channels linked, the Overlay tab shows the «All» link (recommended): a single OBS overlay that plays Twitch and Kick with one voice queue. Below, under Advanced, the «Twitch only» and «Kick only» links.",
               "Each link shows whether it is connected in OBS right now. If the «All» link and a single-platform link are connected at once, the panel warns that every message would play twice.",
               "Settings and credits are those of your account (the main channel), also when you sign in with Kick. Old links keep working."
             ]

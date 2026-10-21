@@ -2,7 +2,6 @@
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import { Card, Toggle } from '../../../../components/overlay-editor/ui';
-import PlatformsCard from './PlatformsCard';
 import type { SpeakChatState } from './useSpeakChatConfig';
 
 export default function GeneralTab({ sc }: { sc: SpeakChatState }) {
@@ -25,7 +24,6 @@ export default function GeneralTab({ sc }: { sc: SpeakChatState }) {
                     </div>
                 )}
             </Card>
-            <PlatformsCard sc={sc} />
         </div>
     );
 }

@@ -10,7 +10,6 @@ export default function GuideTab({ sc, goTo }: { sc: SpeakChatState; goTo: (tab:
     const { t } = useTranslation('speakchat');
     const { config, status, statusLoaded, overlayLink } = sc;
     const bothLinked = !!status.hasTwitch && !!status.hasKick;
-    const platformsOn = !!(config.global.sources?.twitch || config.global.sources?.kick);
     const connected = statusLoaded && status.total > 0;
 
     const step = (n: number, done: boolean, title: string, body: React.ReactNode, tab: TabId2, action: string) => (
@@ -30,20 +29,21 @@ export default function GuideTab({ sc, goTo }: { sc: SpeakChatState; goTo: (tab:
         <Card title={t('v2.guide.title')} description={t('v2.guide.description')}>
             <div className="space-y-7">
                 {step(1, config.global.enabled, t('v2.guide.step1Title'), <p>{t('v2.guide.step1Body')}</p>, 'general', t('v2.guide.goGeneral'))}
-                {step(2, platformsOn, t('v2.guide.step2Title'), <p>{t('v2.guide.step2Body')}</p>, 'general', t('v2.guide.goGeneral'))}
-                {step(3, true, t('v2.guide.step3Title'),
-                    <p>{t('v2.guide.step3Body', { engine: t(`v2.engine.${config.voice.engine}`) })}</p>, 'channelVoice', t('v2.guide.goVoice'))}
-                {step(4, connected, t('v2.guide.step4Title'), (
+                {step(2, true, t('v2.guide.step2Title'),
+                    <p>{t('v2.guide.step2Body', { engine: t(`v2.engine.${config.voice.engine}`) })}</p>, 'channelVoice', t('v2.guide.goVoice'))}
+                {step(3, connected, t('v2.guide.step3Title'), (
                     <>
-                        <p>{t('v2.guide.step4Body')}</p>
+                        <p>{t('v2.guide.step3Body')}</p>
                         <LinkRow
                             url={bothLinked ? overlayLink('all') : overlayLink()}
+                            name={bothLinked ? t('links.all') : undefined}
+                            recommended={bothLinked}
                             copyLabel={t('links.copy')} copiedLabel={t('links.copied')}
                             connected={bothLinked ? status.all > 0 : status.total > 0} loaded={statusLoaded}
                         />
                     </>
                 ), 'overlay', t('v2.guide.goOverlay'))}
-                {step(5, false, t('v2.guide.step5Title'), <p>{t('v2.guide.step5Body')}</p>, 'tests', t('v2.guide.goTests'))}
+                {step(4, false, t('v2.guide.step4Title'), <p>{t('v2.guide.step4Body')}</p>, 'tests', t('v2.guide.goTests'))}
             </div>
         </Card>
     );

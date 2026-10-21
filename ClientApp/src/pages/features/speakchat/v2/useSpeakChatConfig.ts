@@ -14,8 +14,6 @@ function normalize(saved: any): SpeakChatConfigData {
     const merged = deepMerge(defaultConfig, saved);
     // Configs antiguas guardaban una sola voz (siempre un nombre de Polly)
     if (!saved.voice?.pollyVoice && merged.voice.voice) merged.voice.pollyVoice = merged.voice.voice;
-    // Una config guardada antes de las Fuentes sigue leyendo solo Twitch, como hasta ahora
-    if (!saved.global?.sources) merged.global.sources = { twitch: true, kick: false };
     // Una guardada antes de la opción de palabras bloqueadas conserva la coincidencia parcial
     if (!saved.filters?.blockedWordsMode) merged.filters.blockedWordsMode = 'partial';
     return merged;

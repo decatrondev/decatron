@@ -63,7 +63,7 @@ export interface VoiceCommandLimits {
 }
 
 export interface SpeakChatConfigData {
-    global: { enabled: boolean; sources?: { twitch: boolean; kick: boolean } };
+    global: { enabled: boolean };
     activation: { rules: ActivationRule[] };
     // `voice` es el campo antiguo (nombre de voz Polly). Se conserva por
     // compatibilidad, pero cada motor tiene ya su propio campo.

@@ -92,13 +92,6 @@
     "copy": "Copy",
     "copied": "Copied!"
   },
-  "sources": {
-    "title": "🌐 Platforms",
-    "description": "Which linked channels Speak Chat reads from. It is a single choice for the whole overlay, like On-screen chat.",
-    "linked": "Channel linked",
-    "notLinked": "You haven't linked this channel yet",
-    "note": "Commands, roles and «all messages» read the platforms turned on here. Bits and channel points are Twitch-only."
-  },
   "v2": {
     "page": {
       "title": "Speak Chat",
@@ -194,13 +187,6 @@
       "low": "Your balance is running low. When it runs out, paid voices stop playing.",
       "exhausted": "No credits. Premium and character voices stay silent until your quota on the 1st or until you buy more.",
       "noBalanceRule": "If the balance runs short, a command with a character voice does not play and the bot says so in chat (at most every 5 minutes). Each command can choose to read with the standard voice instead."
-    },
-    "platforms": {
-      "title": "Platforms",
-      "description": "Which linked channels Speak Chat reads from. It is a single choice for the whole overlay, like On-screen chat.",
-      "linked": "Channel linked",
-      "notLinked": "You haven't linked this channel yet",
-      "note": "Commands, roles and «all messages» read the platforms turned on here. Bits and channel points are Twitch-only."
     },
     "obs": {
       "title": "OBS link",
@@ -320,18 +306,16 @@
     },
     "guide": {
       "title": "How to get it working",
-      "description": "Five steps. Each one shows whether it is done and takes you to the tab where it is changed.",
+      "description": "Four steps. Each one shows whether it is done and takes you to the tab where it is changed.",
       "done": "Done",
       "step1Title": "Turn Speak Chat on",
       "step1Body": "While it is off nothing is read, even if you have rules and voices set up.",
-      "step2Title": "Choose the platforms",
-      "step2Body": "Decide whether it reads Twitch chat, Kick chat or both.",
-      "step3Title": "Choose the channel voice",
-      "step3Body": "It now reads with: {{engine}}. Voice commands (like !goku) can bring their own.",
-      "step4Title": "Put the link in OBS",
-      "step4Body": "Add it as a browser source. The status changes to «Connected in OBS» once OBS opens it.",
-      "step5Title": "Send a test",
-      "step5Body": "Check the voice and the bubble without waiting for someone to type in chat.",
+      "step2Title": "Choose the channel voice",
+      "step2Body": "It now reads with: {{engine}}. Voice commands (like !goku) can bring their own.",
+      "step3Title": "Put the link in OBS",
+      "step3Body": "Add it as a browser source. The «All» link reads Twitch and Kick together; in Overlay you also have «Twitch only» and «Kick only» if you want to separate them. The status changes to «Connected in OBS» once OBS opens it.",
+      "step4Title": "Send a test",
+      "step4Body": "Check the voice and the bubble without waiting for someone to type in chat.",
       "goGeneral": "Go to General",
       "goVoice": "Go to Channel voice",
       "goOverlay": "Go to Overlay",
@@ -339,7 +323,7 @@
     },
     "general": {
       "title": "Speak Chat",
-      "description": "Turn chat reading on or off and choose which platforms it reads from."
+      "description": "Turn chat reading on or off. Which platform it reads from depends on the OBS link you use (Overlay tab)."
     },
     "activation": {
       "intro": "The ways to trigger Speak Chat: if any rule that is on matches, the message is read. Commands with their own voice (!goku, !thanos…) are in their own tab."

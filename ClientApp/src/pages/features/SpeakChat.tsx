@@ -55,8 +55,6 @@ export default function SpeakChat() {
                 if (!res.data.config.data.voice?.pollyVoice && merged.voice.voice) {
                     merged.voice.pollyVoice = merged.voice.voice;
                 }
-                // Una config guardada antes de las Fuentes sigue leyendo solo Twitch, como hasta ahora
-                if (!res.data.config.data.global?.sources) merged.global.sources = { twitch: true, kick: false };
                 // Una config guardada antes de esta opción conserva su comportamiento (parcial)
                 if (!res.data.config.data.filters?.blockedWordsMode) merged.filters.blockedWordsMode = 'partial';
                 setConfig(merged);
