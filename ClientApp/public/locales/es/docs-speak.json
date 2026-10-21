@@ -73,11 +73,83 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Entra a Funciones → Speak Chat (`/features/speak-chat`). En la pestaña Global activa «Speak Chat activo». Viene apagado: mientras esté apagado, nada se lee aunque las reglas estén bien. Para configurarlo y probarlo hace falta el nivel Moderación o superior en el panel."
+            "x": "Entra a Funciones → Speak Chat (`/features/speak-chat`). En la pestaña General activa «Speak Chat activo». Viene apagado: mientras esté apagado, nada se lee aunque las reglas estén bien. Para configurarlo y probarlo hace falta el nivel Moderación o superior en el panel."
           },
           {
             "t": "p",
-            "x": "La página tiene seis pestañas: Global, Activación, Voz, Filtros, Overlay y Testing. Todo se guarda con el botón «Guardar»."
+            "x": "La página tiene 13 pestañas (abajo, el detalle de cada una). La primera, Guía, te lleva de la mano en cuatro pasos. Todo se guarda con el botón «Guardar», que solo se enciende cuando hay cambios; si intentas salir con cambios sin guardar, el panel te avisa."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Las 13 pestañas",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Pestaña",
+              "Para qué sirve"
+            ],
+            "rows": [
+              [
+                "Guía",
+                "Cuatro pasos para dejarlo funcionando (encender, elegir la voz, poner el enlace en OBS y enviar una prueba). Cada paso indica si ya está hecho y te lleva a su pestaña."
+              ],
+              [
+                "General",
+                "El interruptor «Speak Chat activo» y el aviso si no hay ningún overlay conectado en OBS."
+              ],
+              [
+                "Activación",
+                "Las cinco reglas que hacen que un mensaje se lea (comando, bits, puntos de canal, rol y todos los mensajes) y quién puede usar cada una."
+              ],
+              [
+                "Comandos de voz",
+                "Comandos como `!goku` con su propia voz, permisos y enfriamientos."
+              ],
+              [
+                "Voz del canal",
+                "La voz con la que lee Speak Chat cuando un comando no trae la suya: tipo de voz, calidad, idioma, voz y volumen."
+              ],
+              [
+                "Biblioteca de voces",
+                "Todas las voces que puedes usar; escuchas las de personaje y las dejas como voz del canal con un clic."
+              ],
+              [
+                "Solicitar voz",
+                "Buscar una voz de personaje, escuchar su muestra y pedirla para que Decatron la apruebe."
+              ],
+              [
+                "Mis voces",
+                "Tu lista propia de voces de personaje (rango Patrocinador o superior)."
+              ],
+              [
+                "Filtros",
+                "Enfriamientos, largo máximo, palabras bloqueadas y usuarios bloqueados."
+              ],
+              [
+                "Overlay",
+                "Aspecto y posición de la burbuja, los enlaces de OBS (Todo, Solo Twitch, Solo Kick) con su estado, y recargar overlays."
+              ],
+              [
+                "Créditos",
+                "Tu saldo de voz: cuota del mes, comprados y caracteres estándar, con aviso de saldo bajo."
+              ],
+              [
+                "Historial",
+                "Quién cambió la configuración, cuándo y qué campos."
+              ],
+              [
+                "Pruebas",
+                "Envía un mensaje de prueba al overlay."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "A la derecha del panel (debajo en el móvil) hay una columna fija con la vista previa de la burbuja, el estado de Speak Chat y de OBS, tu saldo de voz y un botón «Enviar prueba»."
           }
         ]
       },
@@ -101,7 +173,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "La pestaña Global muestra la URL del overlay, con el formato `/overlay/speak-chat?channel=tu_canal`. Agrégala como fuente de tipo «Navegador» en OBS. Los audios se reproducen uno a uno, en orden de llegada."
+            "x": "La Guía y la pestaña Overlay muestran el enlace del overlay, con el formato `/overlay/speak-chat?channel=tu_canal`. Agrégalo como fuente de tipo «Navegador» en OBS, con el ancho y el alto de tu escena, y borra el CSS personalizado que OBS trae por defecto para que el fondo quede transparente. Con los dos canales vinculados verás tres enlaces («Todo», «Solo Twitch» y «Solo Kick»); cada uno indica si está conectado en OBS. Los audios se reproducen uno a uno, en orden de llegada."
           },
           {
             "t": "p",
@@ -115,7 +187,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "En Testing escribes un mensaje y lo envías al overlay. Si Speak Chat está apagado, el servidor lo rechaza con el aviso «Speak Chat está desactivado». La prueba genera audio de verdad, así que gasta del mismo saldo que un mensaje real."
+            "x": "En la pestaña Pruebas escribes un mensaje y lo envías al overlay (también hay un botón «Enviar prueba» en la columna de la derecha). Si Speak Chat está apagado o no hay ningún overlay conectado, el panel te lo avisa; el servidor además rechaza la prueba con «Speak Chat está desactivado». La prueba usa la voz que ves en pantalla aunque no la hayas guardado, y genera audio de verdad, así que gasta del mismo saldo que un mensaje real."
           },
           {
             "t": "note",
@@ -130,12 +202,12 @@
         "blocks": [
           {
             "t": "p",
-            "x": "En la pestaña Global, la tarjeta «Últimos cambios» muestra cada vez que alguien guardó la configuración: quién fue, cuándo y qué campos cambiaron, con el valor de antes y el de después. Se conservan los últimos 100 guardados."
+            "x": "En la pestaña Historial se muestra cada vez que alguien guardó la configuración: quién fue, cuándo y qué campos cambiaron, con el valor de antes y el de después. Se conservan los últimos 100 guardados."
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "Si algo suena cuando no debería, o deja de sonar, aquí se ve si alguien cambió una regla o apagó el interruptor general. Los campos aparecen con su ruta técnica, por ejemplo `global.enabled` o `activation.rules[0].enabled` (la primera regla es la posición 0)."
+            "x": "Si algo suena cuando no debería, o deja de sonar, aquí se ve si alguien cambió una regla o apagó el interruptor general. Cada campo aparece con su nombre y sus valores en lenguaje normal (por ejemplo «Regla 6 · permiso: todos»); al pasar el mouse por encima se ve su ruta técnica, como `global.enabled`."
           }
         ]
       }
@@ -207,7 +279,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Además del comando principal puedes agregar los que quieras con «Agregar comando de voz». Cada uno tiene su nombre (`!goku`, `!narrador`…), su propia voz y sus propios permisos: `!tts` sigue con la voz del canal y `!goku` habla con la de Goku."
+            "x": "Además del comando principal de la pestaña Activación puedes agregar los que quieras en la pestaña Comandos de voz, con «Agregar comando de voz». Cada uno tiene su nombre (`!goku`, `!narrador`…), su propia voz y sus propios permisos: `!tts` sigue con la voz del canal y `!goku` habla con la de Goku."
           },
           {
             "t": "ul",
@@ -305,7 +377,7 @@
           },
           {
             "t": "p",
-            "x": "¿No está la voz que quieres? Debajo del desplegable hay una tarjeta «Solicitar una voz de personaje»: busca el personaje, escucha la muestra de cada resultado y pulsa «Pedir esta voz» en la que te guste (buscar y escuchar no gasta créditos). Si no la encuentras, descríbela con tus palabras en «¿No la encuentras?». Puedes tener hasta 3 solicitudes en revisión a la vez y ver el estado de cada una (en revisión, aprobada o rechazada con el motivo). Si se aprueba, la voz aparece en la lista para todos. Con el rango Patrocinador (o superior) la tarjeta se llama «Tus voces propias»: buscas en Fish, escuchas la muestra y agregas hasta 10 voces a tu lista sin esperar aprobación; aparecen en tu desplegable con la marca «mía», solo en tu canal y mientras conserves el rango. La licencia de cada voz es la de su autor."
+            "x": "¿No está la voz que quieres? En la pestaña Solicitar voz busca el personaje, escucha la muestra de cada resultado y pulsa «Pedir esta voz» en la que te guste (buscar y escuchar no gasta créditos). Si no la encuentras, descríbela con tus palabras en «¿No la encuentras?». Puedes tener hasta 3 solicitudes en revisión a la vez y ver el estado de cada una (en revisión, aprobada o rechazada con el motivo). Si se aprueba, la voz aparece en la lista para todos. Con el rango Patrocinador (o superior) la pestaña Mis voces te deja buscar en Fish, escuchar la muestra y agregar hasta 10 voces a tu lista sin esperar aprobación; aparecen en tu lista con la marca «mía», solo en tu canal y mientras conserves el rango. La licencia de cada voz es la de su autor. En la pestaña Biblioteca de voces ves todas las voces disponibles (las de personaje con su muestra) y con «Usar en el canal» eliges una como voz del canal."
           },
           {
             "t": "p",
@@ -315,7 +387,7 @@
       },
       {
         "id": "ajustes",
-        "title": "Ajustes de la pestaña Voz",
+        "title": "Ajustes de la pestaña Voz del canal",
         "blocks": [
           {
             "t": "ul",
@@ -339,7 +411,7 @@
           },
           {
             "t": "p",
-            "x": "La pestaña Testing muestra tus créditos TTS, y la pestaña Voz un resumen de tu saldo: la cuota del mes (se reinicia el día 1), los comprados (no caducan) y los caracteres de voz estándar que te quedan. Compra créditos desde la página de créditos."
+            "x": "La pestaña Créditos muestra tu saldo de voz: la cuota del mes (se reinicia el día 1), los comprados (no caducan) y los caracteres de voz estándar que te quedan, con un aviso cuando queda poco y otro cuando se agota; el saldo también está en la columna fija de la derecha. Compra créditos desde la página de créditos."
           }
         ]
       },
@@ -432,7 +504,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Testing envía un mensaje de prueba al overlay (por defecto «Mensaje de prueba del Speak Chat»). Requiere Speak Chat activo y gasta de tu saldo como un mensaje real."
+            "x": "La pestaña Pruebas envía un mensaje de prueba al overlay (por defecto «Hola, este es un mensaje de prueba de Speak Chat»). Requiere Speak Chat activo y gasta de tu saldo como un mensaje real."
           }
         ]
       }

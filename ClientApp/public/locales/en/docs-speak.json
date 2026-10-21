@@ -73,11 +73,83 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Open Funciones → Speak Chat (`/features/speak-chat`). In the Global tab turn on “Speak Chat activo”. It starts off: while it is off, nothing is read even if the rules are fine. To configure and test it you need the Moderation level or higher in the dashboard."
+            "x": "Open Funciones → Speak Chat (`/features/speak-chat`). In the General tab turn on “Speak Chat active”. It starts off: while it is off, nothing is read even if the rules are fine. To configure and test it you need the Moderation level or higher in the dashboard."
           },
           {
             "t": "p",
-            "x": "The page has six tabs: Global, Activación, Voz, Filtros, Overlay and Testing. Everything is saved with the “Guardar” button."
+            "x": "The page has 13 tabs (details below). The first one, Guide, walks you through four steps. Everything is saved with the “Save” button, which only turns on when there are changes; if you try to leave with unsaved changes, the panel warns you."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "The 13 tabs",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tab",
+              "What it is for"
+            ],
+            "rows": [
+              [
+                "Guide",
+                "Four steps to get it working (turn it on, pick the voice, put the link in OBS and send a test). Each step shows whether it is done and takes you to its tab."
+              ],
+              [
+                "General",
+                "The “Speak Chat active” switch and a warning if no overlay is connected in OBS."
+              ],
+              [
+                "Activation",
+                "The five rules that make a message get read (command, bits, channel points, role and all messages) and who can use each one."
+              ],
+              [
+                "Voice commands",
+                "Commands like `!goku` with their own voice, permissions and cooldowns."
+              ],
+              [
+                "Channel voice",
+                "The voice Speak Chat reads with when a command has none of its own: voice type, quality, language, voice and volume."
+              ],
+              [
+                "Voice library",
+                "Every voice you can use; you listen to the character ones and set one as the channel voice with a click."
+              ],
+              [
+                "Request voice",
+                "Search for a character voice, listen to its sample and request it so Decatron can approve it."
+              ],
+              [
+                "My voices",
+                "Your own list of character voices (Patrocinador rank or higher)."
+              ],
+              [
+                "Filters",
+                "Cooldowns, maximum length, blocked words and blocked users."
+              ],
+              [
+                "Overlay",
+                "Look and position of the balloon, the OBS links (All, Twitch only, Kick only) with their status, and reload overlays."
+              ],
+              [
+                "Credits",
+                "Your voice balance: monthly quota, purchased credits and standard characters, with a low-balance warning."
+              ],
+              [
+                "History",
+                "Who changed the settings, when and which fields."
+              ],
+              [
+                "Tests",
+                "Send a test message to the overlay."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "On the right of the panel (below it on mobile) there is a fixed column with the balloon preview, the Speak Chat and OBS status, your voice balance and a “Send test” button."
           }
         ]
       },
@@ -101,7 +173,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "The Global tab shows the overlay URL, in the format `/overlay/speak-chat?channel=your_channel`. Add it as a “Navegador” (Browser) source in OBS. Audios play one at a time, in order of arrival."
+            "x": "The Guide and the Overlay tab show the overlay link, in the format `/overlay/speak-chat?channel=your_channel`. Add it as a “Browser” source in OBS, with your scene's width and height, and clear the custom CSS OBS adds by default so the background is transparent. With both channels linked you will see three links (“All”, “Twitch only” and “Kick only”); each one shows whether it is connected in OBS. Audios play one at a time, in order of arrival."
           },
           {
             "t": "p",
@@ -115,7 +187,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "In Testing you type a message and send it to the overlay. If Speak Chat is off, the server rejects it with the notice “Speak Chat está desactivado”. The test generates real audio, so it uses the same balance as a real message."
+            "x": "In the Tests tab you type a message and send it to the overlay (there is also a “Send test” button in the right-hand column). If Speak Chat is off or no overlay is connected, the panel warns you; the server also rejects the test with “Speak Chat está desactivado”. The test uses the voice you see on screen even if you have not saved it, and it generates real audio, so it uses the same balance as a real message."
           },
           {
             "t": "note",
@@ -130,12 +202,12 @@
         "blocks": [
           {
             "t": "p",
-            "x": "On the Global tab, the «Recent changes» card shows every time someone saved the settings: who it was, when, and which fields changed, with the value before and after. The last 100 saves are kept."
+            "x": "The History tab shows every time someone saved the settings: who it was, when, and which fields changed, with the value before and after. The last 100 saves are kept."
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "If something plays when it should not, or stops playing, this shows whether someone changed a rule or turned the main switch off. Fields appear with their technical path, for example `global.enabled` or `activation.rules[0].enabled` (the first rule is position 0)."
+            "x": "If something plays when it should not, or stops playing, this shows whether someone changed a rule or turned the main switch off. Each field appears with its name and values in plain language (for example “Rule 6 · permission: everyone”); hovering over it shows its technical path, such as `global.enabled`."
           }
         ]
       }
@@ -207,7 +279,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Besides the main command you can add as many as you like with «Add voice command». Each one has its own name (`!goku`, `!narrator`…), its own voice and its own permissions: `!tts` keeps the channel's voice while `!goku` speaks with Goku's."
+            "x": "Besides the main command in the Activation tab you can add as many as you like in the Voice commands tab with “Add voice command”. Each one has its own name (`!goku`, `!narrator`…), its own voice and its own permissions: `!tts` keeps the channel's voice while `!goku` speaks with Goku's."
           },
           {
             "t": "ul",
@@ -305,7 +377,7 @@
           },
           {
             "t": "p",
-            "x": "Can't find the voice you want? Under the dropdown there is a «Request a character voice» card: search for the character, listen to each result's sample and press «Request this voice» on the one you like (searching and listening cost no credits). If you can't find it, describe it in your own words under «Can't find it?». You can have up to 3 requests under review at once and see the status of each one (under review, approved, or rejected with the reason). If it is approved, the voice appears in the list for everyone. With the Patrocinador rank (or higher) the card is called «Your own voices»: you search Fish, listen to the sample and add up to 10 voices to your list without waiting for approval; they show in your dropdown with the «mía» mark, only in your channel and while you keep the rank. The licence of each voice is its author's."
+            "x": "Can't find the voice you want? In the Request voice tab, search for the character, listen to each result's sample and press “Request this voice” on the one you like (searching and listening cost no credits). If you can't find it, describe it in your own words under “Can't find it?”. You can have up to 3 requests under review at once and see the status of each one (under review, approved, or rejected with the reason). If it is approved, the voice appears in the list for everyone. With the Patrocinador rank (or higher) the My voices tab lets you search Fish, listen to the sample and add up to 10 voices to your list without waiting for approval; they show in your list with the “mine” mark, only in your channel and while you keep the rank. The licence of each voice is its author's. The Voice library tab lists every available voice (character ones with their sample) and “Use in channel” sets one as the channel voice."
           },
           {
             "t": "p",
@@ -315,7 +387,7 @@
       },
       {
         "id": "ajustes",
-        "title": "Voice tab settings",
+        "title": "Channel voice tab settings",
         "blocks": [
           {
             "t": "ul",
@@ -339,7 +411,7 @@
           },
           {
             "t": "p",
-            "x": "The Testing tab shows your TTS credits, and the Voz tab a summary of your balance: the monthly quota (it resets on the 1st), purchased ones (they do not expire) and the standard voice characters you have left. Buy credits from the credits page."
+            "x": "The Credits tab shows your voice balance: the monthly quota (it resets on the 1st), purchased credits (they do not expire) and the standard voice characters you have left, with a warning when it runs low and another when it runs out; the balance is also in the fixed right-hand column. Buy credits from the credits page."
           }
         ]
       },
@@ -432,7 +504,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Testing sends a test message to the overlay (by default “Mensaje de prueba del Speak Chat”). It requires Speak Chat to be on and uses your balance like a real message."
+            "x": "The Tests tab sends a test message to the overlay (by default “Hello, this is a Speak Chat test message”). It requires Speak Chat to be on and uses your balance like a real message."
           }
         ]
       }
