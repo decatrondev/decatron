@@ -4,7 +4,7 @@ import {
     DEFAULT_LANGUAGE_CODE,
     DEFAULT_POLLY_ENGINE,
 } from '../../../components/tts/voiceDefaults';
-import type { CreditUsage, RoleConfig, SpeakChatConfigData, TabId } from './types';
+import type { CreditUsage, RoleConfig, SpeakChatConfigData } from './types';
 
 // ===================== DEFAULTS =====================
 
@@ -38,41 +38,10 @@ export const defaultConfig: SpeakChatConfigData = {
 // pide al servidor. La lista de este archivo tenía 16 voces y la de las alertas 21, y
 // ninguna de las dos coincidía con lo que AWS ofrece de verdad.
 
-export const RULE_META: Record<string, { label: string; emoji: string; desc: string }> = {
-    command:       { label: 'Comando de chat',    emoji: '💬', desc: 'El viewer escribe el comando seguido del texto a leer' },
-    bits:          { label: 'Bits mínimos',        emoji: '💎', desc: 'Cuando alguien dona X bits o más, se lee el mensaje' },
-    channelPoints: { label: 'Puntos de canal',     emoji: '⭐', desc: 'Al canjear una recompensa específica de puntos' },
-    roles:         { label: 'Por rol',             emoji: '🎭', desc: 'Solo usuarios con el rol habilitado activan el TTS' },
-    all:           { label: 'Todos los mensajes',  emoji: '🌐', desc: 'Lee absolutamente todos los mensajes del chat' },
-};
-
-export const TABS: { id: TabId; emoji: string; label: string }[] = [
-    { id: 'global',     emoji: '⚙️',  label: 'Global' },
-    { id: 'activation', emoji: '⚡',  label: 'Activación' },
-    { id: 'voice',      emoji: '🔊',  label: 'Voz' },
-    { id: 'filters',    emoji: '🛡️',  label: 'Filtros' },
-    { id: 'overlay',    emoji: '🖥️',  label: 'Overlay' },
-    { id: 'testing',    emoji: '🧪',  label: 'Testing' },
-];
-
 // ===================== SHARED CLASSES =====================
 
-export const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
 export const inputClass = 'w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm';
 export const labelClass = 'text-xs font-bold text-ds-soft block mb-2';
-export const sectionTitle = 'text-sm font-bold text-ds-text flex items-center gap-2 mb-1';
-export const sectionDesc = 'text-xs text-ds-soft mb-4';
-
-// ===================== TOGGLE =====================
-
-export function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-    return (
-        <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="sr-only peer" />
-            <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent" />
-        </label>
-    );
-}
 
 // ===================== HELPERS =====================
 

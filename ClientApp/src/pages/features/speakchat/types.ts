@@ -74,10 +74,4 @@ export interface SpeakChatConfigData {
     overlay: { showBubble: boolean; position: string; fontSize: number; backgroundColor: string; textColor: string; duration: number };
 }
 
-export type TabId = 'global' | 'activation' | 'voice' | 'filters' | 'overlay' | 'testing';
 
-/** Lo que reciben las pestañas para leer y cambiar la configuración. */
-export interface ConfigProps {
-    config: SpeakChatConfigData;
-    setConfig: React.Dispatch<React.SetStateAction<SpeakChatConfigData>>;
-}

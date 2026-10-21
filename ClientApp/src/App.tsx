@@ -113,7 +113,6 @@ import EventAlertsOverlay from './pages/EventAlertsOverlay';
 import TipsOverlay from './pages/TipsOverlay';
 import NowPlayingOverlay from './pages/NowPlayingOverlay';
 import SpeakChatOverlay from './pages/SpeakChatOverlay';
-import SpeakChat from './pages/features/SpeakChat';
 import SpeakChatConfig from './pages/features/SpeakChatConfig';
 import NowPlayingConfig from './pages/features/NowPlayingConfig';
 import GameOverlays from './pages/features/GameOverlays';
@@ -382,8 +381,7 @@ function App() {
                     <Route path="credits" element={<SafeRoute name="Créditos"><Credits /></SafeRoute>} />
                     <Route path="features/decatron-chat" element={<SafeRoute name="Decatron Chat"><DecatronChat /></SafeRoute>} />
                     <Route path="features/tips" element={<SafeRoute name="Tips"><TipsConfig /></SafeRoute>} />
-                    <Route path="features/speak-chat" element={<SafeRoute name="Speak Chat"><SpeakChat /></SafeRoute>} />
-                    <Route path="features/speak-chat-nuevo" element={<SafeRoute name="Speak Chat nuevo"><SpeakChatConfig /></SafeRoute>} />
+                    <Route path="features/speak-chat" element={<SafeRoute name="Speak Chat"><SpeakChatConfig /></SafeRoute>} />
 
                     {/* Rutas de Admin */}
                     <Route path="admin/decatron-ai" element={<SafeRoute name="AI Admin"><DecatronAIAdmin /></SafeRoute>} />
