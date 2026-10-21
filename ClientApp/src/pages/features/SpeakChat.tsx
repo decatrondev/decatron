@@ -51,6 +51,8 @@ export default function SpeakChat() {
                 if (!res.data.config.data.voice?.pollyVoice && merged.voice.voice) {
                     merged.voice.pollyVoice = merged.voice.voice;
                 }
+                // Una config guardada antes de esta opción conserva su comportamiento (parcial)
+                if (!res.data.config.data.filters?.blockedWordsMode) merged.filters.blockedWordsMode = 'partial';
                 setConfig(merged);
                 setBlockedWordsText((merged.filters.blockedWords || []).join('\n'));
                 setBlockedUsersText((merged.filters.blockedUsers || []).join('\n'));

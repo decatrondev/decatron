@@ -330,55 +330,23 @@ namespace Decatron.Services
                 // ===== FILTROS =====
                 cfg.TryGetProperty("filters", out var filters);
 
-                // Cooldown global
-                var globalCooldownSecs = filters.ValueKind != JsonValueKind.Undefined &&
-                    filters.TryGetProperty("globalCooldownSeconds", out var gcs) ? gcs.GetInt32() : 0;
-                if (globalCooldownSecs > 0)
-                {
-                    var key = channelName;
-                    if (_globalCooldowns.TryGetValue(key, out var lastGlobal) &&
-                        (DateTime.UtcNow - lastGlobal).TotalSeconds < globalCooldownSecs)
-                    {
-                        _logger.LogInformation(
-                            "[SpeakChat] {Channel}: descartado por enfriamiento global ({Secs}s)",
-                            channelName, globalCooldownSecs);
-                        return;
-                    }
-                    _globalCooldowns[key] = DateTime.UtcNow;
-                }
-
-                // Cooldown por usuario
-                var perUserCooldownSecs = filters.ValueKind != JsonValueKind.Undefined &&
-                    filters.TryGetProperty("perUserCooldownSeconds", out var pucs) ? pucs.GetInt32() : 0;
-                if (perUserCooldownSecs > 0)
-                {
-                    var key = $"{channelName}:{userId}";
-                    if (_perUserCooldowns.TryGetValue(key, out var lastUser) &&
-                        (DateTime.UtcNow - lastUser).TotalSeconds < perUserCooldownSecs)
-                    {
-                        _logger.LogInformation(
-                            "[SpeakChat] {Channel}: {User} en enfriamiento ({Secs}s entre mensajes)",
-                            channelName, username, perUserCooldownSecs);
-                        return;
-                    }
-                    _perUserCooldowns[key] = DateTime.UtcNow;
-                }
-
                 // Max chars
                 var maxChars = filters.ValueKind != JsonValueKind.Undefined &&
                     filters.TryGetProperty("maxChars", out var mc) ? mc.GetInt32() : 200;
                 if (textToSpeak.Length > maxChars)
-                    textToSpeak = textToSpeak.Substring(0, maxChars);
+                    textToSpeak = SpeakChatTextFilter.TruncateAtWord(textToSpeak, maxChars);
 
-                // Palabras bloqueadas
+                // Palabras bloqueadas: palabra completa solo si el canal lo pidió; las
+                // configuraciones anteriores siguen con coincidencia parcial.
+                var wholeWord = filters.ValueKind != JsonValueKind.Undefined &&
+                    filters.TryGetProperty("blockedWordsMode", out var bwm) && bwm.GetString() == "whole";
                 if (filters.ValueKind != JsonValueKind.Undefined &&
                     filters.TryGetProperty("blockedWords", out var bw) && bw.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var word in bw.EnumerateArray())
                     {
                         var w = word.GetString();
-                        if (!string.IsNullOrEmpty(w) &&
-                            textToSpeak.Contains(w, StringComparison.OrdinalIgnoreCase))
+                        if (SpeakChatTextFilter.ContainsBlocked(textToSpeak, w ?? "", wholeWord))
                         {
                             _logger.LogInformation(
                                 "[SpeakChat] {Channel}: mensaje de {User} descartado por palabra bloqueada",
@@ -407,6 +375,43 @@ namespace Decatron.Services
                 }
 
                 if (string.IsNullOrWhiteSpace(textToSpeak)) return;
+
+                // Enfriamientos: se registran solo cuando el mensaje pasó todos los filtros,
+                // para que uno descartado no deje al usuario ni al canal esperando.
+                var globalCooldownSecs = filters.ValueKind != JsonValueKind.Undefined &&
+                    filters.TryGetProperty("globalCooldownSeconds", out var gcs) ? gcs.GetInt32() : 0;
+                if (globalCooldownSecs > 0)
+                {
+                    var key = channelName;
+                    if (_globalCooldowns.TryGetValue(key, out var lastGlobal) &&
+                        (DateTime.UtcNow - lastGlobal).TotalSeconds < globalCooldownSecs)
+                    {
+                        _logger.LogInformation(
+                            "[SpeakChat] {Channel}: descartado por enfriamiento global ({Secs}s)",
+                            channelName, globalCooldownSecs);
+                        return;
+                    }
+                }
+
+                // Cooldown por usuario
+                var perUserCooldownSecs = filters.ValueKind != JsonValueKind.Undefined &&
+                    filters.TryGetProperty("perUserCooldownSeconds", out var pucs) ? pucs.GetInt32() : 0;
+                if (perUserCooldownSecs > 0)
+                {
+                    var key = $"{channelName}:{userId}";
+                    if (_perUserCooldowns.TryGetValue(key, out var lastUser) &&
+                        (DateTime.UtcNow - lastUser).TotalSeconds < perUserCooldownSecs)
+                    {
+                        _logger.LogInformation(
+                            "[SpeakChat] {Channel}: {User} en enfriamiento ({Secs}s entre mensajes)",
+                            channelName, username, perUserCooldownSecs);
+                        return;
+                    }
+                }
+
+                // Recién aquí, con los dos enfriamientos superados, se marcan ambos
+                if (globalCooldownSecs > 0) _globalCooldowns[channelName] = DateTime.UtcNow;
+                if (perUserCooldownSecs > 0) _perUserCooldowns[$"{channelName}:{userId}"] = DateTime.UtcNow;
 
                 // ===== VOZ Y TTS =====
                 cfg.TryGetProperty("voice", out var voice);

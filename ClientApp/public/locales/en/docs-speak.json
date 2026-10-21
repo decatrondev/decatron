@@ -372,7 +372,7 @@
           {
             "t": "ul",
             "items": [
-              "Blocked words (one per line): a message containing any of them, anywhere in the text and regardless of case, is not read.",
+              "Blocked words (one per line): a message containing any of them is not read, regardless of case. Below you choose how they are matched: whole word (recommended, \"ass\" does not block \"class\") or any fragment. Your previous setup stays on fragment until you change it.",
               "Blocked users (one per line): their messages are not read."
             ]
           }

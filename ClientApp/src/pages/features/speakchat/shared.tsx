@@ -30,7 +30,7 @@ export const defaultConfig: SpeakChatConfigData = {
         languageCode: DEFAULT_LANGUAGE_CODE,
         volume: 80,
     },
-    filters: { globalCooldownSeconds: 0, perUserCooldownSeconds: 10, maxChars: 200, blockedWords: [], blockedUsers: [] },
+    filters: { globalCooldownSeconds: 0, perUserCooldownSeconds: 10, maxChars: 200, blockedWords: [], blockedWordsMode: 'whole', blockedUsers: [] },
     overlay: { showBubble: true, position: 'bottom-left', fontSize: 16, backgroundColor: 'rgba(0,0,0,0.75)', textColor: '#ffffff', duration: 5000 }
 };
 

@@ -50,7 +50,7 @@ export interface SpeakChatConfigData {
     // `engine` es el proveedor (estándar o premium); `pollyEngine`, la calidad dentro de
     // Polly, que es lo que decide el multiplicador de créditos.
     voice: { engine: 'piper' | 'polly' | 'fish'; voice: string; pollyVoice: string; standardVoice: string; fishVoice?: string; pollyEngine: 'standard' | 'neural'; languageCode: string; volume: number };
-    filters: { globalCooldownSeconds: number; perUserCooldownSeconds: number; maxChars: number; blockedWords: string[]; blockedUsers: string[] };
+    filters: { globalCooldownSeconds: number; perUserCooldownSeconds: number; maxChars: number; blockedWords: string[]; blockedWordsMode: 'whole' | 'partial'; blockedUsers: string[] };
     overlay: { showBubble: boolean; position: string; fontSize: number; backgroundColor: string; textColor: string; duration: number };
 }
 

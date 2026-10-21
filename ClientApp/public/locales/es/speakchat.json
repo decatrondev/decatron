@@ -14,5 +14,11 @@
     "no": "no",
     "emptyValue": "vacío",
     "moreChanges": "Se muestran los primeros {{count}} cambios."
+  },
+  "filters": {
+    "wordsMode": "Cómo se buscan las palabras bloqueadas",
+    "wordsModeHint": "Palabra completa evita bloquear mensajes inocentes (por ejemplo, «clase» por contener «ase»). Parcial bloquea cualquier mensaje que contenga el fragmento.",
+    "modeWhole": "Palabra completa (recomendado)",
+    "modePartial": "Cualquier fragmento"
   }
 }

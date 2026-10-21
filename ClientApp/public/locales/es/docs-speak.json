@@ -358,7 +358,7 @@
               ],
               [
                 "Máximo de caracteres",
-                "Un mensaje más largo se recorta a ese largo (no se descarta).",
+                "Un mensaje más largo se recorta a ese largo, sin dejar una palabra a medias (no se descarta).",
                 "200"
               ]
             ]
@@ -372,7 +372,7 @@
           {
             "t": "ul",
             "items": [
-              "Palabras bloqueadas (una por línea): un mensaje que contenga alguna, en cualquier parte del texto y sin distinguir mayúsculas, no se lee.",
+              "Palabras bloqueadas (una por línea): un mensaje que las contenga no se lee, sin distinguir mayúsculas. Debajo eliges cómo se buscan: palabra completa (recomendado, «ase» no bloquea «clase») o cualquier fragmento. Tu configuración anterior sigue en fragmento hasta que la cambies.",
               "Usuarios bloqueados (uno por línea): sus mensajes no se leen."
             ]
           }

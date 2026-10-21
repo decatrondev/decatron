@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cardClass, inputClass, labelClass, sectionTitle, sectionDesc } from './shared';
 import type { ConfigProps } from './types';
 
@@ -9,6 +10,7 @@ interface FiltersTabProps extends ConfigProps {
 }
 
 export default function FiltersTab({ config, setConfig, blockedWordsText, setBlockedWordsText, blockedUsersText, setBlockedUsersText }: FiltersTabProps) {
+    const { t } = useTranslation('speakchat');
     return (
         <div className="space-y-6">
             <div className={cardClass}>
@@ -75,6 +77,18 @@ export default function FiltersTab({ config, setConfig, blockedWordsText, setBlo
                             className={`${inputClass} resize-none font-mono`}
                         />
                     </div>
+                </div>
+                <div className="mt-6">
+                    <label className={labelClass}>{t('filters.wordsMode')}</label>
+                    <p className="text-xs text-ds-soft mb-2">{t('filters.wordsModeHint')}</p>
+                    <select
+                        value={config.filters.blockedWordsMode ?? 'partial'}
+                        onChange={e => setConfig(c => ({ ...c, filters: { ...c.filters, blockedWordsMode: e.target.value as 'whole' | 'partial' } }))}
+                        className={`${inputClass} w-full sm:w-80`}
+                    >
+                        <option value="whole">{t('filters.modeWhole')}</option>
+                        <option value="partial">{t('filters.modePartial')}</option>
+                    </select>
                 </div>
             </div>
         </div>

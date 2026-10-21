@@ -14,5 +14,11 @@
     "no": "no",
     "emptyValue": "empty",
     "moreChanges": "Showing the first {{count}} changes."
+  },
+  "filters": {
+    "wordsMode": "How blocked words are matched",
+    "wordsModeHint": "Whole word avoids blocking harmless messages (for example, \"class\" for containing \"ass\"). Partial blocks any message that contains the fragment.",
+    "modeWhole": "Whole word (recommended)",
+    "modePartial": "Any fragment"
   }
 }
