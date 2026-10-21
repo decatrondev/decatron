@@ -41,6 +41,8 @@ interface VoiceRequest {
     login?: string | null;
     description: string;
     referenceId?: string | null;
+    title?: string | null;
+    sampleUrl?: string | null;
     status: 'pending' | 'approved' | 'rejected';
     adminNote?: string | null;
     createdAt: string;
@@ -236,7 +238,13 @@ export default function FishVoicesAdmin() {
                         {requests.filter(r => r.status === 'pending').map(r => (
                             <div key={r.id} className={'rounded-lg border p-4 space-y-3 ' + (activeReq === r.id ? 'border-ds-accent' : 'border-ds-border')}>
                                 <div>
-                                    <p className="font-black text-ds-text">{r.description}</p>
+                                    <p className="font-black text-ds-text">{r.title || r.description}</p>
+                                    {r.title && r.title !== r.description && <p className="text-xs text-ds-soft">Pidió: {r.description}</p>}
+                                    {r.sampleUrl && (
+                                        <button className="ds-btn ds-btn--secondary ds-btn--sm mt-1" onClick={() => play(r.sampleUrl!)}>
+                                            <Volume2 className="w-4 h-4" /> Escuchar muestra
+                                        </button>
+                                    )}
                                     <p className="text-xs text-ds-soft">
                                         {r.login ?? 'usuario'} · {fmtDate(r.createdAt)}{r.referenceId ? ` · id de Fish: ${r.referenceId}` : ''}
                                     </p>

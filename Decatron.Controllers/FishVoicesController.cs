@@ -65,25 +65,25 @@ namespace Decatron.Controllers
             });
         }
 
-        /// <summary>Busca voces públicas en Fish (rango Patrocinador o superior). No gasta saldo.</summary>
+        /// <summary>Busca voces públicas en Fish y devuelve su muestra. Abierto a todos los rangos (para escuchar y solicitar); no gasta saldo.</summary>
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string? q, [FromQuery] string? language)
         {
             var ownerId = GetChannelOwnerId();
-            if (!await CanUsePrivateAsync(ownerId)) return StatusCode(403, new { success = false, message = "Disponible desde el rango Patrocinador" });
             if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2) return BadRequest(new { success = false, message = "Escribe al menos 2 letras" });
             try
             {
                 var found = await _fish.SearchModelsAsync(q, string.IsNullOrWhiteSpace(language) ? "es" : language, 12);
                 var mine = (await _db.TtsFishUserVoices.AsNoTracking().Where(v => v.UserId == ownerId && v.Active).Select(v => v.ReferenceId).ToListAsync()).ToHashSet();
                 var global = (await _db.TtsFishVoices.AsNoTracking().Where(v => v.Active).Select(v => v.ReferenceId).ToListAsync()).ToHashSet();
+                var requested = (await _db.TtsFishVoiceRequests.AsNoTracking().Where(r => r.UserId == ownerId && r.Status == "pending" && r.ReferenceId != null).Select(r => r.ReferenceId!).ToListAsync()).ToHashSet();
                 return Ok(new
                 {
                     success = true,
                     results = found.Where(m => !m.TakenDown && string.Equals(m.Visibility, "public", StringComparison.OrdinalIgnoreCase)).Select(m => new
                     {
                         id = m.Id, title = m.Title, languages = m.Languages, author = m.Author, sampleUrl = m.SampleUrl,
-                        likes = m.Likes, uses = m.Uses, added = mine.Contains(m.Id), inCatalog = global.Contains(m.Id)
+                        likes = m.Likes, uses = m.Uses, added = mine.Contains(m.Id), inCatalog = global.Contains(m.Id), requested = requested.Contains(m.Id)
                     })
                 });
             }

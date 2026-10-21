@@ -16,6 +16,10 @@ public class FishVoiceRequest
     [Column("description")] public string Description { get; set; } = "";
     /// <summary>Id de Fish si el streamer pegó un enlace o id válido.</summary>
     [Column("reference_id")] public string? ReferenceId { get; set; }
+    /// <summary>Nombre de la voz elegida en Fish (lo toma el servidor de Fish, no el navegador).</summary>
+    [Column("title")] public string? Title { get; set; }
+    /// <summary>Muestra de audio de la voz elegida, para que el admin la escuche sin buscarla.</summary>
+    [Column("sample_url")] public string? SampleUrl { get; set; }
     /// <summary>pending | approved | rejected</summary>
     [Column("status")] public string Status { get; set; } = "pending";
     [Column("admin_note")] public string? AdminNote { get; set; }

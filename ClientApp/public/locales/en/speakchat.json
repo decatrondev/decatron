@@ -20,5 +20,39 @@
     "wordsModeHint": "Whole word avoids blocking harmless messages (for example, \"class\" for containing \"ass\"). Partial blocks any message that contains the fragment.",
     "modeWhole": "Whole word (recommended)",
     "modePartial": "Any fragment"
+  },
+  "request": {
+    "title": "Request a character voice",
+    "intro": "Search for the voice, listen to the sample and request the one you like, so you know how it sounds before asking. We review it and, if approved, it appears in the list for everyone. With the Patrocinador rank you can add your own voices without waiting.",
+    "searchPlaceholder": "Character or voice name",
+    "lang": {
+      "es": "Spanish",
+      "en": "English",
+      "pt": "Portuguese",
+      "ja": "Japanese"
+    },
+    "search": "Search",
+    "searching": "Searching…",
+    "noResults": "No results.",
+    "noLanguage": "no language",
+    "uses": "{{count}} uses",
+    "sample": "Sample",
+    "inCatalog": "Already in everyone's list",
+    "alreadyRequested": "Already requested",
+    "ask": "Request this voice",
+    "notFound": "Can't find it? Describe it in your own words",
+    "textPlaceholder": "E.g.: Goku's voice in Latin American Spanish",
+    "sendText": "Request voice",
+    "sending": "Sending…",
+    "sent": "Request sent. We'll review it soon.",
+    "sendError": "The request could not be sent",
+    "searchError": "The search failed",
+    "playError": "The browser could not play the audio",
+    "mine": "Your requests",
+    "status": {
+      "pending": "Under review",
+      "approved": "Approved: it's in the list",
+      "rejected": "Rejected"
+    }
   }
 }

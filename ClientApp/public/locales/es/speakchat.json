@@ -20,5 +20,39 @@
     "wordsModeHint": "Palabra completa evita bloquear mensajes inocentes (por ejemplo, «clase» por contener «ase»). Parcial bloquea cualquier mensaje que contenga el fragmento.",
     "modeWhole": "Palabra completa (recomendado)",
     "modePartial": "Cualquier fragmento"
+  },
+  "request": {
+    "title": "Solicitar una voz de personaje",
+    "intro": "Busca la voz, escucha la muestra y pide la que te guste: así sabes cómo suena antes de pedirla. La revisamos y, si la aprobamos, aparece en la lista para todos. Con el rango Patrocinador puedes agregar tus propias voces sin esperar.",
+    "searchPlaceholder": "Nombre del personaje o la voz",
+    "lang": {
+      "es": "Español",
+      "en": "Inglés",
+      "pt": "Portugués",
+      "ja": "Japonés"
+    },
+    "search": "Buscar",
+    "searching": "Buscando…",
+    "noResults": "Sin resultados.",
+    "noLanguage": "sin idioma",
+    "uses": "{{count}} usos",
+    "sample": "Muestra",
+    "inCatalog": "Ya está en la lista de todos",
+    "alreadyRequested": "Ya la pediste",
+    "ask": "Pedir esta voz",
+    "notFound": "¿No la encuentras? Descríbela con tus palabras",
+    "textPlaceholder": "Ej: la voz de Goku en español latino",
+    "sendText": "Solicitar voz",
+    "sending": "Enviando…",
+    "sent": "Solicitud enviada. La revisaremos pronto.",
+    "sendError": "No se pudo enviar la solicitud",
+    "searchError": "La búsqueda falló",
+    "playError": "El navegador no pudo reproducir el audio",
+    "mine": "Tus solicitudes",
+    "status": {
+      "pending": "En revisión",
+      "approved": "Aprobada: ya está en la lista",
+      "rejected": "Rechazada"
+    }
   }
 }

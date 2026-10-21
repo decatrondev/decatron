@@ -68,7 +68,7 @@ namespace Decatron.Controllers
                               join u in _db.Users.AsNoTracking() on r.UserId equals u.Id into uj
                               from u in uj.DefaultIfEmpty()
                               orderby r.Status == "pending" ? 0 : 1, r.CreatedAt descending
-                              select new { r.Id, r.UserId, login = u != null ? u.Login : null, r.Description, r.ReferenceId, r.Status, r.AdminNote, r.VoiceId, r.CreatedAt, r.ResolvedAt })
+                              select new { r.Id, r.UserId, login = u != null ? u.Login : null, r.Description, r.ReferenceId, r.Title, r.SampleUrl, r.Status, r.AdminNote, r.VoiceId, r.CreatedAt, r.ResolvedAt })
                              .Take(100).ToListAsync();
             return Ok(new { success = true, requests = rows });
         }

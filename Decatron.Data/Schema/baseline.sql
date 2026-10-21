@@ -9272,6 +9272,8 @@ CREATE TABLE public.tts_fish_voice_requests (
     voice_id character varying(32),
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     resolved_at timestamp with time zone,
+    title character varying(200),
+    sample_url text,
     CONSTRAINT chk_tts_fish_voice_requests_status CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying, 'rejected'::character varying])::text[])))
 );
 
