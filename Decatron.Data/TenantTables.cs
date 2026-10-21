@@ -138,6 +138,7 @@ public static class TenantTables
         "sound_alert_history",
         "sound_alert_reward_files",
         "speak_chat_configs",
+        "speak_chat_config_history",
         "speak_chat_usage_backup",
         "stream_chat_activities",
         "stream_watch_times",

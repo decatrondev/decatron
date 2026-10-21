@@ -1,0 +1,18 @@
+{
+  "history": {
+    "title": "Últimos cambios",
+    "description": "Quién cambió la configuración de Speak Chat y cuándo. Sirve para saber por qué algo empezó o dejó de sonar.",
+    "empty": "Todavía no hay cambios registrados.",
+    "loadError": "No se pudo cargar el historial.",
+    "by": "por {{user}}",
+    "unknownUser": "alguien del equipo",
+    "fieldsCount_one": "{{count}} campo",
+    "fieldsCount_other": "{{count}} campos",
+    "show": "Ver detalle",
+    "hide": "Ocultar",
+    "yes": "sí",
+    "no": "no",
+    "emptyValue": "vacío",
+    "moreChanges": "Se muestran los primeros {{count}} cambios."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "history": {
+    "title": "Recent changes",
+    "description": "Who changed the Speak Chat settings and when. Useful to find out why something started or stopped playing.",
+    "empty": "No changes recorded yet.",
+    "loadError": "The history could not be loaded.",
+    "by": "by {{user}}",
+    "unknownUser": "a team member",
+    "fieldsCount_one": "{{count}} field",
+    "fieldsCount_other": "{{count}} fields",
+    "show": "Show details",
+    "hide": "Hide",
+    "yes": "yes",
+    "no": "no",
+    "emptyValue": "empty",
+    "moreChanges": "Showing the first {{count}} changes."
+  }
+}

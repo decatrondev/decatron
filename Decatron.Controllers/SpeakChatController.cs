@@ -99,7 +99,9 @@ namespace Decatron.Controllers
                     return Unauthorized(new { success = false, message = "No se pudo identificar el canal" });
 
                 var configJson = JsonSerializer.Serialize(body.Config);
+                var configAnterior = (await _speakChatService.GetConfigAsync(channelOwnerId))?.ConfigJson;
                 await _speakChatService.SaveConfigAsync(channelOwnerId, channelName, configJson);
+                await RegistrarCambiosAsync(channelOwnerId, channelName, configAnterior, configJson);
 
                 // Qué reglas quedaron encendidas, para poder reconstruir después quién cambió qué
                 var reglas = "";
@@ -118,6 +120,43 @@ namespace Decatron.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[SpeakChat] Error al guardar config");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        // ============================
+        // GET /api/speakchat/history
+        // Últimos cambios de la configuración: quién, cuándo y qué campos
+        // ============================
+        [HttpGet("history")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> GetHistory([FromQuery] int limit = 20)
+        {
+            try
+            {
+                var channelOwnerId = GetChannelOwnerId();
+                limit = Math.Clamp(limit, 1, 100);
+                var rows = await _dbContext.SpeakChatConfigHistory.AsNoTracking()
+                    .Where(h => h.UserId == channelOwnerId)
+                    .OrderByDescending(h => h.CreatedAt).ThenByDescending(h => h.Id)
+                    .Take(limit)
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    items = rows.Select(h => new
+                    {
+                        id = h.Id,
+                        changedBy = h.ChangedByLogin,
+                        createdAt = DateTime.SpecifyKind(h.CreatedAt, DateTimeKind.Utc),
+                        changes = JsonSerializer.Deserialize<JsonElement>(h.Changes)
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SpeakChat] Error al leer el historial de cambios");
                 return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
         }
@@ -337,6 +376,55 @@ namespace Decatron.Controllers
         // ============================
         // HELPERS
         // ============================
+
+        private const int MaxHistoryPerChannel = 100;
+
+        /// <summary>
+        /// Guarda qué campos cambió este guardado y quién lo hizo. Nunca rompe el guardado de la
+        /// configuración: si el historial falla, solo queda el aviso en el registro.
+        /// </summary>
+        private async Task RegistrarCambiosAsync(long channelOwnerId, string channelName, string? antes, string despues)
+        {
+            try
+            {
+                var cambios = SpeakChatConfigDiff.Compute(antes, despues);
+                if (cambios.Count == 0) return;
+
+                var actorId = GetUserId();
+                var actorLogin = actorId == 0 ? "" : await _dbContext.Users.AsNoTracking()
+                    .Where(u => u.Id == actorId).Select(u => u.Login).FirstOrDefaultAsync() ?? "";
+
+                _dbContext.SpeakChatConfigHistory.Add(new Decatron.Core.Models.SpeakChatConfigHistory
+                {
+                    UserId = channelOwnerId,
+                    ChannelName = channelName,
+                    ChangedByUserId = actorId,
+                    ChangedByLogin = actorLogin,
+                    Changes = JsonSerializer.Serialize(cambios.Select(c => new { path = c.Path, before = c.Before, after = c.After })),
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _dbContext.SaveChangesAsync();
+
+                // Poda: se conservan solo las últimas filas del canal
+                var sobrantes = await _dbContext.SpeakChatConfigHistory
+                    .Where(h => h.UserId == channelOwnerId)
+                    .OrderByDescending(h => h.CreatedAt).ThenByDescending(h => h.Id)
+                    .Skip(MaxHistoryPerChannel)
+                    .ToListAsync();
+                if (sobrantes.Count > 0)
+                {
+                    _dbContext.SpeakChatConfigHistory.RemoveRange(sobrantes);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                _logger.LogInformation("[SpeakChat] Cambios en {Channel} por {Actor}: {Campos}",
+                    channelName, actorLogin, string.Join("; ", cambios.Take(10).Select(c => $"{c.Path} {c.Before ?? "∅"}→{c.After ?? "∅"}")));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[SpeakChat] No se pudo guardar el historial de cambios de {Channel}", channelName);
+            }
+        }
 
         private long GetUserId()
         {

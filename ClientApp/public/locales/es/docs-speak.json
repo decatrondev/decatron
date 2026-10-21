@@ -123,6 +123,21 @@
             "x": "Si el audio se genera pero no suena, lo más habitual es que el overlay no esté conectado en OBS. Revisa que la fuente esté en la escena y visible."
           }
         ]
+      },
+      {
+        "id": "historial",
+        "title": "5 · Ver quién cambió la configuración",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Global, la tarjeta «Últimos cambios» muestra cada vez que alguien guardó la configuración: quién fue, cuándo y qué campos cambiaron, con el valor de antes y el de después. Se conservan los últimos 100 guardados."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Si algo suena cuando no debería, o deja de sonar, aquí se ve si alguien cambió una regla o apagó el interruptor general. Los campos aparecen con su ruta técnica, por ejemplo `global.enabled` o `activation.rules[0].enabled` (la primera regla es la posición 0)."
+          }
+        ]
       }
     ]
   },

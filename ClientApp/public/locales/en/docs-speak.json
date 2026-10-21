@@ -123,6 +123,21 @@
             "x": "If the audio is generated but does not play, the most common cause is that the overlay is not connected in OBS. Check that the source is in the scene and visible."
           }
         ]
+      },
+      {
+        "id": "historial",
+        "title": "5 · See who changed the settings",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On the Global tab, the «Recent changes» card shows every time someone saved the settings: who it was, when, and which fields changed, with the value before and after. The last 100 saves are kept."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If something plays when it should not, or stops playing, this shows whether someone changed a rule or turned the main switch off. Fields appear with their technical path, for example `global.enabled` or `activation.rules[0].enabled` (the first rule is position 0)."
+          }
+        ]
       }
     ]
   },

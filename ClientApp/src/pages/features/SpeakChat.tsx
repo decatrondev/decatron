@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import FishVoiceRequestBox from './FishVoiceRequestBox';
+import SpeakChatHistory from './SpeakChatHistory';
 import { useFishVoices, fishVoiceLabel, fishCostPer100 } from './fishVoices';
 import {
     useVoiceCatalog,
@@ -158,6 +159,7 @@ export default function SpeakChat() {
     const [saving, setSaving] = useState(false);
     const [testing, setTesting] = useState(false);
     const [saved, setSaved] = useState<'success' | 'error' | null>(null);
+    const [historyKey, setHistoryKey] = useState(0);
     const [testError, setTestError] = useState<string | null>(null);
     const [config, setConfig] = useState<SpeakChatConfigData>(defaultConfig);
     const [expandedRules, setExpandedRules] = useState<Record<number, boolean>>({});
@@ -256,6 +258,7 @@ export default function SpeakChat() {
             };
             await api.post('/speakchat/config', { config: toSave });
             setSaved('success');
+            setHistoryKey(k => k + 1);
         } catch {
             setSaved('error');
         } finally {
@@ -480,6 +483,8 @@ export default function SpeakChat() {
                             </button>
                         </div>
                     </div>
+
+                    <SpeakChatHistory refreshKey={historyKey} />
                 </div>
             )}
 

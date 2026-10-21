@@ -164,6 +164,7 @@ namespace Decatron.Data
 
         // Speak Chat System
         public DbSet<SpeakChatConfig> SpeakChatConfigs { get; set; }
+        public DbSet<SpeakChatConfigHistory> SpeakChatConfigHistory { get; set; }
         public DbSet<TtsCreditBalance> TtsCreditBalances { get; set; }
         public DbSet<TtsCreditLedgerEntry> TtsCreditLedger { get; set; }
 

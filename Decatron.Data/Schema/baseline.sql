@@ -6510,6 +6510,41 @@ ALTER SEQUENCE public.sound_alert_reward_files_id_seq OWNED BY public.sound_aler
 
 
 --
+-- Name: speak_chat_config_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.speak_chat_config_history (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    channel_name character varying(100) NOT NULL,
+    changed_by_user_id bigint DEFAULT 0 NOT NULL,
+    changed_by_login character varying(100) DEFAULT ''::character varying NOT NULL,
+    changes jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: speak_chat_config_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.speak_chat_config_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: speak_chat_config_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.speak_chat_config_history_id_seq OWNED BY public.speak_chat_config_history.id;
+
+
+--
 -- Name: speak_chat_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -9206,28 +9241,6 @@ ALTER SEQUENCE public.tts_credit_ledger_id_seq OWNED BY public.tts_credit_ledger
 
 
 --
--- Name: tts_fish_voices; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.tts_fish_voices (
-    reference_id character varying(32) NOT NULL,
-    name text NOT NULL,
-    languages text DEFAULT ''::text NOT NULL,
-    author text,
-    sample_url text,
-    license character varying(20) DEFAULT 'unknown'::character varying NOT NULL,
-    license_note text,
-    active boolean DEFAULT true NOT NULL,
-    inactive_reason character varying(20),
-    source character varying(20) DEFAULT 'admin'::character varying NOT NULL,
-    created_by bigint,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    last_checked_at timestamp with time zone,
-    CONSTRAINT chk_tts_fish_voices_license CHECK (((license)::text = ANY ((ARRAY['commercial'::character varying, 'noncommercial'::character varying, 'unknown'::character varying])::text[])))
-);
-
-
---
 -- Name: tts_fish_user_voices; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -9280,6 +9293,28 @@ CREATE SEQUENCE public.tts_fish_voice_requests_id_seq
 --
 
 ALTER SEQUENCE public.tts_fish_voice_requests_id_seq OWNED BY public.tts_fish_voice_requests.id;
+
+
+--
+-- Name: tts_fish_voices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tts_fish_voices (
+    reference_id character varying(32) NOT NULL,
+    name text NOT NULL,
+    languages text DEFAULT ''::text NOT NULL,
+    author text,
+    sample_url text,
+    license character varying(20) DEFAULT 'unknown'::character varying NOT NULL,
+    license_note text,
+    active boolean DEFAULT true NOT NULL,
+    inactive_reason character varying(20),
+    source character varying(20) DEFAULT 'admin'::character varying NOT NULL,
+    created_by bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_checked_at timestamp with time zone,
+    CONSTRAINT chk_tts_fish_voices_license CHECK (((license)::text = ANY ((ARRAY['commercial'::character varying, 'noncommercial'::character varying, 'unknown'::character varying])::text[])))
+);
 
 
 --
@@ -9637,7 +9672,7 @@ CREATE TABLE public.user_subscription_tiers (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
-    CONSTRAINT chk_valid_tier CHECK (((tier)::text = ANY (ARRAY[('free'::character varying)::text, ('supporter'::character varying)::text, ('premium'::character varying)::text, ('patrocinador'::character varying)::text, ('fundador'::character varying)::text, ('admin'::character varying)::text])))
+    CONSTRAINT chk_valid_tier CHECK (((tier)::text = ANY ((ARRAY['free'::character varying, 'supporter'::character varying, 'premium'::character varying, 'patrocinador'::character varying, 'fundador'::character varying, 'admin'::character varying])::text[])))
 );
 
 
@@ -11580,6 +11615,13 @@ ALTER TABLE ONLY public.sound_alert_history ALTER COLUMN id SET DEFAULT nextval(
 --
 
 ALTER TABLE ONLY public.sound_alert_reward_files ALTER COLUMN id SET DEFAULT nextval('public.sound_alert_reward_files_id_seq'::regclass);
+
+
+--
+-- Name: speak_chat_config_history id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.speak_chat_config_history ALTER COLUMN id SET DEFAULT nextval('public.speak_chat_config_history_id_seq'::regclass);
 
 
 --
@@ -13785,6 +13827,14 @@ ALTER TABLE ONLY public.sound_alert_history
 
 ALTER TABLE ONLY public.sound_alert_reward_files
     ADD CONSTRAINT sound_alert_reward_files_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: speak_chat_config_history speak_chat_config_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.speak_chat_config_history
+    ADD CONSTRAINT speak_chat_config_history_pkey PRIMARY KEY (id);
 
 
 --
@@ -16517,6 +16567,13 @@ CREATE INDEX idx_sound_alert_history_user_id ON public.sound_alert_history USING
 --
 
 CREATE INDEX idx_sound_alert_reward_files_media_file ON public.sound_alert_reward_files USING btree (media_file_id);
+
+
+--
+-- Name: idx_speak_chat_config_history_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_speak_chat_config_history_user ON public.speak_chat_config_history USING btree (user_id, created_at DESC);
 
 
 --
@@ -20272,6 +20329,14 @@ ALTER TABLE ONLY public.sound_alert_reward_files
 
 
 --
+-- Name: speak_chat_config_history speak_chat_config_history_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.speak_chat_config_history
+    ADD CONSTRAINT speak_chat_config_history_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: speak_chat_configs speak_chat_configs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21976,6 +22041,12 @@ ALTER TABLE public.sound_alert_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sound_alert_reward_files ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: speak_chat_config_history; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.speak_chat_config_history ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: speak_chat_configs; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -22999,6 +23070,13 @@ CREATE POLICY tenant_isolation ON public.sound_alert_history USING ((tenant_id =
 --
 
 CREATE POLICY tenant_isolation ON public.sound_alert_reward_files USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: speak_chat_config_history tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.speak_chat_config_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --
