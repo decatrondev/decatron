@@ -1,6 +1,6 @@
 // ¿Esta carga es del dominio de la plataforma (decatron.top) y no del bot (decatron.net)?
 // Un solo build sirve a los dos dominios; el Host decide qué árbol de rutas se dibuja
-// (.dev/plans/PLATAFORMA_PLAN.md, decisión 14).
+// (.dev/plans/plataforma/PLATAFORMA_PLAN.md, decisión 14).
 const PLATFORM_HOSTS = ['decatron.top', 'www.decatron.top'];
 
 const DEV_FLAG = 'decatron.platformPreview';

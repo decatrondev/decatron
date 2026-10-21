@@ -9,7 +9,7 @@ import PlatformShell, { wrap } from './PlatformShell';
 import WaitlistForm from './WaitlistForm';
 
 // Landing de la plataforma (decatron.top). Solo lista de espera: sin precios, sin registro, sin textos legales propios
-// (.dev/plans/PLATAFORMA_PLAN.md, Fase L; contenido en PLATAFORMA_LANDING_CONTENIDO.md).
+// (.dev/plans/plataforma/PLATAFORMA_PLAN.md, Fase L; contenido en PLATAFORMA_LANDING_CONTENIDO.md).
 
 type Item = { title: string; text: string };
 

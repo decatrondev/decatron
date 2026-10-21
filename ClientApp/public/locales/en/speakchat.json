@@ -98,5 +98,214 @@
     "linked": "Channel linked",
     "notLinked": "You haven't linked this channel yet",
     "note": "Commands, roles and «all messages» read the platforms turned on here. Bits and channel points are Twitch-only."
+  },
+  "v2": {
+    "page": {
+      "title": "Speak Chat",
+      "subtitle": "Reads your channel's chat out loud, with the voice you choose",
+      "back": "Back",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Settings saved.",
+      "saveFailed": "The settings could not be saved.",
+      "unsaved": "Unsaved changes",
+      "leaveConfirm": "You have unsaved changes. Leave anyway?",
+      "loading": "Loading"
+    },
+    "tabs": {
+      "summary": "Summary",
+      "commands": "Commands",
+      "voices": "Voices",
+      "filters": "Filters",
+      "overlay": "Overlay",
+      "tests": "Tests"
+    },
+    "engine": {
+      "piper": "Standard voice",
+      "polly": "Premium voice",
+      "fish": "Character voice"
+    },
+    "roles": {
+      "everyone": "Everyone",
+      "subscriber": "Subscribers",
+      "vip": "VIPs",
+      "moderator": "Moderators",
+      "broadcaster": "Streamer"
+    },
+    "rules": {
+      "command": {
+        "label": "Command",
+        "desc": "The viewer types the command and the text to read"
+      },
+      "bits": {
+        "label": "Minimum bits",
+        "desc": "When someone sends that many bits or more"
+      },
+      "channelPoints": {
+        "label": "Channel points",
+        "desc": "When a specific reward is redeemed"
+      },
+      "roles": {
+        "label": "By role",
+        "desc": "Reads any message from the chosen roles"
+      },
+      "all": {
+        "label": "All messages",
+        "desc": "Reads the whole chat"
+      }
+    },
+    "summary": {
+      "enabled": "Speak Chat on",
+      "enabledOn": "It is reading the chat according to your rules.",
+      "enabledOff": "It is off: nothing is read until you turn it on.",
+      "noOverlay": "No Speak Chat overlay is connected in OBS: even if the voice is generated, nobody will hear it. Add the link below as a browser source.",
+      "readsTitle": "What gets read",
+      "readsDescription": "The rules that are on and the voice each one uses.",
+      "editCommands": "Edit commands",
+      "noRules": "No rule is on: Speak Chat will not read anything. Turn one on in the Commands tab.",
+      "channelVoice": "Channel voice",
+      "channelVoiceIs": "Channel voice: {{engine}}",
+      "editVoice": "Change channel voice"
+    },
+    "credits": {
+      "title": "Voice balance",
+      "loading": "Loading balance…",
+      "unlimited": "{{tier}} plan: unlimited credits.",
+      "available": "{{amount}} credits available",
+      "buy": "Buy credits",
+      "monthly": "Monthly quota",
+      "monthlyHint": "Resets on the 1st",
+      "purchased": "Purchased",
+      "purchasedHint": "Never expire",
+      "standard": "Standard voice",
+      "standardHint": "Characters included this month",
+      "tierExpires": "Your plan expires on {{date}}. Purchased credits are not lost.",
+      "transition": "You are using welcome credits, available until {{date}}.",
+      "low": "Your balance is running low. When it runs out, paid voices stop playing.",
+      "exhausted": "No credits. Premium and character voices stay silent until your quota on the 1st or until you buy more.",
+      "noBalanceRule": "If the balance runs short, a command with a character voice does not play and the bot says so in chat (at most every 5 minutes). Each command can choose to read with the standard voice instead."
+    },
+    "platforms": {
+      "title": "Platforms",
+      "description": "Which linked channels Speak Chat reads from. It is a single choice for the whole overlay, like On-screen chat.",
+      "linked": "Channel linked",
+      "notLinked": "You haven't linked this channel yet",
+      "note": "Commands, roles and «all messages» read the platforms turned on here. Bits and channel points are Twitch-only."
+    },
+    "obs": {
+      "title": "OBS link",
+      "description": "Add this link as a browser source in OBS Studio. On a paid plan it works directly in OBS; on the Free plan you need a browser tab open.",
+      "step1": "In OBS, add a «Browser» source and paste the link.",
+      "step2": "Set the width and height of your scene (for example 1920 × 1080).",
+      "step3": "Delete the custom CSS OBS adds by default so the background stays transparent."
+    },
+    "commands": {
+      "title": "Commands and rules",
+      "description": "The ways to trigger Speak Chat. Add commands with their own voice (for example !goku) and choose who can use them.",
+      "expand": "Show options",
+      "collapse": "Hide options",
+      "commandName": "Command name",
+      "commandHint": "Example: «!tts Hello streamer» reads «Hello streamer».",
+      "minBits": "Minimum bits",
+      "reward": "Channel points reward",
+      "rewardHint": "Recommended: have the reward ask the viewer for text; that text is what gets read.",
+      "rewardsError": "Your rewards could not be loaded (expired token or channel without affiliate status). Paste the ID by hand.",
+      "noRewards": "This channel has no points rewards. Create them on Twitch or paste the ID by hand.",
+      "chooseReward": "Choose a reward",
+      "points": "{{amount}} points",
+      "unknownReward": "Unknown reward ({{id}}…)",
+      "costWarning": "This rule reads messages nobody asked for and spends balance on each one. Use it together with the cooldown and maximum length filters.",
+      "whoCan": "Who can use it?",
+      "nobody": "Nobody"
+    },
+    "voices": {
+      "engineTitle": "Channel voice type",
+      "engineDescription": "The voice Speak Chat uses when a command does not bring its own.",
+      "piperHint": "Free, included in your plan.",
+      "pollyHint": "More languages and better quality. Spends credits.",
+      "fishHint": "Character voices. Spends credits.",
+      "needCredits": "Needs voice credits.",
+      "serverAudio": "The audio is generated on the server, so it sounds the same in any OBS, without depending on that computer's voices.",
+      "fallback": "If you run out of credits or the voice fails, the chat does not go silent: it is read with the standard voice.",
+      "voiceTitle": "Voice",
+      "quality": "Quality",
+      "qualityNormalOption": "Normal",
+      "qualityHighOption": "High quality (costs more than Normal)",
+      "qualityHigh": "It sounds much better, but every message spends four times as much. Speak Chat reads a lot: check your balance before leaving it on.",
+      "qualityHighWord": "high",
+      "qualityNormalWord": "normal",
+      "language": "Language",
+      "languageFish": "The character voice speaks in its own language. This language is used if the standard fallback voice has to read.",
+      "languagePolly": "Only languages with voices in the chosen quality. Some exist in one and not the other.",
+      "languagePiper": "Japanese and Korean are only in the premium voice.",
+      "fishCost": "Spends voice credits{{about}}, more than the standard voice.",
+      "fishCostAbout": " (about {{cost}} per 100 characters)",
+      "noFishVoices": "No character voices available",
+      "pollyVoice": "Premium voice",
+      "noPremiumVoices": "There are no voices for this language in {{quality}} quality. Try the other one.",
+      "standardVoice": "Standard voice ({{count}} for this language)",
+      "standardHint": "They are generated on the server, so they sound the same in any OBS.",
+      "automatic": "Automatic (the first one for the language)",
+      "noStandardVoices": "There are no standard voices for this language. Change the language or use a premium voice.",
+      "volume": "Volume"
+    },
+    "filters": {
+      "cooldownsTitle": "Frequency and length",
+      "cooldownsDescription": "Controls how often a message is read and how long it can be.",
+      "global": "Global cooldown (seconds)",
+      "globalHint": "Minimum time between any two messages read.",
+      "perUser": "Per-user cooldown (seconds)",
+      "perUserHint": "Minimum time between messages from the same user.",
+      "maxChars": "Maximum characters",
+      "maxCharsHint": "A longer message is trimmed without cutting words (it is not discarded).",
+      "blockTitle": "Block lists",
+      "blockDescription": "Messages with these words or from these users will not be read.",
+      "words": "Blocked words (one per line)",
+      "wordsPlaceholder": "spam\noffensive",
+      "users": "Blocked users (one per line)",
+      "usersPlaceholder": "user1\nuser2"
+    },
+    "overlay": {
+      "bubbleTitle": "Message bubble",
+      "bubbleDescription": "A balloon with the name and the message while it is read.",
+      "visible": "Bubble visible",
+      "audioOnly": "Audio only",
+      "position": "Position on screen",
+      "pos": {
+        "top-left": "Top left",
+        "top-center": "Top center",
+        "top-right": "Top right",
+        "bottom-left": "Bottom left",
+        "bottom-center": "Bottom center",
+        "bottom-right": "Bottom right"
+      },
+      "background": "Background color",
+      "backgroundHint": "Supports transparency, for example rgba(0,0,0,0.75).",
+      "textColor": "Text color",
+      "fontSize": "Font size (px)",
+      "duration": "Visible time (ms)",
+      "durationHint": "The minimum time the bubble shows; if the audio lasts longer, it stays until it ends.",
+      "reloadTitle": "Reload overlays",
+      "reloadDescription": "Overlays update on their own when changes are published; this does it instantly.",
+      "reload": "Reload overlays",
+      "reloading": "Reloading…",
+      "previewTitle": "Preview",
+      "previewDescription": "This is how it looks on screen.",
+      "previewAudioOnly": "With «Audio only» no bubble is shown.",
+      "sampleUser": "viewer",
+      "sampleMessage": "Hello, this is a test message"
+    },
+    "tests": {
+      "title": "Send a test message",
+      "description": "Sends a message to the overlay to check the voice and the bubble. The overlay must be open in OBS or in a browser tab.",
+      "defaultMessage": "Hello, this is a Speak Chat test message",
+      "send": "Send to overlay",
+      "sending": "Sending…",
+      "sent": "Test sent.",
+      "failed": "The test could not be sent.",
+      "noOverlay": "No overlay is connected right now: the test will not be heard.",
+      "disabled": "Speak Chat is off: turn it on in Summary and save before testing.",
+      "unsaved": "You have unsaved changes: the test uses the voice you see here, but the real chat uses what is saved."
+    }
   }
 }
