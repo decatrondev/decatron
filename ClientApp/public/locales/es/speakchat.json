@@ -90,7 +90,9 @@
     "warnRepeated": "Hay dos fuentes iguales abiertas en OBS. Si están en escenas distintas está bien; si suenan a la vez, cada mensaje sonará repetido.",
     "linkOtherHint": "Cuando vincules tu otro canal (Twitch o Kick), aquí aparecerá el enlace «Todo» para leer ambos chats.",
     "copy": "Copiar",
-    "copied": "¡Copiado!"
+    "copied": "¡Copiado!",
+    "twitchHint": "Para tu escena de Twitch. No lo uses junto a «Todo» en la misma escena.",
+    "kickHint": "Para tu escena de Kick. No lo uses junto a «Todo» en la misma escena."
   },
   "v2": {
     "page": {
@@ -313,7 +315,7 @@
       "step2Title": "Elige la voz del canal",
       "step2Body": "Ahora lee con: {{engine}}. Los comandos de voz (como !goku) pueden traer la suya.",
       "step3Title": "Pon el enlace en OBS",
-      "step3Body": "Agrégalo como fuente de navegador. El enlace «Todo» lee Twitch y Kick juntos; en Overlay también tienes «Solo Twitch» y «Solo Kick» si quieres separarlos. El estado cambia a «Conectado en OBS» cuando OBS lo abre.",
+      "step3Body": "Agrégalo como fuente de navegador en OBS. «Todo» lee Twitch y Kick juntos; «Solo Twitch» y «Solo Kick» sirven para separarlos en escenas distintas. El estado cambia a «Conectado en OBS» cuando OBS lo abre.",
       "step4Title": "Envía una prueba",
       "step4Body": "Comprueba la voz y la burbuja sin esperar a que alguien escriba en el chat.",
       "goGeneral": "Ir a General",

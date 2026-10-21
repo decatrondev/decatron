@@ -2,14 +2,13 @@
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 import { Card } from '../../../../components/overlay-editor/ui';
-import { LinkRow } from '../../../../components/overlay-editor/OverlayLinks';
+import { ObsLinkRows } from './ObsLinks';
 import type { SpeakChatState } from './useSpeakChatConfig';
 import type { TabId2 } from './tabs';
 
 export default function GuideTab({ sc, goTo }: { sc: SpeakChatState; goTo: (tab: TabId2) => void }) {
     const { t } = useTranslation('speakchat');
-    const { config, status, statusLoaded, overlayLink } = sc;
-    const bothLinked = !!status.hasTwitch && !!status.hasKick;
+    const { config, status, statusLoaded } = sc;
     const connected = statusLoaded && status.total > 0;
 
     const step = (n: number, done: boolean, title: string, body: React.ReactNode, tab: TabId2, action: string) => (
@@ -34,13 +33,7 @@ export default function GuideTab({ sc, goTo }: { sc: SpeakChatState; goTo: (tab:
                 {step(3, connected, t('v2.guide.step3Title'), (
                     <>
                         <p>{t('v2.guide.step3Body')}</p>
-                        <LinkRow
-                            url={bothLinked ? overlayLink('all') : overlayLink()}
-                            name={bothLinked ? t('links.all') : undefined}
-                            recommended={bothLinked}
-                            copyLabel={t('links.copy')} copiedLabel={t('links.copied')}
-                            connected={bothLinked ? status.all > 0 : status.total > 0} loaded={statusLoaded}
-                        />
+                        <ObsLinkRows sc={sc} />
                     </>
                 ), 'overlay', t('v2.guide.goOverlay'))}
                 {step(4, false, t('v2.guide.step4Title'), <p>{t('v2.guide.step4Body')}</p>, 'tests', t('v2.guide.goTests'))}

@@ -90,7 +90,9 @@
     "warnRepeated": "Two identical sources are open in OBS. If they are in different scenes that's fine; if they play at once, every message will play twice.",
     "linkOtherHint": "When you link your other channel (Twitch or Kick), the «All» link will appear here to read both chats.",
     "copy": "Copy",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "twitchHint": "For your Twitch scene. Don't use it together with «All» in the same scene.",
+    "kickHint": "For your Kick scene. Don't use it together with «All» in the same scene."
   },
   "v2": {
     "page": {
@@ -313,7 +315,7 @@
       "step2Title": "Choose the channel voice",
       "step2Body": "It now reads with: {{engine}}. Voice commands (like !goku) can bring their own.",
       "step3Title": "Put the link in OBS",
-      "step3Body": "Add it as a browser source. The «All» link reads Twitch and Kick together; in Overlay you also have «Twitch only» and «Kick only» if you want to separate them. The status changes to «Connected in OBS» once OBS opens it.",
+      "step3Body": "Add it as a browser source in OBS. «All» reads Twitch and Kick together; «Twitch only» and «Kick only» let you separate them into different scenes. The status changes to «Connected in OBS» once OBS opens it.",
       "step4Title": "Send a test",
       "step4Body": "Check the voice and the bubble without waiting for someone to type in chat.",
       "goGeneral": "Go to General",
