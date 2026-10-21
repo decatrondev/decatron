@@ -227,7 +227,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Speak Chat lee también el chat de Kick. Cada regla de comando, de rol y de «todos los mensajes» elige dónde lee: Twitch y Kick, solo Twitch o solo Kick. Las reglas de bits y de puntos de canal son solo de Twitch. Las reglas que ya tenías siguen leyendo solo Twitch hasta que cambies esta opción."
+            "x": "Speak Chat lee también el chat de Kick. En la pestaña Global, la tarjeta «Plataformas» tiene un interruptor para Twitch y otro para Kick: es una sola decisión para todo Speak Chat, igual que en Chat en pantalla. Los bits y los puntos de canal son solo de Twitch. Tu configuración anterior sigue leyendo solo Twitch hasta que enciendas Kick."
           },
           {
             "t": "ul",

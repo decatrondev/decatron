@@ -97,13 +97,29 @@ public class SpeakChatCommandVoiceTests
 
     [Theory]
     [InlineData("""{}""", "twitch", true)]
-    [InlineData("""{}""", "kick", false)]
+    [InlineData("""{}""", "kick", true)]
     [InlineData("""{"platform":"all"}""", "kick", true)]
-    [InlineData("""{"platform":"all"}""", "twitch", true)]
     [InlineData("""{"platform":"kick"}""", "kick", true)]
     [InlineData("""{"platform":"kick"}""", "twitch", false)]
     [InlineData("""{"platform":"twitch"}""", "kick", false)]
     [InlineData("""{"platform":7}""", "twitch", true)]
-    public void Cada_regla_elige_las_plataformas_y_sin_el_campo_lee_solo_twitch(string rule, string platform, bool esperado) =>
+    public void La_restriccion_opcional_de_una_regla_sin_campo_no_restringe(string rule, string platform, bool esperado) =>
         Assert.Equal(esperado, SpeakChatCommandVoice.PlatformAllows(J(rule), platform));
+
+    [Theory]
+    [InlineData("""{"enabled":true}""", "twitch", true)]
+    [InlineData("""{"enabled":true}""", "kick", false)]
+    [InlineData("""{"sources":{"twitch":true,"kick":true}}""", "kick", true)]
+    [InlineData("""{"sources":{"twitch":true,"kick":false}}""", "kick", false)]
+    [InlineData("""{"sources":{"twitch":false,"kick":true}}""", "twitch", false)]
+    [InlineData("""{"sources":{"kick":true}}""", "twitch", false)]
+    public void Las_fuentes_generales_deciden_y_sin_ellas_solo_twitch(string global, string platform, bool esperado) =>
+        Assert.Equal(esperado, SpeakChatCommandVoice.SourceAllows(J(global), platform));
+
+    [Fact]
+    public void Sin_seccion_global_solo_twitch()
+    {
+        Assert.True(SpeakChatCommandVoice.SourceAllows(default, "twitch"));
+        Assert.False(SpeakChatCommandVoice.SourceAllows(default, "kick"));
+    }
 }

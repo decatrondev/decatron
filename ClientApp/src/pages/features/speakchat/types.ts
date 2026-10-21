@@ -40,8 +40,6 @@ export interface ActivationRule {
     minBits?: number;
     rewardId?: string;
     roles?: RoleConfig;
-    /** En qué plataformas lee la regla (comando, rol y todos); sin valor = solo Twitch, como antes de existir la opción. */
-    platform?: 'all' | 'twitch' | 'kick';
     /** Solo en comandos: voz propia (manda sobre la del canal en lo que define). */
     voice?: RuleVoice;
     /** Solo en comandos: enfriamientos propios; sin valor heredan los del canal. */
@@ -65,7 +63,7 @@ export interface VoiceCommandLimits {
 }
 
 export interface SpeakChatConfigData {
-    global: { enabled: boolean };
+    global: { enabled: boolean; sources?: { twitch: boolean; kick: boolean } };
     activation: { rules: ActivationRule[] };
     // `voice` es el campo antiguo (nombre de voz Polly). Se conserva por
     // compatibilidad, pero cada motor tiene ya su propio campo.

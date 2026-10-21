@@ -29,13 +29,35 @@ export default function GlobalTab({ config, setConfig, overlayLink, status, stat
                     <div className="flex items-center gap-3">
                         <Toggle
                             checked={config.global.enabled}
-                            onChange={v => setConfig(c => ({ ...c, global: { enabled: v } }))}
+                            onChange={v => setConfig(c => ({ ...c, global: { ...c.global, enabled: v } }))}
                         />
                         <span className="text-sm font-bold text-ds-text">
                             {config.global.enabled ? 'Activado' : 'Desactivado'}
                         </span>
                     </div>
                 </div>
+            </div>
+
+            <div className={cardClass}>
+                <p className={sectionTitle}>{t('sources.title')}</p>
+                <p className={sectionDesc}>{t('sources.description')}</p>
+                <div className="space-y-3">
+                    {(['twitch', 'kick'] as const).map(p => (
+                        <div key={p} className="flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm font-bold text-ds-text">{p === 'twitch' ? 'Twitch' : 'Kick'}</p>
+                                <p className="text-xs text-ds-soft">
+                                    {(p === 'twitch' ? status.hasTwitch : status.hasKick) ? t('sources.linked') : t('sources.notLinked')}
+                                </p>
+                            </div>
+                            <Toggle
+                                checked={config.global.sources?.[p] ?? false}
+                                onChange={v => setConfig(c => ({ ...c, global: { ...c.global, sources: { twitch: true, kick: false, ...c.global.sources, [p]: v } } }))}
+                            />
+                        </div>
+                    ))}
+                </div>
+                <p className="text-xs text-ds-soft mt-3">{t('sources.note')}</p>
             </div>
 
             <div className={cardClass}>

@@ -11,14 +11,14 @@ import type { CreditUsage, RoleConfig, SpeakChatConfigData, TabId } from './type
 export const defaultRoles: RoleConfig = { everyone: true, subscriber: false, vip: false, moderator: false, broadcaster: true };
 
 export const defaultConfig: SpeakChatConfigData = {
-    global: { enabled: false },
+    global: { enabled: false, sources: { twitch: true, kick: true } },
     activation: {
         rules: [
-            { type: 'command', enabled: false, commandName: '!tts', platform: 'all', roles: { ...defaultRoles } },
+            { type: 'command', enabled: false, commandName: '!tts', roles: { ...defaultRoles } },
             { type: 'bits', enabled: false, minBits: 100, roles: { ...defaultRoles } },
             { type: 'channelPoints', enabled: false, rewardId: '', roles: { ...defaultRoles } },
-            { type: 'roles', enabled: false, platform: 'all', roles: { everyone: false, subscriber: true, vip: true, moderator: true, broadcaster: true } },
-            { type: 'all', enabled: false, platform: 'all' },
+            { type: 'roles', enabled: false, roles: { everyone: false, subscriber: true, vip: true, moderator: true, broadcaster: true } },
+            { type: 'all', enabled: false },
         ]
     },
     voice: {

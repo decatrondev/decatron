@@ -92,11 +92,11 @@
     "copy": "Copy",
     "copied": "Copied!"
   },
-  "platform": {
-    "label": "Platforms it reads from",
-    "all": "Twitch and Kick",
-    "twitch": "Twitch only",
-    "kick": "Kick only",
-    "hint": "Bits and channel-points rules are Twitch-only. To read Kick, use the «All» (or «Kick only») link in OBS."
+  "sources": {
+    "title": "🌐 Platforms",
+    "description": "Which linked channels Speak Chat reads from. It is a single choice for the whole overlay, like On-screen chat.",
+    "linked": "Channel linked",
+    "notLinked": "You haven't linked this channel yet",
+    "note": "Commands, roles and «all messages» read the platforms turned on here. Bits and channel points are Twitch-only."
   }
 }

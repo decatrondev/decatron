@@ -149,6 +149,14 @@ namespace Decatron.Services
                     return;
                 }
 
+                // Fuentes generales: qué plataformas lee Speak Chat (Twitch, Kick). Mandan sobre las reglas.
+                cfg.TryGetProperty("global", out var globalCfg);
+                if (!SpeakChatCommandVoice.SourceAllows(globalCfg, platform))
+                {
+                    _logger.LogInformation("[SpeakChat] {Channel}: mensaje de {User} ignorado, la fuente {Platform} está apagada", channelName, username, platform);
+                    return;
+                }
+
                 // ===== REGLAS DE ACTIVACIÓN =====
                 if (!cfg.TryGetProperty("activation", out var activation))
                 {

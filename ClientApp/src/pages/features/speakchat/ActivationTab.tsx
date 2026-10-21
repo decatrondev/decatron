@@ -172,23 +172,6 @@ export default function ActivationTab({ config, rewards, rewardsError, expandedR
                                     </div>
                                 )}
 
-                                {/* Plataformas: Kick no tiene bits ni puntos de Twitch, así que esas dos reglas son solo de Twitch */}
-                                {(rule.type === 'command' || rule.type === 'roles' || rule.type === 'all') && (
-                                    <div>
-                                        <label className={labelClass}>{t('platform.label')}</label>
-                                        <select
-                                            value={rule.platform ?? 'twitch'}
-                                            onChange={e => updateRule(idx, { platform: e.target.value as 'all' | 'twitch' | 'kick' })}
-                                            className={`${inputClass} w-full sm:w-72`}
-                                        >
-                                            <option value="all">{t('platform.all')}</option>
-                                            <option value="twitch">{t('platform.twitch')}</option>
-                                            <option value="kick">{t('platform.kick')}</option>
-                                        </select>
-                                        <p className="text-xs text-ds-soft mt-1">{t('platform.hint')}</p>
-                                    </div>
-                                )}
-
                                 {/* Roles */}
                                 {rule.type !== 'all' && (
                                 <div>

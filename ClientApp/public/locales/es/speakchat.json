@@ -92,11 +92,11 @@
     "copy": "Copiar",
     "copied": "¡Copiado!"
   },
-  "platform": {
-    "label": "Plataformas en las que lee",
-    "all": "Twitch y Kick",
-    "twitch": "Solo Twitch",
-    "kick": "Solo Kick",
-    "hint": "Las reglas de bits y de puntos de canal son solo de Twitch. Para leer Kick, usa el enlace «Todo» (o «Solo Kick») en OBS."
+  "sources": {
+    "title": "🌐 Plataformas",
+    "description": "De qué canales vinculados lee Speak Chat. Es una sola decisión para todo el overlay, igual que en Chat en pantalla.",
+    "linked": "Canal vinculado",
+    "notLinked": "Aún no tienes este canal vinculado",
+    "note": "Los comandos, roles y «todos los mensajes» leen las plataformas encendidas aquí. Los bits y los puntos de canal son solo de Twitch."
   }
 }

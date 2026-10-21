@@ -55,6 +55,8 @@ export default function SpeakChat() {
                 if (!res.data.config.data.voice?.pollyVoice && merged.voice.voice) {
                     merged.voice.pollyVoice = merged.voice.voice;
                 }
+                // Una config guardada antes de las Fuentes sigue leyendo solo Twitch, como hasta ahora
+                if (!res.data.config.data.global?.sources) merged.global.sources = { twitch: true, kick: false };
                 // Una config guardada antes de esta opción conserva su comportamiento (parcial)
                 if (!res.data.config.data.filters?.blockedWordsMode) merged.filters.blockedWordsMode = 'partial';
                 setConfig(merged);
@@ -173,7 +175,7 @@ export default function SpeakChat() {
     const addCommand = () => {
         const idx = config.activation.rules.length;
         const rule: ActivationRule = {
-            type: 'command', enabled: true, commandName: '!', platform: 'all', roles: { ...defaultRoles },
+            type: 'command', enabled: true, commandName: '!', roles: { ...defaultRoles },
             voice: { engine: 'piper', standardVoice: standardVoicesForLanguage(voiceCatalog, config.voice.languageCode)[0]?.id ?? '' },
         };
         setConfig(c => ({ ...c, activation: { rules: [...c.activation.rules, rule] } }));

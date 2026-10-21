@@ -76,14 +76,26 @@ namespace Decatron.Services
             rule.ValueKind == JsonValueKind.Object && rule.TryGetProperty("noBalance", out var p) && p.GetString() == "standard";
 
         /// <summary>
-        /// ¿La regla lee mensajes de esa plataforma? Valores: «all», «twitch» o «kick». Una regla guardada antes de que
-        /// existiera la opción no trae el campo y sigue leyendo solo Twitch, como hasta ahora.
+        /// ¿Speak Chat lee esa plataforma? Lo deciden las Fuentes generales (<c>global.sources.twitch|kick</c>), como
+        /// en Chat en pantalla. Una configuración guardada antes de que existiera la opción no trae el campo y sigue
+        /// leyendo solo Twitch.
+        /// </summary>
+        public static bool SourceAllows(JsonElement global, string platform)
+        {
+            if (global.ValueKind == JsonValueKind.Object && global.TryGetProperty("sources", out var s) && s.ValueKind == JsonValueKind.Object)
+                return s.TryGetProperty(platform, out var v) && v.ValueKind == JsonValueKind.True;
+            return platform == "twitch";
+        }
+
+        /// <summary>
+        /// Restricción opcional de una regla concreta (<c>platform</c>: «all», «twitch» o «kick»). Sin el campo no
+        /// restringe: mandan las Fuentes generales. El panel ya no la muestra; queda para configuraciones que la traigan.
         /// </summary>
         public static bool PlatformAllows(JsonElement rule, string platform)
         {
             var value = rule.ValueKind == JsonValueKind.Object && rule.TryGetProperty("platform", out var p) &&
                 p.ValueKind == JsonValueKind.String ? p.GetString() : null;
-            return (value ?? "twitch") switch
+            return (value ?? "all") switch
             {
                 "all" => true,
                 "kick" => platform == "kick",
