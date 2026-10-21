@@ -6616,6 +6616,47 @@ ALTER SEQUENCE public.speak_chat_usage_id_seq OWNED BY public.speak_chat_usage_b
 
 
 --
+-- Name: speak_chat_usage_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.speak_chat_usage_log (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    channel_name character varying(100) NOT NULL,
+    platform character varying(10) DEFAULT 'twitch'::character varying NOT NULL,
+    username character varying(100) DEFAULT ''::character varying NOT NULL,
+    rule_type character varying(20) DEFAULT ''::character varying NOT NULL,
+    command character varying(100) DEFAULT ''::character varying NOT NULL,
+    outcome character varying(30) NOT NULL,
+    engine character varying(10) DEFAULT ''::character varying NOT NULL,
+    voice character varying(100) DEFAULT ''::character varying NOT NULL,
+    chars integer DEFAULT 0 NOT NULL,
+    credits bigint,
+    created_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: speak_chat_usage_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.speak_chat_usage_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: speak_chat_usage_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.speak_chat_usage_log_id_seq OWNED BY public.speak_chat_usage_log.id;
+
+
+--
 -- Name: stream_chat_activities; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11641,6 +11682,13 @@ ALTER TABLE ONLY public.speak_chat_usage_backup ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: speak_chat_usage_log id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.speak_chat_usage_log ALTER COLUMN id SET DEFAULT nextval('public.speak_chat_usage_log_id_seq'::regclass);
+
+
+--
 -- Name: stream_chat_activities id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -13845,6 +13893,14 @@ ALTER TABLE ONLY public.speak_chat_config_history
 
 ALTER TABLE ONLY public.speak_chat_configs
     ADD CONSTRAINT speak_chat_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: speak_chat_usage_log speak_chat_usage_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.speak_chat_usage_log
+    ADD CONSTRAINT speak_chat_usage_log_pkey PRIMARY KEY (id);
 
 
 --
@@ -16576,6 +16632,13 @@ CREATE INDEX idx_sound_alert_reward_files_media_file ON public.sound_alert_rewar
 --
 
 CREATE INDEX idx_speak_chat_config_history_user ON public.speak_chat_config_history USING btree (user_id, created_at DESC);
+
+
+--
+-- Name: idx_speak_chat_usage_log_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_speak_chat_usage_log_user ON public.speak_chat_usage_log USING btree (user_id, created_at DESC);
 
 
 --
@@ -20347,6 +20410,14 @@ ALTER TABLE ONLY public.speak_chat_configs
 
 
 --
+-- Name: speak_chat_usage_log speak_chat_usage_log_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.speak_chat_usage_log
+    ADD CONSTRAINT speak_chat_usage_log_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: speak_chat_usage_backup speak_chat_usage_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -22061,6 +22132,12 @@ ALTER TABLE public.speak_chat_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.speak_chat_usage_backup ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: speak_chat_usage_log; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.speak_chat_usage_log ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: stream_chat_activities; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -23093,6 +23170,13 @@ CREATE POLICY tenant_isolation ON public.speak_chat_configs USING ((tenant_id = 
 --
 
 CREATE POLICY tenant_isolation ON public.speak_chat_usage_backup USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: speak_chat_usage_log tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.speak_chat_usage_log USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --
