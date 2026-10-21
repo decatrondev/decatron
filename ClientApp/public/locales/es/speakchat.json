@@ -146,8 +146,6 @@
     }
   },
   "commandVoice": {
-    "own": "Usar una voz distinta en este comando",
-    "ownHint": "Por ejemplo, !goku habla con la voz de Goku y !tts sigue con la del canal.",
     "engine": "Tipo de voz",
     "piper": "Voz estándar (gratis)",
     "polly": "Voz premium",
@@ -172,7 +170,6 @@
     "allHint": "Los mensajes de Twitch y de Kick en una sola fuente de OBS. Es el que recomendamos.",
     "twitch": "Solo Twitch",
     "kick": "Solo Kick",
-    "advancedTitle": "Avanzado: un enlace por plataforma",
     "perPlatform": "Úsalos solo si quieres separar la voz de cada plataforma en escenas distintas.",
     "warnMixedTitle": "Dos fuentes de voz se pisan",
     "warnMixed": "Tienes conectado el enlace «Todo» y también uno de una sola plataforma. Si están activos a la vez, cada mensaje sonará repetido. Quita uno de los dos en OBS.",
@@ -198,9 +195,6 @@
       "loading": "Cargando"
     },
     "tabs": {
-      "summary": "Resumen",
-      "commands": "Comandos",
-      "voices": "Voces",
       "filters": "Filtros",
       "overlay": "Overlay",
       "tests": "Pruebas",
@@ -253,14 +247,7 @@
       "enabled": "Speak Chat activo",
       "enabledOn": "Está leyendo el chat según tus reglas.",
       "enabledOff": "Está apagado: no se lee nada hasta que lo actives.",
-      "noOverlay": "No hay ningún overlay de Speak Chat conectado en OBS: aunque se genere la voz, nadie la oirá. Agrega el enlace de abajo como fuente de navegador.",
-      "readsTitle": "Qué se lee",
-      "readsDescription": "Las reglas encendidas y con qué voz suena cada una.",
-      "editCommands": "Editar comandos",
-      "noRules": "No hay ninguna regla encendida: Speak Chat no leerá nada. Enciende una en la pestaña Comandos.",
-      "channelVoice": "Voz del canal",
-      "channelVoiceIs": "Voz del canal: {{engine}}",
-      "editVoice": "Cambiar voz del canal"
+      "noOverlay": "No hay ningún overlay de Speak Chat conectado en OBS: aunque se genere la voz, nadie la oirá. Agrega el enlace de abajo como fuente de navegador."
     },
     "credits": {
       "title": "Saldo de voz",
@@ -288,8 +275,6 @@
       "step3": "Borra el CSS personalizado que trae OBS por defecto: así el fondo queda transparente."
     },
     "commands": {
-      "title": "Comandos y reglas",
-      "description": "Las formas de activar Speak Chat. Agrega comandos con su propia voz (por ejemplo !goku) y elige quién puede usarlos.",
       "expand": "Mostrar opciones",
       "collapse": "Ocultar opciones",
       "commandName": "Nombre del comando",
@@ -391,8 +376,6 @@
       "reloadDescription": "Los overlays se actualizan solos al publicar cambios; esto lo hace al instante.",
       "reload": "Recargar overlays",
       "reloading": "Recargando…",
-      "previewTitle": "Vista previa",
-      "previewDescription": "Así se ve en pantalla.",
       "previewAudioOnly": "Con «Solo audio» no se muestra burbuja.",
       "sampleUser": "espectador",
       "sampleMessage": "Hola, este es un mensaje de prueba"

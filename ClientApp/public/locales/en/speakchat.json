@@ -146,8 +146,6 @@
     }
   },
   "commandVoice": {
-    "own": "Use a different voice on this command",
-    "ownHint": "For example, !goku speaks with Goku's voice while !tts keeps the channel's voice.",
     "engine": "Voice type",
     "piper": "Standard voice (free)",
     "polly": "Premium voice",
@@ -172,7 +170,6 @@
     "allHint": "Twitch and Kick messages in a single OBS source. This is the one we recommend.",
     "twitch": "Twitch only",
     "kick": "Kick only",
-    "advancedTitle": "Advanced: one link per platform",
     "perPlatform": "Use them only if you want each platform's voice in separate scenes.",
     "warnMixedTitle": "Two voice sources overlap",
     "warnMixed": "The «All» link and a single-platform link are both connected. If they are active at once, every message will play twice. Remove one of them in OBS.",
@@ -198,9 +195,6 @@
       "loading": "Loading"
     },
     "tabs": {
-      "summary": "Summary",
-      "commands": "Commands",
-      "voices": "Voices",
       "filters": "Filters",
       "overlay": "Overlay",
       "tests": "Tests",
@@ -253,14 +247,7 @@
       "enabled": "Speak Chat on",
       "enabledOn": "It is reading the chat according to your rules.",
       "enabledOff": "It is off: nothing is read until you turn it on.",
-      "noOverlay": "No Speak Chat overlay is connected in OBS: even if the voice is generated, nobody will hear it. Add the link below as a browser source.",
-      "readsTitle": "What gets read",
-      "readsDescription": "The rules that are on and the voice each one uses.",
-      "editCommands": "Edit commands",
-      "noRules": "No rule is on: Speak Chat will not read anything. Turn one on in the Commands tab.",
-      "channelVoice": "Channel voice",
-      "channelVoiceIs": "Channel voice: {{engine}}",
-      "editVoice": "Change channel voice"
+      "noOverlay": "No Speak Chat overlay is connected in OBS: even if the voice is generated, nobody will hear it. Add the link below as a browser source."
     },
     "credits": {
       "title": "Voice balance",
@@ -288,8 +275,6 @@
       "step3": "Delete the custom CSS OBS adds by default so the background stays transparent."
     },
     "commands": {
-      "title": "Commands and rules",
-      "description": "The ways to trigger Speak Chat. Add commands with their own voice (for example !goku) and choose who can use them.",
       "expand": "Show options",
       "collapse": "Hide options",
       "commandName": "Command name",
@@ -391,8 +376,6 @@
       "reloadDescription": "Overlays update on their own when changes are published; this does it instantly.",
       "reload": "Reload overlays",
       "reloading": "Reloading…",
-      "previewTitle": "Preview",
-      "previewDescription": "This is how it looks on screen.",
       "previewAudioOnly": "With «Audio only» no bubble is shown.",
       "sampleUser": "viewer",
       "sampleMessage": "Hello, this is a test message"
