@@ -55,6 +55,19 @@ namespace Decatron.Services.Commands
                     && f.UserId == context.UserId
                     && f.IsFollowing == 0);
 
+            // La tabla local de seguidores puede estar vacía o desactualizada (canal nuevo, evento perdido):
+            // si no hay dato, se pregunta a Twitch para no rechazar a un seguidor real
+            DateTime? followedAtFromApi = null;
+            if (followerData == null)
+            {
+                var followInfo = await twitchApiService.GetFollowInfoAsync(channelUser.TwitchId, context.UserId);
+                if (followInfo.Follows == true)
+                {
+                    isFollower = true;
+                    followedAtFromApi = followInfo.Since;
+                }
+            }
+
             // Detectar subscription tier del context
             byte? subTier = null;
             int subStreak = 0;
@@ -114,7 +127,9 @@ namespace Decatron.Services.Commands
                 { "isSubscriber", context.IsSubscriber },
                 { "subscriptionTier", subTier ?? (byte)0 },
                 { "isVip", context.IsVip },
-                { "isModerator", context.IsModerator || context.IsBroadcaster },
+                { "isModerator", context.IsModerator }, // el streamer no cuenta como moderador; el Lead Moderator se suma según las opciones del sorteo
+                { "isLeadModerator", context.IsLeadModerator },
+                { "isBroadcaster", context.IsBroadcaster },
                 { "watchTimeMinutes", watchTimeMinutes },
                 { "chatMessagesCount", chatMessagesCount },
                 { "bitsTotal", 0 }, // Se inicializa en 0, se actualiza cuando el usuario dona bits durante el giveaway
@@ -130,6 +145,9 @@ namespace Decatron.Services.Commands
                     metadata["accountCreatedAt"] = DateTime.SpecifyKind(followerData.AccountCreatedAt.Value, DateTimeKind.Utc);
                 }
             }
+
+            if (followedAtFromApi.HasValue)
+                metadata["followedAt"] = DateTime.SpecifyKind(followedAtFromApi.Value, DateTimeKind.Utc);
 
             // Si no tenemos accountCreatedAt de followerData, obtenerlo de la API de Twitch
             if (!metadata.ContainsKey("accountCreatedAt"))
@@ -152,9 +170,9 @@ namespace Decatron.Services.Commands
                 }
             }
 
-            _logger.LogWarning($"[DEBUG GIVEAWAY CMD] Intentando añadir {context.Username}. Metadata: isFollower={metadata["isFollower"]}, isSubscriber={metadata["isSubscriber"]}, isVip={metadata["isVip"]}, isMod={metadata["isModerator"]}");
+            _logger.LogDebug($"[GIVEAWAY CMD] Intentando añadir {context.Username}. Metadata: isFollower={metadata["isFollower"]}, isSubscriber={metadata["isSubscriber"]}, isVip={metadata["isVip"]}, isMod={metadata["isModerator"]}");
 
-            var participant = await giveawayService.AddParticipant(
+            var result = await giveawayService.AddParticipant(
                 channelUser.TwitchId, // Usar ID real
                 context.UserId,
                 context.Username,
@@ -163,13 +181,15 @@ namespace Decatron.Services.Commands
                 ipAddress: null // Twitch no proporciona IPs de usuarios
             );
 
-            if (participant != null)
+            if (result.Joined)
             {
                 _logger.LogInformation($"✅ Usuario {context.Username} unido al giveaway en {context.Channel}");
             }
             else
             {
-                _logger.LogWarning($"❌ Usuario {context.Username} NO pudo unirse al giveaway en {context.Channel}");
+                // "ya entró" es lo normal cuando el viewer repite el comando: no es un aviso
+                var level = result.Reason == "already_entered" ? LogLevel.Debug : LogLevel.Information;
+                _logger.Log(level, $"Usuario {context.Username} NO entró al giveaway en {context.Channel}: {result.Reason}");
             }
         }
     }

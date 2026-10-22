@@ -34,7 +34,11 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                 <p className="text-sm text-ds-soft">
                     <strong>¿Cómo funcionan los pesos?</strong><br />
                     Un multiplicador de 2.0x significa que el usuario tiene el doble de probabilidad de ganar.
-                    Los multiplicadores se acumulan (Ej: Sub Tier 3 + VIP = 6.0 × 1.5 = 9.0x)
+                    Los multiplicadores se acumulan (Ej: Sub Tier 3 + VIP = 6.0 × 1.5 = 9.0x).
+                    Los de tiempo, bits y racha se aplican por cada hora, 100 bits o mes: 1.1 significa +10 % por cada uno,
+                    acumulado (a 10 horas son 1.1 elevado a 10 ≈ 2.6x). Para que nadie acapare el sorteo hay topes que
+                    puedes cambiar en Ajustes → Límites del peso. Un valor menor que 1 penaliza, y solo tiene efecto si bajas
+                    el «Peso mínimo» en esos mismos ajustes.
                 </p>
             </div>
 
@@ -55,7 +59,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
-                                min={1}
+                                min={0.1}
                                 max={100}
                                 step={0.1}
                                 value={weights.subTier1Multiplier}
@@ -75,7 +79,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
-                                min={1}
+                                min={0.1}
                                 max={100}
                                 step={0.1}
                                 value={weights.subTier2Multiplier}
@@ -95,7 +99,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
-                                min={1}
+                                min={0.1}
                                 max={100}
                                 step={0.1}
                                 value={weights.subTier3Multiplier}
@@ -124,7 +128,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
-                                min={1}
+                                min={0.1}
                                 max={100}
                                 step={0.1}
                                 value={weights.vipMultiplier}
@@ -166,7 +170,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                             <div className="flex items-center gap-2">
                                 <input
                                     type="number"
-                                    min={1}
+                                    min={0.1}
                                     max={10}
                                     step={0.05}
                                     value={weights.watchTimeMultiplierPerHour}
@@ -212,7 +216,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                             <div className="flex items-center gap-2">
                                 <input
                                     type="number"
-                                    min={1}
+                                    min={0.1}
                                     max={5}
                                     step={0.01}
                                     value={weights.followAgeMultiplierPerMonth}
@@ -237,7 +241,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <p className="font-bold text-ds-text">Activar Multiplicador por Bits</p>
-                            <p className="text-xs text-ds-soft">Más bits donados = más probabilidad</p>
+                            <p className="text-xs text-ds-soft">Más bits donados = más probabilidad. Cuentan solo los bits que el viewer done mientras el giveaway está activo.</p>
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ bitsEnabled: !weights.bitsEnabled })}
@@ -255,7 +259,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                             <div className="flex items-center gap-2">
                                 <input
                                     type="number"
-                                    min={1}
+                                    min={0.1}
                                     max={10}
                                     step={0.1}
                                     value={weights.bitsMultiplierPer100}
@@ -302,7 +306,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                             <div className="flex items-center gap-2">
                                 <input
                                     type="number"
-                                    min={1}
+                                    min={0.1}
                                     max={5}
                                     step={0.01}
                                     value={weights.subStreakMultiplierPerMonth}

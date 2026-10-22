@@ -182,7 +182,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 <button
                                     onClick={handleEnd}
                                     disabled={actionLoading || loading}
-                                    className="w-full px-6 py-4 bg-ds-faint hover:bg-ds-raised text-ds-text rounded-lg font-black text-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="ds-btn ds-btn--primary ds-btn--lg w-full"
                                 >
                                     <Square className="w-6 h-6" />
                                     {actionLoading ? 'Finalizando...' : 'Finalizar y Sortear'}
@@ -215,7 +215,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 <button
                                     onClick={() => setShowCancelModal(true)}
                                     disabled={actionLoading || loading}
-                                    className="ds-btn ds-btn--primary ds-btn--lg w-full"
+                                    className="ds-btn ds-btn--danger ds-btn--lg w-full"
                                 >
                                     <X className="w-5 h-5" />
                                     Cancelar Giveaway

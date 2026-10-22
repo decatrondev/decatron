@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Square, RefreshCw, Users, Trophy, Clock, X } from 'lucide-react';
 import type { GiveawayState, GiveawayParticipant } from '../../types';
+import { ActiveInsights } from '../ActiveInsights';
 
 interface ActiveTabProps {
     activeState: GiveawayState | null;
@@ -36,7 +37,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
 
     useEffect(() => {
         if (activeState && activeState.endsAt && activeState.config.durationType === 'timed') {
-            const interval = setInterval(() => {
+            const tick = () => {
                 const now = new Date();
                 const endsAt = new Date(activeState.endsAt!);
                 const diff = endsAt.getTime() - now.getTime();
@@ -48,7 +49,9 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                     const seconds = Math.floor((diff % 60000) / 1000);
                     setRemainingTime(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
                 }
-            }, 1000);
+            };
+            tick(); // sin esperar al primer segundo
+            const interval = setInterval(tick, 1000);
 
             return () => clearInterval(interval);
         }
@@ -96,7 +99,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                         <h2 className="text-2xl font-black">🎉 {activeState?.config.name}</h2>
                         <p className="text-ds-soft text-lg">Premio: {activeState?.config.prizeName}</p>
                     </div>
-                    <div className={`px-4 py-2 rounded-full font-bold ${
+                    <div className={`px-4 py-2 rounded-full font-bold whitespace-nowrap shrink-0 ${
                         activeState?.status === 'active' ? 'bg-ds-accent' :
                         activeState?.status === 'selecting_winners' ? 'bg-ds-warn' :
                         activeState?.status === 'completed' ? 'bg-ds-accent' :
@@ -139,10 +142,12 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                             <Trophy className="w-5 h-5" />
                             <p className="font-bold">Ganadores</p>
                         </div>
-                        <p className="text-3xl font-black">{activeState?.config.numberOfWinners || 1}</p>
+                        <p className="text-3xl font-black">{activeState?.selectedWinners?.length ?? 0}<span className="text-ds-soft text-xl"> / {activeState?.config.numberOfWinners || 1}</span></p>
                     </div>
                 </div>
             </div>
+
+            {activeState && <ActiveInsights config={activeState.config} isActive={isActive} />}
 
             {/* Winners Section (if any) */}
             {activeState && activeState.selectedWinners && activeState.selectedWinners.length > 0 && (

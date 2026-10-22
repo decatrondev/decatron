@@ -1406,6 +1406,40 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Si el usuario sigue el canal y desde cuándo (followed_at). Follows es null si no se pudo saber
+        /// (sin token del streamer o error de la API); Since solo viene cuando sigue.
+        /// </summary>
+        public async Task<(bool? Follows, DateTime? Since)> GetFollowInfoAsync(string broadcasterId, string userId)
+        {
+            try
+            {
+                var token = await GetUserAccessTokenAsync(broadcasterId);
+                if (string.IsNullOrEmpty(token)) return (null, null);
+
+                var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"{TwitchApiBaseUrl}/channels/followers?broadcaster_id={broadcasterId}&user_id={userId}");
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
+                request.Headers.Add("Authorization", $"Bearer {token}");
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("GetFollowInfoAsync: {Status} en {BroadcasterId}", (int)response.StatusCode, broadcasterId);
+                    return (null, null);
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var first = JsonSerializer.Deserialize<TwitchFollowersResponse>(json)?.data?.FirstOrDefault();
+                if (first == null) return (false, null);
+                return (true, DateTime.TryParse(first.followed_at, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out var since) ? since : null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetFollowInfoAsync: {BroadcasterId}", broadcasterId);
+                return (null, null);
+            }
+        }
+
+        /// <summary>
         /// ¿El usuario sigue el canal? Usa el token del streamer (moderator:read:followers). null si no se pudo saber.
         /// </summary>
         public async Task<bool?> IsFollowerAsync(string broadcasterId, string userId)

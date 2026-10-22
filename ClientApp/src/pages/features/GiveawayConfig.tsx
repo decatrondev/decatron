@@ -41,6 +41,12 @@ const GiveawayConfig = () => {
     // STATE
     // ========================================================================
     const [activeTab, setActiveTab] = useState<GiveawayTabType>('create');
+    // Avisos propios del panel (en vez de ventanas emergentes del navegador)
+    const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const showNotice = (type: 'success' | 'error', text: string) => {
+        setNotice({ type, text });
+        setTimeout(() => setNotice(null), 5000);
+    };
 
     // ========================================================================
     // HOOKS PERSONALIZADOS
@@ -119,18 +125,18 @@ const GiveawayConfig = () => {
             const result = await response.json();
 
             if (result.success) {
-                alert(`✅ ${result.generated} participantes generados exitosamente`);
+                showNotice('success', `${result.generated} participantes de prueba generados`);
 
                 // Refrescar estado si hay giveaway activo
                 if (giveawayState.isActive) {
                     await giveawayState.refreshState();
                 }
             } else {
-                alert(`❌ Error: ${result.message}`);
+                showNotice('error', result.message || 'No se pudo completar la acción');
             }
         } catch (error: any) {
             console.error('Error:', error);
-            alert(`❌ Error al generar participantes: ${error.message || 'Error desconocido'}`);
+            showNotice('error', `Error al generar participantes: ${error.message || 'Error desconocido'}`);
         }
     };
 
@@ -151,18 +157,18 @@ const GiveawayConfig = () => {
             const result = await response.json();
 
             if (result.success) {
-                alert(`✅ ${result.deleted} participantes eliminados`);
+                showNotice('success', `${result.deleted} participantes de prueba eliminados`);
 
                 // Refrescar estado si hay giveaway activo
                 if (giveawayState.isActive) {
                     await giveawayState.refreshState();
                 }
             } else {
-                alert(`❌ Error: ${result.message}`);
+                showNotice('error', result.message || 'No se pudo completar la acción');
             }
         } catch (error: any) {
             console.error('Error:', error);
-            alert(`❌ Error al limpiar participantes: ${error.message || 'Error desconocido'}`);
+            showNotice('error', `Error al limpiar participantes: ${error.message || 'Error desconocido'}`);
         }
     };
 
@@ -242,6 +248,17 @@ const GiveawayConfig = () => {
                             : 'bg-ds-accent/10 border-ds-accent text-ds-accent-text '
                     }`}>
                         {persistence.saveMessage.text}
+                    </div>
+                )}
+
+                {/* Aviso del panel */}
+                {notice && (
+                    <div className={`mb-6 p-4 rounded-lg border ${
+                        notice.type === 'success'
+                            ? 'bg-ds-ok/10 border-ds-ok/40 text-ds-ok '
+                            : 'bg-ds-accent/10 border-ds-accent text-ds-accent-text '
+                    }`}>
+                        {notice.text}
                     </div>
                 )}
 
@@ -328,6 +345,7 @@ const GiveawayConfig = () => {
                                 <SettingsTab
                                     config={giveawayConfig.config}
                                     onUpdateConfig={giveawayConfig.updateBasicConfig}
+                                    onUpdateSettings={giveawayConfig.updateSettings}
                                 />
                             )}
 

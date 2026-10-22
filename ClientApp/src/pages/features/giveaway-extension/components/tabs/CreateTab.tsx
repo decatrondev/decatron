@@ -90,18 +90,18 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
 
                 <div className="space-y-4">
                     {/* Tipo de duración */}
-                    <div className="flex gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         <button
                             onClick={() => onUpdateConfig({ durationType: 'timed' })}
-                            className="ds-btn ds-btn--secondary ds-btn--lg flex-1"
+                            className={`${config.durationType === 'timed' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'} ds-btn--lg flex-1`}
                         >
                             ⏱️ Con Tiempo Límite
                         </button>
                         <button
                             onClick={() => onUpdateConfig({ durationType: 'manual' })}
-                            className="ds-btn ds-btn--secondary ds-btn--lg flex-1"
+                            className={`${config.durationType === 'manual' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'} ds-btn--lg flex-1`}
                         >
-                            ✋ Manual
+                            ✋ Manual (lo termino yo)
                         </button>
                     </div>
 

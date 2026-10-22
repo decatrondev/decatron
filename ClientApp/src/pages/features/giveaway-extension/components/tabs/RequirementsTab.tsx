@@ -94,34 +94,38 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                     </div>
 
                     {/* Allow VIPs */}
-                    <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
+                    <div className={`flex items-center justify-between p-4 bg-ds-bg rounded-lg border ${requirements.allowVips ? 'border-ds-border' : 'border-ds-warn'}`}>
                         <div>
-                            <p className="font-bold text-ds-text">Permitir VIPs</p>
-                            <p className="text-xs text-ds-soft">VIPs pueden participar</p>
+                            <p className="font-bold text-ds-text">VIPs</p>
+                            <p className="text-xs text-ds-soft">
+                                {requirements.allowVips
+                                    ? 'Los VIPs pueden participar'
+                                    : 'Los VIPs serán rechazados al escribir el comando'}
+                            </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ allowVips: !requirements.allowVips })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                requirements.allowVips
-                                    ? 'bg-ds-warn text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={requirements.allowVips ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.allowVips ? 'Permitido' : 'No permitido'}
+                            {requirements.allowVips ? 'Pueden participar' : 'Bloqueados'}
                         </button>
                     </div>
 
                     {/* Allow Moderators */}
-                    <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
+                    <div className={`flex items-center justify-between p-4 bg-ds-bg rounded-lg border ${requirements.allowModerators ? 'border-ds-border' : 'border-ds-warn'}`}>
                         <div>
-                            <p className="font-bold text-ds-text">Permitir Moderadores</p>
-                            <p className="text-xs text-ds-soft">Mods pueden participar</p>
+                            <p className="font-bold text-ds-text">Moderadores</p>
+                            <p className="text-xs text-ds-soft">
+                                {requirements.allowModerators
+                                    ? 'Los moderadores pueden participar'
+                                    : 'Los moderadores serán rechazados al escribir el comando (el streamer también)'}
+                            </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ allowModerators: !requirements.allowModerators })}
                             className={requirements.allowModerators ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.allowModerators ? 'Permitido' : 'No permitido'}
+                            {requirements.allowModerators ? 'Pueden participar' : 'Bloqueados'}
                         </button>
                     </div>
                 </div>
@@ -182,13 +186,14 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     min={0}
                                     value={requirements.minimumAccountAge}
                                     onChange={(e) => onUpdateRequirements({ minimumAccountAge: parseInt(e.target.value) || 0 })}
-                                    className="ds-input flex-1"
+                                    className="ds-input flex-1 min-w-0"
                                     placeholder="Cantidad"
                                 />
                                 <select
                                     value={requirements.minimumAccountAgeUnit || 'days'}
                                     onChange={(e) => onUpdateRequirements({ minimumAccountAgeUnit: e.target.value as 'days' | 'months' | 'years' })}
-                                    className="ds-input"
+                                    className="ds-input shrink-0"
+                                    style={{ width: 'auto' }}
                                 >
                                     <option value="days">Días</option>
                                     <option value="months">Meses</option>
@@ -219,13 +224,14 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     min={0}
                                     value={requirements.minimumFollowAge}
                                     onChange={(e) => onUpdateRequirements({ minimumFollowAge: parseInt(e.target.value) || 0 })}
-                                    className="ds-input flex-1"
+                                    className="ds-input flex-1 min-w-0"
                                     placeholder="Cantidad"
                                 />
                                 <select
                                     value={requirements.minimumFollowAgeUnit || 'days'}
                                     onChange={(e) => onUpdateRequirements({ minimumFollowAgeUnit: e.target.value as 'days' | 'months' | 'years' })}
-                                    className="ds-input"
+                                    className="ds-input shrink-0"
+                                    style={{ width: 'auto' }}
                                 >
                                     <option value="days">Días</option>
                                     <option value="months">Meses</option>
@@ -276,13 +282,20 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                     <Ban className="w-5 h-5 text-ds-accent-text" />
                     Protección Anti-Trampa
                 </h3>
+                <p className="text-sm text-ds-soft">
+                    Lo que de verdad frena a las cuentas falsas son los requisitos de arriba: edad mínima de la cuenta,
+                    mensajes en el chat y tiempo siguiendo el canal.
+                </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Block Multiple Accounts */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
                             <p className="font-bold text-ds-text">Bloquear Multi-Cuentas</p>
-                            <p className="text-xs text-ds-soft">Detectar cuentas duplicadas</p>
+                            <p className="text-xs text-ds-soft">
+                                Compara cuándo se crearon las cuentas y cuándo siguieron el canal. Es una pista, no una prueba:
+                                los umbrales se ajustan en Ajustes.
+                            </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ blockMultipleAccounts: !requirements.blockMultipleAccounts })}
@@ -296,7 +309,10 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
                             <p className="font-bold text-ds-text">Verificar IP Duplicada</p>
-                            <p className="text-xs text-ds-soft">Detectar misma IP</p>
+                            <p className="text-xs text-ds-warn">
+                                Sin efecto por ahora: Twitch no entrega la IP de los viewers. Se conserva la opción por si algún día
+                                hay entrada con enlace propio.
+                            </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ checkIpDuplication: !requirements.checkIpDuplication })}

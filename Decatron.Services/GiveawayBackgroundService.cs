@@ -104,6 +104,18 @@ namespace Decatron.Services
             }
 
             // ========================================================================
+            // PASO 1b: RECORDATORIOS DE LOS GIVEAWAYS ACTIVOS
+            // ========================================================================
+            try
+            {
+                await giveawayService.SendDueRemindersAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error enviando recordatorios de giveaway");
+            }
+
+            // ========================================================================
             // PASO 2: VERIFICAR TIMEOUTS DE RESPUESTAS DE GANADORES
             // ========================================================================
             var sessionsWithTimeouts = await dbContext.GiveawaySessions
@@ -118,7 +130,8 @@ namespace Decatron.Services
                     var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
                     if (config == null) continue;
 
-                    _logger.LogInformation($"[TIMEOUT] Sesión {session.Id}: WinnerResponseTimeout configurado = {config.WinnerResponseTimeout} segundos");
+                    _logger.LogDebug($"[TIMEOUT] Sesión {session.Id}: WinnerResponseTimeout configurado = {config.WinnerResponseTimeout} segundos");
+                    var bgSettings = GiveawaySettings.Parse(config.Settings);
 
                     // Buscar ganadores sin respuesta que hayan expirado
                     var winners = await dbContext.GiveawayWinners
@@ -142,7 +155,7 @@ namespace Decatron.Services
                         var timeoutExpires = w.SelectedAt.AddSeconds(timeoutSeconds);
                         var hasExpired = now >= timeoutExpires;
 
-                        _logger.LogInformation($"[TIMEOUT CHECK] Ganador ParticipantId={w.ParticipantId}: SelectedAt={w.SelectedAt:HH:mm:ss} UTC, Timeout={timeoutSeconds}seg, Expires={timeoutExpires:HH:mm:ss} UTC, Now={now:HH:mm:ss} UTC, HasExpired={hasExpired}");
+                        _logger.LogDebug($"[TIMEOUT CHECK] Ganador ParticipantId={w.ParticipantId}: SelectedAt={w.SelectedAt:HH:mm:ss} UTC, Timeout={timeoutSeconds}seg, Expires={timeoutExpires:HH:mm:ss} UTC, Now={now:HH:mm:ss} UTC, HasExpired={hasExpired}");
 
                         return hasExpired;
                     });
@@ -211,7 +224,9 @@ namespace Decatron.Services
 
                                     if (backupParticipant != null)
                                     {
-                                        var promotionMsg = $"🎉 ¡Felicidades @{backupParticipant.Username}! Has sido promovido de respaldo a ganador principal. Tienes {config.WinnerResponseTimeout} segundos para responder.";
+                                        var promotionMsg = (string.IsNullOrWhiteSpace(bgSettings.Messages.Promoted) ? GiveawayMessages.DefaultPromoted : bgSettings.Messages.Promoted)
+                                            .Replace("{winner}", backupParticipant.Username).Replace("{user}", backupParticipant.Username)
+                                            .Replace("{timeout}", config.WinnerResponseTimeout.ToString()).Replace("{prize}", config.PrizeName ?? "");
                                         await messageSender.SendMessageAsync(channelName, promotionMsg);
                                         _logger.LogInformation($"✅ Backup winner promovido: {backupParticipant.Username}");
                                     }
@@ -324,8 +339,10 @@ namespace Decatron.Services
                             {
                                 var channelNameFinal = channelUser.Login;
                                 var respondedWinners = allWinners.Count(w => w.HasResponded);
-                                await messageSender.SendMessageAsync(channelNameFinal,
-                                    $"🎉 Giveaway completado. {respondedWinners} de {allWinners.Count} ganadores respondieron.");
+                                var completedText = (string.IsNullOrWhiteSpace(bgSettings.Messages.Completed) ? GiveawayMessages.DefaultCompleted : bgSettings.Messages.Completed)
+                                    .Replace("{responded}", respondedWinners.ToString()).Replace("{total}", allWinners.Count.ToString())
+                                    .Replace("{prize}", config.PrizeName ?? "");
+                                await messageSender.SendMessageAsync(channelNameFinal, completedText);
                             }
                         }
                     }

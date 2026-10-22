@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
 
@@ -43,6 +44,9 @@ namespace Decatron.Controllers.Dtos
         public JsonElement Requirements { get; set; }
         public JsonElement Weights { get; set; }
 
+        // Opciones configurables (mensajes del bot, topes, umbrales...): ver GiveawaySettings
+        public JsonElement Settings { get; set; }
+
         // Cooldown
         public bool WinnerCooldownEnabled { get; set; } = true;
         public int WinnerCooldownDays { get; set; } = 7;
@@ -62,5 +66,17 @@ namespace Decatron.Controllers.Dtos
         // Timeout
         public int WinnerResponseTimeout { get; set; } = 60;
         public bool AutoRerollOnTimeout { get; set; } = true;
+    }
+
+    /// <summary>Generador de participantes de prueba (pestaña Debug).</summary>
+    public class GenerateParticipantsInput
+    {
+        public int Count { get; set; } = 10;
+        public int VipPercentage { get; set; } = 20;
+        public int ModPercentage { get; set; } = 10;
+        public int SubPercentage { get; set; } = 30;
+        public int FollowerPercentage { get; set; } = 80;
+        public bool UseCustomNames { get; set; } = false;
+        public List<string>? CustomNames { get; set; }
     }
 }

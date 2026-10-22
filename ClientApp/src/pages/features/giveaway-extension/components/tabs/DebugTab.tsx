@@ -50,7 +50,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
   };
 
   const handleClear = async () => {
-    if (!confirm('¿Estás seguro de eliminar TODOS los participantes? Esta acción no se puede deshacer.')) {
+    if (!confirm('¿Eliminar los participantes de prueba del giveaway activo? Los participantes reales no se tocan.')) {
       return;
     }
 

@@ -4,14 +4,16 @@
 
 import React from 'react';
 import { Settings, Bell, MessageCircle, Clock } from 'lucide-react';
-import type { GiveawayConfig } from '../../types';
+import type { GiveawayConfig, GiveawaySettings } from '../../types';
+import { SettingsExtras } from './SettingsExtras';
 
 interface SettingsTabProps {
     config: GiveawayConfig;
     onUpdateConfig: (updates: Partial<GiveawayConfig>) => void;
+    onUpdateSettings: <K extends keyof GiveawaySettings>(group: K, updates: Partial<GiveawaySettings[K]>) => void;
 }
 
-export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig }) => {
+export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig, onUpdateSettings }) => {
     return (
         <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {/* Header */}
@@ -216,6 +218,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                     )}
                 </div>
             </div>
+
+            <SettingsExtras settings={config.settings} onUpdateSettings={onUpdateSettings} />
         </div>
     );
 };

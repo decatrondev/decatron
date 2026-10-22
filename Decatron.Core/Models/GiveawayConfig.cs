@@ -122,6 +122,12 @@ namespace Decatron.Core.Models
         [Column("auto_reroll_on_timeout")]
         public bool AutoRerollOnTimeout { get; set; } = true;
 
+        // Opciones configurables sin columna propia (JSONB, ver GiveawaySettings)
+        [Required]
+        [Column("settings", TypeName = "jsonb")]
+        [JsonConverter(typeof(JsonStringConverter))]
+        public string Settings { get; set; } = "{}";
+
         // Metadata
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

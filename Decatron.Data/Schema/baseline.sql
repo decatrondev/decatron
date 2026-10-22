@@ -3885,7 +3885,8 @@ CREATE TABLE public.giveaway_configs (
     auto_reroll_on_timeout boolean DEFAULT true NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    settings jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 

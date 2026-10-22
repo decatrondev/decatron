@@ -107,6 +107,7 @@ namespace Decatron.Controllers
                     AllowAutoEntry = input.AllowAutoEntry,
                     Requirements = input.Requirements.ValueKind != JsonValueKind.Undefined ? input.Requirements.ToString() : "{}",
                     Weights = input.Weights.ValueKind != JsonValueKind.Undefined ? input.Weights.ToString() : "{}",
+                    Settings = input.Settings.ValueKind == JsonValueKind.Object ? input.Settings.ToString() : "{}",
                     WinnerCooldownEnabled = input.WinnerCooldownEnabled,
                     WinnerCooldownDays = input.WinnerCooldownDays,
                     AnnounceOnStart = input.AnnounceOnStart,
@@ -167,6 +168,7 @@ namespace Decatron.Controllers
                     AllowAutoEntry = input.AllowAutoEntry,
                     Requirements = input.Requirements.ValueKind != JsonValueKind.Undefined ? input.Requirements.ToString() : "{}",
                     Weights = input.Weights.ValueKind != JsonValueKind.Undefined ? input.Weights.ToString() : "{}",
+                    Settings = input.Settings.ValueKind == JsonValueKind.Object ? input.Settings.ToString() : "{}",
                     WinnerCooldownEnabled = input.WinnerCooldownEnabled,
                     WinnerCooldownDays = input.WinnerCooldownDays,
                     AnnounceOnStart = input.AnnounceOnStart,
@@ -461,6 +463,81 @@ namespace Decatron.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener participantes");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        /// <summary>Rechazos recientes del giveaway activo (motivo por viewer), para el panel.</summary>
+        [HttpGet("rejections")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> GetRejections()
+        {
+            try
+            {
+                var twitchId = User.FindFirst("TwitchId")?.Value;
+                if (string.IsNullOrEmpty(twitchId))
+                    return Unauthorized(new { success = false, message = "No autenticado" });
+
+                var rejections = await _giveawayService.GetRecentRejections(twitchId);
+                return Ok(new { success = true, rejections });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener rechazos del giveaway");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        // ========================================================================
+        // DEBUG ENDPOINTS (participantes de prueba)
+        // ========================================================================
+
+        [HttpPost("debug/generate-participants")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> GenerateTestParticipants([FromBody] GenerateParticipantsInput input)
+        {
+            try
+            {
+                var twitchId = User.FindFirst("TwitchId")?.Value;
+                if (string.IsNullOrEmpty(twitchId))
+                    return Unauthorized(new { success = false, message = "No autenticado" });
+
+                var generated = await _giveawayService.GenerateTestParticipants(twitchId, input.Count,
+                    input.VipPercentage, input.ModPercentage, input.SubPercentage, input.FollowerPercentage,
+                    input.UseCustomNames ? input.CustomNames : null);
+                return Ok(new { success = true, generated });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Ok(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar participantes de prueba");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        [HttpDelete("debug/clear-participants")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> ClearTestParticipants()
+        {
+            try
+            {
+                var twitchId = User.FindFirst("TwitchId")?.Value;
+                if (string.IsNullOrEmpty(twitchId))
+                    return Unauthorized(new { success = false, message = "No autenticado" });
+
+                var deleted = await _giveawayService.ClearTestParticipants(twitchId);
+                return Ok(new { success = true, deleted });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Ok(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al borrar participantes de prueba");
                 return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
         }

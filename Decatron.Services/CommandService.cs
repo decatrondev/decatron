@@ -27,6 +27,8 @@ namespace Decatron.Services
         private readonly IMessageSender _messageSender;
         private readonly IConfiguration _configuration;
         private readonly ILoggerFactory _loggerFactory;
+        // Entrada al giveaway: se invoca directo desde ProcessMessageAsync, no como comando registrado
+        private Decatron.Services.Commands.GiveawayCommand _giveawayEntry = null!;
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Dictionary<string, ICommand> _commands;
@@ -126,6 +128,8 @@ namespace Decatron.Services
                 RegisterCommand(new TCommand(_configuration, _loggerFactory.CreateLogger<TCommand>(), _commandStateService, messagesService));
                 RegisterCommand(new GameCommand(_configuration, _loggerFactory.CreateLogger<GameCommand>(), _commandStateService, messagesService));
             }
+
+            _giveawayEntry = new Decatron.Services.Commands.GiveawayCommand(_serviceScopeFactory, _loggerFactory.CreateLogger<Decatron.Services.Commands.GiveawayCommand>());
 
             RegisterShoutoutCommand();
 
@@ -641,9 +645,25 @@ namespace Decatron.Services
                     _logger.LogDebug($"[Instance#{_instanceId}] Buscando comando '{commandName}'. Comandos registrados: {string.Join(", ", _commands.Keys)}");
                 }
 
+                // 0a. GIVEAWAY — si quien escribe es un ganador esperando respuesta, cualquier mensaje suyo cuenta como respuesta
+                // (los mensajes llegan por EventSub: el registro que había en el manejador de IRC nunca se ejecutaba)
+                if (platform == "twitch" && channelTwitchId != null && GiveawayService.HasPendingWinners(channelTwitchId))
+                {
+                    try
+                    {
+                        using var respScope = _serviceScopeFactory.CreateScope();
+                        var respService = respScope.ServiceProvider.GetRequiredService<GiveawayService>();
+                        await respService.MarkWinnerAsResponded(channelTwitchId, username, chatMessage);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error registrando la respuesta del ganador del giveaway en {Channel}", channel);
+                    }
+                }
+
                 // 0. GIVEAWAY — comando de entrada configurable y entrada automática (solo Twitch)
-                if (platform == "twitch" && channelTwitchId != null && commandName != "!join"
-                    && _commands.TryGetValue("!join", out var joinCmd))
+                // El comando de entrada NO está en _commands: se atiende aquí con el comando configurado del sorteo (por defecto !join)
+                if (platform == "twitch" && channelTwitchId != null)
                 {
                     try
                     {
@@ -653,10 +673,11 @@ namespace Decatron.Services
                         if (rules != null)
                         {
                             var isEntryCommand = commandName == rules.Command;
-                            if (isEntryCommand || (rules.AutoEntry && !commandName.StartsWith("!") && GiveawayService.ShouldTryAutoEntry(rules.SessionId, userId)))
+                            if ((isEntryCommand || (rules.AutoEntry && !commandName.StartsWith("!") && GiveawayService.ShouldTryAutoEntry(rules.SessionId, userId)))
+                                && await CommandModuleOnAsync("!join"))
                             {
                                 var ctx = new CommandContext(username, channel, "!join", userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
-                                await joinCmd.ExecuteAsync(ctx, _messageSender);
+                                await _giveawayEntry.ExecuteAsync(ctx, _messageSender);
                                 if (!isEntryCommand && await gwService.IsParticipant(rules.SessionId, userId)) GiveawayService.MarkAutoEntered(rules.SessionId, userId);
                                 if (isEntryCommand) return;
                             }
@@ -664,7 +685,7 @@ namespace Decatron.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogDebug(ex, "Error en la entrada del giveaway para {Cmd}", commandName);
+                        _logger.LogError(ex, "Error en la entrada del giveaway para {Cmd} en {Channel}", commandName, channel);
                     }
                 }
 

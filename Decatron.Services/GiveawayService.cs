@@ -35,6 +35,19 @@ namespace Decatron.Services
         }
 
         // ========================================================================
+        // MENSAJES CONFIGURABLES
+        // ========================================================================
+
+        /// <summary>Texto configurado por el streamer, o el de por defecto, con las {variables} ya sustituidas.</summary>
+        private static string Say(string? custom, string fallback, params (string Key, string Value)[] vars)
+        {
+            var text = string.IsNullOrWhiteSpace(custom) ? fallback : custom;
+            foreach (var (key, value) in vars)
+                text = text.Replace("{" + key + "}", value);
+            return text;
+        }
+
+        // ========================================================================
         // CONFIG METHODS
         // ========================================================================
 
@@ -76,6 +89,7 @@ namespace Decatron.Services
                 existing.AllowAutoEntry = config.AllowAutoEntry;
                 existing.Requirements = config.Requirements;
                 existing.Weights = config.Weights;
+                existing.Settings = string.IsNullOrWhiteSpace(config.Settings) ? "{}" : config.Settings;
                 existing.WinnerCooldownEnabled = config.WinnerCooldownEnabled;
                 existing.WinnerCooldownDays = config.WinnerCooldownDays;
                 existing.AnnounceOnStart = config.AnnounceOnStart;
@@ -321,8 +335,9 @@ namespace Decatron.Services
                 var channelName = await GetChannelNameFromId(channelId);
                 if (!string.IsNullOrEmpty(channelName))
                 {
+                    var gs = GiveawaySettings.Parse(config.Settings);
                     await _messageSender.SendMessageAsync(channelName,
-                        $"❌ El giveaway ha sido cancelado: {ex.Message}");
+                        Say(gs.Messages.NoParticipants, GiveawayMessages.DefaultNoParticipants, ("reason", ex.Message), ("prize", config.PrizeName ?? "")));
                 }
 
                 return session;
@@ -347,6 +362,24 @@ namespace Decatron.Services
 
             _logger.LogInformation($"Giveaway cancelado en canal {channelId}: {session.Name}");
 
+            // Antes no se avisaba al chat: se mantiene así salvo que el streamer escriba un mensaje de cancelación
+            try
+            {
+                var cfg = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
+                var gs = GiveawaySettings.Parse(cfg?.Settings);
+                if (!string.IsNullOrWhiteSpace(gs.Messages.Cancelled))
+                {
+                    var channelName = await GetChannelNameFromId(channelId);
+                    if (!string.IsNullOrEmpty(channelName))
+                        await _messageSender.SendMessageAsync(channelName,
+                            Say(gs.Messages.Cancelled, GiveawayMessages.DefaultCancelled, ("reason", reason ?? ""), ("prize", cfg?.PrizeName ?? "")));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error avisando la cancelación del giveaway {SessionId}", session.Id);
+            }
+
             return session;
         }
 
@@ -354,7 +387,81 @@ namespace Decatron.Services
         // PARTICIPANT METHODS
         // ========================================================================
 
-        public async Task<GiveawayParticipant?> AddParticipant(
+        // Resultado de intentar entrar: o hay participante, o hay un código con el motivo del rechazo
+        public record EntryResult(GiveawayParticipant? Participant, string? Reason)
+        {
+            public bool Joined => Participant != null;
+            public static EntryResult Ok(GiveawayParticipant p) => new(p, null);
+            public static EntryResult Rejected(string reason) => new(null, reason);
+        }
+
+        /// <summary>Rechazo reciente, para mostrarlo en el panel (en memoria: solo el sorteo en curso).</summary>
+        public record RejectionEntry(DateTime At, string Username, string Reason, string Text);
+
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, System.Collections.Concurrent.ConcurrentQueue<RejectionEntry>> _rejections = new();
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _rejectionReplies = new();
+        private const int MaxRejectionsPerSession = 200;
+
+        /// <summary>Últimos rechazos del giveaway activo del canal, el más reciente primero.</summary>
+        public async Task<List<RejectionEntry>> GetRecentRejections(string channelId, int limit = 50)
+        {
+            var session = await GetActiveSession(channelId);
+            if (session == null || !_rejections.TryGetValue(session.Id, out var queue)) return new List<RejectionEntry>();
+            return queue.Reverse().Take(limit).ToList();
+        }
+
+        public async Task<EntryResult> AddParticipant(
+            string channelId,
+            string userId,
+            string username,
+            string displayName,
+            Dictionary<string, object> userMetadata,
+            string? ipAddress = null)
+        {
+            var result = await AddParticipantCore(channelId, userId, username, displayName, userMetadata, ipAddress);
+            if (!result.Joined && result.Reason is not (null or "already_entered" or "no_active_giveaway"))
+                await RecordRejectionAsync(channelId, userId, username, result.Reason);
+            return result;
+        }
+
+        private async Task RecordRejectionAsync(string channelId, string userId, string username, string reason)
+        {
+            try
+            {
+                var session = await GetActiveSession(channelId);
+                if (session == null) return;
+                var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
+                var gs = GiveawaySettings.Parse(config?.Settings);
+                var text = Say(gs.Rejections.TextFor(reason), "", ("user", username), ("prize", config?.PrizeName ?? ""), ("command", config?.EntryCommand ?? ""), ("count", session.TotalParticipants.ToString()));
+
+                var queue = _rejections.GetOrAdd(session.Id, _ => new System.Collections.Concurrent.ConcurrentQueue<RejectionEntry>());
+                queue.Enqueue(new RejectionEntry(DateTime.UtcNow, username, reason, text));
+                while (queue.Count > MaxRejectionsPerSession) queue.TryDequeue(out _);
+
+                // Respuesta en el chat (opcional): una vez por persona y motivo cada 2 minutos, para no llenar el chat
+                if (gs.Rejections.AnnounceInChat && !string.IsNullOrWhiteSpace(text))
+                {
+                    var key = $"{session.Id}:{userId}:{reason}";
+                    var now = DateTime.UtcNow;
+                    if (!_rejectionReplies.TryGetValue(key, out var last) || now - last > TimeSpan.FromMinutes(2))
+                    {
+                        _rejectionReplies[key] = now;
+                        if (_rejectionReplies.Count > 20000)
+                            foreach (var k in _rejectionReplies.Where(kv => now - kv.Value > TimeSpan.FromHours(1)).Select(kv => kv.Key).ToList())
+                                _rejectionReplies.TryRemove(k, out _);
+                        var channelName = await GetChannelNameFromId(channelId);
+                        if (!string.IsNullOrEmpty(channelName))
+                            await _messageSender.SendMessageAsync(channelName, text);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error registrando el rechazo de {User} en el giveaway", username);
+            }
+        }
+
+        private async Task<EntryResult> AddParticipantCore(
             string channelId,
             string userId,
             string username,
@@ -365,20 +472,20 @@ namespace Decatron.Services
             var session = await GetActiveSession(channelId);
             if (session == null)
             {
-                return null; // No active giveaway
+                return EntryResult.Rejected("no_active_giveaway");
             }
 
             var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
             if (config == null)
             {
-                return null;
+                return EntryResult.Rejected("invalid_config");
             }
 
             // Check if max participants reached
             if (config.MaxParticipantsEnabled && session.TotalParticipants >= config.MaxParticipants)
             {
-                _logger.LogWarning($"Máximo de participantes alcanzado en giveaway {session.Id}");
-                return null;
+                _logger.LogInformation($"Máximo de participantes alcanzado en giveaway {session.Id}");
+                return EntryResult.Rejected("full");
             }
 
             // Check if user already participated
@@ -389,7 +496,7 @@ namespace Decatron.Services
             {
                 if (!config.AllowMultipleEntries)
                 {
-                    return null; // Already participated
+                    return EntryResult.Rejected("already_entered");
                 }
 
                 // Increment entry count
@@ -400,7 +507,7 @@ namespace Decatron.Services
                 // Update session weight
                 await RecalculateSessionWeight(session.Id);
 
-                return existing;
+                return EntryResult.Ok(existing);
             }
 
             // Check cooldown FIRST (antes de validar requisitos)
@@ -417,23 +524,31 @@ namespace Decatron.Services
                         .OrderByDescending(c => c.CooldownUntil)
                         .FirstOrDefaultAsync();
 
-                    _logger.LogWarning($"Usuario {username} está en cooldown hasta {cooldown?.CooldownUntil}");
-                    return null;
+                    _logger.LogInformation($"Usuario {username} está en cooldown hasta {cooldown?.CooldownUntil}");
+                    return EntryResult.Rejected("cooldown");
                 }
             }
+
+            // Roles según las opciones del streamer: el Lead Moderator puede contar (o no) como moderador
+            var roleRules = GiveawaySettings.Parse(config.Settings).Roles;
+            if (roleRules.LeadModCountsAsMod && GetBool(userMetadata, "isLeadModerator"))
+                userMetadata["isModerator"] = true;
+            if (!roleRules.StreamerCanJoin && GetBool(userMetadata, "isBroadcaster"))
+                return EntryResult.Rejected("streamer_not_allowed");
 
             // Validate requirements
             var requirements = JsonSerializer.Deserialize<JsonElement>(config.Requirements);
             if (requirements.ValueKind == JsonValueKind.Null || requirements.ValueKind == JsonValueKind.Undefined)
             {
                 _logger.LogWarning($"Requirements inválidos en config {config.Id}");
-                return null;
+                return EntryResult.Rejected("invalid_config");
             }
 
-            if (!await ValidateRequirements(userId, username, userMetadata, requirements, channelId))
+            var requirementFailure = await ValidateRequirements(userId, username, userMetadata, requirements, channelId);
+            if (requirementFailure != null)
             {
-                _logger.LogInformation($"Usuario {username} no cumple los requisitos del giveaway");
-                return null;
+                _logger.LogInformation($"Usuario {username} no cumple los requisitos del giveaway: {requirementFailure}");
+                return EntryResult.Rejected(requirementFailure);
             }
 
             // Anti-cheat: Check IP duplication (si está habilitado)
@@ -448,7 +563,7 @@ namespace Decatron.Services
                     if (duplicateIp)
                     {
                         _logger.LogWarning($"[ANTI-CHEAT] Usuario {username} rechazado: IP duplicada detectada");
-                        return null;
+                        return EntryResult.Rejected("duplicate_ip");
                     }
                 }
             }
@@ -463,6 +578,7 @@ namespace Decatron.Services
 
                 var accountCreatedAt = GetNullableDateTime(userMetadata, "accountCreatedAt");
                 var followedAt = GetNullableDateTime(userMetadata, "followedAt");
+                var multi = GiveawaySettings.Parse(config.Settings).MultiAccount;
 
                 if (accountCreatedAt.HasValue)
                 {
@@ -477,10 +593,10 @@ namespace Decatron.Services
                         if (suspect.AccountCreatedAt.HasValue)
                         {
                             var timeDiff = Math.Abs((accountCreatedAt.Value - suspect.AccountCreatedAt.Value).TotalDays);
-                            if (timeDiff < 1)
+                            if (timeDiff < multi.SameCreationDays)
                             {
                                 _logger.LogWarning($"[ANTI-CHEAT] Usuario {username} rechazado: cuenta creada muy cerca de {suspect.Username} (diferencia: {timeDiff:F2} días)");
-                                return null;
+                                return EntryResult.Rejected("multi_account");
                             }
                         }
 
@@ -490,10 +606,10 @@ namespace Decatron.Services
                             var accountAge = (DateTime.UtcNow - accountCreatedAt.Value).TotalDays;
                             var followDiff = Math.Abs((followedAt.Value - suspect.FollowedAt.Value).TotalDays);
 
-                            if (accountAge < 30 && followDiff < 1)
+                            if (accountAge < multi.NewAccountDays && followDiff < multi.SameFollowDays)
                             {
                                 _logger.LogWarning($"[ANTI-CHEAT] Usuario {username} rechazado: patrón de follow sospechoso con {suspect.Username}");
-                                return null;
+                                return EntryResult.Rejected("multi_account");
                             }
                         }
                     }
@@ -545,12 +661,13 @@ namespace Decatron.Services
                 var channelName = await GetChannelNameFromId(channelId);
                 if (!string.IsNullOrEmpty(channelName))
                 {
-                    var message = $"✅ {username} se ha unido al giveaway! Total de participantes: {session.TotalParticipants}";
+                    var message = Say(GiveawaySettings.Parse(config.Settings).Messages.Joined, GiveawayMessages.DefaultJoined,
+                        ("user", username), ("count", session.TotalParticipants.ToString()), ("prize", config.PrizeName ?? ""), ("command", config.EntryCommand ?? ""));
                     await _messageSender.SendMessageAsync(channelName, message);
                 }
             }
 
-            return participant;
+            return EntryResult.Ok(participant);
         }
 
         // ========================================================================
@@ -824,7 +941,17 @@ namespace Decatron.Services
             if (weights.ValueKind == JsonValueKind.Null || weights.ValueKind == JsonValueKind.Undefined)
                 return 1.0m;
 
-            decimal weight = 1.0m;
+            // Cuentas en double con tope: un multiplicador exponencial grande ya no desborda (antes el desborde
+            // caía al catch y dejaba el peso en 1, anulando TODOS los multiplicadores)
+            var limits = GiveawaySettings.Parse(config.Settings).WeightLimits;
+            double MaxWeight = Math.Max(1.0, limits.MaxPerFactor);
+            double weight = 1.0;
+
+            double Num(string name, double fallback) =>
+                weights.TryGetProperty(name, out var el) && el.ValueKind == JsonValueKind.Number ? el.GetDouble() : fallback;
+            bool On(string name) =>
+                weights.TryGetProperty(name, out var el) && el.ValueKind == JsonValueKind.True;
+            double Pow(double mult, double exp) => Math.Min(Math.Pow(Math.Max(mult, 0), exp), MaxWeight);
 
             try
             {
@@ -833,54 +960,35 @@ namespace Decatron.Services
                 {
                     switch (participant.SubscriptionTier.Value)
                     {
-                        case 1:
-                            weight *= weights.TryGetProperty("subTier1Multiplier", out var tier1) ? (decimal)tier1.GetDouble() : 1.0m;
-                            break;
-                        case 2:
-                            weight *= weights.TryGetProperty("subTier2Multiplier", out var tier2) ? (decimal)tier2.GetDouble() : 1.0m;
-                            break;
-                        case 3:
-                            weight *= weights.TryGetProperty("subTier3Multiplier", out var tier3) ? (decimal)tier3.GetDouble() : 1.0m;
-                            break;
+                        case 1: weight *= Num("subTier1Multiplier", 1.0); break;
+                        case 2: weight *= Num("subTier2Multiplier", 1.0); break;
+                        case 3: weight *= Num("subTier3Multiplier", 1.0); break;
                     }
                 }
 
                 // VIP multiplier
                 if (participant.IsVip)
-                {
-                    weight *= weights.TryGetProperty("vipMultiplier", out var vip) ? (decimal)vip.GetDouble() : 1.0m;
-                }
+                    weight *= Num("vipMultiplier", 1.0);
 
-                // Watch time multiplier
-                if (weights.TryGetProperty("watchTimeEnabled", out var watchEnabled) && watchEnabled.GetBoolean() && participant.WatchTimeMinutes > 0)
-                {
-                    var hours = participant.WatchTimeMinutes / 60.0;
-                    var multiplierPerHour = weights.TryGetProperty("watchTimeMultiplierPerHour", out var watchMult) ? (decimal)watchMult.GetDouble() : 1.0m;
-                    weight *= (decimal)Math.Pow((double)multiplierPerHour, hours);
-                }
+                // Watch time multiplier (por hora)
+                if (On("watchTimeEnabled") && participant.WatchTimeMinutes > 0)
+                    weight *= Pow(Num("watchTimeMultiplierPerHour", 1.0), participant.WatchTimeMinutes / 60.0);
 
-                // Follow age multiplier
-                if (weights.TryGetProperty("followAgeEnabled", out var followEnabled) && followEnabled.GetBoolean() && participant.FollowedAt.HasValue)
-                {
-                    var months = (DateTime.UtcNow - participant.FollowedAt.Value).TotalDays / 30.0;
-                    var multiplierPerMonth = weights.TryGetProperty("followAgeMultiplierPerMonth", out var followMult) ? (decimal)followMult.GetDouble() : 1.0m;
-                    weight *= (decimal)Math.Pow((double)multiplierPerMonth, months);
-                }
+                // Follow age multiplier (por mes)
+                if (On("followAgeEnabled") && participant.FollowedAt.HasValue)
+                    weight *= Pow(Num("followAgeMultiplierPerMonth", 1.0), (DateTime.UtcNow - participant.FollowedAt.Value).TotalDays / 30.0);
 
-                // Bits multiplier
-                if (weights.TryGetProperty("bitsEnabled", out var bitsEnabled) && bitsEnabled.GetBoolean() && participant.BitsTotal > 0)
-                {
-                    var hundreds = participant.BitsTotal / 100.0;
-                    var multiplierPer100 = weights.TryGetProperty("bitsMultiplierPer100", out var bitsMult) ? (decimal)bitsMult.GetDouble() : 1.0m;
-                    weight *= (decimal)Math.Pow((double)multiplierPer100, hundreds);
-                }
+                // Bits multiplier (por cada 100)
+                if (On("bitsEnabled") && participant.BitsTotal > 0)
+                    weight *= Pow(Num("bitsMultiplierPer100", 1.0), participant.BitsTotal / 100.0);
 
-                // Sub streak multiplier
-                if (weights.TryGetProperty("subStreakEnabled", out var streakEnabled) && streakEnabled.GetBoolean() && participant.SubStreak > 0)
-                {
-                    var multiplierPerMonth = weights.TryGetProperty("subStreakMultiplierPerMonth", out var streakMult) ? (decimal)streakMult.GetDouble() : 1.0m;
-                    weight *= (decimal)Math.Pow((double)multiplierPerMonth, participant.SubStreak);
-                }
+                // Sub streak multiplier (por mes)
+                if (On("subStreakEnabled") && participant.SubStreak > 0)
+                    weight *= Pow(Num("subStreakMultiplierPerMonth", 1.0), participant.SubStreak);
+
+                // Entradas múltiples: cada entrada es un boleto más
+                if (participant.EntryCount > 1)
+                    weight *= participant.EntryCount;
             }
             catch (Exception ex)
             {
@@ -888,10 +996,11 @@ namespace Decatron.Services
                 return 1.0m;
             }
 
-            return Math.Max(weight, 1.0m);
+            return (decimal)Math.Clamp(weight, Math.Max(0.0001, limits.Min), Math.Max(limits.Min, limits.MaxTotal));
         }
 
-        private async Task<bool> ValidateRequirements(
+        // Devuelve null si cumple los requisitos, o el código del motivo del rechazo
+        private async Task<string?> ValidateRequirements(
             string userId,
             string username,
             Dictionary<string, object> userMetadata,
@@ -900,13 +1009,13 @@ namespace Decatron.Services
         {
             try
             {
-                _logger.LogWarning($"[DEBUG REQUIREMENTS] Validando requisitos para {username}. Metadata: isFollower={GetBool(userMetadata, "isFollower")}, isSubscriber={GetBool(userMetadata, "isSubscriber")}, isVip={GetBool(userMetadata, "isVip")}, isMod={GetBool(userMetadata, "isModerator")}");
+                _logger.LogDebug($"[REQUIREMENTS] Validando requisitos para {username}. Metadata: isFollower={GetBool(userMetadata, "isFollower")}, isSubscriber={GetBool(userMetadata, "isSubscriber")}, isVip={GetBool(userMetadata, "isVip")}, isMod={GetBool(userMetadata, "isModerator")}");
 
                 // Check whitelist (si está habilitado, SOLO permite usuarios en la lista)
                 var useWhitelist = requirements.TryGetProperty("useWhitelist", out var uwl) && uwl.GetBoolean();
                 if (useWhitelist)
                 {
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] useWhitelist=true. Verificando whitelist...");
+                    _logger.LogDebug($"[REQUIREMENTS] useWhitelist=true. Verificando whitelist...");
                     var whitelistedUsers = new List<string>();
                     if (requirements.TryGetProperty("whitelistedUsers", out var wl) && wl.ValueKind == JsonValueKind.Array)
                     {
@@ -916,58 +1025,65 @@ namespace Decatron.Services
                     var isInWhitelist = whitelistedUsers.Any(u => u.Equals(username, StringComparison.OrdinalIgnoreCase));
                     if (!isInWhitelist)
                     {
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: NO está en whitelist");
-                        return false;
+                        _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: NO está en whitelist");
+                        return "not_in_whitelist";
                     }
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} está en whitelist - APROBADO");
-                    return true; // Si está en whitelist, se acepta directamente
+                    _logger.LogDebug($"[REQUIREMENTS] {username} está en whitelist - APROBADO");
+                    return null; // Si está en whitelist, se acepta directamente
                 }
 
-                // Check blacklist (siempre se revisa)
-                var isBlacklisted = await _context.GiveawayBlacklists
-                    .AnyAsync(b => b.ChannelId == channelId && b.UserId == userId);
+                // Check blacklist (siempre se revisa): la lista del panel (en los requisitos) y la tabla del canal
+                var isBlacklisted = false;
+                if (requirements.TryGetProperty("blacklistedUsers", out var bl) && bl.ValueKind == JsonValueKind.Array)
+                {
+                    isBlacklisted = bl.EnumerateArray().Any(u => u.ValueKind == JsonValueKind.String
+                        && string.Equals(u.GetString()?.Trim().TrimStart('@'), username, StringComparison.OrdinalIgnoreCase));
+                }
+                if (!isBlacklisted)
+                    isBlacklisted = await _context.GiveawayBlacklists
+                        .AnyAsync(b => b.ChannelId == channelId && b.UserId == userId);
 
                 if (isBlacklisted)
                 {
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: está en BLACKLIST");
-                    return false;
+                    _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: está en BLACKLIST");
+                    return "blacklisted";
                 }
 
                 // Check if VIPs are allowed
                 var allowVips = !requirements.TryGetProperty("allowVips", out var av) || av.GetBoolean();
                 if (!allowVips && GetBool(userMetadata, "isVip"))
                 {
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: es VIP pero VIPs no permitidos");
-                    return false;
+                    _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: es VIP pero VIPs no permitidos");
+                    return "vip_not_allowed";
                 }
 
                 // Check if moderators are allowed
                 var allowModerators = !requirements.TryGetProperty("allowModerators", out var am) || am.GetBoolean();
                 if (!allowModerators && GetBool(userMetadata, "isModerator"))
                 {
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: es MOD pero MODs no permitidos");
-                    return false;
+                    _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: es MOD pero MODs no permitidos");
+                    return "mod_not_allowed";
                 }
 
                 // Must follow
                 if (requirements.TryGetProperty("mustFollow", out var mustFollow) && mustFollow.GetBoolean())
                 {
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] mustFollow=true requerido. Usuario isFollower={GetBool(userMetadata, "isFollower")}");
+                    _logger.LogDebug($"[REQUIREMENTS] mustFollow=true requerido. Usuario isFollower={GetBool(userMetadata, "isFollower")}");
                     if (!GetBool(userMetadata, "isFollower"))
                     {
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: no es follower");
-                        return false;
+                        _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: no es follower");
+                        return "not_follower";
                     }
                 }
 
                 // Must subscribe
                 if (requirements.TryGetProperty("mustSubscribe", out var mustSubscribe) && mustSubscribe.GetBoolean())
                 {
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] mustSubscribe=true requerido. Usuario isSubscriber={GetBool(userMetadata, "isSubscriber")}");
+                    _logger.LogDebug($"[REQUIREMENTS] mustSubscribe=true requerido. Usuario isSubscriber={GetBool(userMetadata, "isSubscriber")}");
                     if (!GetBool(userMetadata, "isSubscriber"))
                     {
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: no es subscriber");
-                        return false;
+                        _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: no es subscriber");
+                        return "not_subscriber";
                     }
                 }
 
@@ -976,11 +1092,11 @@ namespace Decatron.Services
                 {
                     var minWatchTime = requirements.TryGetProperty("minimumWatchTime", out var minWatch) ? minWatch.GetInt32() : 0;
                     var userWatchTime = GetInt(userMetadata, "watchTimeMinutes");
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] minimumWatchTime={minWatchTime} requerido. Usuario watchTime={userWatchTime}");
+                    _logger.LogDebug($"[REQUIREMENTS] minimumWatchTime={minWatchTime} requerido. Usuario watchTime={userWatchTime}");
                     if (userWatchTime < minWatchTime)
                     {
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: watchTime insuficiente");
-                        return false;
+                        _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: watchTime insuficiente");
+                        return "watch_time";
                     }
                 }
 
@@ -997,17 +1113,17 @@ namespace Decatron.Services
                     if (accountCreatedAt.HasValue)
                     {
                         var accountAgeDays = (DateTime.UtcNow - accountCreatedAt.Value).TotalDays;
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] minimumAccountAge={minAccountAge} {accountAgeUnit} ({minAccountAgeDays} días) requerido. Usuario accountAge={accountAgeDays:F1} días");
+                        _logger.LogDebug($"[REQUIREMENTS] minimumAccountAge={minAccountAge} {accountAgeUnit} ({minAccountAgeDays} días) requerido. Usuario accountAge={accountAgeDays:F1} días");
                         if (accountAgeDays < minAccountAgeDays)
                         {
-                            _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: cuenta muy nueva");
-                            return false;
+                            _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: cuenta muy nueva");
+                            return "account_age";
                         }
                     }
                     else if (minAccountAge > 0)
                     {
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: no tiene datos de account age");
-                        return false;
+                        _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: no tiene datos de account age");
+                        return "account_age_unknown";
                     }
                 }
 
@@ -1024,17 +1140,17 @@ namespace Decatron.Services
                     if (followedAt.HasValue)
                     {
                         var followAgeDays = (DateTime.UtcNow - followedAt.Value).TotalDays;
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] minimumFollowAge={minFollowAge} {followAgeUnit} ({minFollowAgeDays} días) requerido. Usuario followAge={followAgeDays:F1} días");
+                        _logger.LogDebug($"[REQUIREMENTS] minimumFollowAge={minFollowAge} {followAgeUnit} ({minFollowAgeDays} días) requerido. Usuario followAge={followAgeDays:F1} días");
                         if (followAgeDays < minFollowAgeDays)
                         {
-                            _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: follow muy reciente");
-                            return false;
+                            _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: follow muy reciente");
+                            return "follow_age";
                         }
                     }
                     else if (minFollowAge > 0)
                     {
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: no tiene datos de follow age");
-                        return false;
+                        _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: no tiene datos de follow age");
+                        return "follow_age_unknown";
                     }
                 }
 
@@ -1043,21 +1159,21 @@ namespace Decatron.Services
                 {
                     var minMessages = requirements.TryGetProperty("minimumChatMessages", out var minMsg) ? minMsg.GetInt32() : 0;
                     var userMessages = GetInt(userMetadata, "chatMessagesCount");
-                    _logger.LogWarning($"[DEBUG REQUIREMENTS] minimumChatMessages={minMessages} requerido. Usuario messages={userMessages}");
+                    _logger.LogDebug($"[REQUIREMENTS] minimumChatMessages={minMessages} requerido. Usuario messages={userMessages}");
                     if (userMessages < minMessages)
                     {
-                        _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} rechazado: mensajes insuficientes");
-                        return false;
+                        _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: mensajes insuficientes");
+                        return "chat_messages";
                     }
                 }
 
-                _logger.LogWarning($"[DEBUG REQUIREMENTS] {username} APROBADO - cumple todos los requisitos");
-                return true;
+                _logger.LogDebug($"[REQUIREMENTS] {username} APROBADO - cumple todos los requisitos");
+                return null;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error validating requirements: {ex.Message}");
-                return false;
+                return "error";
             }
         }
 
@@ -1264,6 +1380,134 @@ namespace Decatron.Services
         }
 
         // ========================================================================
+        // PARTICIPANTES DE PRUEBA (pestaña Debug)
+        // ========================================================================
+
+        private const string TestUserPrefix = "test_";
+
+        /// <summary>Crea participantes falsos en el giveaway activo con datos variados, para probar pesos y sorteos.</summary>
+        public async Task<int> GenerateTestParticipants(string channelId, int count, int vipPct, int modPct, int subPct, int followerPct, List<string>? names)
+        {
+            var session = await GetActiveSession(channelId)
+                ?? throw new InvalidOperationException("No hay giveaway activo");
+            var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot)
+                ?? throw new InvalidOperationException("Config snapshot inválido");
+
+            count = Math.Clamp(count, 1, 500);
+            var existing = await _context.GiveawayParticipants.CountAsync(p => p.SessionId == session.Id && p.UserId.StartsWith(TestUserPrefix));
+            var now = DateTime.UtcNow;
+            var created = 0;
+
+            for (var i = 0; i < count; i++)
+            {
+                var n = existing + i + 1;
+                var name = names != null && i < names.Count ? names[i] : $"prueba_{n}";
+                var isSub = _random.Next(100) < subPct;
+                var isFollower = isSub || _random.Next(100) < followerPct;
+                var participant = new GiveawayParticipant
+                {
+                    SessionId = session.Id,
+                    UserId = $"{TestUserPrefix}{session.Id}_{n}",
+                    Username = name.ToLowerInvariant(),
+                    DisplayName = name,
+                    IsFollower = isFollower,
+                    IsSubscriber = isSub,
+                    SubscriptionTier = isSub ? (byte)(_random.Next(100) < 70 ? 1 : _random.Next(100) < 70 ? 2 : 3) : null,
+                    IsVip = _random.Next(100) < vipPct,
+                    IsModerator = _random.Next(100) < modPct,
+                    AccountCreatedAt = now.AddDays(-_random.Next(30, 3000)),
+                    FollowedAt = isFollower ? now.AddDays(-_random.Next(1, 900)) : null,
+                    WatchTimeMinutes = _random.Next(0, 6000),
+                    ChatMessagesCount = _random.Next(0, 800),
+                    BitsTotal = _random.Next(100) < 15 ? _random.Next(100, 5000) : 0,
+                    SubStreak = isSub ? _random.Next(1, 36) : 0,
+                    EnteredAt = now,
+                    EntryCount = 1,
+                };
+                participant.CalculatedWeight = CalculateWeight(participant, config);
+                _context.GiveawayParticipants.Add(participant);
+                created++;
+            }
+
+            await _context.SaveChangesAsync();
+            session.TotalParticipants += created;
+            await RecalculateSessionWeight(session.Id);
+            return created;
+        }
+
+        /// <summary>Borra solo los participantes de prueba del giveaway activo (los reales no se tocan).</summary>
+        public async Task<int> ClearTestParticipants(string channelId)
+        {
+            var session = await GetActiveSession(channelId)
+                ?? throw new InvalidOperationException("No hay giveaway activo");
+            var fakes = await _context.GiveawayParticipants
+                .Where(p => p.SessionId == session.Id && p.UserId.StartsWith(TestUserPrefix))
+                .ToListAsync();
+            if (fakes.Count == 0) return 0;
+
+            _context.GiveawayParticipants.RemoveRange(fakes);
+            session.TotalParticipants = Math.Max(0, session.TotalParticipants - fakes.Count);
+            await _context.SaveChangesAsync();
+            await RecalculateSessionWeight(session.Id);
+            return fakes.Count;
+        }
+
+        // ========================================================================
+        // RECORDATORIOS
+        // ========================================================================
+
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, DateTime> _lastReminder = new();
+
+        /// <summary>
+        /// Anuncia en el chat el recordatorio de los giveaways activos que lo tengan activado,
+        /// cada "reminderIntervalMinutes" desde que empezó o desde el último recordatorio.
+        /// </summary>
+        public async Task SendDueRemindersAsync()
+        {
+            var now = DateTime.UtcNow;
+            var sessions = await _context.GiveawaySessions.AsNoTracking()
+                .Where(s => s.Status == "active")
+                .ToListAsync();
+
+            foreach (var session in sessions)
+            {
+                try
+                {
+                    var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
+                    if (config == null || !config.AnnounceReminders || config.ReminderIntervalMinutes <= 0) continue;
+                    // Un sorteo olvidado (activo hace más de 24 h) no se recuerda por siempre en el chat
+                    var reminderRules = GiveawaySettings.Parse(config.Settings).Reminders;
+                    if (reminderRules.MaxAgeHours > 0 && session.StartedAt.HasValue && now - session.StartedAt.Value > TimeSpan.FromHours(reminderRules.MaxAgeHours)) continue;
+
+                    var last = _lastReminder.GetOrAdd(session.Id, session.StartedAt ?? now);
+                    if (now - last < TimeSpan.FromMinutes(config.ReminderIntervalMinutes)) continue;
+                    _lastReminder[session.Id] = now;
+
+                    // Si el sorteo termina antes del siguiente recordatorio, no tiene sentido avisar
+                    if (session.EndsAt.HasValue && session.EndsAt.Value <= now.AddSeconds(reminderRules.StopBeforeEndSeconds)) continue;
+
+                    var channelName = await GetChannelNameFromId(session.ChannelId);
+                    if (string.IsNullOrEmpty(channelName)) continue;
+
+                    var text = string.IsNullOrWhiteSpace(config.ReminderMessage)
+                        ? $"🎁 Recordatorio: usa {config.EntryCommand} para participar en el giveaway de {config.PrizeName}. Participantes actuales: {session.TotalParticipants}"
+                        : ProcessMessageVariables(config.ReminderMessage, config, session, session.TotalParticipants);
+                    await _messageSender.SendMessageAsync(channelName, text);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error enviando recordatorio del giveaway {SessionId}", session.Id);
+                }
+            }
+
+            // Limpieza por antigüedad. NO por "sesiones que ya no aparecen": el servicio de fondo corre una vez por tenant
+            // y cada uno solo ve las suyas; borrar las ajenas hacía que el recordatorio saliera cada 5 s.
+            if (_lastReminder.Count > 5000)
+                foreach (var kv in _lastReminder.Where(kv => now - kv.Value > TimeSpan.FromDays(2)).ToList())
+                    _lastReminder.TryRemove(kv.Key, out _);
+        }
+
+        // ========================================================================
         // WINNER RESPONSE TRACKING
         // ========================================================================
 
@@ -1276,8 +1520,7 @@ namespace Decatron.Services
             {
                 // Buscar sesión que está esperando respuestas de ganadores
                 var session = await _context.GiveawaySessions
-                    .Where(s => s.ChannelId == channelId
-                        && (s.Status == "selecting_winners" || s.Status == "completed"))
+                    .Where(s => s.ChannelId == channelId && s.Status == "selecting_winners")
                     .OrderByDescending(s => s.EndedAt)
                     .FirstOrDefaultAsync();
 
@@ -1305,11 +1548,20 @@ namespace Decatron.Services
                         && w.ParticipantId == participant.Id
                         && !w.IsBackup
                         && !w.HasResponded
-                        && !w.WasDisqualified);
+                        && !w.WasDisqualified
+                        && !w.TimeoutProcessed);
 
                 if (winner == null)
                 {
                     _logger.LogDebug($"{username} no es un ganador sin respuesta en sesión {session.Id}");
+                    return false;
+                }
+
+                // Fuera de plazo no cuenta (el servicio de fondo lo procesará como "no respondió")
+                var sessionConfig = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
+                if (sessionConfig != null && DateTime.UtcNow > winner.SelectedAt.AddSeconds(sessionConfig.WinnerResponseTimeout))
+                {
+                    _logger.LogDebug($"{username} respondió fuera de plazo en sesión {session.Id}");
                     return false;
                 }
 
@@ -1332,6 +1584,8 @@ namespace Decatron.Services
                     .ToListAsync();
 
                 var allResponded = allWinners.All(w => w.HasResponded);
+                var gs = GiveawaySettings.Parse(sessionConfig?.Settings);
+                var completed = false;
 
                 if (allResponded && session.Status == "selecting_winners")
                 {
@@ -1341,20 +1595,19 @@ namespace Decatron.Services
                     session.UpdatedAt = DateTime.UtcNow;
 
                     await _context.SaveChangesAsync();
-
-                    // Anunciar en el chat
-                    if (!string.IsNullOrEmpty(channelName))
-                    {
-                        await _messageSender.SendMessageAsync(channelName,
-                            $"🎉 ¡Giveaway completado! Todos los ganadores respondieron correctamente.");
-                    }
+                    completed = true;
                 }
 
-                // Anunciar confirmación en el chat
+                // Un solo mensaje: el de cierre si esta respuesta completó el giveaway; si no, la confirmación del ganador
                 if (!string.IsNullOrEmpty(channelName))
                 {
-                    await _messageSender.SendMessageAsync(channelName,
-                        $"✅ ¡Perfecto @{username}! Tu respuesta ha sido registrada. ¡Felicidades por tu premio!");
+                    var text = completed
+                        ? Say(gs.Messages.Completed, GiveawayMessages.DefaultCompleted,
+                            ("responded", allWinners.Count(w => w.HasResponded).ToString()), ("total", allWinners.Count.ToString()),
+                            ("winner", username), ("prize", sessionConfig?.PrizeName ?? ""))
+                        : Say(gs.Messages.WinnerResponded, GiveawayMessages.DefaultWinnerResponded,
+                            ("winner", username), ("user", username), ("prize", sessionConfig?.PrizeName ?? ""));
+                    await _messageSender.SendMessageAsync(channelName, text);
                 }
 
                 return true;

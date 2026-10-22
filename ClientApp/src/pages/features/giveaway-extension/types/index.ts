@@ -88,6 +88,28 @@ export interface GiveawayWeights {
 }
 
 // ============================================================================
+// SETTINGS (opciones configurables sin columna propia; el servidor aplica el valor por defecto a lo que falte)
+// ============================================================================
+export interface GiveawaySettings {
+    messages: {
+        joined: string;
+        cancelled: string;
+        noParticipants: string;
+        completed: string;
+        winnerResponded: string;
+        promoted: string;
+    };
+    rejections: {
+        announceInChat: boolean;
+        messages: Record<string, string>;
+    };
+    weightLimits: { maxPerFactor: number; maxTotal: number; min: number };
+    reminders: { stopBeforeEndSeconds: number; maxAgeHours: number };
+    multiAccount: { sameCreationDays: number; sameFollowDays: number; newAccountDays: number };
+    roles: { streamerCanJoin: boolean; leadModCountsAsMod: boolean };
+}
+
+// ============================================================================
 // GIVEAWAY CONFIG (Configuración de un sorteo)
 // ============================================================================
 export interface GiveawayConfig {
@@ -118,6 +140,7 @@ export interface GiveawayConfig {
     // Requisitos y pesos
     requirements: GiveawayRequirements;
     weights: GiveawayWeights;
+    settings: GiveawaySettings;
 
     // Cooldown
     winnerCooldownEnabled: boolean;
@@ -190,7 +213,7 @@ export interface GiveawayState {
     config: GiveawayConfig;
 
     // Estado actual
-    status: 'idle' | 'active' | 'selecting' | 'completed' | 'cancelled';
+    status: 'idle' | 'active' | 'selecting' | 'selecting_winners' | 'completed' | 'cancelled';
 
     // Participantes
     participants: GiveawayParticipant[];
@@ -319,6 +342,61 @@ export const DEFAULT_WEIGHTS: GiveawayWeights = {
     subStreakMultiplierPerMonth: 1.02,
 };
 
+// Textos por defecto del servidor (GiveawayMessages / GiveawayRejections): sirven de guía en los campos vacíos
+export const DEFAULT_SETTINGS_TEXTS = {
+    joined: '✅ {user} se ha unido al giveaway! Total de participantes: {count}',
+    cancelled: '❌ El giveaway ha sido cancelado: {reason}',
+    noParticipants: '❌ El giveaway ha sido cancelado: {reason}',
+    completed: '🎉 Giveaway completado. {responded} de {total} ganadores respondieron.',
+    winnerResponded: '✅ ¡Perfecto @{winner}! Tu respuesta ha sido registrada. ¡Felicidades por tu premio!',
+    promoted: '🎉 ¡Felicidades @{winner}! Has sido promovido de respaldo a ganador principal. Tienes {timeout} segundos para responder.',
+};
+
+export const REJECTION_REASONS: { code: string; label: string; text: string }[] = [
+    { code: 'not_follower', label: 'No sigue el canal', text: '@{user}, para entrar al giveaway tienes que seguir el canal.' },
+    { code: 'not_subscriber', label: 'No es suscriptor', text: '@{user}, este giveaway es solo para suscriptores.' },
+    { code: 'watch_time', label: 'Poco tiempo viendo', text: '@{user}, aún no tienes el tiempo mínimo viendo el canal para entrar.' },
+    { code: 'account_age', label: 'Cuenta muy nueva', text: '@{user}, tu cuenta es demasiado nueva para este giveaway.' },
+    { code: 'follow_age', label: 'Sigue hace poco', text: '@{user}, llevas muy poco tiempo siguiendo el canal para entrar.' },
+    { code: 'chat_messages', label: 'Pocos mensajes en el chat', text: '@{user}, aún no tienes los mensajes mínimos en el chat para entrar.' },
+    { code: 'cooldown', label: 'Ganó hace poco (cooldown)', text: '@{user}, ganaste hace poco y todavía no puedes participar de nuevo.' },
+    { code: 'blacklisted', label: 'En la lista negra', text: '@{user}, no puedes participar en este giveaway.' },
+    { code: 'not_in_whitelist', label: 'Fuera de la lista blanca', text: '@{user}, este giveaway es solo para personas invitadas.' },
+    { code: 'vip_not_allowed', label: 'VIP bloqueado', text: '@{user}, los VIP no pueden participar en este giveaway.' },
+    { code: 'mod_not_allowed', label: 'Moderador bloqueado', text: '@{user}, los moderadores no pueden participar en este giveaway.' },
+    { code: 'streamer_not_allowed', label: 'Streamer bloqueado', text: '@{user}, el streamer no participa en su propio giveaway.' },
+    { code: 'full', label: 'Giveaway lleno', text: '@{user}, el giveaway ya alcanzó el máximo de participantes.' },
+    { code: 'multi_account', label: 'Posible cuenta duplicada', text: '@{user}, tu cuenta no pasó la verificación contra cuentas duplicadas.' },
+];
+
+/** Nombre legible de un código de rechazo (para el panel). */
+export const rejectionLabel = (code: string): string =>
+    REJECTION_REASONS.find((r) => r.code === code)?.label
+    ?? ({ account_age_unknown: 'Edad de cuenta desconocida', follow_age_unknown: 'Fecha de follow desconocida', duplicate_ip: 'IP duplicada', error: 'Error al validar' } as Record<string, string>)[code]
+    ?? code;
+
+export const DEFAULT_SETTINGS: GiveawaySettings = {
+    messages: { joined: '', cancelled: '', noParticipants: '', completed: '', winnerResponded: '', promoted: '' },
+    rejections: { announceInChat: false, messages: {} },
+    weightLimits: { maxPerFactor: 1000, maxTotal: 10000, min: 1 },
+    reminders: { stopBeforeEndSeconds: 30, maxAgeHours: 24 },
+    multiAccount: { sameCreationDays: 1, sameFollowDays: 1, newAccountDays: 30 },
+    roles: { streamerCanJoin: true, leadModCountsAsMod: true },
+};
+
+/** Mezcla lo que llegó del servidor (puede venir vacío o incompleto) con los valores por defecto. */
+export const mergeSettings = (loaded?: Partial<GiveawaySettings> | null): GiveawaySettings => ({
+    messages: { ...DEFAULT_SETTINGS.messages, ...(loaded?.messages ?? {}) },
+    rejections: {
+        announceInChat: loaded?.rejections?.announceInChat ?? DEFAULT_SETTINGS.rejections.announceInChat,
+        messages: { ...(loaded?.rejections?.messages ?? {}) },
+    },
+    weightLimits: { ...DEFAULT_SETTINGS.weightLimits, ...(loaded?.weightLimits ?? {}) },
+    reminders: { ...DEFAULT_SETTINGS.reminders, ...(loaded?.reminders ?? {}) },
+    multiAccount: { ...DEFAULT_SETTINGS.multiAccount, ...(loaded?.multiAccount ?? {}) },
+    roles: { ...DEFAULT_SETTINGS.roles, ...(loaded?.roles ?? {}) },
+});
+
 export const DEFAULT_GIVEAWAY_CONFIG: GiveawayConfig = {
     name: 'Nuevo Giveaway',
     prizeName: 'Premio Sorpresa',
@@ -340,6 +418,7 @@ export const DEFAULT_GIVEAWAY_CONFIG: GiveawayConfig = {
 
     requirements: DEFAULT_REQUIREMENTS,
     weights: DEFAULT_WEIGHTS,
+    settings: DEFAULT_SETTINGS,
 
     winnerCooldownEnabled: true,
     winnerCooldownDays: 7,

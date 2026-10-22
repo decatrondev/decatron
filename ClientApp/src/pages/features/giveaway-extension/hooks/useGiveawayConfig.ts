@@ -8,9 +8,13 @@ import type {
     GiveawayConfig,
     GiveawayRequirements,
     GiveawayWeights,
+    GiveawaySettings,
 } from '../types';
 import {
     DEFAULT_GIVEAWAY_CONFIG,
+    DEFAULT_REQUIREMENTS,
+    DEFAULT_WEIGHTS,
+    mergeSettings,
 } from '../types';
 
 export const useGiveawayConfig = () => {
@@ -47,10 +51,30 @@ export const useGiveawayConfig = () => {
     }, []);
 
     // ========================================================================
+    // SETTINGS (mensajes del bot, topes, umbrales, roles)
+    // ========================================================================
+    const updateSettings = useCallback(<K extends keyof GiveawaySettings>(group: K, updates: Partial<GiveawaySettings[K]>) => {
+        setConfig((prev) => ({
+            ...prev,
+            settings: {
+                ...prev.settings,
+                [group]: { ...prev.settings[group], ...updates },
+            },
+        }));
+    }, []);
+
+    // ========================================================================
     // LOAD CONFIG
     // ========================================================================
+    // Lo guardado puede ser de una versión anterior (sin settings, sin algún requisito): se completa con los valores por defecto
     const loadConfig = useCallback((loadedConfig: GiveawayConfig) => {
-        setConfig(loadedConfig);
+        setConfig({
+            ...DEFAULT_GIVEAWAY_CONFIG,
+            ...loadedConfig,
+            requirements: { ...DEFAULT_REQUIREMENTS, ...(loadedConfig.requirements ?? {}) },
+            weights: { ...DEFAULT_WEIGHTS, ...(loadedConfig.weights ?? {}) },
+            settings: mergeSettings(loadedConfig.settings),
+        });
     }, []);
 
     // ========================================================================
@@ -82,6 +106,9 @@ export const useGiveawayConfig = () => {
 
         // Weights
         updateWeights,
+
+        // Settings
+        updateSettings,
 
         // Utilities
         loadConfig,

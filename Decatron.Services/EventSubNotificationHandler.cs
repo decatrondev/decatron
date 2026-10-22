@@ -422,7 +422,8 @@ namespace Decatron.Services
                     foreach (var badge in badges)
                     {
                         var badgeId = badge["set_id"]?.ToString();
-                        var badgeVersion = badge["id"]?.ToString(); // Para subscriber, esto es el número de meses
+                        var badgeVersion = badge["id"]?.ToString(); // Para subscriber es la versión de la insignia (0,1,2,3,6,9,12... en Tier 1; 2000+ en Tier 2; 3000+ en Tier 3), NO los meses
+                        var badgeMonths = badge["info"]?.ToString(); // Para subscriber/founder, los meses acumulados reales
 
                         if (!string.IsNullOrEmpty(badgeId))
                         {
@@ -444,11 +445,18 @@ namespace Decatron.Services
                         if (badgeId == "subscriber" || badgeId == "founder")
                         {
                             isSubscriber = true;
-                            if (!string.IsNullOrEmpty(badgeVersion))
+                            // Nivel de la suscripción: la versión de la insignia trae 1000/2000/3000 como base en Tier 2 y 3
+                            if (int.TryParse(badgeVersion, out var badgeVersionNum))
+                                metadata["sub-tier"] = (byte)(badgeVersionNum >= 3000 ? 3 : badgeVersionNum >= 2000 ? 2 : 1);
+
+                            // Meses: lo que dice "info"; si no viene, solo sirve la versión cuando es de Tier 1
+                            var monthsStr = !string.IsNullOrEmpty(badgeMonths) ? badgeMonths
+                                : (int.TryParse(badgeVersion, out var v1) && v1 < 1000 ? badgeVersion : null);
+                            if (!string.IsNullOrEmpty(monthsStr))
                             {
                                 if (!string.IsNullOrEmpty(badgeInfoStr))
                                     badgeInfoStr += ",";
-                                badgeInfoStr += $"subscriber/{badgeVersion}";
+                                badgeInfoStr += $"subscriber/{monthsStr}";
                             }
                         }
                         if (badgeId == "broadcaster") isBroadcaster = true;
