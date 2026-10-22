@@ -70,4 +70,44 @@ public class GiveawaySettingsTests
         foreach (var code in visibles)
             Assert.True(GiveawayRejections.DefaultMessages.ContainsKey(code), $"falta el texto por defecto de «{code}»");
     }
+
+    [Fact]
+    public void Por_defecto_solo_Twitch_esta_activo_y_lo_no_verificable_se_omite()
+    {
+        var p = GiveawaySettings.Parse("{}").Platforms;
+        Assert.True(p.IsEnabled("twitch"));
+        Assert.False(p.IsEnabled("kick"));
+        Assert.False(p.IsEnabled("youtube")); // una plataforma sin adaptador nunca entra
+        Assert.Equal("allow", p.Unverifiable);
+    }
+
+    [Fact]
+    public void Las_plataformas_se_leen_del_json_guardado()
+    {
+        var p = GiveawaySettings.Parse("{\"platforms\":{\"kick\":true,\"unverifiable\":\"reject\"}}").Platforms;
+        Assert.True(p.Twitch);
+        Assert.True(p.IsEnabled("kick"));
+        Assert.Equal("reject", p.Unverifiable);
+    }
+
+    [Fact]
+    public void Twitch_lo_comprueba_todo_y_Kick_solo_los_roles()
+    {
+        foreach (var c in GiveawayCapabilities.All)
+            Assert.True(GiveawayCapabilities.CanVerify("twitch", c), $"Twitch debe poder comprobar {c}");
+
+        Assert.True(GiveawayCapabilities.CanVerify("kick", GiveawayCapabilities.Roles));
+        foreach (var c in GiveawayCapabilities.All.Where(c => c != GiveawayCapabilities.Roles))
+            Assert.False(GiveawayCapabilities.CanVerify("kick", c), $"Kick no puede comprobar {c}");
+
+        Assert.False(GiveawayCapabilities.CanVerify("tiktok", GiveawayCapabilities.Roles)); // plataforma desconocida
+    }
+
+    [Fact]
+    public void Los_motivos_de_plataforma_tienen_texto_por_defecto()
+    {
+        foreach (var code in new[] { "platform_disabled", "unverifiable_follower", "unverifiable_follow_age",
+            "unverifiable_account_age", "unverifiable_watch_time", "unverifiable_chat_messages" })
+            Assert.True(GiveawayRejections.DefaultMessages.ContainsKey(code), $"falta el texto por defecto de «{code}»");
+    }
 }

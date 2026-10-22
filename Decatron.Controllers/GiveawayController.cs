@@ -488,6 +488,38 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>
+        /// Qué puede comprobar el bot en cada plataforma y cuáles tiene vinculadas esta cuenta. El panel dibuja con esto
+        /// la tabla «qué se puede verificar» y los interruptores de plataformas (la fuente es GiveawayCapabilities).
+        /// </summary>
+        [HttpGet("platforms")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> GetPlatforms([FromServices] Decatron.Services.Accounts.AccountChannelResolver accounts)
+        {
+            try
+            {
+                var twitchId = User.FindFirst("TwitchId")?.Value;
+                if (string.IsNullOrEmpty(twitchId))
+                    return Unauthorized(new { success = false, message = "No autenticado" });
+
+                var row = await _context.Users.AsNoTracking().Where(u => u.TwitchId == twitchId).Select(u => new { u.Id }).FirstOrDefaultAsync();
+                var account = row == null ? null : await accounts.ResolveByUserIdAsync(row.Id);
+
+                return Ok(new
+                {
+                    success = true,
+                    capabilities = GiveawayCapabilities.All,
+                    supported = GiveawayCapabilities.Matrix(),
+                    linked = new { twitch = account?.HasTwitch ?? true, kick = account?.HasKick ?? false },
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener las plataformas del giveaway");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
         // ========================================================================
         // DEBUG ENDPOINTS (participantes de prueba)
         // ========================================================================

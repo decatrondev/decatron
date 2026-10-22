@@ -645,15 +645,28 @@ namespace Decatron.Services
                     _logger.LogDebug($"[Instance#{_instanceId}] Buscando comando '{commandName}'. Comandos registrados: {string.Join(", ", _commands.Keys)}");
                 }
 
+                // El giveaway vive en la fila principal de la cuenta (la de Twitch): un mensaje de Kick se asocia a ella
+                string? giveawayChannelId = platform == "twitch" ? channelTwitchId : null;
+                if (platform == "kick" && channelUserId != null)
+                {
+                    try
+                    {
+                        using var kickScope = _serviceScopeFactory.CreateScope();
+                        var kickAccount = await kickScope.ServiceProvider.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>().ResolveKickIdAsync(channel);
+                        giveawayChannelId = kickAccount?.Account.TwitchId;
+                    }
+                    catch { /* non-blocking */ }
+                }
+
                 // 0a. GIVEAWAY — si quien escribe es un ganador esperando respuesta, cualquier mensaje suyo cuenta como respuesta
                 // (los mensajes llegan por EventSub: el registro que había en el manejador de IRC nunca se ejecutaba)
-                if (platform == "twitch" && channelTwitchId != null && GiveawayService.HasPendingWinners(channelTwitchId))
+                if (giveawayChannelId != null && GiveawayService.HasPendingWinners(giveawayChannelId))
                 {
                     try
                     {
                         using var respScope = _serviceScopeFactory.CreateScope();
                         var respService = respScope.ServiceProvider.GetRequiredService<GiveawayService>();
-                        await respService.MarkWinnerAsResponded(channelTwitchId, username, chatMessage);
+                        await respService.MarkWinnerAsResponded(giveawayChannelId, username, chatMessage, platform);
                     }
                     catch (Exception ex)
                     {
@@ -661,24 +674,27 @@ namespace Decatron.Services
                     }
                 }
 
-                // 0. GIVEAWAY — comando de entrada configurable y entrada automática (solo Twitch)
+                // 0. GIVEAWAY — comando de entrada configurable y entrada automática (Twitch y Kick)
                 // El comando de entrada NO está en _commands: se atiende aquí con el comando configurado del sorteo (por defecto !join)
-                if (platform == "twitch" && channelTwitchId != null)
+                if (giveawayChannelId != null && platform is "twitch" or "kick")
                 {
                     try
                     {
                         using var gwScope = _serviceScopeFactory.CreateScope();
                         var gwService = gwScope.ServiceProvider.GetRequiredService<GiveawayService>();
-                        var rules = await gwService.GetEntryRules(channelTwitchId);
+                        var rules = await gwService.GetEntryRules(giveawayChannelId);
                         if (rules != null)
                         {
                             var isEntryCommand = commandName == rules.Command;
-                            if ((isEntryCommand || (rules.AutoEntry && !commandName.StartsWith("!") && GiveawayService.ShouldTryAutoEntry(rules.SessionId, userId)))
+                            // La clave de entrada automática distingue plataformas: los ids numéricos de Twitch y Kick pueden coincidir
+                            var entryKey = platform == "twitch" ? userId : $"{platform}:{userId}";
+                            // Plataforma apagada: el comando explícito llega al servicio (queda en «rechazos recientes»); lo automático se ignora
+                            if ((isEntryCommand || (rules.Platforms.IsEnabled(platform) && rules.AutoEntry && !commandName.StartsWith("!") && GiveawayService.ShouldTryAutoEntry(rules.SessionId, entryKey)))
                                 && await CommandModuleOnAsync("!join"))
                             {
-                                var ctx = new CommandContext(username, channel, "!join", userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                                var ctx = new CommandContext(username, channel, "!join", userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = giveawayChannelId };
                                 await _giveawayEntry.ExecuteAsync(ctx, _messageSender);
-                                if (!isEntryCommand && await gwService.IsParticipant(rules.SessionId, userId)) GiveawayService.MarkAutoEntered(rules.SessionId, userId);
+                                if (!isEntryCommand && await gwService.IsParticipant(rules.SessionId, userId, platform)) GiveawayService.MarkAutoEntered(rules.SessionId, entryKey);
                                 if (isEntryCommand) return;
                             }
                         }

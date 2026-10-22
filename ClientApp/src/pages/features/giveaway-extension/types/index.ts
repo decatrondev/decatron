@@ -107,7 +107,36 @@ export interface GiveawaySettings {
     reminders: { stopBeforeEndSeconds: number; maxAgeHours: number };
     multiAccount: { sameCreationDays: number; sameFollowDays: number; newAccountDays: number };
     roles: { streamerCanJoin: boolean; leadModCountsAsMod: boolean };
+    platforms: GiveawayPlatformRules;
 }
+
+/** Dónde se puede participar y qué hacer con lo que una plataforma no permite comprobar. */
+export interface GiveawayPlatformRules {
+    twitch: boolean;
+    kick: boolean;
+    /** allow = el requisito se omite y puede entrar; reject = se rechaza al viewer */
+    unverifiable: 'allow' | 'reject';
+}
+
+/** Lo que el servidor sabe comprobar en cada plataforma (GET /giveaway/platforms). */
+export interface PlatformCapabilities {
+    capabilities: string[];
+    supported: Record<string, string[]>;
+    linked: { twitch: boolean; kick: boolean };
+}
+
+export const CAPABILITY_LABELS: Record<string, { label: string; hint: string }> = {
+    roles: { label: 'Roles (suscriptor, VIP, moderador, streamer)', hint: 'Llegan en el mensaje de chat' },
+    follower: { label: 'Si sigue el canal', hint: 'Requisito «Debe seguir el canal»' },
+    followAge: { label: 'Desde cuándo sigue', hint: 'Requisito «Antigüedad de seguidor»' },
+    subTier: { label: 'Nivel de la suscripción', hint: 'Pesos por Tier 1, 2 y 3' },
+    subMonths: { label: 'Meses de suscripción', hint: 'Peso por meses de sub' },
+    accountAge: { label: 'Edad de la cuenta', hint: 'Requisito «Antigüedad de cuenta»' },
+    watchTime: { label: 'Tiempo viendo el canal', hint: 'Requisito de tiempo mínimo' },
+    chatMessages: { label: 'Mensajes en el chat', hint: 'Requisito de mensajes mínimos' },
+};
+
+export const PLATFORM_LABELS: Record<string, string> = { twitch: 'Twitch', kick: 'Kick' };
 
 // ============================================================================
 // GIVEAWAY CONFIG (Configuración de un sorteo)
@@ -366,6 +395,12 @@ export const REJECTION_REASONS: { code: string; label: string; text: string }[] 
     { code: 'mod_not_allowed', label: 'Moderador bloqueado', text: '@{user}, los moderadores no pueden participar en este giveaway.' },
     { code: 'streamer_not_allowed', label: 'Streamer bloqueado', text: '@{user}, el streamer no participa en su propio giveaway.' },
     { code: 'full', label: 'Giveaway lleno', text: '@{user}, el giveaway ya alcanzó el máximo de participantes.' },
+    { code: 'platform_disabled', label: 'Plataforma no habilitada', text: '@{user}, este giveaway no está abierto en tu plataforma.' },
+    { code: 'unverifiable_follower', label: 'Seguidor no verificable', text: '@{user}, este giveaway exige seguir el canal y en tu plataforma no se puede comprobar.' },
+    { code: 'unverifiable_follow_age', label: 'Antigüedad de seguidor no verificable', text: '@{user}, este giveaway exige una antigüedad de seguidor que en tu plataforma no se puede comprobar.' },
+    { code: 'unverifiable_account_age', label: 'Edad de cuenta no verificable', text: '@{user}, este giveaway exige una antigüedad de cuenta que en tu plataforma no se puede comprobar.' },
+    { code: 'unverifiable_watch_time', label: 'Tiempo viendo no verificable', text: '@{user}, este giveaway exige un tiempo mínimo viendo el canal que en tu plataforma no se puede comprobar.' },
+    { code: 'unverifiable_chat_messages', label: 'Mensajes no verificables', text: '@{user}, este giveaway exige un mínimo de mensajes que en tu plataforma no se puede comprobar.' },
     { code: 'multi_account', label: 'Posible cuenta duplicada', text: '@{user}, tu cuenta no pasó la verificación contra cuentas duplicadas.' },
 ];
 
@@ -382,6 +417,7 @@ export const DEFAULT_SETTINGS: GiveawaySettings = {
     reminders: { stopBeforeEndSeconds: 30, maxAgeHours: 24 },
     multiAccount: { sameCreationDays: 1, sameFollowDays: 1, newAccountDays: 30 },
     roles: { streamerCanJoin: true, leadModCountsAsMod: true },
+    platforms: { twitch: true, kick: false, unverifiable: 'allow' },
 };
 
 /** Mezcla lo que llegó del servidor (puede venir vacío o incompleto) con los valores por defecto. */
@@ -395,6 +431,7 @@ export const mergeSettings = (loaded?: Partial<GiveawaySettings> | null): Giveaw
     reminders: { ...DEFAULT_SETTINGS.reminders, ...(loaded?.reminders ?? {}) },
     multiAccount: { ...DEFAULT_SETTINGS.multiAccount, ...(loaded?.multiAccount ?? {}) },
     roles: { ...DEFAULT_SETTINGS.roles, ...(loaded?.roles ?? {}) },
+    platforms: { ...DEFAULT_SETTINGS.platforms, ...(loaded?.platforms ?? {}) },
 });
 
 export const DEFAULT_GIVEAWAY_CONFIG: GiveawayConfig = {

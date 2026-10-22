@@ -19,14 +19,17 @@ namespace Decatron.Services
         private readonly ILogger<GiveawayService> _logger;
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly IMessageSender _messageSender;
+        private readonly Accounts.AccountChannelResolver _accountResolver;
         private readonly Random _random;
 
         public GiveawayService(
             DecatronDbContext context,
             ILogger<GiveawayService> logger,
             OverlayNotificationService overlayNotificationService,
-            IMessageSender messageSender)
+            IMessageSender messageSender,
+            Accounts.AccountChannelResolver accountResolver)
         {
+            _accountResolver = accountResolver;
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
@@ -37,6 +40,59 @@ namespace Decatron.Services
         // ========================================================================
         // MENSAJES CONFIGURABLES
         // ========================================================================
+
+        /// <summary>
+        /// Anuncio del bot en el chat del canal de Twitch y, si el streamer tiene Kick vinculado y Kick está activo en
+        /// su giveaway, también en el de Kick. Todo anuncio del módulo pasa por aquí.
+        /// </summary>
+        public async Task AnnounceAsync(string channelName, string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            await _messageSender.SendMessageAsync(channelName, text);
+            try
+            {
+                var kickChatId = await KickChatIdAsync(channelName);
+                if (kickChatId != null) await _messageSender.SendMessageAsync(kickChatId, text);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo anunciar el giveaway en el chat de Kick de {Channel}", channelName);
+            }
+        }
+
+        /// <summary>Respuesta a un viewer: solo en el chat de la plataforma desde la que escribió.</summary>
+        private async Task ReplyAsync(string channelName, string platform, string text)
+        {
+            if (platform == "kick")
+            {
+                var resolved = await _accountResolver.ResolveLoginAsync(channelName);
+                var kickId = resolved?.Account.KickId;
+                if (kickId != null) await _messageSender.SendMessageAsync(kickId, text);
+                return;
+            }
+            await AnnounceAsync(channelName, text);
+        }
+
+        /// <summary>Id de chat de Kick de la cuenta del canal, solo si Kick está activo en su último giveaway.</summary>
+        private async Task<string?> KickChatIdAsync(string channelName)
+        {
+            var resolved = await _accountResolver.ResolveLoginAsync(channelName);
+            var account = resolved?.Account;
+            var twitchId = account?.TwitchId;
+            var kickId = account?.KickId;
+            if (twitchId == null || kickId == null) return null;
+            // Una fila con las dos plataformas se atiende con un solo envío: el router ya decide por la fila
+            if (account!.Members.Any(m => m.TwitchId != null && m.KickId != null)) return null;
+
+            var snapshot = await _context.GiveawaySessions.AsNoTracking()
+                .Where(x => x.ChannelId == twitchId)
+                .OrderByDescending(x => x.UpdatedAt)
+                .Select(x => x.ConfigSnapshot)
+                .FirstOrDefaultAsync();
+            if (snapshot == null) return null;
+            var cfg = JsonSerializer.Deserialize<GiveawayConfig>(snapshot);
+            return GiveawaySettings.Parse(cfg?.Settings).Platforms.Kick ? kickId : null;
+        }
 
         /// <summary>Texto configurado por el streamer, o el de por defecto, con las {variables} ya sustituidas.</summary>
         private static string Say(string? custom, string fallback, params (string Key, string Value)[] vars)
@@ -192,7 +248,7 @@ namespace Decatron.Services
                 if (!string.IsNullOrEmpty(channelName))
                 {
                     var message = ProcessMessageVariables(config.StartMessage, config, session, 0);
-                    await _messageSender.SendMessageAsync(channelName, message);
+                    await AnnounceAsync(channelName, message);
                     _logger.LogInformation($"📢 Anuncio de inicio enviado al chat de {channelName}");
                 }
             }
@@ -206,7 +262,7 @@ namespace Decatron.Services
 
         // Reglas de entrada del giveaway activo por canal (comando de entrada y entrada automática),
         // con caché corta para no consultar la base en cada mensaje del chat.
-        public record EntryRules(int SessionId, string Command, bool AutoEntry);
+        public record EntryRules(int SessionId, string Command, bool AutoEntry, GiveawayPlatformRules Platforms);
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime At, EntryRules? Rules)> _entryRulesCache = new();
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _autoEntryAttempts = new();
 
@@ -228,7 +284,7 @@ namespace Decatron.Services
                     var cmd = (config.EntryCommand ?? "!join").Trim().ToLower();
                     if (cmd.Length == 0) cmd = "!join";
                     if (!cmd.StartsWith("!")) cmd = "!" + cmd;
-                    rules = new EntryRules(session.Id, cmd, config.AllowAutoEntry);
+                    rules = new EntryRules(session.Id, cmd, config.AllowAutoEntry, GiveawaySettings.Parse(config.Settings).Platforms);
                 }
             }
             _entryRulesCache[channelId] = (DateTime.UtcNow, rules);
@@ -250,8 +306,8 @@ namespace Decatron.Services
             return true;
         }
 
-        public Task<bool> IsParticipant(int sessionId, string userId) =>
-            _context.GiveawayParticipants.AsNoTracking().AnyAsync(p => p.SessionId == sessionId && p.UserId == userId);
+        public Task<bool> IsParticipant(int sessionId, string userId, string platform = "twitch") =>
+            _context.GiveawayParticipants.AsNoTracking().AnyAsync(p => p.SessionId == sessionId && p.Platform == platform && p.UserId == userId);
 
         public static void MarkAutoEntered(int sessionId, string userId) =>
             _autoEntryAttempts[$"{sessionId}:{userId}"] = DateTime.MaxValue;
@@ -310,7 +366,7 @@ namespace Decatron.Services
                         if (participant != null)
                         {
                             var message = ProcessMessageVariables(config.WinnerMessage, config, session, session.TotalParticipants, participant.Username);
-                            await _messageSender.SendMessageAsync(channelName, message);
+                            await AnnounceAsync(channelName, message);
                             _logger.LogInformation($"📢 Anuncio de ganador enviado: {participant.Username}");
                         }
                     }
@@ -336,7 +392,7 @@ namespace Decatron.Services
                 if (!string.IsNullOrEmpty(channelName))
                 {
                     var gs = GiveawaySettings.Parse(config.Settings);
-                    await _messageSender.SendMessageAsync(channelName,
+                    await AnnounceAsync(channelName,
                         Say(gs.Messages.NoParticipants, GiveawayMessages.DefaultNoParticipants, ("reason", ex.Message), ("prize", config.PrizeName ?? "")));
                 }
 
@@ -371,7 +427,7 @@ namespace Decatron.Services
                 {
                     var channelName = await GetChannelNameFromId(channelId);
                     if (!string.IsNullOrEmpty(channelName))
-                        await _messageSender.SendMessageAsync(channelName,
+                        await AnnounceAsync(channelName,
                             Say(gs.Messages.Cancelled, GiveawayMessages.DefaultCancelled, ("reason", reason ?? ""), ("prize", cfg?.PrizeName ?? "")));
                 }
             }
@@ -416,15 +472,16 @@ namespace Decatron.Services
             string username,
             string displayName,
             Dictionary<string, object> userMetadata,
-            string? ipAddress = null)
+            string? ipAddress = null,
+            string platform = "twitch")
         {
-            var result = await AddParticipantCore(channelId, userId, username, displayName, userMetadata, ipAddress);
+            var result = await AddParticipantCore(channelId, userId, username, displayName, userMetadata, ipAddress, platform);
             if (!result.Joined && result.Reason is not (null or "already_entered" or "no_active_giveaway"))
-                await RecordRejectionAsync(channelId, userId, username, result.Reason);
+                await RecordRejectionAsync(channelId, userId, username, result.Reason, platform);
             return result;
         }
 
-        private async Task RecordRejectionAsync(string channelId, string userId, string username, string reason)
+        private async Task RecordRejectionAsync(string channelId, string userId, string username, string reason, string platform = "twitch")
         {
             try
             {
@@ -451,7 +508,7 @@ namespace Decatron.Services
                                 _rejectionReplies.TryRemove(k, out _);
                         var channelName = await GetChannelNameFromId(channelId);
                         if (!string.IsNullOrEmpty(channelName))
-                            await _messageSender.SendMessageAsync(channelName, text);
+                            await ReplyAsync(channelName, platform, text);
                     }
                 }
             }
@@ -467,7 +524,8 @@ namespace Decatron.Services
             string username,
             string displayName,
             Dictionary<string, object> userMetadata,
-            string? ipAddress = null)
+            string? ipAddress = null,
+            string platform = "twitch")
         {
             var session = await GetActiveSession(channelId);
             if (session == null)
@@ -481,6 +539,11 @@ namespace Decatron.Services
                 return EntryResult.Rejected("invalid_config");
             }
 
+            // Dónde se puede participar (opción del streamer): una plataforma apagada no entra
+            var gsEntry = GiveawaySettings.Parse(config.Settings);
+            if (!gsEntry.Platforms.IsEnabled(platform))
+                return EntryResult.Rejected("platform_disabled");
+
             // Check if max participants reached
             if (config.MaxParticipantsEnabled && session.TotalParticipants >= config.MaxParticipants)
             {
@@ -490,7 +553,7 @@ namespace Decatron.Services
 
             // Check if user already participated
             var existing = await _context.GiveawayParticipants
-                .FirstOrDefaultAsync(p => p.SessionId == session.Id && p.UserId == userId);
+                .FirstOrDefaultAsync(p => p.SessionId == session.Id && p.Platform == platform && p.UserId == userId);
 
             if (existing != null)
             {
@@ -515,12 +578,12 @@ namespace Decatron.Services
             {
                 var now = DateTime.UtcNow;
                 var isInCooldown = await _context.GiveawayWinnerCooldowns
-                    .AnyAsync(c => c.ChannelId == channelId && c.UserId == userId && c.CooldownUntil > now);
+                    .AnyAsync(c => c.ChannelId == channelId && c.Platform == platform && c.UserId == userId && c.CooldownUntil > now);
 
                 if (isInCooldown)
                 {
                     var cooldown = await _context.GiveawayWinnerCooldowns
-                        .Where(c => c.ChannelId == channelId && c.UserId == userId && c.CooldownUntil > now)
+                        .Where(c => c.ChannelId == channelId && c.Platform == platform && c.UserId == userId && c.CooldownUntil > now)
                         .OrderByDescending(c => c.CooldownUntil)
                         .FirstOrDefaultAsync();
 
@@ -544,7 +607,7 @@ namespace Decatron.Services
                 return EntryResult.Rejected("invalid_config");
             }
 
-            var requirementFailure = await ValidateRequirements(userId, username, userMetadata, requirements, channelId);
+            var requirementFailure = await ValidateRequirements(userId, username, userMetadata, requirements, channelId, platform, gsEntry.Platforms);
             if (requirementFailure != null)
             {
                 _logger.LogInformation($"Usuario {username} no cumple los requisitos del giveaway: {requirementFailure}");
@@ -558,7 +621,7 @@ namespace Decatron.Services
                 {
                     var ipHash = HashIp(ipAddress);
                     var duplicateIp = await _context.GiveawayParticipants
-                        .AnyAsync(p => p.SessionId == session.Id && p.IpHash == ipHash && p.UserId != userId);
+                        .AnyAsync(p => p.SessionId == session.Id && p.IpHash == ipHash && !(p.Platform == platform && p.UserId == userId));
 
                     if (duplicateIp)
                     {
@@ -583,7 +646,7 @@ namespace Decatron.Services
                 if (accountCreatedAt.HasValue)
                 {
                     var suspiciousParticipants = await _context.GiveawayParticipants
-                        .Where(p => p.SessionId == session.Id && p.UserId != userId)
+                        .Where(p => p.SessionId == session.Id && !(p.Platform == platform && p.UserId == userId))
                         .Where(p => p.AccountCreatedAt.HasValue)
                         .ToListAsync();
 
@@ -620,6 +683,7 @@ namespace Decatron.Services
             var participant = new GiveawayParticipant
             {
                 SessionId = session.Id,
+                Platform = platform,
                 UserId = userId,
                 Username = username,
                 DisplayName = displayName,
@@ -663,7 +727,7 @@ namespace Decatron.Services
                 {
                     var message = Say(GiveawaySettings.Parse(config.Settings).Messages.Joined, GiveawayMessages.DefaultJoined,
                         ("user", username), ("count", session.TotalParticipants.ToString()), ("prize", config.PrizeName ?? ""), ("command", config.EntryCommand ?? ""));
-                    await _messageSender.SendMessageAsync(channelName, message);
+                    await AnnounceAsync(channelName, message);
                 }
             }
 
@@ -722,7 +786,7 @@ namespace Decatron.Services
                     // Add to cooldown
                     if (config.WinnerCooldownEnabled)
                     {
-                        await AddWinnerCooldown(session.ChannelId, winner.UserId, winner.Username, config.WinnerCooldownDays, session.Id, config.PrizeName);
+                        await AddWinnerCooldown(session.ChannelId, winner.UserId, winner.Username, config.WinnerCooldownDays, session.Id, config.PrizeName, winner.Platform);
                     }
                 }
             }
@@ -834,7 +898,7 @@ namespace Decatron.Services
             // Add to cooldown
             if (config.WinnerCooldownEnabled)
             {
-                await AddWinnerCooldown(channelId, newWinner.UserId, newWinner.Username, config.WinnerCooldownDays, session.Id, config.PrizeName);
+                await AddWinnerCooldown(channelId, newWinner.UserId, newWinner.Username, config.WinnerCooldownDays, session.Id, config.PrizeName, newWinner.Platform);
             }
 
             await _context.SaveChangesAsync();
@@ -1005,10 +1069,23 @@ namespace Decatron.Services
             string username,
             Dictionary<string, object> userMetadata,
             JsonElement requirements,
-            string channelId)
+            string channelId,
+            string platform = "twitch",
+            GiveawayPlatformRules? platformRules = null)
         {
             try
             {
+                // Un requisito que la plataforma del viewer no permite comprobar (Kick no da seguidores, meses de sub ni
+                // edad de cuenta) se omite o se rechaza según la opción del streamer. Twitch lo comprueba todo.
+                var rejectUnverifiable = platformRules?.Unverifiable == "reject";
+                string? unverifiableFail = null;
+                bool Verifiable(string capability, string reason)
+                {
+                    if (GiveawayCapabilities.CanVerify(platform, capability)) return true;
+                    if (rejectUnverifiable) unverifiableFail ??= reason;
+                    return false;
+                }
+
                 _logger.LogDebug($"[REQUIREMENTS] Validando requisitos para {username}. Metadata: isFollower={GetBool(userMetadata, "isFollower")}, isSubscriber={GetBool(userMetadata, "isSubscriber")}, isVip={GetBool(userMetadata, "isVip")}, isMod={GetBool(userMetadata, "isModerator")}");
 
                 // Check whitelist (si está habilitado, SOLO permite usuarios en la lista)
@@ -1041,7 +1118,7 @@ namespace Decatron.Services
                 }
                 if (!isBlacklisted)
                     isBlacklisted = await _context.GiveawayBlacklists
-                        .AnyAsync(b => b.ChannelId == channelId && b.UserId == userId);
+                        .AnyAsync(b => b.ChannelId == channelId && b.Platform == platform && b.UserId == userId);
 
                 if (isBlacklisted)
                 {
@@ -1066,7 +1143,8 @@ namespace Decatron.Services
                 }
 
                 // Must follow
-                if (requirements.TryGetProperty("mustFollow", out var mustFollow) && mustFollow.GetBoolean())
+                if (requirements.TryGetProperty("mustFollow", out var mustFollow) && mustFollow.GetBoolean()
+                    && Verifiable(GiveawayCapabilities.Follower, "unverifiable_follower"))
                 {
                     _logger.LogDebug($"[REQUIREMENTS] mustFollow=true requerido. Usuario isFollower={GetBool(userMetadata, "isFollower")}");
                     if (!GetBool(userMetadata, "isFollower"))
@@ -1088,7 +1166,8 @@ namespace Decatron.Services
                 }
 
                 // Minimum watch time
-                if (requirements.TryGetProperty("minimumWatchTimeEnabled", out var minWatchEnabled) && minWatchEnabled.GetBoolean())
+                if (requirements.TryGetProperty("minimumWatchTimeEnabled", out var minWatchEnabled) && minWatchEnabled.GetBoolean()
+                    && Verifiable(GiveawayCapabilities.WatchTime, "unverifiable_watch_time"))
                 {
                     var minWatchTime = requirements.TryGetProperty("minimumWatchTime", out var minWatch) ? minWatch.GetInt32() : 0;
                     var userWatchTime = GetInt(userMetadata, "watchTimeMinutes");
@@ -1101,7 +1180,8 @@ namespace Decatron.Services
                 }
 
                 // Minimum account age
-                if (requirements.TryGetProperty("minimumAccountAgeEnabled", out var minAcctAgeEnabled) && minAcctAgeEnabled.GetBoolean())
+                if (requirements.TryGetProperty("minimumAccountAgeEnabled", out var minAcctAgeEnabled) && minAcctAgeEnabled.GetBoolean()
+                    && Verifiable(GiveawayCapabilities.AccountAge, "unverifiable_account_age"))
                 {
                     var minAccountAge = requirements.TryGetProperty("minimumAccountAge", out var minAcctAge) ? minAcctAge.GetInt32() : 0;
                     var accountAgeUnit = requirements.TryGetProperty("minimumAccountAgeUnit", out var ageUnit) ? ageUnit.GetString() : "days";
@@ -1128,7 +1208,8 @@ namespace Decatron.Services
                 }
 
                 // Minimum follow age
-                if (requirements.TryGetProperty("minimumFollowAgeEnabled", out var minFollowAgeEnabled) && minFollowAgeEnabled.GetBoolean())
+                if (requirements.TryGetProperty("minimumFollowAgeEnabled", out var minFollowAgeEnabled) && minFollowAgeEnabled.GetBoolean()
+                    && Verifiable(GiveawayCapabilities.FollowAge, "unverifiable_follow_age"))
                 {
                     var minFollowAge = requirements.TryGetProperty("minimumFollowAge", out var minFollow) ? minFollow.GetInt32() : 0;
                     var followAgeUnit = requirements.TryGetProperty("minimumFollowAgeUnit", out var fUnit) ? fUnit.GetString() : "days";
@@ -1155,7 +1236,8 @@ namespace Decatron.Services
                 }
 
                 // Minimum chat messages
-                if (requirements.TryGetProperty("minimumChatMessagesEnabled", out var minMsgEnabled) && minMsgEnabled.GetBoolean())
+                if (requirements.TryGetProperty("minimumChatMessagesEnabled", out var minMsgEnabled) && minMsgEnabled.GetBoolean()
+                    && Verifiable(GiveawayCapabilities.ChatMessages, "unverifiable_chat_messages"))
                 {
                     var minMessages = requirements.TryGetProperty("minimumChatMessages", out var minMsg) ? minMsg.GetInt32() : 0;
                     var userMessages = GetInt(userMetadata, "chatMessagesCount");
@@ -1165,6 +1247,12 @@ namespace Decatron.Services
                         _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: mensajes insuficientes");
                         return "chat_messages";
                     }
+                }
+
+                if (unverifiableFail != null)
+                {
+                    _logger.LogDebug($"[REQUIREMENTS] {username} rechazado: {unverifiableFail} (no verificable en {platform})");
+                    return unverifiableFail;
                 }
 
                 _logger.LogDebug($"[REQUIREMENTS] {username} APROBADO - cumple todos los requisitos");
@@ -1190,17 +1278,19 @@ namespace Decatron.Services
 
             var cooldowns = await _context.GiveawayWinnerCooldowns
                 .Where(c => c.ChannelId == channelId && userIds.Contains(c.UserId) && c.CooldownUntil > now)
-                .Select(c => c.UserId)
+                .Select(c => new { c.Platform, c.UserId })
                 .ToListAsync();
 
-            return participants.Where(p => !cooldowns.Contains(p.UserId)).ToList();
+            var blocked = cooldowns.Select(c => (c.Platform, c.UserId)).ToHashSet();
+            return participants.Where(p => !blocked.Contains((p.Platform, p.UserId))).ToList();
         }
 
-        private async Task AddWinnerCooldown(string channelId, string userId, string username, int days, int sessionId, string prizeName)
+        private async Task AddWinnerCooldown(string channelId, string userId, string username, int days, int sessionId, string prizeName, string platform = "twitch")
         {
             var cooldown = new GiveawayWinnerCooldown
             {
                 ChannelId = channelId,
+                Platform = platform,
                 UserId = userId,
                 Username = username,
                 WonAt = DateTime.UtcNow,
@@ -1492,7 +1582,7 @@ namespace Decatron.Services
                     var text = string.IsNullOrWhiteSpace(config.ReminderMessage)
                         ? $"🎁 Recordatorio: usa {config.EntryCommand} para participar en el giveaway de {config.PrizeName}. Participantes actuales: {session.TotalParticipants}"
                         : ProcessMessageVariables(config.ReminderMessage, config, session, session.TotalParticipants);
-                    await _messageSender.SendMessageAsync(channelName, text);
+                    await AnnounceAsync(channelName, text);
                 }
                 catch (Exception ex)
                 {
@@ -1514,7 +1604,7 @@ namespace Decatron.Services
         /// <summary>
         /// Marca a un ganador como que ha respondido
         /// </summary>
-        public async Task<bool> MarkWinnerAsResponded(string channelId, string username, string responseMessage)
+        public async Task<bool> MarkWinnerAsResponded(string channelId, string username, string responseMessage, string platform = "twitch")
         {
             try
             {
@@ -1534,6 +1624,7 @@ namespace Decatron.Services
                 var usernameLower = username.ToLower();
                 var participant = await _context.GiveawayParticipants
                     .FirstOrDefaultAsync(p => p.SessionId == session.Id
+                        && p.Platform == platform
                         && p.Username.ToLower() == usernameLower);
 
                 if (participant == null)
@@ -1607,7 +1698,7 @@ namespace Decatron.Services
                             ("winner", username), ("prize", sessionConfig?.PrizeName ?? ""))
                         : Say(gs.Messages.WinnerResponded, GiveawayMessages.DefaultWinnerResponded,
                             ("winner", username), ("user", username), ("prize", sessionConfig?.PrizeName ?? ""));
-                    await _messageSender.SendMessageAsync(channelName, text);
+                    await AnnounceAsync(channelName, text);
                 }
 
                 return true;

@@ -17,6 +17,7 @@ namespace Decatron.Core.Models
         public GiveawayReminderRules Reminders { get; set; } = new();
         public GiveawayMultiAccountRules MultiAccount { get; set; } = new();
         public GiveawayRoleRules Roles { get; set; } = new();
+        public GiveawayPlatformRules Platforms { get; set; } = new();
 
         private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true };
 
@@ -72,6 +73,12 @@ namespace Decatron.Core.Models
             ["streamer_not_allowed"] = "@{user}, el streamer no participa en su propio giveaway.",
             ["full"] = "@{user}, el giveaway ya alcanzó el máximo de participantes.",
             ["multi_account"] = "@{user}, tu cuenta no pasó la verificación contra cuentas duplicadas.",
+            ["platform_disabled"] = "@{user}, este giveaway no está abierto en tu plataforma.",
+            ["unverifiable_follower"] = "@{user}, este giveaway exige seguir el canal y en tu plataforma no se puede comprobar.",
+            ["unverifiable_follow_age"] = "@{user}, este giveaway exige una antigüedad de seguidor que en tu plataforma no se puede comprobar.",
+            ["unverifiable_account_age"] = "@{user}, este giveaway exige una antigüedad de cuenta que en tu plataforma no se puede comprobar.",
+            ["unverifiable_watch_time"] = "@{user}, este giveaway exige un tiempo mínimo viendo el canal que en tu plataforma no se puede comprobar.",
+            ["unverifiable_chat_messages"] = "@{user}, este giveaway exige un mínimo de mensajes que en tu plataforma no se puede comprobar.",
             ["duplicate_ip"] = "@{user}, tu cuenta no pasó la verificación contra cuentas duplicadas.",
         };
 
@@ -116,5 +123,58 @@ namespace Decatron.Core.Models
         public bool StreamerCanJoin { get; set; } = true;
         /// <summary>El Lead Moderator cuenta como moderador al aplicar «permitir moderadores».</summary>
         public bool LeadModCountsAsMod { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Dónde se puede participar y qué hacer con lo que una plataforma no permite comprobar.
+    /// Twitch es la base y por defecto es lo único activo (el comportamiento de siempre); Kick se activa a propósito.
+    /// </summary>
+    public class GiveawayPlatformRules
+    {
+        public bool Twitch { get; set; } = true;
+        public bool Kick { get; set; } = false;
+        /// <summary>
+        /// Qué pasa con un requisito que la plataforma del viewer no permite comprobar (p. ej. «debe seguir» en Kick):
+        /// "allow" = se omite y puede entrar; "reject" = se rechaza con el motivo «no verificable».
+        /// </summary>
+        public string Unverifiable { get; set; } = "allow";
+
+        public bool IsEnabled(string platform) => platform switch
+        {
+            "twitch" => Twitch,
+            "kick" => Kick,
+            _ => false,
+        };
+    }
+
+    /// <summary>
+    /// Qué puede comprobar el bot en cada plataforma (la API pública de Kick no entrega seguidores, meses de sub ni edad
+    /// de cuenta; los roles sí llegan en el mensaje de chat). Una sola fuente: el servidor la usa para validar y el panel
+    /// la muestra. Para sumar una plataforma se agrega una entrada.
+    /// </summary>
+    public static class GiveawayCapabilities
+    {
+        public const string Roles = "roles";
+        public const string Follower = "follower";
+        public const string FollowAge = "followAge";
+        public const string SubTier = "subTier";
+        public const string SubMonths = "subMonths";
+        public const string AccountAge = "accountAge";
+        public const string WatchTime = "watchTime";
+        public const string ChatMessages = "chatMessages";
+
+        public static readonly string[] All = { Roles, Follower, FollowAge, SubTier, SubMonths, AccountAge, WatchTime, ChatMessages };
+
+        private static readonly Dictionary<string, HashSet<string>> Supported = new()
+        {
+            ["twitch"] = new HashSet<string>(All),
+            ["kick"] = new HashSet<string> { Roles },
+        };
+
+        public static bool CanVerify(string platform, string capability) =>
+            Supported.TryGetValue(platform, out var set) && set.Contains(capability);
+
+        public static IReadOnlyDictionary<string, string[]> Matrix() =>
+            Supported.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray());
     }
 }

@@ -16,6 +16,12 @@ namespace Decatron.Core.Models
         [MaxLength(255)]
         public string ChannelId { get; set; } = string.Empty;
 
+        /// <summary>Plataforma de la cuenta (twitch, kick...): el id solo es único dentro de su plataforma.</summary>
+        [Required]
+        [Column("platform")]
+        [MaxLength(20)]
+        public string Platform { get; set; } = "twitch";
+
         [Required]
         [Column("user_id")]
         [MaxLength(255)]

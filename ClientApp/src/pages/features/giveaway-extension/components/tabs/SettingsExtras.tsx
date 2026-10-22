@@ -4,10 +4,11 @@
  * Los campos de texto vacíos usan el texto por defecto (se muestra como guía).
  */
 
-import React from 'react';
-import { MessageSquare, ShieldAlert, Scale, BellRing, Users, UserCog } from 'lucide-react';
-import type { GiveawaySettings } from '../../types';
-import { DEFAULT_SETTINGS_TEXTS, REJECTION_REASONS } from '../../types';
+import React, { useEffect, useState } from 'react';
+import { MessageSquare, ShieldAlert, Scale, BellRing, Users, UserCog, Globe2, Check, X } from 'lucide-react';
+import api from '../../../../../services/api';
+import type { GiveawaySettings, PlatformCapabilities } from '../../types';
+import { DEFAULT_SETTINGS_TEXTS, REJECTION_REASONS, CAPABILITY_LABELS, PLATFORM_LABELS } from '../../types';
 
 interface SettingsExtrasProps {
     settings: GiveawaySettings;
@@ -71,9 +72,100 @@ const SectionTitle: React.FC<{ icon: React.ReactNode; title: string; text?: stri
     </div>
 );
 
+/** Dónde se puede participar + qué se puede comprobar en cada plataforma (la tabla viene del servidor). */
+const PlatformsSection: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => {
+    const [caps, setCaps] = useState<PlatformCapabilities | null>(null);
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        api.get('/giveaway/platforms')
+            .then((res) => {
+                if (cancelled) return;
+                if (res.data?.success) setCaps(res.data as PlatformCapabilities);
+                else setFailed(true);
+            })
+            .catch(() => !cancelled && setFailed(true));
+        return () => { cancelled = true; };
+    }, []);
+
+    const platforms = caps ? Object.keys(caps.supported) : [];
+    const kickLinked = caps?.linked.kick ?? false;
+    const rules = settings.platforms;
+
+    return (
+        <div className="space-y-4">
+            <SectionTitle
+                icon={<Globe2 className="w-5 h-5 text-ds-accent-text" />}
+                title="Dónde se puede participar"
+                text="Cada plataforma comprueba lo que su API permite. Lo que no se pueda comprobar en una plataforma se muestra abajo y lo decides tú."
+            />
+            <Toggle title="Twitch" hint="Se comprueba todo: seguidor, suscripción, edad de cuenta, tiempo viendo y mensajes"
+                value={rules.twitch} onChange={(v) => onUpdateSettings('platforms', { twitch: v })} on="Acepta" off="No acepta" />
+            <Toggle title="Kick"
+                hint={kickLinked ? 'Solo se comprueban los roles; el resto aparece como «no verificable» en la tabla'
+                    : 'Esta cuenta no tiene Kick vinculado: vincúlalo en tu perfil para poder activarlo'}
+                value={rules.kick && kickLinked}
+                onChange={(v) => kickLinked && onUpdateSettings('platforms', { kick: v })} on="Acepta" off="No acepta" />
+
+            {failed && <p className="text-xs text-ds-soft">No se pudo cargar la tabla de verificación. Los interruptores funcionan igual.</p>}
+
+            {caps && (
+                <div className="overflow-x-auto rounded-lg border border-ds-border">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="bg-ds-bg text-left text-ds-soft">
+                                <th className="p-3 font-bold">Qué se comprueba</th>
+                                {platforms.map((p) => <th key={p} className="p-3 font-bold text-center">{PLATFORM_LABELS[p] ?? p}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {caps.capabilities.map((c) => (
+                                <tr key={c} className="border-t border-ds-border">
+                                    <td className="p-3">
+                                        <p className="text-ds-text">{CAPABILITY_LABELS[c]?.label ?? c}</p>
+                                        <p className="text-xs text-ds-soft">{CAPABILITY_LABELS[c]?.hint}</p>
+                                    </td>
+                                    {platforms.map((p) => {
+                                        const ok = caps.supported[p]?.includes(c);
+                                        return (
+                                            <td key={p} className="p-3 text-center">
+                                                {ok
+                                                    ? <span className="inline-flex items-center gap-1 text-green-500"><Check className="w-4 h-4" />Sí</span>
+                                                    : <span className="inline-flex items-center gap-1 text-ds-soft"><X className="w-4 h-4" />No verificable</span>}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            <div className="p-4 bg-ds-bg rounded-lg border border-ds-border space-y-2">
+                <p className="font-bold text-ds-text">Si un requisito no se puede comprobar en la plataforma del viewer</p>
+                <p className="text-xs text-ds-soft">Por ejemplo, «Debe seguir el canal» para alguien que escribe desde Kick.</p>
+                <div className="flex flex-wrap gap-2">
+                    <button onClick={() => onUpdateSettings('platforms', { unverifiable: 'allow' })}
+                        className={rules.unverifiable === 'allow' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>
+                        Omitir el requisito y dejarlo entrar
+                    </button>
+                    <button onClick={() => onUpdateSettings('platforms', { unverifiable: 'reject' })}
+                        className={rules.unverifiable === 'reject' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>
+                        Rechazarlo
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => {
     return (
         <>
+            <PlatformsSection settings={settings} onUpdateSettings={onUpdateSettings} />
+
             {/* Mensajes del bot */}
             <div className="space-y-4">
                 <SectionTitle

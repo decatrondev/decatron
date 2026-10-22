@@ -16,6 +16,12 @@ namespace Decatron.Core.Models
         public int SessionId { get; set; }
 
         // Usuario
+        /// <summary>Plataforma de la cuenta (twitch, kick...): el id solo es único dentro de su plataforma.</summary>
+        [Required]
+        [Column("platform")]
+        [MaxLength(20)]
+        public string Platform { get; set; } = "twitch";
+
         [Required]
         [Column("user_id")]
         [MaxLength(255)]

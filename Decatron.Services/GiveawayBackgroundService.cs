@@ -197,7 +197,7 @@ namespace Decatron.Services
                                     ? $"⏰ @{participant.Username} no respondió a tiempo."
                                     : config.NoResponseMessage.Replace("{winner}", participant.Username);
 
-                                await messageSender.SendMessageAsync(channelName, noResponseMsg);
+                                await giveawayService.AnnounceAsync(channelName, noResponseMsg);
 
                                 // Opción 1: Promover backup winner si existe
                                 var backupWinner = await dbContext.GiveawayWinners
@@ -227,7 +227,7 @@ namespace Decatron.Services
                                         var promotionMsg = (string.IsNullOrWhiteSpace(bgSettings.Messages.Promoted) ? GiveawayMessages.DefaultPromoted : bgSettings.Messages.Promoted)
                                             .Replace("{winner}", backupParticipant.Username).Replace("{user}", backupParticipant.Username)
                                             .Replace("{timeout}", config.WinnerResponseTimeout.ToString()).Replace("{prize}", config.PrizeName ?? "");
-                                        await messageSender.SendMessageAsync(channelName, promotionMsg);
+                                        await giveawayService.AnnounceAsync(channelName, promotionMsg);
                                         _logger.LogInformation($"✅ Backup winner promovido: {backupParticipant.Username}");
                                     }
                                 }
@@ -250,7 +250,7 @@ namespace Decatron.Services
                                                 .Replace("{prize}", config.PrizeName ?? "el premio")
                                                 .Replace("{timeout}", config.WinnerResponseTimeout.ToString());
 
-                                            await messageSender.SendMessageAsync(channelName, rerollMsg);
+                                            await giveawayService.AnnounceAsync(channelName, rerollMsg);
                                             _logger.LogInformation($"✅ Nuevo ganador por reroll: {newParticipant.Username}");
                                         }
                                     }
@@ -276,7 +276,7 @@ namespace Decatron.Services
 
                                             await dbContext.SaveChangesAsync();
 
-                                            await messageSender.SendMessageAsync(channelName,
+                                            await giveawayService.AnnounceAsync(channelName,
                                                 "❌ Giveaway cancelado: Ningún ganador respondió a tiempo y no hay más participantes disponibles para re-sorteo.");
 
                                             // Salir del procesamiento para esta sesión
@@ -287,7 +287,7 @@ namespace Decatron.Services
                                             // Aún hay ganadores pendientes, solo anunciar que no hay más participantes
                                             var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
                                             var gLang = await dbContext.Users.Where(u => u.Login == channelName.ToLower()).Select(u => u.PreferredLanguage).FirstOrDefaultAsync() ?? "es";
-                                            await messageSender.SendMessageAsync(channelName, messagesService.GetMessage("giveaway_bg", "no_more_participants", gLang));
+                                            await giveawayService.AnnounceAsync(channelName, messagesService.GetMessage("giveaway_bg", "no_more_participants", gLang));
                                         }
                                     }
                                 }
@@ -301,7 +301,7 @@ namespace Decatron.Services
                                     ? $"⏰ @{participant.Username} no respondió a tiempo pero sigue siendo el ganador."
                                     : config.NoResponseMessage.Replace("{winner}", participant.Username);
 
-                                await messageSender.SendMessageAsync(channelName, noResponseMsg);
+                                await giveawayService.AnnounceAsync(channelName, noResponseMsg);
                             }
                         }
                     }
@@ -342,7 +342,7 @@ namespace Decatron.Services
                                 var completedText = (string.IsNullOrWhiteSpace(bgSettings.Messages.Completed) ? GiveawayMessages.DefaultCompleted : bgSettings.Messages.Completed)
                                     .Replace("{responded}", respondedWinners.ToString()).Replace("{total}", allWinners.Count.ToString())
                                     .Replace("{prize}", config.PrizeName ?? "");
-                                await messageSender.SendMessageAsync(channelNameFinal, completedText);
+                                await giveawayService.AnnounceAsync(channelNameFinal, completedText);
                             }
                         }
                     }

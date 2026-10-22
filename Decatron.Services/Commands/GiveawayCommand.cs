@@ -33,6 +33,14 @@ namespace Decatron.Services.Commands
             var watchTimeService = scope.ServiceProvider.GetRequiredService<IWatchTimeTrackingService>();
             var chatActivityService = scope.ServiceProvider.GetRequiredService<IChatActivityService>();
 
+            var platform = context.Metadata != null && context.Metadata.TryGetValue("platform", out var platformValue)
+                ? platformValue?.ToString() ?? "twitch" : "twitch";
+            if (platform == "kick")
+            {
+                await ExecuteKickAsync(context, giveawayService);
+                return;
+            }
+
             // Resolver Channel ID
             var channelUser = await dbContext.Users.AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Login == context.Channel.ToLower());
@@ -191,6 +199,45 @@ namespace Decatron.Services.Commands
                 var level = result.Reason == "already_entered" ? LogLevel.Debug : LogLevel.Information;
                 _logger.Log(level, $"Usuario {context.Username} NO entró al giveaway en {context.Channel}: {result.Reason}");
             }
+        }
+
+        /// <summary>
+        /// Entrada desde Kick. La API pública de Kick solo entrega los roles del mensaje de chat (suscriptor, VIP, moderador,
+        /// streamer): seguidores, meses de sub, edad de cuenta, tiempo de visualización y mensajes no se pueden comprobar
+        /// (ver GiveawayCapabilities). El servicio decide qué hacer con esos requisitos según la opción del streamer.
+        /// </summary>
+        private async Task ExecuteKickAsync(CommandContext context, GiveawayService giveawayService)
+        {
+            // El giveaway es el de la fila principal de la cuenta; CommandService ya la resolvió
+            var channelId = context.ChannelTwitchId;
+            if (string.IsNullOrEmpty(channelId))
+            {
+                _logger.LogWarning("Entrada de Kick sin cuenta principal de Twitch vinculada (canal {Channel})", context.Channel);
+                return;
+            }
+
+            var metadata = new Dictionary<string, object>
+            {
+                { "isFollower", false },
+                { "isSubscriber", context.IsSubscriber },
+                { "subscriptionTier", context.IsSubscriber ? (byte)1 : (byte)0 }, // Kick no dice el nivel: cuenta como el básico
+                { "isVip", context.IsVip },
+                { "isModerator", context.IsModerator },
+                { "isLeadModerator", false },
+                { "isBroadcaster", context.IsBroadcaster },
+                { "watchTimeMinutes", 0 },
+                { "chatMessagesCount", 0 },
+                { "bitsTotal", 0 },
+                { "subStreak", context.IsSubscriber ? 1 : 0 }, // Kick no dice los meses: cuenta como uno
+                { "platform", "kick" },
+            };
+
+            var result = await giveawayService.AddParticipant(channelId, context.UserId, context.Username, context.Username,
+                metadata, ipAddress: null, platform: "kick");
+
+            var level = result.Joined || result.Reason == "already_entered" ? LogLevel.Debug : LogLevel.Information;
+            _logger.Log(level, "Kick: {User} {Outcome} el giveaway de {Channel}{Reason}", context.Username,
+                result.Joined ? "entró al" : "NO entró al", context.Channel, result.Joined ? "" : $": {result.Reason}");
         }
     }
 }

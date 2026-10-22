@@ -3825,7 +3825,8 @@ CREATE TABLE public.giveaway_blacklist (
     reason text,
     added_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     added_by character varying(255),
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    platform character varying(20) DEFAULT 'twitch'::character varying NOT NULL
 );
 
 
@@ -3935,7 +3936,8 @@ CREATE TABLE public.giveaway_participants (
     entry_count integer DEFAULT 1 NOT NULL,
     calculated_weight numeric(10,4) DEFAULT 1.0 NOT NULL,
     ip_hash character varying(64),
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    platform character varying(20) DEFAULT 'twitch'::character varying NOT NULL
 );
 
 
@@ -4017,7 +4019,8 @@ CREATE TABLE public.giveaway_winner_cooldowns (
     cooldown_until timestamp without time zone NOT NULL,
     session_id integer,
     prize_name character varying(500),
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    platform character varying(20) DEFAULT 'twitch'::character varying NOT NULL
 );
 
 
@@ -14945,7 +14948,7 @@ CREATE UNIQUE INDEX game_overlay_configs_user_id_slug_key_t ON public.game_overl
 -- Name: giveaway_blacklist_channel_id_user_id_key_t; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX giveaway_blacklist_channel_id_user_id_key_t ON public.giveaway_blacklist USING btree (tenant_id, channel_id, user_id);
+CREATE UNIQUE INDEX giveaway_blacklist_channel_id_user_id_key_t ON public.giveaway_blacklist USING btree (tenant_id, channel_id, platform, user_id);
 
 
 --
