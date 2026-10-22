@@ -178,3 +178,8 @@ input[type="range"], input[type="checkbox"], input[type="radio"] { accent-color:
 /* Los controles nativos (casillas, menús desplegables, selector de color) toman el tema de la web. */
 html { color-scheme: light; }
 html.dark { color-scheme: dark; }
+
+/* El modal de pago de Culqi es un iframe con documento claro. Con la web en modo oscuro, el
+   navegador pinta de blanco opaco todo iframe cuyo esquema no coincide con el de la página,
+   y el fondo translúcido del modal se ve como una pantalla blanca entera. */
+iframe[src*="culqi.com"] { color-scheme: light; }

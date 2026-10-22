@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShoppingBag, Loader2, Check, X, Download, Star } from 'lucide-react';
 import api from '../../services/api';
-import { openCulqiCheckout } from '../../services/culqi';
+import { openCulqiCheckout, cobrarConCulqi } from '../../services/culqi';
 import { descargarComprobante } from '../../utils/invoiceFiles';
 import BillingConfirmModal, { type ComprobantePreview } from '../me/BillingConfirmModal';
 
@@ -57,7 +57,10 @@ export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boo
         setConfirming(true); setSubmitError(null);
         try {
             const c = await openCulqiCheckout(pending.priceUsd, `Decatron — ${t('checkoutTitle')}`);
-            const r = await api.post('/tts-credits/buy', { packageId: pending.id, prefiereFactura, culqiToken: c.token, culqiEmail: c.email, firstName: c.firstName, lastName: c.lastName });
+            const r = await cobrarConCulqi({
+                publicKey: c.publicKey, token: c.token, email: c.email,
+                enviar: (extra) => api.post('/tts-credits/buy', { packageId: pending.id, prefiereFactura, culqiToken: c.token, culqiEmail: c.email, firstName: c.firstName, lastName: c.lastName, ...extra }),
+            });
             setToast({ ok: true, text: t('success', { n: r.data.creditsReceived.toLocaleString() }) });
             setPending(null); setPreview(null);
             onPurchased(); load();

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star, Send, Ticket, Check, X, Users, Copy, Link } from 'lucide-react';
 import api from '../../services/api';
+import { cobrarConCulqi } from '../../services/culqi';
 import BillingConfirmModal, { type ComprobantePreview } from './BillingConfirmModal';
 
 // Culqi cobra en un solo paso (token del frontend + cargo directo en el backend) —
@@ -26,7 +27,7 @@ function loadCulqiScript(): Promise<void> {
     });
 }
 
-async function openCulqiCheckout(amountUsd: number): Promise<{ token: string; email: string; firstName: string; lastName: string }> {
+async function openCulqiCheckout(amountUsd: number): Promise<{ token: string; email: string; firstName: string; lastName: string; publicKey: string }> {
     await loadCulqiScript();
     const { data: keyData } = await api.get('/coins/culqi-public-key');
     if (!keyData.publicKey) throw new Error('Culqi no configurado');
@@ -54,7 +55,7 @@ async function openCulqiCheckout(amountUsd: number): Promise<{ token: string; em
                 const firstName = culqi.token.first_name || '';
                 const lastName = culqi.token.last_name || '';
                 culqi.close();
-                resolve({ token: tokenId, email, firstName, lastName });
+                resolve({ token: tokenId, email, firstName, lastName, publicKey: keyData.publicKey });
             } else if (culqi.error) {
                 const msg = culqi.error.user_message || culqi.error.merchant_message || 'Error al procesar la tarjeta';
                 culqi.close();
@@ -243,22 +244,27 @@ export default function MeCoins() {
                 ? Math.round((pendingBuy.customCoins! / 100) * 100) / 100
                 : (discounted ? discounted.finalPrice : (pkg?.priceUsd ?? 0));
 
-            let culqiFields: { culqiToken?: string; culqiEmail?: string; firstName?: string; lastName?: string } = {};
-
-            // Si el cupon deja el precio en 0, el backend acredita directo sin cobrar —
-            // no hace falta abrir Culqi para nada.
-            if (finalPriceUsd > 0) {
-                const { token, email, firstName, lastName } = await openCulqiCheckout(finalPriceUsd);
-                culqiFields = { culqiToken: token, culqiEmail: email, firstName, lastName };
-            }
-
-            const res = await api.post('/coins/buy', {
+            const cuerpoBase = {
                 packageId: pendingBuy.packageId,
                 customCoins: pendingBuy.customCoins,
                 discountCode: validatedCoupon?.code || undefined,
                 prefiereFactura,
-                ...culqiFields,
-            });
+            };
+
+            // Si el cupon deja el precio en 0, el backend acredita directo sin cobrar —
+            // no hace falta abrir Culqi para nada.
+            let res;
+            if (finalPriceUsd > 0) {
+                const { token, email, firstName, lastName, publicKey } = await openCulqiCheckout(finalPriceUsd);
+                res = await cobrarConCulqi({
+                    publicKey, token, email,
+                    enviar: (extra) => api.post('/coins/buy', {
+                        ...cuerpoBase, culqiToken: token, culqiEmail: email, firstName, lastName, ...extra,
+                    }),
+                });
+            } else {
+                res = await api.post('/coins/buy', cuerpoBase);
+            }
 
             setCaptureMessage({
                 type: 'success',

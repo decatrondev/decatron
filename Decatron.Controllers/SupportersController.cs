@@ -448,7 +448,9 @@ namespace Decatron.Controllers
             if (compradorPaypalId == null)
                 return Unauthorized(new { error = "Sesión no válida" });
 
-            if (await _billing.GetAsync(compradorPaypalId.Value) == null)
+            // El perfil es de la cuenta, no del login: se busca con el mismo criterio con el que se guarda.
+            var duenoPerfilPaypal = await ResolveBillingOwnerIdAsync();
+            if (duenoPerfilPaypal == null || await _billing.GetAsync(duenoPerfilPaypal.Value) == null)
             {
                 return BadRequest(new
                 {
@@ -663,7 +665,7 @@ namespace Decatron.Controllers
                 // Acá el dinero ya se movió, así que el perfil NO se exige: si falta, se
                 // registra igual con lo que devolvió PayPal y el comprobante se resuelve
                 // después. Perder el registro de un cobro sería mucho peor que emitir tarde.
-                var compradorCapturaId = await ResolveCurrentUserIdAsync();
+                var compradorCapturaId = await ResolveBillingOwnerIdAsync();
                 var perfilCaptura = compradorCapturaId != null
                     ? await _billing.GetAsync(compradorCapturaId.Value)
                     : null;
@@ -1078,7 +1080,8 @@ namespace Decatron.Controllers
             var userId = await ResolveCurrentUserIdAsync();
             if (userId == null) return Unauthorized(new { error = "Sesión no válida" });
 
-            var perfil = await _billing.GetAsync(userId.Value);
+            var duenoPerfil = await ResolveBillingOwnerIdAsync();
+            var perfil = duenoPerfil == null ? null : await _billing.GetAsync(duenoPerfil.Value);
             if (perfil == null)
                 return BadRequest(new { error = "PROFILE_REQUIRED", message = "Completa tus datos de facturación antes de comprar." });
 
@@ -1520,7 +1523,8 @@ namespace Decatron.Controllers
             if (compradorId == null)
                 return Unauthorized(new { error = "Sesión no válida" });
 
-            var perfil = await _billing.GetAsync(compradorId.Value);
+            var duenoPerfilCulqi = await ResolveBillingOwnerIdAsync();
+            var perfil = duenoPerfilCulqi == null ? null : await _billing.GetAsync(duenoPerfilCulqi.Value);
             if (perfil == null)
             {
                 return BadRequest(new
@@ -1572,11 +1576,10 @@ namespace Decatron.Controllers
                     source_id     = req.CulqiToken,
                     description,
                     order_number  = orderNumber,
-                    antifraud_details = new
-                    {
-                        first_name = string.IsNullOrWhiteSpace(req.FirstName) ? "Cliente" : req.FirstName,
-                        last_name  = string.IsNullOrWhiteSpace(req.LastName)  ? "Decatron" : req.LastName,
-                    },
+                    // El checkout de Culqi casi nunca devuelve el nombre; con el texto por
+                    // defecto el antifraude ve un comprador anonimo. Primero lo que dio la
+                    // tarjeta, despues el nombre del perfil de facturacion.
+                    antifraud_details = Decatron.Services.Culqi3Ds.Antifraude(req.FirstName, req.LastName, req.DeviceFingerPrintId, perfil),
                     metadata = new Dictionary<string, string>
                     {
                         ["tier"]         = req.Tier,
@@ -1585,10 +1588,19 @@ namespace Decatron.Controllers
                     },
                 };
 
-                var json = JsonSerializer.Serialize(chargePayload);
+                // Segundo intento: el titular ya se autentico, se le pasa a Culqi el resultado.
+                var json = Decatron.Services.Culqi3Ds.ArmarCuerpo(chargePayload, req.Authentication3Ds);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync("https://api.culqi.com/v2/charges", content);
                 var body = await response.Content.ReadAsStringAsync();
+
+                // El banco pide autenticar al titular. No es un error: se le avisa al navegador
+                // para que abra el 3D Secure y repita este mismo cobro con el resultado.
+                if (req.Authentication3Ds == null && Decatron.Services.Culqi3Ds.PideAutenticar(body))
+                {
+                    _logger.LogInformation("Culqi pide 3DS para el tier {Tier}; se abre la autenticacion en el navegador", req.Tier);
+                    return Ok(new { success = false, requires3DS = true, amount = amountCentavos, currency = "PEN" });
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -1771,11 +1783,7 @@ namespace Decatron.Controllers
                     source_id     = req.CulqiToken,
                     description   = $"Donación Decatron ${req.AmountUsd:F2} USD",
                     order_number  = donationOrderNumber,
-                    antifraud_details = new
-                    {
-                        first_name = string.IsNullOrWhiteSpace(req.FirstName) ? "Donante" : req.FirstName,
-                        last_name  = string.IsNullOrWhiteSpace(req.LastName)  ? "Decatron" : req.LastName,
-                    },
+                    antifraud_details = Decatron.Services.Culqi3Ds.Antifraude(req.FirstName, req.LastName, req.DeviceFingerPrintId, null, "Donante"),
                     metadata = new Dictionary<string, string>
                     {
                         ["type"]       = "donation",
@@ -1784,10 +1792,16 @@ namespace Decatron.Controllers
                     },
                 };
 
-                var json    = JsonSerializer.Serialize(chargePayload);
+                var json    = Decatron.Services.Culqi3Ds.ArmarCuerpo(chargePayload, req.Authentication3Ds);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync("https://api.culqi.com/v2/charges", content);
                 var body     = await response.Content.ReadAsStringAsync();
+
+                if (req.Authentication3Ds == null && Decatron.Services.Culqi3Ds.PideAutenticar(body))
+                {
+                    _logger.LogInformation("Culqi pide 3DS para una donacion; se abre la autenticacion en el navegador");
+                    return Ok(new { success = false, requires3DS = true, amount = amountCentavos, currency = "PEN" });
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -1985,6 +1999,12 @@ namespace Decatron.Controllers
         public string? FirstName    { get; set; }
         public string? LastName     { get; set; }
 
+        /// <summary>Huella del dispositivo que genera Culqi3DS. Se manda en el primer cargo y se repite igual en el segundo.</summary>
+        public string? DeviceFingerPrintId { get; set; }
+
+        /// <summary>Solo viene en el segundo intento, cuando el titular ya se autentico con su banco.</summary>
+        public Decatron.Services.Authentication3DsRequest? Authentication3Ds { get; set; }
+
         // Los datos del comprobante ya no vienen de acá: salen del perfil de facturación
         // del comprador, que se completa una vez y no se puede falsear desde el navegador.
         // Lo único que se decide por compra es si quiere factura, y solo aplica con RUC.
@@ -1998,6 +2018,9 @@ namespace Decatron.Controllers
         public decimal AmountUsd  { get; set; }
         public string? FirstName  { get; set; }
         public string? LastName   { get; set; }
+
+        public string? DeviceFingerPrintId { get; set; }
+        public Decatron.Services.Authentication3DsRequest? Authentication3Ds { get; set; }
     }
 
     public class CreateSupporterOrderRequest

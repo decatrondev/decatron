@@ -105,15 +105,18 @@ namespace Decatron.Controllers
                     source_id = req.CulqiToken,
                     description = $"Créditos Decatron — {package.Name} ({totalCredits:N0})",
                     order_number = orderNumber,
-                    antifraud_details = new
-                    {
-                        first_name = string.IsNullOrWhiteSpace(req.FirstName) ? "Cliente" : req.FirstName,
-                        last_name = string.IsNullOrWhiteSpace(req.LastName) ? "Decatron" : req.LastName,
-                    },
+                    antifraud_details = Decatron.Services.Culqi3Ds.Antifraude(req.FirstName, req.LastName, req.DeviceFingerPrintId, await _billing.GetAsync(userId)),
                     metadata = new Dictionary<string, string> { ["package_id"] = package.Id.ToString(), ["platform"] = "decatron-credits" },
                 };
-                var response = await client.PostAsync("https://api.culqi.com/v2/charges", new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
+                var response = await client.PostAsync("https://api.culqi.com/v2/charges", new StringContent(Decatron.Services.Culqi3Ds.ArmarCuerpo(payload, req.Authentication3Ds), Encoding.UTF8, "application/json"));
                 var body = await response.Content.ReadAsStringAsync();
+
+                // El banco pide verificar al titular (3D Secure): se avisa al navegador y no es un error.
+                if (req.Authentication3Ds == null && Decatron.Services.Culqi3Ds.PideAutenticar(body))
+                {
+                    _logger.LogInformation("Culqi pide 3DS para una compra de creditos; se abre la autenticacion en el navegador");
+                    return Ok(new { success = false, requires3DS = true, amount = amountCentavos, currency = "PEN" });
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -235,6 +238,8 @@ namespace Decatron.Controllers
         public string? CulqiEmail { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? DeviceFingerPrintId { get; set; }
+        public Decatron.Services.Authentication3DsRequest? Authentication3Ds { get; set; }
         public bool PrefiereFactura { get; set; }
     }
 

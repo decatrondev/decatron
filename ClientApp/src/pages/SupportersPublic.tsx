@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../services/api';
+import { cobrarConCulqi } from '../services/culqi';
 import {
     SupNav, SupHero, SupWhy, SupFounders, PlanComparison, SupWall, SupFAQ, SupFinalCTA, SupFooter, SupBackdrop,
     type PublicConfig, type PublicSupporter,
@@ -393,18 +394,23 @@ function TierCards() {
                     setCulqiLoading(tierId);
 
                     try {
-                        const res = await api.post('/supporters/create-culqi-charge', {
-                            culqiToken:   tokenId,
-                            culqiEmail:   email,
-                            tier:         tierId,
-                            billingType,
-                            discountCode: codeValidation ? codeInput.trim() : undefined,
-                            firstName,
-                            lastName,
-                            // Los datos del comprobante ya no viajan desde acá: el backend
-                            // los toma del perfil, que el navegador no puede falsear.
-                            prefiereFactura,
+                        const res = await cobrarConCulqi({
+                            publicKey: keyData.publicKey, token: tokenId, email,
+                            enviar: (extra) => api.post('/supporters/create-culqi-charge', {
+                                culqiToken:   tokenId,
+                                culqiEmail:   email,
+                                tier:         tierId,
+                                billingType,
+                                discountCode: codeValidation ? codeInput.trim() : undefined,
+                                firstName,
+                                lastName,
+                                // Los datos del comprobante ya no viajan desde acá: el backend
+                                // los toma del perfil, que el navegador no puede falsear.
+                                prefiereFactura,
+                                ...extra,
+                            }),
                         });
+
                         if (res.data.success) {
                             setSuccessTier(tierId);
                             setPaymentError(null);
@@ -412,7 +418,7 @@ function TierCards() {
                             setCompraLista(tierId);
                         }
                     } catch (err: any) {
-                        const msg = err.response?.data?.error || 'Error al procesar el pago con tarjeta';
+                        const msg = err.response?.data?.error || err.message || 'Error al procesar el pago con tarjeta';
                         setPaymentError({ tier: tierId, msg });
                     } finally {
                         setCulqiLoading(null);
@@ -943,18 +949,22 @@ function FreeDonation() {
                     culqi.close();
                     setLoading(true);
                     try {
-                        const res = await api.post('/supporters/create-culqi-donation', {
-                            culqiToken: tokenId,
-                            culqiEmail: email,
-                            amountUsd:  numAmount,
-                            firstName,
-                            lastName,
+                        const res = await cobrarConCulqi({
+                            publicKey: keyData.publicKey, token: tokenId, email,
+                            enviar: (extra) => api.post('/supporters/create-culqi-donation', {
+                                culqiToken: tokenId,
+                                culqiEmail: email,
+                                amountUsd:  numAmount,
+                                firstName,
+                                lastName,
+                                ...extra,
+                            }),
                         });
                         if (res.data.success) {
                             setDonateSuccess(res.data.message || `¡Gracias por tu donación de $${numAmount.toFixed(2)}! ❤️`);
                         }
                     } catch (err: any) {
-                        setDonateError(err.response?.data?.error || 'Error al procesar la donación');
+                        setDonateError(err.response?.data?.error || err.message || 'Error al procesar la donación');
                     } finally {
                         setLoading(false);
                     }
