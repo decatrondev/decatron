@@ -126,13 +126,48 @@ namespace Decatron.Core.Models
         public bool LeadModCountsAsMod { get; set; } = true;
     }
 
-    /// <summary>Tiempos del overlay de OBS. El estado lo calcula el servidor; el navegador solo dibuja.</summary>
+    /// <summary>
+    /// Overlay de OBS: tiempos, colores, bloques sobre un lienzo de 1920x1080 y sonidos. El navegador solo dibuja lo que el
+    /// servidor le manda. Esta parte se lee de la configuración viva del streamer (no de la copia del sorteo): un cambio en
+    /// el editor se ve en OBS sin iniciar otro giveaway.
+    /// </summary>
     public class GiveawayOverlayRules
     {
+        public const int CanvasWidth = 1920;
+        public const int CanvasHeight = 1080;
+
         /// <summary>Duración del revelado del ganador (la ruleta de nombres) antes de mostrar al ganador.</summary>
         public int RevealSeconds { get; set; } = 8;
         /// <summary>Cuánto se queda el resultado final en pantalla antes de ocultarse.</summary>
         public int ResultSeconds { get; set; } = 15;
+
+        public string Accent { get; set; } = "#f59e0b";
+        public string Panel { get; set; } = "#0f172a";
+        public string Text { get; set; } = "#ffffff";
+        public string Font { get; set; } = "Inter, system-ui, sans-serif";
+        /// <summary>Opacidad de los paneles, 0 a 100.</summary>
+        public int PanelOpacity { get; set; } = 88;
+
+        public bool Confetti { get; set; } = true;
+        public bool TickSound { get; set; } = true;
+        public bool FanfareSound { get; set; } = true;
+        /// <summary>Volumen de los sonidos del overlay, 0 a 100.</summary>
+        public int Volume { get; set; } = 60;
+
+        public OverlayBlock Card { get; set; } = new() { X = 60, Y = 60, Width = 640, Height = 360 };
+        public OverlayBlock Entries { get; set; } = new() { X = 60, Y = 460, Width = 640, Height = 420 };
+        public OverlayBlock Reveal { get; set; } = new() { X = 460, Y = 240, Width = 1000, Height = 500 };
+        public OverlayBlock Winners { get; set; } = new() { X = 460, Y = 780, Width = 1000, Height = 220 };
+    }
+
+    /// <summary>Un bloque del overlay sobre el lienzo.</summary>
+    public class OverlayBlock
+    {
+        public bool Enabled { get; set; } = true;
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 
     /// <summary>

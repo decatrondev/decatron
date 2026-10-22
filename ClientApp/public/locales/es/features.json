@@ -219,6 +219,7 @@
       "active": "Activo",
       "history": "Historial",
       "settings": "Configuración",
+      "overlay": "Overlay",
       "debug": "Debug"
     }
   },

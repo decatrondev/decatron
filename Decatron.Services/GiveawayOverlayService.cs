@@ -60,7 +60,9 @@ namespace Decatron.Services
             IReadOnlyList<EntryView> Recent,
             IReadOnlyList<string> Candidates,
             IReadOnlyList<WinnerView> Winners,
-            DateTime ServerNow);
+            DateTime ServerNow,
+            GiveawayOverlayRules Appearance,
+            bool Simulated = false);
 
         /// <summary>A qué clave de overlay pertenece este canal de Twitch (el login de la fila principal de la cuenta).</summary>
         public async Task<string?> OverlayKeyAsync(string channelId)
@@ -88,12 +90,13 @@ namespace Decatron.Services
                 .OrderByDescending(s => s.UpdatedAt)
                 .FirstOrDefaultAsync();
 
-            if (session == null) return Idle(now);
+            var appearance = await LoadAppearanceAsync(channelId);
+            if (session == null) return Idle(now, appearance);
 
             var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot) ?? new GiveawayConfig();
             var gs = GiveawaySettings.Parse(config.Settings);
-            var reveal = Math.Max(0, gs.Overlay.RevealSeconds);
-            var resultSeconds = Math.Max(0, gs.Overlay.ResultSeconds);
+            var reveal = Math.Max(0, appearance.RevealSeconds);
+            var resultSeconds = Math.Max(0, appearance.ResultSeconds);
 
             var recent = await _context.GiveawayParticipants.AsNoTracking()
                 .Where(p => p.SessionId == session.Id)
@@ -104,7 +107,7 @@ namespace Decatron.Services
 
             var common = new Snapshot("idle", session.Id, session.PrizeName, NormalizeCommand(config.EntryCommand), config.AllowAutoEntry,
                 gs.Platforms.Twitch, gs.Platforms.Kick, session.TotalParticipants, session.EndsAt, session.EndedAt, reveal, resultSeconds,
-                config.WinnerResponseTimeout, recent, Array.Empty<string>(), Array.Empty<WinnerView>(), now);
+                config.WinnerResponseTimeout, recent, Array.Empty<string>(), Array.Empty<WinnerView>(), now, appearance);
 
             switch (session.Status)
             {
@@ -141,11 +144,11 @@ namespace Decatron.Services
                 case "cancelled":
                 {
                     var closeAt = (session.EndedAt ?? session.UpdatedAt).AddSeconds(resultSeconds);
-                    return now < closeAt ? common with { Phase = "cancelled" } : Idle(now);
+                    return now < closeAt ? common with { Phase = "cancelled" } : Idle(now, appearance);
                 }
 
                 default:
-                    return Idle(now);
+                    return Idle(now, appearance);
             }
         }
 
@@ -154,6 +157,8 @@ namespace Decatron.Services
         {
             try
             {
+                // Durante una simulación el overlay solo muestra la simulación
+                if (_simulations.TryGetValue(channelId, out var simUntil) && simUntil > DateTime.UtcNow) return;
                 var key = await OverlayKeyAsync(channelId);
                 if (key == null) return;
 
@@ -208,9 +213,100 @@ namespace Decatron.Services
                 .ToList();
         }
 
-        private static Snapshot Idle(DateTime now) =>
-            new("idle", null, null, null, false, true, false, 0, null, null, 0, 0, 0,
-                Array.Empty<EntryView>(), Array.Empty<string>(), Array.Empty<WinnerView>(), now);
+        private static Snapshot Idle(DateTime now, GiveawayOverlayRules appearance) =>
+            new("idle", null, null, null, false, true, false, 0, null, null, appearance.RevealSeconds, appearance.ResultSeconds, 0,
+                Array.Empty<EntryView>(), Array.Empty<string>(), Array.Empty<WinnerView>(), now, appearance);
+
+        /// <summary>Apariencia del overlay desde la configuración VIVA del streamer (no desde la copia del sorteo en curso).</summary>
+        public async Task<GiveawayOverlayRules> LoadAppearanceAsync(string channelId)
+        {
+            var json = await _context.GiveawayConfigs.AsNoTracking()
+                .Where(c => c.ChannelId == channelId).OrderByDescending(c => c.UpdatedAt)
+                .Select(c => c.Settings).FirstOrDefaultAsync();
+            return GiveawaySettings.Parse(json).Overlay;
+        }
+
+        // ====================================================================
+        // SIMULACIÓN: corre el ciclo completo en el overlay de OBS sin tocar la base ni el chat
+        // ====================================================================
+        private static readonly ConcurrentDictionary<string, DateTime> _simulations = new();
+        private static readonly string[] SimNames = { "Camila", "Mateo", "Valentina", "Santiago", "Lucía", "Diego", "Sofía", "Andrés",
+            "Mariana", "Javier", "Daniela", "Gabriel", "Paula", "Nicolás", "Isabella", "Tomás" };
+
+        /// <summary>Inicia la simulación. Devuelve false si hay un giveaway real en curso o ya hay otra simulación.</summary>
+        public async Task<string?> StartSimulationAsync(string channelId)
+        {
+            var key = await OverlayKeyAsync(channelId);
+            if (key == null) return "no_channel";
+            if (_simulations.TryGetValue(channelId, out var until) && until > DateTime.UtcNow) return "already_running";
+
+            var real = await _context.GiveawaySessions.AsNoTracking()
+                .AnyAsync(s => s.ChannelId == channelId && (s.Status == "active" || s.Status == "selecting_winners"));
+            if (real) return "real_giveaway_active";
+
+            var a = await LoadAppearanceAsync(channelId);
+            var cfg = await _context.GiveawayConfigs.AsNoTracking().Where(c => c.ChannelId == channelId)
+                .OrderByDescending(c => c.UpdatedAt).FirstOrDefaultAsync();
+            var gs = GiveawaySettings.Parse(cfg?.Settings);
+            var command = NormalizeCommand(cfg?.EntryCommand);
+            var prize = string.IsNullOrWhiteSpace(cfg?.PrizeName) ? "Premio de prueba" : cfg!.PrizeName;
+
+            _simulations[channelId] = DateTime.UtcNow.AddMinutes(2);
+            _ = Task.Run(() => RunSimulationAsync(channelId, key, a, gs.Platforms.Kick, command, prize));
+            return null;
+        }
+
+        private async Task RunSimulationAsync(string channelId, string key, GiveawayOverlayRules a, bool withKick, string command, string prize)
+        {
+            var group = _hub.Clients.Group($"overlay_{key}");
+            var entries = new List<EntryView>();
+            var rnd = new Random();
+            var names = SimNames.OrderBy(_ => rnd.Next()).ToList();
+            var timeout = 20;
+
+            Snapshot Frame(string phase, IReadOnlyList<string>? candidates = null, IReadOnlyList<WinnerView>? winners = null, DateTime? drawnAt = null, DateTime? endsAt = null) =>
+                new(phase, 0, prize, command, false, true, withKick, entries.Count, endsAt, drawnAt, a.RevealSeconds, a.ResultSeconds, timeout,
+                    entries.OrderByDescending(e => e.EnteredAt).Take(RecentEntries).ToList(), candidates ?? Array.Empty<string>(),
+                    winners ?? Array.Empty<WinnerView>(), DateTime.UtcNow, a, Simulated: true);
+
+            try
+            {
+                var endsAt = DateTime.UtcNow.AddSeconds(12);
+                await group.SendAsync(StateEvent, Frame("open", endsAt: endsAt));
+                for (var i = 0; i < 10; i++)
+                {
+                    await Task.Delay(900);
+                    entries.Add(new EntryView(names[i], withKick && i % 3 == 2 ? "kick" : "twitch", DateTime.UtcNow));
+                    await _hub.Clients.Group($"overlay_{key}").SendAsync("GiveawayParticipantJoined",
+                        new { Username = names[i].ToLower(), DisplayName = names[i], Platform = entries[^1].Platform, CalculatedWeight = 1, EnteredAt = DateTime.UtcNow });
+                    await group.SendAsync(StateEvent, Frame("open", endsAt: endsAt));
+                }
+
+                var winnerEntry = entries[rnd.Next(entries.Count)];
+                var drawnAt = DateTime.UtcNow;
+                var winner = new WinnerView(1, winnerEntry.DisplayName, winnerEntry.Platform, "pending", drawnAt.AddSeconds(a.RevealSeconds + timeout), false);
+                await group.SendAsync(StateEvent, Frame("drawing", entries.Select(e => e.DisplayName).ToList(), new[] { winner }, drawnAt));
+
+                await Task.Delay(Math.Max(0, a.RevealSeconds) * 1000);
+                await group.SendAsync(StateEvent, Frame("winner", winners: new[] { winner with { Deadline = DateTime.UtcNow.AddSeconds(timeout) } }, drawnAt: drawnAt));
+
+                await Task.Delay(6000);
+                await group.SendAsync(StateEvent, Frame("result", winners: new[] { winner with { State = "responded", Deadline = null } }, drawnAt: drawnAt));
+
+                await Task.Delay(Math.Clamp(a.ResultSeconds, 3, 10) * 1000);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en la simulación del overlay del giveaway de {Channel}", channelId);
+            }
+            finally
+            {
+                _simulations.TryRemove(channelId, out _);
+                // Deja el overlay limpio; si hubiera un giveaway real, el siguiente cambio lo vuelve a mostrar
+                try { await _hub.Clients.Group($"overlay_{key}").SendAsync(StateEvent, Idle(DateTime.UtcNow, a)); } catch { /* sin conexión */ }
+                _lastPublished.TryRemove(channelId, out _);
+            }
+        }
 
         private static string NormalizeCommand(string? command)
         {

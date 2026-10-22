@@ -26,6 +26,7 @@ import {
     ActiveTab,
     HistoryTab,
     SettingsTab,
+    OverlayTab,
     DebugTab,
 } from './giveaway-extension/components/tabs';
 
@@ -182,6 +183,7 @@ const GiveawayConfig = () => {
         { id: 'weights', label: t('giveaway.tabs.weights'), icon: '⚖️' },
         { id: 'active', label: t('giveaway.tabs.active'), icon: '🎲' },
         { id: 'history', label: t('giveaway.tabs.history'), icon: '📋' },
+        { id: 'overlay', label: t('giveaway.tabs.overlay'), icon: '📺' },
         { id: 'settings', label: t('giveaway.tabs.settings'), icon: '⚙️' },
         { id: 'debug', label: t('giveaway.tabs.debug'), icon: '🧪' },
     ];
@@ -338,6 +340,13 @@ const GiveawayConfig = () => {
                                     onLoadStatistics={persistence.loadStatistics}
                                     onDeleteEntry={persistence.deleteHistoryEntry}
                                     onExportHistory={persistence.exportHistory}
+                                />
+                            )}
+
+                            {activeTab === 'overlay' && (
+                                <OverlayTab
+                                    config={giveawayConfig.config}
+                                    onUpdateSettings={giveawayConfig.updateSettings}
                                 />
                             )}
 

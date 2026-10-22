@@ -3,6 +3,9 @@
  * Sistema de sorteos/giveaways tipo Nightbot mejorado
  */
 
+import { DEFAULT_APPEARANCE, mergeAppearance } from '../overlay/model';
+import type { OverlayAppearance } from '../overlay/model';
+
 // ============================================================================
 // TAB TYPE
 // ============================================================================
@@ -12,6 +15,7 @@ export type GiveawayTabType =
     | 'weights'     // Pesos y multiplicadores
     | 'active'      // Estado activo
     | 'history'     // Historial
+    | 'overlay'     // Overlay de OBS: enlaces, editor y simulación
     | 'settings'    // Configuración general
     | 'debug';      // Herramientas de testing
 
@@ -108,7 +112,7 @@ export interface GiveawaySettings {
     multiAccount: { sameCreationDays: number; sameFollowDays: number; newAccountDays: number };
     roles: { streamerCanJoin: boolean; leadModCountsAsMod: boolean };
     platforms: GiveawayPlatformRules;
-    overlay: { revealSeconds: number; resultSeconds: number };
+    overlay: OverlayAppearance;
 }
 
 /** Dónde se puede participar y qué hacer con lo que una plataforma no permite comprobar. */
@@ -419,7 +423,7 @@ export const DEFAULT_SETTINGS: GiveawaySettings = {
     multiAccount: { sameCreationDays: 1, sameFollowDays: 1, newAccountDays: 30 },
     roles: { streamerCanJoin: true, leadModCountsAsMod: true },
     platforms: { twitch: true, kick: false, unverifiable: 'allow' },
-    overlay: { revealSeconds: 8, resultSeconds: 15 },
+    overlay: DEFAULT_APPEARANCE,
 };
 
 /** Mezcla lo que llegó del servidor (puede venir vacío o incompleto) con los valores por defecto. */
@@ -434,7 +438,7 @@ export const mergeSettings = (loaded?: Partial<GiveawaySettings> | null): Giveaw
     multiAccount: { ...DEFAULT_SETTINGS.multiAccount, ...(loaded?.multiAccount ?? {}) },
     roles: { ...DEFAULT_SETTINGS.roles, ...(loaded?.roles ?? {}) },
     platforms: { ...DEFAULT_SETTINGS.platforms, ...(loaded?.platforms ?? {}) },
-    overlay: { ...DEFAULT_SETTINGS.overlay, ...(loaded?.overlay ?? {}) },
+    overlay: mergeAppearance(loaded?.overlay),
 });
 
 export const DEFAULT_GIVEAWAY_CONFIG: GiveawayConfig = {

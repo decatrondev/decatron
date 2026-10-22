@@ -9,3 +9,4 @@ export { ActiveTab } from './ActiveTab';
 export { HistoryTab } from './HistoryTab';
 export { SettingsTab } from './SettingsTab';
 export { default as DebugTab } from './DebugTab';
+export { OverlayTab } from './OverlayTab';

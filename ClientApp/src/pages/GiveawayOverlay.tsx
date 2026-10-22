@@ -1,106 +1,103 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
+import GiveawayStage from './features/giveaway-extension/overlay/GiveawayStage';
+import { OVERLAY_CANVAS, mergeAppearance } from './features/giveaway-extension/overlay/model';
+import type { OverlaySnapshot } from './features/giveaway-extension/overlay/model';
 
-interface Participant {
-    username: string;
-    displayName: string;
-    calculatedWeight: number;
-    enteredAt: string;
-}
-
+/**
+ * Overlay del giveaway para OBS. El servidor manda la foto completa del sorteo (fase, ganador, tiempos) y este componente
+ * solo la dibuja. Patrón multiplataforma: .dev/plans/MULTIPLATAFORMA_PATRON.md (pregunta la clave al conectar y en cada
+ * reconexión, un solo grupo overlay_{clave}, ?source=all|twitch|kick filtra la lista de entradas).
+ */
 export default function GiveawayOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
-    const [participants, setParticipants] = useState<Participant[]>([]);
+    const sourceParam = (searchParams.get('source') || '').toLowerCase();
+
+    const [snapshot, setSnapshot] = useState<OverlaySnapshot | null>(null);
+    const [clockOffset, setClockOffset] = useState(0);
+    const [scale, setScale] = useState(() => Math.min(window.innerWidth / OVERLAY_CANVAS.width, window.innerHeight / OVERLAY_CANVAS.height));
 
     const connectionRef = useRef<signalR.HubConnection | null>(null);
+    const sourceRef = useRef<'all' | 'twitch' | 'kick'>('all');
 
     useEffect(() => {
-        setupSignalRConnection();
+        const onResize = () => setScale(Math.min(window.innerWidth / OVERLAY_CANVAS.width, window.innerHeight / OVERLAY_CANVAS.height));
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
-        return () => {
-            if (connectionRef.current) {
-                connectionRef.current.stop();
+    useEffect(() => {
+        if (!channel) return;
+        let disposed = false;
+        let retry: ReturnType<typeof setTimeout> | null = null;
+        let groupKey = channel;
+
+        const accept = (raw: OverlaySnapshot) => {
+            const snap = { ...raw, appearance: mergeAppearance(raw.appearance) };
+            setClockOffset(Date.parse(raw.serverNow) - Date.now());
+            setSnapshot(snap);
+        };
+
+        // A qué grupo unirse y qué mostraba este enlace antes; también trae la foto actual
+        const resolve = async () => {
+            const res = await fetch(`/api/giveaway-overlay/${encodeURIComponent(channel)}`);
+            const data = await res.json();
+            if (data?.found) {
+                groupKey = data.overlayKey;
+                const variant = ['all', 'twitch', 'kick'].includes(sourceParam) ? sourceParam : data.variant;
+                sourceRef.current = (['all', 'twitch', 'kick'].includes(variant) ? variant : 'all') as 'all' | 'twitch' | 'kick';
+                if (data.snapshot) accept(data.snapshot);
             }
         };
-    }, [channel]);
 
-    const setupSignalRConnection = async () => {
-        if (!channel) {
-            console.warn('❌ No channel specified for SignalR connection');
-            return;
-        }
+        const join = async (connection: signalR.HubConnection) => {
+            await resolve();
+            await connection.invoke('JoinChannel', groupKey);
+            await connection.invoke('RegisterOverlay', groupKey, 'giveaway');
+            await connection.invoke('SetOverlayVariant', sourceRef.current);
+        };
 
-        try {
-            const hubUrl = `${window.location.origin}/hubs/overlay`;
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl(hubUrl, { withCredentials: false })
-                .withAutomaticReconnect()
-                .configureLogging(signalR.LogLevel.Information)
-                .build();
+        const connect = async () => {
+            if (disposed) return;
+            try {
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl(`${window.location.origin}/hubs/overlay`, { withCredentials: false })
+                    .withAutomaticReconnect()
+                    .configureLogging(signalR.LogLevel.Warning)
+                    .build();
 
-            connection.on('GiveawayParticipantJoined', (participant: Participant) => {
-                setParticipants(prev => [participant, ...prev].slice(0, 10)); // Mostrar últimos 10
-            });
+                connection.on('GiveawayState', (snap: OverlaySnapshot) => accept(snap));
+                connection.onreconnected(async () => {
+                    try { await join(connection); } catch (err) { console.error('[GIVEAWAY] Error al volver a unirse:', err); }
+                });
+                connection.onclose(() => { if (!disposed) retry = setTimeout(connect, 5000); });
 
-            // Connection lifecycle
-            connection.onreconnected(async () => {
-                try {
-                    await connection.invoke('JoinChannel', channel);
-                } catch (err) {
-                    console.error('[GIVEAWAY] Error re-uniéndose al canal:', err);
-                }
-            });
+                await connection.start();
+                await join(connection);
+                connectionRef.current = connection;
+            } catch (err) {
+                console.error('[GIVEAWAY] Error de conexión:', err);
+                if (!disposed) retry = setTimeout(connect, 5000);
+            }
+        };
 
-            connection.onclose(error => {
-                setTimeout(setupSignalRConnection, 5000);
-            });
+        connect();
+        return () => {
+            disposed = true;
+            if (retry) clearTimeout(retry);
+            connectionRef.current?.stop();
+        };
+    }, [channel, sourceParam]);
 
-            await connection.start();
-            await connection.invoke('JoinChannel', channel);
-
-            connectionRef.current = connection;
-        } catch (err) {
-            console.error('Error connecting SignalR:', err);
-            setTimeout(setupSignalRConnection, 5000);
-        }
-    };
+    if (!snapshot || snapshot.phase === 'idle') return <div style={{ width: '100vw', height: '100vh' }} />;
 
     return (
-        <div style={{
-            padding: '20px',
-            fontFamily: 'sans-serif',
-            color: 'white',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-            width: '100%',
-            height: '100vh'
-        }}>
-            <h2 style={{ margin: '0 0 10px 0', fontSize: '24px', fontWeight: 'bold' }}>🎉 Nuevos Participantes</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {participants.map((p, i) => (
-                    <div key={`${p.username}-${i}`} style={{
-                        background: 'rgba(30, 41, 59, 0.85)',
-                        padding: '10px 16px',
-                        borderRadius: '12px',
-                        borderLeft: '4px solid #f59e0b',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        animation: 'slideIn 0.5s ease-out'
-                    }}>
-                        <span style={{ fontWeight: 'bold', color: '#fbbf24', fontSize: '18px' }}>{p.displayName}</span>
-                        <span style={{ color: 'white', fontSize: '16px' }}>se ha unido! 🎟️</span>
-                    </div>
-                ))}
+        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'transparent' }}>
+            <div style={{ width: OVERLAY_CANVAS.width, height: OVERLAY_CANVAS.height, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                <GiveawayStage snapshot={snapshot} clockOffsetMs={clockOffset} source={sourceRef.current} audio />
             </div>
-            <style>{`
-                @keyframes slideIn {
-                    from { transform: translateX(-20px); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `}</style>
         </div>
     );
 }

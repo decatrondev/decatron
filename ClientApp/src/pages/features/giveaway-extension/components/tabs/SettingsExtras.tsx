@@ -89,8 +89,8 @@ const PlatformsSection: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSet
         return () => { cancelled = true; };
     }, []);
 
-    const platforms = caps ? Object.keys(caps.supported) : [];
-    const kickLinked = caps?.linked.kick ?? false;
+    const platforms = caps?.supported ? Object.keys(caps.supported) : [];
+    const kickLinked = caps?.linked?.kick ?? false;
     const rules = settings.platforms;
 
     return (
@@ -110,7 +110,7 @@ const PlatformsSection: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSet
 
             {failed && <p className="text-xs text-ds-soft">No se pudo cargar la tabla de verificación. Los interruptores funcionan igual.</p>}
 
-            {caps && (
+            {caps?.supported && caps.capabilities && (
                 <div className="overflow-x-auto rounded-lg border border-ds-border">
                     <table className="w-full text-sm">
                         <thead>
@@ -236,21 +236,6 @@ export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpda
                         onChange={(v) => onUpdateSettings('weightLimits', { maxTotal: v })} hint="Por defecto 10000" />
                     <NumberField label="Peso mínimo" min={0.01} step={0.1} value={settings.weightLimits.min}
                         onChange={(v) => onUpdateSettings('weightLimits', { min: v })} hint="1 = nadie baja del peso base; menos de 1 permite penalizar" />
-                </div>
-            </div>
-
-            {/* Overlay de OBS */}
-            <div className="space-y-4">
-                <SectionTitle
-                    icon={<Globe2 className="w-5 h-5 text-ds-accent-text" />}
-                    title="Tiempos del overlay de OBS"
-                    text="El servidor decide el ganador antes de la animación; estos tiempos solo controlan cuánto dura lo que se ve en pantalla."
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <NumberField label="Duración del revelado (segundos)" min={0} max={60} step={1} value={settings.overlay.revealSeconds}
-                        onChange={(v) => onUpdateSettings('overlay', { revealSeconds: v })} hint="La ruleta de nombres antes de mostrar al ganador. Por defecto 8. Cuenta dentro del plazo del ganador para responder." />
-                    <NumberField label="Tiempo del resultado en pantalla (segundos)" min={0} max={600} step={1} value={settings.overlay.resultSeconds}
-                        onChange={(v) => onUpdateSettings('overlay', { resultSeconds: v })} hint="Cuánto se queda el resultado final antes de ocultarse. Por defecto 15." />
                 </div>
             </div>
 

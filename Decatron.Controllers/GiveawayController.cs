@@ -520,6 +520,56 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>Qué overlays de giveaway hay conectados en OBS, por variante, y si se pisan (como el Chat y Sound Alerts).</summary>
+        [HttpGet("overlay/status")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> GetOverlayStatus([FromServices] GiveawayOverlayService overlay)
+        {
+            try
+            {
+                var twitchId = User.FindFirst("TwitchId")?.Value;
+                if (string.IsNullOrEmpty(twitchId))
+                    return Unauthorized(new { success = false, message = "No autenticado" });
+
+                var key = await overlay.OverlayKeyAsync(twitchId);
+                if (key == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var counts = Decatron.Hubs.OverlayHub.CountOverlayVariants(key, "giveaway");
+                var all = counts["all"]; var tw = counts["twitch"]; var kk = counts["kick"];
+                var warnings = new List<string>();
+                if (all > 0 && (tw > 0 || kk > 0)) warnings.Add("mixed");
+                if (all > 1 || tw > 1 || kk > 1) warnings.Add("repeated");
+                return Ok(new { success = true, overlayKey = key, total = all + tw + kk, all, twitch = tw, kick = kk, warnings });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el estado de los overlays del giveaway");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        /// <summary>Corre el ciclo completo (entradas, ruleta, ganador, resultado) en el overlay de OBS con datos de prueba, sin tocar el chat ni la base.</summary>
+        [HttpPost("overlay/simulate")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> SimulateOverlay([FromServices] GiveawayOverlayService overlay)
+        {
+            try
+            {
+                var twitchId = User.FindFirst("TwitchId")?.Value;
+                if (string.IsNullOrEmpty(twitchId))
+                    return Unauthorized(new { success = false, message = "No autenticado" });
+
+                var error = await overlay.StartSimulationAsync(twitchId);
+                if (error != null) return Conflict(new { success = false, code = error });
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al simular el overlay del giveaway");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
         // ========================================================================
         // DEBUG ENDPOINTS (participantes de prueba)
         // ========================================================================
