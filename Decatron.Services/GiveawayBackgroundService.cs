@@ -352,6 +352,16 @@ namespace Decatron.Services
                     _logger.LogError(ex, $"Error procesando timeouts para sesión {session.Id}");
                 }
             }
+
+            // Estado para el overlay de OBS: cubre las transiciones por tiempo y lo que cambió en esta pasada
+            try
+            {
+                await scope.ServiceProvider.GetRequiredService<GiveawayOverlayService>().PublishRecentAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error publicando el estado del giveaway al overlay");
+            }
         }
     }
 }

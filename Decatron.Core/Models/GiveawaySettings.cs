@@ -18,6 +18,7 @@ namespace Decatron.Core.Models
         public GiveawayMultiAccountRules MultiAccount { get; set; } = new();
         public GiveawayRoleRules Roles { get; set; } = new();
         public GiveawayPlatformRules Platforms { get; set; } = new();
+        public GiveawayOverlayRules Overlay { get; set; } = new();
 
         private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true };
 
@@ -123,6 +124,15 @@ namespace Decatron.Core.Models
         public bool StreamerCanJoin { get; set; } = true;
         /// <summary>El Lead Moderator cuenta como moderador al aplicar «permitir moderadores».</summary>
         public bool LeadModCountsAsMod { get; set; } = true;
+    }
+
+    /// <summary>Tiempos del overlay de OBS. El estado lo calcula el servidor; el navegador solo dibuja.</summary>
+    public class GiveawayOverlayRules
+    {
+        /// <summary>Duración del revelado del ganador (la ruleta de nombres) antes de mostrar al ganador.</summary>
+        public int RevealSeconds { get; set; } = 8;
+        /// <summary>Cuánto se queda el resultado final en pantalla antes de ocultarse.</summary>
+        public int ResultSeconds { get; set; } = 15;
     }
 
     /// <summary>

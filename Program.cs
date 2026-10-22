@@ -430,6 +430,7 @@ try
     builder.Services.AddScoped<IGachaService, GachaService>();
     builder.Services.AddScoped<IFortniteService, FortniteService>();
     builder.Services.AddScoped<ISpiritNotificationDeliveryService, SpiritNotificationDeliveryService>();
+    builder.Services.AddScoped<GiveawayOverlayService>();
     builder.Services.AddScoped<GiveawayService>();
     builder.Services.AddScoped<GoalsService>();
     builder.Services.AddScoped<WheelWalletService>();

@@ -61,6 +61,10 @@ namespace Decatron.Core.Models
         [Column("total_weight")]
         public decimal TotalWeight { get; set; } = 0;
 
+        // Registro auditable del sorteo (peso y probabilidad de cada ganador al elegirlo). NULL = sorteo anterior al registro
+        [Column("draw_audit", TypeName = "jsonb")]
+        public string? DrawAudit { get; set; }
+
         // Cancelación
         [Column("cancel_reason")]
         public string? CancelReason { get; set; }

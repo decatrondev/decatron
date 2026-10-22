@@ -110,4 +110,16 @@ public class GiveawaySettingsTests
             "unverifiable_account_age", "unverifiable_watch_time", "unverifiable_chat_messages" })
             Assert.True(GiveawayRejections.DefaultMessages.ContainsKey(code), $"falta el texto por defecto de «{code}»");
     }
+
+    [Fact]
+    public void El_overlay_tiene_tiempos_por_defecto_y_se_leen_del_json()
+    {
+        var d = GiveawaySettings.Parse("{}").Overlay;
+        Assert.Equal(8, d.RevealSeconds);
+        Assert.Equal(15, d.ResultSeconds);
+
+        var c = GiveawaySettings.Parse("{\"overlay\":{\"revealSeconds\":3}}").Overlay;
+        Assert.Equal(3, c.RevealSeconds);
+        Assert.Equal(15, c.ResultSeconds);
+    }
 }

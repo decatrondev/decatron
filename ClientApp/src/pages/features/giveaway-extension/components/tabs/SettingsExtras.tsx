@@ -239,6 +239,21 @@ export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpda
                 </div>
             </div>
 
+            {/* Overlay de OBS */}
+            <div className="space-y-4">
+                <SectionTitle
+                    icon={<Globe2 className="w-5 h-5 text-ds-accent-text" />}
+                    title="Tiempos del overlay de OBS"
+                    text="El servidor decide el ganador antes de la animación; estos tiempos solo controlan cuánto dura lo que se ve en pantalla."
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <NumberField label="Duración del revelado (segundos)" min={0} max={60} step={1} value={settings.overlay.revealSeconds}
+                        onChange={(v) => onUpdateSettings('overlay', { revealSeconds: v })} hint="La ruleta de nombres antes de mostrar al ganador. Por defecto 8. Cuenta dentro del plazo del ganador para responder." />
+                    <NumberField label="Tiempo del resultado en pantalla (segundos)" min={0} max={600} step={1} value={settings.overlay.resultSeconds}
+                        onChange={(v) => onUpdateSettings('overlay', { resultSeconds: v })} hint="Cuánto se queda el resultado final antes de ocultarse. Por defecto 15." />
+                </div>
+            </div>
+
             {/* Recordatorios */}
             <div className="space-y-4">
                 <SectionTitle

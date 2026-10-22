@@ -108,6 +108,7 @@ export interface GiveawaySettings {
     multiAccount: { sameCreationDays: number; sameFollowDays: number; newAccountDays: number };
     roles: { streamerCanJoin: boolean; leadModCountsAsMod: boolean };
     platforms: GiveawayPlatformRules;
+    overlay: { revealSeconds: number; resultSeconds: number };
 }
 
 /** Dónde se puede participar y qué hacer con lo que una plataforma no permite comprobar. */
@@ -418,6 +419,7 @@ export const DEFAULT_SETTINGS: GiveawaySettings = {
     multiAccount: { sameCreationDays: 1, sameFollowDays: 1, newAccountDays: 30 },
     roles: { streamerCanJoin: true, leadModCountsAsMod: true },
     platforms: { twitch: true, kick: false, unverifiable: 'allow' },
+    overlay: { revealSeconds: 8, resultSeconds: 15 },
 };
 
 /** Mezcla lo que llegó del servidor (puede venir vacío o incompleto) con los valores por defecto. */
@@ -432,6 +434,7 @@ export const mergeSettings = (loaded?: Partial<GiveawaySettings> | null): Giveaw
     multiAccount: { ...DEFAULT_SETTINGS.multiAccount, ...(loaded?.multiAccount ?? {}) },
     roles: { ...DEFAULT_SETTINGS.roles, ...(loaded?.roles ?? {}) },
     platforms: { ...DEFAULT_SETTINGS.platforms, ...(loaded?.platforms ?? {}) },
+    overlay: { ...DEFAULT_SETTINGS.overlay, ...(loaded?.overlay ?? {}) },
 });
 
 export const DEFAULT_GIVEAWAY_CONFIG: GiveawayConfig = {

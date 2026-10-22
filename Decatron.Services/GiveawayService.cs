@@ -20,6 +20,7 @@ namespace Decatron.Services
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly IMessageSender _messageSender;
         private readonly Accounts.AccountChannelResolver _accountResolver;
+        private readonly GiveawayOverlayService _overlay;
         private readonly Random _random;
 
         public GiveawayService(
@@ -27,9 +28,11 @@ namespace Decatron.Services
             ILogger<GiveawayService> logger,
             OverlayNotificationService overlayNotificationService,
             IMessageSender messageSender,
-            Accounts.AccountChannelResolver accountResolver)
+            Accounts.AccountChannelResolver accountResolver,
+            GiveawayOverlayService overlay)
         {
             _accountResolver = accountResolver;
+            _overlay = overlay;
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
@@ -59,6 +62,9 @@ namespace Decatron.Services
                 _logger.LogWarning(ex, "No se pudo anunciar el giveaway en el chat de Kick de {Channel}", channelName);
             }
         }
+
+        /// <summary>Avisa al overlay de OBS del estado actual del giveaway (solo emite si cambió).</summary>
+        private Task PublishOverlayAsync(string channelId) => _overlay.PublishIfChangedAsync(channelId);
 
         /// <summary>Respuesta a un viewer: solo en el chat de la plataforma desde la que escribió.</summary>
         private async Task ReplyAsync(string channelName, string platform, string text)
@@ -238,6 +244,7 @@ namespace Decatron.Services
             _context.GiveawaySessions.Add(session);
             await _context.SaveChangesAsync();
             InvalidateEntryRules(session.ChannelId);
+            await PublishOverlayAsync(channelId);
 
             _logger.LogWarning($"[DEBUG] Sesión creada exitosamente: ID={session.Id}, ChannelId={session.ChannelId}, Status={session.Status}, EntryCommand en config={config.EntryCommand}");
 
@@ -346,6 +353,7 @@ namespace Decatron.Services
 
                 var responseWindow = TimeSpan.FromSeconds(Math.Max(60, config.WinnerResponseTimeout) * (config.NumberOfWinners + config.NumberOfBackupWinners + 1));
                 _pendingWinnerChannels[channelId] = DateTime.UtcNow + responseWindow;
+                await PublishOverlayAsync(channelId);
 
                 _logger.LogInformation($"Giveaway finalizó selección de ganadores en canal {channelId}: {session.Name}");
 
@@ -386,6 +394,7 @@ namespace Decatron.Services
                 session.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
+                await PublishOverlayAsync(channelId);
 
                 // Anunciar en el chat
                 var channelName = await GetChannelNameFromId(channelId);
@@ -417,6 +426,7 @@ namespace Decatron.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation($"Giveaway cancelado en canal {channelId}: {session.Name}");
+            await PublishOverlayAsync(channelId);
 
             // Antes no se avisaba al chat: se mantiene así salvo que el streamer escriba un mensaje de cancelación
             try
@@ -717,7 +727,9 @@ namespace Decatron.Services
             _logger.LogInformation($"Participante añadido al giveaway {session.Id}: {username} (peso: {participant.CalculatedWeight})");
 
             // Notificar al overlay
-            await _overlayNotificationService.SendGiveawayParticipantJoinedAsync(channelId, participant);
+            await _overlayNotificationService.SendGiveawayParticipantJoinedAsync(await _overlay.OverlayKeyAsync(channelId) ?? channelId,
+                new { participant.Username, participant.DisplayName, participant.Platform, participant.CalculatedWeight, participant.EnteredAt });
+            await PublishOverlayAsync(channelId);
 
             // Anunciar en chat si está habilitado
             if (config.AnnounceParticipantCount)
@@ -761,6 +773,7 @@ namespace Decatron.Services
 
             // Select main winners
             var selectedWinners = new List<GiveawayParticipant>();
+            var audit = new List<DrawAuditEntry>();
             var winnersToSelect = Math.Min(config.NumberOfWinners, validParticipants.Count);
 
             for (int i = 0; i < winnersToSelect; i++)
@@ -768,6 +781,7 @@ namespace Decatron.Services
                 var winner = SelectRandomWeighted(validParticipants);
                 if (winner != null)
                 {
+                    audit.Add(AuditFor("winner", i + 1, winner, validParticipants));
                     selectedWinners.Add(winner);
                     validParticipants.Remove(winner);
 
@@ -801,6 +815,7 @@ namespace Decatron.Services
                     var backup = SelectRandomWeighted(validParticipants);
                     if (backup != null)
                     {
+                        audit.Add(AuditFor("backup", i + 1, backup, validParticipants));
                         validParticipants.Remove(backup);
 
                         var backupRecord = new GiveawayWinner
@@ -817,9 +832,41 @@ namespace Decatron.Services
                 }
             }
 
+            session.DrawAudit = AppendAudit(session.DrawAudit, audit);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation($"Ganadores seleccionados para giveaway {session.Id}: {selectedWinners.Count} principales, {config.NumberOfBackupWinners} respaldo");
+        }
+
+        /// <summary>Número en [0,1) con azar criptográfico (53 bits, el mismo rango que Random.NextDouble).</summary>
+        private static double SecureUnit()
+        {
+            Span<byte> bytes = stackalloc byte[8];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+            return (BitConverter.ToUInt64(bytes) >> 11) / (double)(1UL << 53);
+        }
+
+        /// <summary>Qué se guardó de cada elección para poder explicarla: peso, probabilidad y total en ese momento.</summary>
+        public record DrawAuditEntry(string Kind, int Position, string Platform, string UserId, string Username,
+            double Weight, double TotalWeight, double Probability, int Candidates, DateTime At);
+
+        private static DrawAuditEntry AuditFor(string kind, int position, GiveawayParticipant chosen, List<GiveawayParticipant> pool)
+        {
+            var total = pool.Sum(p => (double)p.CalculatedWeight);
+            var weight = (double)chosen.CalculatedWeight;
+            return new DrawAuditEntry(kind, position, chosen.Platform, chosen.UserId, chosen.Username,
+                weight, total, total > 0 ? weight / total : 0, pool.Count, DateTime.UtcNow);
+        }
+
+        private static string AppendAudit(string? existing, IEnumerable<DrawAuditEntry> entries)
+        {
+            var all = new List<DrawAuditEntry>();
+            if (!string.IsNullOrWhiteSpace(existing))
+            {
+                try { all.AddRange(JsonSerializer.Deserialize<List<DrawAuditEntry>>(existing) ?? new()); } catch { /* registro viejo o dañado: se empieza de nuevo */ }
+            }
+            all.AddRange(entries);
+            return JsonSerializer.Serialize(all);
         }
 
         private GiveawayParticipant? SelectRandomWeighted(List<GiveawayParticipant> participants)
@@ -828,7 +875,7 @@ namespace Decatron.Services
                 return null;
 
             var totalWeight = participants.Sum(p => (double)p.CalculatedWeight);
-            var randomValue = _random.NextDouble() * totalWeight;
+            var randomValue = SecureUnit() * totalWeight;
 
             double cumulative = 0;
             foreach (var participant in participants)
@@ -884,6 +931,8 @@ namespace Decatron.Services
                 throw new InvalidOperationException("Error al seleccionar nuevo ganador");
             }
 
+            session.DrawAudit = AppendAudit(session.DrawAudit, new[] { AuditFor("reroll", position ?? 1, newWinner, validParticipants) });
+
             var newWinnerRecord = new GiveawayWinner
             {
                 SessionId = session.Id,
@@ -904,6 +953,7 @@ namespace Decatron.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation($"Re-sorteo realizado en giveaway {session.Id}: {newWinner.Username}");
+            await PublishOverlayAsync(channelId);
 
             return newWinnerRecord;
         }
@@ -943,6 +993,7 @@ namespace Decatron.Services
             winner.DisqualifiedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+            await PublishOverlayAsync(channelId);
 
             _logger.LogInformation($"Ganador descalificado en giveaway {session.Id}: {username}");
         }
@@ -1665,6 +1716,7 @@ namespace Decatron.Services
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"✅ Ganador {username} marcado como respondido en sesión {session.Id}");
+                await PublishOverlayAsync(channelId);
 
                 // Obtener nombre del canal para los anuncios
                 var channelName = await GetChannelNameFromId(channelId);
