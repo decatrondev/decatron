@@ -219,7 +219,14 @@
       "active": "Activo",
       "history": "Historial",
       "settings": "Configuración",
+      "platforms": "Plataformas",
+      "messages": "Mensajes",
       "overlay": "Overlay",
+      "editor": "Editor",
+      "theme": "Tema",
+      "text": "Texto",
+      "animations": "Animaciones",
+      "sound": "Sonido",
       "debug": "Debug"
     }
   },

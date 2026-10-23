@@ -26,7 +26,14 @@ import {
     ActiveTab,
     HistoryTab,
     SettingsTab,
-    OverlayTab,
+    PlatformsTab,
+    MessagesTab,
+    OverlayLinkTab,
+    OverlayEditorTab,
+    OverlayThemeTab,
+    OverlayTextTab,
+    OverlayAnimationsTab,
+    OverlaySoundTab,
     DebugTab,
 } from './giveaway-extension/components/tabs';
 
@@ -183,8 +190,15 @@ const GiveawayConfig = () => {
         { id: 'weights', label: t('giveaway.tabs.weights'), icon: '⚖️' },
         { id: 'active', label: t('giveaway.tabs.active'), icon: '🎲' },
         { id: 'history', label: t('giveaway.tabs.history'), icon: '📋' },
-        { id: 'overlay', label: t('giveaway.tabs.overlay'), icon: '📺' },
+        { id: 'platforms', label: t('giveaway.tabs.platforms'), icon: '🌐' },
+        { id: 'messages', label: t('giveaway.tabs.messages'), icon: '💬' },
         { id: 'settings', label: t('giveaway.tabs.settings'), icon: '⚙️' },
+        { id: 'overlay', label: t('giveaway.tabs.overlay'), icon: '🖥️' },
+        { id: 'editor', label: t('giveaway.tabs.editor'), icon: '🖼️' },
+        { id: 'theme', label: t('giveaway.tabs.theme'), icon: '🎨' },
+        { id: 'text', label: t('giveaway.tabs.text'), icon: '🔤' },
+        { id: 'animations', label: t('giveaway.tabs.animations'), icon: '✨' },
+        { id: 'sound', label: t('giveaway.tabs.sound'), icon: '🔊' },
         { id: 'debug', label: t('giveaway.tabs.debug'), icon: '🧪' },
     ];
 
@@ -343,12 +357,20 @@ const GiveawayConfig = () => {
                                 />
                             )}
 
-                            {activeTab === 'overlay' && (
-                                <OverlayTab
-                                    config={giveawayConfig.config}
-                                    onUpdateSettings={giveawayConfig.updateSettings}
-                                />
+                            {activeTab === 'platforms' && (
+                                <PlatformsTab settings={giveawayConfig.config.settings} onUpdateSettings={giveawayConfig.updateSettings} />
                             )}
+
+                            {activeTab === 'messages' && (
+                                <MessagesTab settings={giveawayConfig.config.settings} onUpdateSettings={giveawayConfig.updateSettings} />
+                            )}
+
+                            {activeTab === 'overlay' && <OverlayLinkTab config={giveawayConfig.config} onUpdateSettings={giveawayConfig.updateSettings} />}
+                            {activeTab === 'editor' && <OverlayEditorTab config={giveawayConfig.config} onUpdateSettings={giveawayConfig.updateSettings} />}
+                            {activeTab === 'theme' && <OverlayThemeTab config={giveawayConfig.config} onUpdateSettings={giveawayConfig.updateSettings} />}
+                            {activeTab === 'text' && <OverlayTextTab config={giveawayConfig.config} onUpdateSettings={giveawayConfig.updateSettings} />}
+                            {activeTab === 'animations' && <OverlayAnimationsTab config={giveawayConfig.config} onUpdateSettings={giveawayConfig.updateSettings} />}
+                            {activeTab === 'sound' && <OverlaySoundTab config={giveawayConfig.config} onUpdateSettings={giveawayConfig.updateSettings} />}
 
                             {activeTab === 'settings' && (
                                 <SettingsTab

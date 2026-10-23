@@ -37,6 +37,13 @@ export default function GiveawayOverlay() {
         let retry: ReturnType<typeof setTimeout> | null = null;
         let groupKey = channel;
 
+        // UN solo reintento pendiente: un arranque fallido dispara a la vez el catch y onclose, y sin esta guarda cada
+        // fallo duplicaba los reintentos (16 conexiones tras un reinicio del servidor)
+        const scheduleRetry = () => {
+            if (disposed || retry) return;
+            retry = setTimeout(() => { retry = null; connect(); }, 5000);
+        };
+
         const accept = (raw: OverlaySnapshot) => {
             const snap = { ...raw, appearance: mergeAppearance(raw.appearance) };
             setClockOffset(Date.parse(raw.serverNow) - Date.now());
@@ -64,6 +71,8 @@ export default function GiveawayOverlay() {
 
         const connect = async () => {
             if (disposed) return;
+            connectionRef.current?.stop().catch(() => undefined);
+            connectionRef.current = null;
             try {
                 const connection = new signalR.HubConnectionBuilder()
                     .withUrl(`${window.location.origin}/hubs/overlay`, { withCredentials: false })
@@ -75,14 +84,14 @@ export default function GiveawayOverlay() {
                 connection.onreconnected(async () => {
                     try { await join(connection); } catch (err) { console.error('[GIVEAWAY] Error al volver a unirse:', err); }
                 });
-                connection.onclose(() => { if (!disposed) retry = setTimeout(connect, 5000); });
+                connection.onclose(() => scheduleRetry());
 
+                connectionRef.current = connection;
                 await connection.start();
                 await join(connection);
-                connectionRef.current = connection;
             } catch (err) {
                 console.error('[GIVEAWAY] Error de conexión:', err);
-                if (!disposed) retry = setTimeout(connect, 5000);
+                scheduleRetry();
             }
         };
 

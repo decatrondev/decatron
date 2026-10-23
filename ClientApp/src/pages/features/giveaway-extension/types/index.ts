@@ -15,7 +15,14 @@ export type GiveawayTabType =
     | 'weights'     // Pesos y multiplicadores
     | 'active'      // Estado activo
     | 'history'     // Historial
-    | 'overlay'     // Overlay de OBS: enlaces, editor y simulación
+    | 'platforms'   // Dónde se puede participar y qué se verifica en cada plataforma
+    | 'messages'    // Mensajes del bot y avisos de rechazo
+    | 'overlay'     // Overlay de OBS: enlace y simulación
+    | 'editor'      // Overlay: bloques sobre el lienzo
+    | 'theme'       // Overlay: panel, bordes y colores
+    | 'text'        // Overlay: fuente, colores y sombra del texto
+    | 'animations'  // Overlay: entrada, salida y tiempos
+    | 'sound'       // Overlay: sonidos y efectos
     | 'settings'    // Configuración general
     | 'debug';      // Herramientas de testing
 

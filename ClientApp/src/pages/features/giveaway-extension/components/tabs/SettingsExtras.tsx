@@ -161,11 +161,31 @@ const PlatformsSection: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSet
     );
 };
 
-export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => {
-    return (
-        <>
-            <PlatformsSection settings={settings} onUpdateSettings={onUpdateSettings} />
+/** Marco común de las pestañas: encabezado con icono, título y subtítulo, como el resto del panel. */
+export const TabShell: React.FC<{ icon: React.ReactNode; title: string; subtitle: string; children: React.ReactNode }> = ({ icon, title, subtitle, children }) => (
+    <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
+            <div className="p-3 bg-ds-raised rounded-lg">{icon}</div>
+            <div>
+                <h2 className="text-2xl font-black text-ds-text">{title}</h2>
+                <p className="text-sm text-ds-soft">{subtitle}</p>
+            </div>
+        </div>
+        {children}
+    </div>
+);
 
+/** Pestaña «Plataformas»: dónde se puede participar y qué se puede comprobar en cada una. */
+export const PlatformsTab: React.FC<SettingsExtrasProps> = (props) => (
+    <TabShell icon={<Globe2 className="w-6 h-6 text-ds-text" />} title="Plataformas" subtitle="Dónde se puede participar y qué se puede comprobar en cada plataforma">
+        <PlatformsSection {...props} />
+    </TabShell>
+);
+
+/** Pestaña «Mensajes»: lo que dice el bot y los avisos de rechazo. */
+export const MessagesTab: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => (
+    <TabShell icon={<MessageSquare className="w-6 h-6 text-ds-text" />} title="Mensajes del bot" subtitle="Textos del chat y avisos cuando alguien no puede entrar">
+        <>
             {/* Mensajes del bot */}
             <div className="space-y-4">
                 <SectionTitle
@@ -221,6 +241,14 @@ export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpda
                     <p className="text-xs text-ds-soft">Variables: <code>{'{user} {prize} {command} {count}'}</code></p>
                 </div>
             </div>
+
+        </>
+    </TabShell>
+);
+
+export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => {
+    return (
+        <>
 
             {/* Pesos */}
             <div className="space-y-4">
