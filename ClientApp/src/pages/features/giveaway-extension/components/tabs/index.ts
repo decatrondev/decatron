@@ -10,4 +10,4 @@ export { HistoryTab } from './HistoryTab';
 export { SettingsTab } from './SettingsTab';
 export { default as DebugTab } from './DebugTab';
 export { OverlayLinkTab, OverlayEditorTab, OverlayThemeTab, OverlayTextTab, OverlayAnimationsTab, OverlaySoundTab } from './OverlayTabs';
-export { PlatformsTab, MessagesTab } from './SettingsExtras';
+export { PlatformsTab, MessagesTab, CommandsTab } from './SettingsExtras';

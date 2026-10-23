@@ -318,7 +318,13 @@ export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpda
                 />
             </div>
 
-            {/* Comandos de chat */}
+        </>
+    );
+};
+
+export const CommandsTab: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => (
+    <TabShell icon={<Terminal className="w-6 h-6 text-ds-text" />} title="Comandos de chat" subtitle="Controla el giveaway desde el chat y define qué pueden hacer los viewers">
+        <>
             <div className="space-y-4">
                 <SectionTitle
                     icon={<Terminal className="w-5 h-5 text-ds-accent-text" />}
@@ -379,5 +385,5 @@ export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpda
                 </div>
             </div>
         </>
-    );
-};
+    </TabShell>
+);

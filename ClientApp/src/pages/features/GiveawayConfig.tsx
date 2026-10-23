@@ -27,6 +27,7 @@ import {
     HistoryTab,
     SettingsTab,
     PlatformsTab,
+    CommandsTab,
     MessagesTab,
     OverlayLinkTab,
     OverlayEditorTab,
@@ -192,6 +193,7 @@ const GiveawayConfig = () => {
         { id: 'history', label: t('giveaway.tabs.history'), icon: '📋' },
         { id: 'platforms', label: t('giveaway.tabs.platforms'), icon: '🌐' },
         { id: 'messages', label: t('giveaway.tabs.messages'), icon: '💬' },
+        { id: 'commands', label: t('giveaway.tabs.commands'), icon: '⌨️' },
         { id: 'settings', label: t('giveaway.tabs.settings'), icon: '⚙️' },
         { id: 'overlay', label: t('giveaway.tabs.overlay'), icon: '🖥️' },
         { id: 'editor', label: t('giveaway.tabs.editor'), icon: '🖼️' },
@@ -363,6 +365,10 @@ const GiveawayConfig = () => {
 
                             {activeTab === 'messages' && (
                                 <MessagesTab settings={giveawayConfig.config.settings} onUpdateSettings={giveawayConfig.updateSettings} />
+                            )}
+
+                            {activeTab === 'commands' && (
+                                <CommandsTab settings={giveawayConfig.config.settings} onUpdateSettings={giveawayConfig.updateSettings} />
                             )}
 
                             {activeTab === 'overlay' && <OverlayLinkTab config={giveawayConfig.config} onUpdateSettings={giveawayConfig.updateSettings} />}

@@ -221,6 +221,7 @@
       "settings": "Settings",
       "platforms": "Platforms",
       "messages": "Messages",
+      "commands": "Commands",
       "overlay": "Overlay",
       "editor": "Editor",
       "theme": "Theme",

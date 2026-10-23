@@ -17,6 +17,7 @@ export type GiveawayTabType =
     | 'history'     // Historial
     | 'platforms'   // Dónde se puede participar y qué se verifica en cada plataforma
     | 'messages'    // Mensajes del bot y avisos de rechazo
+    | 'commands'    // Comandos de chat: control del giveaway y comandos de los viewers
     | 'overlay'     // Overlay de OBS: enlace y simulación
     | 'editor'      // Overlay: bloques sobre el lienzo
     | 'theme'       // Overlay: panel, bordes y colores
