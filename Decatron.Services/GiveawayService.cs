@@ -1136,15 +1136,23 @@ namespace Decatron.Services
         /// Inicia un giveaway desde el chat con la configuración guardada del panel. El premio y la duración del comando solo
         /// valen para ese sorteo: no se escriben en la configuración guardada.
         /// </summary>
-        public async Task<GiveawaySession> StartFromChatAsync(string channelId, string? prize, int? durationMinutes, bool manualDuration)
+        public async Task<GiveawaySession> StartFromChatAsync(string channelId, string? prize, int? durationSeconds, bool manualDuration)
         {
             var saved = await GetConfig(channelId) ?? throw new InvalidOperationException("no_config");
             var config = JsonSerializer.Deserialize<GiveawayConfig>(JsonSerializer.Serialize(saved))!;
             if (!string.IsNullOrWhiteSpace(prize)) config.PrizeName = prize.Trim();
             if (string.IsNullOrWhiteSpace(config.PrizeName)) throw new InvalidOperationException("no_prize");
             if (manualDuration) config.DurationType = "manual";
-            else if (durationMinutes.HasValue) { config.DurationType = "timed"; config.DurationMinutes = durationMinutes.Value; }
-            return await StartGiveaway(channelId, config);
+            else if (durationSeconds.HasValue) { config.DurationType = "timed"; config.DurationMinutes = Math.Max(1, (int)Math.Ceiling(durationSeconds.Value / 60.0)); }
+            var started = await StartGiveaway(channelId, config);
+            // La config guarda minutos; los segundos exactos del comando (p. ej. 90s) se aplican al cierre de esta sesión
+            if (!manualDuration && durationSeconds.HasValue && started.EndsAt.HasValue)
+            {
+                started.EndsAt = (started.StartedAt ?? DateTime.UtcNow).AddSeconds(durationSeconds.Value);
+                await _context.SaveChangesAsync();
+                await PublishOverlayAsync(channelId);
+            }
+            return started;
         }
 
         public record CommandStatus(string Phase, string Prize, int Participants, int? MinutesLeft, string Command);
@@ -1162,19 +1170,38 @@ namespace Decatron.Services
                 GiveawayCommandRules.Normalize(cfg?.EntryCommand, "!join"));
         }
 
+        /// <summary>El último sorteo ya hecho (esperando respuestas o recién completado, hasta 24 h): sobre él se re-sortea o se elige a mano.</summary>
+        private Task<GiveawaySession?> DrawnSessionAsync(string channelId)
+        {
+            var since = DateTime.UtcNow.AddHours(-24);
+            return _context.GiveawaySessions
+                .Where(s => s.ChannelId == channelId && (s.Status == "selecting_winners" || (s.Status == "completed" && s.EndedAt >= since)))
+                .OrderByDescending(s => s.UpdatedAt)
+                .FirstOrDefaultAsync();
+        }
+
         /// <summary>Re-sortea al ganador que aún no respondió (o elige a mano a otro) y descarta al anterior para que el servicio de fondo no lo procese.</summary>
         public async Task<(GiveawayWinner Winner, string Username)> RerollFromChatAsync(string channelId, string? forcedUsername)
         {
-            var session = await CurrentSessionAsync(channelId);
-            if (session == null || session.Status != "selecting_winners") throw new InvalidOperationException("none_active");
+            var session = await DrawnSessionAsync(channelId) ?? throw new InvalidOperationException("none_active");
 
+            // El que no ha respondido, haya vencido su plazo o no (sin re-sorteo automático el sorteo se cierra solo al vencer el último)
             var pending = await _context.GiveawayWinners
                 .Where(w => w.SessionId == session.Id && !w.IsBackup && !w.HasResponded && !w.WasDisqualified)
                 .OrderBy(w => w.Position)
                 .FirstOrDefaultAsync();
-            if (pending == null) throw new InvalidOperationException("none_active");
+            if (pending == null) throw new InvalidOperationException("all_responded");
 
             var winner = await RerollWinner(channelId, pending.Position, session.Id, forcedUsername);
+            // El nuevo ganador tiene su propio plazo: el sorteo vuelve a «esperando respuestas» para que el servicio de fondo lo vigile
+            // y para que su respuesta en el chat se registre
+            if (session.Status == "completed")
+            {
+                session.Status = "selecting_winners";
+                session.UpdatedAt = DateTime.UtcNow;
+            }
+            var cfgForWindow = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
+            _pendingWinnerChannels[channelId] = DateTime.UtcNow + TimeSpan.FromSeconds(Math.Max(60, cfgForWindow?.WinnerResponseTimeout ?? 60) * 2);
             pending.WasDisqualified = true;
             pending.DisqualificationReason = string.IsNullOrWhiteSpace(forcedUsername) ? "Re-sorteo por comando" : "Reemplazado por elección manual";
             pending.DisqualifiedAt = DateTime.UtcNow;
@@ -1189,7 +1216,7 @@ namespace Decatron.Services
         /// <summary>Elige a mano a un participante: con el giveaway abierto lo cierra con esa persona como ganadora; ya sorteado, la pone en lugar del ganador pendiente.</summary>
         public async Task<(string Name, bool Replaced)> PickFromChatAsync(string channelId, string username)
         {
-            var session = await CurrentSessionAsync(channelId) ?? throw new InvalidOperationException("none_active");
+            var session = await CurrentSessionAsync(channelId) ?? await DrawnSessionAsync(channelId) ?? throw new InvalidOperationException("none_active");
             var participant = await _context.GiveawayParticipants.AsNoTracking()
                 .FirstOrDefaultAsync(p => p.SessionId == session.Id && p.Username.ToLower() == username.TrimStart('@').ToLower());
             if (participant == null) throw new InvalidOperationException("pick_not_found");

@@ -110,6 +110,7 @@ export interface GiveawaySettings {
         completed: string;
         winnerResponded: string;
         promoted: string;
+        noResponseKept: string;
     };
     rejections: {
         announceInChat: boolean;
@@ -139,10 +140,12 @@ export interface GiveawayCommandRules {
 
 /** Textos por defecto de las respuestas de los comandos (mismos que el servidor) y para qué sirve cada uno. */
 export const COMMAND_TEXTS: { key: string; label: string; text: string; vars: string }[] = [
-    { key: 'usage', label: 'Ayuda del comando', text: 'ℹ️ Uso: {root} start [premio] [duración, ej. 10m o 1h] · end · cancel · reroll · pick <usuario> · status', vars: '{root}' },
+    { key: 'usage', label: 'Ayuda del comando', text: 'ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · end · cancel · reroll · pick <usuario> · status', vars: '{root}' },
     { key: 'no_config', label: 'Aún no hay giveaway configurado', text: '⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.', vars: '' },
     { key: 'no_prize', label: 'Falta el premio', text: '⚠️ Falta el premio: {root} start <premio> [duración]', vars: '{root}' },
     { key: 'already_active', label: 'Ya hay uno en curso', text: '⚠️ Ya hay un giveaway en curso.', vars: '' },
+    { key: 'no_drawn', label: 'Sin sorteo reciente para re-sortear o elegir', text: '⚠️ No hay un sorteo reciente sobre el que elegir ganador.', vars: '' },
+    { key: 'all_responded', label: 'Todos los ganadores ya respondieron', text: 'ℹ️ Todos los ganadores ya respondieron.', vars: '' },
     { key: 'none_active', label: 'No hay uno en curso', text: '⚠️ No hay un giveaway en curso.', vars: '' },
     { key: 'cancel_done', label: 'Cancelado desde el chat', text: '❌ Giveaway cancelado.', vars: '' },
     { key: 'no_one_to_reroll', label: 'Nadie para re-sortear', text: '⚠️ No hay participantes disponibles para un nuevo sorteo.', vars: '' },
@@ -430,6 +433,7 @@ export const DEFAULT_SETTINGS_TEXTS = {
     noParticipants: '❌ El giveaway ha sido cancelado: {reason}',
     completed: '🎉 Giveaway completado. {responded} de {total} ganadores respondieron.',
     winnerResponded: '✅ ¡Perfecto @{winner}! Tu respuesta ha sido registrada. ¡Felicidades por tu premio!',
+    noResponseKept: '⏰ @{winner} no respondió a tiempo. Para elegir a otro escribe {root} reroll',
     promoted: '🎉 ¡Felicidades @{winner}! Has sido promovido de respaldo a ganador principal. Tienes {timeout} segundos para responder.',
 };
 
@@ -463,7 +467,7 @@ export const rejectionLabel = (code: string): string =>
     ?? code;
 
 export const DEFAULT_SETTINGS: GiveawaySettings = {
-    messages: { joined: '', cancelled: '', noParticipants: '', completed: '', winnerResponded: '', promoted: '' },
+    messages: { joined: '', cancelled: '', noParticipants: '', completed: '', winnerResponded: '', promoted: '', noResponseKept: '' },
     rejections: { announceInChat: false, messages: {} },
     weightLimits: { maxPerFactor: 1000, maxTotal: 10000, min: 1 },
     reminders: { stopBeforeEndSeconds: 30, maxAgeHours: 24 },

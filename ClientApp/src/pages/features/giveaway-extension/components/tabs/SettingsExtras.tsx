@@ -20,6 +20,7 @@ const MESSAGE_FIELDS: { key: keyof GiveawaySettings['messages']; label: string; 
     { key: 'winnerResponded', label: 'El ganador responde', hint: 'Cuando responde y aún faltan otros ganadores', vars: '{winner} {prize}' },
     { key: 'completed', label: 'Giveaway completado', hint: 'Cuando responde el último ganador o vence el último plazo', vars: '{responded} {total} {winner} {prize}' },
     { key: 'promoted', label: 'Un respaldo pasa a ganador', hint: 'Cuando el ganador no responde y entra el siguiente', vars: '{winner} {timeout} {prize}' },
+    { key: 'noResponseKept', label: 'El ganador no respondió y NO hay re-sorteo automático', hint: 'Cuando el plazo vence con «Re-sorteo Automático» apagado (el texto de «No respondió» de Crear promete un nuevo sorteo)', vars: '{winner} {prize} {root}' },
     { key: 'noParticipants', label: 'Sin participantes', hint: 'Cuando termina sin nadie válido y se cancela solo', vars: '{reason} {prize}' },
     { key: 'cancelled', label: 'Cancelado por el streamer', hint: 'Vacío = no se avisa al chat (como hasta ahora)', vars: '{reason} {prize}' },
 ];

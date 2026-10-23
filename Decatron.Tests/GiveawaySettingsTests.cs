@@ -179,7 +179,7 @@ public class GiveawaySettingsTests
     public void Todo_texto_de_comando_por_defecto_tiene_su_clave()
     {
         // El panel muestra estas claves (COMMAND_TEXTS); una que falte aquí respondería vacío en el chat
-        foreach (var key in new[] { "usage", "no_config", "no_prize", "already_active", "none_active", "cancel_done", "no_one_to_reroll", "pick_missing",
+        foreach (var key in new[] { "usage", "no_config", "no_prize", "already_active", "none_active", "no_drawn", "all_responded", "cancel_done", "no_one_to_reroll", "pick_missing",
             "pick_not_found", "status_open", "status_drawing", "status_none", "remaining_timed", "remaining_manual", "leave_done", "leave_not_in",
             "leave_closed", "me_in", "me_out", "winners", "winners_none" })
             Assert.False(string.IsNullOrWhiteSpace(new GiveawayCommandRules().Text(key)), key);

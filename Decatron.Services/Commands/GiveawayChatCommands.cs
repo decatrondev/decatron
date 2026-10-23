@@ -25,7 +25,7 @@ namespace Decatron.Services.Commands
         // Frena el spam de los comandos abiertos a todos (clave -> hasta cuándo no responder)
         private static readonly ConcurrentDictionary<string, DateTime> _cooldowns = new();
 
-        private static readonly Regex DurationToken = new(@"^(\d{1,4})(m|min|h)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex DurationToken = new(@"^(\d{1,5})(s|seg|m|min|h)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public GiveawayChatCommands(IServiceScopeFactory scopeFactory, ILogger<GiveawayChatCommands> logger)
         {
@@ -156,7 +156,7 @@ namespace Decatron.Services.Commands
                     case "start" or "iniciar":
                     {
                         // Al final puede ir la duración («10m», «2h») o la palabra «manual»; lo anterior es el premio
-                        int? minutes = null; var manual = false;
+                        int? seconds = null; var manual = false;
                         if (rest.Count > 0)
                         {
                             var last = rest[^1];
@@ -167,12 +167,14 @@ namespace Decatron.Services.Commands
                                 if (m.Success)
                                 {
                                     var n = int.Parse(m.Groups[1].Value);
-                                    minutes = Math.Clamp(m.Groups[2].Value.Equals("h", StringComparison.OrdinalIgnoreCase) ? n * 60 : n, 1, 10080);
+                                    var unit = m.Groups[2].Value.ToLowerInvariant();
+                                    var total = unit is "s" or "seg" ? n : unit == "h" ? n * 3600 : n * 60;
+                                    seconds = Math.Clamp(total, 10, 7 * 24 * 3600);
                                     rest.RemoveAt(rest.Count - 1);
                                 }
                             }
                         }
-                        try { await svc.StartFromChatAsync(channelId, string.Join(' ', rest), minutes, manual); }
+                        try { await svc.StartFromChatAsync(channelId, string.Join(' ', rest), seconds, manual); }
                         catch (InvalidOperationException ex) when (ex.Message == "no_config") { await Reply(ctx, platform, svc, sender, Say("no_config")); }
                         catch (InvalidOperationException ex) when (ex.Message == "no_prize") { await Reply(ctx, platform, svc, sender, Say("no_prize")); }
                         catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("already_active")); }
@@ -200,7 +202,8 @@ namespace Decatron.Services.Commands
                             var (_, name) = await svc.RerollFromChatAsync(channelId, null);
                             await AnnounceNewWinnerAsync(channelId, name, svc);
                         }
-                        catch (InvalidOperationException ex) when (ex.Message == "none_active") { await Reply(ctx, platform, svc, sender, Say("none_active")); }
+                        catch (InvalidOperationException ex) when (ex.Message == "none_active") { await Reply(ctx, platform, svc, sender, Say("no_drawn")); }
+                        catch (InvalidOperationException ex) when (ex.Message == "all_responded") { await Reply(ctx, platform, svc, sender, Say("all_responded")); }
                         catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("no_one_to_reroll")); }
                         break;
                     case "pick" or "elegir":
@@ -214,7 +217,8 @@ namespace Decatron.Services.Commands
                             if (replaced) await AnnounceNewWinnerAsync(channelId, picked, svc);
                         }
                         catch (InvalidOperationException ex) when (ex.Message == "pick_not_found") { await Reply(ctx, platform, svc, sender, Say("pick_not_found", ("user", target))); }
-                        catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("none_active")); }
+                        catch (InvalidOperationException ex) when (ex.Message == "all_responded") { await Reply(ctx, platform, svc, sender, Say("all_responded")); }
+                        catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("no_drawn")); }
                         break;
                     }
                     case "status" or "estado":

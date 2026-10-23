@@ -40,12 +40,14 @@ namespace Decatron.Core.Models
         public string Completed { get; set; } = "";
         public string WinnerResponded { get; set; } = "";
         public string Promoted { get; set; } = "";
+        public string NoResponseKept { get; set; } = "";
 
         public const string DefaultJoined = "✅ {user} se ha unido al giveaway! Total de participantes: {count}";
         public const string DefaultCancelled = "❌ El giveaway ha sido cancelado: {reason}";
         public const string DefaultNoParticipants = "❌ El giveaway ha sido cancelado: {reason}";
         public const string DefaultCompleted = "🎉 Giveaway completado. {responded} de {total} ganadores respondieron.";
         public const string DefaultWinnerResponded = "✅ ¡Perfecto @{winner}! Tu respuesta ha sido registrada. ¡Felicidades por tu premio!";
+        public const string DefaultNoResponseKept = "⏰ @{winner} no respondió a tiempo. Para elegir a otro escribe {root} reroll";
         public const string DefaultPromoted = "🎉 ¡Felicidades @{winner}! Has sido promovido de respaldo a ganador principal. Tienes {timeout} segundos para responder.";
     }
 
@@ -222,11 +224,13 @@ namespace Decatron.Core.Models
 
         public static readonly Dictionary<string, string> DefaultTexts = new()
         {
-            ["usage"] = "ℹ️ Uso: {root} start [premio] [duración, ej. 10m o 1h] · end · cancel · reroll · pick <usuario> · status",
+            ["usage"] = "ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · end · cancel · reroll · pick <usuario> · status",
             ["no_config"] = "⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.",
             ["no_prize"] = "⚠️ Falta el premio: {root} start <premio> [duración]",
             ["already_active"] = "⚠️ Ya hay un giveaway en curso.",
             ["none_active"] = "⚠️ No hay un giveaway en curso.",
+            ["no_drawn"] = "⚠️ No hay un sorteo reciente sobre el que elegir ganador.",
+            ["all_responded"] = "ℹ️ Todos los ganadores ya respondieron.",
             ["cancel_done"] = "❌ Giveaway cancelado.",
             ["no_one_to_reroll"] = "⚠️ No hay participantes disponibles para un nuevo sorteo.",
             ["pick_missing"] = "ℹ️ Indica a quién: {root} pick <usuario>",

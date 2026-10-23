@@ -297,9 +297,11 @@ namespace Decatron.Services
                                 // NO AUTO-REROLL: Solo anunciar que no respondió
                                 _logger.LogInformation($"⏰ Auto-reroll deshabilitado. Ganador sigue siendo válido.");
 
-                                var noResponseMsg = string.IsNullOrEmpty(config.NoResponseMessage)
-                                    ? $"⏰ @{participant.Username} no respondió a tiempo pero sigue siendo el ganador."
-                                    : config.NoResponseMessage.Replace("{winner}", participant.Username);
+                                // El texto de «no respondió» de arriba promete «Seleccionando nuevo ganador...», que aquí es falso:
+                                // sin re-sorteo automático se avisa que se puede elegir a otro con el comando
+                                var noResponseMsg = (string.IsNullOrWhiteSpace(bgSettings.Messages.NoResponseKept) ? GiveawayMessages.DefaultNoResponseKept : bgSettings.Messages.NoResponseKept)
+                                    .Replace("{winner}", participant.Username).Replace("{user}", participant.Username)
+                                    .Replace("{prize}", config.PrizeName ?? "").Replace("{root}", GiveawayCommandRules.Normalize(bgSettings.Commands.Root, "!giveaway"));
 
                                 await giveawayService.AnnounceAsync(channelName, noResponseMsg);
                             }
