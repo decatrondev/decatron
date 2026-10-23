@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { OVERLAY_CANVAS, PLATFORM_STYLE } from './model';
-import type { OverlayAppearance, OverlayBlock, OverlayBlockId, OverlaySnapshot, OverlayWinner } from './model';
+import type { OverlayAppearance, OverlayBlock, OverlayBlockId, OverlaySnapshot, OverlayWinner, ShowHideAnimation } from './model';
 import { playFanfare, playTick } from './sounds';
+// El aspecto sale del motor de overlays de Song Request: mismo tema, mismas fuentes, mismas sombras y animaciones
+import { OVERLAY_KEYFRAMES, textCss } from '../../../../components/music-overlay/MusicOverlayRenderer';
+import { text } from '../../../../components/music-overlay/defaults';
+import { useGoogleFonts } from '../../../../components/music-overlay/utils';
 
 /**
  * El overlay del giveaway dibujado sobre un lienzo de 1920x1080. Es EL MISMO componente en OBS y en la vista previa del
@@ -22,11 +26,11 @@ interface Props {
 const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
 const ROW = 116;
 
-function rgba(hex: string, alpha: number): string {
-    const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-    if (!m) return `rgba(15,23,42,${alpha})`;
-    const n = parseInt(m[1], 16);
-    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+/** Animación CSS de entrada o salida (las mismas que Song Request; sus keyframes vienen de OVERLAY_KEYFRAMES). */
+export function showHideCss(a: ShowHideAnimation, entering: boolean): string | undefined {
+    if (a.type === 'none') return undefined;
+    const dir = a.type === 'slide' || a.type === 'bounce' ? `-${a.direction}` : '';
+    return `mo-${entering ? 'in' : 'out'}-${a.type}${dir} ${a.durationMs}ms ${a.easing} both`;
 }
 
 function PlatformDot({ platform, size = 30 }: { platform: string; size?: number }) {
@@ -64,18 +68,28 @@ export default function GiveawayStage({ snapshot, clockOffsetMs, source = 'all',
     const revealEnd = drawnAt + snapshot.revealSeconds * 1000;
     const phase = snapshot.phase === 'drawing' && serverNow >= revealEnd ? 'winner' : snapshot.phase;
 
+    useGoogleFonts([a.font], 'gv-fonts');
+
+    const th = a.theme;
     const panel = (extra?: CSSProperties): CSSProperties => ({
-        background: rgba(a.panel, a.panelOpacity / 100),
-        color: a.text,
-        borderRadius: 24,
-        border: `3px solid ${rgba(a.accent, 0.85)}`,
-        boxShadow: '0 12px 40px rgba(0,0,0,0.45)',
+        background: th.panelBackground,
+        border: `${th.panelBorderWidth}px solid ${th.panelBorderColor}`,
+        borderRadius: th.panelRadius,
+        backdropFilter: th.panelBlur ? `blur(${th.panelBlur}px)` : undefined,
+        boxShadow: th.panelShadow ? '0 10px 30px rgba(0,0,0,0.35)' : undefined,
         boxSizing: 'border-box',
         padding: 28,
+        // Fuente, color y sombra del texto como en Song Request; los textos de dentro heredan
+        ...textCss(text({ fontFamily: a.font, color: a.textColor, shadow: a.textShadow, fontSize: 28, fontWeight: '500' })),
         ...extra,
     });
 
-    const place = (b: OverlayBlock): CSSProperties => ({ position: 'absolute', left: b.x, top: b.y, width: b.width, height: b.height, boxSizing: 'border-box' });
+    // Cada bloque entra con la animación de entrada elegida (slide y bounce recorren el tamaño del propio bloque)
+    const place = (b: OverlayBlock): CSSProperties => ({
+        position: 'absolute', left: b.x, top: b.y, width: b.width, height: b.height, boxSizing: 'border-box',
+        animation: showHideCss(a.enter, true),
+        ['--mo-w' as string]: `${b.width}px`, ['--mo-h' as string]: `${b.height}px`,
+    });
 
     const blocks: { id: OverlayBlockId; node: ReactNode }[] = [];
     const entries = snapshot.recent.filter((e) => source === 'all' || e.platform === source);
@@ -91,8 +105,8 @@ export default function GiveawayStage({ snapshot, clockOffsetMs, source = 'all',
     }
 
     return (
-        <div style={{ position: 'relative', width: OVERLAY_CANVAS.width, height: OVERLAY_CANVAS.height, overflow: 'hidden', fontFamily: a.font }}>
-            <style>{`
+        <div style={{ position: 'relative', width: OVERLAY_CANVAS.width, height: OVERLAY_CANVAS.height, overflow: 'hidden' }}>
+            <style>{OVERLAY_KEYFRAMES}{`
                 @keyframes gvSlideIn { from { transform: translateX(-30px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
                 @keyframes gvPop { 0% { transform: scale(.6); opacity: 0 } 70% { transform: scale(1.08) } 100% { transform: scale(1); opacity: 1 } }
                 @keyframes gvFall { 0% { transform: translateY(-40px) rotate(0deg); opacity: 1 } 100% { transform: translateY(1100px) rotate(720deg); opacity: 0.9 } }
@@ -102,7 +116,7 @@ export default function GiveawayStage({ snapshot, clockOffsetMs, source = 'all',
                 const b = a[id];
                 return b.enabled ? <div key={id} style={place(b)}>{node}</div> : null;
             })}
-            {phase === 'winner' && a.confetti && <Confetti seed={snapshot.drawnAt ?? 'x'} colors={[a.accent, '#ffffff', '#38bdf8', '#f472b6', '#4ade80']} />}
+            {phase === 'winner' && a.confetti && <Confetti seed={snapshot.drawnAt ?? 'x'} colors={[a.theme.accent, '#ffffff', '#38bdf8', '#f472b6', '#4ade80']} />}
         </div>
     );
 }
@@ -115,14 +129,14 @@ function CardBlock({ snapshot, phase, serverNow, a, style }: { snapshot: Overlay
         return <div style={{ ...style, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, fontWeight: 800 }}>Giveaway cancelado</div>;
     }
     return (
-        <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', animation: 'gvSlideIn .5s ease-out' }}>
+        <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
-                <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 3, color: a.accent, textTransform: 'uppercase' }}>🎁 Giveaway</div>
+                <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 3, color: a.theme.accent, textTransform: 'uppercase' }}>🎁 Giveaway</div>
                 <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1.1, marginTop: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{snapshot.prize}</div>
             </div>
             <div style={{ fontSize: 28 }}>
-                Escribe <b style={{ color: a.accent, fontSize: 36 }}>{snapshot.command}</b> para participar
-                {snapshot.allowAutoEntry && <div style={{ opacity: 0.75, fontSize: 24 }}>o solo escribe en el chat</div>}
+                Escribe <b style={{ color: a.theme.accent, fontSize: 36 }}>{snapshot.command}</b> para participar
+                {snapshot.allowAutoEntry && <div style={{ color: a.secondaryColor, fontSize: 24 }}>o solo escribe en el chat</div>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 34, fontWeight: 800 }}>
                 <span>👥 {snapshot.participantCount}</span>
@@ -130,7 +144,7 @@ function CardBlock({ snapshot, phase, serverNow, a, style }: { snapshot: Overlay
                     {snapshot.twitch && <PlatformDot platform="twitch" />}
                     {snapshot.kick && <PlatformDot platform="kick" />}
                 </span>
-                {endsMs !== null && <span style={{ color: endsMs < 15000 ? '#f87171' : a.text, animation: endsMs < 15000 ? 'gvPulse 1s infinite' : undefined }}>⏱ {formatClock(endsMs)}</span>}
+                {endsMs !== null && <span style={{ color: endsMs < 15000 ? '#f87171' : a.textColor, animation: endsMs < 15000 ? 'gvPulse 1s infinite' : undefined }}>⏱ {formatClock(endsMs)}</span>}
             </div>
         </div>
     );
@@ -141,7 +155,7 @@ function CardBlock({ snapshot, phase, serverNow, a, style }: { snapshot: Overlay
 function EntriesBlock({ entries, a, style }: { entries: OverlaySnapshot['recent']; a: OverlayAppearance; style: CSSProperties }) {
     return (
         <div style={{ ...style, height: '100%', overflow: 'hidden' }}>
-            <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 2, color: a.accent, textTransform: 'uppercase', marginBottom: 12 }}>Últimas entradas</div>
+            <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 2, color: a.theme.accent, textTransform: 'uppercase', marginBottom: 12 }}>Últimas entradas</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {entries.slice(0, 8).map((e, i) => (
                     <div key={`${e.displayName}-${e.enteredAt}`} style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 32, fontWeight: 700, opacity: 1 - i * 0.07, animation: i === 0 ? 'gvSlideIn .4s ease-out' : undefined }}>
@@ -149,7 +163,7 @@ function EntriesBlock({ entries, a, style }: { entries: OverlaySnapshot['recent'
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.displayName}</span>
                     </div>
                 ))}
-                {entries.length === 0 && <div style={{ fontSize: 28, opacity: 0.6 }}>Esperando participantes…</div>}
+                {entries.length === 0 && <div style={{ fontSize: 28, color: a.secondaryColor }}>Esperando participantes…</div>}
             </div>
         </div>
     );
@@ -200,9 +214,11 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
         const windowH = ROW * 3;
         return (
             <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
-                <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.accent, textTransform: 'uppercase' }}>Sorteando…</div>
+                <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.theme.accent, textTransform: 'uppercase' }}>Sorteando…</div>
                 <div style={{ position: 'relative', width: '100%', height: windowH, overflow: 'hidden', WebkitMaskImage: 'linear-gradient(transparent, #000 28%, #000 72%, transparent)', maskImage: 'linear-gradient(transparent, #000 28%, #000 72%, transparent)' }}>
-                    <div style={{ position: 'absolute', left: 0, right: 0, top: ROW, height: ROW, borderTop: `3px solid ${a.accent}`, borderBottom: `3px solid ${a.accent}`, background: rgba(a.accent, 0.12) }} />
+                    <div style={{ position: 'absolute', left: 0, right: 0, top: ROW, height: ROW, borderTop: `3px solid ${a.theme.accent}`, borderBottom: `3px solid ${a.theme.accent}` }}>
+                        <div style={{ position: 'absolute', inset: 0, background: a.theme.accent, opacity: 0.14 }} />
+                    </div>
                     <div style={{ position: 'absolute', left: 0, right: 0, top: 0, transform: `translateY(${ROW - pos * ROW}px)` }}>
                         {reel.map((n, i) => (
                             <div key={i} style={{ height: ROW, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 62, fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n}</div>
@@ -215,15 +231,15 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
 
     const timeLeft = winner?.deadline ? Date.parse(winner.deadline) - serverNow : null;
     return (
-        <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center', animation: 'gvPop .6s ease-out' }}>
-            <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.accent, textTransform: 'uppercase' }}>🏆 {phase === 'result' ? 'Ganador' : '¡Felicidades!'}</div>
+        <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center' }}>
+            <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.theme.accent, textTransform: 'uppercase' }}>🏆 {phase === 'result' ? 'Ganador' : '¡Felicidades!'}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 22, maxWidth: '100%' }}>
                 {winner && <PlatformDot platform={winner.platform} size={64} />}
                 <span style={{ fontSize: 96, fontWeight: 900, lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{winner?.displayName}</span>
             </div>
-            <div style={{ fontSize: 34, opacity: 0.9 }}>{snapshot.prize}</div>
+            <div style={{ fontSize: 34, color: a.secondaryColor }}>{snapshot.prize}</div>
             {phase === 'winner' && timeLeft !== null && (
-                <div style={{ fontSize: 34, fontWeight: 800, color: timeLeft < 10000 ? '#f87171' : a.text }}>Escribe en el chat · {formatClock(timeLeft)}</div>
+                <div style={{ fontSize: 34, fontWeight: 800, color: timeLeft < 10000 ? '#f87171' : a.textColor }}>Escribe en el chat · {formatClock(timeLeft)}</div>
             )}
             {phase === 'result' && winner?.state === 'responded' && <div style={{ fontSize: 34, fontWeight: 800, color: '#4ade80' }}>✓ Respondió</div>}
         </div>
@@ -235,17 +251,17 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
 function WinnersBlock({ winners, serverNow, a, style }: { winners: OverlayWinner[]; serverNow: number; a: OverlayAppearance; style: CSSProperties }) {
     return (
         <div style={{ ...style, height: '100%', overflow: 'hidden' }}>
-            <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: 2, color: a.accent, textTransform: 'uppercase', marginBottom: 10 }}>Ganadores</div>
+            <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: 2, color: a.theme.accent, textTransform: 'uppercase', marginBottom: 10 }}>Ganadores</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {winners.slice(0, 4).map((w) => {
                     const left = w.deadline ? Date.parse(w.deadline) - serverNow : null;
-                    const chip = w.state === 'responded' ? { t: '✓ Respondió', c: '#4ade80' } : w.state === 'timeout' ? { t: '✗ No respondió', c: '#f87171' } : { t: left !== null ? `⏱ ${formatClock(left)}` : 'Esperando', c: a.text };
+                    const chip = w.state === 'responded' ? { t: '✓ Respondió', c: '#4ade80' } : w.state === 'timeout' ? { t: '✗ No respondió', c: '#f87171' } : { t: left !== null ? `⏱ ${formatClock(left)}` : 'Esperando', c: a.textColor };
                     return (
                         <div key={w.position} style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 30, fontWeight: 700 }}>
-                            <span style={{ opacity: 0.6, width: 36 }}>#{w.position}</span>
+                            <span style={{ color: a.secondaryColor, width: 36 }}>#{w.position}</span>
                             <PlatformDot platform={w.platform} size={28} />
                             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.displayName}</span>
-                            {w.wasBackup && <span style={{ fontSize: 22, opacity: 0.7 }}>respaldo</span>}
+                            {w.wasBackup && <span style={{ fontSize: 22, color: a.secondaryColor }}>respaldo</span>}
                             <span style={{ color: chip.c, fontWeight: 800 }}>{chip.t}</span>
                         </div>
                     );

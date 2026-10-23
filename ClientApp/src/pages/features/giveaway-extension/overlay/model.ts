@@ -4,6 +4,12 @@
  * GiveawayOverlayRules.cs (Decatron.Core/Models/GiveawaySettings.cs): si cambias uno, cambia el otro.
  */
 
+import { DEFAULT_THEME, fadeShowHide, FONT_FAMILIES } from '../../../../components/music-overlay/defaults';
+import type { OverlayTheme, ShowHideAnimation, TextShadow } from '../../../../components/music-overlay/types';
+
+export { FONT_FAMILIES };
+export type { OverlayTheme, ShowHideAnimation, TextShadow };
+
 export const OVERLAY_CANVAS = { width: 1920, height: 1080 };
 
 export interface OverlayBlock { enabled: boolean; x: number; y: number; width: number; height: number }
@@ -11,11 +17,14 @@ export interface OverlayBlock { enabled: boolean; x: number; y: number; width: n
 export interface OverlayAppearance {
     revealSeconds: number;
     resultSeconds: number;
-    accent: string;
-    panel: string;
-    text: string;
+    /** Panel de los bloques: el mismo tema que Song Request (por defecto el de Decatron). */
+    theme: OverlayTheme;
     font: string;
-    panelOpacity: number;
+    textColor: string;
+    secondaryColor: string;
+    textShadow: TextShadow;
+    enter: ShowHideAnimation;
+    exit: ShowHideAnimation;
     confetti: boolean;
     tickSound: boolean;
     fanfareSound: boolean;
@@ -31,11 +40,13 @@ export type OverlayBlockId = 'card' | 'entries' | 'reveal' | 'winners';
 export const DEFAULT_APPEARANCE: OverlayAppearance = {
     revealSeconds: 8,
     resultSeconds: 15,
-    accent: '#f59e0b',
-    panel: '#0f172a',
-    text: '#ffffff',
-    font: 'Inter, system-ui, sans-serif',
-    panelOpacity: 88,
+    theme: { ...DEFAULT_THEME },
+    font: 'Inter',
+    textColor: '#ffffff',
+    secondaryColor: '#a1a1aa',
+    textShadow: 'soft',
+    enter: fadeShowHide(600),
+    exit: fadeShowHide(600),
     confetti: true,
     tickSound: true,
     fanfareSound: true,
@@ -52,21 +63,15 @@ export function mergeAppearance(loaded?: Partial<OverlayAppearance> | null): Ove
     const l = loaded ?? {};
     return {
         ...d, ...l,
+        theme: { ...d.theme, ...(l.theme ?? {}) },
+        enter: { ...d.enter, ...(l.enter ?? {}) },
+        exit: { ...d.exit, ...(l.exit ?? {}) },
         card: { ...d.card, ...(l.card ?? {}) },
         entries: { ...d.entries, ...(l.entries ?? {}) },
         reveal: { ...d.reveal, ...(l.reveal ?? {}) },
         winners: { ...d.winners, ...(l.winners ?? {}) },
     };
 }
-
-export const FONT_CHOICES: { value: string; label: string }[] = [
-    { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
-    { value: '"Segoe UI", Roboto, sans-serif', label: 'Segoe UI' },
-    { value: 'Georgia, "Times New Roman", serif', label: 'Georgia (serif)' },
-    { value: '"Trebuchet MS", sans-serif', label: 'Trebuchet' },
-    { value: '"Courier New", monospace', label: 'Monoespaciada' },
-    { value: 'Impact, "Arial Black", sans-serif', label: 'Impact' },
-];
 
 export type OverlayPhase = 'idle' | 'open' | 'drawing' | 'winner' | 'result' | 'cancelled';
 

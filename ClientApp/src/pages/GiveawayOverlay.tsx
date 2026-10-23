@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
-import GiveawayStage from './features/giveaway-extension/overlay/GiveawayStage';
+import GiveawayStage, { showHideCss } from './features/giveaway-extension/overlay/GiveawayStage';
 import { OVERLAY_CANVAS, mergeAppearance } from './features/giveaway-extension/overlay/model';
 import type { OverlaySnapshot } from './features/giveaway-extension/overlay/model';
 
@@ -16,6 +16,9 @@ export default function GiveawayOverlay() {
     const sourceParam = (searchParams.get('source') || '').toLowerCase();
 
     const [snapshot, setSnapshot] = useState<OverlaySnapshot | null>(null);
+    // Lo que se dibuja: al terminar el giveaway se conserva la última foto mientras corre la animación de salida
+    const [shown, setShown] = useState<OverlaySnapshot | null>(null);
+    const [leaving, setLeaving] = useState(false);
     const [clockOffset, setClockOffset] = useState(0);
     const [scale, setScale] = useState(() => Math.min(window.innerWidth / OVERLAY_CANVAS.width, window.innerHeight / OVERLAY_CANVAS.height));
 
@@ -91,12 +94,33 @@ export default function GiveawayOverlay() {
         };
     }, [channel, sourceParam]);
 
-    if (!snapshot || snapshot.phase === 'idle') return <div style={{ width: '100vw', height: '100vh' }} />;
+    useEffect(() => {
+        if (!snapshot) return;
+        if (snapshot.phase !== 'idle') {
+            setShown(snapshot);
+            setLeaving(false);
+            return;
+        }
+        if (!shown) return;
+        setLeaving(true);
+        const exit = shown.appearance.exit;
+        const id = setTimeout(() => { setShown(null); setLeaving(false); }, exit.type === 'none' ? 0 : exit.durationMs);
+        return () => clearTimeout(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [snapshot]);
+
+    if (!shown) return <div style={{ width: '100vw', height: '100vh' }} />;
 
     return (
         <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'transparent' }}>
             <div style={{ width: OVERLAY_CANVAS.width, height: OVERLAY_CANVAS.height, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-                <GiveawayStage snapshot={snapshot} clockOffsetMs={clockOffset} source={sourceRef.current} audio />
+                <div style={{
+                    width: OVERLAY_CANVAS.width, height: OVERLAY_CANVAS.height,
+                    animation: leaving ? showHideCss(shown.appearance.exit, false) : undefined,
+                    ['--mo-w' as string]: `${OVERLAY_CANVAS.width}px`, ['--mo-h' as string]: `${OVERLAY_CANVAS.height}px`,
+                }}>
+                    <GiveawayStage snapshot={shown} clockOffsetMs={clockOffset} source={sourceRef.current} audio />
+                </div>
             </div>
         </div>
     );

@@ -341,7 +341,7 @@ export function AnimationsTab(props: DesignProps) {
     );
 }
 
-function ShowHideCard({ title, description, value, onChange }: { title: string; description: string; value: ShowHideAnimation; onChange: (v: ShowHideAnimation) => void }) {
+export function ShowHideCard({ title, description, value, onChange }: { title: string; description: string; value: ShowHideAnimation; onChange: (v: ShowHideAnimation) => void }) {
     const { t } = useTranslation('overlays');
     const set = (patch: Partial<ShowHideAnimation>) => onChange({ ...value, ...patch });
     const types: ShowHideAnimation['type'][] = ['none', 'fade', 'slide', 'bounce', 'zoom'];

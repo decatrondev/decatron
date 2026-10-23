@@ -141,12 +141,16 @@ namespace Decatron.Core.Models
         /// <summary>Cuánto se queda el resultado final en pantalla antes de ocultarse.</summary>
         public int ResultSeconds { get; set; } = 15;
 
-        public string Accent { get; set; } = "#f59e0b";
-        public string Panel { get; set; } = "#0f172a";
-        public string Text { get; set; } = "#ffffff";
-        public string Font { get; set; } = "Inter, system-ui, sans-serif";
-        /// <summary>Opacidad de los paneles, 0 a 100.</summary>
-        public int PanelOpacity { get; set; } = 88;
+        // Misma identidad visual que Song Request (motor components/music-overlay): el tema por defecto es el de Decatron
+        public OverlayTheme Theme { get; set; } = new();
+        public string Font { get; set; } = "Inter";
+        public string TextColor { get; set; } = "#ffffff";
+        public string SecondaryColor { get; set; } = "#a1a1aa";
+        /// <summary>none | soft | strong | glow</summary>
+        public string TextShadow { get; set; } = "soft";
+        /// <summary>Cómo aparece cada bloque y cómo se va el overlay entero (las mismas animaciones de Song Request).</summary>
+        public ShowHideAnimation Enter { get; set; } = new();
+        public ShowHideAnimation Exit { get; set; } = new();
 
         public bool Confetti { get; set; } = true;
         public bool TickSound { get; set; } = true;
@@ -158,6 +162,29 @@ namespace Decatron.Core.Models
         public OverlayBlock Entries { get; set; } = new() { X = 60, Y = 460, Width = 640, Height = 420 };
         public OverlayBlock Reveal { get; set; } = new() { X = 460, Y = 240, Width = 1000, Height = 500 };
         public OverlayBlock Winners { get; set; } = new() { X = 460, Y = 780, Width = 1000, Height = 220 };
+    }
+
+    /// <summary>Panel de los bloques: los mismos campos y valores por defecto que OverlayTheme de Song Request.</summary>
+    public class OverlayTheme
+    {
+        public string PanelBackground { get; set; } = "rgba(10, 10, 15, 0.85)";
+        public string PanelBorderColor { get; set; } = "rgba(57, 255, 20, 0.35)";
+        public int PanelBorderWidth { get; set; } = 1;
+        public int PanelRadius { get; set; } = 18;
+        public int PanelBlur { get; set; } = 8;
+        public bool PanelShadow { get; set; } = true;
+        public string Accent { get; set; } = "#39ff14";
+    }
+
+    /// <summary>Entrada o salida (igual que ShowHideAnimation de Song Request): none | fade | slide | bounce | zoom.</summary>
+    public class ShowHideAnimation
+    {
+        public string Type { get; set; } = "fade";
+        /// <summary>left | right | top | bottom</summary>
+        public string Direction { get; set; } = "left";
+        public int DurationMs { get; set; } = 600;
+        /// <summary>ease | ease-in | ease-out | ease-in-out | linear</summary>
+        public string Easing { get; set; } = "ease";
     }
 
     /// <summary>Un bloque del overlay sobre el lienzo.</summary>

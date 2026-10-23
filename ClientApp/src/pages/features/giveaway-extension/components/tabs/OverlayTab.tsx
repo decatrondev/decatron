@@ -4,15 +4,18 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Play } from 'lucide-react';
 import api from '../../../../../services/api';
 import OverlayCanvasEditor from '../../../../../components/overlay-editor/OverlayCanvasEditor';
 import type { EditorElement, Rect } from '../../../../../components/overlay-editor/OverlayCanvasEditor';
 import { Card, Field, NumberInput, Slider, Select, ColorField, Toggle } from '../../../../../components/overlay-editor/ui';
 import { LinkRow, Warning, useOverlayStatus } from '../../../../../components/overlay-editor/OverlayLinks';
+import { ShowHideCard } from '../../../../../components/music-overlay/DesignTabs';
+import { THEME_PRESETS } from '../../../../../components/music-overlay/presets';
 import GiveawayStage from '../../overlay/GiveawayStage';
-import { FONT_CHOICES, OVERLAY_CANVAS, demoSnapshot } from '../../overlay/model';
-import type { OverlayBlockId, OverlayPhase } from '../../overlay/model';
+import { FONT_FAMILIES, OVERLAY_CANVAS, demoSnapshot } from '../../overlay/model';
+import type { OverlayBlockId, OverlayPhase, TextShadow } from '../../overlay/model';
 import type { GiveawayConfig, GiveawaySettings, PlatformCapabilities } from '../../types';
 
 interface OverlayTabProps {
@@ -41,6 +44,7 @@ const SIM_MESSAGES: Record<string, string> = {
 };
 
 export const OverlayTab: React.FC<OverlayTabProps> = ({ config, onUpdateSettings }) => {
+    const { t } = useTranslation('overlays');
     const a = config.settings.overlay;
     const { status, loaded } = useOverlayStatus('/giveaway/overlay/status');
     const [caps, setCaps] = useState<PlatformCapabilities | null>(null);
@@ -89,6 +93,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({ config, onUpdateSettings
         }
     };
 
+    const setTheme = (patch: Partial<GiveawaySettings['overlay']['theme']>) => onUpdateSettings('overlay', { theme: { ...a.theme, ...patch } });
     const set = <K extends keyof GiveawaySettings['overlay']>(field: K, value: GiveawaySettings['overlay'][K]) =>
         onUpdateSettings('overlay', { [field]: value } as Partial<GiveawaySettings['overlay']>);
 
@@ -136,20 +141,57 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({ config, onUpdateSettings
                 <GiveawayStage snapshot={snapshot} clockOffsetMs={0} source="all" audio={false} />
             </OverlayCanvasEditor>
 
-            <Card title="Estilo" description="Colores, letra y sonidos. Se ven en la vista previa de arriba.">
+            {/* Mismo tema, controles y textos que el editor de Song Request (motor components/music-overlay) */}
+            <Card title={t('musicOverlay.theme.presetsTitle')} description={t('musicOverlay.theme.presetsDescription')}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {THEME_PRESETS.map((p) => (
+                        <button key={p.id}
+                            onClick={() => onUpdateSettings('overlay', { theme: { ...a.theme, ...p.theme }, font: p.font, textColor: p.primary, secondaryColor: p.secondary, textShadow: p.shadow })}
+                            className="text-left p-3 rounded-lg border border-ds-border hover:border-ds-accent transition-all">
+                            <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-ds-border/10">
+                                {p.swatch.map((c, i) => <span key={i} className="flex-1" style={{ background: c === '#00000000' ? 'repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50% / 10px 10px' : c }} />)}
+                            </div>
+                            <p className="text-sm 3xl:text-base font-bold text-ds-text" style={{ fontFamily: `'${p.font}', system-ui` }}>{t(`musicOverlay.theme.presets.${p.id}`)}</p>
+                        </button>
+                    ))}
+                </div>
+            </Card>
+
+            <Card title={t('musicOverlay.theme.panelTitle')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <ColorField label="Color de acento" value={a.accent} onChange={(v) => set('accent', v)} />
-                    <ColorField label="Fondo de los paneles" value={a.panel} onChange={(v) => set('panel', v)} />
-                    <ColorField label="Color del texto" value={a.text} onChange={(v) => set('text', v)} />
-                    <Field label="Letra">
-                        <Select value={a.font} onChange={(v) => set('font', v)} options={FONT_CHOICES} />
+                    <ColorField label={t('musicOverlay.theme.panelBackground')} value={a.theme.panelBackground} onChange={(v) => setTheme({ panelBackground: v })} />
+                    <ColorField label={t('musicOverlay.theme.panelBorder')} value={a.theme.panelBorderColor} onChange={(v) => setTheme({ panelBorderColor: v })} />
+                    <Field label={t('musicOverlay.theme.borderWidth')}><Slider value={a.theme.panelBorderWidth} min={0} max={8} onChange={(v) => setTheme({ panelBorderWidth: v })} suffix="px" /></Field>
+                    <Field label={t('musicOverlay.theme.radius')}><Slider value={a.theme.panelRadius} min={0} max={80} onChange={(v) => setTheme({ panelRadius: v })} suffix="px" /></Field>
+                    <Field label={t('musicOverlay.theme.blur')} hint={t('musicOverlay.theme.blurHint')}><Slider value={a.theme.panelBlur} min={0} max={30} onChange={(v) => setTheme({ panelBlur: v })} suffix="px" /></Field>
+                    <ColorField label={t('musicOverlay.theme.accent')} value={a.theme.accent} onChange={(v) => setTheme({ accent: v })} hint="Bordes de la ruleta, títulos y detalles." />
+                    <div className="pt-5"><Toggle checked={a.theme.panelShadow} onChange={(v) => setTheme({ panelShadow: v })} label={t('musicOverlay.theme.shadow')} /></div>
+                </div>
+            </Card>
+
+            <Card title="Texto" description="La misma fuente y sombra para todos los textos del overlay.">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Field label={t('musicOverlay.typography.font')}>
+                        <Select value={a.font} onChange={(v) => set('font', v)} options={FONT_FAMILIES.map((f) => ({ value: f, label: f }))} />
                     </Field>
-                    <Field label="Opacidad de los paneles">
-                        <Slider value={a.panelOpacity} onChange={(v) => set('panelOpacity', v)} min={0} max={100} suffix="%" />
+                    <Field label={t('musicOverlay.typography.shadow')}>
+                        <Select<TextShadow> value={a.textShadow} onChange={(v) => set('textShadow', v)}
+                            options={(['none', 'soft', 'strong', 'glow'] as TextShadow[]).map((x) => ({ value: x, label: t(`musicOverlay.typography.shadows.${x}`) }))} />
                     </Field>
+                    <ColorField label="Color del texto" value={a.textColor} onChange={(v) => set('textColor', v)} />
+                    <ColorField label="Color del texto secundario" value={a.secondaryColor} onChange={(v) => set('secondaryColor', v)} />
+                </div>
+            </Card>
+
+            <ShowHideCard title={t('musicOverlay.animations.enterTitle')} description="Cómo aparece cada bloque del overlay." value={a.enter} onChange={(v) => set('enter', v)} />
+            <ShowHideCard title={t('musicOverlay.animations.exitTitle')} description="Cómo se va el overlay cuando termina el giveaway." value={a.exit} onChange={(v) => set('exit', v)} />
+
+            <Card title="Sonido y efectos" description="Se oyen en OBS; la vista previa no reproduce sonido.">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label="Volumen de los sonidos">
                         <Slider value={a.volume} onChange={(v) => set('volume', v)} min={0} max={100} suffix="%" />
                     </Field>
+                    <div />
                     <Toggle checked={a.confetti} onChange={(v) => set('confetti', v)} label="Confeti al revelar al ganador" />
                     <Toggle checked={a.tickSound} onChange={(v) => set('tickSound', v)} label="Sonido de la ruleta" hint="Un tic por cada nombre que pasa" />
                     <Toggle checked={a.fanfareSound} onChange={(v) => set('fanfareSound', v)} label="Fanfarria del ganador" />

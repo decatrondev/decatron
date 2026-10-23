@@ -122,4 +122,20 @@ public class GiveawaySettingsTests
         Assert.Equal(3, c.RevealSeconds);
         Assert.Equal(15, c.ResultSeconds);
     }
+
+    [Fact]
+    public void El_overlay_usa_por_defecto_el_tema_de_Song_Request()
+    {
+        var o = GiveawaySettings.Parse("{}").Overlay;
+        Assert.Equal("#39ff14", o.Theme.Accent);
+        Assert.Equal("rgba(10, 10, 15, 0.85)", o.Theme.PanelBackground);
+        Assert.Equal(18, o.Theme.PanelRadius);
+        Assert.Equal("Inter", o.Font);
+        Assert.Equal("fade", o.Enter.Type);
+        Assert.Equal(600, o.Exit.DurationMs);
+
+        var c = GiveawaySettings.Parse("{\"overlay\":{\"theme\":{\"accent\":\"#ff0000\"}}}").Overlay;
+        Assert.Equal("#ff0000", c.Theme.Accent);
+        Assert.Equal(18, c.Theme.PanelRadius); // lo que falta queda por defecto
+    }
 }
