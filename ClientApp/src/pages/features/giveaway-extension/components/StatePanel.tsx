@@ -15,6 +15,8 @@ interface StatePanelProps {
     onEnd: () => Promise<any>;
     onCancel: (reason?: string) => Promise<any>;
     onReroll: (position?: number) => Promise<any>;
+    /** Cierra el resultado de un giveaway terminado para poder crear otro enseguida */
+    onDismiss?: () => void;
 }
 
 export const StatePanel: React.FC<StatePanelProps> = ({
@@ -26,6 +28,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
     onEnd,
     onCancel,
     onReroll,
+    onDismiss,
 }) => {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancelReason, setCancelReason] = useState('');
@@ -175,6 +178,12 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                     'Puedes crear un nuevo giveaway'
                                 }
                             </p>
+                            {onDismiss && (
+                                <button onClick={onDismiss} className="ds-btn ds-btn--primary ds-btn--lg w-full mt-4">
+                                    <Play className="w-6 h-6" />
+                                    Crear un nuevo giveaway
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <>

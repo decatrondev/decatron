@@ -15,6 +15,8 @@ export const useGiveawayState = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const finalizedAtRef = useRef<number | null>(null);
+    // Giveaway terminado (completado o cancelado) que el streamer ya cerró en el panel: el servidor lo sigue devolviendo 30 s
+    const dismissedIdRef = useRef<string | null>(null);
 
     // ========================================================================
     // FETCH ACTIVE GIVEAWAY
@@ -26,8 +28,11 @@ export const useGiveawayState = () => {
 
             const response = await api.get('/giveaway/active');
 
-            if (response.data.success && response.data.giveaway) {
-                setActiveState(response.data.giveaway);
+            const g = response.data.success ? response.data.giveaway : null;
+            if (g && (g.status === 'completed' || g.status === 'cancelled') && dismissedIdRef.current === String(g.giveawayId)) {
+                setActiveState(null);
+            } else if (g) {
+                setActiveState(g);
             } else {
                 setActiveState(null);
             }
@@ -197,6 +202,22 @@ export const useGiveawayState = () => {
         return () => clearInterval(interval);
     }, [fetchActiveGiveaway]);
 
+    // Cerrar el giveaway terminado para poder iniciar otro enseguida (no espera los 30 s de gracia)
+    const dismissFinished = useCallback(() => {
+        setActiveState((prev) => {
+            if (prev && (prev.status === 'completed' || prev.status === 'cancelled')) {
+                dismissedIdRef.current = String(prev.giveawayId);
+                return null;
+            }
+            return prev;
+        });
+    }, []);
+
+    // Uno cancelado no tiene nada que mostrar: se cierra solo para dejar crear otro de inmediato
+    useEffect(() => {
+        if (activeState?.status === 'cancelled') dismissFinished();
+    }, [activeState?.status, dismissFinished]);
+
     // ========================================================================
     // STOP POLLING AFTER 30 SECONDS IF FINALIZED
     // ========================================================================
@@ -230,10 +251,12 @@ export const useGiveawayState = () => {
     // ========================================================================
     // COMPUTED VALUES
     // ========================================================================
+    // Un giveaway completado se sigue mostrando (resultado), pero ya no impide iniciar otro: ver `isRunning`
     const isActive = activeState?.status === 'active'
         || activeState?.status === 'selecting_winners'
         || activeState?.status === 'completed'
         || activeState?.status === 'cancelled';
+    const isRunning = activeState?.status === 'active' || activeState?.status === 'selecting_winners';
     const participantCount = activeState?.totalParticipants || 0;
     const hasWinners = (activeState?.selectedWinners?.length || 0) > 0;
 
@@ -248,6 +271,8 @@ export const useGiveawayState = () => {
 
         // Computed
         isActive,
+        isRunning,
+        dismissFinished,
         participantCount,
         hasWinners,
 

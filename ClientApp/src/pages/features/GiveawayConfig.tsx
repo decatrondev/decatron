@@ -242,10 +242,10 @@ const GiveawayConfig = () => {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={handleSave}
-                            disabled={persistence.saving || giveawayState.isActive}
-                            title={giveawayState.isActive ? t('giveaway.cannotSaveActive') : t('giveaway.saveConfig')}
+                            disabled={persistence.saving || giveawayState.isRunning}
+                            title={giveawayState.isRunning ? t('giveaway.cannotSaveActive') : t('giveaway.saveConfig')}
                             className={`px-6 py-3 rounded-lg transition-all flex items-center gap-2 font-bold ${
-                                persistence.saving || giveawayState.isActive
+                                persistence.saving || giveawayState.isRunning
                                     ? 'bg-ds-faint cursor-not-allowed text-ds-text'
                                     : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent border border-ds-accent'
                             }`}
@@ -400,6 +400,7 @@ const GiveawayConfig = () => {
                             onEnd={handleEndGiveaway}
                             onCancel={handleCancelGiveaway}
                             onReroll={handleRerollWinner}
+                            onDismiss={giveawayState.dismissFinished}
                         />
                     </div>
                 </div>

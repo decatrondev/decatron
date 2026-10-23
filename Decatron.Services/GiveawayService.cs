@@ -210,8 +210,12 @@ namespace Decatron.Services
         {
             _logger.LogWarning($"[DEBUG] StartGiveaway llamado con ChannelId={channelId}, ConfigName={config.Name}, EntryCommand={config.EntryCommand}");
 
-            // Check if there's already an active giveaway
-            var active = await GetActiveSession(channelId);
+            // Solo un giveaway EN CURSO impide iniciar otro. GetActiveSession también devuelve el recién cancelado o completado
+            // (30 s) para que el panel muestre el resultado, y eso no debe bloquear: tras cancelar se puede crear otro enseguida
+            var active = await _context.GiveawaySessions
+                .Where(s => s.ChannelId == channelId && (s.Status == "active" || s.Status == "selecting_winners"))
+                .OrderByDescending(s => s.UpdatedAt)
+                .FirstOrDefaultAsync();
             if (active != null)
             {
                 _logger.LogError($"[DEBUG] Ya existe sesión activa: ID={active.Id}, Status={active.Status}");
