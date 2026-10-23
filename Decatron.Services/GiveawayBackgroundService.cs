@@ -238,7 +238,7 @@ namespace Decatron.Services
 
                                     try
                                     {
-                                        var newWinner = await giveawayService.RerollWinner(session.ChannelId, winner.Position);
+                                        var newWinner = await giveawayService.RerollWinner(session.ChannelId, winner.Position, session.Id);
 
                                         var newParticipant = await dbContext.GiveawayParticipants
                                             .FirstOrDefaultAsync(p => p.Id == newWinner.ParticipantId);

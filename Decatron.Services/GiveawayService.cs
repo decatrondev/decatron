@@ -79,6 +79,26 @@ namespace Decatron.Services
             await AnnounceAsync(channelName, text);
         }
 
+        /// <summary>Dónde se anuncia: el chat de Twitch y, si aplica, el de Kick (resuelto de antemano para poder enviar más tarde).</summary>
+        private async Task<(string Twitch, string? Kick)> ResolveAnnounceTargetsAsync(string channelName)
+        {
+            string? kick = null;
+            try { kick = await KickChatIdAsync(channelName); }
+            catch (Exception ex) { _logger.LogWarning(ex, "No se pudo resolver el chat de Kick de {Channel}", channelName); }
+            return (channelName, kick);
+        }
+
+        private async Task SendToTargetsAsync((string Twitch, string? Kick) targets, string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            await _messageSender.SendMessageAsync(targets.Twitch, text);
+            if (targets.Kick != null)
+            {
+                try { await _messageSender.SendMessageAsync(targets.Kick, text); }
+                catch (Exception ex) { _logger.LogWarning(ex, "No se pudo anunciar en el chat de Kick de {Channel}", targets.Twitch); }
+            }
+        }
+
         /// <summary>Id de chat de Kick de la cuenta del canal, solo si Kick está activo en su último giveaway.</summary>
         private async Task<string?> KickChatIdAsync(string channelName)
         {
@@ -343,8 +363,16 @@ namespace Decatron.Services
 
             try
             {
+                // Con el overlay de OBS conectado hay un revelado (la ruleta) antes de que el ganador aparezca. El plazo para
+                // responder y el anuncio en el chat empiezan cuando termina, no al sortear: si no, el ganador se entera con
+                // el contador ya andando (con 60 s, en 52). Sin overlay conectado no hay revelado ni espera.
+                var appearance = await _overlay.LoadAppearanceAsync(channelId);
+                var overlayKey = await _overlay.OverlayKeyAsync(channelId);
+                var overlayConnected = overlayKey != null && Decatron.Hubs.OverlayHub.CountOverlays(overlayKey, "giveaway") > 0;
+                var revealDelay = overlayConnected ? Math.Max(0, appearance.RevealSeconds) : 0;
+
                 // Select winners
-                await SelectWinners(session, config);
+                await SelectWinners(session, config, revealDelay);
 
                 // IMPORTANTE: Mantener status="active" para que el frontend siga viendo el giveaway
                 // El background service lo cambiará a "completed" cuando se resuelvan los timeouts
@@ -370,17 +398,45 @@ namespace Decatron.Services
                         .OrderBy(w => w.Position)
                         .ToListAsync();
 
+                    var winnerMessages = new List<(string Text, string User)>();
                     foreach (var winner in winners)
                     {
                         var participant = await _context.GiveawayParticipants
                             .FirstOrDefaultAsync(p => p.Id == winner.ParticipantId);
 
                         if (participant != null)
+                            winnerMessages.Add((ProcessMessageVariables(config.WinnerMessage, config, session, session.TotalParticipants, participant.Username), participant.Username));
+                    }
+
+                    if (revealDelay <= 0)
+                    {
+                        foreach (var (text, user) in winnerMessages)
                         {
-                            var message = ProcessMessageVariables(config.WinnerMessage, config, session, session.TotalParticipants, participant.Username);
-                            await AnnounceAsync(channelName, message);
-                            _logger.LogInformation($"📢 Anuncio de ganador enviado: {participant.Username}");
+                            await AnnounceAsync(channelName, text);
+                            _logger.LogInformation($"📢 Anuncio de ganador enviado: {user}");
                         }
+                    }
+                    else
+                    {
+                        // Se anuncia cuando la ruleta termina y el overlay muestra al ganador. Los destinos se resuelven ahora
+                        // porque el contexto de la base se cierra con esta petición
+                        var targets = await ResolveAnnounceTargetsAsync(channelName);
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await Task.Delay(TimeSpan.FromSeconds(revealDelay));
+                                foreach (var (text, user) in winnerMessages)
+                                {
+                                    await SendToTargetsAsync(targets, text);
+                                    _logger.LogInformation($"📢 Anuncio de ganador enviado tras el revelado: {user}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error anunciando a los ganadores del giveaway {SessionId} tras el revelado", session.Id);
+                            }
+                        });
                     }
                 }
 
@@ -754,7 +810,7 @@ namespace Decatron.Services
         // WINNER SELECTION
         // ========================================================================
 
-        private async Task SelectWinners(GiveawaySession session, GiveawayConfig config)
+        private async Task SelectWinners(GiveawaySession session, GiveawayConfig config, int revealDelaySeconds = 0)
         {
             var participants = await _context.GiveawayParticipants
                 .Where(p => p.SessionId == session.Id)
@@ -796,7 +852,8 @@ namespace Decatron.Services
                         ParticipantId = winner.Id,
                         Position = i + 1,
                         IsBackup = false,
-                        SelectedAt = DateTime.UtcNow
+                        // El plazo cuenta desde que se anuncia: al terminar el revelado
+                        SelectedAt = DateTime.UtcNow.AddSeconds(revealDelaySeconds)
                     };
 
                     _context.GiveawayWinners.Add(winnerRecord);
@@ -828,7 +885,7 @@ namespace Decatron.Services
                             ParticipantId = backup.Id,
                             Position = i + 1,
                             IsBackup = true,
-                            SelectedAt = DateTime.UtcNow
+                            SelectedAt = DateTime.UtcNow.AddSeconds(revealDelaySeconds)
                         };
 
                         _context.GiveawayWinners.Add(backupRecord);
@@ -894,11 +951,17 @@ namespace Decatron.Services
             return participants.Last();
         }
 
-        public async Task<GiveawayWinner> RerollWinner(string channelId, int? position = null)
+        public async Task<GiveawayWinner> RerollWinner(string channelId, int? position = null, int? sessionId = null)
         {
-            var session = await _context.GiveawaySessions
-                .FirstOrDefaultAsync(s => s.ChannelId == channelId &&
-                    (s.Status == "completed" || s.Status == "active" || s.Status == "selecting_winners"));
+            // El sorteo del que se re-sortea: el indicado, o el más reciente. Antes se tomaba CUALQUIERA del canal (sin
+            // ordenar, y aceptando completados), o sea uno viejo de prueba: «no hay más participantes» aunque los hubiera
+            var session = sessionId.HasValue
+                ? await _context.GiveawaySessions.FirstOrDefaultAsync(s => s.Id == sessionId.Value && s.ChannelId == channelId)
+                : await _context.GiveawaySessions
+                    .Where(s => s.ChannelId == channelId &&
+                        (s.Status == "completed" || s.Status == "active" || s.Status == "selecting_winners"))
+                    .OrderByDescending(s => s.UpdatedAt)
+                    .FirstOrDefaultAsync();
 
             if (session == null)
             {

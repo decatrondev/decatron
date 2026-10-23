@@ -128,7 +128,13 @@ namespace Decatron.Services
                 {
                     var winners = await LoadWinnersAsync(session.Id, config.WinnerResponseTimeout);
                     var endedAt = session.EndedAt ?? now;
-                    var revealEnds = endedAt.AddSeconds(reveal);
+                    // El revelado real es lo que se esperó al sortear: el plazo de los ganadores empieza al terminar (sin overlay
+                    // conectado, no hubo revelado). Para sesiones viejas, sin diferencia, no hay ruleta.
+                    var firstSelected = await _context.GiveawayWinners.AsNoTracking()
+                        .Where(w => w.SessionId == session.Id && !w.IsBackup)
+                        .MinAsync(w => (DateTime?)w.SelectedAt);
+                    var revealEnds = firstSelected.HasValue && firstSelected.Value > endedAt ? firstSelected.Value : endedAt;
+                    common = common with { RevealSeconds = (int)Math.Round((revealEnds - endedAt).TotalSeconds) };
 
                     if (now < revealEnds)
                     {
