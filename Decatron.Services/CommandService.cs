@@ -29,6 +29,7 @@ namespace Decatron.Services
         private readonly ILoggerFactory _loggerFactory;
         // Entrada al giveaway: se invoca directo desde ProcessMessageAsync, no como comando registrado
         private Decatron.Services.Commands.GiveawayCommand _giveawayEntry = null!;
+        private Decatron.Services.Commands.GiveawayChatCommands _giveawayChat = null!;
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Dictionary<string, ICommand> _commands;
@@ -130,6 +131,7 @@ namespace Decatron.Services
             }
 
             _giveawayEntry = new Decatron.Services.Commands.GiveawayCommand(_serviceScopeFactory, _loggerFactory.CreateLogger<Decatron.Services.Commands.GiveawayCommand>());
+            _giveawayChat = new Decatron.Services.Commands.GiveawayChatCommands(_serviceScopeFactory, _loggerFactory.CreateLogger<Decatron.Services.Commands.GiveawayChatCommands>());
 
             RegisterShoutoutCommand();
 
@@ -693,6 +695,8 @@ namespace Decatron.Services
                                 && await CommandModuleOnAsync("!join"))
                             {
                                 var ctx = new CommandContext(username, channel, "!join", userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = giveawayChannelId };
+                                // «<entrada> salir» y «<entrada> yo» (comandos de los viewers, se pueden apagar en Ajustes)
+                                if (isEntryCommand && await _giveawayChat.TryHandleEntrySubcommandAsync(ctx, platform, giveawayChannelId, chatMessage, _messageSender)) return;
                                 await _giveawayEntry.ExecuteAsync(ctx, _messageSender);
                                 if (!isEntryCommand && await gwService.IsParticipant(rules.SessionId, userId, platform)) GiveawayService.MarkAutoEntered(rules.SessionId, entryKey);
                                 if (isEntryCommand) return;
@@ -703,6 +707,14 @@ namespace Decatron.Services
                     {
                         _logger.LogError(ex, "Error en la entrada del giveaway para {Cmd} en {Channel}", commandName, channel);
                     }
+                }
+
+                // 0c. GIVEAWAY — comandos de control («!giveaway start|end|cancel|reroll|pick|status») y «!ganadores»; funcionan
+                // sin giveaway en curso. Los nombres se configuran por canal, así que se pregunta al servicio (con caché corta)
+                if (giveawayChannelId != null && platform is "twitch" or "kick" && commandName.StartsWith("!"))
+                {
+                    var gwCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = giveawayChannelId };
+                    if (await _giveawayChat.TryHandleAsync(gwCtx, platform, giveawayChannelId, commandName, chatMessage, _messageSender, () => CommandModuleOnAsync("!join"))) return;
                 }
 
                 // 0b. KICK: !title / !t / !game / !g (los de Twitch hablan con la API de Twitch; en Kick los atiende su propio manejador)

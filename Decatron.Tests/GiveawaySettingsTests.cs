@@ -148,4 +148,40 @@ public class GiveawaySettingsTests
         Assert.EndsWith("Z\"", json);
         Assert.Null(Decatron.Services.GiveawayOverlayService.AsUtc((DateTime?)null));
     }
+
+    [Fact]
+    public void Los_comandos_de_chat_tienen_valores_por_defecto_y_aceptan_cambios()
+    {
+        var c = GiveawaySettings.Parse("{}").Commands;
+        Assert.True(c.Enabled);
+        Assert.Equal("!giveaway", c.Root);
+        Assert.Equal("!ganadores", c.WinnersCommand);
+        Assert.Equal(1, c.MinRank); // moderadores (y por encima)
+        Assert.Contains("Uso:", c.Text("usage"));
+
+        var custom = GiveawaySettings.Parse("{\"commands\":{\"root\":\"!sorteo2\",\"minRole\":\"broadcaster\",\"texts\":{\"none_active\":\"Nada en curso\",\"usage\":\"  \"}}}").Commands;
+        Assert.Equal("!sorteo2", custom.Root);
+        Assert.Equal(3, custom.MinRank);
+        Assert.Equal("Nada en curso", custom.Text("none_active"));
+        Assert.Contains("Uso:", custom.Text("usage")); // texto en blanco = el de por defecto
+        Assert.Equal(2, GiveawaySettings.Parse("{\"commands\":{\"minRole\":\"lead_moderator\"}}").Commands.MinRank);
+    }
+
+    [Fact]
+    public void Los_nombres_de_comando_se_normalizan()
+    {
+        Assert.Equal("!giveaway", GiveawayCommandRules.Normalize("  ", "!giveaway"));
+        Assert.Equal("!sorteo", GiveawayCommandRules.Normalize("Sorteo", "!giveaway"));
+        Assert.Equal("!sorteo", GiveawayCommandRules.Normalize("!SORTEO", "!giveaway"));
+    }
+
+    [Fact]
+    public void Todo_texto_de_comando_por_defecto_tiene_su_clave()
+    {
+        // El panel muestra estas claves (COMMAND_TEXTS); una que falte aquí respondería vacío en el chat
+        foreach (var key in new[] { "usage", "no_config", "no_prize", "already_active", "none_active", "cancel_done", "no_one_to_reroll", "pick_missing",
+            "pick_not_found", "status_open", "status_drawing", "status_none", "remaining_timed", "remaining_manual", "leave_done", "leave_not_in",
+            "leave_closed", "me_in", "me_out", "winners", "winners_none" })
+            Assert.False(string.IsNullOrWhiteSpace(new GiveawayCommandRules().Text(key)), key);
+    }
 }

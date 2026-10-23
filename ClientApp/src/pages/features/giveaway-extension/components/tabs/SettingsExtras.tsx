@@ -5,10 +5,10 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { MessageSquare, ShieldAlert, Scale, BellRing, Users, UserCog, Globe2, Check, X } from 'lucide-react';
+import { MessageSquare, ShieldAlert, Scale, BellRing, Users, UserCog, Globe2, Check, X, Terminal } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GiveawaySettings, PlatformCapabilities } from '../../types';
-import { DEFAULT_SETTINGS_TEXTS, REJECTION_REASONS, CAPABILITY_LABELS, PLATFORM_LABELS } from '../../types';
+import { DEFAULT_SETTINGS_TEXTS, REJECTION_REASONS, CAPABILITY_LABELS, PLATFORM_LABELS, COMMAND_TEXTS } from '../../types';
 
 interface SettingsExtrasProps {
     settings: GiveawaySettings;
@@ -316,6 +316,67 @@ export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpda
                     onChange={(v) => onUpdateSettings('roles', { leadModCountsAsMod: v })}
                     on="Sí cuenta" off="No cuenta"
                 />
+            </div>
+
+            {/* Comandos de chat */}
+            <div className="space-y-4">
+                <SectionTitle
+                    icon={<Terminal className="w-5 h-5 text-ds-accent-text" />}
+                    title="Comandos de chat"
+                    text="Controla el giveaway sin abrir el panel, en Twitch y Kick. «!giveaway start» sin más texto inicia el giveaway guardado; con premio y duración (!giveaway start Un premio 10m) esos datos valen solo para ese sorteo. También: end (sortea), cancel, reroll (cambia al ganador pendiente), pick &lt;usuario&gt; (elige a mano) y status."
+                />
+                <Toggle
+                    title="Comandos de chat activos"
+                    hint="Apagado: ni el control ni «salir», «yo» o «!ganadores» responden"
+                    value={settings.commands.enabled}
+                    onChange={(v) => onUpdateSettings('commands', { enabled: v })}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-sm font-bold text-ds-soft mb-2">Comando de control</label>
+                        <input type="text" className="ds-input w-full" value={settings.commands.root} placeholder="!giveaway"
+                            onChange={(e) => onUpdateSettings('commands', { root: e.target.value })} />
+                        <p className="text-xs text-ds-soft mt-1">Alias: start/iniciar, end/fin/sortear, cancel/cancelar, reroll/resortear, pick/elegir, status/estado</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-ds-soft mb-2">Quién puede controlar</label>
+                        <select className="ds-input w-full" value={settings.commands.minRole}
+                            onChange={(e) => onUpdateSettings('commands', { minRole: e.target.value as GiveawaySettings['commands']['minRole'] })}>
+                            <option value="moderator">Moderadores, mods líderes y streamer</option>
+                            <option value="lead_moderator">Mods líderes y streamer</option>
+                            <option value="broadcaster">Solo el streamer</option>
+                        </select>
+                        <p className="text-xs text-ds-soft mt-1">Quien no tiene el rol no recibe respuesta</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-ds-soft mb-2">Comando de ganadores (viewers)</label>
+                        <input type="text" className="ds-input w-full" value={settings.commands.winnersCommand} placeholder="!ganadores"
+                            onChange={(e) => onUpdateSettings('commands', { winnersCommand: e.target.value })} />
+                        <p className="text-xs text-ds-soft mt-1">Vacío = apagado. Lista los últimos 5 ganadores</p>
+                    </div>
+                </div>
+                <Toggle
+                    title="Los viewers pueden salir"
+                    hint="«&lt;comando de entrada&gt; salir» los retira del giveaway abierto"
+                    value={settings.commands.viewerLeave}
+                    onChange={(v) => onUpdateSettings('commands', { viewerLeave: v })}
+                />
+                <Toggle
+                    title="Los viewers pueden consultar si participan"
+                    hint="«&lt;comando de entrada&gt; yo»"
+                    value={settings.commands.viewerStatus}
+                    onChange={(v) => onUpdateSettings('commands', { viewerStatus: v })}
+                />
+                <div className="space-y-3">
+                    <p className="text-sm font-bold text-ds-soft">Respuestas del bot (vacío = texto por defecto)</p>
+                    {COMMAND_TEXTS.map((c) => (
+                        <div key={c.key}>
+                            <label className="block text-xs font-bold text-ds-soft mb-1">{c.label}{c.vars && <span className="font-normal"> · <code>{c.vars}</code></span>}</label>
+                            <input type="text" className="ds-input w-full" value={settings.commands.texts[c.key] ?? ''} placeholder={c.text}
+                                onChange={(e) => onUpdateSettings('commands', { texts: { ...settings.commands.texts, [c.key]: e.target.value } })} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </>
     );

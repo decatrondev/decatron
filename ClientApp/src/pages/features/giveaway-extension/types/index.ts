@@ -120,7 +120,46 @@ export interface GiveawaySettings {
     roles: { streamerCanJoin: boolean; leadModCountsAsMod: boolean };
     platforms: GiveawayPlatformRules;
     overlay: OverlayAppearance;
+    commands: GiveawayCommandRules;
 }
+
+/** Comandos de chat del giveaway (control para moderadores y comandos de los viewers). */
+export interface GiveawayCommandRules {
+    enabled: boolean;
+    root: string;
+    minRole: 'moderator' | 'lead_moderator' | 'broadcaster';
+    /** Vacío = apagado */
+    winnersCommand: string;
+    viewerLeave: boolean;
+    viewerStatus: boolean;
+    /** Textos propios por clave; ausente o vacío = el de COMMAND_TEXTS */
+    texts: Record<string, string>;
+}
+
+/** Textos por defecto de las respuestas de los comandos (mismos que el servidor) y para qué sirve cada uno. */
+export const COMMAND_TEXTS: { key: string; label: string; text: string; vars: string }[] = [
+    { key: 'usage', label: 'Ayuda del comando', text: 'ℹ️ Uso: {root} start [premio] [duración, ej. 10m o 1h] · end · cancel · reroll · pick <usuario> · status', vars: '{root}' },
+    { key: 'no_config', label: 'Aún no hay giveaway configurado', text: '⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.', vars: '' },
+    { key: 'no_prize', label: 'Falta el premio', text: '⚠️ Falta el premio: {root} start <premio> [duración]', vars: '{root}' },
+    { key: 'already_active', label: 'Ya hay uno en curso', text: '⚠️ Ya hay un giveaway en curso.', vars: '' },
+    { key: 'none_active', label: 'No hay uno en curso', text: '⚠️ No hay un giveaway en curso.', vars: '' },
+    { key: 'cancel_done', label: 'Cancelado desde el chat', text: '❌ Giveaway cancelado.', vars: '' },
+    { key: 'no_one_to_reroll', label: 'Nadie para re-sortear', text: '⚠️ No hay participantes disponibles para un nuevo sorteo.', vars: '' },
+    { key: 'pick_missing', label: 'Elegir sin indicar a quién', text: 'ℹ️ Indica a quién: {root} pick <usuario>', vars: '{root}' },
+    { key: 'pick_not_found', label: 'La persona elegida no participa', text: '⚠️ {user} no está participando en el giveaway.', vars: '{user}' },
+    { key: 'status_open', label: 'Estado: abierto', text: '🎁 «{prize}»: {count} participantes. {remaining} Para entrar escribe {command}', vars: '{prize} {count} {remaining} {command}' },
+    { key: 'status_drawing', label: 'Estado: sorteando', text: '🎲 Sorteando «{prize}»: {count} participantes.', vars: '{prize} {count}' },
+    { key: 'status_none', label: 'Estado: sin giveaway', text: 'No hay un giveaway en curso.', vars: '' },
+    { key: 'remaining_timed', label: 'Tiempo restante', text: 'Quedan {minutes} min.', vars: '{minutes}' },
+    { key: 'remaining_manual', label: 'Sin límite de tiempo', text: 'Sin límite de tiempo.', vars: '' },
+    { key: 'leave_done', label: 'Viewer: salió', text: '👋 @{user}, saliste del giveaway.', vars: '{user}' },
+    { key: 'leave_not_in', label: 'Viewer: no participaba', text: '@{user}, no estabas participando.', vars: '{user}' },
+    { key: 'leave_closed', label: 'Viewer: ya no puede salir', text: '@{user}, ya no se puede salir: el giveaway se está sorteando.', vars: '{user}' },
+    { key: 'me_in', label: 'Viewer: sí participa', text: '✅ @{user}, estás participando en «{prize}».', vars: '{user} {prize}' },
+    { key: 'me_out', label: 'Viewer: aún no participa', text: '@{user}, aún no participas. Escribe {command} para entrar.', vars: '{user} {command}' },
+    { key: 'winners', label: 'Últimos ganadores', text: '🏆 Últimos ganadores: {list}', vars: '{list}' },
+    { key: 'winners_none', label: 'Sin ganadores todavía', text: 'Aún no hay ganadores registrados.', vars: '' },
+];
 
 /** Dónde se puede participar y qué hacer con lo que una plataforma no permite comprobar. */
 export interface GiveawayPlatformRules {
@@ -431,6 +470,7 @@ export const DEFAULT_SETTINGS: GiveawaySettings = {
     roles: { streamerCanJoin: true, leadModCountsAsMod: true },
     platforms: { twitch: true, kick: false, unverifiable: 'allow' },
     overlay: DEFAULT_APPEARANCE,
+    commands: { enabled: true, root: '!giveaway', minRole: 'moderator', winnersCommand: '!ganadores', viewerLeave: true, viewerStatus: true, texts: {} },
 };
 
 /** Mezcla lo que llegó del servidor (puede venir vacío o incompleto) con los valores por defecto. */
@@ -446,6 +486,7 @@ export const mergeSettings = (loaded?: Partial<GiveawaySettings> | null): Giveaw
     roles: { ...DEFAULT_SETTINGS.roles, ...(loaded?.roles ?? {}) },
     platforms: { ...DEFAULT_SETTINGS.platforms, ...(loaded?.platforms ?? {}) },
     overlay: mergeAppearance(loaded?.overlay),
+    commands: { ...DEFAULT_SETTINGS.commands, ...(loaded?.commands ?? {}), texts: { ...(loaded?.commands?.texts ?? {}) } },
 });
 
 export const DEFAULT_GIVEAWAY_CONFIG: GiveawayConfig = {

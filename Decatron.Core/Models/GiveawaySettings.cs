@@ -19,6 +19,7 @@ namespace Decatron.Core.Models
         public GiveawayRoleRules Roles { get; set; } = new();
         public GiveawayPlatformRules Platforms { get; set; } = new();
         public GiveawayOverlayRules Overlay { get; set; } = new();
+        public GiveawayCommandRules Commands { get; set; } = new();
 
         private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true };
 
@@ -195,6 +196,74 @@ namespace Decatron.Core.Models
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+    }
+
+    /// <summary>
+    /// Comandos de chat del giveaway (iniciar, terminar, cancelar, re-sortear, elegir, estado; y los de los viewers: salir,
+    /// yo, ganadores). Se leen de la configuración GUARDADA del canal (no de la copia de un sorteo), porque deben funcionar
+    /// también cuando no hay ningún giveaway en curso. Subcomandos y alias fijos: start/iniciar, end/fin/sortear, cancel/cancelar,
+    /// reroll/resortear, pick/elegir, status/estado; salir/leave y yo/me sobre el comando de entrada.
+    /// </summary>
+    public class GiveawayCommandRules
+    {
+        public bool Enabled { get; set; } = true;
+        /// <summary>Comando raíz de control: «!giveaway start», «!giveaway end»…</summary>
+        public string Root { get; set; } = "!giveaway";
+        /// <summary>Quién puede controlar: "moderator" (moderadores, mods líderes y streamer), "lead_moderator" o "broadcaster".</summary>
+        public string MinRole { get; set; } = "moderator";
+        /// <summary>Comando de los viewers que lista los últimos ganadores. Vacío = apagado.</summary>
+        public string WinnersCommand { get; set; } = "!ganadores";
+        /// <summary>«&lt;comando de entrada&gt; salir»: el viewer se retira del giveaway.</summary>
+        public bool ViewerLeave { get; set; } = true;
+        /// <summary>«&lt;comando de entrada&gt; yo»: el viewer consulta si participa.</summary>
+        public bool ViewerStatus { get; set; } = true;
+        /// <summary>Textos propios por clave (ver DefaultTexts). Vacío o ausente = texto por defecto.</summary>
+        public Dictionary<string, string> Texts { get; set; } = new();
+
+        public static readonly Dictionary<string, string> DefaultTexts = new()
+        {
+            ["usage"] = "ℹ️ Uso: {root} start [premio] [duración, ej. 10m o 1h] · end · cancel · reroll · pick <usuario> · status",
+            ["no_config"] = "⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.",
+            ["no_prize"] = "⚠️ Falta el premio: {root} start <premio> [duración]",
+            ["already_active"] = "⚠️ Ya hay un giveaway en curso.",
+            ["none_active"] = "⚠️ No hay un giveaway en curso.",
+            ["cancel_done"] = "❌ Giveaway cancelado.",
+            ["no_one_to_reroll"] = "⚠️ No hay participantes disponibles para un nuevo sorteo.",
+            ["pick_missing"] = "ℹ️ Indica a quién: {root} pick <usuario>",
+            ["pick_not_found"] = "⚠️ {user} no está participando en el giveaway.",
+            ["status_open"] = "🎁 «{prize}»: {count} participantes. {remaining} Para entrar escribe {command}",
+            ["status_drawing"] = "🎲 Sorteando «{prize}»: {count} participantes.",
+            ["status_none"] = "No hay un giveaway en curso.",
+            ["remaining_timed"] = "Quedan {minutes} min.",
+            ["remaining_manual"] = "Sin límite de tiempo.",
+            ["leave_done"] = "👋 @{user}, saliste del giveaway.",
+            ["leave_not_in"] = "@{user}, no estabas participando.",
+            ["leave_closed"] = "@{user}, ya no se puede salir: el giveaway se está sorteando.",
+            ["me_in"] = "✅ @{user}, estás participando en «{prize}».",
+            ["me_out"] = "@{user}, aún no participas. Escribe {command} para entrar.",
+            ["winners"] = "🏆 Últimos ganadores: {list}",
+            ["winners_none"] = "Aún no hay ganadores registrados.",
+        };
+
+        public string Text(string key) =>
+            Texts != null && Texts.TryGetValue(key, out var custom) && !string.IsNullOrWhiteSpace(custom)
+                ? custom
+                : DefaultTexts.TryGetValue(key, out var def) ? def : "";
+
+        /// <summary>Rango mínimo exigido: 3 = streamer, 2 = moderador líder, 1 = moderador.</summary>
+        public int MinRank => (MinRole ?? "").ToLowerInvariant() switch
+        {
+            "broadcaster" => 3,
+            "lead_moderator" => 2,
+            _ => 1,
+        };
+
+        public static string Normalize(string? command, string fallback)
+        {
+            var c = (command ?? "").Trim().ToLowerInvariant();
+            if (c.Length == 0) return fallback;
+            return c.StartsWith("!") ? c : "!" + c;
+        }
     }
 
     /// <summary>
