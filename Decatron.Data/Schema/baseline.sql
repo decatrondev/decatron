@@ -3983,7 +3983,8 @@ CREATE TABLE public.giveaway_sessions (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
-    draw_audit jsonb
+    draw_audit jsonb,
+    entries_closed boolean DEFAULT false NOT NULL
 );
 
 

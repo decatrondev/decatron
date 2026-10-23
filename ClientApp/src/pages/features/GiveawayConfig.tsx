@@ -320,6 +320,8 @@ const GiveawayConfig = () => {
                                 <CreateTab
                                     config={giveawayConfig.config}
                                     onUpdateConfig={giveawayConfig.updateBasicConfig}
+                                    settings={giveawayConfig.config.settings}
+                                    onUpdateSettings={giveawayConfig.updateSettings}
                                 />
                             )}
 

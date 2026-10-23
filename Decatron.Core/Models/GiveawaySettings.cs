@@ -20,6 +20,7 @@ namespace Decatron.Core.Models
         public GiveawayPlatformRules Platforms { get; set; } = new();
         public GiveawayOverlayRules Overlay { get; set; } = new();
         public GiveawayCommandRules Commands { get; set; } = new();
+        public GiveawayDrawRules Draw { get; set; } = new();
 
         private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true };
 
@@ -201,6 +202,27 @@ namespace Decatron.Core.Models
     }
 
     /// <summary>
+    /// Cómo se sortean los ganadores y qué pasa con cada persona mientras se validan. Todo lo decide el streamer; los valores por
+    /// defecto son los acordados: todos los ganadores de golpe, participación abierta, quien no responde queda descartado.
+    /// Se lee de la copia del sorteo, así que un cambio vale desde el siguiente giveaway.
+    /// </summary>
+    public class GiveawayDrawRules
+    {
+        /// <summary>"all" = cada sorteo elige todos los lugares libres; "one_by_one" = cada «choose» elige el siguiente.</summary>
+        public string Mode { get; set; } = "all";
+        /// <summary>true = la participación sigue abierta tras sortear hasta que se cierre con «close».</summary>
+        public bool KeepEntriesOpen { get; set; } = true;
+        /// <summary>true = quien no respondió queda fuera de los sorteos siguientes de este giveaway.</summary>
+        public bool DiscardNoResponse { get; set; } = true;
+        /// <summary>true = un ganador confirmado puede ganar otro lugar del mismo giveaway.</summary>
+        public bool ConfirmedCanWinAgain { get; set; } = false;
+        /// <summary>true = «reroll» sube primero a un ganador de respaldo si lo hay; false = siempre al azar.</summary>
+        public bool BackupsOnReroll { get; set; } = true;
+
+        public bool OneByOne => string.Equals(Mode, "one_by_one", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// Comandos de chat del giveaway (iniciar, terminar, cancelar, re-sortear, elegir, estado; y los de los viewers: salir,
     /// yo, ganadores). Se leen de la configuración GUARDADA del canal (no de la copia de un sorteo), porque deben funcionar
     /// también cuando no hay ningún giveaway en curso. Subcomandos y alias fijos: start/iniciar, end/fin/sortear, cancel/cancelar,
@@ -224,11 +246,18 @@ namespace Decatron.Core.Models
 
         public static readonly Dictionary<string, string> DefaultTexts = new()
         {
-            ["usage"] = "ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · end · cancel · reroll · pick <usuario> · status",
+            ["usage"] = "ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · choose [usuario] · reroll [usuario] · close · open · cancel · status",
             ["no_config"] = "⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.",
             ["no_prize"] = "⚠️ Falta el premio: {root} start <premio> [duración]",
             ["already_active"] = "⚠️ Ya hay un giveaway en curso.",
             ["none_active"] = "⚠️ No hay un giveaway en curso.",
+            ["places_full"] = "ℹ️ Todos los lugares ya tienen ganador. Si alguno no responde, usa {root} reroll.",
+            ["no_one_to_choose"] = "⚠️ No hay participantes disponibles para elegir.",
+            ["already_winner"] = "⚠️ {user} ya es ganador o fue descartado en este giveaway.",
+            ["entries_closed"] = "🔒 Participación cerrada.",
+            ["entries_opened"] = "🔓 Participación abierta.",
+            ["status_closed"] = "🔒 «{prize}»: {count} participantes. La participación está cerrada.",
+            ["leave_winner"] = "@{user}, un ganador no puede salir del giveaway.",
             ["no_drawn"] = "⚠️ No hay un sorteo reciente sobre el que elegir ganador.",
             ["all_responded"] = "ℹ️ Todos los ganadores ya respondieron.",
             ["cancel_done"] = "❌ Giveaway cancelado.",

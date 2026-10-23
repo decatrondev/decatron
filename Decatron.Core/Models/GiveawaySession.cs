@@ -65,6 +65,10 @@ namespace Decatron.Core.Models
         [Column("draw_audit", TypeName = "jsonb")]
         public string? DrawAudit { get; set; }
 
+        // La participación se cerró (a mano con «close» o al primer sorteo, según la opción del streamer). false = abierta
+        [Column("entries_closed")]
+        public bool EntriesClosed { get; set; } = false;
+
         // Cancelación
         [Column("cancel_reason")]
         public string? CancelReason { get; set; }

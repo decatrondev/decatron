@@ -123,6 +123,21 @@ export interface GiveawaySettings {
     platforms: GiveawayPlatformRules;
     overlay: OverlayAppearance;
     commands: GiveawayCommandRules;
+    draw: GiveawayDrawRules;
+}
+
+/** Cómo se sortean los ganadores y qué pasa con cada persona mientras se validan (todo lo decide el streamer). */
+export interface GiveawayDrawRules {
+    /** all = cada sorteo elige todos los lugares libres; one_by_one = cada «choose» elige el siguiente */
+    mode: 'all' | 'one_by_one';
+    /** La participación sigue abierta tras sortear, hasta «close» */
+    keepEntriesOpen: boolean;
+    /** Quien no respondió queda fuera de los sorteos siguientes */
+    discardNoResponse: boolean;
+    /** Un ganador confirmado puede ganar otro lugar del mismo giveaway */
+    confirmedCanWinAgain: boolean;
+    /** «reroll» sube primero a un ganador de respaldo */
+    backupsOnReroll: boolean;
 }
 
 /** Comandos de chat del giveaway (control para moderadores y comandos de los viewers). */
@@ -140,10 +155,17 @@ export interface GiveawayCommandRules {
 
 /** Textos por defecto de las respuestas de los comandos (mismos que el servidor) y para qué sirve cada uno. */
 export const COMMAND_TEXTS: { key: string; label: string; text: string; vars: string }[] = [
-    { key: 'usage', label: 'Ayuda del comando', text: 'ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · end · cancel · reroll · pick <usuario> · status', vars: '{root}' },
+    { key: 'usage', label: 'Ayuda del comando', text: 'ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · choose [usuario] · reroll [usuario] · close · open · cancel · status', vars: '{root}' },
     { key: 'no_config', label: 'Aún no hay giveaway configurado', text: '⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.', vars: '' },
     { key: 'no_prize', label: 'Falta el premio', text: '⚠️ Falta el premio: {root} start <premio> [duración]', vars: '{root}' },
     { key: 'already_active', label: 'Ya hay uno en curso', text: '⚠️ Ya hay un giveaway en curso.', vars: '' },
+    { key: 'places_full', label: 'Todos los lugares ya tienen ganador', text: 'ℹ️ Todos los lugares ya tienen ganador. Si alguno no responde, usa {root} reroll.', vars: '{root}' },
+    { key: 'no_one_to_choose', label: 'Nadie disponible para elegir', text: '⚠️ No hay participantes disponibles para elegir.', vars: '' },
+    { key: 'already_winner', label: 'La persona ya es ganadora o fue descartada', text: '⚠️ {user} ya es ganador o fue descartado en este giveaway.', vars: '{user}' },
+    { key: 'entries_closed', label: 'Participación cerrada', text: '🔒 Participación cerrada.', vars: '' },
+    { key: 'entries_opened', label: 'Participación abierta', text: '🔓 Participación abierta.', vars: '' },
+    { key: 'status_closed', label: 'Estado: participación cerrada', text: '🔒 «{prize}»: {count} participantes. La participación está cerrada.', vars: '{prize} {count}' },
+    { key: 'leave_winner', label: 'Viewer: un ganador no puede salir', text: '@{user}, un ganador no puede salir del giveaway.', vars: '{user}' },
     { key: 'no_drawn', label: 'Sin sorteo reciente para re-sortear o elegir', text: '⚠️ No hay un sorteo reciente sobre el que elegir ganador.', vars: '' },
     { key: 'all_responded', label: 'Todos los ganadores ya respondieron', text: 'ℹ️ Todos los ganadores ya respondieron.', vars: '' },
     { key: 'none_active', label: 'No hay uno en curso', text: '⚠️ No hay un giveaway en curso.', vars: '' },
@@ -476,6 +498,7 @@ export const DEFAULT_SETTINGS: GiveawaySettings = {
     platforms: { twitch: true, kick: false, unverifiable: 'allow' },
     overlay: DEFAULT_APPEARANCE,
     commands: { enabled: true, root: '!giveaway', minRole: 'moderator', winnersCommand: '!ganadores', viewerLeave: true, viewerStatus: true, texts: {} },
+    draw: { mode: 'all', keepEntriesOpen: true, discardNoResponse: true, confirmedCanWinAgain: false, backupsOnReroll: true },
 };
 
 /** Mezcla lo que llegó del servidor (puede venir vacío o incompleto) con los valores por defecto. */
@@ -492,6 +515,7 @@ export const mergeSettings = (loaded?: Partial<GiveawaySettings> | null): Giveaw
     platforms: { ...DEFAULT_SETTINGS.platforms, ...(loaded?.platforms ?? {}) },
     overlay: mergeAppearance(loaded?.overlay),
     commands: { ...DEFAULT_SETTINGS.commands, ...(loaded?.commands ?? {}), texts: { ...(loaded?.commands?.texts ?? {}) } },
+    draw: { ...DEFAULT_SETTINGS.draw, ...(loaded?.draw ?? {}) },
 });
 
 export const DEFAULT_GIVEAWAY_CONFIG: GiveawayConfig = {

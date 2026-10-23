@@ -322,9 +322,11 @@ namespace Decatron.Services
                             .Where(w => w.SessionId == session.Id && !w.IsBackup && !w.WasDisqualified)
                             .ToListAsync();
 
-                        var allProcessed = allWinners.All(w => w.HasResponded || w.TimeoutProcessed);
+                        // «Uno por uno»: el giveaway sigue abierto entre ganadores hasta confirmar todos los lugares (o cancelarlo)
+                        var canComplete = GiveawayDrawPlan.ShouldComplete(allWinners.Select(w => new DrawWinnerRow(w.Position, w.ParticipantId, w.IsBackup, w.HasResponded, w.TimeoutProcessed, w.WasDisqualified)),
+                            config.NumberOfWinners, bgSettings.Draw);
 
-                        if (allProcessed && allWinners.Count > 0)
+                        if (canComplete)
                         {
                             _logger.LogInformation($"✅ Todos los ganadores procesados. Marcando giveaway {session.Id} como completed");
 

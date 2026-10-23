@@ -4,14 +4,28 @@
 
 import React from 'react';
 import { Gift, Clock, Users, Trophy } from 'lucide-react';
-import type { GiveawayConfig } from '../../types';
+import type { GiveawayConfig, GiveawaySettings } from '../../types';
 
 interface CreateTabProps {
     config: GiveawayConfig;
     onUpdateConfig: (updates: Partial<GiveawayConfig>) => void;
+    settings?: GiveawaySettings;
+    onUpdateSettings?: <K extends keyof GiveawaySettings>(group: K, updates: Partial<GiveawaySettings[K]>) => void;
 }
 
-export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) => {
+export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, settings, onUpdateSettings }) => {
+    const draw = settings?.draw;
+    const setDraw = (u: Partial<GiveawaySettings['draw']>) => onUpdateSettings?.('draw', u);
+    const DrawToggle = ({ title, hint, value, onChange }: { title: string; hint: string; value: boolean; onChange: (v: boolean) => void }) => (
+        <div className="flex items-center justify-between gap-4 p-4 bg-ds-bg rounded-lg border border-ds-border">
+            <div>
+                <p className="font-bold text-ds-text">{title}</p>
+                <p className="text-xs text-ds-soft">{hint}</p>
+            </div>
+            <button onClick={() => onChange(!value)} className={value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>{value ? 'Sí' : 'No'}</button>
+        </div>
+    );
+
     return (
         <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {/* Header */}
@@ -255,6 +269,30 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                         </div>
                     </div>
                 </div>
+
+                {/* Cómo se sortea y se valida */}
+                {draw && (
+                    <div className="space-y-3 p-4 bg-ds-bg rounded-lg border border-ds-border">
+                        <div>
+                            <p className="font-bold text-ds-text">Cómo se sortea y se valida</p>
+                            <p className="text-xs text-ds-soft">Vale desde el siguiente giveaway. Los comandos de chat (choose, reroll, close) están en la pestaña Comandos.</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">Varios ganadores</label>
+                            <select className="ds-input w-full" value={draw.mode} onChange={(e) => setDraw({ mode: e.target.value as 'all' | 'one_by_one' })}>
+                                <option value="all">Todos de golpe: cada sorteo elige todos los lugares libres</option>
+                                <option value="one_by_one">Uno por uno: cada «choose» elige al siguiente y el giveaway sigue hasta confirmar todos los lugares</option>
+                            </select>
+                            {draw.mode === 'one_by_one' && config.hasBackupWinners && (
+                                <p className="text-xs text-amber-500 mt-1">En «uno por uno» no se eligen ganadores de respaldo de antemano.</p>
+                            )}
+                        </div>
+                        <DrawToggle title="La participación sigue abierta tras sortear" hint="Se cierra con «close». Apagado: se cierra en el primer sorteo" value={draw.keepEntriesOpen} onChange={(v) => setDraw({ keepEntriesOpen: v })} />
+                        <DrawToggle title="Quien no responde queda descartado" hint="No vuelve a salir sorteado en este giveaway. Apagado: puede volver a ganar" value={draw.discardNoResponse} onChange={(v) => setDraw({ discardNoResponse: v })} />
+                        <DrawToggle title="Un ganador confirmado puede ganar otro lugar" hint="Apagado: quien ya respondió no vuelve a salir en este giveaway" value={draw.confirmedCanWinAgain} onChange={(v) => setDraw({ confirmedCanWinAgain: v })} />
+                        <DrawToggle title="«reroll» usa primero al ganador de respaldo" hint="Apagado: siempre sortea a otra persona al azar" value={draw.backupsOnReroll} onChange={(v) => setDraw({ backupsOnReroll: v })} />
+                    </div>
+                )}
 
                 {/* Timeout de respuesta */}
                 <div>

@@ -119,7 +119,7 @@ namespace Decatron.Services.Commands
                 if (isLeave)
                 {
                     var result = await svc.LeaveAsync(channelId, ctx.UserId, platform);
-                    var key = result switch { "left" => "leave_done", "closed" => "leave_closed", _ => "leave_not_in" };
+                    var key = result switch { "left" => "leave_done", "closed" => "leave_closed", "winner_locked" => "leave_winner", _ => "leave_not_in" };
                     await Reply(ctx, platform, svc, sender, Fill(rules.Text(key), ("user", user)));
                 }
                 else
@@ -181,10 +181,18 @@ namespace Decatron.Services.Commands
                         // El aviso de inicio lo manda el servicio según la configuración del giveaway
                         break;
                     }
-                    case "end" or "fin" or "sortear" or "terminar":
-                        try { await svc.EndGiveaway(channelId); }
-                        catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("none_active")); }
+                    case "choose" or "elegir" or "end" or "fin" or "sortear" or "terminar":
+                    {
+                        // Sin nombre: sortea al azar. Con nombre: esa persona ocupa el lugar. El anuncio lo hace el servicio
+                        var target = rest.FirstOrDefault()?.TrimStart('@');
+                        try { await svc.ChooseAsync(channelId, target); }
+                        catch (InvalidOperationException ex) when (ex.Message == "none_active") { await Reply(ctx, platform, svc, sender, Say("none_active")); }
+                        catch (InvalidOperationException ex) when (ex.Message == "places_full") { await Reply(ctx, platform, svc, sender, Say("places_full")); }
+                        catch (InvalidOperationException ex) when (ex.Message == "pick_not_found") { await Reply(ctx, platform, svc, sender, Say("pick_not_found", ("user", target ?? ""))); }
+                        catch (InvalidOperationException ex) when (ex.Message == "already_winner") { await Reply(ctx, platform, svc, sender, Say("already_winner", ("user", target ?? ""))); }
+                        catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("no_one_to_choose")); }
                         break;
+                    }
                     case "cancel" or "cancelar":
                         try
                         {
@@ -196,27 +204,41 @@ namespace Decatron.Services.Commands
                         }
                         catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("none_active")); }
                         break;
+                    case "close" or "cerrar" or "open" or "abrir":
+                    {
+                        var close = sub is "close" or "cerrar";
+                        var done = await svc.SetEntriesClosedAsync(channelId, close);
+                        await Reply(ctx, platform, svc, sender, Say(!done ? "none_active" : close ? "entries_closed" : "entries_opened"));
+                        break;
+                    }
                     case "reroll" or "resortear":
+                    {
+                        // Reemplaza al ganador que no respondió: con un nombre, por esa persona; sin nombre, por un respaldo o al azar
+                        var target = rest.FirstOrDefault()?.TrimStart('@');
                         try
                         {
-                            var (_, name) = await svc.RerollFromChatAsync(channelId, null);
-                            await AnnounceNewWinnerAsync(channelId, name, svc);
+                            var (name, fromBackup) = await svc.RerollFromChatAsync(channelId, target);
+                            await AnnounceNewWinnerAsync(channelId, name, svc, fromBackup);
                         }
                         catch (InvalidOperationException ex) when (ex.Message == "none_active") { await Reply(ctx, platform, svc, sender, Say("no_drawn")); }
                         catch (InvalidOperationException ex) when (ex.Message == "all_responded") { await Reply(ctx, platform, svc, sender, Say("all_responded")); }
+                        catch (InvalidOperationException ex) when (ex.Message == "pick_not_found") { await Reply(ctx, platform, svc, sender, Say("pick_not_found", ("user", target ?? ""))); }
+                        catch (InvalidOperationException ex) when (ex.Message == "already_winner") { await Reply(ctx, platform, svc, sender, Say("already_winner", ("user", target ?? ""))); }
                         catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("no_one_to_reroll")); }
                         break;
-                    case "pick" or "elegir":
+                    }
+                    case "pick":
                     {
                         var target = rest.FirstOrDefault()?.TrimStart('@');
                         if (string.IsNullOrWhiteSpace(target)) { await Reply(ctx, platform, svc, sender, Say("pick_missing")); break; }
                         try
                         {
                             var (picked, replaced) = await svc.PickFromChatAsync(channelId, target);
-                            // Si estaba abierto, el servicio ya anunció al ganador al sortear; si ya estaba sorteado, se anuncia al nuevo
-                            if (replaced) await AnnounceNewWinnerAsync(channelId, picked, svc);
+                            // Un lugar libre lo anuncia el servicio; un reemplazo, aquí
+                            if (replaced) await AnnounceNewWinnerAsync(channelId, picked, svc, false);
                         }
                         catch (InvalidOperationException ex) when (ex.Message == "pick_not_found") { await Reply(ctx, platform, svc, sender, Say("pick_not_found", ("user", target))); }
+                        catch (InvalidOperationException ex) when (ex.Message == "already_winner") { await Reply(ctx, platform, svc, sender, Say("already_winner", ("user", target))); }
                         catch (InvalidOperationException ex) when (ex.Message == "all_responded") { await Reply(ctx, platform, svc, sender, Say("all_responded")); }
                         catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("no_drawn")); }
                         break;
@@ -229,7 +251,7 @@ namespace Decatron.Services.Commands
                             ? (st.MinutesLeft.HasValue ? Say("remaining_timed", ("minutes", st.MinutesLeft.Value.ToString())) : Say("remaining_manual"))
                             : "";
                         await Reply(ctx, platform, svc, sender,
-                            Say(st.Phase == "open" ? "status_open" : "status_drawing",
+                            Say(!st.EntriesOpen && st.Phase == "open" ? "status_closed" : st.Phase == "open" ? "status_open" : "status_drawing",
                                 ("prize", st.Prize), ("count", st.Participants.ToString()), ("remaining", remaining), ("command", st.Command)));
                         break;
                     }
@@ -245,9 +267,9 @@ namespace Decatron.Services.Commands
         }
 
         /// <summary>Anuncia al ganador nuevo con el mensaje de ganador del propio giveaway (el mismo que usa el re-sorteo automático).</summary>
-        private async Task AnnounceNewWinnerAsync(string channelId, string winnerName, GiveawayService svc)
+        private async Task AnnounceNewWinnerAsync(string channelId, string winnerName, GiveawayService svc, bool fromBackup)
         {
-            var text = await svc.WinnerAnnouncementAsync(channelId, winnerName);
+            var text = fromBackup ? await svc.PromotionAnnouncementAsync(channelId, winnerName) : await svc.WinnerAnnouncementAsync(channelId, winnerName);
             if (text == null) return;
             var channelName = await svc.ChannelNameAsync(channelId);
             if (!string.IsNullOrEmpty(channelName)) await svc.AnnounceAsync(channelName, text);
