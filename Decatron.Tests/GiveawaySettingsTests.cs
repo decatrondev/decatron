@@ -138,4 +138,14 @@ public class GiveawaySettingsTests
         Assert.Equal("#ff0000", c.Theme.Accent);
         Assert.Equal(18, c.Theme.PanelRadius); // lo que falta queda por defecto
     }
+
+    [Fact]
+    public void Las_fechas_del_overlay_salen_en_UTC_con_la_Z()
+    {
+        // La base devuelve «sin zona»; sin la Z el navegador las lee como hora local y la ruleta nunca arranca (bug 2026-10-22)
+        var sinZona = new DateTime(2026, 10, 23, 0, 9, 11, DateTimeKind.Unspecified);
+        var json = System.Text.Json.JsonSerializer.Serialize(Decatron.Services.GiveawayOverlayService.AsUtc(sinZona));
+        Assert.EndsWith("Z\"", json);
+        Assert.Null(Decatron.Services.GiveawayOverlayService.AsUtc((DateTime?)null));
+    }
 }

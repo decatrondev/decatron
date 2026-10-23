@@ -40,6 +40,14 @@ namespace Decatron.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// La base guarda UTC en columnas «timestamp without time zone» y Npgsql (modo legacy) las devuelve sin zona: el JSON
+        /// salía sin la Z y el navegador las leía como hora local (en Lima, 5 horas adelante: la ruleta nunca arrancaba).
+        /// Todo instante que sale hacia el overlay pasa por aquí.
+        /// </summary>
+        public static DateTime AsUtc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
+        public static DateTime? AsUtc(DateTime? value) => value.HasValue ? AsUtc(value.Value) : null;
+
         public record EntryView(string DisplayName, string Platform, DateTime EnteredAt);
         public record WinnerView(int Position, string DisplayName, string Platform, string State, DateTime? Deadline, bool WasBackup);
 
@@ -98,15 +106,16 @@ namespace Decatron.Services
             var reveal = Math.Max(0, appearance.RevealSeconds);
             var resultSeconds = Math.Max(0, appearance.ResultSeconds);
 
-            var recent = await _context.GiveawayParticipants.AsNoTracking()
+            var recentRows = await _context.GiveawayParticipants.AsNoTracking()
                 .Where(p => p.SessionId == session.Id)
                 .OrderByDescending(p => p.EnteredAt)
                 .Take(RecentEntries)
-                .Select(p => new EntryView(p.DisplayName, p.Platform, p.EnteredAt))
+                .Select(p => new { p.DisplayName, p.Platform, p.EnteredAt })
                 .ToListAsync();
+            var recent = recentRows.Select(p => new EntryView(p.DisplayName, p.Platform, AsUtc(p.EnteredAt))).ToList();
 
             var common = new Snapshot("idle", session.Id, session.PrizeName, NormalizeCommand(config.EntryCommand), config.AllowAutoEntry,
-                gs.Platforms.Twitch, gs.Platforms.Kick, session.TotalParticipants, session.EndsAt, session.EndedAt, reveal, resultSeconds,
+                gs.Platforms.Twitch, gs.Platforms.Kick, session.TotalParticipants, AsUtc(session.EndsAt), AsUtc(session.EndedAt), reveal, resultSeconds,
                 config.WinnerResponseTimeout, recent, Array.Empty<string>(), Array.Empty<WinnerView>(), now, appearance);
 
             switch (session.Status)
@@ -208,7 +217,7 @@ namespace Decatron.Services
                 {
                     var state = r.w.HasResponded ? "responded" : r.w.TimeoutProcessed ? "timeout" : "pending";
                     return new WinnerView(r.w.Position, r.DisplayName, r.Platform, state,
-                        state == "pending" ? r.w.SelectedAt.AddSeconds(timeoutSeconds) : null, r.w.PromotedAt != null);
+                        state == "pending" ? AsUtc(r.w.SelectedAt).AddSeconds(timeoutSeconds) : null, r.w.PromotedAt != null);
                 })
                 .ToList();
         }

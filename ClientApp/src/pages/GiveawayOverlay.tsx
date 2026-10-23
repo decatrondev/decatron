@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
 import GiveawayStage, { showHideCss } from './features/giveaway-extension/overlay/GiveawayStage';
-import { OVERLAY_CANVAS, mergeAppearance } from './features/giveaway-extension/overlay/model';
+import { OVERLAY_CANVAS, mergeAppearance, parseUtc } from './features/giveaway-extension/overlay/model';
 import type { OverlaySnapshot } from './features/giveaway-extension/overlay/model';
 
 /**
@@ -46,7 +46,7 @@ export default function GiveawayOverlay() {
 
         const accept = (raw: OverlaySnapshot) => {
             const snap = { ...raw, appearance: mergeAppearance(raw.appearance) };
-            setClockOffset(Date.parse(raw.serverNow) - Date.now());
+            setClockOffset(parseUtc(raw.serverNow) - Date.now());
             setSnapshot(snap);
         };
 

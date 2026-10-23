@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { OVERLAY_CANVAS, PLATFORM_STYLE } from './model';
+import { OVERLAY_CANVAS, PLATFORM_STYLE, parseUtc } from './model';
 import type { OverlayAppearance, OverlayBlock, OverlayBlockId, OverlaySnapshot, OverlayWinner, ShowHideAnimation } from './model';
 import { playFanfare, playTick } from './sounds';
 // El aspecto sale del motor de overlays de Song Request: mismo tema, mismas fuentes, mismas sombras y animaciones
@@ -23,7 +23,7 @@ interface Props {
     audio?: boolean;
 }
 
-const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const ROW = 116;
 
 /** Animación CSS de entrada o salida (las mismas que Song Request; sus keyframes vienen de OVERLAY_KEYFRAMES). */
@@ -54,17 +54,25 @@ export default function GiveawayStage({ snapshot, clockOffsetMs, source = 'all',
 
     // Reloj propio: 20 cuadros por segundo solo mientras hay algo animándose o contando
     const animating = snapshot.phase === 'drawing' || snapshot.phase === 'winner' || snapshot.phase === 'open';
+    const smooth = snapshot.phase === 'drawing';
     useEffect(() => {
         if (!animating) return;
-        const id = window.setInterval(() => setTick((n) => n + 1), 50);
+        // La ruleta se dibuja a cada cuadro (20 por segundo se veía a saltos); lo demás solo cuenta segundos
+        if (smooth) {
+            let raf = 0;
+            const loop = () => { setTick((n) => n + 1); raf = requestAnimationFrame(loop); };
+            raf = requestAnimationFrame(loop);
+            return () => cancelAnimationFrame(raf);
+        }
+        const id = window.setInterval(() => setTick((n) => n + 1), 250);
         return () => window.clearInterval(id);
-    }, [animating]);
+    }, [animating, smooth]);
     void tick;
 
     const serverNow = Date.now() + clockOffsetMs;
 
     // El servidor republica al cambiar de fase, pero la ruleta termina sola a la hora exacta: sin esperar el siguiente evento
-    const drawnAt = snapshot.drawnAt ? Date.parse(snapshot.drawnAt) : 0;
+    const drawnAt = snapshot.drawnAt ? parseUtc(snapshot.drawnAt) : 0;
     const revealEnd = drawnAt + snapshot.revealSeconds * 1000;
     const phase = snapshot.phase === 'drawing' && serverNow >= revealEnd ? 'winner' : snapshot.phase;
 
@@ -124,7 +132,7 @@ export default function GiveawayStage({ snapshot, clockOffsetMs, source = 'all',
 // ── Tarjeta: premio, comando, contador y tiempo ─────────────────────────────────
 
 function CardBlock({ snapshot, phase, serverNow, a, style }: { snapshot: OverlaySnapshot; phase: string; serverNow: number; a: OverlayAppearance; style: CSSProperties }) {
-    const endsMs = snapshot.endsAt ? Date.parse(snapshot.endsAt) - serverNow : null;
+    const endsMs = snapshot.endsAt ? parseUtc(snapshot.endsAt) - serverNow : null;
     if (phase === 'cancelled') {
         return <div style={{ ...style, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, fontWeight: 800 }}>Giveaway cancelado</div>;
     }
@@ -176,7 +184,7 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
 }) {
     const winner = snapshot.winners[0];
     const names = snapshot.candidates.length > 0 ? snapshot.candidates : [winner?.displayName ?? '…'];
-    const total = 52;
+    const total = 40;
     // La ruleta recorre nombres reales y se detiene en el ganador, que el servidor ya había elegido
     const reel = useMemo(() => {
         const winnerName = winner?.displayName ?? names[0];
@@ -194,7 +202,7 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
 
     const duration = Math.max(1, snapshot.revealSeconds) * 1000;
     const t = Math.min(1, Math.max(0, (serverNow - drawnAt) / duration));
-    const pos = easeOutQuart(t) * (total - 1);
+    const pos = easeOutCubic(t) * (total - 1);
 
     const lastRow = useRef(-1);
     useEffect(() => {
@@ -229,7 +237,7 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
         );
     }
 
-    const timeLeft = winner?.deadline ? Date.parse(winner.deadline) - serverNow : null;
+    const timeLeft = winner?.deadline ? parseUtc(winner.deadline) - serverNow : null;
     return (
         <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center' }}>
             <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.theme.accent, textTransform: 'uppercase' }}>🏆 {phase === 'result' ? 'Ganador' : '¡Felicidades!'}</div>
@@ -254,7 +262,7 @@ function WinnersBlock({ winners, serverNow, a, style }: { winners: OverlayWinner
             <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: 2, color: a.theme.accent, textTransform: 'uppercase', marginBottom: 10 }}>Ganadores</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {winners.slice(0, 4).map((w) => {
-                    const left = w.deadline ? Date.parse(w.deadline) - serverNow : null;
+                    const left = w.deadline ? parseUtc(w.deadline) - serverNow : null;
                     const chip = w.state === 'responded' ? { t: '✓ Respondió', c: '#4ade80' } : w.state === 'timeout' ? { t: '✗ No respondió', c: '#f87171' } : { t: left !== null ? `⏱ ${formatClock(left)}` : 'Esperando', c: a.textColor };
                     return (
                         <div key={w.position} style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 30, fontWeight: 700 }}>

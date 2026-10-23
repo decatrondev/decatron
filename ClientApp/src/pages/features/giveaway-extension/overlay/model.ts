@@ -121,3 +121,9 @@ export function demoSnapshot(phase: OverlayPhase, appearance: OverlayAppearance,
         serverNow: new Date(now).toISOString(), appearance, simulated: true,
     };
 }
+
+/**
+ * Instante del servidor → milisegundos. Todos los instantes del overlay son UTC; si alguno llegara sin zona (la base los
+ * guarda así), se lee igual como UTC en vez de hora local: leerlo como local desfasaba la ruleta horas enteras.
+ */
+export const parseUtc = (value: string): number => Date.parse(/(?:Z|[+-]\d\d:?\d\d)$/i.test(value) ? value : `${value}Z`);
