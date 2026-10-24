@@ -217,8 +217,8 @@ namespace Decatron.Services.Commands
                         var target = rest.FirstOrDefault()?.TrimStart('@');
                         try
                         {
-                            var (name, fromBackup) = await svc.RerollFromChatAsync(channelId, target);
-                            await AnnounceNewWinnerAsync(channelId, name, svc, fromBackup);
+                            // El servicio revela y anuncia a los ganadores nuevos
+                            await svc.RerollFromChatAsync(channelId, target);
                         }
                         catch (InvalidOperationException ex) when (ex.Message == "none_active") { await Reply(ctx, platform, svc, sender, Say("no_drawn")); }
                         catch (InvalidOperationException ex) when (ex.Message == "all_responded") { await Reply(ctx, platform, svc, sender, Say("all_responded")); }
@@ -233,9 +233,7 @@ namespace Decatron.Services.Commands
                         if (string.IsNullOrWhiteSpace(target)) { await Reply(ctx, platform, svc, sender, Say("pick_missing")); break; }
                         try
                         {
-                            var (picked, replaced) = await svc.PickFromChatAsync(channelId, target);
-                            // Un lugar libre lo anuncia el servicio; un reemplazo, aquí
-                            if (replaced) await AnnounceNewWinnerAsync(channelId, picked, svc, false);
+                            await svc.PickFromChatAsync(channelId, target);
                         }
                         catch (InvalidOperationException ex) when (ex.Message == "pick_not_found") { await Reply(ctx, platform, svc, sender, Say("pick_not_found", ("user", target))); }
                         catch (InvalidOperationException ex) when (ex.Message == "already_winner") { await Reply(ctx, platform, svc, sender, Say("already_winner", ("user", target))); }
@@ -264,15 +262,6 @@ namespace Decatron.Services.Commands
             {
                 _logger.LogError(ex, "Error ejecutando «{Root} {Sub}» en {Channel}", root, sub, ctx.Channel);
             }
-        }
-
-        /// <summary>Anuncia al ganador nuevo con el mensaje de ganador del propio giveaway (el mismo que usa el re-sorteo automático).</summary>
-        private async Task AnnounceNewWinnerAsync(string channelId, string winnerName, GiveawayService svc, bool fromBackup)
-        {
-            var text = fromBackup ? await svc.PromotionAnnouncementAsync(channelId, winnerName) : await svc.WinnerAnnouncementAsync(channelId, winnerName);
-            if (text == null) return;
-            var channelName = await svc.ChannelNameAsync(channelId);
-            if (!string.IsNullOrEmpty(channelName)) await svc.AnnounceAsync(channelName, text);
         }
     }
 }

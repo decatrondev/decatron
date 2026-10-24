@@ -49,7 +49,7 @@ namespace Decatron.Services
         public static DateTime? AsUtc(DateTime? value) => value.HasValue ? AsUtc(value.Value) : null;
 
         public record EntryView(string DisplayName, string Platform, DateTime EnteredAt);
-        public record WinnerView(int Position, string DisplayName, string Platform, string State, DateTime? Deadline, bool WasBackup);
+        public record WinnerView(int Position, string DisplayName, string Platform, string State, DateTime? Deadline, bool WasBackup, bool Fresh = false);
 
         public record Snapshot(
             string Phase,
@@ -126,14 +126,16 @@ namespace Decatron.Services
                 case "selecting_winners":
                 case "completed":
                 {
-                    var winners = await LoadWinnersAsync(session.Id, config.WinnerResponseTimeout);
                     var endedAt = session.EndedAt ?? now;
+                    var winners = await LoadWinnersAsync(session.Id, config.WinnerResponseTimeout, endedAt);
                     // El revelado real es lo que se esperó al sortear: el plazo de los ganadores empieza al terminar (sin overlay
                     // conectado, no hubo revelado). Para sesiones viejas, sin diferencia, no hay ruleta.
-                    var firstSelected = await _context.GiveawayWinners.AsNoTracking()
-                        .Where(w => w.SessionId == session.Id && !w.IsBackup)
-                        .MinAsync(w => (DateTime?)w.SelectedAt);
-                    var revealEnds = firstSelected.HasValue && firstSelected.Value > endedAt ? firstSelected.Value : endedAt;
+                    // Cada sorteo nuevo (el primero, un reroll, un choose posterior) reinicia EndedAt y deja a sus ganadores con
+                    // SelectedAt = EndedAt + revelado: el último en elegirse marca cuándo termina la ruleta de esa ronda
+                    var lastSelected = await _context.GiveawayWinners.AsNoTracking()
+                        .Where(w => w.SessionId == session.Id && !w.IsBackup && !w.WasDisqualified)
+                        .MaxAsync(w => (DateTime?)w.SelectedAt);
+                    var revealEnds = lastSelected.HasValue && lastSelected.Value > endedAt ? lastSelected.Value : endedAt;
                     common = common with { RevealSeconds = (int)Math.Round((revealEnds - endedAt).TotalSeconds) };
 
                     if (now < revealEnds)
@@ -207,7 +209,7 @@ namespace Decatron.Services
                 await PublishIfChangedAsync(channelId);
         }
 
-        private async Task<IReadOnlyList<WinnerView>> LoadWinnersAsync(int sessionId, int timeoutSeconds)
+        private async Task<IReadOnlyList<WinnerView>> LoadWinnersAsync(int sessionId, int timeoutSeconds, DateTime endedAt)
         {
             var rows = await (from w in _context.GiveawayWinners.AsNoTracking()
                               join p in _context.GiveawayParticipants.AsNoTracking() on w.ParticipantId equals p.Id
@@ -222,8 +224,10 @@ namespace Decatron.Services
                 .Select(r =>
                 {
                     var state = r.w.HasResponded ? "responded" : r.w.TimeoutProcessed ? "timeout" : "pending";
+                    // «Nueva» = elegida en el último sorteo: la ruleta aterriza en ella y no en un ganador de rondas anteriores
                     return new WinnerView(r.w.Position, r.DisplayName, r.Platform, state,
-                        state == "pending" ? AsUtc(r.w.SelectedAt).AddSeconds(timeoutSeconds) : null, r.w.PromotedAt != null);
+                        state == "pending" ? AsUtc(r.w.SelectedAt).AddSeconds(timeoutSeconds) : null, r.w.PromotedAt != null,
+                        r.w.SelectedAt >= endedAt.AddSeconds(-2));
                 })
                 .ToList();
         }

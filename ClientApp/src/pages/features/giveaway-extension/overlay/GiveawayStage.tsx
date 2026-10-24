@@ -182,7 +182,8 @@ function EntriesBlock({ entries, a, style }: { entries: OverlaySnapshot['recent'
 function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
     snapshot: OverlaySnapshot; phase: string; serverNow: number; drawnAt: number; a: OverlayAppearance; audio: boolean; style: CSSProperties;
 }) {
-    const winner = snapshot.winners[0];
+    // La ruleta aterriza en el ganador de la última ronda (un reroll no vuelve a mostrar al de la primera)
+    const winner = snapshot.winners.find((w) => w.fresh) ?? snapshot.winners[0];
     const names = snapshot.candidates.length > 0 ? snapshot.candidates : [winner?.displayName ?? '…'];
     const total = 40;
     // La ruleta recorre nombres reales y se detiene en el ganador, que el servidor ya había elegido

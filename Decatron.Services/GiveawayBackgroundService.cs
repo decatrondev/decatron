@@ -215,7 +215,8 @@ namespace Decatron.Services
 
                                     backupWinner.IsBackup = false;
                                     backupWinner.PromotedAt = DateTime.UtcNow;
-                                    backupWinner.SelectedAt = DateTime.UtcNow; // IMPORTANTE: Reiniciar el timer de timeout
+                                    // IMPORTANTE: Reiniciar el timer de timeout; con overlay, el plazo cuenta desde que termina la ruleta
+                                    backupWinner.SelectedAt = await giveawayService.BeginRevealRoundAsync(session);
                                     backupWinner.TimeoutProcessed = false; // Permitir que sea procesado nuevamente
                                     await dbContext.SaveChangesAsync();
 
@@ -227,7 +228,7 @@ namespace Decatron.Services
                                         var promotionMsg = (string.IsNullOrWhiteSpace(bgSettings.Messages.Promoted) ? GiveawayMessages.DefaultPromoted : bgSettings.Messages.Promoted)
                                             .Replace("{winner}", backupParticipant.Username).Replace("{user}", backupParticipant.Username)
                                             .Replace("{timeout}", config.WinnerResponseTimeout.ToString()).Replace("{prize}", config.PrizeName ?? "");
-                                        await giveawayService.AnnounceAsync(channelName, promotionMsg);
+                                        await giveawayService.AnnounceAtAsync(channelName, promotionMsg, backupWinner.SelectedAt);
                                         _logger.LogInformation($"✅ Backup winner promovido: {backupParticipant.Username}");
                                     }
                                 }
@@ -250,7 +251,7 @@ namespace Decatron.Services
                                                 .Replace("{prize}", config.PrizeName ?? "el premio")
                                                 .Replace("{timeout}", config.WinnerResponseTimeout.ToString());
 
-                                            await giveawayService.AnnounceAsync(channelName, rerollMsg);
+                                            await giveawayService.AnnounceAtAsync(channelName, rerollMsg, newWinner.SelectedAt);
                                             _logger.LogInformation($"✅ Nuevo ganador por reroll: {newParticipant.Username}");
                                         }
                                     }

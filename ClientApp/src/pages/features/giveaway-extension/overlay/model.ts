@@ -76,7 +76,7 @@ export function mergeAppearance(loaded?: Partial<OverlayAppearance> | null): Ove
 export type OverlayPhase = 'idle' | 'open' | 'drawing' | 'winner' | 'result' | 'cancelled';
 
 export interface OverlayEntry { displayName: string; platform: string; enteredAt: string }
-export interface OverlayWinner { position: number; displayName: string; platform: string; state: 'pending' | 'responded' | 'timeout'; deadline: string | null; wasBackup: boolean }
+export interface OverlayWinner { position: number; displayName: string; platform: string; state: 'pending' | 'responded' | 'timeout'; deadline: string | null; wasBackup: boolean; fresh?: boolean }
 
 /** La foto que emite el servidor (GiveawayOverlayService.Snapshot, en camelCase). */
 export interface OverlaySnapshot {

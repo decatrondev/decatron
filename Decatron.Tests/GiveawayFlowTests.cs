@@ -151,7 +151,7 @@ public class GiveawayFlowTests
 
         // El ganador 1 no responde (lo marca el servicio de fondo) y el moderador escribe reroll
         await MarkAsync(id, first.Name, responded: false);
-        var (name, fromBackup) = await InSvc(s => s.RerollFromChatAsync(Channel, null));
+        var (name, fromBackup) = (await InSvc(s => s.RerollFromChatAsync(Channel, null))).Single();
         Assert.True(fromBackup);
         Assert.Equal(backupName, name);
 
@@ -163,7 +163,7 @@ public class GiveawayFlowTests
 
         // Ya no hay respaldo: el siguiente reroll sortea a otra persona que no haya ganado ni fallado
         await MarkAsync(id, backupName, responded: false);
-        var (name2, fromBackup2) = await InSvc(s => s.RerollFromChatAsync(Channel, null));
+        var (name2, fromBackup2) = (await InSvc(s => s.RerollFromChatAsync(Channel, null))).Single();
         Assert.False(fromBackup2);
         var seen = new[] { first.Name, backupName };
         Assert.DoesNotContain(name2, seen);
@@ -262,7 +262,7 @@ public class GiveawayFlowTests
             await ctx.SaveChangesAsync();
         }
 
-        var (name, _) = await InSvc(s => s.RerollFromChatAsync(Channel, null));
+        var (name, _) = (await InSvc(s => s.RerollFromChatAsync(Channel, null))).Single();
         Assert.NotEqual(winner, name);
         using var check = NewContext();
         Assert.Equal("selecting_winners", (await check.GiveawaySessions.AsNoTracking().FirstAsync(s => s.Id == id)).Status);
@@ -294,5 +294,58 @@ public class GiveawayFlowTests
         Assert.Equal("active", again.Status);
         Assert.Equal(90, (again.EndsAt!.Value - again.StartedAt!.Value).TotalSeconds, 1);
         Clean();
+    }
+
+    [Fact]
+    public async Task Reroll_reemplaza_a_todos_los_que_vencieron_y_deja_los_X_ganadores_configurados()
+    {
+        if (string.IsNullOrWhiteSpace(App)) return;
+        var id = await StartAsync(winners: 3, backups: 0, participants: 10);
+        var first = await InSvc(s => s.ChooseAsync(Channel, null));
+        Assert.Equal(3, first.Count);
+        foreach (var n in first) await MarkAsync(id, n, responded: false); // los tres vencieron sin responder
+
+        var replaced = await InSvc(s => s.RerollFromChatAsync(Channel, null));
+        Assert.Equal(3, replaced.Count);                                    // salen los 3 configurados, no solo uno
+        var names = replaced.Select(r => r.Username).ToList();
+        Assert.Equal(3, names.Distinct().Count());
+        Assert.Empty(names.Intersect(first));                               // ninguno de los que fallaron
+
+        var rows = await WinnersAsync(id);
+        Assert.Equal(3, rows.Count(r => !r.Dq && !r.Backup));              // 3 vigentes
+        Assert.Equal(3, rows.Count(r => r.Dq));                            // los 3 que fallaron, descartados
+        Assert.Equal(new[] { 1, 2, 3 }, rows.Where(r => !r.Dq).Select(r => r.Pos).OrderBy(x => x));
+
+        // El overlay marca a los 3 como «nuevos» (la ruleta se repite para la ronda) y la ronda reinició el reloj del sorteo
+        using var ctx = NewContext();
+        var accounts = new AccountChannelResolver(new ServiceCollection().BuildServiceProvider().GetRequiredService<IServiceScopeFactory>(), NullLogger<AccountChannelResolver>.Instance);
+        var overlay = new GiveawayOverlayService(ctx, accounts, new FakeHub(), NullLogger<GiveawayOverlayService>.Instance);
+        var snap = await overlay.BuildSnapshotAsync(Channel);
+        Assert.Equal(3, snap.Winners.Count);
+        Assert.All(snap.Winners, w => Assert.True(w.Fresh));
+        Assert.Equal("winner", snap.Phase);
+
+        // Con overlay conectado, los nuevos quedan con SelectedAt = inicio de la ronda + revelado: la ruleta se vuelve a ver
+        await ctx.Database.ExecuteSqlRawAsync($"UPDATE giveaway_winners SET selected_at = (now() at time zone 'utc') + interval '8 seconds' WHERE session_id = {id} AND NOT was_disqualified; UPDATE giveaway_sessions SET ended_at = (now() at time zone 'utc') WHERE id = {id}");
+        var drawing = await overlay.BuildSnapshotAsync(Channel);
+        Assert.Equal("drawing", drawing.Phase);
+        Assert.InRange(drawing.RevealSeconds, 7, 8);
+        Assert.NotEmpty(drawing.Candidates);
+    }
+
+    [Fact]
+    public async Task Reroll_sin_nadie_vencido_solo_reemplaza_al_primero_pendiente_y_los_ya_confirmados_no_son_nuevos()
+    {
+        if (string.IsNullOrWhiteSpace(App)) return;
+        var id = await StartAsync(winners: 3, backups: 0, participants: 10);
+        var first = await InSvc(s => s.ChooseAsync(Channel, null));
+        await MarkAsync(id, first[0], responded: true);                     // el 1 confirmó; el 2 y el 3 siguen con plazo abierto
+
+        var replaced = await InSvc(s => s.RerollFromChatAsync(Channel, null));
+        Assert.Single(replaced);                                            // ninguno venció: solo el primero pendiente
+        var rows = await WinnersAsync(id);
+        Assert.True(rows.Single(r => r.Name == first[1]).Dq);
+        Assert.False(rows.Single(r => r.Name == first[2]).Dq);
+        Assert.False(rows.Single(r => r.Name == first[0]).Dq);
     }
 }
