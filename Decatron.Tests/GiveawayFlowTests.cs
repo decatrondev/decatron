@@ -426,6 +426,22 @@ public class GiveawayFlowTests
     }
 
     [Fact]
+    public async Task Manual_add_enters_once_and_counts_in_the_draw()
+    {
+        await StartAsync(winners: 1, backups: 0, participants: 3);
+        Assert.Equal("added", await InSvc(s => s.AddManualAsync(Channel, "twitch", "manual-1", "invitado", "Invitado", null)));
+        Assert.Equal("already_in", await InSvc(s => s.AddManualAsync(Channel, "twitch", "manual-1", "invitado", "Invitado", null)));
+
+        var detail = JsonSerializer.SerializeToElement(await InSvc(s => s.GetParticipantsDetailAsync(Channel)));
+        var list = detail.GetProperty("participants").EnumerateArray().ToList();
+        Assert.Equal(4, list.Count);
+        Assert.Contains(list, p => p.GetProperty("username").GetString() == "invitado" && p.GetProperty("status").GetString() == "participating");
+
+        // Puede ser elegido como cualquier otro
+        Assert.Equal("invitado", (await InSvc(s => s.ChooseAsync(Channel, "invitado"))).Single());
+    }
+
+    [Fact]
     public async Task La_lista_de_participantes_muestra_estado_y_probabilidad_y_solo_deja_sacar_a_quien_no_es_ganador()
     {
         if (string.IsNullOrWhiteSpace(App)) return;

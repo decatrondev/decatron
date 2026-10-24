@@ -1456,6 +1456,42 @@ namespace Decatron.Services
             return "removed";
         }
 
+        /// <summary>
+        /// Anota a mano a una persona (decisión del streamer): no pasa por los requisitos, el cooldown ni el límite de
+        /// participantes, pero sí necesita un sorteo abierto o esperando respuestas. Devuelve added / already_in / none.
+        /// </summary>
+        public async Task<string> AddManualAsync(string channelId, string platform, string userId, string username, string displayName, DateTime? accountCreatedAt)
+        {
+            var session = await CurrentSessionAsync(channelId);
+            if (session == null || (session.Status != "active" && session.Status != "selecting_winners")) return "none";
+            if (await _context.GiveawayParticipants.AnyAsync(p => p.SessionId == session.Id && p.Platform == platform && p.UserId == userId)) return "already_in";
+
+            var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot) ?? new GiveawayConfig();
+            var participant = new GiveawayParticipant
+            {
+                SessionId = session.Id,
+                Platform = platform,
+                UserId = userId,
+                Username = username,
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? username : displayName,
+                AccountCreatedAt = accountCreatedAt,
+                EnteredAt = DateTime.UtcNow,
+                EntryCount = 1,
+                CalculatedWeight = 1.0m
+            };
+            participant.CalculatedWeight = CalculateWeight(participant, config);
+            _context.GiveawayParticipants.Add(participant);
+            await _context.SaveChangesAsync();
+
+            session.TotalParticipants = await _context.GiveawayParticipants.CountAsync(p => p.SessionId == session.Id);
+            await RecalculateSessionWeight(session.Id);
+            InvalidateEntryRules(channelId);
+            await _overlayNotificationService.SendGiveawayParticipantJoinedAsync(await _overlay.OverlayKeyAsync(channelId) ?? channelId,
+                new { participant.Username, participant.DisplayName, participant.Platform, participant.CalculatedWeight, participant.EnteredAt });
+            await PublishOverlayAsync(channelId);
+            return "added";
+        }
+
         /// <summary>La participación acepta entradas: el sorteo está abierto o esperando respuestas, y nadie la cerró.</summary>
         private static bool EntriesOpen(GiveawaySession s) =>
             !s.EntriesClosed && (s.Status == "active" || s.Status == "selecting_winners");

@@ -70,7 +70,8 @@ namespace Decatron.Services
             IReadOnlyList<WinnerView> Winners,
             DateTime ServerNow,
             GiveawayOverlayRules Appearance,
-            bool Simulated = false);
+            bool Simulated = false,
+            string Language = "es");
 
         /// <summary>A qué clave de overlay pertenece este canal de Twitch (el login de la fila principal de la cuenta).</summary>
         public async Task<string?> OverlayKeyAsync(string channelId)
@@ -90,7 +91,21 @@ namespace Decatron.Services
             return (resolved.Account.OverlayKey, resolved.LegacyVariant, resolved.Account.TwitchId);
         }
 
+        /// <summary>Estado del overlay con el idioma del streamer (los textos fijos del overlay lo siguen).</summary>
         public async Task<Snapshot> BuildSnapshotAsync(string channelId)
+        {
+            var snapshot = await BuildCoreAsync(channelId);
+            return snapshot with { Language = await LanguageOfAsync(channelId) };
+        }
+
+        private async Task<string> LanguageOfAsync(string channelId)
+        {
+            var language = await _context.Users.AsNoTracking().Where(u => u.TwitchId == channelId)
+                .Select(u => u.PreferredLanguage).FirstOrDefaultAsync();
+            return language != null && language.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "en" : "es";
+        }
+
+        private async Task<Snapshot> BuildCoreAsync(string channelId)
         {
             var now = DateTime.UtcNow;
             var session = await _context.GiveawaySessions.AsNoTracking()
@@ -279,12 +294,13 @@ namespace Decatron.Services
             var command = NormalizeCommand(cfg?.EntryCommand);
             var prize = string.IsNullOrWhiteSpace(cfg?.PrizeName) ? "Premio de prueba" : cfg!.PrizeName;
 
+            var language = await LanguageOfAsync(channelId);
             _simulations[channelId] = DateTime.UtcNow.AddMinutes(2);
-            _ = Task.Run(() => RunSimulationAsync(channelId, key, a, gs.Platforms.Kick, command, prize));
+            _ = Task.Run(() => RunSimulationAsync(channelId, key, a, gs.Platforms.Kick, command, prize, language));
             return null;
         }
 
-        private async Task RunSimulationAsync(string channelId, string key, GiveawayOverlayRules a, bool withKick, string command, string prize)
+        private async Task RunSimulationAsync(string channelId, string key, GiveawayOverlayRules a, bool withKick, string command, string prize, string language)
         {
             var group = _hub.Clients.Group($"overlay_{key}");
             var entries = new List<EntryView>();
@@ -295,7 +311,7 @@ namespace Decatron.Services
             Snapshot Frame(string phase, IReadOnlyList<string>? candidates = null, IReadOnlyList<WinnerView>? winners = null, DateTime? drawnAt = null, DateTime? endsAt = null) =>
                 new(phase, 0, prize, command, false, true, withKick, entries.Count, endsAt, drawnAt, a.RevealSeconds, a.ResultSeconds, timeout,
                     entries.OrderByDescending(e => e.EnteredAt).Take(RecentEntries).ToList(), candidates ?? Array.Empty<string>(),
-                    winners ?? Array.Empty<WinnerView>(), DateTime.UtcNow, a, Simulated: true);
+                    winners ?? Array.Empty<WinnerView>(), DateTime.UtcNow, a, Simulated: true, Language: language);
 
             try
             {

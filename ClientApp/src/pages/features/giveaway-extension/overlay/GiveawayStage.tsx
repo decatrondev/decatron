@@ -23,6 +23,14 @@ interface Props {
     audio?: boolean;
 }
 
+const TEXTS = {
+    es: { cancelled: 'Giveaway cancelado', type: 'Escribe', toJoin: 'para participar', orChat: 'o solo escribe en el chat', recent: 'Últimas entradas', waiting: 'Esperando participantes…',
+        drawing: 'Sorteando…', winner: 'Ganador', congrats: '¡Felicidades!', writeChat: 'Escribe en el chat', responded: 'Respondió', noResponse: 'No respondió', backup: 'respaldo', winners: 'Ganadores', pending: 'Esperando' },
+    en: { cancelled: 'Giveaway cancelled', type: 'Type', toJoin: 'to join', orChat: 'or just type in the chat', recent: 'Latest entries', waiting: 'Waiting for participants…',
+        drawing: 'Drawing…', winner: 'Winner', congrats: 'Congratulations!', writeChat: 'Type in the chat', responded: 'Responded', noResponse: 'Did not respond', backup: 'backup', winners: 'Winners', pending: 'Waiting' },
+} as const;
+const textsOf = (language?: string) => (language === 'en' ? TEXTS.en : TEXTS.es);
+
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const ROW = 116;
 
@@ -104,12 +112,12 @@ export default function GiveawayStage({ snapshot, clockOffsetMs, source = 'all',
 
     if (phase === 'open' || phase === 'cancelled') {
         blocks.push({ id: 'card', node: <CardBlock snapshot={snapshot} phase={phase} serverNow={serverNow} a={a} style={panel()} /> });
-        if (phase === 'open') blocks.push({ id: 'entries', node: <EntriesBlock entries={entries} a={a} style={panel({ padding: 22 })} /> });
+        if (phase === 'open') blocks.push({ id: 'entries', node: <EntriesBlock entries={entries} language={snapshot.language} a={a} style={panel({ padding: 22 })} /> });
     }
     if (phase === 'drawing' || phase === 'winner' || phase === 'result') {
         blocks.push({ id: 'reveal', node: <RevealBlock snapshot={snapshot} phase={phase} serverNow={serverNow} drawnAt={drawnAt} a={a} audio={audio} style={panel()} /> });
         // Mientras gira la ruleta el nombre no se adelanta: los ganadores aparecen con el revelado
-        if (phase !== 'drawing' && snapshot.winners.length > 0) blocks.push({ id: 'winners', node: <WinnersBlock winners={snapshot.winners} serverNow={serverNow} a={a} style={panel({ padding: 22 })} /> });
+        if (phase !== 'drawing' && snapshot.winners.length > 0) blocks.push({ id: 'winners', node: <WinnersBlock winners={snapshot.winners} language={snapshot.language} serverNow={serverNow} a={a} style={panel({ padding: 22 })} /> });
     }
 
     return (
@@ -134,7 +142,7 @@ export default function GiveawayStage({ snapshot, clockOffsetMs, source = 'all',
 function CardBlock({ snapshot, phase, serverNow, a, style }: { snapshot: OverlaySnapshot; phase: string; serverNow: number; a: OverlayAppearance; style: CSSProperties }) {
     const endsMs = snapshot.endsAt ? parseUtc(snapshot.endsAt) - serverNow : null;
     if (phase === 'cancelled') {
-        return <div style={{ ...style, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, fontWeight: 800 }}>Giveaway cancelado</div>;
+        return <div style={{ ...style, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, fontWeight: 800 }}>{textsOf(snapshot.language).cancelled}</div>;
     }
     return (
         <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -143,8 +151,8 @@ function CardBlock({ snapshot, phase, serverNow, a, style }: { snapshot: Overlay
                 <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1.1, marginTop: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{snapshot.prize}</div>
             </div>
             <div style={{ fontSize: 28 }}>
-                Escribe <b style={{ color: a.theme.accent, fontSize: 36 }}>{snapshot.command}</b> para participar
-                {snapshot.allowAutoEntry && <div style={{ color: a.secondaryColor, fontSize: 24 }}>o solo escribe en el chat</div>}
+                {textsOf(snapshot.language).type} <b style={{ color: a.theme.accent, fontSize: 36 }}>{snapshot.command}</b> {textsOf(snapshot.language).toJoin}
+                {snapshot.allowAutoEntry && <div style={{ color: a.secondaryColor, fontSize: 24 }}>{textsOf(snapshot.language).orChat}</div>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 34, fontWeight: 800 }}>
                 <span>👥 {snapshot.participantCount}</span>
@@ -160,10 +168,10 @@ function CardBlock({ snapshot, phase, serverNow, a, style }: { snapshot: Overlay
 
 // ── Últimas entradas ────────────────────────────────────────────────────────────
 
-function EntriesBlock({ entries, a, style }: { entries: OverlaySnapshot['recent']; a: OverlayAppearance; style: CSSProperties }) {
+function EntriesBlock({ entries, language, a, style }: { entries: OverlaySnapshot['recent']; language?: string; a: OverlayAppearance; style: CSSProperties }) {
     return (
         <div style={{ ...style, height: '100%', overflow: 'hidden' }}>
-            <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 2, color: a.theme.accent, textTransform: 'uppercase', marginBottom: 12 }}>Últimas entradas</div>
+            <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 2, color: a.theme.accent, textTransform: 'uppercase', marginBottom: 12 }}>{textsOf(language).recent}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {entries.slice(0, 8).map((e, i) => (
                     <div key={`${e.displayName}-${e.enteredAt}`} style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 32, fontWeight: 700, opacity: 1 - i * 0.07, animation: i === 0 ? 'gvSlideIn .4s ease-out' : undefined }}>
@@ -171,7 +179,7 @@ function EntriesBlock({ entries, a, style }: { entries: OverlaySnapshot['recent'
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.displayName}</span>
                     </div>
                 ))}
-                {entries.length === 0 && <div style={{ fontSize: 28, color: a.secondaryColor }}>Esperando participantes…</div>}
+                {entries.length === 0 && <div style={{ fontSize: 28, color: a.secondaryColor }}>{textsOf(language).waiting}</div>}
             </div>
         </div>
     );
@@ -230,7 +238,7 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
         const windowH = ROW * 3;
         return (
             <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
-                <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.theme.accent, textTransform: 'uppercase' }}>Sorteando…</div>
+                <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.theme.accent, textTransform: 'uppercase' }}>{textsOf(snapshot.language).drawing}</div>
                 <div style={{ position: 'relative', width: '100%', height: windowH, overflow: 'hidden', WebkitMaskImage: 'linear-gradient(transparent, #000 28%, #000 72%, transparent)', maskImage: 'linear-gradient(transparent, #000 28%, #000 72%, transparent)' }}>
                     <div style={{ position: 'absolute', left: 0, right: 0, top: ROW, height: ROW, borderTop: `3px solid ${a.theme.accent}`, borderBottom: `3px solid ${a.theme.accent}` }}>
                         <div style={{ position: 'absolute', inset: 0, background: a.theme.accent, opacity: 0.14 }} />
@@ -248,36 +256,36 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
     const timeLeft = winner?.deadline ? parseUtc(winner.deadline) - serverNow : null;
     return (
         <div style={{ ...style, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, textAlign: 'center' }}>
-            <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.theme.accent, textTransform: 'uppercase' }}>🏆 {phase === 'result' ? 'Ganador' : '¡Felicidades!'}</div>
+            <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4, color: a.theme.accent, textTransform: 'uppercase' }}>🏆 {phase === 'result' ? textsOf(snapshot.language).winner : textsOf(snapshot.language).congrats}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 22, maxWidth: '100%' }}>
                 {winner && <PlatformDot platform={winner.platform} size={64} />}
                 <span style={{ fontSize: 96, fontWeight: 900, lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{winner?.displayName}</span>
             </div>
             <div style={{ fontSize: 34, color: a.secondaryColor }}>{snapshot.prize}</div>
             {phase === 'winner' && timeLeft !== null && (
-                <div style={{ fontSize: 34, fontWeight: 800, color: timeLeft < 10000 ? '#f87171' : a.textColor }}>Escribe en el chat · {formatClock(timeLeft)}</div>
+                <div style={{ fontSize: 34, fontWeight: 800, color: timeLeft < 10000 ? '#f87171' : a.textColor }}>{textsOf(snapshot.language).writeChat} · {formatClock(timeLeft)}</div>
             )}
-            {phase === 'result' && winner?.state === 'responded' && <div style={{ fontSize: 34, fontWeight: 800, color: '#4ade80' }}>✓ Respondió</div>}
+            {phase === 'result' && winner?.state === 'responded' && <div style={{ fontSize: 34, fontWeight: 800, color: '#4ade80' }}>✓ {textsOf(snapshot.language).responded}</div>}
         </div>
     );
 }
 
 // ── Ganadores y su estado ───────────────────────────────────────────────────────
 
-function WinnersBlock({ winners, serverNow, a, style }: { winners: OverlayWinner[]; serverNow: number; a: OverlayAppearance; style: CSSProperties }) {
+function WinnersBlock({ winners, language, serverNow, a, style }: { winners: OverlayWinner[]; language?: string; serverNow: number; a: OverlayAppearance; style: CSSProperties }) {
     return (
         <div style={{ ...style, height: '100%', overflow: 'hidden' }}>
-            <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: 2, color: a.theme.accent, textTransform: 'uppercase', marginBottom: 10 }}>Ganadores</div>
+            <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: 2, color: a.theme.accent, textTransform: 'uppercase', marginBottom: 10 }}>{textsOf(language).winners}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {winners.slice(0, 4).map((w) => {
                     const left = w.deadline ? parseUtc(w.deadline) - serverNow : null;
-                    const chip = w.state === 'responded' ? { t: '✓ Respondió', c: '#4ade80' } : w.state === 'timeout' ? { t: '✗ No respondió', c: '#f87171' } : { t: left !== null ? `⏱ ${formatClock(left)}` : 'Esperando', c: a.textColor };
+                    const chip = w.state === 'responded' ? { t: `✓ ${textsOf(language).responded}`, c: '#4ade80' } : w.state === 'timeout' ? { t: `✗ ${textsOf(language).noResponse}`, c: '#f87171' } : { t: left !== null ? `⏱ ${formatClock(left)}` : textsOf(language).pending, c: a.textColor };
                     return (
                         <div key={w.position} style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 30, fontWeight: 700 }}>
                             <span style={{ color: a.secondaryColor, width: 36 }}>#{w.position}</span>
                             <PlatformDot platform={w.platform} size={28} />
                             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.displayName}</span>
-                            {w.wasBackup && <span style={{ fontSize: 22, color: a.secondaryColor }}>respaldo</span>}
+                            {w.wasBackup && <span style={{ fontSize: 22, color: a.secondaryColor }}>{textsOf(language).backup}</span>}
                             <span style={{ color: chip.c, fontWeight: 800 }}>{chip.t}</span>
                         </div>
                     );

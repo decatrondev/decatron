@@ -99,6 +99,8 @@ export interface OverlaySnapshot {
     serverNow: string;
     appearance: OverlayAppearance;
     simulated?: boolean;
+    /** Idioma del streamer: es o en (por defecto es) */
+    language?: string;
 }
 
 export const PLATFORM_STYLE: Record<string, { label: string; color: string; letter: string }> = {

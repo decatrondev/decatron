@@ -25,12 +25,15 @@ namespace Decatron.Controllers
         private readonly GiveawayService _giveawayService;
         private readonly ILogger<GiveawayController> _logger;
         private readonly DecatronDbContext _context;
+        private readonly TwitchApiService _twitchApi;
 
         public GiveawayController(
             GiveawayService giveawayService,
             ILogger<GiveawayController> logger,
-            DecatronDbContext context)
+            DecatronDbContext context,
+            TwitchApiService twitchApi)
         {
+            _twitchApi = twitchApi;
             _giveawayService = giveawayService;
             _logger = logger;
             _context = context;
@@ -522,6 +525,25 @@ namespace Decatron.Controllers
                         };
                         return Ok(new { success = result == "removed", code = result, user, message = msg });
                     }
+                    case "add":
+                    {
+                        if (string.IsNullOrEmpty(user)) return BadRequest(new { success = false, message = "Falta el usuario" });
+                        // Kick no ofrece buscar a una persona por su nombre con el permiso del streamer: por ahora solo Twitch
+                        if (!string.Equals(request?.Platform ?? "twitch", "twitch", StringComparison.OrdinalIgnoreCase))
+                            return Ok(new { success = false, code = "platform_unsupported", user, message = "Solo se puede anotar a mano a cuentas de Twitch" });
+                        var found = await _twitchApi.GetUserByLoginAsync(user);
+                        if (found == null || string.IsNullOrEmpty(found.id))
+                            return Ok(new { success = false, code = "user_not_found", user, message = $"{user} no existe en Twitch" });
+                        DateTime? created = DateTime.TryParse(found.created_at, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out var c) ? c : null;
+                        var result = await _giveawayService.AddManualAsync(twitchId, "twitch", found.id, found.login, found.display_name, created);
+                        var msg = result switch
+                        {
+                            "added" => $"{found.display_name} fue anotado",
+                            "already_in" => $"{found.display_name} ya está participando",
+                            _ => "No hay un giveaway en curso"
+                        };
+                        return Ok(new { success = result == "added", code = result, user = found.login, message = msg });
+                    }
                     case "close" or "open":
                     {
                         var done = await _giveawayService.SetEntriesClosedAsync(twitchId, verb == "close");
@@ -558,7 +580,7 @@ namespace Decatron.Controllers
             }
         }
 
-        public class ParticipantActionRequest { public string? Username { get; set; } }
+        public class ParticipantActionRequest { public string? Username { get; set; } public string? Platform { get; set; } }
 
         /// <summary>Rechazos recientes del giveaway activo (motivo por viewer), para el panel.</summary>
         [HttpGet("rejections")]

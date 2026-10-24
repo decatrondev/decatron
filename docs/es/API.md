@@ -716,7 +716,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `DELETE` | `/api/Giveaway/history/{id}` | JWT + `giveaways` |
 | `GET` | `/api/Giveaway/participants` | JWT + `giveaways` |
 | `GET` | `/api/Giveaway/participants/detail` | JWT + `giveaways` |
-| `POST` | `/api/Giveaway/participants/{choose|reroll|remove|open|close|finish}` | JWT + `giveaways` |
+| `POST` | `/api/Giveaway/participants/{choose|reroll|remove|add|open|close|finish}` | JWT + `giveaways` |
 | `GET` | `/api/Giveaway/rejections` | JWT + `giveaways` |
 | `GET` | `/api/Giveaway/platforms` | JWT + `giveaways` |
 | `GET` | `/api/Giveaway/overlay/status` | JWT + `giveaways` |

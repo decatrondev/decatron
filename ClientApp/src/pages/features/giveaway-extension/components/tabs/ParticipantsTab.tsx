@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Users, Search, RefreshCw, Dices, Repeat, UserMinus, Lock, Unlock, Flag, Check, X } from 'lucide-react';
+import { Users, Search, RefreshCw, Dices, Repeat, UserMinus, UserPlus, Lock, Unlock, Flag, Check, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../../../../../services/api';
 import { TabShell } from './SettingsExtras';
@@ -199,6 +199,11 @@ export const ParticipantsTab: React.FC = () => {
                         <div className={`flex items-center gap-2 text-sm font-semibold ${exact ? 'text-ds-accent' : 'text-ds-danger'}`}>
                             {exact ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                             {exact ? t('isIn', { user: exact.username, status: t(`status_${exact.status}`).toLowerCase() }) : t('isNotIn', { user: query.trim().replace(/^@/, '') })}
+                            {!exact && (detail.status === 'active' || detail.status === 'selecting_winners') && (
+                                <button className="ds-btn ds-btn--secondary ml-2" disabled={busy !== null} onClick={() => act('add', query.trim().replace(/^@/, ''))}>
+                                    <UserPlus className="w-4 h-4" />{t('addManual', { user: query.trim().replace(/^@/, '') })}
+                                </button>
+                            )}
                         </div>
                     )}
 

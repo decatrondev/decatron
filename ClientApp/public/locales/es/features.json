@@ -299,7 +299,12 @@
       "status_expired": "Ganador · no respondió",
       "status_backup": "Respaldo",
       "status_replaced": "Reemplazado",
+      "addManual": "Anotar a @{{user}} a mano",
       "msg": {
+        "added": "{{user}} fue anotado",
+        "already_in": "{{user}} ya está participando",
+        "user_not_found": "{{user}} no existe en Twitch",
+        "platform_unsupported": "Solo se puede anotar a mano a cuentas de Twitch",
         "choose_ok": "{{user}} fue elegido como ganador",
         "reroll_ok": "Re-sorteo hecho",
         "reroll_user_ok": "{{user}} fue re-sorteado",

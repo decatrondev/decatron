@@ -299,7 +299,12 @@
       "status_expired": "Winner · did not answer",
       "status_backup": "Backup",
       "status_replaced": "Replaced",
+      "addManual": "Add @{{user}} manually",
       "msg": {
+        "added": "{{user}} was added",
+        "already_in": "{{user}} is already in",
+        "user_not_found": "{{user}} does not exist on Twitch",
+        "platform_unsupported": "Only Twitch accounts can be added manually",
         "choose_ok": "{{user}} was picked as winner",
         "reroll_ok": "Re-draw done",
         "reroll_user_ok": "{{user}} was re-drawn",
