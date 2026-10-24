@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Settings, Bell, MessageCircle, Clock } from 'lucide-react';
 import type { GiveawayConfig, GiveawaySettings } from '../../types';
 import { SettingsExtras } from './SettingsExtras';
@@ -14,6 +15,7 @@ interface SettingsTabProps {
 }
 
 export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig, onUpdateSettings }) => {
+    const { t } = useTranslation('features', { keyPrefix: 'giveaway' });
     return (
         <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {/* Header */}
@@ -23,10 +25,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                 </div>
                 <div>
                     <h2 className="text-2xl font-black text-ds-text">
-                        Configuración General
+                        {t('settings.title')}
                     </h2>
                     <p className="text-sm text-ds-soft">
-                        Anuncios, mensajes y cooldowns
+                        {t('settings.subtitle')}
                     </p>
                 </div>
             </div>
@@ -35,21 +37,21 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Bell className="w-5 h-5 text-ds-accent-text" />
-                    Anuncios Automáticos
+                    {t('settings.announce')}
                 </h3>
 
                 <div className="space-y-3">
                     {/* Announce on Start */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Anunciar al Iniciar</p>
-                            <p className="text-xs text-ds-soft">Enviar mensaje al chat cuando inicia el giveaway</p>
+                            <p className="font-bold text-ds-text">{t('settings.onStart')}</p>
+                            <p className="text-xs text-ds-soft">{t('settings.onStartHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ announceOnStart: !config.announceOnStart })}
                             className={config.announceOnStart ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {config.announceOnStart ? 'Activado' : 'Desactivado'}
+                            {config.announceOnStart ? t('common.on') : t('common.off')}
                         </button>
                     </div>
 
@@ -57,20 +59,20 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                     <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div className="flex items-center justify-between mb-3">
                             <div>
-                                <p className="font-bold text-ds-text">Recordatorios</p>
-                                <p className="text-xs text-ds-soft">Enviar recordatorios periódicos durante el giveaway</p>
+                                <p className="font-bold text-ds-text">{t('settings.reminders')}</p>
+                                <p className="text-xs text-ds-soft">{t('settings.remindersHint')}</p>
                             </div>
                             <button
                                 onClick={() => onUpdateConfig({ announceReminders: !config.announceReminders })}
                                 className={config.announceReminders ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
-                                {config.announceReminders ? 'Activado' : 'Desactivado'}
+                                {config.announceReminders ? t('common.on') : t('common.off')}
                             </button>
                         </div>
                         {config.announceReminders && (
                             <div>
                                 <label className="block text-sm font-bold text-ds-soft mb-2">
-                                    Intervalo (minutos)
+                                    {t('settings.interval')}
                                 </label>
                                 <input
                                     type="number"
@@ -87,14 +89,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                     {/* Announce Participant Count */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Mostrar Contador de Participantes</p>
-                            <p className="text-xs text-ds-soft">Incluir número de participantes en anuncios</p>
+                            <p className="font-bold text-ds-text">{t('settings.showCount')}</p>
+                            <p className="text-xs text-ds-soft">{t('settings.showCountHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ announceParticipantCount: !config.announceParticipantCount })}
                             className={config.announceParticipantCount ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {config.announceParticipantCount ? 'Activado' : 'Desactivado'}
+                            {config.announceParticipantCount ? t('common.on') : t('common.off')}
                         </button>
                     </div>
                 </div>
@@ -104,17 +106,17 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <MessageCircle className="w-5 h-5 text-ds-accent-text" />
-                    Mensajes Personalizados
+                    {t('settings.customMsgs')}
                 </h3>
 
                 <div className="p-4 bg-ds-accent/10 border border-ds-accent rounded-lg">
                     <p className="text-sm text-ds-accent-text">
-                        <strong>Variables disponibles:</strong><br />
-                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{command}'}</code> - Comando de entrada<br />
-                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{prize}'}</code> - Nombre del premio<br />
-                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{count}'}</code> - Número de participantes<br />
-                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{winner}'}</code> - Nombre del ganador<br />
-                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{timeout}'}</code> - Tiempo de respuesta
+                        <strong>{t('settings.varsTitle')}</strong><br />
+                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{command}'}</code> - {t('settings.varCommand')}<br />
+                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{prize}'}</code> - {t('settings.varPrize')}<br />
+                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{count}'}</code> - {t('settings.varCount')}<br />
+                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{winner}'}</code> - {t('settings.varWinner')}<br />
+                        <code className="bg-ds-accent/10 px-2 py-1 rounded">{'{timeout}'}</code> - {t('settings.varTimeout')}
                     </p>
                 </div>
 
@@ -122,7 +124,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                     {/* Start Message */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Mensaje de Inicio
+                            {t('settings.msgStart')}
                         </label>
                         <textarea
                             value={config.startMessage}
@@ -135,7 +137,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                     {/* Reminder Message */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Mensaje de Recordatorio
+                            {t('settings.msgReminder')}
                         </label>
                         <textarea
                             value={config.reminderMessage}
@@ -148,7 +150,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                     {/* Winner Message */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Mensaje de Ganador
+                            {t('settings.msgWinner')}
                         </label>
                         <textarea
                             value={config.winnerMessage}
@@ -161,7 +163,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                     {/* No Response Message */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Mensaje Sin Respuesta
+                            {t('settings.msgNoResponse')}
                         </label>
                         <textarea
                             value={config.noResponseMessage}
@@ -177,14 +179,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Clock className="w-5 h-5 text-ds-accent-text" />
-                    Cooldown de Ganadores
+                    {t('settings.cooldown')}
                 </h3>
 
                 <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="font-bold text-ds-text">Activar Cooldown</p>
-                            <p className="text-xs text-ds-soft">Evitar que ganadores recientes vuelvan a ganar</p>
+                            <p className="font-bold text-ds-text">{t('settings.cooldownOn')}</p>
+                            <p className="text-xs text-ds-soft">{t('settings.cooldownOnHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ winnerCooldownEnabled: !config.winnerCooldownEnabled })}
@@ -194,14 +196,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                                     : 'bg-ds-raised text-ds-soft '
                             }`}
                         >
-                            {config.winnerCooldownEnabled ? 'Activado' : 'Desactivado'}
+                            {config.winnerCooldownEnabled ? t('common.on') : t('common.off')}
                         </button>
                     </div>
 
                     {config.winnerCooldownEnabled && (
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-2">
-                                Días de Cooldown
+                                {t('settings.cooldownDays')}
                             </label>
                             <input
                                 type="number"
@@ -212,7 +214,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                                 className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-2">
-                                Los ganadores no podrán participar por {config.winnerCooldownDays} días después de ganar
+                                {t('settings.cooldownHint', { n: config.winnerCooldownDays })}
                             </p>
                         </div>
                     )}

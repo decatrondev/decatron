@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Scale, Crown, Star, Clock, Heart, Zap } from 'lucide-react';
 import type { GiveawayWeights } from '../../types';
 
@@ -12,6 +13,7 @@ interface WeightsTabProps {
 }
 
 export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights }) => {
+    const { t } = useTranslation('features', { keyPrefix: 'giveaway' });
     return (
         <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
             {/* Header */}
@@ -21,10 +23,10 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                 </div>
                 <div>
                     <h2 className="text-2xl font-black text-ds-text">
-                        Pesos y Multiplicadores
+                        {t('weights.title')}
                     </h2>
                     <p className="text-sm text-ds-soft">
-                        Aumenta las probabilidades de ciertos usuarios
+                        {t('weights.subtitle')}
                     </p>
                 </div>
             </div>
@@ -32,13 +34,8 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
             {/* Info Box */}
             <div className="p-4 bg-ds-surface border border-ds-border rounded-lg">
                 <p className="text-sm text-ds-soft">
-                    <strong>¿Cómo funcionan los pesos?</strong><br />
-                    Un multiplicador de 2.0x significa que el usuario tiene el doble de probabilidad de ganar.
-                    Los multiplicadores se acumulan (Ej: Sub Tier 3 + VIP = 6.0 × 1.5 = 9.0x).
-                    Los de tiempo, bits y racha se aplican por cada hora, 100 bits o mes: 1.1 significa +10 % por cada uno,
-                    acumulado (a 10 horas son 1.1 elevado a 10 ≈ 2.6x). Para que nadie acapare el sorteo hay topes que
-                    puedes cambiar en Ajustes → Límites del peso. Un valor menor que 1 penaliza, y solo tiene efecto si bajas
-                    el «Peso mínimo» en esos mismos ajustes.
+                    <strong>{t('weights.infoTitle')}</strong><br />
+                    {t('weights.infoBody')}
                 </p>
             </div>
 
@@ -46,7 +43,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Crown className="w-5 h-5 text-ds-accent-text" />
-                    Multiplicadores por Suscripción
+                    {t('weights.subs')}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -116,14 +113,14 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Star className="w-5 h-5 text-ds-accent-text" />
-                    Multiplicador VIP
+                    {t('weights.vip')}
                 </h3>
 
                 <div className="p-4 bg-ds-warn/10 rounded-lg border border-ds-warn/40">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="font-bold text-ds-warn">VIP Badge</p>
-                            <p className="text-xs text-ds-warn">Multiplicador para usuarios VIP</p>
+                            <p className="text-xs text-ds-warn">{t('weights.vipHint')}</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <input
@@ -145,27 +142,27 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Clock className="w-5 h-5 text-ds-accent-text" />
-                    Multiplicador por Tiempo Viendo
+                    {t('weights.watch')}
                 </h3>
 
                 <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="font-bold text-ds-text">Activar Multiplicador por Tiempo</p>
-                            <p className="text-xs text-ds-soft">Más tiempo viendo = más probabilidad</p>
+                            <p className="font-bold text-ds-text">{t('weights.watchOn')}</p>
+                            <p className="text-xs text-ds-soft">{t('weights.watchHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ watchTimeEnabled: !weights.watchTimeEnabled })}
                             className={weights.watchTimeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {weights.watchTimeEnabled ? 'Activado' : 'Desactivado'}
+                            {weights.watchTimeEnabled ? t('common.on') : t('common.off')}
                         </button>
                     </div>
 
                     {weights.watchTimeEnabled && (
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-2">
-                                Multiplicador por Hora Viendo
+                                {t('weights.watchPer')}
                             </label>
                             <div className="flex items-center gap-2">
                                 <input
@@ -177,10 +174,10 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     onChange={(e) => onUpdateWeights({ watchTimeMultiplierPerHour: parseFloat(e.target.value) || 1 })}
                                     className="ds-input flex-1"
                                 />
-                                <span className="text-ds-soft font-bold">× por hora</span>
+                                <span className="text-ds-soft font-bold">{t('weights.perHour')}</span>
                             </div>
                             <p className="text-xs text-ds-soft mt-2">
-                                Ejemplo: Con 1.1×, alguien viendo 3 horas tendrá 1.331× probabilidad (1.1³)
+                                {t('weights.watchExample')}
                             </p>
                         </div>
                     )}
@@ -191,27 +188,27 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Heart className="w-5 h-5 text-ds-accent-text" />
-                    Multiplicador por Antigüedad de Follow
+                    {t('weights.follow')}
                 </h3>
 
                 <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="font-bold text-ds-text">Activar Multiplicador por Follow Age</p>
-                            <p className="text-xs text-ds-soft">Más tiempo siguiendo = más probabilidad</p>
+                            <p className="font-bold text-ds-text">{t('weights.followOn')}</p>
+                            <p className="text-xs text-ds-soft">{t('weights.followHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ followAgeEnabled: !weights.followAgeEnabled })}
                             className={weights.followAgeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {weights.followAgeEnabled ? 'Activado' : 'Desactivado'}
+                            {weights.followAgeEnabled ? t('common.on') : t('common.off')}
                         </button>
                     </div>
 
                     {weights.followAgeEnabled && (
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-2">
-                                Multiplicador por Mes Siguiendo
+                                {t('weights.followPer')}
                             </label>
                             <div className="flex items-center gap-2">
                                 <input
@@ -223,7 +220,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     onChange={(e) => onUpdateWeights({ followAgeMultiplierPerMonth: parseFloat(e.target.value) || 1 })}
                                     className="ds-input flex-1"
                                 />
-                                <span className="text-ds-soft font-bold">× por mes</span>
+                                <span className="text-ds-soft font-bold">{t('weights.perMonth')}</span>
                             </div>
                         </div>
                     )}
@@ -234,27 +231,27 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Zap className="w-5 h-5 text-ds-accent-text" />
-                    Multiplicador por Bits Donados
+                    {t('weights.bits')}
                 </h3>
 
                 <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="font-bold text-ds-text">Activar Multiplicador por Bits</p>
-                            <p className="text-xs text-ds-soft">Más bits donados = más probabilidad. Cuentan solo los bits que el viewer done mientras el giveaway está activo.</p>
+                            <p className="font-bold text-ds-text">{t('weights.bitsOn')}</p>
+                            <p className="text-xs text-ds-soft">{t('weights.bitsHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ bitsEnabled: !weights.bitsEnabled })}
                             className={weights.bitsEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {weights.bitsEnabled ? 'Activado' : 'Desactivado'}
+                            {weights.bitsEnabled ? t('common.on') : t('common.off')}
                         </button>
                     </div>
 
                     {weights.bitsEnabled && (
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-2">
-                                Multiplicador por cada 100 Bits
+                                {t('weights.bitsPer')}
                             </label>
                             <div className="flex items-center gap-2">
                                 <input
@@ -266,7 +263,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     onChange={(e) => onUpdateWeights({ bitsMultiplierPer100: parseFloat(e.target.value) || 1 })}
                                     className="ds-input flex-1"
                                 />
-                                <span className="text-ds-soft font-bold">× por 100 bits</span>
+                                <span className="text-ds-soft font-bold">{t('weights.per100')}</span>
                             </div>
                         </div>
                     )}
@@ -277,14 +274,14 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Crown className="w-5 h-5 text-ds-accent-text" />
-                    Multiplicador por Racha de Suscripción
+                    {t('weights.streak')}
                 </h3>
 
                 <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <p className="font-bold text-ds-text">Activar Multiplicador por Racha</p>
-                            <p className="text-xs text-ds-soft">Más meses suscrito = más probabilidad</p>
+                            <p className="font-bold text-ds-text">{t('weights.streakOn')}</p>
+                            <p className="text-xs text-ds-soft">{t('weights.streakHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ subStreakEnabled: !weights.subStreakEnabled })}
@@ -294,14 +291,14 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     : 'bg-ds-raised text-ds-soft '
                             }`}
                         >
-                            {weights.subStreakEnabled ? 'Activado' : 'Desactivado'}
+                            {weights.subStreakEnabled ? t('common.on') : t('common.off')}
                         </button>
                     </div>
 
                     {weights.subStreakEnabled && (
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-2">
-                                Multiplicador por Mes de Racha
+                                {t('weights.streakPer')}
                             </label>
                             <div className="flex items-center gap-2">
                                 <input
@@ -313,7 +310,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     onChange={(e) => onUpdateWeights({ subStreakMultiplierPerMonth: parseFloat(e.target.value) || 1 })}
                                     className="ds-input flex-1"
                                 />
-                                <span className="text-ds-soft font-bold">× por mes</span>
+                                <span className="text-ds-soft font-bold">{t('weights.perMonth')}</span>
                             </div>
                         </div>
                     )}

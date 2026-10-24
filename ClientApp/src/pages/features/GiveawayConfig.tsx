@@ -130,24 +130,24 @@ const GiveawayConfig = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Error generando participantes');
+                throw new Error(t('giveaway.notice.genErrShort'));
             }
 
             const result = await response.json();
 
             if (result.success) {
-                showNotice('success', `${result.generated} participantes de prueba generados`);
+                showNotice('success', t('giveaway.notice.generated', { n: result.generated }));
 
                 // Refrescar estado si hay giveaway activo
                 if (giveawayState.isActive) {
                     await giveawayState.refreshState();
                 }
             } else {
-                showNotice('error', result.message || 'No se pudo completar la acción');
+                showNotice('error', result.message || t('giveaway.notice.failed'));
             }
         } catch (error: any) {
             console.error('Error:', error);
-            showNotice('error', `Error al generar participantes: ${error.message || 'Error desconocido'}`);
+            showNotice('error', t('giveaway.notice.genErr', { msg: error.message || t('giveaway.notice.unknown') }));
         }
     };
 
@@ -162,24 +162,24 @@ const GiveawayConfig = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Error limpiando participantes');
+                throw new Error(t('giveaway.notice.clearErrShort'));
             }
 
             const result = await response.json();
 
             if (result.success) {
-                showNotice('success', `${result.deleted} participantes de prueba eliminados`);
+                showNotice('success', t('giveaway.notice.deleted', { n: result.deleted }));
 
                 // Refrescar estado si hay giveaway activo
                 if (giveawayState.isActive) {
                     await giveawayState.refreshState();
                 }
             } else {
-                showNotice('error', result.message || 'No se pudo completar la acción');
+                showNotice('error', result.message || t('giveaway.notice.failed'));
             }
         } catch (error: any) {
             console.error('Error:', error);
-            showNotice('error', `Error al limpiar participantes: ${error.message || 'Error desconocido'}`);
+            showNotice('error', t('giveaway.notice.clearErr', { msg: error.message || t('giveaway.notice.unknown') }));
         }
     };
 

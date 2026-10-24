@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import i18n from 'i18next';
 import api from '../../../../services/api';
 import type { GiveawayConfig, GiveawayHistoryEntry, GiveawayStatistics } from '../types';
 
@@ -44,7 +45,7 @@ export const useGiveawayPersistence = (props?: UseGiveawayPersistenceProps) => {
             console.error('Error loading giveaway config:', err);
             setSaveMessage({
                 type: 'error',
-                text: err.response?.data?.message || 'Error al cargar configuración',
+                text: err.response?.data?.message || i18n.t('features:giveaway.hook.loadConfigErr'),
             });
             return { success: false, config: null };
         } finally {
@@ -65,7 +66,7 @@ export const useGiveawayPersistence = (props?: UseGiveawayPersistenceProps) => {
             if (response.data.success) {
                 setSaveMessage({
                     type: 'success',
-                    text: '✅ Configuración guardada correctamente',
+                    text: i18n.t('features:giveaway.hook.saved'),
                 });
 
                 // Auto-hide success message after 3 seconds
@@ -75,10 +76,10 @@ export const useGiveawayPersistence = (props?: UseGiveawayPersistenceProps) => {
 
                 return { success: true };
             } else {
-                throw new Error(response.data.message || 'Error al guardar configuración');
+                throw new Error(response.data.message || i18n.t('features:giveaway.hook.saveErr'));
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || 'Error al guardar configuración';
+            const errorMsg = err.response?.data?.message || err.message || i18n.t('features:giveaway.hook.saveErr');
             setSaveMessage({
                 type: 'error',
                 text: `❌ ${errorMsg}`,
@@ -135,10 +136,10 @@ export const useGiveawayPersistence = (props?: UseGiveawayPersistenceProps) => {
             if (response.data.success) {
                 return { success: true };
             } else {
-                throw new Error(response.data.message || 'Error al eliminar entrada');
+                throw new Error(response.data.message || i18n.t('features:giveaway.hook.deleteErr'));
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || 'Error al eliminar entrada';
+            const errorMsg = err.response?.data?.message || err.message || i18n.t('features:giveaway.hook.deleteErr');
             return { success: false, message: errorMsg };
         }
     }, []);
@@ -165,7 +166,7 @@ export const useGiveawayPersistence = (props?: UseGiveawayPersistenceProps) => {
             return { success: true };
         } catch (err: any) {
             console.error('Error exporting history:', err);
-            return { success: false, message: 'Error al exportar historial' };
+            return { success: false, message: i18n.t('features:giveaway.hook.exportErr') };
         }
     }, []);
 

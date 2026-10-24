@@ -27,32 +27,17 @@ interface TabProps {
 
 type Overlay = GiveawaySettings['overlay'];
 
-const BLOCKS: { id: OverlayBlockId; label: string }[] = [
-    { id: 'card', label: 'Tarjeta (premio, comando, contador, tiempo)' },
-    { id: 'entries', label: 'Últimas entradas' },
-    { id: 'reveal', label: 'Revelado y ganador' },
-    { id: 'winners', label: 'Ganadores y su estado' },
-];
+const BLOCKS: OverlayBlockId[] = ['card', 'entries', 'reveal', 'winners'];
 
-const PHASES: { id: OverlayPhase; label: string }[] = [
-    { id: 'open', label: 'Abierto' },
-    { id: 'drawing', label: 'Ruleta' },
-    { id: 'winner', label: 'Ganador' },
-    { id: 'result', label: 'Resultado' },
-];
-
-const SIM_MESSAGES: Record<string, string> = {
-    real_giveaway_active: 'Hay un giveaway real en curso: termínalo o cancélalo para simular.',
-    already_running: 'Ya hay una simulación corriendo.',
-    no_channel: 'No se encontró el canal.',
-};
+const PHASES: OverlayPhase[] = ['open', 'drawing', 'winner', 'result'];
 
 /** Selector de fase para ver el overlay en cada momento del sorteo */
 function PhasePicker({ phase, onPick }: { phase: OverlayPhase; onPick: (p: OverlayPhase) => void }) {
+    const { t: tg } = useTranslation('features');
     return (
         <div className="flex flex-wrap gap-2">
             {PHASES.map((p) => (
-                <button key={p.id} onClick={() => onPick(p.id)} className={phase === p.id ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>{p.label}</button>
+                <button key={p} onClick={() => onPick(p)} className={phase === p ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>{tg(`giveaway.ov.phase_${p}`)}</button>
             ))}
         </div>
     );
@@ -60,13 +45,14 @@ function PhasePicker({ phase, onPick }: { phase: OverlayPhase; onPick: (p: Overl
 
 /** Vista previa del overlay (la misma foto que mandaría el servidor, con datos de ejemplo) para las pestañas de estilo */
 function Preview({ overlay, withKick }: { overlay: Overlay; withKick: boolean }) {
+    const { t: tg } = useTranslation('features');
     const [phase, setPhase] = useState<OverlayPhase>('open');
     const [run, setRun] = useState(0);
     // run reinicia la ruleta y las cuentas regresivas al volver a pulsar una fase
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const snapshot = useMemo(() => demoSnapshot(phase, overlay, withKick), [phase, overlay, withKick, run]);
     return (
-        <Card title="Vista previa" description="Así se ve en OBS con los cambios de esta pestaña. Se guardan con «Guardar Configuración».">
+        <Card title={tg('giveaway.ov.preview')} description={tg('giveaway.ov.previewHint')}>
             <div className="space-y-3">
                 <PhasePicker phase={phase} onPick={(p) => { setPhase(p); setRun((n) => n + 1); }} />
                 <ScaledCanvas width={OVERLAY_CANVAS.width} height={OVERLAY_CANVAS.height} background={CHECKER_BG}>
@@ -84,6 +70,7 @@ function useOverlayPatch(onUpdateSettings: TabProps['onUpdateSettings']) {
 // ── Enlace: la fuente de OBS y la simulación ────────────────────────────────────
 
 export const OverlayLinkTab: React.FC<TabProps> = ({ config }) => {
+    const { t: tg } = useTranslation('features');
     const { status, loaded } = useOverlayStatus('/giveaway/overlay/status');
     const [caps, setCaps] = useState<PlatformCapabilities | null>(null);
     const [simMsg, setSimMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -104,35 +91,35 @@ export const OverlayLinkTab: React.FC<TabProps> = ({ config }) => {
         setSimMsg(null);
         try {
             await api.post('/giveaway/overlay/simulate');
-            setSimMsg({ ok: true, text: 'Simulación en marcha: mira tu fuente de OBS (dura unos 40 segundos).' });
+            setSimMsg({ ok: true, text: tg('giveaway.ov.simStarted') });
         } catch (err: unknown) {
             const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code ?? '';
-            setSimMsg({ ok: false, text: SIM_MESSAGES[code] ?? 'No se pudo iniciar la simulación.' });
+            setSimMsg({ ok: false, text: ['real_giveaway_active', 'already_running', 'no_channel'].includes(code) ? tg(`giveaway.ov.sim_${code}`) : tg('giveaway.ov.simFailed') });
         } finally {
             setSimulating(false);
         }
     };
 
     return (
-        <TabShell icon={<Monitor className="w-6 h-6 text-ds-text" />} title="Overlay de OBS" subtitle="El enlace para tu fuente de navegador y una prueba sin sortear">
-            <Card title="Enlace para OBS" description="Agrégalo como fuente de navegador de 1920×1080. El servidor decide todo; OBS solo dibuja.">
-                <LinkRow url={url} name={bothLinked ? 'Todo (Twitch + Kick)' : undefined} recommended={bothLinked}
-                    connected={status.all > 0 || (!bothLinked && status.total > 0)} loaded={loaded} copyLabel="Copiar" copiedLabel="Copiado" />
+        <TabShell icon={<Monitor className="w-6 h-6 text-ds-text" />} title={tg('giveaway.ov.linkTitle')} subtitle={tg('giveaway.ov.linkSub')}>
+            <Card title={tg('giveaway.ov.linkCard')} description={tg('giveaway.ov.linkCardHint')}>
+                <LinkRow url={url} name={bothLinked ? tg('giveaway.ov.allName') : undefined} recommended={bothLinked}
+                    connected={status.all > 0 || (!bothLinked && status.total > 0)} loaded={loaded} copyLabel={tg('giveaway.ov.copy')} copiedLabel={tg('giveaway.ov.copied')} />
                 {bothLinked && (
                     <div className="mt-5 pt-4 border-t border-ds-border space-y-3">
-                        <p className="text-xs font-bold uppercase tracking-wide text-ds-soft">Avanzado: una plataforma por fuente</p>
-                        <LinkRow url={`${url}&source=twitch`} name="Solo Twitch" connected={status.twitch > 0} loaded={loaded} copyLabel="Copiar" copiedLabel="Copiado" />
-                        <LinkRow url={`${url}&source=kick`} name="Solo Kick" connected={status.kick > 0} loaded={loaded} copyLabel="Copiar" copiedLabel="Copiado" />
+                        <p className="text-xs font-bold uppercase tracking-wide text-ds-soft">{tg('giveaway.ov.advanced')}</p>
+                        <LinkRow url={`${url}&source=twitch`} name={tg('giveaway.ov.onlyTwitch')} connected={status.twitch > 0} loaded={loaded} copyLabel={tg('giveaway.ov.copy')} copiedLabel={tg('giveaway.ov.copied')} />
+                        <LinkRow url={`${url}&source=kick`} name={tg('giveaway.ov.onlyKick')} connected={status.kick > 0} loaded={loaded} copyLabel={tg('giveaway.ov.copy')} copiedLabel={tg('giveaway.ov.copied')} />
                     </div>
                 )}
-                {status.warnings.includes('mixed') && <Warning title="Fuentes que se pisan" text="Tienes «Todo» y una fuente parcial conectadas a la vez: la lista de entradas saldrá repetida." />}
-                {status.warnings.includes('repeated') && !status.warnings.includes('mixed') && <Warning title="Fuente repetida" text="Hay más de una fuente igual conectada en OBS." />}
+                {status.warnings.includes('mixed') && <Warning title={tg('giveaway.ov.warnMixedTitle')} text={tg('giveaway.ov.warnMixed')} />}
+                {status.warnings.includes('repeated') && !status.warnings.includes('mixed') && <Warning title={tg('giveaway.ov.warnRepTitle')} text={tg('giveaway.ov.warnRep')} />}
             </Card>
 
-            <Card title="Probar sin sortear" description="Corre el ciclo completo en tu OBS con datos de ejemplo: entradas, ruleta, ganador y resultado. No escribe en el chat ni guarda nada.">
+            <Card title={tg('giveaway.ov.testTitle')} description={tg('giveaway.ov.testHint')}>
                 <div className="flex flex-wrap items-center gap-3">
                     <button onClick={simulate} disabled={simulating} className="ds-btn ds-btn--primary inline-flex items-center gap-2">
-                        <Play className="w-4 h-4" />{simulating ? 'Iniciando…' : 'Simular en el overlay'}
+                        <Play className="w-4 h-4" />{simulating ? tg('giveaway.ov.simulating') : tg('giveaway.ov.simulate')}
                     </button>
                     {simMsg && <span className={`text-sm ${simMsg.ok ? 'text-ds-soft' : 'text-red-500'}`}>{simMsg.text}</span>}
                 </div>
@@ -145,28 +132,29 @@ export const OverlayLinkTab: React.FC<TabProps> = ({ config }) => {
 // ── Editor: arrastrar y redimensionar los bloques ───────────────────────────────
 
 export const OverlayEditorTab: React.FC<TabProps> = ({ config, onUpdateSettings }) => {
+    const { t: tg } = useTranslation('features');
     const a = config.settings.overlay;
     const [phase, setPhase] = useState<OverlayPhase>('open');
     const [run, setRun] = useState(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const snapshot = useMemo(() => demoSnapshot(phase, a, config.settings.platforms.kick), [phase, a, config.settings.platforms.kick, run]);
 
-    const elements: EditorElement[] = BLOCKS.map((b) => ({
-        id: b.id, label: b.label, enabled: a[b.id].enabled, x: a[b.id].x, y: a[b.id].y, width: a[b.id].width, height: a[b.id].height, toggleable: true,
+    const elements: EditorElement[] = BLOCKS.map((id) => ({
+        id, label: tg(`giveaway.ov.block_${id}`), enabled: a[id].enabled, x: a[id].x, y: a[id].y, width: a[id].width, height: a[id].height, toggleable: true,
     }));
     const patchBlock = (id: string, patch: Partial<Rect> & { enabled?: boolean }) =>
         onUpdateSettings('overlay', { [id]: { ...a[id as OverlayBlockId], ...patch } } as Partial<Overlay>);
 
     return (
-        <TabShell icon={<LayoutDashboard className="w-6 h-6 text-ds-text" />} title="Editor" subtitle="Arrastra y redimensiona cada bloque sobre el lienzo de OBS">
+        <TabShell icon={<LayoutDashboard className="w-6 h-6 text-ds-text" />} title={tg('giveaway.ov.editorTitle')} subtitle={tg('giveaway.ov.editorSub')}>
             <PhasePicker phase={phase} onPick={(p) => { setPhase(p); setRun((n) => n + 1); }} />
             <OverlayCanvasEditor
                 canvas={OVERLAY_CANVAS}
                 elements={elements}
                 onRectChange={(id, r) => patchBlock(id, r)}
                 onToggle={(id, enabled) => patchBlock(id, { enabled })}
-                title="Diseño del overlay"
-                description="Elige arriba qué fase quieres ver. Los cambios se guardan con «Guardar Configuración»."
+                title={tg('giveaway.ov.designTitle')}
+                description={tg('giveaway.ov.designHint')}
             >
                 <GiveawayStage snapshot={snapshot} clockOffsetMs={0} source="all" audio={false} />
             </OverlayCanvasEditor>
@@ -178,12 +166,13 @@ export const OverlayEditorTab: React.FC<TabProps> = ({ config, onUpdateSettings 
 
 export const OverlayThemeTab: React.FC<TabProps> = ({ config, onUpdateSettings }) => {
     const { t } = useTranslation('overlays');
+    const { t: tg } = useTranslation('features');
     const a = config.settings.overlay;
     const patch = useOverlayPatch(onUpdateSettings);
     const setTheme = (p: Partial<Overlay['theme']>) => patch({ theme: { ...a.theme, ...p } });
 
     return (
-        <TabShell icon={<Palette className="w-6 h-6 text-ds-text" />} title="Tema" subtitle="Fondo, bordes y colores del overlay, los mismos que en Song Request">
+        <TabShell icon={<Palette className="w-6 h-6 text-ds-text" />} title={tg('giveaway.ov.themeTitle')} subtitle={tg('giveaway.ov.themeSub')}>
             <Preview overlay={a} withKick={config.settings.platforms.kick} />
             <Card title={t('musicOverlay.theme.presetsTitle')} description={t('musicOverlay.theme.presetsDescription')}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -206,7 +195,7 @@ export const OverlayThemeTab: React.FC<TabProps> = ({ config, onUpdateSettings }
                     <Field label={t('musicOverlay.theme.borderWidth')}><Slider value={a.theme.panelBorderWidth} min={0} max={8} onChange={(v) => setTheme({ panelBorderWidth: v })} suffix="px" /></Field>
                     <Field label={t('musicOverlay.theme.radius')}><Slider value={a.theme.panelRadius} min={0} max={80} onChange={(v) => setTheme({ panelRadius: v })} suffix="px" /></Field>
                     <Field label={t('musicOverlay.theme.blur')} hint={t('musicOverlay.theme.blurHint')}><Slider value={a.theme.panelBlur} min={0} max={30} onChange={(v) => setTheme({ panelBlur: v })} suffix="px" /></Field>
-                    <ColorField label={t('musicOverlay.theme.accent')} value={a.theme.accent} onChange={(v) => setTheme({ accent: v })} hint="Bordes de la ruleta, títulos y detalles." />
+                    <ColorField label={t('musicOverlay.theme.accent')} value={a.theme.accent} onChange={(v) => setTheme({ accent: v })} hint={tg('giveaway.ov.accentHint')} />
                     <div className="pt-5"><Toggle checked={a.theme.panelShadow} onChange={(v) => setTheme({ panelShadow: v })} label={t('musicOverlay.theme.shadow')} /></div>
                 </div>
             </Card>
@@ -218,13 +207,14 @@ export const OverlayThemeTab: React.FC<TabProps> = ({ config, onUpdateSettings }
 
 export const OverlayTextTab: React.FC<TabProps> = ({ config, onUpdateSettings }) => {
     const { t } = useTranslation('overlays');
+    const { t: tg } = useTranslation('features');
     const a = config.settings.overlay;
     const patch = useOverlayPatch(onUpdateSettings);
 
     return (
-        <TabShell icon={<Type className="w-6 h-6 text-ds-text" />} title="Texto" subtitle="Fuente, colores y sombra de todos los textos del overlay">
+        <TabShell icon={<Type className="w-6 h-6 text-ds-text" />} title={tg('giveaway.ov.textTitle')} subtitle={tg('giveaway.ov.textSub')}>
             <Preview overlay={a} withKick={config.settings.platforms.kick} />
-            <Card title="Tipografía" description="La misma fuente y sombra para todos los textos.">
+            <Card title={tg('giveaway.ov.typo')} description={tg('giveaway.ov.typoHint')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label={t('musicOverlay.typography.font')}>
                         <Select value={a.font} onChange={(v) => patch({ font: v })} options={FONT_FAMILIES.map((f) => ({ value: f, label: f }))} />
@@ -233,8 +223,8 @@ export const OverlayTextTab: React.FC<TabProps> = ({ config, onUpdateSettings })
                         <Select<TextShadow> value={a.textShadow} onChange={(v) => patch({ textShadow: v })}
                             options={(['none', 'soft', 'strong', 'glow'] as TextShadow[]).map((x) => ({ value: x, label: t(`musicOverlay.typography.shadows.${x}`) }))} />
                     </Field>
-                    <ColorField label="Color del texto" value={a.textColor} onChange={(v) => patch({ textColor: v })} />
-                    <ColorField label="Color del texto secundario" value={a.secondaryColor} onChange={(v) => patch({ secondaryColor: v })} hint="Premio en el revelado, avisos y números de posición." />
+                    <ColorField label={tg('giveaway.ov.textColor')} value={a.textColor} onChange={(v) => patch({ textColor: v })} />
+                    <ColorField label={tg('giveaway.ov.text2Color')} value={a.secondaryColor} onChange={(v) => patch({ secondaryColor: v })} hint={tg('giveaway.ov.text2Hint')} />
                 </div>
             </Card>
         </TabShell>
@@ -245,20 +235,21 @@ export const OverlayTextTab: React.FC<TabProps> = ({ config, onUpdateSettings })
 
 export const OverlayAnimationsTab: React.FC<TabProps> = ({ config, onUpdateSettings }) => {
     const { t } = useTranslation('overlays');
+    const { t: tg } = useTranslation('features');
     const a = config.settings.overlay;
     const patch = useOverlayPatch(onUpdateSettings);
 
     return (
-        <TabShell icon={<Sparkles className="w-6 h-6 text-ds-text" />} title="Animaciones" subtitle="Cómo entra y sale el overlay y cuánto dura cada momento">
+        <TabShell icon={<Sparkles className="w-6 h-6 text-ds-text" />} title={tg('giveaway.ov.animTitle')} subtitle={tg('giveaway.ov.animSub')}>
             <Preview overlay={a} withKick={config.settings.platforms.kick} />
-            <ShowHideCard title={t('musicOverlay.animations.enterTitle')} description="Cómo aparece cada bloque del overlay." value={a.enter} onChange={(v) => patch({ enter: v })} />
-            <ShowHideCard title={t('musicOverlay.animations.exitTitle')} description="Cómo se va el overlay cuando termina el giveaway." value={a.exit} onChange={(v) => patch({ exit: v })} />
-            <Card title="Tiempos" description="El servidor decide el ganador antes de la animación; estos tiempos solo controlan cuánto dura lo que se ve.">
+            <ShowHideCard title={t('musicOverlay.animations.enterTitle')} description={tg('giveaway.ov.enterHint')} value={a.enter} onChange={(v) => patch({ enter: v })} />
+            <ShowHideCard title={t('musicOverlay.animations.exitTitle')} description={tg('giveaway.ov.exitHint')} value={a.exit} onChange={(v) => patch({ exit: v })} />
+            <Card title={tg('giveaway.ov.times')} description={tg('giveaway.ov.timesHint')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Field label="Duración del revelado (segundos)" hint="La ruleta de nombres antes de mostrar al ganador. Por defecto 8. Cuenta dentro del plazo del ganador para responder.">
+                    <Field label={tg('giveaway.ov.revealSec')} hint={tg('giveaway.ov.revealSecHint')}>
                         <NumberInput value={a.revealSeconds} onChange={(v) => patch({ revealSeconds: v })} min={0} max={60} />
                     </Field>
-                    <Field label="Tiempo del resultado en pantalla (segundos)" hint="Cuánto se queda el resultado final antes de ocultarse. Por defecto 15.">
+                    <Field label={tg('giveaway.ov.resultSec')} hint={tg('giveaway.ov.resultSecHint')}>
                         <NumberInput value={a.resultSeconds} onChange={(v) => patch({ resultSeconds: v })} min={0} max={600} />
                     </Field>
                 </div>
@@ -270,21 +261,22 @@ export const OverlayAnimationsTab: React.FC<TabProps> = ({ config, onUpdateSetti
 // ── Sonido y efectos ────────────────────────────────────────────────────────────
 
 export const OverlaySoundTab: React.FC<TabProps> = ({ config, onUpdateSettings }) => {
+    const { t: tg } = useTranslation('features');
     const a = config.settings.overlay;
     const patch = useOverlayPatch(onUpdateSettings);
 
     return (
-        <TabShell icon={<Volume2 className="w-6 h-6 text-ds-text" />} title="Sonido y efectos" subtitle="Lo que se oye y los efectos del revelado (se escuchan en OBS)">
-            <Card title="Sonidos" description="Generados por el navegador, sin archivos. La vista previa no reproduce sonido.">
+        <TabShell icon={<Volume2 className="w-6 h-6 text-ds-text" />} title={tg('giveaway.ov.soundTitle')} subtitle={tg('giveaway.ov.soundSub')}>
+            <Card title={tg('giveaway.ov.sounds')} description={tg('giveaway.ov.soundsHint')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Field label="Volumen de los sonidos"><Slider value={a.volume} onChange={(v) => patch({ volume: v })} min={0} max={100} suffix="%" /></Field>
+                    <Field label={tg('giveaway.ov.volume')}><Slider value={a.volume} onChange={(v) => patch({ volume: v })} min={0} max={100} suffix="%" /></Field>
                     <div />
-                    <Toggle checked={a.tickSound} onChange={(v) => patch({ tickSound: v })} label="Sonido de la ruleta" hint="Un tic por cada nombre que pasa" />
-                    <Toggle checked={a.fanfareSound} onChange={(v) => patch({ fanfareSound: v })} label="Fanfarria del ganador" />
+                    <Toggle checked={a.tickSound} onChange={(v) => patch({ tickSound: v })} label={tg('giveaway.ov.tick')} hint={tg('giveaway.ov.tickHint')} />
+                    <Toggle checked={a.fanfareSound} onChange={(v) => patch({ fanfareSound: v })} label={tg('giveaway.ov.fanfare')} />
                 </div>
             </Card>
-            <Card title="Efectos">
-                <Toggle checked={a.confetti} onChange={(v) => patch({ confetti: v })} label="Confeti al revelar al ganador" />
+            <Card title={tg('giveaway.ov.effects')}>
+                <Toggle checked={a.confetti} onChange={(v) => patch({ confetti: v })} label={tg('giveaway.ov.confetti')} />
             </Card>
         </TabShell>
     );

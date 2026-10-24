@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Play, Square, RefreshCw, Users, Trophy, Clock, X } from 'lucide-react';
 import type { GiveawayState, GiveawayParticipant } from '../../types';
 import { ActiveInsights } from '../ActiveInsights';
@@ -28,6 +29,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
     onReroll,
     onDisqualify,
 }) => {
+    const { t } = useTranslation('features', { keyPrefix: 'giveaway' });
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState<'username' | 'weight' | 'enteredAt'>('weight');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -80,10 +82,10 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                         <Trophy className="w-16 h-16 text-ds-soft" />
                     </div>
                     <h3 className="text-2xl font-bold text-ds-soft">
-                        No hay giveaway activo
+                        {t('active.none')}
                     </h3>
                     <p className="text-ds-soft">
-                        Configura un giveaway y presiona "Iniciar" en el panel lateral
+                        {t('active.noneHint')}
                     </p>
                 </div>
             </div>
@@ -97,7 +99,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h2 className="text-2xl font-black">🎉 {activeState?.config.name}</h2>
-                        <p className="text-ds-soft text-lg">Premio: {activeState?.config.prizeName}</p>
+                        <p className="text-ds-soft text-lg">{t('active.prize', { name: activeState?.config.prizeName })}</p>
                     </div>
                     <div className={`px-4 py-2 rounded-full font-bold whitespace-nowrap shrink-0 ${
                         activeState?.status === 'active' ? 'bg-ds-accent' :
@@ -106,12 +108,12 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                         activeState?.status === 'cancelled' ? 'bg-ds-danger-solid' :
                         'bg-ds-faint'
                     }`}>
-                        {activeState?.status === 'active' ? '✓ Activo' :
-                         activeState?.status === 'selecting_winners' ? '⏳ Esperando Respuestas' :
-                         activeState?.status === 'completed' ? '✅ Completado' :
-                         activeState?.status === 'cancelled' ? '❌ Cancelado' :
-                         activeState?.status === 'selecting' ? '🎲 Seleccionando' :
-                         '⏸️ Pausado'}
+                        {activeState?.status === 'active' ? t('active.stActive') :
+                         activeState?.status === 'selecting_winners' ? t('active.stWaiting') :
+                         activeState?.status === 'completed' ? t('active.stDone') :
+                         activeState?.status === 'cancelled' ? t('active.stCancelled') :
+                         activeState?.status === 'selecting' ? t('active.stSelecting') :
+                         t('active.stPaused')}
                     </div>
                 </div>
 
@@ -120,7 +122,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                     <div className="bg-ds-raised/50 backdrop-blur rounded-lg p-4 border border-ds-border">
                         <div className="flex items-center gap-2 mb-2 text-ds-soft">
                             <Users className="w-5 h-5" />
-                            <p className="font-bold">Participantes</p>
+                            <p className="font-bold">{t('active.participants')}</p>
                         </div>
                         <p className="text-3xl font-black">{activeState?.totalParticipants || 0}</p>
                     </div>
@@ -130,7 +132,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                         <div className="bg-ds-raised/50 backdrop-blur rounded-lg p-4 border border-ds-border">
                             <div className="flex items-center gap-2 mb-2 text-ds-soft">
                                 <Clock className="w-5 h-5" />
-                                <p className="font-bold">Tiempo Restante</p>
+                                <p className="font-bold">{t('active.remaining')}</p>
                             </div>
                             <p className="text-3xl font-black">{remainingTime}</p>
                         </div>
@@ -140,7 +142,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                     <div className="bg-ds-raised/50 backdrop-blur rounded-lg p-4 border border-ds-border">
                         <div className="flex items-center gap-2 mb-2 text-ds-soft">
                             <Trophy className="w-5 h-5" />
-                            <p className="font-bold">Ganadores</p>
+                            <p className="font-bold">{t('active.winners')}</p>
                         </div>
                         <p className="text-3xl font-black">{activeState?.selectedWinners?.length ?? 0}<span className="text-ds-soft text-xl"> / {activeState?.config.numberOfWinners || 1}</span></p>
                     </div>
@@ -154,7 +156,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                 <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                     <h3 className="text-xl font-bold text-ds-text mb-4 flex items-center gap-2">
                         <Trophy className="w-6 h-6 text-ds-accent-text" />
-                        Ganadores Seleccionados
+                        {t('active.selected')}
                     </h3>
                     <div className="space-y-3">
                         {activeState.selectedWinners.map((winner, idx) => (
@@ -171,7 +173,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                                             {winner.participant.displayName}
                                         </p>
                                         <p className="text-sm text-ds-soft">
-                                            @{winner.participant.username} • Peso: {winner.participant.calculatedWeight.toFixed(2)}×
+                                            @{winner.participant.username} • {t('active.weight', { w: winner.participant.calculatedWeight.toFixed(2) })}
                                         </p>
                                     </div>
                                 </div>
@@ -180,7 +182,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                                         onClick={() => onDisqualify(winner.participant.username)}
                                         className="ds-btn ds-btn--primary"
                                     >
-                                        Descalificar
+                                        {t('active.disqualify')}
                                     </button>
                                 </div>
                             </div>
@@ -194,14 +196,14 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-ds-text flex items-center gap-2">
                         <Users className="w-6 h-6 text-ds-accent-text" />
-                        Participantes ({filteredParticipants.length})
+                        {t('active.participantsCount', { n: filteredParticipants.length })}
                     </h3>
 
                     {/* Search and Sort */}
                     <div className="flex gap-2">
                         <input
                             type="text"
-                            placeholder="Buscar usuario..."
+                            placeholder={t('active.searchPh')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="ds-input"
@@ -211,9 +213,9 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                             onChange={(e) => setSortBy(e.target.value as any)}
                             className="ds-input"
                         >
-                            <option value="weight">Por Peso</option>
-                            <option value="username">Por Nombre</option>
-                            <option value="enteredAt">Por Entrada</option>
+                            <option value="weight">{t('active.byWeight')}</option>
+                            <option value="username">{t('active.byName')}</option>
+                            <option value="enteredAt">{t('active.byEntry')}</option>
                         </select>
                         <button
                             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -231,10 +233,10 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                             <thead className="bg-ds-bg sticky top-0">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">#</th>
-                                    <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">Usuario</th>
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">{t('active.user')}</th>
                                     <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">Badges</th>
-                                    <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">Peso</th>
-                                    <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">Hora Entrada</th>
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">{t('active.weightCol')}</th>
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-ds-soft">{t('active.enteredCol')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-ds-border">
@@ -255,7 +257,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                                                             ? 'bg-ds-accent text-ds-on-accent'
                                                             : 'bg-ds-accent text-ds-on-accent'
                                                     }`}>
-                                                        Tier {participant.subscriptionTier}
+                                                        {t('active.tier', { n: participant.subscriptionTier })}
                                                     </span>
                                                 )}
                                                 {participant.isVip && (

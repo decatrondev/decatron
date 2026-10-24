@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Gift, Clock, Users, Trophy } from 'lucide-react';
 import type { GiveawayConfig, GiveawaySettings } from '../../types';
 
@@ -14,6 +15,7 @@ interface CreateTabProps {
 }
 
 export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, settings, onUpdateSettings }) => {
+    const { t } = useTranslation('features', { keyPrefix: 'giveaway.create' });
     const draw = settings?.draw;
     const setDraw = (u: Partial<GiveawaySettings['draw']>) => onUpdateSettings?.('draw', u);
     const DrawToggle = ({ title, hint, value, onChange }: { title: string; hint: string; value: boolean; onChange: (v: boolean) => void }) => (
@@ -22,7 +24,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                 <p className="font-bold text-ds-text">{title}</p>
                 <p className="text-xs text-ds-soft">{hint}</p>
             </div>
-            <button onClick={() => onChange(!value)} className={value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>{value ? 'Sí' : 'No'}</button>
+            <button onClick={() => onChange(!value)} className={value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>{value ? t('yes') : t('no')}</button>
         </div>
     );
 
@@ -35,10 +37,10 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                 </div>
                 <div>
                     <h2 className="text-2xl font-black text-ds-text">
-                        Crear Giveaway
+                        {t('title')}
                     </h2>
                     <p className="text-sm text-ds-soft">
-                        Configura los detalles básicos de tu sorteo
+                        {t('subtitle')}
                     </p>
                 </div>
             </div>
@@ -47,20 +49,20 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-ds-accent-text" />
-                    Información del Premio
+                    {t('prizeInfo')}
                 </h3>
 
                 <div className="grid grid-cols-1 gap-4">
                     {/* Nombre del Giveaway */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Nombre del Giveaway
+                            {t('name')}
                         </label>
                         <input
                             type="text"
                             value={config.name}
                             onChange={(e) => onUpdateConfig({ name: e.target.value })}
-                            placeholder="Ej: Sorteo de Navidad"
+                            placeholder={t('namePh')}
                             className="ds-input w-full"
                         />
                     </div>
@@ -68,13 +70,13 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                     {/* Nombre del Premio */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Nombre del Premio *
+                            {t('prize')}
                         </label>
                         <input
                             type="text"
                             value={config.prizeName}
                             onChange={(e) => onUpdateConfig({ prizeName: e.target.value })}
-                            placeholder="Ej: Steam Deck, $50 Amazon, Teclado Mecánico"
+                            placeholder={t('prizePh')}
                             className="ds-input w-full"
                         />
                     </div>
@@ -82,12 +84,12 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                     {/* Descripción del Premio */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Descripción del Premio (Opcional)
+                            {t('prizeDesc')}
                         </label>
                         <textarea
                             value={config.prizeDescription || ''}
                             onChange={(e) => onUpdateConfig({ prizeDescription: e.target.value })}
-                            placeholder="Detalles adicionales sobre el premio..."
+                            placeholder={t('prizeDescPh')}
                             rows={3}
                             className="ds-input w-full resize-none"
                         />
@@ -99,7 +101,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Clock className="w-5 h-5 text-ds-accent-text" />
-                    Duración
+                    {t('duration')}
                 </h3>
 
                 <div className="space-y-4">
@@ -109,13 +111,13 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                             onClick={() => onUpdateConfig({ durationType: 'timed' })}
                             className={`${config.durationType === 'timed' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'} ds-btn--lg flex-1`}
                         >
-                            ⏱️ Con Tiempo Límite
+                            {t('timed')}
                         </button>
                         <button
                             onClick={() => onUpdateConfig({ durationType: 'manual' })}
                             className={`${config.durationType === 'manual' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'} ds-btn--lg flex-1`}
                         >
-                            ✋ Manual (lo termino yo)
+                            {t('manual')}
                         </button>
                     </div>
 
@@ -123,7 +125,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                     {config.durationType === 'timed' && (
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-2">
-                                Duración (minutos)
+                                {t('minutes')}
                             </label>
                             <input
                                 type="number"
@@ -134,7 +136,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                                 className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">
-                                El giveaway finalizará automáticamente después de {config.durationMinutes} minutos
+                                {t('autoEnd', { n: config.durationMinutes })}
                             </p>
                         </div>
                     )}
@@ -145,14 +147,14 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Users className="w-5 h-5 text-ds-accent-text" />
-                    Participantes
+                    {t('participants')}
                 </h3>
 
                 <div className="space-y-4">
                     {/* Comando de entrada */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Comando de Entrada
+                            {t('entryCommand')}
                         </label>
                         <input
                             type="text"
@@ -166,32 +168,32 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                     {/* Entrada automática */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Entrada Automática</p>
+                            <p className="font-bold text-ds-text">{t('autoEntry')}</p>
                             <p className="text-sm text-ds-soft">
-                                Cualquiera que escriba en chat entra automáticamente
+                                {t('autoEntryHint')}
                             </p>
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ allowAutoEntry: !config.allowAutoEntry })}
                             className={config.allowAutoEntry ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {config.allowAutoEntry ? 'Activado' : 'Desactivado'}
+                            {config.allowAutoEntry ? t('on') : t('off')}
                         </button>
                     </div>
 
                     {/* Múltiples entradas */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Permitir Múltiples Entradas</p>
+                            <p className="font-bold text-ds-text">{t('multi')}</p>
                             <p className="text-sm text-ds-soft">
-                                Un usuario puede usar el comando varias veces
+                                {t('multiHint')}
                             </p>
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ allowMultipleEntries: !config.allowMultipleEntries })}
                             className={config.allowMultipleEntries ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {config.allowMultipleEntries ? 'Activado' : 'Desactivado'}
+                            {config.allowMultipleEntries ? t('on') : t('off')}
                         </button>
                     </div>
 
@@ -199,7 +201,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div className="flex-1 mr-4">
                             <div className="flex items-center gap-2 mb-2">
-                                <p className="font-bold text-ds-text">Límite de Participantes</p>
+                                <p className="font-bold text-ds-text">{t('maxP')}</p>
                                 <button
                                     onClick={() => onUpdateConfig({ maxParticipantsEnabled: !config.maxParticipantsEnabled })}
                                     className={config.maxParticipantsEnabled ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
@@ -225,14 +227,14 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-ds-accent-text" />
-                    Ganadores
+                    {t('winners')}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Número de ganadores */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Número de Ganadores
+                            {t('numWinners')}
                         </label>
                         <input
                             type="number"
@@ -247,14 +249,14 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                     {/* Ganadores de respaldo */}
                     <div>
                         <label className="block text-sm font-bold text-ds-soft mb-2">
-                            Ganadores de Respaldo
+                            {t('backups')}
                         </label>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => onUpdateConfig({ hasBackupWinners: !config.hasBackupWinners })}
                                 className={config.hasBackupWinners ? 'ds-btn ds-btn--primary ds-btn--lg' : 'ds-btn ds-btn--secondary ds-btn--lg'}
                             >
-                                {config.hasBackupWinners ? 'Activado' : 'Desactivado'}
+                                {config.hasBackupWinners ? t('on') : t('off')}
                             </button>
                             {config.hasBackupWinners && (
                                 <input
@@ -274,32 +276,32 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                 {draw && (
                     <div className="space-y-3 p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Cómo se sortea y se valida</p>
-                            <p className="text-xs text-ds-soft">Vale desde el siguiente giveaway. Los comandos de chat (choose, reroll, close) están en la pestaña Comandos.</p>
+                            <p className="font-bold text-ds-text">{t('drawTitle')}</p>
+                            <p className="text-xs text-ds-soft">{t('drawHint')}</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-ds-soft mb-2">Varios ganadores</label>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">{t('several')}</label>
                             <select className="ds-input w-full" value={draw.mode} onChange={(e) => setDraw({ mode: e.target.value as 'all' | 'one_by_one' })}>
-                                <option value="all">Todos de golpe: cada sorteo elige todos los lugares libres</option>
-                                <option value="one_by_one">Uno por uno: cada «choose» elige al siguiente y el giveaway sigue hasta confirmar todos los lugares</option>
+                                <option value="all">{t('modeAll')}</option>
+                                <option value="one_by_one">{t('modeOne')}</option>
                             </select>
                             {draw.mode === 'one_by_one' && config.hasBackupWinners && (
-                                <p className="text-xs text-amber-500 mt-1">En «uno por uno» no se eligen ganadores de respaldo de antemano.</p>
+                                <p className="text-xs text-amber-500 mt-1">{t('oneNoBackup')}</p>
                             )}
                         </div>
-                        <DrawToggle title="La participación sigue abierta tras sortear" hint="Se cierra con «close». Apagado: se cierra en el primer sorteo" value={draw.keepEntriesOpen} onChange={(v) => setDraw({ keepEntriesOpen: v })} />
-                        <DrawToggle title="Quien no responde queda descartado" hint="No vuelve a salir sorteado en este giveaway. Apagado: puede volver a ganar" value={draw.discardNoResponse} onChange={(v) => setDraw({ discardNoResponse: v })} />
-                        <DrawToggle title="Un ganador confirmado puede ganar otro lugar" hint="Apagado: quien ya respondió no vuelve a salir en este giveaway" value={draw.confirmedCanWinAgain} onChange={(v) => setDraw({ confirmedCanWinAgain: v })} />
-                        <DrawToggle title="Dejar el giveaway abierto al salir los ganadores" hint="Apagado: al resolverse todos los lugares se completa solo. Encendido: sigue abierto, «choose» suma un ganador extra y «finish» lo termina" value={draw.onComplete === 'keep_open'} onChange={(v) => setDraw({ onComplete: v ? 'keep_open' : 'finish' })} />
-                        <DrawToggle title="«reroll @ganador» puede reemplazar a quien ya respondió" hint="Apagado: un ganador confirmado no se puede anular" value={draw.replaceConfirmed} onChange={(v) => setDraw({ replaceConfirmed: v })} />
-                        <DrawToggle title="«reroll» usa primero al ganador de respaldo" hint="Apagado: siempre sortea a otra persona al azar" value={draw.backupsOnReroll} onChange={(v) => setDraw({ backupsOnReroll: v })} />
+                        <DrawToggle title={t('keepEntries')} hint={t('keepEntriesHint')} value={draw.keepEntriesOpen} onChange={(v) => setDraw({ keepEntriesOpen: v })} />
+                        <DrawToggle title={t('discard')} hint={t('discardHint')} value={draw.discardNoResponse} onChange={(v) => setDraw({ discardNoResponse: v })} />
+                        <DrawToggle title={t('again')} hint={t('againHint')} value={draw.confirmedCanWinAgain} onChange={(v) => setDraw({ confirmedCanWinAgain: v })} />
+                        <DrawToggle title={t('keepOpen')} hint={t('keepOpenHint')} value={draw.onComplete === 'keep_open'} onChange={(v) => setDraw({ onComplete: v ? 'keep_open' : 'finish' })} />
+                        <DrawToggle title={t('replaceConfirmed')} hint={t('replaceConfirmedHint')} value={draw.replaceConfirmed} onChange={(v) => setDraw({ replaceConfirmed: v })} />
+                        <DrawToggle title={t('backupOnReroll')} hint={t('backupOnRerollHint')} value={draw.backupsOnReroll} onChange={(v) => setDraw({ backupsOnReroll: v })} />
                     </div>
                 )}
 
                 {/* Timeout de respuesta */}
                 <div>
                     <label className="block text-sm font-bold text-ds-soft mb-2">
-                        Tiempo de Respuesta (segundos)
+                        {t('timeout')}
                     </label>
                     <input
                         type="number"
@@ -310,23 +312,23 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                         className="ds-input w-full"
                     />
                     <p className="text-xs text-ds-soft mt-1">
-                        Tiempo que tiene el ganador para responder antes de ser descalificado
+                        {t('timeoutHint')}
                     </p>
                 </div>
 
                 {/* Auto reroll */}
                 <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div>
-                        <p className="font-bold text-ds-text">Re-sorteo Automático</p>
+                        <p className="font-bold text-ds-text">{t('autoReroll')}</p>
                         <p className="text-sm text-ds-soft">
-                            Sortear nuevo ganador si no responde a tiempo
+                            {t('autoRerollHint')}
                         </p>
                     </div>
                     <button
                         onClick={() => onUpdateConfig({ autoRerollOnTimeout: !config.autoRerollOnTimeout })}
                         className={config.autoRerollOnTimeout ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
-                        {config.autoRerollOnTimeout ? 'Activado' : 'Desactivado'}
+                        {config.autoRerollOnTimeout ? t('on') : t('off')}
                     </button>
                 </div>
             </div>

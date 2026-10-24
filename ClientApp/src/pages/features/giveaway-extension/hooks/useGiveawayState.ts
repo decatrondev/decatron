@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import i18n from 'i18next';
 import api from '../../../../services/api';
 import type { GiveawayState, GiveawayParticipant, GiveawayWinner } from '../types';
 
@@ -38,7 +39,7 @@ export const useGiveawayState = () => {
             }
         } catch (err: any) {
             console.error('Error fetching active giveaway:', err);
-            setError(err.response?.data?.message || 'Error al cargar giveaway activo');
+            setError(err.response?.data?.message || i18n.t('features:giveaway.hook.loadActiveErr'));
             setActiveState(null);
         } finally {
             setLoading(false);
@@ -57,12 +58,12 @@ export const useGiveawayState = () => {
 
             if (response.data.success) {
                 await fetchActiveGiveaway();
-                return { success: true, message: 'Giveaway iniciado correctamente' };
+                return { success: true, message: i18n.t('features:giveaway.hook.started') };
             } else {
-                throw new Error(response.data.message || 'Error al iniciar giveaway');
+                throw new Error(response.data.message || i18n.t('features:giveaway.hook.startErr'));
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || 'Error al iniciar giveaway';
+            const errorMsg = err.response?.data?.message || err.message || i18n.t('features:giveaway.hook.startErr');
             setError(errorMsg);
             return { success: false, message: errorMsg };
         } finally {
@@ -82,12 +83,12 @@ export const useGiveawayState = () => {
 
             if (response.data.success) {
                 await fetchActiveGiveaway();
-                return { success: true, message: 'Giveaway finalizado correctamente' };
+                return { success: true, message: i18n.t('features:giveaway.hook.ended') };
             } else {
-                throw new Error(response.data.message || 'Error al finalizar giveaway');
+                throw new Error(response.data.message || i18n.t('features:giveaway.hook.endErr'));
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || 'Error al finalizar giveaway';
+            const errorMsg = err.response?.data?.message || err.message || i18n.t('features:giveaway.hook.endErr');
             setError(errorMsg);
             return { success: false, message: errorMsg };
         } finally {
@@ -107,12 +108,12 @@ export const useGiveawayState = () => {
 
             if (response.data.success) {
                 await fetchActiveGiveaway();
-                return { success: true, message: 'Giveaway cancelado correctamente' };
+                return { success: true, message: i18n.t('features:giveaway.hook.cancelled') };
             } else {
-                throw new Error(response.data.message || 'Error al cancelar giveaway');
+                throw new Error(response.data.message || i18n.t('features:giveaway.hook.cancelErr'));
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || 'Error al cancelar giveaway';
+            const errorMsg = err.response?.data?.message || err.message || i18n.t('features:giveaway.hook.cancelErr');
             setError(errorMsg);
             return { success: false, message: errorMsg };
         } finally {
@@ -132,12 +133,12 @@ export const useGiveawayState = () => {
 
             if (response.data.success) {
                 await fetchActiveGiveaway();
-                return { success: true, message: 'Nuevo ganador seleccionado', winner: response.data.winner };
+                return { success: true, message: i18n.t('features:giveaway.hook.rerolled'), winner: response.data.winner };
             } else {
-                throw new Error(response.data.message || 'Error al re-sortear ganador');
+                throw new Error(response.data.message || i18n.t('features:giveaway.hook.rerollErr'));
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || 'Error al re-sortear ganador';
+            const errorMsg = err.response?.data?.message || err.message || i18n.t('features:giveaway.hook.rerollErr');
             setError(errorMsg);
             return { success: false, message: errorMsg };
         } finally {
@@ -157,12 +158,12 @@ export const useGiveawayState = () => {
 
             if (response.data.success) {
                 await fetchActiveGiveaway();
-                return { success: true, message: 'Ganador descalificado' };
+                return { success: true, message: i18n.t('features:giveaway.hook.disq') };
             } else {
-                throw new Error(response.data.message || 'Error al descalificar ganador');
+                throw new Error(response.data.message || i18n.t('features:giveaway.hook.disqErr'));
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || 'Error al descalificar ganador';
+            const errorMsg = err.response?.data?.message || err.message || i18n.t('features:giveaway.hook.disqErr');
             setError(errorMsg);
             return { success: false, message: errorMsg };
         } finally {

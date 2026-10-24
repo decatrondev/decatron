@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Shield, Clock, UserCheck, MessageSquare, Ban } from 'lucide-react';
 import type { GiveawayRequirements } from '../../types';
 
@@ -12,6 +13,7 @@ interface RequirementsTabProps {
 }
 
 export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, onUpdateRequirements }) => {
+    const { t } = useTranslation('features', { keyPrefix: 'giveaway' });
     const handleBlacklistAdd = (username: string) => {
         if (username.trim() && !requirements.blacklistedUsers.includes(username.trim())) {
             onUpdateRequirements({
@@ -49,10 +51,10 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                 </div>
                 <div>
                     <h2 className="text-2xl font-black text-ds-text">
-                        Requisitos de Entrada
+                        {t('requirements.title')}
                     </h2>
                     <p className="text-sm text-ds-soft">
-                        Define quién puede participar en el giveaway
+                        {t('requirements.subtitle')}
                     </p>
                 </div>
             </div>
@@ -61,35 +63,35 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <UserCheck className="w-5 h-5 text-ds-accent-text" />
-                    Requisitos Básicos
+                    {t('requirements.basic')}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Must Follow */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Debe Seguir el Canal</p>
-                            <p className="text-xs text-ds-soft">Solo followers pueden participar</p>
+                            <p className="font-bold text-ds-text">{t('requirements.mustFollow')}</p>
+                            <p className="text-xs text-ds-soft">{t('requirements.mustFollowHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ mustFollow: !requirements.mustFollow })}
                             className={requirements.mustFollow ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.mustFollow ? 'Requerido' : 'No requerido'}
+                            {requirements.mustFollow ? t('common.required') : t('common.notRequired')}
                         </button>
                     </div>
 
                     {/* Must Subscribe */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Debe Estar Suscrito</p>
-                            <p className="text-xs text-ds-soft">Solo subscribers pueden participar</p>
+                            <p className="font-bold text-ds-text">{t('requirements.mustSub')}</p>
+                            <p className="text-xs text-ds-soft">{t('requirements.mustSubHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ mustSubscribe: !requirements.mustSubscribe })}
                             className={requirements.mustSubscribe ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.mustSubscribe ? 'Requerido' : 'No requerido'}
+                            {requirements.mustSubscribe ? t('common.required') : t('common.notRequired')}
                         </button>
                     </div>
 
@@ -99,33 +101,33 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             <p className="font-bold text-ds-text">VIPs</p>
                             <p className="text-xs text-ds-soft">
                                 {requirements.allowVips
-                                    ? 'Los VIPs pueden participar'
-                                    : 'Los VIPs serán rechazados al escribir el comando'}
+                                    ? t('requirements.vipsOk')
+                                    : t('requirements.vipsNo')}
                             </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ allowVips: !requirements.allowVips })}
                             className={requirements.allowVips ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.allowVips ? 'Pueden participar' : 'Bloqueados'}
+                            {requirements.allowVips ? t('common.canTake') : t('common.blocked')}
                         </button>
                     </div>
 
                     {/* Allow Moderators */}
                     <div className={`flex items-center justify-between p-4 bg-ds-bg rounded-lg border ${requirements.allowModerators ? 'border-ds-border' : 'border-ds-warn'}`}>
                         <div>
-                            <p className="font-bold text-ds-text">Moderadores</p>
+                            <p className="font-bold text-ds-text">{t('requirements.mods')}</p>
                             <p className="text-xs text-ds-soft">
                                 {requirements.allowModerators
-                                    ? 'Los moderadores pueden participar'
-                                    : 'Los moderadores serán rechazados al escribir el comando (el streamer también)'}
+                                    ? t('requirements.modsOk')
+                                    : t('requirements.modsNo')}
                             </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ allowModerators: !requirements.allowModerators })}
                             className={requirements.allowModerators ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.allowModerators ? 'Pueden participar' : 'Bloqueados'}
+                            {requirements.allowModerators ? t('common.canTake') : t('common.blocked')}
                         </button>
                     </div>
                 </div>
@@ -135,7 +137,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Clock className="w-5 h-5 text-ds-accent-text" />
-                    Requisitos de Tiempo
+                    {t('requirements.timeReq')}
                 </h3>
 
                 <div className="space-y-4">
@@ -143,14 +145,14 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                     <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div className="flex items-center justify-between mb-3">
                             <div>
-                                <p className="font-bold text-ds-text">Tiempo Mínimo Viendo</p>
-                                <p className="text-xs text-ds-soft">Minutos viendo el stream actual</p>
+                                <p className="font-bold text-ds-text">{t('requirements.watch')}</p>
+                                <p className="text-xs text-ds-soft">{t('requirements.watchHint')}</p>
                             </div>
                             <button
                                 onClick={() => onUpdateRequirements({ minimumWatchTimeEnabled: !requirements.minimumWatchTimeEnabled })}
                                 className={requirements.minimumWatchTimeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
-                                {requirements.minimumWatchTimeEnabled ? 'Activado' : 'Desactivado'}
+                                {requirements.minimumWatchTimeEnabled ? t('common.on') : t('common.off')}
                             </button>
                         </div>
                         {requirements.minimumWatchTimeEnabled && (
@@ -160,7 +162,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                 value={requirements.minimumWatchTime}
                                 onChange={(e) => onUpdateRequirements({ minimumWatchTime: parseInt(e.target.value) || 0 })}
                                 className="ds-input w-full"
-                                placeholder="Minutos"
+                                placeholder={t('requirements.minutesPh')}
                             />
                         )}
                     </div>
@@ -169,14 +171,14 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                     <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div className="flex items-center justify-between mb-3">
                             <div>
-                                <p className="font-bold text-ds-text">Edad Mínima de Cuenta</p>
-                                <p className="text-xs text-ds-soft">Tiempo desde que se creó la cuenta de Twitch</p>
+                                <p className="font-bold text-ds-text">{t('requirements.accAge')}</p>
+                                <p className="text-xs text-ds-soft">{t('requirements.accAgeHint')}</p>
                             </div>
                             <button
                                 onClick={() => onUpdateRequirements({ minimumAccountAgeEnabled: !requirements.minimumAccountAgeEnabled })}
                                 className={requirements.minimumAccountAgeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
-                                {requirements.minimumAccountAgeEnabled ? 'Activado' : 'Desactivado'}
+                                {requirements.minimumAccountAgeEnabled ? t('common.on') : t('common.off')}
                             </button>
                         </div>
                         {requirements.minimumAccountAgeEnabled && (
@@ -187,7 +189,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     value={requirements.minimumAccountAge}
                                     onChange={(e) => onUpdateRequirements({ minimumAccountAge: parseInt(e.target.value) || 0 })}
                                     className="ds-input flex-1 min-w-0"
-                                    placeholder="Cantidad"
+                                    placeholder={t('requirements.amountPh')}
                                 />
                                 <select
                                     value={requirements.minimumAccountAgeUnit || 'days'}
@@ -195,9 +197,9 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     className="ds-input shrink-0"
                                     style={{ width: 'auto' }}
                                 >
-                                    <option value="days">Días</option>
-                                    <option value="months">Meses</option>
-                                    <option value="years">Años</option>
+                                    <option value="days">{t('requirements.days')}</option>
+                                    <option value="months">{t('requirements.months')}</option>
+                                    <option value="years">{t('requirements.years')}</option>
                                 </select>
                             </div>
                         )}
@@ -207,14 +209,14 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                     <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div className="flex items-center justify-between mb-3">
                             <div>
-                                <p className="font-bold text-ds-text">Tiempo Mínimo Siguiendo</p>
-                                <p className="text-xs text-ds-soft">Tiempo desde que sigue el canal</p>
+                                <p className="font-bold text-ds-text">{t('requirements.followAge')}</p>
+                                <p className="text-xs text-ds-soft">{t('requirements.followAgeHint')}</p>
                             </div>
                             <button
                                 onClick={() => onUpdateRequirements({ minimumFollowAgeEnabled: !requirements.minimumFollowAgeEnabled })}
                                 className={requirements.minimumFollowAgeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
-                                {requirements.minimumFollowAgeEnabled ? 'Activado' : 'Desactivado'}
+                                {requirements.minimumFollowAgeEnabled ? t('common.on') : t('common.off')}
                             </button>
                         </div>
                         {requirements.minimumFollowAgeEnabled && (
@@ -225,7 +227,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     value={requirements.minimumFollowAge}
                                     onChange={(e) => onUpdateRequirements({ minimumFollowAge: parseInt(e.target.value) || 0 })}
                                     className="ds-input flex-1 min-w-0"
-                                    placeholder="Cantidad"
+                                    placeholder={t('requirements.amountPh')}
                                 />
                                 <select
                                     value={requirements.minimumFollowAgeUnit || 'days'}
@@ -233,9 +235,9 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     className="ds-input shrink-0"
                                     style={{ width: 'auto' }}
                                 >
-                                    <option value="days">Días</option>
-                                    <option value="months">Meses</option>
-                                    <option value="years">Años</option>
+                                    <option value="days">{t('requirements.days')}</option>
+                                    <option value="months">{t('requirements.months')}</option>
+                                    <option value="years">{t('requirements.years')}</option>
                                 </select>
                             </div>
                         )}
@@ -247,20 +249,20 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <MessageSquare className="w-5 h-5 text-ds-accent-text" />
-                    Actividad en Chat
+                    {t('requirements.chatAct')}
                 </h3>
 
                 <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div className="flex items-center justify-between mb-3">
                         <div>
-                            <p className="font-bold text-ds-text">Mensajes Mínimos en Chat</p>
-                            <p className="text-xs text-ds-soft">Número mínimo de mensajes en el stream actual</p>
+                            <p className="font-bold text-ds-text">{t('requirements.chatMsgs')}</p>
+                            <p className="text-xs text-ds-soft">{t('requirements.chatMsgsHint')}</p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ minimumChatMessagesEnabled: !requirements.minimumChatMessagesEnabled })}
                             className={requirements.minimumChatMessagesEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.minimumChatMessagesEnabled ? 'Activado' : 'Desactivado'}
+                            {requirements.minimumChatMessagesEnabled ? t('common.on') : t('common.off')}
                         </button>
                     </div>
                     {requirements.minimumChatMessagesEnabled && (
@@ -270,7 +272,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             value={requirements.minimumChatMessages}
                             onChange={(e) => onUpdateRequirements({ minimumChatMessages: parseInt(e.target.value) || 0 })}
                             className="ds-input w-full"
-                            placeholder="Mensajes"
+                            placeholder={t('requirements.msgsPh')}
                         />
                     )}
                 </div>
@@ -280,45 +282,42 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                     <Ban className="w-5 h-5 text-ds-accent-text" />
-                    Protección Anti-Trampa
+                    {t('requirements.anti')}
                 </h3>
                 <p className="text-sm text-ds-soft">
-                    Lo que de verdad frena a las cuentas falsas son los requisitos de arriba: edad mínima de la cuenta,
-                    mensajes en el chat y tiempo siguiendo el canal.
+                    {t('requirements.antiHint')}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Block Multiple Accounts */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Bloquear Multi-Cuentas</p>
+                            <p className="font-bold text-ds-text">{t('requirements.multi')}</p>
                             <p className="text-xs text-ds-soft">
-                                Compara cuándo se crearon las cuentas y cuándo siguieron el canal. Es una pista, no una prueba:
-                                los umbrales se ajustan en Ajustes.
+                                {t('requirements.multiHint')}
                             </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ blockMultipleAccounts: !requirements.blockMultipleAccounts })}
                             className={requirements.blockMultipleAccounts ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.blockMultipleAccounts ? 'Activado' : 'Desactivado'}
+                            {requirements.blockMultipleAccounts ? t('common.on') : t('common.off')}
                         </button>
                     </div>
 
                     {/* Check IP Duplication */}
                     <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                         <div>
-                            <p className="font-bold text-ds-text">Verificar IP Duplicada</p>
+                            <p className="font-bold text-ds-text">{t('requirements.ip')}</p>
                             <p className="text-xs text-ds-warn">
-                                Sin efecto por ahora: Twitch no entrega la IP de los viewers. Se conserva la opción por si algún día
-                                hay entrada con enlace propio.
+                                {t('requirements.ipHint')}
                             </p>
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ checkIpDuplication: !requirements.checkIpDuplication })}
                             className={requirements.checkIpDuplication ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {requirements.checkIpDuplication ? 'Activado' : 'Desactivado'}
+                            {requirements.checkIpDuplication ? t('common.on') : t('common.off')}
                         </button>
                     </div>
                 </div>
@@ -327,31 +326,31 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
             {/* Blacklist / Whitelist */}
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-ds-text">
-                    Listas de Usuarios
+                    {t('requirements.lists')}
                 </h3>
 
                 {/* Use Whitelist Toggle */}
                 <div className="flex items-center justify-between p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div>
-                        <p className="font-bold text-ds-text">Usar Whitelist</p>
-                        <p className="text-xs text-ds-soft">Solo usuarios en whitelist pueden participar</p>
+                        <p className="font-bold text-ds-text">{t('requirements.useWl')}</p>
+                        <p className="text-xs text-ds-soft">{t('requirements.useWlHint')}</p>
                     </div>
                     <button
                         onClick={() => onUpdateRequirements({ useWhitelist: !requirements.useWhitelist })}
                         className={requirements.useWhitelist ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
-                        {requirements.useWhitelist ? 'Activado' : 'Desactivado'}
+                        {requirements.useWhitelist ? t('common.on') : t('common.off')}
                     </button>
                 </div>
 
                 {/* Blacklist */}
                 {!requirements.useWhitelist && (
                     <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
-                        <p className="font-bold text-ds-text mb-3">Blacklist (Usuarios Bloqueados)</p>
+                        <p className="font-bold text-ds-text mb-3">{t('requirements.bl')}</p>
                         <div className="flex gap-2 mb-3">
                             <input
                                 type="text"
-                                placeholder="Usuario a bloquear"
+                                placeholder={t('requirements.blPh')}
                                 className="ds-input flex-1"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
@@ -368,7 +367,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                 }}
                                 className="ds-btn ds-btn--primary"
                             >
-                                Añadir
+                                {t('common.add')}
                             </button>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -393,11 +392,11 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                 {/* Whitelist */}
                 {requirements.useWhitelist && (
                     <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
-                        <p className="font-bold text-ds-text mb-3">Whitelist (Usuarios Permitidos)</p>
+                        <p className="font-bold text-ds-text mb-3">{t('requirements.wl')}</p>
                         <div className="flex gap-2 mb-3">
                             <input
                                 type="text"
-                                placeholder="Usuario a permitir"
+                                placeholder={t('requirements.wlPh')}
                                 className="ds-input flex-1"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
@@ -414,7 +413,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                 }}
                                 className="ds-btn ds-btn--primary"
                             >
-                                Añadir
+                                {t('common.add')}
                             </button>
                         </div>
                         <div className="flex flex-wrap gap-2">

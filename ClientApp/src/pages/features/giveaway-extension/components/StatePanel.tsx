@@ -3,6 +3,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Play, Square, RotateCcw, X, Trophy, Users, Clock, Sparkles } from 'lucide-react';
 import type { GiveawayState, GiveawayConfig } from '../types';
 
@@ -30,6 +31,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
     onReroll,
     onDismiss,
 }) => {
+    const { t } = useTranslation('features', { keyPrefix: 'giveaway' });
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancelReason, setCancelReason] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
@@ -41,7 +43,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
     };
 
     const handleEnd = async () => {
-        if (window.confirm('¿Estás seguro de que quieres finalizar el giveaway y seleccionar ganadores?')) {
+        if (window.confirm(t('panel.confirmEnd'))) {
             setActionLoading(true);
             await onEnd();
             setActionLoading(false);
@@ -57,7 +59,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
     };
 
     const handleReroll = async () => {
-        if (window.confirm('¿Quieres seleccionar un nuevo ganador?')) {
+        if (window.confirm(t('panel.confirmReroll'))) {
             setActionLoading(true);
             await onReroll();
             setActionLoading(false);
@@ -72,10 +74,10 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                     <div className="p-2 bg-ds-raised/50 backdrop-blur rounded-lg">
                         <Sparkles className="w-6 h-6 text-ds-text" />
                     </div>
-                    <h3 className="text-xl font-black text-ds-text">Control de Giveaway</h3>
+                    <h3 className="text-xl font-black text-ds-text">{t('panel.title')}</h3>
                 </div>
                 <p className="text-ds-soft text-sm">
-                    {isActive ? 'Giveaway en curso' : 'Listo para iniciar'}
+                    {isActive ? t('panel.running') : t('panel.ready')}
                 </p>
             </div>
 
@@ -88,12 +90,12 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                             {currentConfig.name}
                         </p>
                         <p className="text-sm text-ds-soft mb-1">
-                            Premio: {currentConfig.prizeName}
+                            {t('panel.prize', { name: currentConfig.prizeName })}
                         </p>
                         <p className="text-xs text-ds-soft">
                             {currentConfig.durationType === 'timed'
-                                ? `Duración: ${currentConfig.durationMinutes} min`
-                                : 'Duración: Manual'}
+                                ? t('panel.durationMin', { n: currentConfig.durationMinutes })
+                                : t('panel.durationManual')}
                         </p>
                     </div>
                 ) : (
@@ -103,7 +105,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                             <div className="p-3 bg-ds-bg rounded-lg border border-ds-border">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Users className="w-4 h-4 text-ds-accent-text" />
-                                    <p className="text-xs font-bold text-ds-soft">Participantes</p>
+                                    <p className="text-xs font-bold text-ds-soft">{t('panel.participants')}</p>
                                 </div>
                                 <p className="text-2xl font-black text-ds-text">
                                     {activeState?.totalParticipants || 0}
@@ -113,7 +115,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                             <div className="p-3 bg-ds-bg rounded-lg border border-ds-border">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Trophy className="w-4 h-4 text-ds-accent-text" />
-                                    <p className="text-xs font-bold text-ds-soft">Ganadores</p>
+                                    <p className="text-xs font-bold text-ds-soft">{t('panel.winners')}</p>
                                 </div>
                                 <p className="text-2xl font-black text-ds-text">
                                     {activeState?.selectedWinners?.length || 0}/{currentConfig.numberOfWinners}
@@ -124,7 +126,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                         {/* Status Badge */}
                         <div className="text-center p-3 bg-ds-ok/10 border border-ds-ok/40 rounded-lg">
                             <p className="text-lg font-black text-ds-ok">
-                                ✓ Giveaway Activo
+                                {t('panel.activeBadge')}
                             </p>
                             <p className="text-xs text-ds-ok mt-1">
                                 {activeState?.config.name}
@@ -135,7 +137,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                         {activeState && activeState.selectedWinners && activeState.selectedWinners.length > 0 && (
                             <div>
                                 <p className="text-sm font-bold text-ds-soft mb-2">
-                                    Ganadores:
+                                    {t('panel.winnersColon')}
                                 </p>
                                 <div className="space-y-2">
                                     {activeState.selectedWinners.map((winner) => (
@@ -163,25 +165,25 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                             className="ds-btn ds-btn--primary ds-btn--lg w-full"
                         >
                             <Play className="w-6 h-6" />
-                            {actionLoading ? 'Iniciando...' : 'Iniciar Giveaway'}
+                            {actionLoading ? t('panel.starting') : t('panel.start')}
                         </button>
                     ) : activeState?.status === 'completed' || activeState?.status === 'cancelled' ? (
                         <div className="text-center py-4">
                             <p className={`text-lg font-bold ${
                                 activeState?.status === 'completed' ? 'text-ds-ok' : 'text-ds-danger'
                             }`}>
-                                {activeState?.status === 'completed' ? '✅ Giveaway Completado' : '❌ Giveaway Cancelado'}
+                                {activeState?.status === 'completed' ? t('panel.completed') : t('panel.cancelled')}
                             </p>
                             <p className="text-sm text-ds-soft mt-2">
                                 {activeState?.status === 'cancelled' ?
-                                    'Razón: ' + ((activeState as any).cancelReason || 'No especificada') :
-                                    'Puedes crear un nuevo giveaway'
+                                    t('panel.reason', { reason: (activeState as any).cancelReason || t('panel.reasonNone') }) :
+                                    t('panel.canCreate')
                                 }
                             </p>
                             {onDismiss && (
                                 <button onClick={onDismiss} className="ds-btn ds-btn--primary ds-btn--lg w-full mt-4">
                                     <Play className="w-6 h-6" />
-                                    Crear un nuevo giveaway
+                                    {t('panel.createNew')}
                                 </button>
                             )}
                         </div>
@@ -194,17 +196,17 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                     className="ds-btn ds-btn--primary ds-btn--lg w-full"
                                 >
                                     <Square className="w-6 h-6" />
-                                    {actionLoading ? 'Finalizando...' : 'Finalizar y Sortear'}
+                                    {actionLoading ? t('panel.ending') : t('panel.endDraw')}
                                 </button>
                             )}
 
                             {activeState?.status === 'selecting_winners' && (
                                 <div className="bg-ds-warn/10 border border-ds-warn/40 rounded-lg p-4 text-center">
                                     <p className="text-ds-warn font-bold">
-                                        ⏳ Esperando respuestas de ganadores...
+                                        {t('panel.waiting')}
                                     </p>
                                     <p className="text-xs text-ds-warn mt-1">
-                                        El giveaway se cerrará automáticamente cuando todos respondan o expiren
+                                        {t('panel.waitingHint')}
                                     </p>
                                 </div>
                             )}
@@ -216,7 +218,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                     className="w-full px-4 py-3 bg-ds-warn hover:bg-ds-warn text-ds-on-accent rounded-lg font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <RotateCcw className="w-5 h-5" />
-                                    Re-Sortear Ganador
+                                    {t('panel.reroll')}
                                 </button>
                             )}
 
@@ -227,7 +229,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                     className="ds-btn ds-btn--danger ds-btn--lg w-full"
                                 >
                                     <X className="w-5 h-5" />
-                                    Cancelar Giveaway
+                                    {t('panel.cancel')}
                                 </button>
                             )}
                         </>
@@ -239,8 +241,8 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                     <p className="text-xs text-ds-soft">
                         <strong>💡 Tip:</strong><br />
                         {!isActive
-                            ? 'Configura todos los parámetros y presiona "Iniciar" para comenzar el sorteo.'
-                            : 'El giveaway está activo. Los usuarios pueden participar con el comando configurado.'}
+                            ? t('panel.tipIdle')
+                            : t('panel.tipActive')}
                     </p>
                 </div>
             </div>
@@ -250,19 +252,19 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                 <div className="fixed inset-0 bg-ds-input/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-ds-surface rounded-lg border border-ds-border p-6 max-w-md w-full">
                         <h3 className="text-xl font-black text-ds-text mb-4">
-                            Cancelar Giveaway
+                            {t('panel.cancel')}
                         </h3>
                         <p className="text-sm text-ds-soft mb-4">
-                            ¿Estás seguro de que quieres cancelar el giveaway? Esta acción no se puede deshacer.
+                            {t('panel.cancelAsk')}
                         </p>
                         <div className="mb-4">
                             <label className="block text-sm font-bold text-ds-soft mb-2">
-                                Razón de cancelación (opcional)
+                                {t('panel.cancelReasonLabel')}
                             </label>
                             <textarea
                                 value={cancelReason}
                                 onChange={(e) => setCancelReason(e.target.value)}
-                                placeholder="Ej: Problemas técnicos"
+                                placeholder={t('panel.cancelReasonPh')}
                                 rows={3}
                                 className="ds-input w-full resize-none"
                             />
@@ -275,14 +277,14 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 }}
                                 className="ds-btn ds-btn--secondary ds-btn--lg flex-1"
                             >
-                                Volver
+                                {t('panel.back')}
                             </button>
                             <button
                                 onClick={handleCancel}
                                 disabled={actionLoading}
                                 className="ds-btn ds-btn--danger ds-btn--lg flex-1"
                             >
-                                {actionLoading ? 'Cancelando...' : 'Confirmar'}
+                                {actionLoading ? t('panel.cancelling') : t('panel.confirm')}
                             </button>
                         </div>
                     </div>

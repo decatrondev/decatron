@@ -493,10 +493,8 @@ export const REJECTION_REASONS: { code: string; label: string; text: string }[] 
 ];
 
 /** Nombre legible de un código de rechazo (para el panel). */
-export const rejectionLabel = (code: string): string =>
-    REJECTION_REASONS.find((r) => r.code === code)?.label
-    ?? ({ account_age_unknown: 'Edad de cuenta desconocida', follow_age_unknown: 'Fecha de follow desconocida', duplicate_ip: 'IP duplicada', error: 'Error al validar' } as Record<string, string>)[code]
-    ?? code;
+/** Etiqueta traducida de un motivo de rechazo (t = useTranslation('features', { keyPrefix: 'giveaway' })). */
+export const rejectionLabel = (t: (k: string, o?: any) => string, code: string): string => t(`reasons.${code}`, { defaultValue: code });
 
 export const DEFAULT_SETTINGS: GiveawaySettings = {
     messages: { joined: '', cancelled: '', noParticipants: '', completed: '', winnerResponded: '', promoted: '', noResponseKept: '', noResponseKeptMany: '' },
