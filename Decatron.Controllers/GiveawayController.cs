@@ -467,6 +467,99 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>Gestión de participantes: lista con estado, peso, probabilidad y roles.</summary>
+        [HttpGet("participants/detail")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> GetParticipantsDetail()
+        {
+            var twitchId = User.FindFirst("TwitchId")?.Value;
+            if (string.IsNullOrEmpty(twitchId)) return Unauthorized(new { success = false, message = "No autenticado" });
+            try
+            {
+                var detail = await _giveawayService.GetParticipantsDetailAsync(twitchId);
+                return Ok(new { success = true, detail });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el detalle de participantes");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        /// <summary>
+        /// Acciones sobre un participante o sobre la participación, las mismas que los comandos de chat: choose (esa persona gana),
+        /// reroll (re-sortea a ese ganador), remove (sacarla del giveaway), close/open (participación) y finish (terminar).
+        /// </summary>
+        [HttpPost("participants/{verb}")]
+        [RequirePermission("giveaways")]
+        public async Task<IActionResult> ParticipantAction(string verb, [FromBody] ParticipantActionRequest? request)
+        {
+            var twitchId = User.FindFirst("TwitchId")?.Value;
+            if (string.IsNullOrEmpty(twitchId)) return Unauthorized(new { success = false, message = "No autenticado" });
+            var user = request?.Username?.Trim().TrimStart('@');
+            try
+            {
+                switch (verb)
+                {
+                    case "choose":
+                        if (string.IsNullOrEmpty(user)) return BadRequest(new { success = false, message = "Falta el usuario" });
+                        await _giveawayService.ChooseAsync(twitchId, user);
+                        return Ok(new { success = true, message = $"{user} fue elegido como ganador" });
+                    case "reroll":
+                        await _giveawayService.RerollFromChatAsync(twitchId, string.IsNullOrEmpty(user) ? null : user);
+                        return Ok(new { success = true, message = string.IsNullOrEmpty(user) ? "Re-sorteo hecho" : $"{user} fue re-sorteado" });
+                    case "remove":
+                    {
+                        if (string.IsNullOrEmpty(user)) return BadRequest(new { success = false, message = "Falta el usuario" });
+                        var result = await _giveawayService.RemoveParticipantAsync(twitchId, user);
+                        var msg = result switch
+                        {
+                            "removed" => $"{user} salió del giveaway",
+                            "winner_locked" => $"{user} es ganador: primero hay que re-sortearlo",
+                            "has_history" => $"{user} ya figura en el sorteo y no se puede borrar",
+                            "not_in" => $"{user} no está participando",
+                            _ => "No hay un giveaway en curso"
+                        };
+                        return Ok(new { success = result == "removed", message = msg });
+                    }
+                    case "close" or "open":
+                    {
+                        var done = await _giveawayService.SetEntriesClosedAsync(twitchId, verb == "close");
+                        return Ok(new { success = done, message = !done ? "No hay un giveaway en curso" : verb == "close" ? "Participación cerrada" : "Participación abierta" });
+                    }
+                    case "finish":
+                    {
+                        var done = await _giveawayService.FinishAsync(twitchId);
+                        return Ok(new { success = done, message = done ? "Giveaway terminado" : "No hay un sorteo hecho que terminar" });
+                    }
+                    default:
+                        return BadRequest(new { success = false, message = "Acción desconocida" });
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Motivos esperados del servicio (nadie que elegir, ya es ganador, ya respondió…) en palabras del panel
+                var message = ex.Message switch
+                {
+                    "none_active" => "No hay un sorteo hecho todavía",
+                    "places_full" => "Todos los lugares ya tienen ganador",
+                    "pick_not_found" => $"{user} no está participando",
+                    "already_winner" => $"{user} ya es ganador o fue descartado",
+                    "all_responded" => "Todos los ganadores ya respondieron",
+                    "confirmed_locked" => $"{user} ya respondió y no se permite reemplazar a un confirmado",
+                    _ => "No hay participantes disponibles para eso"
+                };
+                return Ok(new { success = false, message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en la acción {Action} de participantes", verb);
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        public class ParticipantActionRequest { public string? Username { get; set; } }
+
         /// <summary>Rechazos recientes del giveaway activo (motivo por viewer), para el panel.</summary>
         [HttpGet("rejections")]
         [RequirePermission("giveaways")]

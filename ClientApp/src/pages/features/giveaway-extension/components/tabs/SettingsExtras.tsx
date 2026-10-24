@@ -21,6 +21,7 @@ const MESSAGE_FIELDS: { key: keyof GiveawaySettings['messages']; label: string; 
     { key: 'completed', label: 'Giveaway completado', hint: 'Cuando responde el último ganador o vence el último plazo', vars: '{responded} {total} {winner} {prize}' },
     { key: 'promoted', label: 'Un respaldo pasa a ganador', hint: 'Cuando el ganador no responde y entra el siguiente', vars: '{winner} {timeout} {prize}' },
     { key: 'noResponseKept', label: 'El ganador no respondió y NO hay re-sorteo automático', hint: 'Cuando el plazo vence con «Re-sorteo Automático» apagado (el texto de «No respondió» de Crear promete un nuevo sorteo)', vars: '{winner} {prize} {root}' },
+    { key: 'noResponseKeptMany', label: 'VARIOS ganadores no respondieron y NO hay re-sorteo automático', hint: 'Un solo aviso con todos los nombres cuando el plazo llega a 0', vars: '{winners} {prize} {root}' },
     { key: 'noParticipants', label: 'Sin participantes', hint: 'Cuando termina sin nadie válido y se cancela solo', vars: '{reason} {prize}' },
     { key: 'cancelled', label: 'Cancelado por el streamer', hint: 'Vacío = no se avisa al chat (como hasta ahora)', vars: '{reason} {prize}' },
 ];
@@ -211,6 +212,8 @@ export const MessagesTab: React.FC<SettingsExtrasProps> = ({ settings, onUpdateS
                 </div>
             </div>
 
+            <CommandTextsSection settings={settings} onUpdateSettings={onUpdateSettings} />
+
             {/* Rechazos */}
             <div className="space-y-4">
                 <SectionTitle
@@ -323,59 +326,100 @@ export const SettingsExtras: React.FC<SettingsExtrasProps> = ({ settings, onUpda
     );
 };
 
-export const CommandsTab: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => (
-    <TabShell icon={<Terminal className="w-6 h-6 text-ds-text" />} title="Comandos de chat" subtitle="Controla el giveaway desde el chat y define qué pueden hacer los viewers">
-        <>
-            <div className="space-y-4">
-                <SectionTitle
-                    icon={<Terminal className="w-5 h-5 text-ds-accent-text" />}
-                    title="Comandos de chat"
-                    text="Controla el giveaway sin abrir el panel, en Twitch y Kick. «!giveaway start» sin más texto inicia el giveaway guardado; con premio y duración (!giveaway start Un premio 10m) esos datos valen solo para ese sorteo. También: end (sortea), cancel, reroll (cambia al ganador pendiente), pick &lt;usuario&gt; (elige a mano) y status."
-                />
+const CMD_CONTROL: { cmd: string; what: string }[] = [
+    { cmd: 'start [premio] [duración]', what: 'Inicia el giveaway guardado. Con premio y duración (90s, 10m, 2h) o «manual», esos datos valen solo para este sorteo. Alias: iniciar' },
+    { cmd: 'choose [usuario]', what: 'Hace el sorteo: elige a los ganadores de los lugares libres (todos, o uno solo en «uno por uno»). Con «dejar abierto» y todos los lugares llenos, suma un ganador extra. Con un usuario, esa persona gana. Alias: elegir, end, fin, sortear, terminar' },
+    { cmd: 'reroll [@usuario]', what: 'Reemplaza a TODOS los ganadores cuyo plazo venció (o al primero pendiente si ninguno venció), con un respaldo o al azar. Con @usuario de un ganador, re-sortea a esa persona aunque haya respondido; con @usuario que no es ganador, lo pone de reemplazo. Alias: resortear' },
+    { cmd: 'pick <usuario>', what: 'Elige a mano: esa persona ocupa un lugar libre o reemplaza al ganador que no respondió' },
+    { cmd: 'finish', what: 'Da el giveaway por terminado, cierra la participación y avisa cuántos ganadores respondieron. Alias: finalizar, listo' },
+    { cmd: 'close', what: 'Cierra la participación: nadie más puede entrar. Alias: cerrar' },
+    { cmd: 'open', what: 'Vuelve a abrir la participación. Alias: abrir' },
+    { cmd: 'cancel', what: 'Cancela el giveaway en curso. Alias: cancelar' },
+    { cmd: 'status', what: 'Muestra el estado: premio, participantes y tiempo restante. Alias: estado' },
+];
+
+/** Pestaña «Comandos»: todos los comandos disponibles y qué hace cada uno (los textos que responde el bot están en Mensajes). */
+export const CommandsTab: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => {
+    const root = settings.commands.root || '!giveaway';
+    const winners = settings.commands.winnersCommand;
+    return (
+        <TabShell icon={<Terminal className="w-6 h-6 text-ds-text" />} title="Comandos de chat" subtitle="Todos los comandos disponibles y qué hace cada uno, en Twitch y Kick">
+            <>
                 <Toggle
                     title="Comandos de chat activos"
                     hint="Apagado: ni el control ni «salir», «yo» o «!ganadores» responden"
                     value={settings.commands.enabled}
                     onChange={(v) => onUpdateSettings('commands', { enabled: v })}
                 />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label className="block text-sm font-bold text-ds-soft mb-2">Comando de control</label>
-                        <input type="text" className="ds-input w-full" value={settings.commands.root} placeholder="!giveaway"
-                            onChange={(e) => onUpdateSettings('commands', { root: e.target.value })} />
-                        <p className="text-xs text-ds-soft mt-1">Alias: start/iniciar, end/fin/sortear, cancel/cancelar, reroll/resortear, pick/elegir, status/estado</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-ds-soft mb-2">Quién puede controlar</label>
-                        <select className="ds-input w-full" value={settings.commands.minRole}
-                            onChange={(e) => onUpdateSettings('commands', { minRole: e.target.value as GiveawaySettings['commands']['minRole'] })}>
-                            <option value="moderator">Moderadores, mods líderes y streamer</option>
-                            <option value="lead_moderator">Mods líderes y streamer</option>
-                            <option value="broadcaster">Solo el streamer</option>
-                        </select>
-                        <p className="text-xs text-ds-soft mt-1">Quien no tiene el rol no recibe respuesta</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-ds-soft mb-2">Comando de ganadores (viewers)</label>
-                        <input type="text" className="ds-input w-full" value={settings.commands.winnersCommand} placeholder="!ganadores"
-                            onChange={(e) => onUpdateSettings('commands', { winnersCommand: e.target.value })} />
-                        <p className="text-xs text-ds-soft mt-1">Vacío = apagado. Lista los últimos 5 ganadores</p>
+
+                <div className="space-y-3">
+                    <SectionTitle icon={<Terminal className="w-5 h-5 text-ds-accent-text" />} title="Control del giveaway" text="Para el streamer y quienes tengan el rol que elijas abajo." />
+                    <div className="overflow-x-auto rounded-lg border border-ds-border">
+                        <table className="w-full text-sm">
+                            <tbody>
+                                {CMD_CONTROL.map((c) => (
+                                    <tr key={c.cmd} className="border-t first:border-t-0 border-ds-border align-top">
+                                        <td className="px-3 py-2 whitespace-nowrap"><code className="text-ds-accent-text">{root} {c.cmd}</code></td>
+                                        <td className="px-3 py-2 text-ds-soft">{c.what}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <Toggle
-                    title="Los viewers pueden salir"
-                    hint="«&lt;comando de entrada&gt; salir» los retira del giveaway abierto"
-                    value={settings.commands.viewerLeave}
-                    onChange={(v) => onUpdateSettings('commands', { viewerLeave: v })}
-                />
-                <Toggle
-                    title="Los viewers pueden consultar si participan"
-                    hint="«&lt;comando de entrada&gt; yo»"
-                    value={settings.commands.viewerStatus}
-                    onChange={(v) => onUpdateSettings('commands', { viewerStatus: v })}
-                />
+
                 <div className="space-y-3">
-                    <p className="text-sm font-bold text-ds-soft">Respuestas del bot (vacío = texto por defecto)</p>
+                    <SectionTitle icon={<Terminal className="w-5 h-5 text-ds-accent-text" />} title="Para los viewers" text="«Comando de entrada» es el que defines en Crear (por ejemplo !sorteo)." />
+                    <div className="overflow-x-auto rounded-lg border border-ds-border">
+                        <table className="w-full text-sm">
+                            <tbody>
+                                <tr className="border-t-0 border-ds-border align-top"><td className="px-3 py-2 whitespace-nowrap"><code className="text-ds-accent-text">&lt;comando de entrada&gt;</code></td><td className="px-3 py-2 text-ds-soft">Entrar al giveaway (si cumple los requisitos)</td></tr>
+                                <tr className="border-t border-ds-border align-top"><td className="px-3 py-2 whitespace-nowrap"><code className="text-ds-accent-text">&lt;comando de entrada&gt; salir</code></td><td className="px-3 py-2 text-ds-soft">Salir del giveaway abierto. Un ganador no puede salir. {settings.commands.viewerLeave ? '' : '(Apagado)'}</td></tr>
+                                <tr className="border-t border-ds-border align-top"><td className="px-3 py-2 whitespace-nowrap"><code className="text-ds-accent-text">&lt;comando de entrada&gt; yo</code></td><td className="px-3 py-2 text-ds-soft">Consultar si está participando. {settings.commands.viewerStatus ? '' : '(Apagado)'}</td></tr>
+                                <tr className="border-t border-ds-border align-top"><td className="px-3 py-2 whitespace-nowrap"><code className="text-ds-accent-text">{winners || '(apagado)'}</code></td><td className="px-3 py-2 text-ds-soft">Lista los últimos 5 ganadores</td></tr>
+                                <tr className="border-t border-ds-border align-top"><td className="px-3 py-2 whitespace-nowrap"><em className="text-ds-soft">cualquier mensaje</em></td><td className="px-3 py-2 text-ds-soft">Un ganador confirma su premio escribiendo cualquier cosa en el chat antes de que se acabe su plazo</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    <SectionTitle icon={<Terminal className="w-5 h-5 text-ds-accent-text" />} title="Ajustes de los comandos" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">Comando de control</label>
+                            <input type="text" className="ds-input w-full" value={settings.commands.root} placeholder="!giveaway"
+                                onChange={(e) => onUpdateSettings('commands', { root: e.target.value })} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">Quién puede controlar</label>
+                            <select className="ds-input w-full" value={settings.commands.minRole}
+                                onChange={(e) => onUpdateSettings('commands', { minRole: e.target.value as GiveawaySettings['commands']['minRole'] })}>
+                                <option value="moderator">Moderadores, mods líderes y streamer</option>
+                                <option value="lead_moderator">Mods líderes y streamer</option>
+                                <option value="broadcaster">Solo el streamer</option>
+                            </select>
+                            <p className="text-xs text-ds-soft mt-1">Quien no tiene el rol no recibe respuesta</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-ds-soft mb-2">Comando de ganadores (viewers)</label>
+                            <input type="text" className="ds-input w-full" value={settings.commands.winnersCommand} placeholder="!ganadores"
+                                onChange={(e) => onUpdateSettings('commands', { winnersCommand: e.target.value })} />
+                            <p className="text-xs text-ds-soft mt-1">Vacío = apagado</p>
+                        </div>
+                    </div>
+                    <Toggle title="Los viewers pueden salir" hint="«&lt;comando de entrada&gt; salir» los retira del giveaway abierto" value={settings.commands.viewerLeave} onChange={(v) => onUpdateSettings('commands', { viewerLeave: v })} />
+                    <Toggle title="Los viewers pueden consultar si participan" hint="«&lt;comando de entrada&gt; yo»" value={settings.commands.viewerStatus} onChange={(v) => onUpdateSettings('commands', { viewerStatus: v })} />
+                </div>
+            </>
+        </TabShell>
+    );
+};
+
+/** Textos con los que el bot responde a los comandos (viven en la pestaña Mensajes). */
+const CommandTextsSection: React.FC<SettingsExtrasProps> = ({ settings, onUpdateSettings }) => (
+    <div className="space-y-3">
+        <SectionTitle icon={<Terminal className="w-5 h-5 text-ds-accent-text" />} title="Respuestas a los comandos" text="Lo que el bot contesta cuando alguien usa un comando. Vacío = texto por defecto." />
                     {COMMAND_TEXTS.map((c) => (
                         <div key={c.key}>
                             <label className="block text-xs font-bold text-ds-soft mb-1">{c.label}{c.vars && <span className="font-normal"> · <code>{c.vars}</code></span>}</label>
@@ -384,7 +428,4 @@ export const CommandsTab: React.FC<SettingsExtrasProps> = ({ settings, onUpdateS
                         </div>
                     ))}
                 </div>
-            </div>
-        </>
-    </TabShell>
 );

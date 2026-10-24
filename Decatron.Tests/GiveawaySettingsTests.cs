@@ -266,4 +266,40 @@ public class GiveawaySettingsTests
         Assert.False(GiveawayDrawPlan.ShouldComplete(new[] { Row(1, 10) }, 1, all));
         Assert.False(GiveawayDrawPlan.ShouldComplete(System.Array.Empty<DrawWinnerRow>(), 1, all));
     }
+
+    [Fact]
+    public void Dejar_abierto_suma_un_lugar_extra_y_nunca_se_completa_solo()
+    {
+        var keep = new GiveawayDrawRules { OnComplete = "keep_open" };
+        var finish = new GiveawayDrawRules();
+        var full = new[] { Row(1, 10, responded: true), Row(2, 20, responded: true) };
+        // con todos los lugares ocupados: terminar = nada que sortear; dejar abierto = un lugar extra (el 3)
+        Assert.Empty(GiveawayDrawPlan.PositionsToDraw(full, 2, finish));
+        Assert.Equal(new[] { 3 }, GiveawayDrawPlan.PositionsToDraw(full, 2, keep));
+        Assert.Equal(new[] { 4 }, GiveawayDrawPlan.PositionsToDraw(full.Append(Row(3, 30)).ToArray(), 2, keep));
+        // con lugares libres se sortea lo normal
+        Assert.Equal(new[] { 2 }, GiveawayDrawPlan.PositionsToDraw(new[] { Row(1, 10) }, 2, keep));
+        // dejar abierto no se completa solo ni con todos confirmados
+        Assert.True(GiveawayDrawPlan.ShouldComplete(full, 2, finish));
+        Assert.False(GiveawayDrawPlan.ShouldComplete(full, 2, keep));
+    }
+
+    [Fact]
+    public void Un_confirmado_anulado_por_el_streamer_no_vuelve_a_salir()
+    {
+        // aunque se permita descartar a quien no responde = apagado y ganar de nuevo = encendido
+        var rules = new GiveawayDrawRules { DiscardNoResponse = false, ConfirmedCanWinAgain = true };
+        var annulled = new DrawWinnerRow(1, 10, false, true, false, true);
+        Assert.Contains(10, GiveawayDrawPlan.Excluded(new[] { annulled }, rules));
+    }
+
+    [Fact]
+    public void Sin_resorteo_automatico_no_se_completa_hasta_que_todos_los_lugares_esten_confirmados()
+    {
+        var rules = new GiveawayDrawRules();
+        var mixed = new[] { Row(1, 10, responded: true), Row(2, 20, timeout: true), Row(3, 30, timeout: true) };
+        Assert.True(GiveawayDrawPlan.ShouldComplete(mixed, 3, rules, autoReroll: true));
+        Assert.False(GiveawayDrawPlan.ShouldComplete(mixed, 3, rules, autoReroll: false));
+        Assert.True(GiveawayDrawPlan.ShouldComplete(new[] { Row(1, 10, responded: true), Row(2, 20, responded: true), Row(3, 30, responded: true) }, 3, rules, autoReroll: false));
+    }
 }

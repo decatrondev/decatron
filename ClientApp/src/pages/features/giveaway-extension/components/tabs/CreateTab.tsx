@@ -290,6 +290,8 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig, se
                         <DrawToggle title="La participación sigue abierta tras sortear" hint="Se cierra con «close». Apagado: se cierra en el primer sorteo" value={draw.keepEntriesOpen} onChange={(v) => setDraw({ keepEntriesOpen: v })} />
                         <DrawToggle title="Quien no responde queda descartado" hint="No vuelve a salir sorteado en este giveaway. Apagado: puede volver a ganar" value={draw.discardNoResponse} onChange={(v) => setDraw({ discardNoResponse: v })} />
                         <DrawToggle title="Un ganador confirmado puede ganar otro lugar" hint="Apagado: quien ya respondió no vuelve a salir en este giveaway" value={draw.confirmedCanWinAgain} onChange={(v) => setDraw({ confirmedCanWinAgain: v })} />
+                        <DrawToggle title="Dejar el giveaway abierto al salir los ganadores" hint="Apagado: al resolverse todos los lugares se completa solo. Encendido: sigue abierto, «choose» suma un ganador extra y «finish» lo termina" value={draw.onComplete === 'keep_open'} onChange={(v) => setDraw({ onComplete: v ? 'keep_open' : 'finish' })} />
+                        <DrawToggle title="«reroll @ganador» puede reemplazar a quien ya respondió" hint="Apagado: un ganador confirmado no se puede anular" value={draw.replaceConfirmed} onChange={(v) => setDraw({ replaceConfirmed: v })} />
                         <DrawToggle title="«reroll» usa primero al ganador de respaldo" hint="Apagado: siempre sortea a otra persona al azar" value={draw.backupsOnReroll} onChange={(v) => setDraw({ backupsOnReroll: v })} />
                     </div>
                 )}

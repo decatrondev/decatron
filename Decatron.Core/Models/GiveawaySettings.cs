@@ -42,6 +42,8 @@ namespace Decatron.Core.Models
         public string WinnerResponded { get; set; } = "";
         public string Promoted { get; set; } = "";
         public string NoResponseKept { get; set; } = "";
+        /// <summary>Aviso cuando VARIOS ganadores no respondieron a la vez ({winners} = «@a, @b, @c»).</summary>
+        public string NoResponseKeptMany { get; set; } = "";
 
         public const string DefaultJoined = "✅ {user} se ha unido al giveaway! Total de participantes: {count}";
         public const string DefaultCancelled = "❌ El giveaway ha sido cancelado: {reason}";
@@ -49,6 +51,7 @@ namespace Decatron.Core.Models
         public const string DefaultCompleted = "🎉 Giveaway completado. {responded} de {total} ganadores respondieron.";
         public const string DefaultWinnerResponded = "✅ ¡Perfecto @{winner}! Tu respuesta ha sido registrada. ¡Felicidades por tu premio!";
         public const string DefaultNoResponseKept = "⏰ @{winner} no respondió a tiempo. Para elegir a otro escribe {root} reroll";
+        public const string DefaultNoResponseKeptMany = "⏰ {winners} no respondieron a tiempo. Para elegir a otros escribe {root} reroll";
         public const string DefaultPromoted = "🎉 ¡Felicidades @{winner}! Has sido promovido de respaldo a ganador principal. Tienes {timeout} segundos para responder.";
     }
 
@@ -218,6 +221,12 @@ namespace Decatron.Core.Models
         public bool ConfirmedCanWinAgain { get; set; } = false;
         /// <summary>true = «reroll» sube primero a un ganador de respaldo si lo hay; false = siempre al azar.</summary>
         public bool BackupsOnReroll { get; set; } = true;
+        /// <summary>"finish" = al resolverse todos los lugares el giveaway se completa solo; "keep_open" = queda abierto y «choose» suma un ganador extra hasta que se termine con «finish».</summary>
+        public string OnComplete { get; set; } = "finish";
+        /// <summary>true = «reroll @ganador» puede reemplazar a un ganador que ya respondió.</summary>
+        public bool ReplaceConfirmed { get; set; } = true;
+
+        public bool KeepOpen => string.Equals(OnComplete, "keep_open", System.StringComparison.OrdinalIgnoreCase);
 
         public bool OneByOne => string.Equals(Mode, "one_by_one", System.StringComparison.OrdinalIgnoreCase);
     }
@@ -246,12 +255,14 @@ namespace Decatron.Core.Models
 
         public static readonly Dictionary<string, string> DefaultTexts = new()
         {
-            ["usage"] = "ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · choose [usuario] · reroll [usuario] · close · open · cancel · status",
+            ["usage"] = "ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · choose [usuario] · reroll [usuario] · finish · close · open · cancel · status",
             ["no_config"] = "⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.",
             ["no_prize"] = "⚠️ Falta el premio: {root} start <premio> [duración]",
             ["already_active"] = "⚠️ Ya hay un giveaway en curso.",
             ["none_active"] = "⚠️ No hay un giveaway en curso.",
             ["places_full"] = "ℹ️ Todos los lugares ya tienen ganador. Si alguno no responde, usa {root} reroll.",
+            ["confirmed_locked"] = "⚠️ {user} ya respondió y el streamer no permite reemplazar a un ganador confirmado.",
+            ["finish_done"] = "🏁 Giveaway terminado.",
             ["no_one_to_choose"] = "⚠️ No hay participantes disponibles para elegir.",
             ["already_winner"] = "⚠️ {user} ya es ganador o fue descartado en este giveaway.",
             ["entries_closed"] = "🔒 Participación cerrada.",
@@ -259,7 +270,7 @@ namespace Decatron.Core.Models
             ["status_closed"] = "🔒 «{prize}»: {count} participantes. La participación está cerrada.",
             ["leave_winner"] = "@{user}, un ganador no puede salir del giveaway.",
             ["no_drawn"] = "⚠️ No hay un sorteo reciente sobre el que elegir ganador.",
-            ["all_responded"] = "ℹ️ Todos los ganadores ya respondieron.",
+            ["all_responded"] = "ℹ️ Todos los ganadores ya respondieron. Para re-sortear a uno en concreto: {root} reroll @usuario",
             ["cancel_done"] = "❌ Giveaway cancelado.",
             ["no_one_to_reroll"] = "⚠️ No hay participantes disponibles para un nuevo sorteo.",
             ["pick_missing"] = "ℹ️ Indica a quién: {root} pick <usuario>",

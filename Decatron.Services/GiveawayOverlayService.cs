@@ -141,15 +141,24 @@ namespace Decatron.Services
                     if (now < revealEnds)
                     {
                         // La ruleta de nombres recorre candidatos reales y termina en el ganador que el servidor ya eligió
+                        // Solo quienes siguen participando de verdad: sin los que ya tienen una fila de ganador (pendientes, confirmados,
+                        // vencidos, reemplazados o de respaldo), que no pueden salir en esta ronda. El ganador de la ronda lo agrega la ruleta.
+                        // El orden es fijo para esta ronda: si cambiara en cada foto, los nombres saltarían a media vuelta.
+                        var withRow = _context.GiveawayWinners.AsNoTracking().Where(w => w.SessionId == session.Id).Select(w => w.ParticipantId);
                         var candidates = await _context.GiveawayParticipants.AsNoTracking()
-                            .Where(p => p.SessionId == session.Id)
+                            .Where(p => p.SessionId == session.Id && !withRow.Contains(p.Id))
+                            .OrderBy(p => p.Id)
                             .Select(p => p.DisplayName).Take(2000).ToListAsync();
-                        return common with { Phase = "drawing", Winners = winners, Candidates = Shuffle(candidates).Take(MaxCandidates).ToList() };
+                        return common with { Phase = "drawing", Winners = winners, Candidates = Shuffle(candidates, session.Id * 397 + revealEnds.Ticks).Take(MaxCandidates).ToList() };
                     }
 
-                    var pending = winners.Any(w => w.State == "pending");
-                    if (session.Status == "selecting_winners" || pending)
+                    // Un giveaway TERMINADO (finish, o el último plazo) ya no espera a nadie: aunque algún ganador siga «pendiente»
+                    // en la base, el overlay muestra el resultado ResultSeconds y se oculta
+                    if (session.Status == "selecting_winners")
+                    {
+                        var pending = winners.Any(w => w.State == "pending");
                         return common with { Phase = pending ? "winner" : "result", Winners = winners };
+                    }
 
                     // completed: el resultado se queda ResultSeconds desde que terminó el último plazo
                     var closeAt = session.UpdatedAt.AddSeconds(resultSeconds);
@@ -334,11 +343,13 @@ namespace Decatron.Services
             return cmd.StartsWith('!') ? cmd : "!" + cmd;
         }
 
-        private static List<string> Shuffle(List<string> items)
+        /// <summary>Mezcla repetible: la misma semilla da el mismo orden, para que todas las fotos de una ronda lleven la misma ruleta.</summary>
+        private static List<string> Shuffle(List<string> items, long seed)
         {
+            var rng = new Random(unchecked((int)(seed ^ (seed >> 32))));
             for (var i = items.Count - 1; i > 0; i--)
             {
-                var j = RandomNumberGenerator.GetInt32(i + 1);
+                var j = rng.Next(i + 1);
                 (items[i], items[j]) = (items[j], items[i]);
             }
             return items;

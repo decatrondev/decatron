@@ -204,6 +204,13 @@ namespace Decatron.Services.Commands
                         }
                         catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("none_active")); }
                         break;
+                    case "finish" or "finalizar" or "listo":
+                    {
+                        var done = await svc.FinishAsync(channelId);
+                        // El aviso de cierre lo manda el servicio; aquí solo se responde si no había nada que terminar
+                        if (!done) await Reply(ctx, platform, svc, sender, Say("no_drawn"));
+                        break;
+                    }
                     case "close" or "cerrar" or "open" or "abrir":
                     {
                         var close = sub is "close" or "cerrar";
@@ -222,6 +229,7 @@ namespace Decatron.Services.Commands
                         }
                         catch (InvalidOperationException ex) when (ex.Message == "none_active") { await Reply(ctx, platform, svc, sender, Say("no_drawn")); }
                         catch (InvalidOperationException ex) when (ex.Message == "all_responded") { await Reply(ctx, platform, svc, sender, Say("all_responded")); }
+                        catch (InvalidOperationException ex) when (ex.Message == "confirmed_locked") { await Reply(ctx, platform, svc, sender, Say("confirmed_locked", ("user", target ?? ""))); }
                         catch (InvalidOperationException ex) when (ex.Message == "pick_not_found") { await Reply(ctx, platform, svc, sender, Say("pick_not_found", ("user", target ?? ""))); }
                         catch (InvalidOperationException ex) when (ex.Message == "already_winner") { await Reply(ctx, platform, svc, sender, Say("already_winner", ("user", target ?? ""))); }
                         catch (InvalidOperationException) { await Reply(ctx, platform, svc, sender, Say("no_one_to_reroll")); }

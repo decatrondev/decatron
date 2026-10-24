@@ -52,7 +52,8 @@ namespace Decatron.Services
                     _logger.LogError(ex, "Error en GiveawayBackgroundService");
                 }
 
-                await Task.Delay(_checkInterval, stoppingToken);
+                // Con ganadores esperando respuesta se mira cada segundo: al llegar el plazo a 0 el aviso sale en ese momento
+                await Task.Delay(GiveawayService.AnyPendingWinners() ? TimeSpan.FromSeconds(1) : _checkInterval, stoppingToken);
             }
 
             _logger.LogInformation("🎁 GiveawayBackgroundService detenido");
@@ -147,164 +148,121 @@ namespace Decatron.Services
                         _logger.LogInformation($"[TIMEOUT] Sesión {session.Id}: {winners.Count} ganadores pendientes de procesar");
                     }
 
-                    // IMPORTANTE: Procesar SOLO el primer ganador que haya expirado
-                    // Los demás se procesarán en la siguiente iteración (5 segundos después)
-                    var winnerToProcess = winners.FirstOrDefault(w =>
+                    // Todos los ganadores cuyo plazo llegó a 0 se procesan JUNTOS en esta pasada y se avisan en UN solo mensaje
+                    var expiredWinners = winners.Where(w => now >= w.SelectedAt.AddSeconds(config.WinnerResponseTimeout)).OrderBy(w => w.Position).ToList();
+
+                    if (expiredWinners.Count > 0)
                     {
-                        var timeoutSeconds = config.WinnerResponseTimeout;
-                        var timeoutExpires = w.SelectedAt.AddSeconds(timeoutSeconds);
-                        var hasExpired = now >= timeoutExpires;
+                        _logger.LogWarning($"⏰ Timeout expirado en sesión {session.Id}: {expiredWinners.Count} ganador(es) (Timeout={config.WinnerResponseTimeout}seg)");
 
-                        _logger.LogDebug($"[TIMEOUT CHECK] Ganador ParticipantId={w.ParticipantId}: SelectedAt={w.SelectedAt:HH:mm:ss} UTC, Timeout={timeoutSeconds}seg, Expires={timeoutExpires:HH:mm:ss} UTC, Now={now:HH:mm:ss} UTC, HasExpired={hasExpired}");
+                        var channelUser = await dbContext.Users.FirstOrDefaultAsync(u => u.TwitchId == session.ChannelId);
+                        if (channelUser == null) continue;
+                        var channelName = channelUser.Login;
 
-                        return hasExpired;
-                    });
-
-                    if (winnerToProcess != null)
-                    {
-                        var winner = winnerToProcess;
-                        var timeoutSeconds = config.WinnerResponseTimeout;
-                        var timeoutExpires = winner.SelectedAt.AddSeconds(timeoutSeconds);
-
+                        var expiredNames = new System.Collections.Generic.List<string>();
+                        foreach (var w in expiredWinners)
                         {
-                            _logger.LogWarning($"⏰ Timeout expirado para ganador en sesión {session.Id} (SelectedAt={winner.SelectedAt:yyyy-MM-dd HH:mm:ss} UTC, Timeout={timeoutSeconds}seg)");
+                            var pName = await dbContext.GiveawayParticipants.Where(p => p.Id == w.ParticipantId).Select(p => p.Username).FirstOrDefaultAsync();
+                            if (pName != null) expiredNames.Add(pName);
+                            w.TimeoutProcessed = true;   // para no procesarlo otra vez
+                        }
+                        await dbContext.SaveChangesAsync();
 
-                            // Obtener datos del participante
-                            var participant = await dbContext.GiveawayParticipants
-                                .FirstOrDefaultAsync(p => p.Id == winner.ParticipantId);
+                        // Un solo aviso con todos los nombres: «@a, @b y @c no respondieron a tiempo…»
+                        var root = GiveawayCommandRules.Normalize(bgSettings.Commands.Root, "!giveaway");
+                        var many = expiredNames.Count > 1;
+                        var nameList = many ? string.Join(", ", expiredNames.Select(n => "@" + n)) : expiredNames.FirstOrDefault() ?? "";
+                        string noResponseMsg;
+                        if (config.AutoRerollOnTimeout)
+                        {
+                            noResponseMsg = many
+                                ? $"⏰ {nameList} no respondieron a tiempo."
+                                : string.IsNullOrEmpty(config.NoResponseMessage)
+                                    ? $"⏰ @{nameList} no respondió a tiempo."
+                                    : config.NoResponseMessage.Replace("{winner}", nameList);
+                        }
+                        else
+                        {
+                            noResponseMsg = many
+                                ? (string.IsNullOrWhiteSpace(bgSettings.Messages.NoResponseKeptMany) ? GiveawayMessages.DefaultNoResponseKeptMany : bgSettings.Messages.NoResponseKeptMany)
+                                : (string.IsNullOrWhiteSpace(bgSettings.Messages.NoResponseKept) ? GiveawayMessages.DefaultNoResponseKept : bgSettings.Messages.NoResponseKept);
+                            noResponseMsg = noResponseMsg.Replace("{winner}", nameList).Replace("{winners}", nameList).Replace("{user}", nameList)
+                                .Replace("{prize}", config.PrizeName ?? "").Replace("{root}", root);
+                        }
+                        if (expiredNames.Count > 0) await giveawayService.AnnounceAsync(channelName, noResponseMsg);
 
-                            if (participant == null) continue;
-
-                            // Obtener nombre del canal
-                            var channelUser = await dbContext.Users
-                                .FirstOrDefaultAsync(u => u.TwitchId == session.ChannelId);
-
-                            if (channelUser == null) continue;
-
-                            var channelName = channelUser.Login;
-
-                            // Marcar como procesado para no volver a procesarlo
-                            winner.TimeoutProcessed = true;
-                            await dbContext.SaveChangesAsync();
-
-                            // AUTO-REROLL SI ESTÁ HABILITADO
-                            if (config.AutoRerollOnTimeout)
+                        // Re-sorteo automático: cada lugar vencido se cubre con un respaldo o con un sorteo
+                        if (config.AutoRerollOnTimeout)
+                        {
+                            foreach (var winner in expiredWinners)
                             {
-                                _logger.LogInformation($"🔄 Auto-reroll habilitado. Procesando...");
-
-                                // Anunciar que el ganador no respondió
-                                var noResponseMsg = string.IsNullOrEmpty(config.NoResponseMessage)
-                                    ? $"⏰ @{participant.Username} no respondió a tiempo."
-                                    : config.NoResponseMessage.Replace("{winner}", participant.Username);
-
-                                await giveawayService.AnnounceAsync(channelName, noResponseMsg);
-
-                                // Opción 1: Promover backup winner si existe
                                 var backupWinner = await dbContext.GiveawayWinners
-                                    .Where(w => w.SessionId == session.Id
-                                        && w.IsBackup
-                                        && w.Position == winner.Position
-                                        && !w.WasDisqualified)
+                                    .Where(w => w.SessionId == session.Id && w.IsBackup && w.Position == winner.Position && !w.WasDisqualified)
                                     .OrderBy(w => w.SelectedAt)
                                     .FirstOrDefaultAsync();
 
                                 if (backupWinner != null && config.HasBackupWinners)
                                 {
-                                    // Promover backup a ganador principal
-                                    _logger.LogInformation($"📈 Promoviendo backup winner a ganador principal");
-
                                     backupWinner.IsBackup = false;
                                     backupWinner.PromotedAt = DateTime.UtcNow;
-                                    // IMPORTANTE: Reiniciar el timer de timeout; con overlay, el plazo cuenta desde que termina la ruleta
+                                    // El plazo se reinicia; con overlay, cuenta desde que termina la ruleta
                                     backupWinner.SelectedAt = await giveawayService.BeginRevealRoundAsync(session);
-                                    backupWinner.TimeoutProcessed = false; // Permitir que sea procesado nuevamente
+                                    backupWinner.TimeoutProcessed = false;
                                     await dbContext.SaveChangesAsync();
 
-                                    var backupParticipant = await dbContext.GiveawayParticipants
-                                        .FirstOrDefaultAsync(p => p.Id == backupWinner.ParticipantId);
-
+                                    var backupParticipant = await dbContext.GiveawayParticipants.FirstOrDefaultAsync(p => p.Id == backupWinner.ParticipantId);
                                     if (backupParticipant != null)
                                     {
                                         var promotionMsg = (string.IsNullOrWhiteSpace(bgSettings.Messages.Promoted) ? GiveawayMessages.DefaultPromoted : bgSettings.Messages.Promoted)
                                             .Replace("{winner}", backupParticipant.Username).Replace("{user}", backupParticipant.Username)
                                             .Replace("{timeout}", config.WinnerResponseTimeout.ToString()).Replace("{prize}", config.PrizeName ?? "");
                                         await giveawayService.AnnounceAtAsync(channelName, promotionMsg, backupWinner.SelectedAt);
-                                        _logger.LogInformation($"✅ Backup winner promovido: {backupParticipant.Username}");
                                     }
                                 }
                                 else
                                 {
-                                    // Opción 2: Hacer reroll completo
-                                    _logger.LogInformation($"🎲 No hay backup winners. Haciendo reroll completo...");
-
                                     try
                                     {
                                         var newWinner = await giveawayService.RerollWinner(session.ChannelId, winner.Position, session.Id);
-
-                                        var newParticipant = await dbContext.GiveawayParticipants
-                                            .FirstOrDefaultAsync(p => p.Id == newWinner.ParticipantId);
-
+                                        var newParticipant = await dbContext.GiveawayParticipants.FirstOrDefaultAsync(p => p.Id == newWinner.ParticipantId);
                                         if (newParticipant != null)
                                         {
                                             var rerollMsg = config.WinnerMessage
                                                 .Replace("{winner}", newParticipant.Username)
                                                 .Replace("{prize}", config.PrizeName ?? "el premio")
                                                 .Replace("{timeout}", config.WinnerResponseTimeout.ToString());
-
                                             await giveawayService.AnnounceAtAsync(channelName, rerollMsg, newWinner.SelectedAt);
-                                            _logger.LogInformation($"✅ Nuevo ganador por reroll: {newParticipant.Username}");
                                         }
                                     }
                                     catch (Exception ex)
                                     {
                                         _logger.LogError(ex, "Error al hacer reroll automático - No hay más participantes");
 
-                                        // Verificar si todos los ganadores ya no respondieron
                                         var allWinnersTimeout = await dbContext.GiveawayWinners
                                             .Where(w => w.SessionId == session.Id && !w.IsBackup && !w.WasDisqualified)
                                             .AllAsync(w => w.TimeoutProcessed && !w.HasResponded);
 
                                         if (allWinnersTimeout)
                                         {
-                                            // Ningún ganador respondió y no hay más participantes
-                                            // Cancelar el giveaway
-                                            _logger.LogWarning($"⚠️ Cancelando giveaway {session.Id} - Ningún ganador respondió y no hay más participantes");
-
+                                            // Ningún ganador respondió y no hay más participantes: se cancela
                                             session.Status = "cancelled";
                                             session.CancelReason = "Ningún ganador respondió a tiempo y no hay más participantes disponibles";
                                             session.EndedAt = DateTime.UtcNow;
                                             session.UpdatedAt = DateTime.UtcNow;
-
                                             await dbContext.SaveChangesAsync();
-
                                             await giveawayService.AnnounceAsync(channelName,
                                                 "❌ Giveaway cancelado: Ningún ganador respondió a tiempo y no hay más participantes disponibles para re-sorteo.");
-
-                                            // Salir del procesamiento para esta sesión
                                             break;
                                         }
                                         else
                                         {
-                                            // Aún hay ganadores pendientes, solo anunciar que no hay más participantes
                                             var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
                                             var gLang = await dbContext.Users.Where(u => u.Login == channelName.ToLower()).Select(u => u.PreferredLanguage).FirstOrDefaultAsync() ?? "es";
                                             await giveawayService.AnnounceAsync(channelName, messagesService.GetMessage("giveaway_bg", "no_more_participants", gLang));
+                                            break;
                                         }
                                     }
                                 }
-                            }
-                            else
-                            {
-                                // NO AUTO-REROLL: Solo anunciar que no respondió
-                                _logger.LogInformation($"⏰ Auto-reroll deshabilitado. Ganador sigue siendo válido.");
-
-                                // El texto de «no respondió» de arriba promete «Seleccionando nuevo ganador...», que aquí es falso:
-                                // sin re-sorteo automático se avisa que se puede elegir a otro con el comando
-                                var noResponseMsg = (string.IsNullOrWhiteSpace(bgSettings.Messages.NoResponseKept) ? GiveawayMessages.DefaultNoResponseKept : bgSettings.Messages.NoResponseKept)
-                                    .Replace("{winner}", participant.Username).Replace("{user}", participant.Username)
-                                    .Replace("{prize}", config.PrizeName ?? "").Replace("{root}", GiveawayCommandRules.Normalize(bgSettings.Commands.Root, "!giveaway"));
-
-                                await giveawayService.AnnounceAsync(channelName, noResponseMsg);
                             }
                         }
                     }
@@ -325,7 +283,7 @@ namespace Decatron.Services
 
                         // «Uno por uno»: el giveaway sigue abierto entre ganadores hasta confirmar todos los lugares (o cancelarlo)
                         var canComplete = GiveawayDrawPlan.ShouldComplete(allWinners.Select(w => new DrawWinnerRow(w.Position, w.ParticipantId, w.IsBackup, w.HasResponded, w.TimeoutProcessed, w.WasDisqualified)),
-                            config.NumberOfWinners, bgSettings.Draw);
+                            config.NumberOfWinners, bgSettings.Draw, config.AutoRerollOnTimeout);
 
                         if (canComplete)
                         {
@@ -345,7 +303,7 @@ namespace Decatron.Services
                                 var channelNameFinal = channelUser.Login;
                                 var respondedWinners = allWinners.Count(w => w.HasResponded);
                                 var completedText = (string.IsNullOrWhiteSpace(bgSettings.Messages.Completed) ? GiveawayMessages.DefaultCompleted : bgSettings.Messages.Completed)
-                                    .Replace("{responded}", respondedWinners.ToString()).Replace("{total}", allWinners.Count.ToString())
+                                    .Replace("{responded}", respondedWinners.ToString()).Replace("{total}", Math.Max(config.NumberOfWinners, allWinners.Count).ToString())
                                     .Replace("{prize}", config.PrizeName ?? "");
                                 await giveawayService.AnnounceAsync(channelNameFinal, completedText);
                             }

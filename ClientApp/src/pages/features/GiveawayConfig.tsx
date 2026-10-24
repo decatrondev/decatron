@@ -24,6 +24,7 @@ import {
     RequirementsTab,
     WeightsTab,
     ActiveTab,
+    ParticipantsTab,
     HistoryTab,
     SettingsTab,
     PlatformsTab,
@@ -190,6 +191,7 @@ const GiveawayConfig = () => {
         { id: 'requirements', label: t('giveaway.tabs.requirements'), icon: '🛡️' },
         { id: 'weights', label: t('giveaway.tabs.weights'), icon: '⚖️' },
         { id: 'active', label: t('giveaway.tabs.active'), icon: '🎲' },
+        { id: 'participants', label: t('giveaway.tabs.participants'), icon: '👥' },
         { id: 'history', label: t('giveaway.tabs.history'), icon: '📋' },
         { id: 'platforms', label: t('giveaway.tabs.platforms'), icon: '🌐' },
         { id: 'messages', label: t('giveaway.tabs.messages'), icon: '💬' },
@@ -351,6 +353,8 @@ const GiveawayConfig = () => {
                                     onDisqualify={handleDisqualifyWinner}
                                 />
                             )}
+
+                            {activeTab === 'participants' && <ParticipantsTab />}
 
                             {activeTab === 'history' && (
                                 <HistoryTab

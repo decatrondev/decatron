@@ -14,6 +14,7 @@ export type GiveawayTabType =
     | 'requirements' // Requisitos de entrada
     | 'weights'     // Pesos y multiplicadores
     | 'active'      // Estado activo
+    | 'participants' // Gestión de participantes: estado, peso, probabilidad y roles
     | 'history'     // Historial
     | 'platforms'   // Dónde se puede participar y qué se verifica en cada plataforma
     | 'messages'    // Mensajes del bot y avisos de rechazo
@@ -111,6 +112,7 @@ export interface GiveawaySettings {
         winnerResponded: string;
         promoted: string;
         noResponseKept: string;
+        noResponseKeptMany: string;
     };
     rejections: {
         announceInChat: boolean;
@@ -138,6 +140,10 @@ export interface GiveawayDrawRules {
     confirmedCanWinAgain: boolean;
     /** «reroll» sube primero a un ganador de respaldo */
     backupsOnReroll: boolean;
+    /** finish = se completa solo al resolverse todos los lugares; keep_open = queda abierto, «choose» suma un extra y «finish» lo termina */
+    onComplete: 'finish' | 'keep_open';
+    /** «reroll @ganador» puede reemplazar a quien ya respondió */
+    replaceConfirmed: boolean;
 }
 
 /** Comandos de chat del giveaway (control para moderadores y comandos de los viewers). */
@@ -155,7 +161,7 @@ export interface GiveawayCommandRules {
 
 /** Textos por defecto de las respuestas de los comandos (mismos que el servidor) y para qué sirve cada uno. */
 export const COMMAND_TEXTS: { key: string; label: string; text: string; vars: string }[] = [
-    { key: 'usage', label: 'Ayuda del comando', text: 'ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · choose [usuario] · reroll [usuario] · close · open · cancel · status', vars: '{root}' },
+    { key: 'usage', label: 'Ayuda del comando', text: 'ℹ️ Uso: {root} start [premio] [duración, ej. 90s, 10m o 1h] · choose [usuario] · reroll [usuario] · finish · close · open · cancel · status', vars: '{root}' },
     { key: 'no_config', label: 'Aún no hay giveaway configurado', text: '⚠️ Aún no hay un giveaway configurado: guárdalo una vez desde el panel.', vars: '' },
     { key: 'no_prize', label: 'Falta el premio', text: '⚠️ Falta el premio: {root} start <premio> [duración]', vars: '{root}' },
     { key: 'already_active', label: 'Ya hay uno en curso', text: '⚠️ Ya hay un giveaway en curso.', vars: '' },
@@ -167,7 +173,9 @@ export const COMMAND_TEXTS: { key: string; label: string; text: string; vars: st
     { key: 'status_closed', label: 'Estado: participación cerrada', text: '🔒 «{prize}»: {count} participantes. La participación está cerrada.', vars: '{prize} {count}' },
     { key: 'leave_winner', label: 'Viewer: un ganador no puede salir', text: '@{user}, un ganador no puede salir del giveaway.', vars: '{user}' },
     { key: 'no_drawn', label: 'Sin sorteo reciente para re-sortear o elegir', text: '⚠️ No hay un sorteo reciente sobre el que elegir ganador.', vars: '' },
-    { key: 'all_responded', label: 'Todos los ganadores ya respondieron', text: 'ℹ️ Todos los ganadores ya respondieron.', vars: '' },
+    { key: 'all_responded', label: 'Todos los ganadores ya respondieron', text: 'ℹ️ Todos los ganadores ya respondieron. Para re-sortear a uno en concreto: {root} reroll @usuario', vars: '{root}' },
+    { key: 'confirmed_locked', label: 'No se puede reemplazar a un confirmado', text: '⚠️ {user} ya respondió y el streamer no permite reemplazar a un ganador confirmado.', vars: '{user}' },
+    { key: 'finish_done', label: 'Giveaway terminado', text: '🏁 Giveaway terminado.', vars: '' },
     { key: 'none_active', label: 'No hay uno en curso', text: '⚠️ No hay un giveaway en curso.', vars: '' },
     { key: 'cancel_done', label: 'Cancelado desde el chat', text: '❌ Giveaway cancelado.', vars: '' },
     { key: 'no_one_to_reroll', label: 'Nadie para re-sortear', text: '⚠️ No hay participantes disponibles para un nuevo sorteo.', vars: '' },
@@ -456,6 +464,7 @@ export const DEFAULT_SETTINGS_TEXTS = {
     completed: '🎉 Giveaway completado. {responded} de {total} ganadores respondieron.',
     winnerResponded: '✅ ¡Perfecto @{winner}! Tu respuesta ha sido registrada. ¡Felicidades por tu premio!',
     noResponseKept: '⏰ @{winner} no respondió a tiempo. Para elegir a otro escribe {root} reroll',
+    noResponseKeptMany: '⏰ {winners} no respondieron a tiempo. Para elegir a otros escribe {root} reroll',
     promoted: '🎉 ¡Felicidades @{winner}! Has sido promovido de respaldo a ganador principal. Tienes {timeout} segundos para responder.',
 };
 
@@ -489,7 +498,7 @@ export const rejectionLabel = (code: string): string =>
     ?? code;
 
 export const DEFAULT_SETTINGS: GiveawaySettings = {
-    messages: { joined: '', cancelled: '', noParticipants: '', completed: '', winnerResponded: '', promoted: '', noResponseKept: '' },
+    messages: { joined: '', cancelled: '', noParticipants: '', completed: '', winnerResponded: '', promoted: '', noResponseKept: '', noResponseKeptMany: '' },
     rejections: { announceInChat: false, messages: {} },
     weightLimits: { maxPerFactor: 1000, maxTotal: 10000, min: 1 },
     reminders: { stopBeforeEndSeconds: 30, maxAgeHours: 24 },
@@ -498,7 +507,7 @@ export const DEFAULT_SETTINGS: GiveawaySettings = {
     platforms: { twitch: true, kick: false, unverifiable: 'allow' },
     overlay: DEFAULT_APPEARANCE,
     commands: { enabled: true, root: '!giveaway', minRole: 'moderator', winnersCommand: '!ganadores', viewerLeave: true, viewerStatus: true, texts: {} },
-    draw: { mode: 'all', keepEntriesOpen: true, discardNoResponse: true, confirmedCanWinAgain: false, backupsOnReroll: true },
+    draw: { mode: 'all', keepEntriesOpen: true, discardNoResponse: true, confirmedCanWinAgain: false, backupsOnReroll: true, onComplete: 'finish', replaceConfirmed: true },
 };
 
 /** Mezcla lo que llegó del servidor (puede venir vacío o incompleto) con los valores por defecto. */

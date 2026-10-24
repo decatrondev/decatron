@@ -383,6 +383,9 @@ namespace Decatron.Services
         public static void MarkAutoEntered(int sessionId, string userId) =>
             _autoEntryAttempts[$"{sessionId}:{userId}"] = DateTime.MaxValue;
 
+        /// <summary>Hay algún canal esperando respuestas de ganadores (el servicio de fondo mira cada segundo para que el plazo sea exacto).</summary>
+        public static bool AnyPendingWinners() => _pendingWinnerChannels.Values.Any(until => until > DateTime.UtcNow);
+
         public static bool HasPendingWinners(string channelId) =>
             _pendingWinnerChannels.TryGetValue(channelId, out var until) && until > DateTime.UtcNow;
 
@@ -1017,7 +1020,7 @@ namespace Decatron.Services
             return participants.Last();
         }
 
-        public async Task<GiveawayWinner> RerollWinner(string channelId, int? position = null, int? sessionId = null, string? forcedWinnerUsername = null)
+        public async Task<GiveawayWinner> RerollWinner(string channelId, int? position = null, int? sessionId = null, string? forcedWinnerUsername = null, int? excludeParticipantId = null)
         {
             // El sorteo del que se re-sortea: el indicado, o el más reciente. Antes se tomaba CUALQUIERA del canal (sin
             // ordenar, y aceptando completados), o sea uno viejo de prueba: «no hay más participantes» aunque los hubiera
@@ -1044,6 +1047,7 @@ namespace Decatron.Services
             // el que no respondió, según sus opciones (por defecto, ninguno)
             var winnerRows = (await _context.GiveawayWinners.Where(w => w.SessionId == session.Id).ToListAsync()).Select(ToRow).ToList();
             var excludedIds = GiveawayDrawPlan.Excluded(winnerRows, GiveawaySettings.Parse(config.Settings).Draw);
+            if (excludeParticipantId.HasValue) excludedIds.Add(excludeParticipantId.Value);   // a quien se re-sortea no vuelve a salir
 
             var validParticipants = await _context.GiveawayParticipants
                 .Where(p => p.SessionId == session.Id && !excludedIds.Contains(p.Id))
@@ -1241,10 +1245,27 @@ namespace Decatron.Services
             var forced = string.IsNullOrWhiteSpace(forcedUsername) ? null : forcedUsername.TrimStart('@');
 
             var rows = await _context.GiveawayWinners.Where(w => w.SessionId == session.Id).ToListAsync();
+
+            // «reroll @alguien» donde alguien ya es ganador: se re-sortea a ESA persona (al azar o con un respaldo). Si no es
+            // ganador, es el reemplazo elegido a mano para el primer lugar sin respuesta
+            GiveawayWinner? named = null;
+            if (forced != null)
+            {
+                var forcedId = await _context.GiveawayParticipants.Where(p => p.SessionId == session.Id && p.Username.ToLower() == forced.ToLower())
+                    .Select(p => (int?)p.Id).FirstOrDefaultAsync();
+                named = forcedId == null ? null : rows.FirstOrDefault(w => !w.IsBackup && !w.WasDisqualified && w.ParticipantId == forcedId);
+                if (named != null)
+                {
+                    if (named.HasResponded && !rules.ReplaceConfirmed) throw new InvalidOperationException("confirmed_locked");
+                    forced = null;
+                }
+            }
+
             var open = rows.Where(w => !w.IsBackup && !w.WasDisqualified && !w.HasResponded).OrderBy(w => w.Position).ToList();
-            if (open.Count == 0) throw new InvalidOperationException("all_responded");
+            if (open.Count == 0 && named == null) throw new InvalidOperationException("all_responded");
             var expired = open.Where(w => w.TimeoutProcessed).ToList();
-            var targets = forced != null ? new List<GiveawayWinner> { expired.FirstOrDefault() ?? open[0] }
+            var targets = named != null ? new List<GiveawayWinner> { named }
+                : forced != null ? new List<GiveawayWinner> { expired.FirstOrDefault() ?? open[0] }
                 : expired.Count > 0 ? expired : new List<GiveawayWinner> { open[0] };
 
             var roundAt = await BeginRevealRoundAsync(session);
@@ -1271,7 +1292,7 @@ namespace Decatron.Services
                 {
                     try
                     {
-                        var winner = await RerollWinner(channelId, target.Position, session.Id, forced);
+                        var winner = await RerollWinner(channelId, target.Position, session.Id, forced, target.ParticipantId);
                         rows.Add(winner);
                         name = await _context.GiveawayParticipants.Where(p => p.Id == winner.ParticipantId).Select(p => p.Username).FirstAsync();
                         at = winner.SelectedAt;
@@ -1281,7 +1302,7 @@ namespace Decatron.Services
                 }
 
                 target.WasDisqualified = true;
-                target.DisqualificationReason = fromBackup ? "Reemplazado por el ganador de respaldo" : forced != null ? "Reemplazado por elección manual" : "Re-sorteo por comando";
+                target.DisqualificationReason = fromBackup ? "Reemplazado por el ganador de respaldo" : forced != null ? "Reemplazado por elección manual" : target.HasResponded ? "Re-sorteo de un ganador confirmado" : "Re-sorteo por comando";
                 target.DisqualifiedAt = DateTime.UtcNow;
                 target.TimeoutProcessed = true;
                 results.Add((name, fromBackup, at));
@@ -1325,10 +1346,114 @@ namespace Decatron.Services
 
             var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
             var rows = (await _context.GiveawayWinners.AsNoTracking().Where(w => w.SessionId == session.Id).ToListAsync()).Select(ToRow).ToList();
-            var hasFreePlace = session.Status == "active" || GiveawayDrawPlan.FreePositions(rows, config?.NumberOfWinners ?? 1).Count > 0;
+            var pickRules = GiveawaySettings.Parse(config?.Settings).Draw;
+            var nobodyPending = !rows.Any(r => !r.IsBackup && !r.WasDisqualified && !r.HasResponded);
+            var hasFreePlace = session.Status == "active" || GiveawayDrawPlan.FreePositions(rows, config?.NumberOfWinners ?? 1).Count > 0
+                || (pickRules.KeepOpen && nobodyPending);
             if (hasFreePlace) await ChooseAsync(channelId, participant.Username);
             else await RerollFromChatAsync(channelId, participant.Username);
             return participant.Username;
+        }
+
+        /// <summary>
+        /// «finish»: da el giveaway por terminado (con «dejar abierto» es la única forma de completarlo). Anuncia cuántos ganadores
+        /// respondieron. Devuelve false si no hay un sorteo hecho sobre el que terminar.
+        /// </summary>
+        public async Task<bool> FinishAsync(string channelId)
+        {
+            var session = await DrawnSessionAsync(channelId);
+            if (session == null || session.Status != "selecting_winners") return false;
+            var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot) ?? throw new InvalidOperationException("Config snapshot inválido");
+            var main = await _context.GiveawayWinners.Where(w => w.SessionId == session.Id && !w.IsBackup && !w.WasDisqualified).ToListAsync();
+
+            session.Status = "completed";
+            session.EntriesClosed = true;
+            session.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            InvalidateEntryRules(channelId);
+            await PublishOverlayAsync(channelId);
+
+            var gs = GiveawaySettings.Parse(config.Settings);
+            var channelName = await GetChannelNameFromId(channelId);
+            if (!string.IsNullOrEmpty(channelName))
+            {
+                var text = (string.IsNullOrWhiteSpace(gs.Messages.Completed) ? GiveawayMessages.DefaultCompleted : gs.Messages.Completed)
+                    .Replace("{responded}", main.Count(w => w.HasResponded).ToString()).Replace("{total}", Math.Max(config.NumberOfWinners, main.Count).ToString())
+                    .Replace("{prize}", config.PrizeName ?? "");
+                await AnnounceAsync(channelName, text);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Lista de participantes para la pestaña de gestión: quién entró, cuándo, su peso y probabilidad de salir, sus roles y en qué
+        /// estado está (participando, ganador pendiente/confirmado/vencido, respaldo o reemplazado). La probabilidad solo cuenta a
+        /// quienes hoy pueden salir sorteados según las reglas del streamer.
+        /// </summary>
+        public async Task<object?> GetParticipantsDetailAsync(string channelId)
+        {
+            // El último giveaway del canal, en el estado que esté: al terminar, la lista sigue ahí hasta que empiece otro
+            var session = await _context.GiveawaySessions.AsNoTracking().Where(s => s.ChannelId == channelId)
+                .OrderByDescending(s => s.UpdatedAt).FirstOrDefaultAsync();
+            if (session == null) return null;
+            var config = JsonSerializer.Deserialize<GiveawayConfig>(session.ConfigSnapshot);
+            var rules = GiveawaySettings.Parse(config?.Settings).Draw;
+            var participants = await _context.GiveawayParticipants.AsNoTracking().Where(p => p.SessionId == session.Id).ToListAsync();
+            var winners = await _context.GiveawayWinners.AsNoTracking().Where(w => w.SessionId == session.Id).ToListAsync();
+            var excluded = GiveawayDrawPlan.Excluded(winners.Select(ToRow).ToList(), rules);
+            var totalWeight = participants.Where(p => !excluded.Contains(p.Id)).Sum(p => (double)p.CalculatedWeight);
+
+            var ranked = participants.OrderByDescending(p => p.CalculatedWeight).ThenBy(p => p.EnteredAt).Select((p, i) => (p, rank: i + 1)).ToList();
+            var list = ranked.Select(x =>
+            {
+                var p = x.p;
+                // El estado más importante de la persona: ganador vigente > respaldo > reemplazado > solo participando
+                var rows = winners.Where(w => w.ParticipantId == p.Id).ToList();
+                var live = rows.FirstOrDefault(w => !w.IsBackup && !w.WasDisqualified);
+                var backup = rows.FirstOrDefault(w => w.IsBackup && !w.WasDisqualified);
+                var gone = rows.FirstOrDefault(w => w.WasDisqualified);
+                string status; int? place = null; string? reason = null;
+                if (live != null) { status = live.HasResponded ? "confirmed" : live.TimeoutProcessed ? "expired" : "pending"; place = live.Position; }
+                else if (backup != null) { status = "backup"; place = backup.Position; }
+                else if (gone != null) { status = "replaced"; place = gone.Position; reason = gone.DisqualificationReason; }
+                else status = "participating";
+                var canWin = !excluded.Contains(p.Id);
+                return new
+                {
+                    id = p.Id, platform = p.Platform, username = p.Username, displayName = string.IsNullOrEmpty(p.DisplayName) ? p.Username : p.DisplayName,
+                    enteredAt = DateTime.SpecifyKind(p.EnteredAt, DateTimeKind.Utc), entryCount = p.EntryCount,
+                    weight = (double)p.CalculatedWeight, probability = canWin && totalWeight > 0 ? (double)p.CalculatedWeight / totalWeight : 0.0, rank = x.rank,
+                    isFollower = p.IsFollower, isSubscriber = p.IsSubscriber, subscriptionTier = p.SubscriptionTier, isVip = p.IsVip, isModerator = p.IsModerator,
+                    status, place, reason, canWin,
+                };
+            }).ToList();
+
+            return new
+            {
+                giveawayId = session.Id, status = session.Status, entriesClosed = session.EntriesClosed,
+                numberOfWinners = config?.NumberOfWinners ?? 1, keepOpen = rules.KeepOpen, total = list.Count,
+                participants = list,
+            };
+        }
+
+        /// <summary>Saca a un participante del giveaway en curso. Un ganador vigente (o respaldo) no se puede sacar: antes hay que reemplazarlo.</summary>
+        public async Task<string> RemoveParticipantAsync(string channelId, string username)
+        {
+            var session = await CurrentSessionAsync(channelId);
+            if (session == null) return "none";
+            var participant = await _context.GiveawayParticipants.FirstOrDefaultAsync(p => p.SessionId == session.Id && p.Username.ToLower() == username.TrimStart('@').ToLower());
+            if (participant == null) return "not_in";
+            if (await _context.GiveawayWinners.AnyAsync(w => w.ParticipantId == participant.Id && !w.WasDisqualified)) return "winner_locked";
+            // Los reemplazados conservan su fila de ganador (historial): no se pueden borrar sin romper la referencia
+            if (await _context.GiveawayWinners.AnyAsync(w => w.ParticipantId == participant.Id)) return "has_history";
+
+            _context.GiveawayParticipants.Remove(participant);
+            await _context.SaveChangesAsync();
+            session.TotalParticipants = await _context.GiveawayParticipants.CountAsync(p => p.SessionId == session.Id);
+            await RecalculateSessionWeight(session.Id);
+            InvalidateEntryRules(channelId);
+            await PublishOverlayAsync(channelId);
+            return "removed";
         }
 
         /// <summary>La participación acepta entradas: el sorteo está abierto o esperando respuestas, y nadie la cerró.</summary>

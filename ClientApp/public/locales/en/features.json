@@ -228,6 +228,7 @@
       "text": "Text",
       "animations": "Animations",
       "sound": "Sound",
+      "participants": "Participants",
       "debug": "Debug"
     }
   },

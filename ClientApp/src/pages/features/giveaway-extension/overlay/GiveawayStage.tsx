@@ -184,7 +184,14 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
 }) {
     // La ruleta aterriza en el ganador de la última ronda (un reroll no vuelve a mostrar al de la primera)
     const winner = snapshot.winners.find((w) => w.fresh) ?? snapshot.winners[0];
-    const names = snapshot.candidates.length > 0 ? snapshot.candidates : [winner?.displayName ?? '…'];
+    // Los nombres de la ruleta se fijan al empezar la ronda: si el servidor republica en medio de la vuelta (entra alguien, cambia
+    // algo), la ruleta NO se rearma ni cambia de nombres
+    const roundKey = `${snapshot.drawnAt ?? ''}|${winner?.displayName ?? ''}`;
+    const frozen = useRef<{ key: string; names: string[] }>({ key: '', names: [] });
+    if (frozen.current.key !== roundKey) {
+        frozen.current = { key: roundKey, names: snapshot.candidates.length > 0 ? snapshot.candidates : [winner?.displayName ?? '…'] };
+    }
+    const names = frozen.current.names;
     const total = 40;
     // La ruleta recorre nombres reales y se detiene en el ganador, que el servidor ya había elegido
     const reel = useMemo(() => {
@@ -199,7 +206,7 @@ function RevealBlock({ snapshot, phase, serverNow, drawnAt, a, audio, style }: {
         list.push(filler[(total - 1) % filler.length], filler[total % filler.length]);
         return list;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [snapshot.drawnAt, winner?.displayName, names.join('|')]);
+    }, [roundKey]);
 
     const duration = Math.max(1, snapshot.revealSeconds) * 1000;
     const t = Math.min(1, Math.max(0, (serverNow - drawnAt) / duration));
