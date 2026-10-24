@@ -428,7 +428,7 @@ Los créditos vienen de bits, subs regaladas, donaciones, recompensas de puntos 
 | `!clip 20 una gran jugada` | Clip de 20 segundos con ese título |
 | `!clip una gran jugada` | Duración por defecto con ese título |
 
-Si la primera palabra es un número, se lee como duración (`!clip 2024 recap` queda fuera de rango). Twitch acepta de 5 a 60 segundos y títulos de hasta 100 caracteres (los revisa AutoMod). El bot espera hasta 60 s a que Twitch termine el clip antes de publicar el enlace (a los 10 s avisa una vez que sigue esperando). Si el directo tiene música con copyright, Twitch no publica el clip (el botón manual de clip también se bloquea) y el bot avisa que no estuvo listo a tiempo.
+Si la primera palabra es un número, se lee como duración (`!clip 2024 recap` queda fuera de rango). Twitch acepta de 5 a 60 segundos y títulos de hasta 100 caracteres (los revisa AutoMod). El bot espera hasta 60 s a que Twitch termine el clip antes de publicar el enlace (a los 10 s avisa una vez que sigue esperando). Si el directo tiene música con copyright, Twitch no publica el clip (el botón manual de clip también se bloquea) y el bot avisa que no estuvo listo a tiempo. El bot no controla ni separa el audio: evitar la música protegida (música libre de derechos o pistas de audio separadas en OBS) es responsabilidad de cada streamer.
 
 | Ajuste | Descripción |
 |--------|-------------|
@@ -511,7 +511,33 @@ Los mensajes que envía el bot en cada acción se pueden personalizar con `$(use
 |---------|-------------|---------|
 | `!join` (por defecto, configurable) | Únete al giveaway activo | `!join` |
 
-El nombre del comando para unirse es configurable por sorteo. Los requisitos de participación (seguidor, suscriptor, tiempo de visualización, antigüedad de la cuenta, etc.) los valida el servidor.
+El nombre del comando para unirse es configurable por sorteo. Los requisitos de participación (seguidor, suscriptor, tiempo de visualización, antigüedad de la cuenta, etc.) los valida el servidor. Funciona en Twitch y, si se activa en los ajustes del sorteo, en Kick (Kick solo expone roles: requisitos como seguidor o tiempo viendo no se pueden comprobar allí y se omiten o se rechazan según lo que elijas).
+
+### Comandos de los viewers
+
+| Comando | Descripción |
+|---------|-------------|
+| `<comando de entrada> salir` (o `leave`) | Salir del giveaway abierto. Un ganador no puede salir |
+| `<comando de entrada> yo` (o `me`) | Consultar si estás participando |
+| `!ganadores` (configurable, se puede apagar) | Lista los últimos 5 ganadores |
+| cualquier mensaje | Un ganador confirma escribiendo cualquier cosa en el chat antes de que termine su plazo |
+
+### Comandos de control (`!giveaway`)
+
+El comando raíz (por defecto `!giveaway`) y el rol mínimo (moderador, moderador líder o streamer) se configuran en la pestaña **Comandos** del panel del sorteo. Funcionan con o sin un sorteo en curso, en Twitch y Kick.
+
+| Comando | Descripción |
+|---------|-------------|
+| `!giveaway start [premio] [duración]` | Inicia el sorteo guardado. Un premio y una duración (`90s`, `10m`, `2h`) o `manual` valen solo para ese. Alias: `iniciar` |
+| `!giveaway choose [usuario]` | Sortea a los ganadores de los lugares libres (todos de golpe, o uno por llamada en modo «uno por uno»). Con «dejar abierto al salir los ganadores» y todos los lugares llenos, suma un ganador extra. Con un usuario, esa persona gana. Alias: `elegir`, `end`, `fin`, `sortear`, `terminar` |
+| `!giveaway reroll [@usuario]` | Reemplaza a TODOS los ganadores cuyo plazo venció (o al primero pendiente si ninguno venció), con un ganador de respaldo o al azar. Con `@usuario` de un ganador vigente, lo re-sortea aunque ya haya respondido (si los ajustes lo permiten); con un usuario que no es ganador, ese usuario ocupa el primer lugar sin respuesta. Alias: `resortear` |
+| `!giveaway pick <usuario>` | Elige a mano: el usuario ocupa un lugar libre o reemplaza al ganador que no respondió |
+| `!giveaway finish` | Termina el sorteo, cierra la participación y avisa cuántos ganadores respondieron. Alias: `finalizar`, `listo` |
+| `!giveaway close` / `open` | Cierra o reabre la participación. Alias: `cerrar` / `abrir` |
+| `!giveaway cancel` | Cancela el sorteo. Alias: `cancelar` |
+| `!giveaway status` | Premio, participantes y tiempo restante. Alias: `estado` |
+
+Cómo se valida el sorteo se define en **Crear → Cómo se sortea y se valida**: todos de golpe o uno por uno, participación abierta tras sortear, descartar a quien no responde, que un confirmado pueda ganar otro lugar, ganador de respaldo en `reroll`, dejar el sorteo abierto al salir los ganadores y permitir reemplazar a un confirmado. Las respuestas del bot se editan en la pestaña **Mensajes**.
 
 ---
 

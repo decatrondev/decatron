@@ -217,7 +217,7 @@
     "tabHistory": "Every attempt, created or failed.",
     "limitsTitle": "Before you start",
     "limitLive": "Clips can only be created while the channel is live, and only on Twitch.",
-    "limitMusic": "If the stream has copyrighted music, Twitch doesn't publish the clip: the bot waits and says it wasn't ready. With royalty-free music it works.",
+    "limitMusic": "If the stream has copyrighted music, Twitch doesn't publish the clip: the bot waits and says it wasn't ready. With royalty-free music it works. The bot does not control the audio: avoiding protected music (royalty-free music or separate audio tracks in OBS) is each streamer's responsibility.",
     "limitScope": "If the bot says the clips permission is missing, link your Decatron account again.",
     "docs": "See the full documentation"
   }

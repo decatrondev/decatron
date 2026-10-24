@@ -340,7 +340,7 @@
           {
             "t": "note",
             "kind": "warning",
-            "x": "Música con copyright: Twitch revisa el audio de los clips y no publica los que llevan música protegida. En ese caso la creación se acepta, pero el clip nunca aparece y el bot avisa que no estuvo listo a tiempo. El botón de clip de Twitch también lo bloquea. Con música libre de derechos o sin música funciona."
+            "x": "Música con copyright: Twitch revisa el audio de los clips y no publica los que llevan música protegida. En ese caso la creación se acepta, pero el clip nunca aparece y el bot avisa que no estuvo listo a tiempo. El botón de clip de Twitch también lo bloquea. Con música libre de derechos o sin música funciona. El bot no controla ni separa el audio: evitar la música protegida (música libre de derechos o pistas de audio separadas en OBS) es responsabilidad de cada streamer."
           }
         ]
       },

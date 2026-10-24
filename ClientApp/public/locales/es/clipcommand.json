@@ -217,7 +217,7 @@
     "tabHistory": "Cada intento, creado o fallido.",
     "limitsTitle": "Antes de empezar",
     "limitLive": "Solo se pueden crear clips mientras el canal está en vivo, y solo en Twitch.",
-    "limitMusic": "Si el directo tiene música con copyright, Twitch no publica el clip: el bot espera y avisa que no estuvo listo. Con música libre de derechos funciona.",
+    "limitMusic": "Si el directo tiene música con copyright, Twitch no publica el clip: el bot espera y avisa que no estuvo listo. Con música libre de derechos funciona. El bot no controla el audio: evitar la música protegida (música libre de derechos o pistas de audio separadas en OBS) es responsabilidad de cada streamer.",
     "limitScope": "Si el bot dice que falta el permiso de clips, vuelve a vincular tu cuenta de Decatron.",
     "docs": "Ver la documentación completa"
   }

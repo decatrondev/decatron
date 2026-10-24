@@ -428,7 +428,7 @@ Credits come from bits, gifted subs, donations, channel point rewards or deca co
 | `!clip 20 a great play` | 20-second clip with that title |
 | `!clip a great play` | Default duration with that title |
 
-If the first word is a number it is read as the duration (`!clip 2024 recap` is out of range). Twitch accepts 5 to 60 seconds and titles of up to 100 characters (checked by AutoMod). The bot waits up to 60 s for Twitch to finish the clip before posting the link (after 10 s it says once that it is still waiting). If the stream has copyrighted music, Twitch does not publish the clip (the manual clip button is blocked too) and the bot says it was not ready in time.
+If the first word is a number it is read as the duration (`!clip 2024 recap` is out of range). Twitch accepts 5 to 60 seconds and titles of up to 100 characters (checked by AutoMod). The bot waits up to 60 s for Twitch to finish the clip before posting the link (after 10 s it says once that it is still waiting). If the stream has copyrighted music, Twitch does not publish the clip (the manual clip button is blocked too) and the bot says it was not ready in time. The bot does not control or separate the audio: avoiding protected music (royalty-free music or separate audio tracks in OBS) is each streamer's responsibility.
 
 | Setting | Description |
 |---------|-------------|
@@ -511,7 +511,33 @@ Messages sent by the bot for each action can be customized with `$(user)`, `$(st
 |---------|-------------|---------|
 | `!join` (default, configurable) | Join the active giveaway | `!join` |
 
-The join command name is configurable per giveaway. Entry requirements (follower, subscriber, watch time, account age and so on) are validated by the server.
+The join command name is configurable per giveaway. Entry requirements (follower, subscriber, watch time, account age and so on) are validated by the server. It works on Twitch and, when enabled in the giveaway settings, on Kick (Kick only exposes roles, so requirements such as follower or watch time cannot be checked there and are skipped or rejected as you choose).
+
+### Viewer commands
+
+| Command | Description |
+|---------|-------------|
+| `<join command> salir` (or `leave`) | Leave the open giveaway. A winner cannot leave |
+| `<join command> yo` (or `me`) | Check whether you are taking part |
+| `!ganadores` (configurable, can be turned off) | Lists the last 5 winners |
+| any message | A winner confirms by writing anything in chat before their response time ends |
+
+### Control commands (`!giveaway`)
+
+The root command (default `!giveaway`) and the minimum role (moderator, lead moderator or broadcaster) are configurable in the **Commands** tab of the giveaway panel. They work with or without a giveaway running, on Twitch and Kick.
+
+| Command | Description |
+|---------|-------------|
+| `!giveaway start [prize] [duration]` | Starts the saved giveaway. A prize and a duration (`90s`, `10m`, `2h`) or `manual` apply only to this one. Alias: `iniciar` |
+| `!giveaway choose [user]` | Draws the winners of the free places (all at once, or one per call in "one by one" mode). With "leave open when winners are drawn" and every place filled, it adds an extra winner. With a user, that person wins. Aliases: `elegir`, `end`, `fin`, `sortear`, `terminar` |
+| `!giveaway reroll [@user]` | Replaces EVERY winner whose response time ran out (or the first pending one if none ran out), with a backup winner or at random. With `@user` of a current winner, re-draws that person even if they already answered (if allowed in the settings); with a user who is not a winner, that user takes the first unanswered place. Alias: `resortear` |
+| `!giveaway pick <user>` | Picks by hand: the user takes a free place or replaces the winner who did not answer |
+| `!giveaway finish` | Ends the giveaway, closes entries and announces how many winners answered. Aliases: `finalizar`, `listo` |
+| `!giveaway close` / `open` | Closes or reopens entries. Aliases: `cerrar` / `abrir` |
+| `!giveaway cancel` | Cancels the giveaway. Alias: `cancelar` |
+| `!giveaway status` | Prize, participants and time left. Alias: `estado` |
+
+How draws are validated is set in **Create → How it is drawn and validated**: all at once or one by one, keep entries open after drawing, discard whoever does not answer, let a confirmed winner win another place, use backup winners on reroll, leave the giveaway open when the winners are drawn, and allow replacing a confirmed winner. The bot replies are editable in the **Messages** tab.
 
 ---
 

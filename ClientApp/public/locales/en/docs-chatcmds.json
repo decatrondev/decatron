@@ -340,7 +340,7 @@
           {
             "t": "note",
             "kind": "warning",
-            "x": "Copyrighted music: Twitch checks the audio of clips and doesn't publish those with protected music. In that case the creation is accepted but the clip never appears and the bot says it wasn't ready in time. Twitch's own clip button blocks it too. With royalty-free music or no music it works."
+            "x": "Copyrighted music: Twitch checks the audio of clips and doesn't publish those with protected music. In that case the creation is accepted but the clip never appears and the bot says it wasn't ready in time. Twitch's own clip button blocks it too. With royalty-free music or no music it works. The bot does not control or separate the audio: avoiding protected music (royalty-free music or separate audio tracks in OBS) is each streamer's responsibility."
           }
         ]
       },
