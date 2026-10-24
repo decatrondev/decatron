@@ -815,13 +815,13 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Configuras el premio, los requisitos y los pesos en el panel y lo inicias desde allí. La gente entra escribiendo `!join` en el chat (o el comando de entrada que hayas configurado). Al terminar, el bot elige a los ganadores al azar (con más probabilidad para quienes tengan más peso) y los anuncia en el chat."
+            "x": "Configuras el premio, los requisitos y los pesos en el panel. Puedes iniciarlo desde el panel o desde el chat con `!giveaway start`. La gente entra escribiendo el comando de entrada (`!join` por defecto) en Twitch y, si lo activas en Plataformas, también en Kick. Al sortear, el bot elige a los ganadores al azar (con más probabilidad para quienes tengan más peso), los anuncia y cada ganador tiene un plazo para responder escribiendo cualquier cosa en el chat."
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "El giveaway se inicia, se termina, se cancela y se vuelve a sortear desde el panel. En el chat solo se usa el comando de entrada (`!join` por defecto), para participar. El comando `!raffle` (con `!raffle create`, `join`, `close` y `draw`) es un sistema de sorteo rápido distinto, sin panel ni requisitos; está en la lista de comandos por defecto.",
-            "title": "Se controla desde el panel"
+            "title": "Panel y chat hacen lo mismo",
+            "x": "Todo lo que haces en el panel (sortear, re-sortear, elegir a mano, cerrar la participación, terminar) también se puede hacer con comandos de chat. El comando `!raffle` es otro sistema de sorteo rápido, sin panel ni requisitos."
           },
           {
             "t": "link",
@@ -836,18 +836,22 @@
           {
             "t": "ul",
             "items": [
-              "Crear: premio, duración, participantes, ganadores y re-sorteo automático.",
-              "Requisitos: quién puede participar.",
-              "Pesos: multiplicadores que suben la probabilidad de ganar.",
-              "Activo: control del giveaway en curso: participantes, ganadores, re-sortear y descalificar.",
+              "Crear: premio, duración, ganadores, re-sorteo automático y cómo se sortea y se valida.",
+              "Requisitos y Pesos: quién puede participar y quién tiene más probabilidad.",
+              "Activo: el giveaway en curso, sus ganadores y el tiempo de respuesta.",
+              "Participantes: la lista de quienes entraron con su estado, rango, peso, probabilidad y hora de entrada; un buscador que dice si alguien participa y acciones por persona (hacerlo ganador, re-sortearlo, sacarlo).",
               "Historial: giveaways anteriores y estadísticas, con exportación a CSV o JSON.",
-              "Configuración: anuncios, mensajes y espera para ganadores recientes.",
-              "Debug: herramienta de pruebas que genera participantes de ejemplo (hasta 1000)."
+              "Plataformas: dónde se puede participar (Twitch, Kick) y qué se puede comprobar en cada una.",
+              "Mensajes: lo que dice el bot y los avisos cuando alguien no puede entrar.",
+              "Comandos: todos los comandos disponibles y qué hace cada uno.",
+              "Configuración: anuncios, límites y opciones generales.",
+              "Overlay, Editor, Tema, Texto, Animaciones y Sonido: el overlay de OBS.",
+              "Debug: participantes de prueba y simulación del overlay."
             ]
           },
           {
             "t": "p",
-            "x": "No puedes guardar cambios mientras hay un giveaway activo."
+            "x": "Los cambios del panel valen para el siguiente giveaway: uno ya iniciado conserva la configuración con la que empezó."
           }
         ]
       },
@@ -960,6 +964,79 @@
           {
             "t": "link",
             "to": "overlays-guide"
+          }
+        ]
+      },
+      {
+        "id": "comandos",
+        "title": "Comandos de chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El comando raíz es `!giveaway` (se puede cambiar) y lo usan el streamer y quien tenga el rol mínimo que elijas en la pestaña Comandos. Funciona en Twitch y Kick."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "`!giveaway start [premio] [duración]`",
+                "Inicia el giveaway guardado. Con premio y duración (`90s`, `10m`, `2h`) o `manual`, esos datos valen solo para ese."
+              ],
+              [
+                "`!giveaway choose [usuario]`",
+                "Hace el sorteo de los lugares libres. Con un usuario, esa persona gana. Con «dejar abierto» y todos los lugares llenos, suma un ganador extra."
+              ],
+              [
+                "`!giveaway reroll [@usuario]`",
+                "Reemplaza a todos los ganadores cuyo plazo venció. Con `@usuario` de un ganador, re-sortea a esa persona aunque ya haya respondido (si los ajustes lo permiten)."
+              ],
+              [
+                "`!giveaway pick <usuario>`",
+                "Elige a mano: esa persona ocupa un lugar libre o reemplaza al que no respondió."
+              ],
+              [
+                "`!giveaway finish`",
+                "Termina el giveaway y avisa cuántos ganadores respondieron."
+              ],
+              [
+                "`!giveaway close` / `open`",
+                "Cierra o reabre la participación."
+              ],
+              [
+                "`!giveaway cancel` / `status`",
+                "Cancela el giveaway / muestra su estado."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los viewers pueden escribir `<comando de entrada> salir` para retirarse, `<comando de entrada> yo` para ver si participan y `!ganadores` para ver los últimos ganadores. Un ganador confirma su premio escribiendo cualquier cosa antes de que termine su plazo."
+          }
+        ]
+      },
+      {
+        "id": "validacion",
+        "title": "Qué pasa si alguien no responde",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Al llegar el plazo a 0, el bot avisa con UN solo mensaje a todos los que no respondieron.",
+              "Con re-sorteo automático encendido, cada lugar vencido se cubre solo (con un ganador de respaldo si lo hay). Apagado, el giveaway queda esperando: usa `!giveaway reroll` para reemplazarlos.",
+              "Quien no responde queda descartado y no vuelve a salir en ese giveaway (se puede cambiar en Crear).",
+              "Si responden todos, el giveaway se completa solo. Si prefieres seguir sorteando, enciende «Dejar abierto al salir los ganadores»: `!giveaway choose` suma un ganador extra y `!giveaway finish` lo termina.",
+              "Si faltan lugares por confirmar y no se usa `reroll`, el giveaway sigue en espera: termínalo con `!giveaway finish` o cancélalo."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "title": "Cuidado con los participantes de prueba",
+            "x": "Los participantes que genera Debug nunca responden: sirven para ver la ruleta y los avisos, pero sus ganadores siempre vencerán."
           }
         ]
       }

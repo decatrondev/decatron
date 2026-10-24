@@ -73,7 +73,7 @@ public class GiveawayFlowTests
     }
 
     /// <summary>Crea la config y arranca un giveaway con N participantes de prueba. Devuelve el id de la sesión.</summary>
-    private static async Task<int> StartAsync(int winners, int backups, int participants, string settingsJson = "{}")
+    private static async Task<int> StartAsync(int winners, int backups, int participants, string settingsJson = "{}", string requirements = "{}")
     {
         Clean();
         using var ctx = NewContext();
@@ -82,7 +82,7 @@ public class GiveawayFlowTests
         {
             Name = "Prueba", PrizeName = "Premio de prueba", DurationType = "manual", NumberOfWinners = winners,
             HasBackupWinners = backups > 0, NumberOfBackupWinners = backups, EntryCommand = "!sorteo", AllowAutoEntry = false,
-            Requirements = "{}", Weights = "{}", Settings = settingsJson, WinnerResponseTimeout = 15, AnnounceOnStart = false,
+            Requirements = requirements, Weights = "{}", Settings = settingsJson, WinnerResponseTimeout = 15, AnnounceOnStart = false,
             StartMessage = "", WinnerMessage = "{winner} ganó {prize}", NoResponseMessage = "", ReminderMessage = "",
         });
         var session = await svc.StartGiveaway(Channel, saved);
@@ -535,5 +535,50 @@ public class GiveawayFlowTests
         var accounts = new AccountChannelResolver(new ServiceCollection().BuildServiceProvider().GetRequiredService<IServiceScopeFactory>(), NullLogger<AccountChannelResolver>.Instance);
         var snap = await new GiveawayOverlayService(c2, accounts, hub, NullLogger<GiveawayOverlayService>.Instance).BuildSnapshotAsync(Channel);
         Assert.Equal("idle", snap.Phase);
+    }
+
+    private static Dictionary<string, object> KickMeta(bool sub = false) => new() { ["isSubscriber"] = sub, ["isFollower"] = false, ["isModerator"] = false, ["isVip"] = false };
+
+    [Fact]
+    public async Task Kick_apagado_rechaza_y_encendido_deja_entrar_con_su_plataforma_propia()
+    {
+        if (string.IsNullOrWhiteSpace(App)) return;
+        var id = await StartAsync(winners: 1, backups: 0, participants: 0);
+
+        var off = await InSvc(s => s.AddParticipant(Channel, "777", "kickuser", "KickUser", KickMeta(), null, "kick"));
+        Assert.False(off.Joined);
+        Assert.Equal("platform_disabled", off.Reason);
+
+        id = await StartAsync(winners: 1, backups: 0, participants: 0, settingsJson: "{\"platforms\":{\"twitch\":true,\"kick\":true}}");
+        var on = await InSvc(s => s.AddParticipant(Channel, "777", "kickuser", "KickUser", KickMeta(), null, "kick"));
+        Assert.True(on.Joined);
+        // el mismo id numérico en Twitch es OTRA persona: entra también
+        var twitch = await InSvc(s => s.AddParticipant(Channel, "777", "twitchuser", "TwitchUser", KickMeta(), null, "twitch"));
+        Assert.True(twitch.Joined);
+        // y repetir en Kick no duplica
+        var again = await InSvc(s => s.AddParticipant(Channel, "777", "kickuser", "KickUser", KickMeta(), null, "kick"));
+        Assert.Equal("already_entered", again.Reason);
+        using var ctx = NewContext();
+        Assert.Equal(2, await ctx.GiveawayParticipants.CountAsync(p => p.SessionId == id && (p.Username == "kickuser" || p.Username == "twitchuser")));
+    }
+
+    [Fact]
+    public async Task Kick_con_seguidor_obligatorio_omite_o_rechaza_segun_lo_que_elija_el_streamer()
+    {
+        if (string.IsNullOrWhiteSpace(App)) return;
+        const string mustFollow = "{\"mustFollow\":true}";
+
+        // por defecto lo que Kick no puede comprobar se omite: entra
+        await StartAsync(1, 0, 0, "{\"platforms\":{\"twitch\":true,\"kick\":true}}", mustFollow);
+        var allow = await InSvc(s => s.AddParticipant(Channel, "888", "kickfan", "KickFan", KickMeta(), null, "kick"));
+        Assert.True(allow.Joined);
+        // en Twitch sí se exige (no es seguidor)
+        var tw = await InSvc(s => s.AddParticipant(Channel, "889", "twfan", "TwFan", KickMeta(), null, "twitch"));
+        Assert.Equal("not_follower", tw.Reason);
+
+        // con «rechazar lo que no se pueda comprobar», Kick queda fuera
+        await StartAsync(1, 0, 0, "{\"platforms\":{\"twitch\":true,\"kick\":true,\"unverifiable\":\"reject\"}}", mustFollow);
+        var reject = await InSvc(s => s.AddParticipant(Channel, "888", "kickfan", "KickFan", KickMeta(), null, "kick"));
+        Assert.Equal("unverifiable_follower", reject.Reason);
     }
 }

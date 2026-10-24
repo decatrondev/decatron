@@ -815,13 +815,13 @@
         "blocks": [
           {
             "t": "p",
-            "x": "You set the prize, the requirements and the weights in the panel and start it from there. People enter by typing `!join` in the chat (or the entry command you configured). When it ends, the bot picks the winners at random (with a higher chance for those with more weight) and announces them in the chat."
+            "x": "You set the prize, the requirements and the weights in the panel. You can start it from the panel or from chat with `!giveaway start`. People enter by typing the entry command (`!join` by default) on Twitch and, if you turn it on in Platforms, on Kick too. When you draw, the bot picks the winners at random (with a higher chance for those with more weight), announces them, and each winner has a time limit to answer by writing anything in chat."
           },
           {
             "t": "note",
             "kind": "info",
-            "x": "The giveaway is started, ended, cancelled and re-drawn from the panel. In the chat only the entry command (`!join` by default) is used, to take part. The `!raffle` command (with `!raffle create`, `join`, `close` and `draw`) is a different quick-raffle system, with no panel or requirements; it is in the default commands list.",
-            "title": "Controlled from the panel"
+            "title": "Panel and chat do the same",
+            "x": "Everything you do in the panel (draw, re-draw, pick by hand, close entries, finish) can also be done with chat commands. The `!raffle` command is a different quick raffle system, with no panel or requirements."
           },
           {
             "t": "link",
@@ -836,18 +836,22 @@
           {
             "t": "ul",
             "items": [
-              "Create: prize, duration, participants, winners and automatic re-draw.",
-              "Requirements: who can take part.",
-              "Weights: multipliers that raise the chance of winning.",
-              "Active: control of the running giveaway: participants, winners, re-draw and disqualify.",
-              "History: previous giveaways and statistics, with export to CSV or JSON.",
-              "Settings: announcements, messages and the wait for recent winners.",
-              "Debug: a testing tool that generates sample participants (up to 1000)."
+              "Create: prize, duration, winners, automatic re-draw and how it is drawn and validated.",
+              "Requirements and Weights: who can take part and who has a higher chance.",
+              "Active: the running giveaway, its winners and the response time.",
+              "Participants: the list of people who entered with their status, rank, weight, chance and entry time; a search box that tells you whether someone is taking part, and per-person actions (make winner, re-draw, remove).",
+              "History: past giveaways and statistics, exportable as CSV or JSON.",
+              "Platforms: where people can take part (Twitch, Kick) and what can be checked on each.",
+              "Messages: what the bot says and the notices when someone cannot enter.",
+              "Commands: every available command and what it does.",
+              "Settings: announcements, limits and general options.",
+              "Overlay, Editor, Theme, Text, Animations and Sound: the OBS overlay.",
+              "Debug: test participants and overlay simulation."
             ]
           },
           {
             "t": "p",
-            "x": "You cannot save changes while a giveaway is active."
+            "x": "Panel changes apply to the next giveaway: one that has already started keeps the settings it started with."
           }
         ]
       },
@@ -960,6 +964,79 @@
           {
             "t": "link",
             "to": "overlays-guide"
+          }
+        ]
+      },
+      {
+        "id": "comandos",
+        "title": "Chat commands",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The root command is `!giveaway` (it can be changed) and it is used by the streamer and anyone with the minimum role you choose in the Commands tab. It works on Twitch and Kick."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`!giveaway start [prize] [duration]`",
+                "Starts the saved giveaway. With a prize and a duration (`90s`, `10m`, `2h`) or `manual`, those apply only to that one."
+              ],
+              [
+                "`!giveaway choose [user]`",
+                "Draws the free places. With a user, that person wins. With \"leave open\" and every place filled, it adds an extra winner."
+              ],
+              [
+                "`!giveaway reroll [@user]`",
+                "Replaces every winner whose response time ran out. With `@user` of a winner, re-draws that person even if they already answered (if the settings allow it)."
+              ],
+              [
+                "`!giveaway pick <user>`",
+                "Picks by hand: that person takes a free place or replaces the one who did not answer."
+              ],
+              [
+                "`!giveaway finish`",
+                "Ends the giveaway and announces how many winners answered."
+              ],
+              [
+                "`!giveaway close` / `open`",
+                "Closes or reopens entries."
+              ],
+              [
+                "`!giveaway cancel` / `status`",
+                "Cancels the giveaway / shows its status."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Viewers can type `<entry command> salir` to leave, `<entry command> yo` to see if they are in, and `!ganadores` to see the latest winners. A winner confirms the prize by writing anything before their time runs out."
+          }
+        ]
+      },
+      {
+        "id": "validacion",
+        "title": "What happens if someone does not answer",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "When the time reaches 0, the bot sends ONE message naming everyone who did not answer.",
+              "With automatic re-draw on, each expired place is covered on its own (with a backup winner if there is one). Off, the giveaway waits: use `!giveaway reroll` to replace them.",
+              "Whoever does not answer is discarded and does not come up again in that giveaway (changeable in Create).",
+              "If everyone answers, the giveaway completes on its own. If you prefer to keep drawing, turn on \"Leave open when the winners are drawn\": `!giveaway choose` adds an extra winner and `!giveaway finish` ends it.",
+              "If places are still unconfirmed and you do not use `reroll`, the giveaway keeps waiting: end it with `!giveaway finish` or cancel it."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "title": "Careful with test participants",
+            "x": "The participants Debug generates never answer: they are useful to see the roulette and the notices, but their winners will always expire."
           }
         ]
       }

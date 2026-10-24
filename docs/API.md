@@ -715,6 +715,15 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/Giveaway/history` | JWT + `giveaways` |
 | `DELETE` | `/api/Giveaway/history/{id}` | JWT + `giveaways` |
 | `GET` | `/api/Giveaway/participants` | JWT + `giveaways` |
+| `GET` | `/api/Giveaway/participants/detail` | JWT + `giveaways` |
+| `POST` | `/api/Giveaway/participants/{choose|reroll|remove|open|close|finish}` | JWT + `giveaways` |
+| `GET` | `/api/Giveaway/rejections` | JWT + `giveaways` |
+| `GET` | `/api/Giveaway/platforms` | JWT + `giveaways` |
+| `GET` | `/api/Giveaway/overlay/status` | JWT + `giveaways` |
+| `POST` | `/api/Giveaway/overlay/simulate` | JWT + `giveaways` |
+| `POST` | `/api/Giveaway/debug/generate-participants` | JWT + `giveaways` |
+| `DELETE` | `/api/Giveaway/debug/clear-participants` | JWT + `giveaways` |
+| `GET` | `/api/giveaway-overlay/{alias}` | Public (OBS overlay: state snapshot) |
 | `POST` | `/api/Giveaway/reroll` | JWT + `giveaways` |
 | `POST` | `/api/Giveaway/start` | JWT + `giveaways` |
 | `GET` | `/api/Giveaway/statistics` | JWT + `giveaways` |

@@ -427,7 +427,7 @@ Guía, General, Clip, Tema, Elementos, Texto, Animaciones, Editor, Automático y
 
 ## Sorteo
 
-El overlay del sorteo (`/overlay/giveaway`) muestra en tiempo real a los participantes que se unen. Los sorteos se gestionan desde el panel (pestañas Crear, Requisitos, Pesos, Activo, Historial, Configuración y Debug).
+El overlay del sorteo (`/overlay/giveaway`) muestra la tarjeta del sorteo con el comando de entrada y el número de participantes, las últimas entradas, una ruleta de nombres que se detiene en el ganador, los ganadores con su cuenta regresiva de respuesta y confeti. La ruleta solo recorre a quienes siguen participando y mantiene los mismos nombres durante toda la vuelta. Usa el mismo motor visual que Song Request (tema, fuente, animación de entrada y salida) y tiene sus propias pestañas de editor, tema, texto, animaciones y sonido. Los sorteos se gestionan desde el panel (pestañas Crear, Requisitos, Pesos, Activo, Participantes, Historial, Plataformas, Mensajes, Comandos, Configuración, Overlay, Editor, Tema, Texto, Animaciones, Sonido y Debug).
 
 ### Funciones
 
@@ -452,6 +452,9 @@ El overlay del sorteo (`/overlay/giveaway`) muestra en tiempo real a los partici
 | `POST` | `/api/giveaway/reroll` | Vuelve a seleccionar un ganador |
 | `GET` | `/api/giveaway/active` | Estado del sorteo activo |
 | `GET` | `/api/giveaway/history` | Sorteos anteriores |
+| `GET` | `/api/giveaway/participants/detail` | Participantes con estado, peso, probabilidad y roles |
+| `POST` | `/api/giveaway/participants/{verb}` | `choose`, `reroll`, `remove`, `open`, `close` o `finish` |
+| `GET` | `/api/giveaway-overlay/{alias}` | Estado público para el overlay de OBS |
 | `GET` | `/api/giveaway/statistics` | Estadísticas |
 
 ---

@@ -427,7 +427,7 @@ Guide, General, Clip, Theme, Elements, Text, Animations, Editor, Automatic and P
 
 ## Giveaway
 
-The giveaway overlay (`/overlay/giveaway`) shows participants joining in real time. Giveaways are managed from the dashboard (tabs Create, Requirements, Weights, Active, History, Settings and Debug).
+The giveaway overlay (`/overlay/giveaway`) shows the giveaway card with the entry command and participant count, the latest entries, a name roulette that stops on the winner, the winners with their response countdown and confetti. The roulette only runs through people who are still taking part and keeps the same names for the whole spin. It uses the same visual engine as Song Request (theme, font, enter/exit animation) and has its own editor, theme, text, animation and sound tabs. Giveaways are managed from the dashboard (tabs Create, Requirements, Weights, Active, Participants, History, Platforms, Messages, Commands, Settings, Overlay, Editor, Theme, Text, Animations, Sound and Debug).
 
 ### Features
 
@@ -453,6 +453,9 @@ The giveaway overlay (`/overlay/giveaway`) shows participants joining in real ti
 | `GET` | `/api/giveaway/active` | Active giveaway state |
 | `GET` | `/api/giveaway/history` | Past giveaways |
 | `GET` | `/api/giveaway/statistics` | Statistics |
+| `GET` | `/api/giveaway/participants/detail` | Participants with status, weight, probability and roles |
+| `POST` | `/api/giveaway/participants/{verb}` | `choose`, `reroll`, `remove`, `open`, `close` or `finish` |
+| `GET` | `/api/giveaway-overlay/{alias}` | Public state snapshot for the OBS overlay |
 
 ---
 
