@@ -21,7 +21,7 @@ using Microsoft.Extensions.Logging;
 namespace Decatron.Controllers
 {
     /// <summary>
-    /// Lista de espera de la plataforma (decatron.top, .dev/plans/PLATAFORMA_PLAN.md, Fase L).
+    /// Lista de espera de la plataforma (decatron.top, .dev/plans/plataforma/PLATAFORMA_PLAN.md, Fase L).
     /// Alta anónima con doble confirmación por correo; lectura y exportación solo para el dueño.
     /// No crea cuentas ni tenants: solo recoge interés.
     /// </summary>

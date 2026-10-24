@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Decatron.Core.Models.Platform;
 
 /// <summary>
-/// Persona anotada en la lista de espera de la plataforma (decatron.top, .dev/plans/PLATAFORMA_PLAN.md, Fase L).
+/// Persona anotada en la lista de espera de la plataforma (decatron.top, .dev/plans/plataforma/PLATAFORMA_PLAN.md, Fase L).
 /// Doble confirmación: no cuenta hasta que abre el enlace del correo. No es un tenant ni tiene cuenta.
 /// </summary>
 [Table("platform_waitlist")]

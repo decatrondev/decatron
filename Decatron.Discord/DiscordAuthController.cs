@@ -205,7 +205,7 @@ public class DiscordAuthController : ControllerBase
 
             var avatarUrl = avatar != null
                 ? $"https://cdn.discordapp.com/avatars/{discordId}/{avatar}.png?size=256"
-                : $"https://cdn.discordapp.com/embed/avatars/{(int.Parse(discordId) >> 22) % 6}.png";
+                : $"https://cdn.discordapp.com/embed/avatars/{(long.Parse(discordId) >> 22) % 6}.png";
 
             _logger.LogInformation("Discord user authenticated: {Username} ({DiscordId}), mode: {Mode}", username, discordId, isLinkMode ? "link" : "login");
 

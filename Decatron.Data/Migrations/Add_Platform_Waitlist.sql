@@ -1,4 +1,4 @@
--- Lista de espera de la plataforma (decatron.top, .dev/plans/PLATAFORMA_PLAN.md, Fase L). 2026-10-14
+-- Lista de espera de la plataforma (decatron.top, .dev/plans/plataforma/PLATAFORMA_PLAN.md, Fase L). 2026-10-14
 -- Solo agrega una tabla nueva: no toca nada existente. Aplicar como postgres, ANTES de reiniciar el backend:
 --   sudo -u postgres psql -d decatron_staging -f <este archivo>    (primero staging)
 --   sudo -u postgres psql -d decatron_prod    -f <este archivo>
