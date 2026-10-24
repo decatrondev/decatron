@@ -10,6 +10,7 @@ import type { OverlayAppearance } from '../overlay/model';
 // TAB TYPE
 // ============================================================================
 export type GiveawayTabType =
+    | 'guide'       // Guía: pasos para dejarlo funcionando
     | 'create'      // Crear/Gestionar giveaway
     | 'requirements' // Requisitos de entrada
     | 'weights'     // Pesos y multiplicadores

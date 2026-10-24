@@ -504,10 +504,10 @@ namespace Decatron.Controllers
                     case "choose":
                         if (string.IsNullOrEmpty(user)) return BadRequest(new { success = false, message = "Falta el usuario" });
                         await _giveawayService.ChooseAsync(twitchId, user);
-                        return Ok(new { success = true, message = $"{user} fue elegido como ganador" });
+                        return Ok(new { success = true, code = "choose_ok", user, message = $"{user} fue elegido como ganador" });
                     case "reroll":
                         await _giveawayService.RerollFromChatAsync(twitchId, string.IsNullOrEmpty(user) ? null : user);
-                        return Ok(new { success = true, message = string.IsNullOrEmpty(user) ? "Re-sorteo hecho" : $"{user} fue re-sorteado" });
+                        return Ok(new { success = true, code = string.IsNullOrEmpty(user) ? "reroll_ok" : "reroll_user_ok", user, message = string.IsNullOrEmpty(user) ? "Re-sorteo hecho" : $"{user} fue re-sorteado" });
                     case "remove":
                     {
                         if (string.IsNullOrEmpty(user)) return BadRequest(new { success = false, message = "Falta el usuario" });
@@ -520,17 +520,17 @@ namespace Decatron.Controllers
                             "not_in" => $"{user} no está participando",
                             _ => "No hay un giveaway en curso"
                         };
-                        return Ok(new { success = result == "removed", message = msg });
+                        return Ok(new { success = result == "removed", code = result, user, message = msg });
                     }
                     case "close" or "open":
                     {
                         var done = await _giveawayService.SetEntriesClosedAsync(twitchId, verb == "close");
-                        return Ok(new { success = done, message = !done ? "No hay un giveaway en curso" : verb == "close" ? "Participación cerrada" : "Participación abierta" });
+                        return Ok(new { success = done, code = !done ? "none" : verb == "close" ? "closed" : "opened", message = !done ? "No hay un giveaway en curso" : verb == "close" ? "Participación cerrada" : "Participación abierta" });
                     }
                     case "finish":
                     {
                         var done = await _giveawayService.FinishAsync(twitchId);
-                        return Ok(new { success = done, message = done ? "Giveaway terminado" : "No hay un sorteo hecho que terminar" });
+                        return Ok(new { success = done, code = done ? "finished" : "nothing_to_finish", message = done ? "Giveaway terminado" : "No hay un sorteo hecho que terminar" });
                     }
                     default:
                         return BadRequest(new { success = false, message = "Acción desconocida" });
@@ -549,7 +549,7 @@ namespace Decatron.Controllers
                     "confirmed_locked" => $"{user} ya respondió y no se permite reemplazar a un confirmado",
                     _ => "No hay participantes disponibles para eso"
                 };
-                return Ok(new { success = false, message });
+                return Ok(new { success = false, code = ex.Message is "none_active" or "places_full" or "pick_not_found" or "already_winner" or "all_responded" or "confirmed_locked" ? ex.Message : "no_candidates", user, message });
             }
             catch (Exception ex)
             {

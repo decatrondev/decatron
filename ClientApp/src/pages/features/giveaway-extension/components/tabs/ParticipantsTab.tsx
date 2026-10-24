@@ -5,6 +5,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Users, Search, RefreshCw, Dices, Repeat, UserMinus, Lock, Unlock, Flag, Check, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../../../../services/api';
 import { TabShell } from './SettingsExtras';
 
@@ -41,35 +42,31 @@ interface Detail {
     participants: Row[];
 }
 
-const STATUS: Record<PStatus, { label: string; cls: string }> = {
-    participating: { label: 'Participando', cls: 'text-ds-accent' },
-    pending: { label: 'Ganador · esperando respuesta', cls: 'text-ds-warn' },
-    confirmed: { label: 'Ganador · confirmado', cls: 'text-ds-accent' },
-    expired: { label: 'Ganador · no respondió', cls: 'text-ds-danger' },
-    backup: { label: 'Respaldo', cls: 'text-ds-soft' },
-    replaced: { label: 'Reemplazado', cls: 'text-ds-danger' },
+const STATUS: Record<PStatus, { cls: string }> = {
+    participating: { cls: 'text-ds-accent' },
+    pending: { cls: 'text-ds-warn' },
+    confirmed: { cls: 'text-ds-accent' },
+    expired: { cls: 'text-ds-danger' },
+    backup: { cls: 'text-ds-soft' },
+    replaced: { cls: 'text-ds-danger' },
 };
 
-const FILTERS: { id: string; label: string }[] = [
-    { id: 'all', label: 'Todos' },
-    { id: 'participating', label: 'Participando' },
-    { id: 'winners', label: 'Ganadores' },
-    { id: 'out', label: 'Reemplazados' },
-];
+const FILTERS = ['all', 'participating', 'winners', 'out'];
 
 const pct = (p: number) => (p <= 0 ? '—' : `${(p * 100).toFixed(p < 0.1 ? 1 : 0)} %`);
-const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-const Roles: React.FC<{ r: Row }> = ({ r }) => {
+const Roles: React.FC<{ r: Row; t: (k: string) => string }> = ({ r, t }) => {
     const roles: string[] = [];
-    if (r.isModerator) roles.push('Mod');
-    if (r.isVip) roles.push('VIP');
-    if (r.isSubscriber) roles.push(r.subscriptionTier ? `Sub T${r.subscriptionTier}` : 'Sub');
-    if (r.isFollower) roles.push('Seguidor');
+    if (r.isModerator) roles.push(t('roleMod'));
+    if (r.isVip) roles.push(t('roleVip'));
+    if (r.isSubscriber) roles.push(r.subscriptionTier ? `${t('roleSub')} T${r.subscriptionTier}` : t('roleSub'));
+    if (r.isFollower) roles.push(t('roleFollower'));
     return <span className="text-ds-soft">{roles.length ? roles.join(' · ') : '—'}</span>;
 };
 
 export const ParticipantsTab: React.FC = () => {
+    const { t } = useTranslation('features', { keyPrefix: 'giveaway.participants' });
     const [detail, setDetail] = useState<Detail | null>(null);
     const [loading, setLoading] = useState(true);
     const [query, setQuery] = useState('');
@@ -99,9 +96,9 @@ export const ParticipantsTab: React.FC = () => {
         setBusy(`${action}:${username ?? ''}`);
         try {
             const res = await api.post(`/giveaway/participants/${action}`, { username });
-            setNotice({ ok: !!res.data?.success, text: res.data?.message ?? 'Hecho' });
+            setNotice({ ok: !!res.data?.success, text: res.data?.code ? t(`msg.${res.data.code}`, { user: res.data.user ?? username ?? '' }) : (res.data?.message ?? t('done')) });
         } catch (e: any) {
-            setNotice({ ok: false, text: e?.response?.data?.message ?? `No se pudo hacer (error ${e?.response?.status ?? 'de conexión'})` });
+            setNotice({ ok: false, text: t('failed', { code: e?.response?.status ?? t('connection') }) });
         } finally {
             setBusy(null);
             await load(true);
@@ -137,12 +134,12 @@ export const ParticipantsTab: React.FC = () => {
     const drawn = !!detail && detail.status !== 'active';
 
     return (
-        <TabShell icon={<Users className="w-6 h-6 text-ds-text" />} title="Participantes" subtitle="Quién entró, su peso y probabilidad, y en qué estado está cada persona">
+        <TabShell icon={<Users className="w-6 h-6 text-ds-text" />} title={t('title')} subtitle={t('subtitle')}>
             {loading && !detail ? (
-                <p className="text-ds-soft">Cargando participantes…</p>
+                <p className="text-ds-soft">{t('loading')}</p>
             ) : !detail ? (
                 <div className="rounded-lg border border-ds-border bg-ds-raised p-8 text-center text-ds-soft">
-                    No hay un giveaway en curso. Cuando inicies uno, aquí verás a quienes entran.
+                    {t('none')}
                 </div>
             ) : (
                 <>
@@ -150,28 +147,28 @@ export const ParticipantsTab: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="rounded-lg border border-ds-border bg-ds-raised px-4 py-2">
                             <span className="text-2xl font-black text-ds-text">{detail.total}</span>{' '}
-                            <span className="text-ds-soft text-sm">participantes</span>
+                            <span className="text-ds-soft text-sm">{t('participantsWord')}</span>
                         </div>
                         <div className="rounded-lg border border-ds-border bg-ds-raised px-4 py-2">
                             <span className="text-2xl font-black text-ds-text">{counts.confirmed}</span>
-                            <span className="text-ds-soft text-sm"> / {detail.numberOfWinners} confirmados</span>
+                            <span className="text-ds-soft text-sm"> / {detail.numberOfWinners} {t('confirmedWord')}</span>
                         </div>
                         <span className={`text-sm font-semibold ${detail.entriesClosed ? 'text-ds-danger' : 'text-ds-accent'}`}>
-                            {detail.entriesClosed ? 'Participación cerrada' : 'Participación abierta'}
+                            {detail.entriesClosed ? t('entriesClosed') : t('entriesOpen')}
                         </span>
                         <div className="ml-auto flex flex-wrap gap-2">
                             {detail.status !== 'completed' && detail.status !== 'cancelled' && (
                                 <button className="ds-btn ds-btn--secondary" disabled={busy !== null} onClick={() => act(detail.entriesClosed ? 'open' : 'close')}>
                                     {detail.entriesClosed ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                                    {detail.entriesClosed ? 'Abrir participación' : 'Cerrar participación'}
+                                    {detail.entriesClosed ? t('openEntries') : t('closeEntries')}
                                 </button>
                             )}
                             {detail.status === 'selecting_winners' && (
                                 <button className="ds-btn ds-btn--secondary" disabled={busy !== null} onClick={() => act('finish')}>
-                                    <Flag className="w-4 h-4" />Terminar giveaway
+                                    <Flag className="w-4 h-4" />{t('finish')}
                                 </button>
                             )}
-                            <button className="ds-btn ds-btn--secondary" onClick={() => load()} aria-label="Actualizar">
+                            <button className="ds-btn ds-btn--secondary" onClick={() => load()} aria-label={t('refresh')}>
                                 <RefreshCw className="w-4 h-4" />
                             </button>
                         </div>
@@ -188,20 +185,20 @@ export const ParticipantsTab: React.FC = () => {
                             <input
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar un usuario para ver si participa"
+                                placeholder={t('search')}
                                 className="w-full rounded-lg border border-ds-border bg-ds-bg pl-9 pr-3 py-2 text-ds-text"
                             />
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {FILTERS.map((f) => (
-                                <button key={f.id} onClick={() => setFilter(f.id)} className={`ds-btn ${filter === f.id ? 'ds-btn--primary' : 'ds-btn--secondary'}`}>{f.label}</button>
+                                <button key={f} onClick={() => setFilter(f)} className={`ds-btn ${filter === f ? 'ds-btn--primary' : 'ds-btn--secondary'}`}>{t(`filter_${f}`)}</button>
                             ))}
                         </div>
                     </div>
                     {query.trim() && (
                         <div className={`flex items-center gap-2 text-sm font-semibold ${exact ? 'text-ds-accent' : 'text-ds-danger'}`}>
                             {exact ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-                            {exact ? `@${exact.username} está participando (${STATUS[exact.status].label.toLowerCase()})` : `@${query.trim().replace(/^@/, '')} no aparece en este giveaway`}
+                            {exact ? t('isIn', { user: exact.username, status: t(`status_${exact.status}`).toLowerCase() }) : t('isNotIn', { user: query.trim().replace(/^@/, '') })}
                         </div>
                     )}
 
@@ -211,18 +208,18 @@ export const ParticipantsTab: React.FC = () => {
                             <thead className="bg-ds-raised text-ds-soft text-left">
                                 <tr>
                                     <th className="px-3 py-2">#</th>
-                                    <th className="px-3 py-2">Usuario</th>
-                                    <th className="px-3 py-2">Estado</th>
-                                    <th className="px-3 py-2">Rango</th>
-                                    <th className="px-3 py-2 text-right">Peso</th>
-                                    <th className="px-3 py-2 text-right">Probabilidad</th>
-                                    <th className="px-3 py-2">Entró</th>
-                                    <th className="px-3 py-2 text-right">Acciones</th>
+                                    <th className="px-3 py-2">{t('colUser')}</th>
+                                    <th className="px-3 py-2">{t('colStatus')}</th>
+                                    <th className="px-3 py-2">{t('colRank')}</th>
+                                    <th className="px-2 py-2 text-right">{t('colWeight')}</th>
+                                    <th className="px-2 py-2 text-right">{t('colChance')}</th>
+                                    <th className="px-2 py-2">{t('colEntered')}</th>
+                                    <th className="px-3 py-2 text-right">{t('colActions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {rows.length === 0 && (
-                                    <tr><td colSpan={8} className="px-3 py-8 text-center text-ds-soft">Nadie coincide con ese filtro.</td></tr>
+                                    <tr><td colSpan={8} className="px-3 py-8 text-center text-ds-soft">{t('nobody')}</td></tr>
                                 )}
                                 {rows.map((r) => (
                                     <tr key={r.id} className="border-t border-ds-border">
@@ -230,30 +227,30 @@ export const ParticipantsTab: React.FC = () => {
                                         <td className="px-3 py-2">
                                             <span className="font-semibold text-ds-text">{r.displayName}</span>
                                             {r.platform !== 'twitch' && <span className="ml-2 text-xs text-ds-soft uppercase">{r.platform}</span>}
-                                            {r.entryCount > 1 && <span className="ml-2 text-xs text-ds-soft">{r.entryCount} entradas</span>}
+                                            {r.entryCount > 1 && <span className="ml-2 text-xs text-ds-soft">{t('entries', { n: r.entryCount })}</span>}
                                         </td>
                                         <td className="px-3 py-2">
-                                            <span className={`font-semibold ${STATUS[r.status].cls}`}>{STATUS[r.status].label}{r.place ? ` (lugar ${r.place})` : ''}</span>
+                                            <span className={`font-semibold ${STATUS[r.status].cls}`}>{t(`status_${r.status}`)}{r.place ? ` (${t('place', { n: r.place })})` : ''}</span>
                                             {r.reason && <div className="text-xs text-ds-soft">{r.reason}</div>}
                                         </td>
-                                        <td className="px-3 py-2"><Roles r={r} /></td>
-                                        <td className="px-3 py-2 text-right tabular-nums">{r.weight.toFixed(2)}</td>
-                                        <td className="px-3 py-2 text-right tabular-nums">{pct(r.probability)}</td>
-                                        <td className="px-3 py-2 text-ds-soft tabular-nums">{time(r.enteredAt)}</td>
+                                        <td className="px-3 py-2"><Roles r={r} t={t} /></td>
+                                        <td className="px-2 py-2 text-right tabular-nums whitespace-nowrap">{r.weight.toFixed(2)}</td>
+                                        <td className="px-2 py-2 text-right tabular-nums whitespace-nowrap">{pct(r.probability)}</td>
+                                        <td className="px-2 py-2 text-ds-soft tabular-nums whitespace-nowrap">{time(r.enteredAt)}</td>
                                         <td className="px-3 py-2">
                                             <div className="flex justify-end gap-1">
                                                 {(r.status === 'participating' || r.status === 'replaced') && r.canWin && detail.status !== 'completed' && (
-                                                    <button className="ds-btn ds-btn--secondary" title={drawn ? 'Hacerlo ganador' : 'Sortear: este usuario gana'} disabled={busy !== null} onClick={() => act('choose', r.username)}>
+                                                    <button className="ds-btn ds-btn--secondary" title={drawn ? t('actMakeWinner') : t('actDrawThis')} disabled={busy !== null} onClick={() => act('choose', r.username)}>
                                                         <Dices className="w-4 h-4" />
                                                     </button>
                                                 )}
                                                 {(r.status === 'pending' || r.status === 'expired' || r.status === 'confirmed') && (
-                                                    <button className="ds-btn ds-btn--secondary" title="Re-sortear a este ganador" disabled={busy !== null} onClick={() => act('reroll', r.username)}>
+                                                    <button className="ds-btn ds-btn--secondary" title={t('actReroll')} disabled={busy !== null} onClick={() => act('reroll', r.username)}>
                                                         <Repeat className="w-4 h-4" />
                                                     </button>
                                                 )}
                                                 {r.status === 'participating' && (
-                                                    <button className="ds-btn ds-btn--secondary" title="Sacar del giveaway" disabled={busy !== null} onClick={() => act('remove', r.username)}>
+                                                    <button className="ds-btn ds-btn--secondary" title={t('actRemove')} disabled={busy !== null} onClick={() => act('remove', r.username)}>
                                                         <UserMinus className="w-4 h-4" />
                                                     </button>
                                                 )}
@@ -265,7 +262,7 @@ export const ParticipantsTab: React.FC = () => {
                         </table>
                     </div>
                     <p className="text-xs text-ds-soft">
-                        La probabilidad cuenta solo a quienes hoy pueden salir sorteados según tus reglas (no a los ganadores ni a los descartados). Se actualiza cada 5 segundos.
+                        {t('footnote')}
                     </p>
                 </>
             )}

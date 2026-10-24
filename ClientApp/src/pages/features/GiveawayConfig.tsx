@@ -20,6 +20,7 @@ import {
 // Componentes
 import { StatePanel } from './giveaway-extension/components/StatePanel';
 import {
+    GuideTab,
     CreateTab,
     RequirementsTab,
     WeightsTab,
@@ -50,7 +51,7 @@ const GiveawayConfig = () => {
     // ========================================================================
     // STATE
     // ========================================================================
-    const [activeTab, setActiveTab] = useState<GiveawayTabType>('create');
+    const [activeTab, setActiveTab] = useState<GiveawayTabType>('guide');
     // Avisos propios del panel (en vez de ventanas emergentes del navegador)
     const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const showNotice = (type: 'success' | 'error', text: string) => {
@@ -187,6 +188,7 @@ const GiveawayConfig = () => {
     // ========================================================================
 
     const tabs: { id: GiveawayTabType; label: string; icon: string }[] = [
+        { id: 'guide', label: t('giveaway.tabs.guide'), icon: '📚' },
         { id: 'create', label: t('giveaway.tabs.create'), icon: '🎁' },
         { id: 'requirements', label: t('giveaway.tabs.requirements'), icon: '🛡️' },
         { id: 'weights', label: t('giveaway.tabs.weights'), icon: '⚖️' },
@@ -318,6 +320,8 @@ const GiveawayConfig = () => {
 
                         {/* Tab Content */}
                         <div>
+                            {activeTab === 'guide' && <GuideTab onNavigate={setActiveTab} root={giveawayConfig.config.settings?.commands?.root || '!giveaway'} />}
+
                             {activeTab === 'create' && (
                                 <CreateTab
                                     config={giveawayConfig.config}
