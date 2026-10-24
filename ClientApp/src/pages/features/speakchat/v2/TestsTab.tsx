@@ -11,7 +11,7 @@ export default function TestsTab({ sc, fishFallback }: { sc: SpeakChatState; fis
     const [text, setText] = useState(() => t('v2.tests.defaultMessage'));
     const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
     const { status, statusLoaded, testing, dirty, config } = sc;
-    const [estimate, setEstimate] = useState<{ cleanedText: string; units: number; unit: 'chars' | 'bytes'; credits: number | null } | null>(null);
+    const [estimate, setEstimate] = useState<{ cleanedText: string; units: number; unit: 'chars' | 'bytes'; credits?: number | null } | null>(null);
 
     // Cuánto costaría leer este texto con la limpieza guardada (no genera audio ni cobra)
     useEffect(() => {
@@ -43,7 +43,7 @@ export default function TestsTab({ sc, fishFallback }: { sc: SpeakChatState; fis
                             : t('v2.tests.nothingToRead')}</p>
                         {estimate.cleanedText && (
                             <p className="text-ds-soft">
-                                {estimate.credits === null
+                                {estimate.credits == null
                                     ? t('v2.tests.costStandard', { count: estimate.units })
                                     : t('v2.tests.costPaid', { count: estimate.units, credits: estimate.credits.toLocaleString(), unit: t(`v2.tests.unit_${estimate.unit}`, { count: estimate.units }) })}
                             </p>
