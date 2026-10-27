@@ -67,6 +67,7 @@ import ProjectAnalysis from './pages/admin/ProjectAnalysis';
 import AdminFortnite from './pages/admin/AdminFortnite';
 import LogoGuide from './pages/admin/LogoGuide';
 import GameOverlayPromosAdmin from './pages/admin/GameOverlayPromosAdmin';
+import PromoAdmin from './pages/admin/PromoAdmin';
 import LiveOverlay from './pages/LiveOverlay';
 import LiveOverlays from './pages/features/LiveOverlays';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
@@ -413,6 +414,7 @@ function App() {
                     <Route path="admin/platform-waitlist" element={<SafeRoute name="Platform Waitlist"><PlatformWaitlistAdmin /></SafeRoute>} />
                     <Route path="admin/platform-tenants" element={<SafeRoute name="Platform Tenants"><PlatformTenantsAdmin /></SafeRoute>} />
                     <Route path="admin/game-overlay-promos" element={<SafeRoute name="Game Overlay Promos"><GameOverlayPromosAdmin /></SafeRoute>} />
+                    <Route path="admin/promo" element={<SafeRoute name="Promociones"><PromoAdmin /></SafeRoute>} />
 
                     {/* Chat Moderation */}
                     <Route path="features/moderation/banned-words" element={<SafeRoute name="Banned Words"><BannedWords /></SafeRoute>} />

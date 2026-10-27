@@ -122,6 +122,7 @@ try
     builder.Services.Configure<KickSettings>(builder.Configuration.GetSection("KickSettings"));
     builder.Services.Configure<Decatron.Core.Settings.WheelOfLuckSettings>(builder.Configuration.GetSection(Decatron.Core.Settings.WheelOfLuckSettings.SectionName));
     builder.Services.Configure<Decatron.Core.Settings.ClipCommandSettings>(builder.Configuration.GetSection(Decatron.Core.Settings.ClipCommandSettings.SectionName));
+    builder.Services.Configure<Decatron.Core.Settings.PromoOverlaySettings>(builder.Configuration.GetSection(Decatron.Core.Settings.PromoOverlaySettings.SectionName));
 
     // PostgreSQL DbContext
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -650,6 +651,7 @@ try
     builder.Services.AddScoped<Decatron.Services.GameData.GameSessionService>();
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayConfigService>();
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayPromoService>();
+    builder.Services.AddScoped<Decatron.Services.Promo.PromoCatalogService>(); // Overlay de Promociones: catálogo global administrado desde /admin/promo
     builder.Services.AddScoped<Decatron.Services.Brand.BrandService>(); // Logos de la marca editables desde /admin/brand
     builder.Services.AddScoped<Decatron.Services.Design.DesignService>(); // Editor de valores de diseño de /admin/estilo
     // Song Request (.dev/plans/SONG_REQUEST_PLAN.md): un servicio nuevo = registrar su ITrackResolver y/o ITrackSource

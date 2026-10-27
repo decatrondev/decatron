@@ -1,6 +1,7 @@
 import decatronLockup from '../assets/decatron-lockup.png';
 import decatronMascot from '../assets/decatron-mascot.png';
 import decatronHero from '../assets/decatron-hero.png';
+import decatronMascotHd from '../assets/decatron-mascot-hd.png';
 import type { ResolvedImage } from './types';
 
 /** Ícono Bot de lucide como imagen, para que las vistas que hoy lo usan puedan partir de él. */
@@ -17,6 +18,7 @@ export const BUILTIN_IMAGES: Record<string, ResolvedImage> = {
     lockup: { url: decatronLockup, width: 900, height: 455, name: 'Lockup (incorporado)' },
     'lockup-light': { url: '/brand/decatron-lockup-light.png', width: 900, height: 455, name: 'Lockup claro (incorporado)' },
     mascot: { url: decatronMascot, width: 160, height: 160, name: 'Mascota (incorporada)' },
+    'mascot-hd': { url: decatronMascotHd, width: 450, height: 596, name: 'Mascota HD (incorporada)' },
     hero: { url: decatronHero, width: 1337, height: 1036, name: 'Hero de la landing (incorporado)' },
     favicon: { url: '/favicon-512.png', width: 512, height: 512, name: 'Favicon (incorporado)' },
     'bot-blue': { url: botIcon('#2563eb'), width: 24, height: 24, name: 'Ícono bot azul (incorporado)' },

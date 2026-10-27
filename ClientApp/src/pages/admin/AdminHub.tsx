@@ -61,6 +61,7 @@ const GROUPS: AdminGroup[] = [
     {
         id: 'comms', title: 'Comunicación', items: [
             { id: 'email', name: 'Email campaigns', description: 'Crea plantillas visuales y envía emails a streamers con Resend', icon: <Mail className={ic} />, route: '/admin/email', ready: true },
+            { id: 'promo', name: 'Promociones (overlay)', description: 'Piezas, plantillas y topes del overlay de promoción opcional que usan los streamers. No son los anuncios obligatorios de !sr', icon: <Sparkles className={ic} />, route: '/admin/promo', ready: true },
             { id: 'discord-server', name: 'Servidor de Discord', description: 'Vista previa y carga de la plantilla del servidor de Decatron', icon: <MessagesSquare className={ic} />, route: '/admin/discord-server', ready: true },
         ],
     },

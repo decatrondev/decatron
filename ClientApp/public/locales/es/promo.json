@@ -1,0 +1,389 @@
+{
+  "admin": {
+    "title": "Promociones",
+    "subtitle": "Catálogo de piezas del overlay de promoción: qué se muestra, cómo se ve y los topes para cuidar al espectador",
+    "loadFailed": "No se pudo cargar el catálogo de Promociones.",
+    "tabs": {
+      "pieces": "Piezas",
+      "templates": "Plantillas",
+      "limits": "Topes",
+      "zones": "Zonas"
+    },
+    "preview": {
+      "title": "Vista previa",
+      "note": "Con datos de ejemplo",
+      "replay": "Repetir animación",
+      "language": "Idioma",
+      "sampleChannel": "tu_canal",
+      "sampleCommands": "!comando1, !comando2",
+      "sampleLink": "decatron.net",
+      "stageNote": "Vista a escala de un lienzo de 1920×1080, con la posición inicial de la zona.",
+      "sampleTitle": "Título de ejemplo",
+      "sampleBody": "Un texto de ejemplo para ver cómo queda"
+    },
+    "toast": {
+      "saved": "Guardado.",
+      "deleted": "Eliminado.",
+      "duplicated": "Pieza duplicada como borrador.",
+      "published": "Pieza publicada.",
+      "drafted": "Pieza vuelta a borrador."
+    },
+    "pieces": {
+      "new": "Nueva pieza",
+      "edit": "Editar",
+      "duplicate": "Duplicar",
+      "publish": "Publicar",
+      "unpublish": "Pasar a borrador",
+      "delete": "Eliminar",
+      "emptyTitle": "Aún no hay piezas",
+      "emptyHint": "Crea la primera: puede ser un aviso, un QR, los comandos del canal o un mensaje de emergencia.",
+      "deleteTitle": "Eliminar pieza",
+      "deleteBody": "Se elimina «{{name}}» del catálogo. No se puede deshacer.",
+      "untitled": "Sin título",
+      "noTemplate": "Sin plantilla",
+      "allChannels": "Todos los canales",
+      "onlyChannels": "Solo: {{list}}",
+      "window": "Del {{from}} al {{to}}",
+      "windowFrom": "Desde {{from}}",
+      "windowTo": "Hasta {{to}}",
+      "noWindow": "Sin fechas",
+      "status": {
+        "draft": "Borrador",
+        "published": "Publicada"
+      },
+      "kind": {
+        "commands": "Comandos del canal",
+        "module": "Módulo",
+        "qr": "QR",
+        "news": "Novedades",
+        "credits": "Créditos",
+        "community": "Comunidad",
+        "emergency": "Emergencia"
+      },
+      "origin": {
+        "bot": "Del bot",
+        "tercero": "De un tercero"
+      },
+      "platforms": {
+        "all": "Twitch y Kick",
+        "twitch": "Solo Twitch",
+        "kick": "Solo Kick"
+      },
+      "emergencyNote": "Una pieza de emergencia publicada reemplaza a todas las demás mientras esté vigente."
+    },
+    "editor": {
+      "titleNew": "Nueva pieza",
+      "titleEdit": "Editar pieza",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "content": "Contenido",
+      "look": "Cómo se ve",
+      "rules": "Cuándo y dónde se muestra",
+      "kind": "Tipo",
+      "origin": "Origen",
+      "titleEs": "Título (español)",
+      "titleEn": "Título (inglés)",
+      "bodyEs": "Texto (español)",
+      "bodyEn": "Texto (inglés)",
+      "link": "Enlace",
+      "linkHint": "Solo https. Lo usan el QR y la variable {{name}}.",
+      "showQr": "Mostrar un QR del enlace",
+      "image": "Imagen",
+      "imageHint": "Una dirección https o una ruta del sitio, por ejemplo /brand/logo.png. Si hay imagen, reemplaza al icono.",
+      "icon": "Icono",
+      "noIcon": "Sin icono",
+      "template": "Plantilla",
+      "zone": "Zona",
+      "variables": "Variables que puedes usar en los textos: {{vars}}.",
+      "englishFallback": "Si dejas el inglés vacío se usa el texto en español.",
+      "priority": "Prioridad",
+      "priorityHint": "0 a 100. Una pieza con más prioridad pasa antes en la cola.",
+      "weight": "Peso",
+      "weightHint": "0 a 100. Entre piezas de igual prioridad, más peso sale más seguido; 0 = nunca.",
+      "duration": "Duración en pantalla (segundos)",
+      "durationHint": "De 3 a 30.",
+      "startsAt": "Empieza",
+      "endsAt": "Termina",
+      "datesHint": "Vacío = sin límite. Las fechas son de tu hora local.",
+      "platforms": "Plataformas",
+      "onlyChannels": "Solo en estos canales",
+      "onlyChannelsHint": "Logins separados por coma. Vacío = todos los canales.",
+      "status": "Estado"
+    },
+    "templates": {
+      "new": "Nueva plantilla",
+      "titleNew": "Nueva plantilla",
+      "titleEdit": "Editar plantilla",
+      "hint": "Una plantilla es un diseño completo de la ficha: lienzo, elementos, colores, tipografías y animaciones. Lo que dejes aquí es el valor por defecto; cada streamer lo puede cambiar para su canal.",
+      "key": "Clave",
+      "keyHint": "Minúsculas, números, guion y guion bajo. No se puede cambiar después.",
+      "nameEs": "Nombre (español)",
+      "nameEn": "Nombre (inglés)",
+      "layout": "Forma",
+      "zone": "Zona donde se pone por defecto",
+      "theme": "Tema",
+      "animation": "Animación",
+      "enabled": "Activa",
+      "disabled": "Apagada",
+      "usedBy_one": "La usa {{count}} pieza",
+      "usedBy_other": "La usan {{count}} piezas",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleteTitle": "Eliminar plantilla",
+      "deleteBody": "Se elimina «{{name}}». Las piezas que la usaban quedan sin plantilla.",
+      "newCard": "Nueva tarjeta",
+      "newBanner": "Nuevo banner",
+      "duplicate": "Duplicar",
+      "emptyTitle": "Aún no hay plantillas",
+      "emptyHint": "Crea una tarjeta o un banner y diséñalo en el editor.",
+      "noDesign": "Esta plantilla no tiene diseño."
+    },
+    "limits": {
+      "title": "Topes de cuidado del espectador",
+      "hint": "Límites para que la promoción no sature el directo. Cada streamer puede ser más discreto que esto, nunca más insistente.",
+      "minGap": "Segundos mínimos entre dos piezas de una misma zona",
+      "minGapHint": "De 10 a 3600.",
+      "hourlyCap": "Segundos máximos de promoción en pantalla por hora",
+      "hourlyCapHint": "De 30 a 3600.",
+      "save": "Guardar topes"
+    },
+    "errors": {
+      "unknown": "No se pudo guardar. Inténtalo de nuevo.",
+      "kindInvalid": "El tipo no es válido.",
+      "originInvalid": "El origen no es válido.",
+      "zoneInvalid": "La zona no es válida.",
+      "platformsInvalid": "La plataforma no es válida.",
+      "statusInvalid": "El estado no es válido.",
+      "titleTooLong": "Un título supera los 120 caracteres.",
+      "bodyTooLong": "Un texto supera los 300 caracteres.",
+      "titleOrBodyRequired": "Escribe al menos un título o un texto en español.",
+      "emergencyNeedsBody": "Una pieza de emergencia necesita texto en español.",
+      "noAngleBrackets": "Los textos no pueden llevar los signos < ni >.",
+      "unknownVariable": "Hay una variable desconocida en los textos. Usa solo las de la lista.",
+      "linkVariableNeedsLink": "Usas {{name}} en un texto pero no pusiste enlace.",
+      "linkInvalid": "El enlace debe ser una dirección https válida.",
+      "qrNeedsLink": "Para mostrar un QR hace falta un enlace.",
+      "imageInvalid": "La imagen debe ser una dirección https o una ruta del sitio que empiece con una sola /.",
+      "iconInvalid": "Ese icono no está en la lista.",
+      "datesOrder": "La fecha de fin debe ser posterior a la de inicio.",
+      "channelsInvalid": "Los canales deben ser logins válidos separados por coma (máximo 50).",
+      "templateNotFound": "La plantilla ya no existe.",
+      "pieceNotFound": "La pieza ya no existe.",
+      "keyInvalid": "La clave solo admite minúsculas, números, guion y guion bajo (2 a 40).",
+      "keyTaken": "Ya existe una plantilla con esa clave.",
+      "nameRequired": "El nombre en español es obligatorio.",
+      "nameTooLong": "Un nombre supera los 80 caracteres.",
+      "layoutInvalid": "La forma no es válida.",
+      "themeInvalid": "El tema no es válido.",
+      "animationInvalid": "La animación no es válida.",
+      "minGapRange": "El mínimo entre piezas debe estar entre 10 y 3600 segundos.",
+      "hourlyCapRange": "El máximo por hora debe estar entre 30 y 3600 segundos.",
+      "zoneNotFound": "La zona ya no existe.",
+      "zoneInUse": "Esa zona la usan piezas o plantillas: cámbialas de zona antes de eliminarla.",
+      "anchorInvalid": "El ancla no es válida.",
+      "marginRange": "Los márgenes deben estar entre 0 y 1000 px.",
+      "designInvalid": "El diseño no es válido.",
+      "designTooLarge": "El diseño es demasiado grande.",
+      "designCanvasRange": "El lienzo debe medir entre 100×40 y 3840×2160 px.",
+      "designTooManyElements": "El diseño tiene demasiados elementos (máximo 60).",
+      "designKindInvalid": "Hay un elemento de un tipo desconocido.",
+      "designValueInvalid": "Hay un valor fuera de rango en un elemento.",
+      "designColorInvalid": "Hay un color no válido (usa #rrggbb o rgba).",
+      "designFontInvalid": "Hay una tipografía que no está en la lista.",
+      "designImageRefInvalid": "Hay una imagen de biblioteca no válida.",
+      "designTextInvalid": "Un texto no es válido (sin < ni >, máximo 400 caracteres).",
+      "designUnknownVariable": "Un texto usa una variable desconocida.",
+      "designIconInvalid": "Hay un icono que no está en la lista.",
+      "designAnimationInvalid": "Hay una animación no válida."
+    },
+    "design": {
+      "back": "Volver a las plantillas",
+      "canvasTitle": "Diseño de la ficha",
+      "canvasDescription": "Arrastra y redimensiona cada elemento sobre el lienzo. El lienzo es la ficha: lo que ves es exactamente lo que sale en OBS.",
+      "noElements": "Esta ficha no tiene elementos. Agrega uno con los botones de la lista de capas.",
+      "add": {
+        "title": "Agregar un elemento",
+        "shape": "Forma",
+        "image": "Imagen",
+        "icon": "Icono",
+        "text": "Texto",
+        "qr": "QR"
+      },
+      "element": {
+        "name": "Nombre del elemento",
+        "duplicate": "Duplicar",
+        "delete": "Eliminar",
+        "up": "Traer al frente",
+        "down": "Mandar atrás"
+      },
+      "common": {
+        "opacity": "Opacidad",
+        "rotation": "Giro"
+      },
+      "group": {
+        "look": "Apariencia",
+        "placement": "Opacidad y giro",
+        "motion": "Animaciones"
+      },
+      "fill": {
+        "color": "Color",
+        "gradient": "Degradado",
+        "transparent": "Sin fondo",
+        "color1": "Color inicial",
+        "color2": "Color final",
+        "angle": "Ángulo"
+      },
+      "border": {
+        "enabled": "Borde",
+        "color": "Color del borde",
+        "width": "Grosor"
+      },
+      "glow": {
+        "enabled": "Brillo",
+        "color": "Color del brillo",
+        "blur": "Intensidad"
+      },
+      "shadow": {
+        "label": "Sombra",
+        "none": "Ninguna",
+        "soft": "Suave",
+        "normal": "Normal",
+        "strong": "Fuerte",
+        "hard": "Dura, sin desenfoque"
+      },
+      "shape": {
+        "fill": "Fondo",
+        "radius": "Redondeo",
+        "backdropBlur": "Desenfoque de lo que hay detrás",
+        "cut": "Recorte",
+        "cutSize": "Tamaño del recorte",
+        "cuts": {
+          "none": "Sin recorte",
+          "slant-right": "Inclinado a la derecha",
+          "slant-left": "Inclinado a la izquierda",
+          "slant-both": "Inclinado en ambos lados",
+          "corners": "Esquinas cortadas"
+        }
+      },
+      "image": {
+        "source": "Origen",
+        "fromPiece": "La imagen de la pieza",
+        "fromLibrary": "Una imagen de la biblioteca",
+        "choose": "Elegir imagen",
+        "change": "Cambiar imagen",
+        "none": "Ninguna elegida",
+        "fit": "Ajuste",
+        "fits": {
+          "contain": "Entera",
+          "cover": "Llenar",
+          "fill": "Estirar"
+        }
+      },
+      "icon": {
+        "source": "Origen",
+        "fromPiece": "El icono de la pieza",
+        "fixed": "Uno fijo",
+        "icon": "Icono",
+        "color": "Color",
+        "strokeWidth": "Grosor del trazo"
+      },
+      "text": {
+        "template": "Texto",
+        "templateHint": "Variables: {{vars}}. Si queda vacío, el elemento no se muestra.",
+        "font": "Tipografía",
+        "groups": {
+          "display": "Titulares",
+          "sans": "Sans",
+          "tech": "Tecnológicas",
+          "fun": "Divertidas",
+          "mono": "Monoespaciada"
+        },
+        "weight": "Grosor",
+        "size": "Tamaño",
+        "color": "Color",
+        "align": "Alineación",
+        "aligns": {
+          "left": "Izquierda",
+          "center": "Centro",
+          "right": "Derecha"
+        },
+        "valign": "Alineación vertical",
+        "valigns": {
+          "top": "Arriba",
+          "center": "Centro",
+          "bottom": "Abajo"
+        },
+        "lineHeight": "Interlineado",
+        "letterSpacing": "Espaciado de letras",
+        "maxLines": "Máximo de líneas",
+        "maxLinesHint": "0 = sin límite.",
+        "shadow": "Sombra del texto",
+        "shadows": {
+          "none": "Ninguna",
+          "soft": "Suave",
+          "normal": "Normal",
+          "strong": "Fuerte",
+          "glow": "Brillo"
+        },
+        "glowColor": "Color del brillo",
+        "italic": "Cursiva",
+        "uppercase": "Mayúsculas",
+        "box": "Caja detrás del texto",
+        "boxFill": "Fondo de la caja",
+        "padding": "Relleno"
+      },
+      "qr": {
+        "hint": "El QR solo se muestra si la pieza tiene un enlace y el QR activado.",
+        "color": "Color del código",
+        "background": "Color del fondo"
+      },
+      "loop": {
+        "title": "Animación continua",
+        "none": "Ninguna",
+        "pulse": "Pulso",
+        "float": "Flotar",
+        "breathe": "Respirar",
+        "glow": "Brillo pulsante",
+        "sway": "Balanceo",
+        "spin": "Giro continuo",
+        "blink": "Parpadeo",
+        "duration": "Duración de una vuelta",
+        "delay": "Retardo"
+      },
+      "wholeAnimation": "Animación de la ficha entera",
+      "wholeAnimationHint": "Se suma a la de cada elemento: así entra y sale toda la ficha.",
+      "livePreview": "Vista previa",
+      "livePreviewHint": "La ficha en la posición de su zona, como se vería en el directo.",
+      "tabs": {
+        "general": "Datos",
+        "design": "Diseño",
+        "animation": "Animación",
+        "preview": "Vista previa"
+      }
+    },
+    "zones": {
+      "hint": "Una zona es un lugar del lienzo de 1920×1080 donde se coloca una ficha por defecto. El streamer puede moverla después.",
+      "new": "Nueva zona",
+      "titleNew": "Nueva zona",
+      "titleEdit": "Editar zona",
+      "anchor": "Ancla",
+      "anchors": {
+        "top-left": "Arriba a la izquierda",
+        "top-center": "Arriba al centro",
+        "top-right": "Arriba a la derecha",
+        "middle-left": "Centro a la izquierda",
+        "center": "Centro",
+        "middle-right": "Centro a la derecha",
+        "bottom-left": "Abajo a la izquierda",
+        "bottom-center": "Abajo al centro",
+        "bottom-right": "Abajo a la derecha"
+      },
+      "marginX": "Margen horizontal (px)",
+      "marginY": "Margen vertical (px)",
+      "margins": "Márgenes: {{x}} px y {{y}} px",
+      "usedBy": "La usan {{pieces}} piezas y {{templates}} plantillas",
+      "deleteTitle": "Eliminar zona",
+      "deleteBody": "Se elimina «{{name}}». Solo se puede si ninguna pieza ni plantilla la usa."
+    }
+  }
+}

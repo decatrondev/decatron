@@ -1,0 +1,389 @@
+{
+  "admin": {
+    "title": "Promos",
+    "subtitle": "Catalog of pieces for the promotion overlay: what is shown, how it looks and the limits that protect viewers",
+    "loadFailed": "The Promos catalog could not be loaded.",
+    "tabs": {
+      "pieces": "Pieces",
+      "templates": "Templates",
+      "limits": "Limits",
+      "zones": "Zones"
+    },
+    "preview": {
+      "title": "Preview",
+      "note": "With sample data",
+      "replay": "Replay animation",
+      "language": "Language",
+      "sampleChannel": "your_channel",
+      "sampleCommands": "!command1, !command2",
+      "sampleLink": "decatron.net",
+      "stageNote": "Scaled view of a 1920×1080 canvas, at the zone's starting position.",
+      "sampleTitle": "Sample title",
+      "sampleBody": "A sample text to see how it looks"
+    },
+    "toast": {
+      "saved": "Saved.",
+      "deleted": "Deleted.",
+      "duplicated": "Piece duplicated as a draft.",
+      "published": "Piece published.",
+      "drafted": "Piece moved back to draft."
+    },
+    "pieces": {
+      "new": "New piece",
+      "edit": "Edit",
+      "duplicate": "Duplicate",
+      "publish": "Publish",
+      "unpublish": "Move to draft",
+      "delete": "Delete",
+      "emptyTitle": "There are no pieces yet",
+      "emptyHint": "Create the first one: it can be a notice, a QR, the channel commands or an emergency message.",
+      "deleteTitle": "Delete piece",
+      "deleteBody": "“{{name}}” will be removed from the catalog. This cannot be undone.",
+      "untitled": "Untitled",
+      "noTemplate": "No template",
+      "allChannels": "All channels",
+      "onlyChannels": "Only: {{list}}",
+      "window": "From {{from}} to {{to}}",
+      "windowFrom": "From {{from}}",
+      "windowTo": "Until {{to}}",
+      "noWindow": "No dates",
+      "status": {
+        "draft": "Draft",
+        "published": "Published"
+      },
+      "kind": {
+        "commands": "Channel commands",
+        "module": "Module",
+        "qr": "QR",
+        "news": "News",
+        "credits": "Credits",
+        "community": "Community",
+        "emergency": "Emergency"
+      },
+      "origin": {
+        "bot": "From the bot",
+        "tercero": "From a third party"
+      },
+      "platforms": {
+        "all": "Twitch and Kick",
+        "twitch": "Twitch only",
+        "kick": "Kick only"
+      },
+      "emergencyNote": "A published emergency piece replaces all the others while it is in effect."
+    },
+    "editor": {
+      "titleNew": "New piece",
+      "titleEdit": "Edit piece",
+      "save": "Save",
+      "cancel": "Cancel",
+      "content": "Content",
+      "look": "Look",
+      "rules": "When and where it is shown",
+      "kind": "Type",
+      "origin": "Origin",
+      "titleEs": "Title (Spanish)",
+      "titleEn": "Title (English)",
+      "bodyEs": "Text (Spanish)",
+      "bodyEn": "Text (English)",
+      "link": "Link",
+      "linkHint": "https only. Used by the QR and the {{name}} variable.",
+      "showQr": "Show a QR of the link",
+      "image": "Image",
+      "imageHint": "An https address or a site path, for example /brand/logo.png. If there is an image it replaces the icon.",
+      "icon": "Icon",
+      "noIcon": "No icon",
+      "template": "Template",
+      "zone": "Zone",
+      "variables": "Variables you can use in the texts: {{vars}}.",
+      "englishFallback": "If you leave the English empty, the Spanish text is used.",
+      "priority": "Priority",
+      "priorityHint": "0 to 100. A higher priority goes first in the queue.",
+      "weight": "Weight",
+      "weightHint": "0 to 100. Among pieces with the same priority, more weight shows up more often; 0 = never.",
+      "duration": "Time on screen (seconds)",
+      "durationHint": "From 3 to 30.",
+      "startsAt": "Starts",
+      "endsAt": "Ends",
+      "datesHint": "Empty = no limit. Dates use your local time.",
+      "platforms": "Platforms",
+      "onlyChannels": "Only in these channels",
+      "onlyChannelsHint": "Logins separated by commas. Empty = all channels.",
+      "status": "Status"
+    },
+    "templates": {
+      "new": "New template",
+      "titleNew": "New template",
+      "titleEdit": "Edit template",
+      "hint": "A template is a complete card design: canvas, elements, colors, typefaces and animations. What you leave here is the default; each streamer can change it for their channel.",
+      "key": "Key",
+      "keyHint": "Lowercase letters, numbers, hyphen and underscore. It cannot be changed later.",
+      "nameEs": "Name (Spanish)",
+      "nameEn": "Name (English)",
+      "layout": "Shape",
+      "zone": "Zone where it goes by default",
+      "theme": "Theme",
+      "animation": "Animation",
+      "enabled": "Active",
+      "disabled": "Off",
+      "usedBy_one": "Used by {{count}} piece",
+      "usedBy_other": "Used by {{count}} pieces",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteTitle": "Delete template",
+      "deleteBody": "“{{name}}” will be removed. Pieces that used it are left without a template.",
+      "newCard": "New card",
+      "newBanner": "New banner",
+      "duplicate": "Duplicate",
+      "emptyTitle": "There are no templates yet",
+      "emptyHint": "Create a card or a banner and design it in the editor.",
+      "noDesign": "This template has no design."
+    },
+    "limits": {
+      "title": "Viewer-care limits",
+      "hint": "Limits so promotion does not flood the stream. Each streamer can be more discreet than this, never more insistent.",
+      "minGap": "Minimum seconds between two pieces in the same zone",
+      "minGapHint": "From 10 to 3600.",
+      "hourlyCap": "Maximum seconds of promotion on screen per hour",
+      "hourlyCapHint": "From 30 to 3600.",
+      "save": "Save limits"
+    },
+    "errors": {
+      "unknown": "It could not be saved. Try again.",
+      "kindInvalid": "The type is not valid.",
+      "originInvalid": "The origin is not valid.",
+      "zoneInvalid": "The zone is not valid.",
+      "platformsInvalid": "The platform is not valid.",
+      "statusInvalid": "The status is not valid.",
+      "titleTooLong": "A title is longer than 120 characters.",
+      "bodyTooLong": "A text is longer than 300 characters.",
+      "titleOrBodyRequired": "Write at least a title or a text in Spanish.",
+      "emergencyNeedsBody": "An emergency piece needs text in Spanish.",
+      "noAngleBrackets": "Texts cannot contain the < or > signs.",
+      "unknownVariable": "There is an unknown variable in the texts. Use only the ones in the list.",
+      "linkVariableNeedsLink": "A text uses {{name}} but there is no link.",
+      "linkInvalid": "The link must be a valid https address.",
+      "qrNeedsLink": "A link is needed to show a QR.",
+      "imageInvalid": "The image must be an https address or a site path starting with a single /.",
+      "iconInvalid": "That icon is not in the list.",
+      "datesOrder": "The end date must be after the start date.",
+      "channelsInvalid": "Channels must be valid logins separated by commas (50 at most).",
+      "templateNotFound": "The template no longer exists.",
+      "pieceNotFound": "The piece no longer exists.",
+      "keyInvalid": "The key only allows lowercase letters, numbers, hyphen and underscore (2 to 40).",
+      "keyTaken": "A template with that key already exists.",
+      "nameRequired": "The Spanish name is required.",
+      "nameTooLong": "A name is longer than 80 characters.",
+      "layoutInvalid": "The shape is not valid.",
+      "themeInvalid": "The theme is not valid.",
+      "animationInvalid": "The animation is not valid.",
+      "minGapRange": "The minimum between pieces must be between 10 and 3600 seconds.",
+      "hourlyCapRange": "The hourly maximum must be between 30 and 3600 seconds.",
+      "zoneNotFound": "The zone no longer exists.",
+      "zoneInUse": "Pieces or templates use that zone: move them to another zone before deleting it.",
+      "anchorInvalid": "The anchor is not valid.",
+      "marginRange": "Margins must be between 0 and 1000 px.",
+      "designInvalid": "The design is not valid.",
+      "designTooLarge": "The design is too large.",
+      "designCanvasRange": "The canvas must be between 100×40 and 3840×2160 px.",
+      "designTooManyElements": "The design has too many elements (60 at most).",
+      "designKindInvalid": "There is an element of an unknown type.",
+      "designValueInvalid": "An element has a value out of range.",
+      "designColorInvalid": "There is an invalid color (use #rrggbb or rgba).",
+      "designFontInvalid": "There is a typeface that is not in the list.",
+      "designImageRefInvalid": "There is an invalid library image.",
+      "designTextInvalid": "A text is not valid (no < or >, 400 characters at most).",
+      "designUnknownVariable": "A text uses an unknown variable.",
+      "designIconInvalid": "There is an icon that is not in the list.",
+      "designAnimationInvalid": "There is an invalid animation."
+    },
+    "design": {
+      "back": "Back to templates",
+      "canvasTitle": "Card design",
+      "canvasDescription": "Drag and resize each element on the canvas. The canvas is the card: what you see is exactly what shows up in OBS.",
+      "noElements": "This card has no elements. Add one with the buttons in the layers list.",
+      "add": {
+        "title": "Add an element",
+        "shape": "Shape",
+        "image": "Image",
+        "icon": "Icon",
+        "text": "Text",
+        "qr": "QR"
+      },
+      "element": {
+        "name": "Element name",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "up": "Bring to front",
+        "down": "Send to back"
+      },
+      "common": {
+        "opacity": "Opacity",
+        "rotation": "Rotation"
+      },
+      "group": {
+        "look": "Look",
+        "placement": "Opacity and rotation",
+        "motion": "Animations"
+      },
+      "fill": {
+        "color": "Color",
+        "gradient": "Gradient",
+        "transparent": "No fill",
+        "color1": "Start color",
+        "color2": "End color",
+        "angle": "Angle"
+      },
+      "border": {
+        "enabled": "Border",
+        "color": "Border color",
+        "width": "Width"
+      },
+      "glow": {
+        "enabled": "Glow",
+        "color": "Glow color",
+        "blur": "Intensity"
+      },
+      "shadow": {
+        "label": "Shadow",
+        "none": "None",
+        "soft": "Soft",
+        "normal": "Normal",
+        "strong": "Strong",
+        "hard": "Hard, no blur"
+      },
+      "shape": {
+        "fill": "Fill",
+        "radius": "Corner radius",
+        "backdropBlur": "Blur of what is behind",
+        "cut": "Cut",
+        "cutSize": "Cut size",
+        "cuts": {
+          "none": "No cut",
+          "slant-right": "Slanted to the right",
+          "slant-left": "Slanted to the left",
+          "slant-both": "Slanted on both sides",
+          "corners": "Cut corners"
+        }
+      },
+      "image": {
+        "source": "Source",
+        "fromPiece": "The piece's image",
+        "fromLibrary": "An image from the library",
+        "choose": "Choose image",
+        "change": "Change image",
+        "none": "None chosen",
+        "fit": "Fit",
+        "fits": {
+          "contain": "Whole",
+          "cover": "Fill",
+          "fill": "Stretch"
+        }
+      },
+      "icon": {
+        "source": "Source",
+        "fromPiece": "The piece's icon",
+        "fixed": "A fixed one",
+        "icon": "Icon",
+        "color": "Color",
+        "strokeWidth": "Stroke width"
+      },
+      "text": {
+        "template": "Text",
+        "templateHint": "Variables: {{vars}}. If it ends up empty, the element is not shown.",
+        "font": "Typeface",
+        "groups": {
+          "display": "Headlines",
+          "sans": "Sans",
+          "tech": "Tech",
+          "fun": "Fun",
+          "mono": "Monospace"
+        },
+        "weight": "Weight",
+        "size": "Size",
+        "color": "Color",
+        "align": "Alignment",
+        "aligns": {
+          "left": "Left",
+          "center": "Center",
+          "right": "Right"
+        },
+        "valign": "Vertical alignment",
+        "valigns": {
+          "top": "Top",
+          "center": "Middle",
+          "bottom": "Bottom"
+        },
+        "lineHeight": "Line height",
+        "letterSpacing": "Letter spacing",
+        "maxLines": "Maximum lines",
+        "maxLinesHint": "0 = no limit.",
+        "shadow": "Text shadow",
+        "shadows": {
+          "none": "None",
+          "soft": "Soft",
+          "normal": "Normal",
+          "strong": "Strong",
+          "glow": "Glow"
+        },
+        "glowColor": "Glow color",
+        "italic": "Italic",
+        "uppercase": "Uppercase",
+        "box": "Box behind the text",
+        "boxFill": "Box fill",
+        "padding": "Padding"
+      },
+      "qr": {
+        "hint": "The QR only shows if the piece has a link and the QR turned on.",
+        "color": "Code color",
+        "background": "Background color"
+      },
+      "loop": {
+        "title": "Continuous animation",
+        "none": "None",
+        "pulse": "Pulse",
+        "float": "Float",
+        "breathe": "Breathe",
+        "glow": "Pulsing glow",
+        "sway": "Sway",
+        "spin": "Continuous spin",
+        "blink": "Blink",
+        "duration": "Length of one cycle",
+        "delay": "Delay"
+      },
+      "wholeAnimation": "Animation of the whole card",
+      "wholeAnimationHint": "It adds to each element's own: this is how the whole card comes in and goes out.",
+      "livePreview": "Preview",
+      "livePreviewHint": "The card at its zone's position, as it would look on stream.",
+      "tabs": {
+        "general": "Details",
+        "design": "Design",
+        "animation": "Animation",
+        "preview": "Preview"
+      }
+    },
+    "zones": {
+      "hint": "A zone is a place on the 1920×1080 canvas where a card goes by default. The streamer can move it afterwards.",
+      "new": "New zone",
+      "titleNew": "New zone",
+      "titleEdit": "Edit zone",
+      "anchor": "Anchor",
+      "anchors": {
+        "top-left": "Top left",
+        "top-center": "Top center",
+        "top-right": "Top right",
+        "middle-left": "Middle left",
+        "center": "Center",
+        "middle-right": "Middle right",
+        "bottom-left": "Bottom left",
+        "bottom-center": "Bottom center",
+        "bottom-right": "Bottom right"
+      },
+      "marginX": "Horizontal margin (px)",
+      "marginY": "Vertical margin (px)",
+      "margins": "Margins: {{x}} px and {{y}} px",
+      "usedBy": "Used by {{pieces}} pieces and {{templates}} templates",
+      "deleteTitle": "Delete zone",
+      "deleteBody": "“{{name}}” will be removed. It can only be deleted if no piece or template uses it."
+    }
+  }
+}
