@@ -197,3 +197,33 @@ public class PromoOverlayLimits
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
+
+/// <summary>
+/// Lo que un streamer decide sobre el catálogo: pausar todo, apagar piezas y ser más discreto que los topes globales. Una fila por
+/// cuenta (fila principal), con tenant_id y RLS. Nunca puede ser más insistente que el catálogo del dueño.
+/// </summary>
+[Table("promo_channel_settings")]
+public class PromoChannelSettings
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("paused")]
+    public bool Paused { get; set; }
+
+    /// <summary>JSON con la lista de ids de piezas apagadas, p. ej. [3,7].</summary>
+    [Column("disabled_pieces", TypeName = "jsonb")]
+    public string DisabledPieces { get; set; } = "[]";
+
+    [Column("min_gap_seconds")]
+    public int? MinGapSeconds { get; set; }
+
+    [Column("hourly_cap_seconds")]
+    public int? HourlyCapSeconds { get; set; }
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}

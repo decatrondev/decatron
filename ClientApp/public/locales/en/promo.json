@@ -394,7 +394,8 @@
     "forbidden": "You need overlays permission on this channel.",
     "tabs": {
       "guide": "Guide",
-      "pieces": "What is shown"
+      "pieces": "What is shown",
+      "settings": "Settings"
     },
     "guide": {
       "title": "How to use it",
@@ -430,7 +431,24 @@
       "onlyTwitch": "Twitch only",
       "onlyKick": "Kick only",
       "from": "From {{date}}",
-      "until": "Until {{date}}"
+      "until": "Until {{date}}",
+      "on": "On",
+      "off": "Off: it won't show on your channel"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "You decide how much shows. You can be more discreet than Decatron, never more insistent.",
+      "pause": "Pause all promotions",
+      "pauseHint": "The OBS source stays connected but nothing shows until you turn it back on.",
+      "gap": "Pause between pieces of a zone",
+      "gapHint": "At least {{n}} seconds. Raise it to space them out more.",
+      "cap": "Seconds of promotion per hour",
+      "capHint": "At most {{n}} seconds. Lower it to see fewer promotions.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved. It applies from the next piece.",
+      "saveFailed": "Couldn't save.",
+      "unsaved": "Unsaved changes"
     }
   }
 }

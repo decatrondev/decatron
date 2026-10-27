@@ -394,7 +394,8 @@
     "forbidden": "Necesitas permiso de overlays en este canal.",
     "tabs": {
       "guide": "Guía",
-      "pieces": "Qué se muestra"
+      "pieces": "Qué se muestra",
+      "settings": "Ajustes"
     },
     "guide": {
       "title": "Cómo usarlo",
@@ -430,7 +431,24 @@
       "onlyTwitch": "Solo Twitch",
       "onlyKick": "Solo Kick",
       "from": "Desde {{date}}",
-      "until": "Hasta {{date}}"
+      "until": "Hasta {{date}}",
+      "on": "Activa",
+      "off": "Apagada: no saldrá en tu canal"
+    },
+    "settings": {
+      "title": "Ajustes",
+      "description": "Tú decides cuánto se ve. Puedes ser más discreto que Decatron, nunca más insistente.",
+      "pause": "Pausar todas las promociones",
+      "pauseHint": "La fuente de OBS sigue conectada, pero no sale nada hasta que lo reactives.",
+      "gap": "Pausa entre piezas de una zona",
+      "gapHint": "Mínimo {{n}} segundos. Súbelo para que salgan más espaciadas.",
+      "cap": "Segundos de promoción por hora",
+      "capHint": "Máximo {{n}} segundos. Bájalo para ver menos promociones.",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "saved": "Guardado. Se aplica en la siguiente pieza.",
+      "saveFailed": "No se pudo guardar.",
+      "unsaved": "Cambios sin guardar"
     }
   }
 }

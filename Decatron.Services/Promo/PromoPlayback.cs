@@ -24,6 +24,21 @@ namespace Decatron.Services.Promo
         private static readonly ConcurrentDictionary<string, State> States = new();
         public static State StateOf(string overlayKey) => States.GetOrAdd(overlayKey.ToLowerInvariant(), _ => new State());
 
+        /// <summary>Los topes que aplican a un canal: el streamer solo puede ser más discreto (mayor pausa, menor tope por hora), nunca más insistente.</summary>
+        public static PromoOverlayLimits EffectiveLimits(PromoOverlayLimits global, PromoChannelSettings? mine) => new()
+        {
+            MinGapSeconds = Math.Max(global.MinGapSeconds, mine?.MinGapSeconds ?? 0),
+            HourlyCapSeconds = mine?.HourlyCapSeconds is int cap ? (global.HourlyCapSeconds > 0 ? Math.Min(global.HourlyCapSeconds, cap) : cap) : global.HourlyCapSeconds,
+        };
+
+        /// <summary>Ids de piezas que el streamer apagó (JSON de números; lo ilegible se ignora).</summary>
+        public static HashSet<long> DisabledIds(PromoChannelSettings? mine)
+        {
+            if (mine == null || string.IsNullOrWhiteSpace(mine.DisabledPieces)) return new();
+            try { return System.Text.Json.JsonSerializer.Deserialize<List<long>>(mine.DisabledPieces)?.ToHashSet() ?? new(); }
+            catch (System.Text.Json.JsonException) { return new(); }
+        }
+
         /// <summary>true si la pieza puede salir en este canal ahora (vigencia, plataforma y canales permitidos).</summary>
         public static bool IsEligible(PromoPiece p, string zone, string variant, IReadOnlyCollection<string> logins, DateTime now)
         {

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Decatron.Core.Interfaces;
 using Decatron.Core.Models.Promo;
 using Decatron.Core.Settings;
 using Decatron.Data;
@@ -28,15 +29,17 @@ namespace Decatron.Controllers
         private readonly AccountChannelResolver _accounts;
         private readonly DecatronDbContext _db;
         private readonly IOptionsMonitor<PromoOverlaySettings> _settings;
+        private readonly ITenantResolver _tenants;
         private readonly ILogger<PromoOverlayController> _logger;
 
         public PromoOverlayController(PromoCatalogService catalog, AccountChannelResolver accounts, DecatronDbContext db,
-            IOptionsMonitor<PromoOverlaySettings> settings, ILogger<PromoOverlayController> logger)
+            IOptionsMonitor<PromoOverlaySettings> settings, ITenantResolver tenants, ILogger<PromoOverlayController> logger)
         {
             _catalog = catalog;
             _accounts = accounts;
             _db = db;
             _settings = settings;
+            _tenants = tenants;
             _logger = logger;
         }
 
@@ -81,15 +84,23 @@ namespace Decatron.Controllers
                 var resolved = await _accounts.ResolveAliasAsync(alias);
                 if (resolved == null) return Ok(new { success = true, found = false });
 
+                // El overlay es anónimo: sin sesión el tenant sería el #1. Se fija el del canal para leer sus preferencias (RLS).
+                using var tenantScope = TenantAmbient.Push(_tenants.ByChannelKey(resolved.Account.OverlayKey).TenantId);
+                var principalId = resolved.Account.Principal.UserId;
+                var mine = await _db.PromoChannelSettings.AsNoTracking().FirstOrDefaultAsync(c => c.UserId == principalId);
+                if (mine?.Paused == true) return Ok(new { success = true, found = true, wait = 60 });
+                var disabled = PromoPlayback.DisabledIds(mine);
+
                 var variant = OverlayVariant.Parse(source) ?? resolved.LegacyVariant;
                 var snap = await _catalog.GetPublishedAsync();
+                var limits = PromoPlayback.EffectiveLimits(snap.Limits, mine);
                 var zoneRow = snap.Zones.FirstOrDefault(z => z.Key == zone);
                 if (zoneRow == null) return Ok(new { success = true, found = true, wait = 60 });
 
                 var now = DateTime.UtcNow;
                 var logins = resolved.Account.Members.Select(m => m.Login).ToList();
                 var eligible = snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now))
-                    .Where(p => TemplateFor(snap, p) != null).ToList();
+                    .Where(p => !disabled.Contains(p.Id) && TemplateFor(snap, p) != null).ToList();
                 if (eligible.Count == 0) return Ok(new { success = true, found = true, wait = 60 });
 
                 var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
@@ -99,8 +110,8 @@ namespace Decatron.Controllers
                 {
                     state.LastPiece.TryGetValue(zone, out var last);
                     piece = PromoPlayback.Pick(eligible, state.LastPiece.ContainsKey(zone) ? last : null, Random.Shared.NextDouble());
-                    wait = piece == null ? 60 : PromoPlayback.WaitSeconds(state, zone, snap.Limits, piece.DurationSeconds, now);
-                    if (piece != null && wait == 0) PromoPlayback.MarkShown(state, piece, snap.Limits, now);
+                    wait = piece == null ? 60 : PromoPlayback.WaitSeconds(state, zone, limits, piece.DurationSeconds, now);
+                    if (piece != null && wait == 0) PromoPlayback.MarkShown(state, piece, limits, now);
                 }
                 if (piece == null || wait > 0) return Ok(new { success = true, found = true, wait = Math.Max(wait, 5) });
 

@@ -5,7 +5,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-react';
 import api from '../../services/api';
 import TabIcon from '../../components/dashboard/TabIcon';
 import { usePermissions } from '../../hooks/usePermissions';
-import { Card } from '../../components/overlay-editor/ui';
+import { Card, NumberInput, Toggle } from '../../components/overlay-editor/ui';
 import { LinkRow, Warning, useOverlayStatus } from '../../components/overlay-editor/OverlayLinks';
 import { PromoZoom, type ZonePlacement } from '../../components/promo-overlay/PromoPreview';
 import { useBrand } from '../../brand/BrandContext';
@@ -14,8 +14,8 @@ import type { PromoDesign, PromoContent } from '../../components/promo-overlay/t
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
 // su estado, y otra con las piezas que se están mostrando. La personalización por streamer llega en la fase siguiente.
 
-type TabId = 'guide' | 'pieces';
-const TABS: { id: TabId; icon: string }[] = [{ id: 'guide', icon: '📚' }, { id: 'pieces', icon: '🖼️' }];
+type TabId = 'guide' | 'pieces' | 'settings';
+const TABS: { id: TabId; icon: string }[] = [{ id: 'guide', icon: '📚' }, { id: 'pieces', icon: '🖼️' }, { id: 'settings', icon: '⚙️' }];
 
 interface Piece {
     id: number; kind: string; titleEs: string; titleEn: string; bodyEs: string; bodyEn: string; zone: string; platforms: string;
@@ -27,7 +27,9 @@ interface Catalog {
     templates: { id: number; zone: string; design: PromoDesign }[];
     zones: (ZonePlacement & { key: string; nameEs: string; nameEn: string })[];
     limits: { minGapSeconds: number; hourlyCapSeconds: number };
+    mine: Mine;
 }
+interface Mine { paused: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null }
 
 const overlayUrl = (channel: string, source?: 'twitch' | 'kick') => `${window.location.origin}/overlay/promo?channel=${channel}${source ? `&source=${source}` : ''}`;
 
@@ -40,6 +42,10 @@ export default function PromoConfig() {
     const [tab, setTab] = useState<TabId>(() => { try { return (sessionStorage.getItem('promo-tab') as TabId) || 'guide'; } catch { return 'guide'; } });
     const [catalog, setCatalog] = useState<Catalog | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [mine, setMine] = useState<Mine | null>(null);
+    const [dirty, setDirty] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
     const lang = i18n.language?.startsWith('en') ? 'en' : 'es';
 
     useEffect(() => { try { sessionStorage.setItem('promo-tab', tab); } catch { /* sin storage */ } }, [tab]);
@@ -48,7 +54,7 @@ export default function PromoConfig() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permsLoading]);
     useEffect(() => {
-        api.get('/promo-panel/catalog').then(r => setCatalog(r.data)).catch(e => setError(e?.response?.status === 403 ? 'forbidden' : 'loadFailed'));
+        api.get('/promo-panel/catalog').then(r => { setCatalog(r.data); setMine(r.data.mine); }).catch(e => setError(e?.response?.status === 403 ? 'forbidden' : 'loadFailed'));
     }, []);
 
     const channel = status.overlayKey || 'tu_canal';
@@ -57,6 +63,20 @@ export default function PromoConfig() {
     const copy = { copyLabel: t('panel.guide.copy'), copiedLabel: t('panel.guide.copied') };
     const url = overlayUrl(channel);
     const dateFmt = useMemo(() => new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }), [lang]);
+
+    const change = (patch: Partial<Mine>) => { setMine(m => (m ? { ...m, ...patch } : m)); setDirty(true); };
+    const toggle = (id: number, on: boolean) => change({ disabledPieces: on ? (mine?.disabledPieces ?? []).filter(x => x !== id) : [...(mine?.disabledPieces ?? []), id] });
+    const save = async () => {
+        if (!mine) return;
+        setSaving(true);
+        try {
+            await api.put('/promo-panel/settings', { paused: mine.paused, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds });
+            setDirty(false);
+            setMessage({ ok: true, text: t('panel.settings.saved') });
+        } catch { setMessage({ ok: false, text: t('panel.settings.saveFailed') }); }
+        setSaving(false);
+        window.setTimeout(() => setMessage(null), 4000);
+    };
 
     const step = (n: number, title: string, body: React.ReactNode) => (
         <div className="flex gap-4">
@@ -77,7 +97,12 @@ export default function PromoConfig() {
                         <h1 className="text-3xl 3xl:text-4xl font-black text-ds-text">{t('panel.title')}</h1>
                         <p className="text-sm 3xl:text-base text-ds-soft mt-1">{t('panel.subtitle')}</p>
                     </div>
+                    <div className="ml-auto flex items-center gap-3">
+                        {dirty && <span className="text-xs 3xl:text-sm font-bold text-ds-warn">{t('panel.settings.unsaved')}</span>}
+                        <button onClick={save} disabled={!dirty || saving} className={dirty && !saving ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>{saving ? t('panel.settings.saving') : t('panel.settings.save')}</button>
+                    </div>
                 </div>
+                {message && <div className={`mb-6 p-4 rounded-lg border ${message.ok ? 'bg-ds-ok/10 border-ds-ok/40 text-ds-ok' : 'bg-ds-danger/10 border-ds-danger/40 text-ds-danger'}`}>{message.text}</div>}
 
                 <div className="bg-ds-surface rounded-lg border border-ds-border p-4 mb-6">
                     <div className="flex flex-wrap gap-2">
@@ -134,7 +159,8 @@ export default function PromoConfig() {
                                     link: p.linkUrl, imageUrl: p.imageUrl, icon: p.icon, showQr: p.showQr,
                                 };
                                 return (
-                                    <div key={p.id} className="rounded-lg border border-ds-border bg-ds-raised/40 p-3 space-y-3 min-w-0">
+                                    <div key={p.id} className={`rounded-lg border border-ds-border bg-ds-raised/40 p-3 space-y-3 min-w-0 ${mine?.disabledPieces.includes(p.id) ? 'opacity-50' : ''}`}>
+                                        <Toggle checked={!mine?.disabledPieces.includes(p.id)} onChange={on => toggle(p.id, on)} label={content.title || p.titleEs} hint={mine?.disabledPieces.includes(p.id) ? t('panel.pieces.off') : t('panel.pieces.on')} />
                                         {tpl && <PromoZoom design={tpl.design} content={content} resolveImage={resolve}
                                             vars={{ channel, commands: '!title · !game', link: (p.linkUrl || 'https://decatron.net').replace(/^https:\/\//, '') }} />}
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs 3xl:text-sm text-ds-soft">
@@ -149,6 +175,25 @@ export default function PromoConfig() {
                                     </div>
                                 );
                             })}
+                        </div>
+                    </Card>
+                )}
+                {tab === 'settings' && mine && catalog && (
+                    <Card title={t('panel.settings.title')} description={t('panel.settings.description')}>
+                        <div className="space-y-6">
+                            <Toggle checked={mine.paused} onChange={v => change({ paused: v })} label={t('panel.settings.pause')} hint={t('panel.settings.pauseHint')} />
+                            <div>
+                                <h4 className="font-bold text-ds-text text-sm 3xl:text-base">{t('panel.settings.gap')}</h4>
+                                <p className="text-sm 3xl:text-base text-ds-soft mb-2">{t('panel.settings.gapHint', { n: catalog.limits.minGapSeconds })}</p>
+                                <div className="max-w-xs"><NumberInput value={mine.minGapSeconds ?? catalog.limits.minGapSeconds} min={catalog.limits.minGapSeconds} max={3600} step={10}
+                                    onChange={v => change({ minGapSeconds: v <= catalog.limits.minGapSeconds ? null : v })} /></div>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-ds-text text-sm 3xl:text-base">{t('panel.settings.cap')}</h4>
+                                <p className="text-sm 3xl:text-base text-ds-soft mb-2">{t('panel.settings.capHint', { n: catalog.limits.hourlyCapSeconds })}</p>
+                                <div className="max-w-xs"><NumberInput value={mine.hourlyCapSeconds ?? catalog.limits.hourlyCapSeconds} min={0} max={catalog.limits.hourlyCapSeconds} step={30}
+                                    onChange={v => change({ hourlyCapSeconds: v >= catalog.limits.hourlyCapSeconds ? null : v })} /></div>
+                            </div>
                         </div>
                     </Card>
                 )}

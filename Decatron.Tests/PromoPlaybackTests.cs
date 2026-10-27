@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Decatron.Core.Models.Promo;
 using Decatron.Services.Promo;
 using Xunit;
@@ -103,5 +104,25 @@ public class PromoPlaybackTests
         var at = Now.AddMinutes(2);
         Assert.Equal((int)(Now.AddHours(1) - at).TotalSeconds, PromoPlayback.WaitSeconds(s, "otra", limits, 15, at));
         Assert.Equal(0, PromoPlayback.WaitSeconds(s, "otra", limits, 15, Now.AddHours(1).AddSeconds(1)));
+    }
+
+    [Fact(DisplayName = "Promo: el streamer solo puede ser más discreto que los topes globales")]
+    public void TopesDelStreamer()
+    {
+        var g = new PromoOverlayLimits { MinGapSeconds = 60, HourlyCapSeconds = 600 };
+        var mas = PromoPlayback.EffectiveLimits(g, new PromoChannelSettings { MinGapSeconds = 120, HourlyCapSeconds = 300 });
+        Assert.Equal(120, mas.MinGapSeconds); Assert.Equal(300, mas.HourlyCapSeconds);
+        var menos = PromoPlayback.EffectiveLimits(g, new PromoChannelSettings { MinGapSeconds = 10, HourlyCapSeconds = 5000 });
+        Assert.Equal(60, menos.MinGapSeconds); Assert.Equal(600, menos.HourlyCapSeconds);
+        var ninguno = PromoPlayback.EffectiveLimits(g, null);
+        Assert.Equal(60, ninguno.MinGapSeconds); Assert.Equal(600, ninguno.HourlyCapSeconds);
+    }
+
+    [Fact(DisplayName = "Promo: los ids apagados se leen del JSON y lo ilegible se ignora")]
+    public void PiezasApagadas()
+    {
+        Assert.Equal(new long[] { 3, 7 }, PromoPlayback.DisabledIds(new PromoChannelSettings { DisabledPieces = "[3,7]" }).OrderBy(i => i));
+        Assert.Empty(PromoPlayback.DisabledIds(new PromoChannelSettings { DisabledPieces = "no es json" }));
+        Assert.Empty(PromoPlayback.DisabledIds(null));
     }
 }

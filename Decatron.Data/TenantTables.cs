@@ -109,6 +109,7 @@ public static class TenantTables
         "player_card_instances",
         "player_pack_inventory",
         "player_pity_counter",
+        "promo_channel_settings",
         "public_command_overrides",
         "raffle_participants",
         "raffle_winners",

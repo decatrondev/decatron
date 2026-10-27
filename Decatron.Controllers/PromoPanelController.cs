@@ -3,7 +3,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Decatron.Attributes;
+using Decatron.Core.Models.Promo;
 using Decatron.Core.Settings;
+using Decatron.Data;
+using Microsoft.EntityFrameworkCore;
 using Decatron.Hubs;
 using Decatron.Services.Accounts;
 using Decatron.Services.Promo;
@@ -29,14 +32,16 @@ namespace Decatron.Controllers
         private readonly AccountChannelResolver _accounts;
         private readonly PromoCatalogService _catalog;
         private readonly IOptionsMonitor<PromoOverlaySettings> _settings;
+        private readonly DecatronDbContext _db;
         private readonly ILogger<PromoPanelController> _logger;
 
         public PromoPanelController(AccountChannelResolver accounts, PromoCatalogService catalog,
-            IOptionsMonitor<PromoOverlaySettings> settings, ILogger<PromoPanelController> logger)
+            IOptionsMonitor<PromoOverlaySettings> settings, DecatronDbContext db, ILogger<PromoPanelController> logger)
         {
             _accounts = accounts;
             _catalog = catalog;
             _settings = settings;
+            _db = db;
             _logger = logger;
         }
 
@@ -92,6 +97,8 @@ namespace Decatron.Controllers
                 var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
                 if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
                 var snap = await _catalog.GetPublishedAsync();
+                var principalId = account.Principal.UserId;
+                var prefs = await _db.PromoChannelSettings.AsNoTracking().FirstOrDefaultAsync(c => c.UserId == principalId);
                 var logins = account.Members.Select(m => m.Login).ToList();
                 var mine = logins.Select(l => l.ToLowerInvariant()).ToHashSet();
                 var pieces = snap.Pieces
@@ -109,11 +116,52 @@ namespace Decatron.Controllers
                     templates = snap.Templates.Select(t => new { t.Id, t.Zone, design = System.Text.Json.JsonDocument.Parse(t.Design).RootElement }),
                     zones = snap.Zones.Select(z => new { z.Key, z.NameEs, z.NameEn, z.Anchor, z.MarginX, z.MarginY }),
                     limits = new { snap.Limits.MinGapSeconds, snap.Limits.HourlyCapSeconds },
+                    mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.DisabledIds(prefs), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds },
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error obteniendo el catálogo de promociones del streamer");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        public record SaveRequest(bool Paused, long[]? DisabledPieces, int? MinGapSeconds, int? HourlyCapSeconds);
+
+        /// <summary>Guarda lo que el streamer decide: pausar, piezas apagadas y topes más discretos (nunca más insistentes que los globales).</summary>
+        [HttpPut("settings")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> Save([FromBody] SaveRequest req)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var snap = await _catalog.GetPublishedAsync();
+                if (req.MinGapSeconds is < 0 or > 3600 || req.HourlyCapSeconds is < 0 or > 3600)
+                    return BadRequest(new { success = false, errors = new[] { "outOfRange" } });
+                if (req.MinGapSeconds is int gap && gap < snap.Limits.MinGapSeconds
+                    || req.HourlyCapSeconds is int cap && snap.Limits.HourlyCapSeconds > 0 && cap > snap.Limits.HourlyCapSeconds)
+                    return BadRequest(new { success = false, errors = new[] { "moreInsistent" } });
+
+                var known = snap.Pieces.Select(p => p.Id).ToHashSet();
+                var disabled = (req.DisabledPieces ?? Array.Empty<long>()).Where(known.Contains).Distinct().OrderBy(i => i).ToList();
+
+                var principalId = account.Principal.UserId;
+                var row = await _db.PromoChannelSettings.FirstOrDefaultAsync(c => c.UserId == principalId);
+                if (row == null) { row = new PromoChannelSettings { UserId = principalId }; _db.PromoChannelSettings.Add(row); }
+                row.Paused = req.Paused;
+                row.DisabledPieces = System.Text.Json.JsonSerializer.Serialize(disabled);
+                row.MinGapSeconds = req.MinGapSeconds;
+                row.HourlyCapSeconds = req.HourlyCapSeconds;
+                row.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando las preferencias del overlay de promociones");
                 return StatusCode(500, new { success = false, message = "Error interno del servidor" });
             }
         }
