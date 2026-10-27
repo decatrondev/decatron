@@ -29,6 +29,8 @@ interface Catalog {
     zones: (ZonePlacement & { key: string; nameEs: string; nameEn: string })[];
     limits: { minGapSeconds: number; hourlyCapSeconds: number };
     mine: Mine;
+    /** Veces que salió cada pieza en este canal en los últimos 30 días. */
+    views: Record<string, number>;
 }
 interface Mine { paused: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null }
 
@@ -168,6 +170,7 @@ export default function PromoConfig() {
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs 3xl:text-sm text-ds-soft">
                                             <span>{t('panel.pieces.zone')}: {zone ? (lang === 'en' ? zone.nameEn : zone.nameEs) || p.zone : p.zone}</span>
                                             <span>{t('panel.pieces.seconds', { n: p.durationSeconds })}</span>
+                                            <span>{t('panel.pieces.shown', { n: catalog.views?.[p.id] ?? 0 })}</span>
                                             <span>{t('panel.pieces.priority', { n: p.priority })}</span>
                                             {p.platforms === 'twitch' && <span>{t('panel.pieces.onlyTwitch')}</span>}
                                             {p.platforms === 'kick' && <span>{t('panel.pieces.onlyKick')}</span>}

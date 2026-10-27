@@ -69,7 +69,8 @@
         "twitch": "Twitch only",
         "kick": "Kick only"
       },
-      "emergencyNote": "A published emergency piece replaces all the others while it is in effect."
+      "emergencyNote": "A published emergency piece replaces all the others while it is in effect.",
+      "views": "Delivered to overlays: {{d7}} in 7 days · {{d30}} in 30 days · {{total}} total"
     },
     "editor": {
       "titleNew": "New piece",
@@ -436,7 +437,8 @@
       "from": "From {{date}}",
       "until": "Until {{date}}",
       "on": "On",
-      "off": "Off: it won't show on your channel"
+      "off": "Off: it won't show on your channel",
+      "shown": "Shown {{n}} times in 30 days"
     },
     "settings": {
       "title": "Settings",

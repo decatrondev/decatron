@@ -441,7 +441,7 @@ Shows Decatron cards and banners on stream on their own (`/overlay/promo`), publ
 
 ### Configuration tabs
 
-Guide, What is shown (turn pieces on or off) and Settings (pause everything, longer pause between pieces, fewer seconds per hour). Per-streamer choices live in `promo_channel_settings` (tenant table with RLS).
+Guide, What is shown (turn pieces on or off) and Settings (pause everything, longer pause between pieces, fewer seconds per hour). Per-streamer choices live in `promo_channel_settings` (tenant table with RLS). Each piece delivered to an overlay adds one to a daily counter (`promo_view_counts` per account, with RLS, and `promo_piece_daily` global); nothing that identifies viewers is stored.
 
 ### Promo API
 

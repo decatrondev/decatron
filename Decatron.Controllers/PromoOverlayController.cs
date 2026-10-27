@@ -115,6 +115,7 @@ namespace Decatron.Controllers
                 }
                 if (piece == null || wait > 0) return Ok(new { success = true, found = true, wait = Math.Max(wait, 5) });
 
+                await _catalog.CountViewAsync(principalId, piece.Id);
                 var template = TemplateFor(snap, piece)!;
                 var lang = await LanguageOfAsync(resolved.Account.Principal.UserId);
                 var en = lang == "en";

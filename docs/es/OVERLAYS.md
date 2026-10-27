@@ -441,7 +441,7 @@ Muestra tarjetas y banners de Decatron en el stream de forma automática (`/over
 
 ### Pestañas de configuración
 
-Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pausa entre piezas, menos segundos por hora). Lo que elige cada streamer vive en `promo_channel_settings` (tabla de tenant con RLS).
+Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pausa entre piezas, menos segundos por hora). Lo que elige cada streamer vive en `promo_channel_settings` (tabla de tenant con RLS). Cada pieza entregada a un overlay suma uno a un contador diario (`promo_view_counts` por cuenta, con RLS, y `promo_piece_daily` global); no se guarda nada que identifique a quienes ven el stream.
 
 ### API de Promociones
 

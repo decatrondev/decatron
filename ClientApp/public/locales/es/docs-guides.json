@@ -3610,6 +3610,10 @@
               "Qué se muestra: las piezas activas dibujadas como salen en pantalla, con un interruptor para apagar las que no quieras en tu canal.",
               "Ajustes: pausar todas las promociones, más pausa entre piezas y menos segundos por hora. Los cambios se aplican en la siguiente pieza, sin tocar OBS."
             ]
+          },
+          {
+            "t": "p",
+            "x": "Cada vez que una pieza sale en tu overlay se suma a un contador diario, que ves como «Salió N veces en 30 días» en la pestaña Qué se muestra. Solo se cuenta cuántas veces salió, nunca quién ve tu stream."
           }
         ]
       },

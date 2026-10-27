@@ -69,7 +69,8 @@
         "twitch": "Solo Twitch",
         "kick": "Solo Kick"
       },
-      "emergencyNote": "Una pieza de emergencia publicada reemplaza a todas las demás mientras esté vigente."
+      "emergencyNote": "Una pieza de emergencia publicada reemplaza a todas las demás mientras esté vigente.",
+      "views": "Entregas al overlay: {{d7}} en 7 días · {{d30}} en 30 días · {{total}} en total"
     },
     "editor": {
       "titleNew": "Nueva pieza",
@@ -436,7 +437,8 @@
       "from": "Desde {{date}}",
       "until": "Hasta {{date}}",
       "on": "Activa",
-      "off": "Apagada: no saldrá en tu canal"
+      "off": "Apagada: no saldrá en tu canal",
+      "shown": "Salió {{n}} veces en 30 días"
     },
     "settings": {
       "title": "Ajustes",

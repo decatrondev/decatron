@@ -39,6 +39,43 @@ namespace Decatron.Services.Promo
 
         public void Invalidate() => _cache.Remove(CacheKey);
 
+        // ─── Vistas (contadores agregados, sin identificar personas) ─────────
+
+        public record ViewTotals(long Last7, long Last30, long Total);
+
+        /// <summary>Suma una entrega de una pieza al overlay de una cuenta (contador del streamer y total global). Nunca rompe la rotación.</summary>
+        public async Task CountViewAsync(long principalUserId, long pieceId)
+        {
+            try
+            {
+                var day = DateOnly.FromDateTime(DateTime.UtcNow);
+                await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_view_counts (user_id, piece_id, day, views) VALUES ({principalUserId}, {pieceId}, {day}, 1)
+                    ON CONFLICT (user_id, piece_id, day) DO UPDATE SET views = promo_view_counts.views + 1");
+                await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_piece_daily (piece_id, day, views) VALUES ({pieceId}, {day}, 1)
+                    ON CONFLICT (piece_id, day) DO UPDATE SET views = promo_piece_daily.views + 1");
+            }
+            catch (Exception) { /* el conteo es accesorio: si falla, la promoción sale igual */ }
+        }
+
+        /// <summary>Entregas por pieza de todos los canales (para el dueño): últimos 7 y 30 días y total.</summary>
+        public async Task<Dictionary<long, ViewTotals>> GetGlobalViewsAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+            var rows = await _db.PromoPieceDaily.AsNoTracking().ToListAsync();
+            return rows.GroupBy(r => r.PieceId).ToDictionary(g => g.Key, g => new ViewTotals(
+                g.Where(r => r.Day > today.AddDays(-7)).Sum(r => (long)r.Views),
+                g.Where(r => r.Day > today.AddDays(-30)).Sum(r => (long)r.Views),
+                g.Sum(r => (long)r.Views)));
+        }
+
+        /// <summary>Entregas por pieza de una cuenta en los últimos 30 días (para su panel).</summary>
+        public async Task<Dictionary<long, long>> GetChannelViewsAsync(long principalUserId)
+        {
+            var since = DateTime.UtcNow.Date.AddDays(-30);
+            var rows = await _db.PromoViewCounts.AsNoTracking().Where(v => v.UserId == principalUserId && v.Day > since).ToListAsync();
+            return rows.GroupBy(r => r.PieceId).ToDictionary(g => g.Key, g => g.Sum(r => (long)r.Views));
+        }
+
         // ─── Lectura ─────────────────────────────────────────────────────────
 
         public async Task<Overview> GetOverviewAsync()

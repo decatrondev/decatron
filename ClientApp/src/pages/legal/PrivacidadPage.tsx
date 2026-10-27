@@ -44,6 +44,7 @@ export default function PrivacidadPage() {
                             <li>Estadísticas de uso del canal</li>
                             <li>Historial de interacciones con el bot</li>
                             <li>Audio del micrófono del streamer, solo cuando activa la traducción en vivo, para generar la transcripción, la traducción y la voz</li>
+                            <li>Cuántas veces se muestra cada promoción de Decatron en el overlay de un canal, como un contador por día; no se guarda ninguna información de quienes ven el stream</li>
                         </ul>
 
                         <h3 className="font-semibold text-[#1e293b] dark:text-white mt-4 mb-2">2.3 Datos de pago (solo Supporters)</h3>

@@ -48,6 +48,7 @@ namespace Decatron.Controllers
             {
                 success = true,
                 pieces = o.Pieces,
+                views = await _catalog.GetGlobalViewsAsync(),
                 templates = o.Templates.Select(t => new { template = TemplateDto(t.Template), pieceCount = t.PieceCount }),
                 zones = o.Zones.Select(z => new { zone = z.Zone, pieceCount = z.PieceCount, templateCount = z.TemplateCount }),
                 limits = o.Limits,

@@ -187,6 +187,8 @@ namespace Decatron.Data
         public DbSet<Core.Models.Promo.PromoPiece> PromoPieces { get; set; }
         public DbSet<Core.Models.Promo.PromoOverlayLimits> PromoLimits { get; set; }
         public DbSet<Core.Models.Promo.PromoChannelSettings> PromoChannelSettings { get; set; }
+        public DbSet<Core.Models.Promo.PromoViewCount> PromoViewCounts { get; set; }
+        public DbSet<Core.Models.Promo.PromoPieceDaily> PromoPieceDaily { get; set; }
         public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }
         public DbSet<Core.Models.Brand.BrandSlot> BrandSlots { get; set; }
         public DbSet<Core.Models.Design.DesignVersion> DesignVersions { get; set; }
@@ -366,6 +368,7 @@ namespace Decatron.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Core.Models.Promo.PromoPieceDaily>().HasKey(x => new { x.PieceId, x.Day });
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Core.Models.Tts.FishUserVoice>().HasKey(v => new { v.UserId, v.ReferenceId });
 

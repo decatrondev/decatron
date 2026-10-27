@@ -65,7 +65,7 @@ export function PiecesTab({ data, lang, onLang, onChanged, notify }: {
                                 {templateOf(p, templates)?.design?.elements ? <PromoZoom design={templateOf(p, templates)!.design} content={contentOf(p, lang)} vars={sampleVars(t, p.linkUrl)} resolveImage={resolveImage} phase="enter" /> : <p className="text-sm text-ds-soft">{t('admin.pieces.noTemplate')}</p>}
                                 <p className="text-xs text-ds-soft">
                                     {zoneName(zones, p.zone, lang)} · {t(`admin.pieces.platforms.${p.platforms}`)} · {tpl ? (lang === 'en' && tpl.nameEn ? tpl.nameEn : tpl.nameEs) : t('admin.pieces.noTemplate')}
-                                    <br />{windowText(p)} · {p.onlyChannels ? t('admin.pieces.onlyChannels', { list: p.onlyChannels.split(',').join(', ') }) : t('admin.pieces.allChannels')}
+                                    <br />{t('admin.pieces.views', { d7: data.views?.[p.id]?.last7 ?? 0, d30: data.views?.[p.id]?.last30 ?? 0, total: data.views?.[p.id]?.total ?? 0 })}                                    <br />{windowText(p)} · {p.onlyChannels ? t('admin.pieces.onlyChannels', { list: p.onlyChannels.split(',').join(', ') }) : t('admin.pieces.allChannels')}
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                     <Button size="sm" variant="secondary" icon={<Pencil />} onClick={() => setEditing(p)}>{t('admin.pieces.edit')}</Button>

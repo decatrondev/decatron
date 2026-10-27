@@ -3610,6 +3610,10 @@
               "What is shown: the active pieces drawn as they appear on screen, with a switch to turn off the ones you don't want on your channel.",
               "Settings: pause all promotions, a longer pause between pieces and fewer seconds per hour. Changes apply from the next piece, without touching OBS."
             ]
+          },
+          {
+            "t": "p",
+            "x": "Every time a piece shows on your overlay it is added to a daily counter, which you see as «Shown N times in 30 days» on the What is shown tab. Only how many times it showed is counted, never who watches your stream."
           }
         ]
       },

@@ -37,6 +37,8 @@ export interface PromoOptions {
 
 export interface PromoOverview {
     pieces: PromoPiece[];
+    /** Entregas al overlay por pieza (todos los canales): últimos 7 y 30 días y total. */
+    views: Record<string, { last7: number; last30: number; total: number }>;
     templates: { template: PromoTemplate; pieceCount: number }[];
     zones: { zone: PromoZone; pieceCount: number; templateCount: number }[];
     limits: PromoLimits;

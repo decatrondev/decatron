@@ -227,3 +227,37 @@ public class PromoChannelSettings
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
+
+/// <summary>Veces que una pieza se entregó al overlay de una cuenta en un día (UTC). Contador agregado: no identifica a nadie. Tabla de tenant con RLS.</summary>
+[Table("promo_view_counts")]
+public class PromoViewCount
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("piece_id")]
+    public long PieceId { get; set; }
+
+    [Column("day", TypeName = "date")]
+    public DateTime Day { get; set; }
+
+    [Column("views")]
+    public int Views { get; set; }
+}
+
+/// <summary>Total global de entregas de una pieza por día (sin canal), para el dueño.</summary>
+[Table("promo_piece_daily")]
+public class PromoPieceDaily
+{
+    [Column("piece_id")]
+    public long PieceId { get; set; }
+
+    [Column("day", TypeName = "date")]
+    public DateTime Day { get; set; }
+
+    [Column("views")]
+    public int Views { get; set; }
+}

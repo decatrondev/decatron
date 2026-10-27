@@ -116,6 +116,7 @@ namespace Decatron.Controllers
                     templates = snap.Templates.Select(t => new { t.Id, t.Zone, design = System.Text.Json.JsonDocument.Parse(t.Design).RootElement }),
                     zones = snap.Zones.Select(z => new { z.Key, z.NameEs, z.NameEn, z.Anchor, z.MarginX, z.MarginY }),
                     limits = new { snap.Limits.MinGapSeconds, snap.Limits.HourlyCapSeconds },
+                    views = await _catalog.GetChannelViewsAsync(principalId),
                     mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.DisabledIds(prefs), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds },
                 });
             }
