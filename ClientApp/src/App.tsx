@@ -109,6 +109,7 @@ import ShoutoutOverlay from './pages/ShoutoutOverlay';
 import SoundAlertsOverlay from './pages/SoundAlertsOverlay';
 import TimerOverlay from './pages/TimerOverlay';
 import GiveawayOverlay from './pages/GiveawayOverlay';
+import PromoOverlay from './pages/PromoOverlay';
 import GoalsOverlay from './pages/GoalsOverlay';
 import EventAlertsOverlay from './pages/EventAlertsOverlay';
 import TipsOverlay from './pages/TipsOverlay';
@@ -249,6 +250,7 @@ function App() {
                 <Route path="/overlay/shoutout" element={<SafeRoute name="Shoutout Overlay"><ShoutoutOverlay /></SafeRoute>} />
                 <Route path="/overlay/soundalerts" element={<SafeRoute name="Sound Alerts Overlay"><SoundAlertsOverlay /></SafeRoute>} />
                 <Route path="/overlay/timer" element={<SafeRoute name="Timer Overlay"><TimerOverlay /></SafeRoute>} />
+                <Route path="/overlay/promo" element={<SafeRoute name="Promo Overlay"><PromoOverlay /></SafeRoute>} />
                 <Route path="/overlay/giveaway" element={<SafeRoute name="Giveaway Overlay"><GiveawayOverlay /></SafeRoute>} />
                 <Route path="/overlay/goals" element={<SafeRoute name="Goals Overlay"><GoalsOverlay /></SafeRoute>} />
                 <Route path="/overlay/event-alerts" element={<SafeRoute name="Event Alerts Overlay"><EventAlertsOverlay /></SafeRoute>} />
