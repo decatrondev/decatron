@@ -609,6 +609,10 @@
     "multiview-guide": {
       "title": "Multi-view",
       "description": "How to use Multi-view and how many tiles each plan allows"
+    },
+    "promo": {
+      "title": "Promotions",
+      "description": "Decatron cards and banners on your stream"
     }
   },
   "microCommands": {

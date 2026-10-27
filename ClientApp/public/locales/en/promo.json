@@ -419,7 +419,10 @@
       "step2Title": "See what is shown",
       "step2Body": "The «What is shown» tab lists the active pieces exactly as they appear on screen.",
       "step3Title": "We look after your chat",
-      "step3Body": "At least {{gap}} seconds pass between two pieces of the same zone, and never more than {{cap}} seconds of promotion per hour are shown."
+      "step3Body": "At least {{gap}} seconds pass between two pieces of the same zone, and never more than {{cap}} seconds of promotion per hour are shown.",
+      "step4Title": "Questions?",
+      "step4Body": "Everything above in more detail, and what to check if nothing shows:",
+      "step4Link": "Read the Promotions guide"
     },
     "pieces": {
       "title": "Active pieces",

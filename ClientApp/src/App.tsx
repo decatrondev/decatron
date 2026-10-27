@@ -150,6 +150,7 @@ import GiveawayDoc from './pages/docs/private/features/GiveawayDoc';
 import SoundAlertsDoc from './pages/docs/private/features/SoundAlertsDoc';
 import TipsDoc from './pages/docs/private/features/TipsDoc';
 import ShoutoutDoc from './pages/docs/private/features/ShoutoutDoc';
+import PromoDoc from './pages/docs/private/features/PromoDoc';
 import { ModerationDoc } from './pages/docs/private/features/ModerationDoc';
 import { TranslationDoc } from './pages/docs/private/features/TranslationDoc';
 import { DiscordDoc } from './pages/docs/private/features/DiscordDoc';
@@ -534,6 +535,7 @@ function App() {
                         <Route path="features/sound-alerts" element={<SoundAlertsDoc />} />
                         <Route path="features/tips" element={<TipsDoc />} />
                         <Route path="features/shoutout" element={<ShoutoutDoc />} />
+                        <Route path="features/promo" element={<PromoDoc />} />
                         <Route path="moderation/setup" element={<ModerationDoc page="setup" scope="private" />} />
                         <Route path="moderation/words" element={<ModerationDoc page="words" scope="private" />} />
                         <Route path="moderation/links" element={<ModerationDoc page="links" scope="private" />} />

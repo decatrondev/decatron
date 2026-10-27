@@ -419,7 +419,10 @@
       "step2Title": "Mira qué se muestra",
       "step2Body": "En la pestaña «Qué se muestra» ves las piezas activas tal como salen en pantalla.",
       "step3Title": "Cuidamos a tu chat",
-      "step3Body": "Entre una pieza y otra de la misma zona pasan al menos {{gap}} segundos, y nunca se muestran más de {{cap}} segundos de promoción por hora."
+      "step3Body": "Entre una pieza y otra de la misma zona pasan al menos {{gap}} segundos, y nunca se muestran más de {{cap}} segundos de promoción por hora.",
+      "step4Title": "¿Dudas?",
+      "step4Body": "Todo lo anterior, con más detalle y qué revisar si no se ve nada:",
+      "step4Link": "Ver la guía de Promociones"
     },
     "pieces": {
       "title": "Piezas activas",

@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
     Clock, Bell, Gift, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
-    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Tv2, Bot, UserCircle, Globe, Clapperboard,
+    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Tv2, Bot, UserCircle, Globe, Clapperboard, Megaphone,
 } from 'lucide-react';
 
 // REGISTRO ÚNICO de las páginas de documentación. De aquí salen el menú lateral, las tarjetas de
@@ -78,6 +78,7 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'sound-alerts', scopes: priv, group: 'features', path: 'features/sound-alerts', icon: Volume2, color: 'orange' },
     { id: 'tips', scopes: priv, group: 'features', path: 'features/tips', icon: DollarSign, color: 'green' },
     { id: 'shoutout', scopes: priv, group: 'features', path: 'features/shoutout', icon: MessageSquare, color: 'purple' },
+    { id: 'promo', scopes: priv, group: 'features', path: 'features/promo', icon: Megaphone, color: 'blue' },
     { id: 'ai', scopes: priv, group: 'features', path: 'features/ai', icon: Sparkles, color: 'purple' },
     { id: 'now-playing', scopes: priv, group: 'features', path: 'features/now-playing', icon: Music, color: 'green' },
     { id: 'game-overlays', scopes: priv, group: 'features', path: 'features/game-overlays', icon: Gamepad2, color: 'blue' },

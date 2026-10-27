@@ -609,6 +609,10 @@
     "multiview-guide": {
       "title": "Multi-view",
       "description": "Cómo usar el Multi-view y cuántas casillas permite cada plan"
+    },
+    "promo": {
+      "title": "Promociones",
+      "description": "Tarjetas y banners de Decatron en tu stream"
     }
   },
   "microCommands": {

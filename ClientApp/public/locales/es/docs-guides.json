@@ -3524,5 +3524,110 @@
         ]
       }
     ]
+  },
+  "promo": {
+    "title": "Promociones",
+    "subtitle": "Tarjetas y banners de Decatron que salen solos en tu stream, sin que tengas que hacer nada en directo",
+    "sections": [
+      {
+        "id": "que",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron publica un catálogo de piezas (tarjetas y banners) y el overlay las muestra por turnos en tu stream. El servidor decide qué pieza sale y cuándo; tú solo agregas una fuente de OBS y, si quieres, ajustas cuánto se ve."
+          },
+          {
+            "t": "p",
+            "x": "Funciona igual para Twitch y Kick con una sola fuente. Está incluido en los planes de pago."
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Agregarlo a OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Entra a Overlays → Promociones y copia el enlace de la pestaña Guía.",
+              "En OBS agrega una fuente Navegador y pega el enlace.",
+              "Pon ancho 1920 y alto 1080: cubre toda la escena y el fondo es transparente.",
+              "Vuelve a la Guía: el enlace pasa a «Conectado en OBS» a los pocos segundos."
+            ]
+          },
+          {
+            "t": "code",
+            "x": "https://decatron.net/overlay/promo?channel=tu_canal"
+          },
+          {
+            "t": "p",
+            "x": "Si tienes Twitch y Kick vinculados, el enlace principal reúne las dos plataformas. En Avanzado hay un enlace solo de Twitch y otro solo de Kick (parámetro `source`) por si quieres una fuente distinta en cada escena."
+          }
+        ]
+      },
+      {
+        "id": "orden",
+        "title": "Qué pieza sale y cuándo",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Solo salen piezas publicadas, dentro de sus fechas, de la plataforma del enlace y, si la pieza está limitada a ciertos canales, solo en esos.",
+              "Gana la pieza de mayor prioridad; si hay empate, se sortea según su peso.",
+              "No se repite la misma pieza dos veces seguidas si hay otra disponible.",
+              "Cada pieza tiene una zona de la pantalla y una duración; dos zonas pueden mostrar piezas a la vez."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "La variable de comandos muestra hasta cinco comandos públicos de tu canal, sin los alias de una o dos letras."
+          }
+        ]
+      },
+      {
+        "id": "cuidado",
+        "title": "Cuidamos a tu chat",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Entre dos piezas de una misma zona hay una pausa mínima (por defecto 60 segundos).",
+              "Hay un tope de segundos de promoción por hora (por defecto 600).",
+              "Tú puedes ser más discreto que esos valores, nunca más insistente: la pestaña Ajustes no te deja bajar la pausa ni subir el tope."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas del panel",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Guía: enlace de OBS con su estado de conexión, pasos y avisos si dos fuentes se pisan.",
+              "Qué se muestra: las piezas activas dibujadas como salen en pantalla, con un interruptor para apagar las que no quieras en tu canal.",
+              "Ajustes: pausar todas las promociones, más pausa entre piezas y menos segundos por hora. Los cambios se aplican en la siguiente pieza, sin tocar OBS."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "avisos",
+        "title": "Si algo no se ve",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Revisa en la Guía que el enlace diga «Conectado en OBS».",
+              "Si estás en pausa (Ajustes) o apagaste todas las piezas, no sale nada.",
+              "Después de una pieza hay que esperar la pausa mínima; es normal que pasen uno o dos minutos entre piezas.",
+              "Si el aviso dice que una fuente está conectada dos veces, las piezas saldrán dobles y contarán doble en el tope por hora."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

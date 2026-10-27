@@ -3524,5 +3524,110 @@
         ]
       }
     ]
+  },
+  "promo": {
+    "title": "Promotions",
+    "subtitle": "Decatron cards and banners that show up on your stream on their own, with nothing for you to do live",
+    "sections": [
+      {
+        "id": "que",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron publishes a catalog of pieces (cards and banners) and the overlay shows them in turns on your stream. The server decides which piece shows and when; you only add an OBS source and, if you want, adjust how much shows."
+          },
+          {
+            "t": "p",
+            "x": "It works the same for Twitch and Kick with a single source. It is included in the paid plans."
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Adding it to OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Go to Overlays → Promotions and copy the link on the Guide tab.",
+              "In OBS add a Browser source and paste the link.",
+              "Set width 1920 and height 1080: it covers the whole scene and the background is transparent.",
+              "Go back to the Guide: the link changes to «Connected in OBS» after a few seconds."
+            ]
+          },
+          {
+            "t": "code",
+            "x": "https://decatron.net/overlay/promo?channel=your_channel"
+          },
+          {
+            "t": "p",
+            "x": "If you have Twitch and Kick linked, the main link gathers both platforms. Under Advanced there is a Twitch-only and a Kick-only link (`source` parameter) in case you want a different source in each scene."
+          }
+        ]
+      },
+      {
+        "id": "orden",
+        "title": "Which piece shows and when",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Only published pieces show, inside their dates, for the platform of the link and, if a piece is limited to certain channels, only on those.",
+              "The piece with the highest priority wins; ties are drawn by weight.",
+              "The same piece is not repeated twice in a row if another one is available.",
+              "Each piece has a screen zone and a duration; two zones can show pieces at the same time."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The commands variable shows up to five public commands of your channel, without one- or two-letter aliases."
+          }
+        ]
+      },
+      {
+        "id": "cuidado",
+        "title": "We look after your chat",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Between two pieces of the same zone there is a minimum pause (60 seconds by default).",
+              "There is a cap of seconds of promotion per hour (600 by default).",
+              "You can be more discreet than those values, never more insistent: the Settings tab won't let you lower the pause or raise the cap."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Panel tabs",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Guide: OBS link with its connection status, steps and warnings if two sources overlap.",
+              "What is shown: the active pieces drawn as they appear on screen, with a switch to turn off the ones you don't want on your channel.",
+              "Settings: pause all promotions, a longer pause between pieces and fewer seconds per hour. Changes apply from the next piece, without touching OBS."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "avisos",
+        "title": "If nothing shows",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Check on the Guide that the link says «Connected in OBS».",
+              "If you are paused (Settings) or turned off every piece, nothing shows.",
+              "After a piece you have to wait the minimum pause; a minute or two between pieces is normal.",
+              "If the warning says a source is connected twice, pieces will show twice and count double toward the hourly cap."
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import api from '../../services/api';
@@ -8,6 +8,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { Card, NumberInput, Toggle } from '../../components/overlay-editor/ui';
 import { LinkRow, Warning, useOverlayStatus } from '../../components/overlay-editor/OverlayLinks';
 import { PromoZoom, type ZonePlacement } from '../../components/promo-overlay/PromoPreview';
+import { docUrl } from '../docs/registry';
 import { useBrand } from '../../brand/BrandContext';
 import type { PromoDesign, PromoContent } from '../../components/promo-overlay/types';
 
@@ -143,6 +144,7 @@ export default function PromoConfig() {
                             ))}
                             {step(2, t('panel.guide.step2Title'), <p>{t('panel.guide.step2Body')}</p>)}
                             {catalog && step(3, t('panel.guide.step3Title'), <p>{t('panel.guide.step3Body', { gap: catalog.limits.minGapSeconds, cap: catalog.limits.hourlyCapSeconds })}</p>)}
+                            {step(4, t('panel.guide.step4Title'), <p>{t('panel.guide.step4Body')} <Link to={docUrl('private', 'features/promo')} className="underline text-ds-accent-text">{t('panel.guide.step4Link')}</Link></p>)}
                         </div>
                     </Card>
                 )}

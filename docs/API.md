@@ -943,6 +943,21 @@ The endpoints below are the rest of the routes of the backend, generated from th
 |---|---|---|
 | `POST` | `/api/platform/webhooks/culqi/{secret}` | Public |
 
+### Promo Overlay
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/promo/next/{alias}` | Public |
+| `GET` | `/api/promo/resolve/{alias}` | Public |
+
+### Promo Panel
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/promo-panel/catalog` | JWT + `overlays` |
+| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` |
+| `GET` | `/api/promo-panel/status` | JWT + `overlays` |
+
 ### Public Commands
 
 | Method | Route | Access |

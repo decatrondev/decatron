@@ -18,6 +18,7 @@ Referencia de los overlays de Decatron: URLs, configuración en OBS, qué hace c
 - [Overlay de la rueda](#overlay-de-la-rueda)
 - [Overlay de propinas](#overlay-de-propinas)
 - [Overlay de shoutout](#overlay-de-shoutout)
+- [Overlay de Promociones](#overlay-de-promociones)
 - [Sorteo](#sorteo)
 - [Otros overlays](#otros-overlays)
 - [Overlay de Speak Chat](#overlay-de-speak-chat)
@@ -73,6 +74,7 @@ Reemplaza `{nombre_del_canal}` por el login del canal (en minúsculas).
 | Now playing | `/overlay/now-playing?channel={nombre}` | |
 | Propinas | `/overlay/tips?channel={nombre}` | |
 | Shoutout | `/overlay/shoutout?channel={nombre}` | |
+| Promociones | `/overlay/promo?channel={nombre}` | `source=all`, `twitch` o `kick` |
 | Sorteo | `/overlay/giveaway?channel={nombre}` | |
 | Song Request (reproductor) | `/overlay/songrequest?channel={nombre}&key={claveDelReproductor}` | `key` es privada del canal |
 | Song Request (solo visual) | `/overlay/songrequest?channel={nombre}` | |
@@ -422,6 +424,36 @@ Guía, General, Clip, Tema, Elementos, Texto, Animaciones, Editor, Automático y
 | `GET` | `/api/shoutout/config/overlay/{channel}` | Anónimo | Obtiene la configuración del overlay |
 | `POST` | `/api/shoutout/test` | JWT | Envía un shoutout de prueba |
 | `GET` | `/api/shoutout/history` | JWT | Historial de shoutouts |
+
+---
+
+## Overlay de Promociones
+
+Muestra tarjetas y banners de Decatron en el stream de forma automática (`/overlay/promo`), publicados desde un catálogo global que administra el dueño. El servidor decide qué pieza sale y cuándo; el navegador solo la dibuja. Twitch y Kick comparten una sola fuente de OBS.
+
+### Cómo funciona
+
+1. El overlay pregunta `GET /api/promo/resolve/{alias}` por la clave de la cuenta, las zonas de pantalla y el idioma del streamer; luego entra a `overlay_{clave}` y llama a `RegisterOverlay(clave, "promo")` y `SetOverlayVariant`.
+2. Cada zona pide `GET /api/promo/next/{alias}?zone=...&source=...` y recibe una pieza (diseño, contenido, segundos) o los segundos que debe esperar. Dibuja la pieza ese tiempo, la retira y vuelve a pedir.
+3. Selección (`PromoPlayback`): solo piezas publicadas de la zona, dentro de sus fechas y que coincidan con la plataforma y los canales permitidos; gana la de mayor prioridad, no se repite la anterior si hay otra y los empates se sortean por peso.
+4. Cuidado del chat: una pausa mínima entre dos piezas de una zona y un tope de segundos de promoción por hora (por defecto 60 s y 600 s, los fija el dueño). El streamer solo puede ser más discreto, nunca más insistente.
+5. `{{commands}}` lo completa el overlay con hasta cinco comandos públicos del canal (`/api/public/commands/{canal}`), sin alias de una o dos letras.
+
+### Pestañas de configuración
+
+Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pausa entre piezas, menos segundos por hora). Lo que elige cada streamer vive en `promo_channel_settings` (tabla de tenant con RLS).
+
+### API de Promociones
+
+| Método | Endpoint | Auth | Descripción |
+|--------|----------|------|-------------|
+| `GET` | `/api/promo/resolve/{alias}` | Anónimo | Clave de la cuenta, zonas e idioma para la fuente de OBS |
+| `GET` | `/api/promo/next/{alias}` | Anónimo | Siguiente pieza de una zona, o segundos de espera |
+| `GET` | `/api/promo-panel/status` | JWT + `overlays` | Fuentes conectadas por variante y avisos |
+| `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Piezas activas, plantillas, zonas, topes y lo que eligió el streamer |
+| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Guardar pausa, piezas apagadas y topes |
+
+El módulo es `module.ov_promo`. El catálogo (piezas, plantillas, zonas y topes globales) lo edita el dueño desde el área de administración.
 
 ---
 
