@@ -385,5 +385,52 @@
       "deleteTitle": "Eliminar zona",
       "deleteBody": "Se elimina «{{name}}». Solo se puede si ninguna pieza ni plantilla la usa."
     }
+  },
+  "panel": {
+    "title": "Promociones",
+    "subtitle": "Tarjetas y banners de Decatron que salen solos en tu stream, con tiempos cuidados para no cansar al chat.",
+    "back": "Volver a overlays",
+    "loadFailed": "No se pudo cargar. Intenta de nuevo en un momento.",
+    "forbidden": "Necesitas permiso de overlays en este canal.",
+    "tabs": {
+      "guide": "Guía",
+      "pieces": "Qué se muestra"
+    },
+    "guide": {
+      "title": "Cómo usarlo",
+      "description": "Es una sola fuente de navegador en OBS. El servidor decide qué sale y cuándo; tú no tienes que hacer nada más.",
+      "step1Title": "Agrega la fuente en OBS",
+      "step1Body": "Copia este enlace y agrégalo como «Fuente de navegador».",
+      "obs1": "En OBS: Fuentes → «+» → Navegador.",
+      "obs2": "Pega el enlace en URL.",
+      "obs3": "Ancho 1920 y alto 1080 (cubre toda la escena; el fondo es transparente).",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "open": "Abrir",
+      "linkAll": "Todas las plataformas",
+      "linkTwitch": "Solo Twitch",
+      "linkKick": "Solo Kick",
+      "advanced": "Avanzado: una fuente por plataforma",
+      "warnMixedTitle": "Dos fuentes se pisan",
+      "warnMixed": "Tienes conectado el enlace de todas las plataformas y otro de una sola: las promociones saldrían repetidas.",
+      "warnRepeatedTitle": "Una fuente está conectada dos veces",
+      "warnRepeated": "Sirve si están en escenas distintas; si no, las promociones saldrán dobles y cuentan doble en el tope por hora.",
+      "step2Title": "Mira qué se muestra",
+      "step2Body": "En la pestaña «Qué se muestra» ves las piezas activas tal como salen en pantalla.",
+      "step3Title": "Cuidamos a tu chat",
+      "step3Body": "Entre una pieza y otra de la misma zona pasan al menos {{gap}} segundos, y nunca se muestran más de {{cap}} segundos de promoción por hora."
+    },
+    "pieces": {
+      "title": "Piezas activas",
+      "description": "Lo que Decatron puede mostrar en tu canal ahora. Salen por prioridad y, a igual prioridad, al azar según su peso.",
+      "empty": "Por ahora no hay piezas publicadas.",
+      "zone": "Zona",
+      "seconds": "{{n}} s en pantalla",
+      "priority": "Prioridad {{n}}",
+      "onlyTwitch": "Solo Twitch",
+      "onlyKick": "Solo Kick",
+      "from": "Desde {{date}}",
+      "until": "Hasta {{date}}"
+    }
   }
 }

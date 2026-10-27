@@ -118,6 +118,17 @@
         "Ready-made designs and an editor to place it"
       ],
       "usage": "/overlay/chat?channel=your_channel"
+    },
+    "promo": {
+      "name": "Promotions",
+      "description": "Decatron cards and banners that show up on your stream on their own, timed so they don't tire your chat. A single OBS source.",
+      "features": [
+        "One OBS source for Twitch and Kick",
+        "The server decides what shows and when",
+        "Hourly cap and a pause between pieces",
+        "See the pieces exactly as they appear on screen"
+      ],
+      "usage": "/overlay/promo?channel=your_channel"
     }
   },
   "pets": {
@@ -2403,7 +2414,10 @@
       "radiusHint": "Changing the shape resets it to that shape's value.",
       "style": "Style",
       "styleHint": "Glass: translucent background and the name in a pill of the author's color.",
-      "styles": {"classic": "Classic", "glass": "Glass with pill"},
+      "styles": {
+        "classic": "Classic",
+        "glass": "Glass with pill"
+      },
       "lookTitle": "Look",
       "shape": "Shape",
       "shapes": {

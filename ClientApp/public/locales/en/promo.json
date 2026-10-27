@@ -385,5 +385,52 @@
       "deleteTitle": "Delete zone",
       "deleteBody": "“{{name}}” will be removed. It can only be deleted if no piece or template uses it."
     }
+  },
+  "panel": {
+    "title": "Promotions",
+    "subtitle": "Decatron cards and banners that show up on your stream on their own, timed so they don't tire your chat.",
+    "back": "Back to overlays",
+    "loadFailed": "Couldn't load. Try again in a moment.",
+    "forbidden": "You need overlays permission on this channel.",
+    "tabs": {
+      "guide": "Guide",
+      "pieces": "What is shown"
+    },
+    "guide": {
+      "title": "How to use it",
+      "description": "It's a single browser source in OBS. The server decides what shows and when; you don't have to do anything else.",
+      "step1Title": "Add the source in OBS",
+      "step1Body": "Copy this link and add it as a «Browser source».",
+      "obs1": "In OBS: Sources → «+» → Browser.",
+      "obs2": "Paste the link in URL.",
+      "obs3": "Width 1920 and height 1080 (it covers the whole scene; the background is transparent).",
+      "copy": "Copy",
+      "copied": "Copied",
+      "open": "Open",
+      "linkAll": "All platforms",
+      "linkTwitch": "Twitch only",
+      "linkKick": "Kick only",
+      "advanced": "Advanced: one source per platform",
+      "warnMixedTitle": "Two sources overlap",
+      "warnMixed": "The all-platforms link and a single-platform one are both connected: promotions would show up twice.",
+      "warnRepeatedTitle": "A source is connected twice",
+      "warnRepeated": "That's fine if they're in different scenes; otherwise promotions will show twice and count double toward the hourly cap.",
+      "step2Title": "See what is shown",
+      "step2Body": "The «What is shown» tab lists the active pieces exactly as they appear on screen.",
+      "step3Title": "We look after your chat",
+      "step3Body": "At least {{gap}} seconds pass between two pieces of the same zone, and never more than {{cap}} seconds of promotion per hour are shown."
+    },
+    "pieces": {
+      "title": "Active pieces",
+      "description": "What Decatron can show on your channel right now. They come out by priority and, at equal priority, at random by weight.",
+      "empty": "There are no published pieces yet.",
+      "zone": "Zone",
+      "seconds": "{{n}} s on screen",
+      "priority": "Priority {{n}}",
+      "onlyTwitch": "Twitch only",
+      "onlyKick": "Kick only",
+      "from": "From {{date}}",
+      "until": "Until {{date}}"
+    }
   }
 }

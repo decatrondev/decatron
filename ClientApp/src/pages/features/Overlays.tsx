@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio, Cat, ListMusic, MessageSquare } from 'lucide-react';
+import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio, Cat, ListMusic, MessageSquare, Megaphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -7,7 +7,7 @@ import { usePlanModules } from '../../contexts/PlanModulesContext';
 
 // Módulo del plan que necesita cada tarjeta (las que no están aquí dependen solo de module.overlays).
 const OVERLAY_MODULE: Record<string, string> = {
-    chat: 'ov_chat', shoutout: 'ov_shoutout', 'sound-alerts': 'ov_sound_alerts', 'event-alerts': 'ov_event_alerts', 'now-playing': 'ov_now_playing', live: 'ov_live', gacha: 'gacha',
+    chat: 'ov_chat', shoutout: 'ov_shoutout', 'sound-alerts': 'ov_sound_alerts', 'event-alerts': 'ov_event_alerts', 'now-playing': 'ov_now_playing', live: 'ov_live', promo: 'ov_promo', gacha: 'gacha',
     timer: 'timers', giveaways: 'giveaways', 'song-request': 'song_request', games: 'game_overlays', pets: 'pets', wheel: 'roulette',
 };
 
@@ -186,6 +186,16 @@ export default function Overlays() {
                 'Editor visual: layout, pantallas, elementos, fuentes',
             ],
             usage: '/overlay/live?channel=tu_canal',
+            kickReady: true,
+        },
+        {
+            id: 'promo',
+            name: t('overlays:overlays.promo.name'),
+            description: t('overlays:overlays.promo.description'),
+            status: 'active',
+            icon: <Megaphone className="w-6 h-6 text-ds-accent-text" />,
+            features: t('overlays:overlays.promo.features', { returnObjects: true } as any),
+            usage: t('overlays:overlays.promo.usage'),
             kickReady: true,
         },
         {

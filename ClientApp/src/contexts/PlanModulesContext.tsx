@@ -42,7 +42,7 @@ export function PlanModulesProvider({ children }: { children: ReactNode }) {
 export const usePlanModules = () => useContext(PlanModulesContext);
 
 // Módulos de cada grupo (el menú o el hub aparece si el plan trae alguno).
-export const OVERLAY_MODULES = ['ov_chat', 'ov_shoutout', 'ov_sound_alerts', 'ov_event_alerts', 'ov_goals', 'ov_now_playing', 'ov_live', 'timers', 'giveaways', 'song_request', 'game_overlays', 'pets', 'roulette', 'gacha'];
+export const OVERLAY_MODULES = ['ov_chat', 'ov_shoutout', 'ov_sound_alerts', 'ov_event_alerts', 'ov_goals', 'ov_now_playing', 'ov_live', 'ov_promo', 'timers', 'giveaways', 'song_request', 'game_overlays', 'pets', 'roulette', 'gacha'];
 export const MODERATION_MODULES = ['mod_banned_words', 'mod_links', 'mod_spam', 'mod_raids', 'mod_commands', 'mod_history'];
 
 // Módulo que exige cada ruta del panel (la más específica gana). Lo que no está aquí no depende del plan.
@@ -79,6 +79,7 @@ const ROUTE_MODULES: [string, string | string[]][] = [
     ['/overlays/goals', 'ov_goals'],
     ['/overlays/now-playing', 'ov_now_playing'],
     ['/overlays/live', 'ov_live'],
+    ['/overlays/promo', 'ov_promo'],
     ['/overlays/gacha', 'gacha'],
     ['/overlays', OVERLAY_MODULES],
     ['/features/sound-alerts', 'ov_sound_alerts'],

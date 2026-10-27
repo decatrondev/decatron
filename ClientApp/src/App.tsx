@@ -110,6 +110,7 @@ import SoundAlertsOverlay from './pages/SoundAlertsOverlay';
 import TimerOverlay from './pages/TimerOverlay';
 import GiveawayOverlay from './pages/GiveawayOverlay';
 import PromoOverlay from './pages/PromoOverlay';
+import PromoConfig from './pages/features/PromoConfig';
 import GoalsOverlay from './pages/GoalsOverlay';
 import EventAlertsOverlay from './pages/EventAlertsOverlay';
 import TipsOverlay from './pages/TipsOverlay';
@@ -434,6 +435,7 @@ function App() {
                     <Route path="overlays/chat" element={<SafeRoute name="Chat Overlay Config"><ChatOverlayConfig /></SafeRoute>} />
                     <Route path="overlays/timer" element={<SafeRoute name="Timer"><TimerConfig /></SafeRoute>} />
                     <Route path="overlays/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
+                    <Route path="overlays/promo" element={<SafeRoute name="Promo"><PromoConfig /></SafeRoute>} />
                     <Route path="overlays/goals" element={<SafeRoute name="Goals"><GoalsConfig /></SafeRoute>} />
                     <Route path="overlays/event-alerts" element={<SafeRoute name="Event Alerts"><EventAlertsConfig /></SafeRoute>} />
                     <Route path="overlays/now-playing" element={<SafeRoute name="Now Playing"><NowPlayingConfig /></SafeRoute>} />

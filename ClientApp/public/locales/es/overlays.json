@@ -118,6 +118,17 @@
         "Diseños prearmados y editor para ubicarlo"
       ],
       "usage": "/overlay/chat?channel=tu_canal"
+    },
+    "promo": {
+      "name": "Promociones",
+      "description": "Tarjetas y banners de Decatron que salen solos en tu stream, con tiempos cuidados para no cansar a tu chat. Una sola fuente de OBS.",
+      "features": [
+        "Una fuente de OBS para Twitch y Kick",
+        "El servidor decide qué sale y cuándo",
+        "Tope de segundos por hora y pausa entre piezas",
+        "Ves las piezas tal como salen en pantalla"
+      ],
+      "usage": "/overlay/promo?channel=tu_canal"
     }
   },
   "pets": {
@@ -2403,7 +2414,10 @@
       "radiusHint": "Al cambiar la forma vuelve al valor de esa forma.",
       "style": "Estilo",
       "styleHint": "Cristal: fondo translúcido y el nombre en una píldora del color de quien escribe.",
-      "styles": {"classic": "Clásico", "glass": "Cristal con píldora"},
+      "styles": {
+        "classic": "Clásico",
+        "glass": "Cristal con píldora"
+      },
       "lookTitle": "Aspecto",
       "shape": "Forma",
       "shapes": {
