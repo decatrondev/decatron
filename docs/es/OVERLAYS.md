@@ -463,9 +463,10 @@ Dos capas: el dueño fija el valor por defecto y los **límites** (`promo_settin
 | `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Devuelve la zona a donde la puso el dueño |
 | `PUT` | `/api/promo-panel/card/{id}` | JWT + `overlays` | Crea (id 0) o edita una tarjeta propia del streamer (solo texto, enlace https, icono de la lista); respeta la cantidad de su tier y los límites del dueño |
 | `DELETE` | `/api/promo-panel/card/{id}` | JWT + `overlays` | Borra una tarjeta propia |
+| `POST` | `/api/promo-panel/show/{pieceId}` | JWT + `overlays` | «Mostrar ahora»: el overlay saca esa pieza en su próxima consulta (id negativo = tarjeta propia); misma regla que `!dpromo mostrar` |
 | `PUT` | `/api/promo-panel/template/{id}` | JWT + `overlays` | Colores, textos fijos y tipografía del streamer para una plantilla, solo de los ajustes que el dueño declaró (`slots` del diseño); vacío = valores del dueño |
 
-El módulo es `module.ov_promo`. El catálogo (piezas, plantillas, zonas y topes globales) lo edita el dueño desde el área de administración.
+El módulo es `module.ov_promo`. El catálogo (piezas, plantillas, zonas y topes globales) lo edita el dueño desde el área de administración. El dueño también ve y oculta las tarjetas propias de todos los canales desde la pestaña «Tarjetas propias» del admin (`/api/admin/promo/own-cards`); la tabla tiene RLS, así que la lectura y el cambio pasan por las funciones `SECURITY DEFINER` `promo_own_cards_all()` y `promo_own_card_set_hidden()`.
 
 ---
 

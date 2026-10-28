@@ -16,6 +16,7 @@ import { PositionTab } from './promo-extension/PositionTab';
 import { DesignTab } from './promo-extension/DesignTab';
 import type { SlotValues } from '../../components/promo-overlay/slots';
 import { OwnCardsSection } from './promo-extension/OwnCardsSection';
+import { ShowNowButton } from './promo-extension/ShowNowButton';
 import { isEmptyPieceOv, emptyPieceOv, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
 
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
@@ -225,6 +226,7 @@ export default function PromoConfig() {
                                             {p.startsAt && <span>{t('panel.pieces.from', { date: dateFmt.format(new Date(p.startsAt)) })}</span>}
                                             {p.endsAt && <span>{t('panel.pieces.until', { date: dateFmt.format(new Date(p.endsAt)) })}</span>}
                                         </div>
+                                        <ShowNowButton pieceId={p.id} />
                                     </div>
                                 );
                             })}

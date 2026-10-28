@@ -149,6 +149,45 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>
+        /// «Mostrar ahora»: deja la pieza (del bot si id &gt; 0, tarjeta propia si id &lt; 0, igual que en el overlay) pedida en su zona y el overlay la saca en
+        /// su próxima consulta, aunque el streamer la tenga apagada o el overlay en pausa. Misma regla que `!dpromo mostrar`.
+        /// </summary>
+        [HttpPost("show/{pieceId:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> ShowNow(long pieceId)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var principalId = account.Principal.UserId;
+                var snap = await _catalog.GetPublishedAsync();
+                var now = DateTime.UtcNow;
+                PromoPiece? piece;
+                if (PromoOwnCards.IsOwnPieceId(pieceId))
+                {
+                    var card = await _db.PromoOwnCards.AsNoTracking().FirstOrDefaultAsync(c => c.Id == -pieceId && c.UserId == principalId && !c.HiddenByAdmin);
+                    piece = card == null ? null : PromoOwnCards.ToPiece(card, snap.Templates, snap.Limits);
+                    if (piece?.TemplateId == null) piece = null;
+                }
+                else
+                {
+                    var logins = account.Members.Select(m => m.Login).ToList();
+                    piece = snap.Pieces.FirstOrDefault(p => p.Id == pieceId && p.Kind != PromoPlayback.EmergencyKind && PromoPlayback.IsEligible(p, p.Zone, "all", logins, now));
+                }
+                if (piece == null) return NotFound(new { success = false, errors = new[] { "pieceNotFound" } });
+                PromoCommand.Force(PromoPlayback.StateOf(account.OverlayKey), piece, now);
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error mostrando una pieza de promociones ahora");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
         public record PieceOverrideRequest(int? DurationSeconds, long? TemplateId, int? ScalePercent);
         public record ZoneOverrideRequest(string Anchor, int MarginX, int MarginY);
         public record OwnCardRequest(string? Title, string? Body, string? Icon, string? LinkUrl, bool ShowQr, string? Zone, long? TemplateId, int DurationSeconds, int IntervalMinutes, bool IsEnabled);

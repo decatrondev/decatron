@@ -463,9 +463,10 @@ Two layers: the owner sets the default and the **limits** (`promo_settings`: min
 | `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Put the zone back where the owner placed it |
 | `PUT` | `/api/promo-panel/card/{id}` | JWT + `overlays` | Creates (id 0) or edits one of the streamer's own cards (text only, https link, icon from the list); respects the tier's card count and the owner's limits |
 | `DELETE` | `/api/promo-panel/card/{id}` | JWT + `overlays` | Deletes an own card |
+| `POST` | `/api/promo-panel/show/{pieceId}` | JWT + `overlays` | "Show now": the overlay plays that piece on its next poll (negative id = own card); same rule as `!dpromo show` |
 | `PUT` | `/api/promo-panel/template/{id}` | JWT + `overlays` | Streamer's colors, fixed texts and font for a template, only for the settings the owner declared (`slots` in the design); empty = owner's values |
 
-The module is `module.ov_promo`. The catalog itself (pieces, templates, zones, global limits) is edited by the owner from the admin area.
+The module is `module.ov_promo`. The catalog itself (pieces, templates, zones, global limits) is edited by the owner from the admin area. The owner also sees and hides every channel's own cards from the admin tab "Own cards" (`/api/admin/promo/own-cards`); the table has RLS, so the read and the change go through the `SECURITY DEFINER` functions `promo_own_cards_all()` and `promo_own_card_set_hidden()`.
 
 ---
 

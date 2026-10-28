@@ -650,6 +650,12 @@
         "intervalRange": "The interval is outside the allowed range.",
         "templateInvalid": "That template does not fit that zone."
       }
+    },
+    "showNow": {
+      "button": "Show now",
+      "ok": "It will appear in your overlay in a few seconds.",
+      "notFound": "This piece cannot be shown right now.",
+      "fail": "Could not request the piece."
     }
   }
 }

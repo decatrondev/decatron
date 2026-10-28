@@ -7,6 +7,7 @@ import { PromoZoom } from '../../../components/promo-overlay/PromoPreview';
 import { PROMO_ICONS } from '../../../components/promo/icons';
 import { useBrand } from '../../../brand/BrandContext';
 import type { PromoContent } from '../../../components/promo-overlay/types';
+import { ShowNowButton } from './ShowNowButton';
 import type { Limits, OwnCard, Template, Zone } from './types';
 
 const blank = (zone: string, limits: Limits): OwnCard => ({
@@ -108,6 +109,7 @@ export function OwnCardsSection({ cards, max, templates, zones, limits, lang, ch
                                 <span>{t('panel.pieces.seconds', { n: c.durationSeconds })}</span>
                                 <span>{t('panel.cards.every', { n: c.intervalMinutes })}</span>
                             </div>
+                            {!c.hiddenByAdmin && <ShowNowButton pieceId={-c.id} />}
                             <div className="flex gap-2">
                                 <button className="ds-btn ds-btn--secondary ds-btn--sm" disabled={busy} onClick={() => { setError(null); setDraft(c); }}><Pencil className="w-4 h-4" />{t('panel.cards.edit')}</button>
                                 <button className="ds-btn ds-btn--secondary ds-btn--sm" disabled={busy} onClick={() => remove(c)}><Trash2 className="w-4 h-4" />{t('panel.cards.delete')}</button>

@@ -650,6 +650,12 @@
         "intervalRange": "El intervalo está fuera del rango permitido.",
         "templateInvalid": "Esa plantilla no sirve para esa zona."
       }
+    },
+    "showNow": {
+      "button": "Mostrar ahora",
+      "ok": "Saldrá en tu overlay en unos segundos.",
+      "notFound": "Esta pieza no se puede mostrar ahora.",
+      "fail": "No se pudo pedir la pieza."
     }
   }
 }
