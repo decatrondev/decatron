@@ -59,7 +59,8 @@ function ZoneSlot({ zone, alias, source, language, stopped }: { zone: Zone; alia
                         wait = 1;
                     } else if (d?.wait) wait = d.wait;
                 } catch { wait = 15; }
-                await sleep(wait * 1000);
+                // Se vuelve a preguntar al menos cada 4 s: así una pieza pedida con el comando del chat sale pronto aunque la zona esté en pausa larga
+                await sleep(Math.min(wait, 4) * 1000);
             }
         })();
         return () => { alive = false; };
