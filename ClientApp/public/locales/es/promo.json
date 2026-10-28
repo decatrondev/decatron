@@ -596,7 +596,8 @@
       "marginRange": "La separación supera el máximo permitido.",
       "slotUnknown": "Ese ajuste no existe en la plantilla.",
       "slotValueInvalid": "Un valor no es válido (color, tipografía o texto).",
-      "slotValuesInvalid": "Hay demasiados ajustes."
+      "slotValuesInvalid": "Hay demasiados ajustes.",
+      "triggerPieceInvalid": "Esa pieza ya no está disponible."
     },
     "style": {
       "title": "Colores, textos y tipografías",
@@ -656,6 +657,25 @@
       "ok": "Saldrá en tu overlay en unos segundos.",
       "notFound": "Esta pieza no se puede mostrar ahora.",
       "fail": "No se pudo pedir la pieza."
+    },
+    "triggers": {
+      "title": "Disparadores",
+      "description": "Haz que salga una pieza en momentos concretos del directo, sin tocar nada. Funciona en Twitch.",
+      "next": "La siguiente de la rotación",
+      "ownPrefix": "Tu tarjeta",
+      "piece": "Qué sale",
+      "pieceHint": "Elige una pieza o una de tus tarjetas, o deja que salga la siguiente de la rotación normal.",
+      "delay": "Espera antes de salir (segundos)",
+      "delayHint": "Entre 0 y 120 s. Da tiempo a que el público llegue.",
+      "start": {
+        "label": "Al empezar el directo",
+        "hint": "Sale una vez cuando el directo comienza. Si se corta y vuelve en menos de 15 minutos no se repite."
+      },
+      "raid": {
+        "label": "Tras una raid",
+        "hint": "Sale cuando te llega una raid. No se repite si llegan varias seguidas (3 minutos entre una y otra)."
+      },
+      "note": "Los disparadores respetan la pausa de Promociones: si la tienes activada, no sale nada. «Después de una pausa del directo» llegará más adelante."
     }
   }
 }

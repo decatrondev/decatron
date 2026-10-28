@@ -261,6 +261,25 @@ public class PromoChannelSettings
     [Column("cmd_min_role")]
     public string CmdMinRole { get; set; } = "moderator";
 
+    /// <summary>Disparadores: al empezar el directo y al recibir una raid. Pieza: id del bot (&gt; 0), tarjeta propia (&lt; 0) o null = la siguiente de la rotación.</summary>
+    [Column("trigger_start_enabled")]
+    public bool TriggerStartEnabled { get; set; }
+
+    [Column("trigger_start_piece_id")]
+    public long? TriggerStartPieceId { get; set; }
+
+    [Column("trigger_start_delay_seconds")]
+    public int TriggerStartDelaySeconds { get; set; } = 10;
+
+    [Column("trigger_raid_enabled")]
+    public bool TriggerRaidEnabled { get; set; }
+
+    [Column("trigger_raid_piece_id")]
+    public long? TriggerRaidPieceId { get; set; }
+
+    [Column("trigger_raid_delay_seconds")]
+    public int TriggerRaidDelaySeconds { get; set; } = 10;
+
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

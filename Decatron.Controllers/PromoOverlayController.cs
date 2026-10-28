@@ -156,8 +156,9 @@ namespace Decatron.Controllers
                         if (card != null) ownPiece = PromoOwnCards.ToPiece(card, snap.Templates, snap.Limits);
                     }
                     piece = ownPiece ?? PromoPlayback.Pick(eligible, lastId, Random.Shared.NextDouble());
-                    wait = piece == null ? 60 : PromoPlayback.WaitSeconds(state, zone, limits, piece.DurationSeconds, now);
-                    if (piece != null && wait == 0) PromoPlayback.MarkShown(state, piece, limits, now);
+                    var rotateNow = state.RotateNowUntil is DateTime until && until > now;
+                    wait = piece == null ? 60 : rotateNow ? 0 : PromoPlayback.WaitSeconds(state, zone, limits, piece.DurationSeconds, now);
+                    if (piece != null && wait == 0) { PromoPlayback.MarkShown(state, piece, limits, now); if (rotateNow) state.RotateNowUntil = null; }
                 }
                 if (piece == null || wait > 0) return Ok(new { success = true, found = true, wait = Math.Max(wait, 5) });
 

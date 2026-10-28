@@ -3647,6 +3647,31 @@
         ]
       },
       {
+        "id": "disparadores",
+        "title": "Show now and triggers",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On What shows, each piece and each of your cards has a “Show now” button: it appears in your overlay within a few seconds, even if you turned it off or the overlay is paused."
+          },
+          {
+            "t": "p",
+            "x": "On Settings you can turn on triggers so a piece shows by itself at two moments of your stream:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "When the stream starts: shows once when you go live. If it drops and comes back within 15 minutes, it does not repeat.",
+              "After a raid: shows when a raid arrives. If several arrive in a row, only one counts every 3 minutes."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "For each one you choose what shows (a piece, one of your cards or the next one in the rotation) and how many seconds it waits, from 0 to 120. They work on Twitch and respect the Promotions pause."
+          }
+        ]
+      },
+      {
         "id": "avisos",
         "title": "If nothing shows",
         "blocks": [

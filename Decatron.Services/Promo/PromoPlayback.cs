@@ -24,6 +24,8 @@ namespace Decatron.Services.Promo
             /// <summary>Piezas del bot mostradas desde la última tarjeta propia (empieza en 0: la primera siempre es del bot) y cuándo salió cada tarjeta propia.</summary>
             public int BotSinceOwn { get; set; }
             public Dictionary<long, DateTime> OwnLastShown { get; } = new();
+            /// <summary>Un disparador (inicio de directo, raid) pidió que salga ya la siguiente pieza de la rotación, sin esperar la pausa entre piezas. Vence solo.</summary>
+            public DateTime? RotateNowUntil { get; set; }
         }
 
         private static readonly ConcurrentDictionary<string, State> States = new();

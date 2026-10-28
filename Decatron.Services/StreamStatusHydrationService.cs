@@ -116,7 +116,7 @@ namespace Decatron.Services
                     var stream = await twitchApiService.GetStreamAsync(channel.TwitchId);
                     if (stream != null)
                     {
-                        await streamStatusService.SetStreamOnlineAsync(channel.TwitchId, channel.Login);
+                        await streamStatusService.SetStreamOnlineAsync(channel.TwitchId, channel.Login, fromBoot: true);
                         liveCount++;
                         _logger.LogInformation("🔄 [StreamStatusHydration] {Channel} → EN VIVO", channel.Login);
                     }

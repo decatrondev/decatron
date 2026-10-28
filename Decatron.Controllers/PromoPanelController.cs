@@ -139,7 +139,12 @@ namespace Decatron.Controllers
                         .Select(o => new { o.ZoneKey, o.Anchor, o.MarginX, o.MarginY }).ToListAsync(),
                     views = await _catalog.GetChannelViewsAsync(principalId),
                     mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.DisabledIds(prefs), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
-                    command = new { enabled = prefs?.CmdEnabled ?? false, name = prefs?.CmdName ?? PromoCommand.DefaultName, cooldownSeconds = prefs?.CmdCooldownSeconds ?? 10, minRole = prefs?.CmdMinRole ?? "moderator" } },
+                    command = new { enabled = prefs?.CmdEnabled ?? false, name = prefs?.CmdName ?? PromoCommand.DefaultName, cooldownSeconds = prefs?.CmdCooldownSeconds ?? 10, minRole = prefs?.CmdMinRole ?? "moderator" },
+                    triggers = new
+                    {
+                        start = TriggerDto(PromoTriggers.Of(prefs, PromoTriggers.Start)),
+                        raid = TriggerDto(PromoTriggers.Of(prefs, PromoTriggers.Raid)),
+                    } },
                 });
             }
             catch (Exception ex)
@@ -391,8 +396,12 @@ namespace Decatron.Controllers
             }
         }
 
+        private static object TriggerDto((bool Enabled, long? PieceId, int DelaySeconds) t) => new { enabled = t.Enabled, pieceId = t.PieceId, delaySeconds = t.DelaySeconds };
+
         public record CommandRequest(bool Enabled, string? Name, int? CooldownSeconds, string? MinRole);
-        public record SaveRequest(bool Paused, long[]? DisabledPieces, int? MinGapSeconds, int? HourlyCapSeconds, CommandRequest? Command = null);
+        public record TriggerRequest(bool Enabled, long? PieceId, int DelaySeconds);
+        public record TriggersRequest(TriggerRequest? Start, TriggerRequest? Raid);
+        public record SaveRequest(bool Paused, long[]? DisabledPieces, int? MinGapSeconds, int? HourlyCapSeconds, CommandRequest? Command = null, TriggersRequest? Triggers = null);
 
         /// <summary>Guarda lo que el streamer decide: pausar, piezas apagadas y topes más discretos (nunca más insistentes que los globales).</summary>
         [HttpPut("settings")]
@@ -433,8 +442,23 @@ namespace Decatron.Controllers
                         if (taken) return BadRequest(new { success = false, errors = new[] { "cmdCustom" } });
                     }
                 }
+                // Disparadores: la pieza elegida tiene que existir y ser del canal (bot publicada, o tarjeta propia suya); null = la siguiente de la rotación.
+                foreach (var tr in new[] { req.Triggers?.Start, req.Triggers?.Raid })
+                {
+                    if (tr == null) continue;
+                    if (!PromoTriggers.DelayValid(tr.DelaySeconds)) return BadRequest(new { success = false, errors = new[] { "outOfRange" } });
+                    if (tr.PieceId is long pid && pid != 0)
+                    {
+                        var ok = PromoOwnCards.IsOwnPieceId(pid)
+                            ? await _db.PromoOwnCards.AsNoTracking().AnyAsync(c => c.Id == -pid && c.UserId == principalId)
+                            : snap.Pieces.Any(p => p.Id == pid && p.Kind != PromoPlayback.EmergencyKind);
+                        if (!ok) return BadRequest(new { success = false, errors = new[] { "triggerPieceInvalid" } });
+                    }
+                }
                 var row = await _db.PromoChannelSettings.FirstOrDefaultAsync(c => c.UserId == principalId);
                 if (row == null) { row = new PromoChannelSettings { UserId = principalId }; _db.PromoChannelSettings.Add(row); }
+                if (req.Triggers?.Start is { } st) { row.TriggerStartEnabled = st.Enabled; row.TriggerStartPieceId = st.PieceId == 0 ? null : st.PieceId; row.TriggerStartDelaySeconds = st.DelaySeconds; }
+                if (req.Triggers?.Raid is { } rd) { row.TriggerRaidEnabled = rd.Enabled; row.TriggerRaidPieceId = rd.PieceId == 0 ? null : rd.PieceId; row.TriggerRaidDelaySeconds = rd.DelaySeconds; }
                 row.Paused = req.Paused;
                 row.DisabledPieces = System.Text.Json.JsonSerializer.Serialize(disabled);
                 row.MinGapSeconds = req.MinGapSeconds;

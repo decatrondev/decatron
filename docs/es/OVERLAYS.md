@@ -457,7 +457,7 @@ Dos capas: el dueño fija el valor por defecto y los **límites** (`promo_settin
 | `GET` | `/api/promo/emergency/{alias}` | Anónimo | Pieza de emergencia activa para el canal, si hay |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Fuentes conectadas por variante y avisos |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Piezas activas, plantillas, zonas, topes y lo que eligió el streamer |
-| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Guardar pausa, piezas apagadas, topes y el comando de chat |
+| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Guardar pausa, piezas apagadas, topes, el comando de chat y los disparadores (inicio de directo, raid: encendido, pieza, espera 0-120 s) |
 | `PUT` | `/api/promo-panel/piece/{id}` | JWT + `overlays` | Duración, plantilla y tamaño propios del streamer para una pieza, dentro de los límites del dueño (todo vacío = vuelve al valor del dueño) |
 | `PUT` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Ancla y márgenes propios del streamer para una zona, dentro del margen máximo del dueño |
 | `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Devuelve la zona a donde la puso el dueño |
@@ -466,7 +466,7 @@ Dos capas: el dueño fija el valor por defecto y los **límites** (`promo_settin
 | `POST` | `/api/promo-panel/show/{pieceId}` | JWT + `overlays` | «Mostrar ahora»: el overlay saca esa pieza en su próxima consulta (id negativo = tarjeta propia); misma regla que `!dpromo mostrar` |
 | `PUT` | `/api/promo-panel/template/{id}` | JWT + `overlays` | Colores, textos fijos y tipografía del streamer para una plantilla, solo de los ajustes que el dueño declaró (`slots` del diseño); vacío = valores del dueño |
 
-El módulo es `module.ov_promo`. El catálogo (piezas, plantillas, zonas y topes globales) lo edita el dueño desde el área de administración. El dueño también ve y oculta las tarjetas propias de todos los canales desde la pestaña «Tarjetas propias» del admin (`/api/admin/promo/own-cards`); la tabla tiene RLS, así que la lectura y el cambio pasan por las funciones `SECURITY DEFINER` `promo_own_cards_all()` y `promo_own_card_set_hidden()`.
+El módulo es `module.ov_promo`. El catálogo (piezas, plantillas, zonas y topes globales) lo edita el dueño desde el área de administración. El dueño también ve y oculta las tarjetas propias de todos los canales desde la pestaña «Tarjetas propias» del admin (`/api/admin/promo/own-cards`); la tabla tiene RLS, así que la lectura y el cambio pasan por las funciones `SECURITY DEFINER` `promo_own_cards_all()` y `promo_own_card_set_hidden()`. **Disparadores** (`promo_channel_settings.trigger_*`): `PromoTriggerService` se activa al empezar el directo (desde `StreamStatusService.SetStreamOnlineAsync`, no en la rehidratación al arrancar; enfriamiento de 15 min) y al recibir una raid (desde `EventAlertsService.TriggerAlertAsync("raids")`; enfriamiento de 3 min), espera la demora configurada y luego fuerza la pieza elegida (como «Mostrar ahora») o marca `RotateNowUntil` para que la siguiente pieza de la rotación salte la espera. Respetan la pausa del streamer.
 
 ---
 

@@ -3647,6 +3647,31 @@
         ]
       },
       {
+        "id": "disparadores",
+        "title": "Mostrar ahora y disparadores",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Qué se muestra, cada pieza y cada tarjeta tuya tiene un botón «Mostrar ahora»: sale en tu overlay en unos segundos, aunque la tengas apagada o esté en pausa."
+          },
+          {
+            "t": "p",
+            "x": "En Ajustes puedes activar disparadores para que salga una pieza sola en dos momentos del directo:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Al empezar el directo: sale una vez cuando comienzas. Si se corta y vuelve en menos de 15 minutos, no se repite.",
+              "Tras una raid: sale cuando te llega una raid. Si llegan varias seguidas, solo cuenta una cada 3 minutos."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "En cada uno eliges qué sale (una pieza, una tarjeta tuya o la siguiente de la rotación) y cuántos segundos espera, de 0 a 120. Funcionan en Twitch y respetan la pausa de Promociones."
+          }
+        ]
+      },
+      {
         "id": "avisos",
         "title": "Si algo no se ve",
         "blocks": [

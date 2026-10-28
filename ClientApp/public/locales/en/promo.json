@@ -596,7 +596,8 @@
       "marginRange": "The gap is above the allowed maximum.",
       "slotUnknown": "That setting does not exist on the template.",
       "slotValueInvalid": "A value is not valid (color, font or text).",
-      "slotValuesInvalid": "Too many settings."
+      "slotValuesInvalid": "Too many settings.",
+      "triggerPieceInvalid": "That piece is no longer available."
     },
     "style": {
       "title": "Colors, texts and fonts",
@@ -656,6 +657,25 @@
       "ok": "It will appear in your overlay in a few seconds.",
       "notFound": "This piece cannot be shown right now.",
       "fail": "Could not request the piece."
+    },
+    "triggers": {
+      "title": "Triggers",
+      "description": "Make a piece show up at specific moments of your stream, hands-free. Works on Twitch.",
+      "next": "The next one in the rotation",
+      "ownPrefix": "Your card",
+      "piece": "What shows",
+      "pieceHint": "Pick a piece or one of your cards, or let the next one from the normal rotation show.",
+      "delay": "Wait before it shows (seconds)",
+      "delayHint": "Between 0 and 120 s. Gives your audience time to arrive.",
+      "start": {
+        "label": "When the stream starts",
+        "hint": "Shows once when the stream begins. If it drops and comes back within 15 minutes it does not repeat."
+      },
+      "raid": {
+        "label": "After a raid",
+        "hint": "Shows when a raid arrives. It does not repeat if several arrive in a row (3 minutes between them)."
+      },
+      "note": "Triggers respect the Promotions pause: if it is on, nothing shows. “After a break in the stream” is coming later."
     }
   }
 }

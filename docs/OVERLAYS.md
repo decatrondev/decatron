@@ -457,7 +457,7 @@ Two layers: the owner sets the default and the **limits** (`promo_settings`: min
 | `GET` | `/api/promo/emergency/{alias}` | Anonymous | Active emergency piece for the channel, if any |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Connected sources by variant and warnings |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Active pieces, templates, zones, limits and the streamer's choices |
-| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Save pause, switched-off pieces, limits and the chat command |
+| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Save pause, switched-off pieces, limits, the chat command and the triggers (stream start, raid: on/off, piece, delay 0-120 s) |
 | `PUT` | `/api/promo-panel/piece/{id}` | JWT + `overlays` | Streamer's own duration, template and size for a piece, within the owner's limits (all empty = back to the owner's value) |
 | `PUT` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Streamer's own anchor and margins for a zone, within the owner's maximum margin |
 | `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Put the zone back where the owner placed it |
@@ -466,7 +466,7 @@ Two layers: the owner sets the default and the **limits** (`promo_settings`: min
 | `POST` | `/api/promo-panel/show/{pieceId}` | JWT + `overlays` | "Show now": the overlay plays that piece on its next poll (negative id = own card); same rule as `!dpromo show` |
 | `PUT` | `/api/promo-panel/template/{id}` | JWT + `overlays` | Streamer's colors, fixed texts and font for a template, only for the settings the owner declared (`slots` in the design); empty = owner's values |
 
-The module is `module.ov_promo`. The catalog itself (pieces, templates, zones, global limits) is edited by the owner from the admin area. The owner also sees and hides every channel's own cards from the admin tab "Own cards" (`/api/admin/promo/own-cards`); the table has RLS, so the read and the change go through the `SECURITY DEFINER` functions `promo_own_cards_all()` and `promo_own_card_set_hidden()`.
+The module is `module.ov_promo`. The catalog itself (pieces, templates, zones, global limits) is edited by the owner from the admin area. The owner also sees and hides every channel's own cards from the admin tab "Own cards" (`/api/admin/promo/own-cards`); the table has RLS, so the read and the change go through the `SECURITY DEFINER` functions `promo_own_cards_all()` and `promo_own_card_set_hidden()`. **Triggers** (`promo_channel_settings.trigger_*`): `PromoTriggerService` fires on stream start (from `StreamStatusService.SetStreamOnlineAsync`, not on boot rehydration; 15 min cooldown) and on raid (from `EventAlertsService.TriggerAlertAsync("raids")`; 3 min cooldown), waits the configured delay and then either forces the chosen piece (like "Show now") or sets `RotateNowUntil` so the next rotation piece skips the wait. They respect the streamer's pause.
 
 ---
 

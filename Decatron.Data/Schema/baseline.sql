@@ -24,6 +24,7 @@
 -- Snapshot date: 2026-10-29
 --
 --
+--
 -- PostgreSQL database dump
 --
 
@@ -96,6 +97,36 @@ CREATE FUNCTION public.platform_payments_all(p_from timestamp with time zone, p_
          p.invoice_status, p.invoice_type, p.invoice_series, p.invoice_number, p.invoice_document_id
   FROM tenant_payments p JOIN tenants t ON t.id = p.tenant_id LEFT JOIN plans pl ON pl.id = p.plan_id
   WHERE p.status = 'paid' AND NOT p.is_test AND p.paid_at >= p_from AND p.paid_at < p_to
+$$;
+
+
+--
+-- Name: promo_own_card_set_hidden(bigint, boolean); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.promo_own_card_set_hidden(p_id bigint, p_hidden boolean) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  UPDATE promo_own_cards SET hidden_by_admin = p_hidden, updated_at = (now() AT TIME ZONE 'utc') WHERE id = p_id;
+  RETURN FOUND;
+END
+$$;
+
+
+--
+-- Name: promo_own_cards_all(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.promo_own_cards_all() RETURNS TABLE(id bigint, user_id bigint, login text, tenant_id bigint, title text, body text, icon text, link_url text, show_qr boolean, zone text, is_enabled boolean, hidden_by_admin boolean, created_at timestamp without time zone)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT c.id, c.user_id, COALESCE(u.login, '')::text, c.tenant_id, c.title::text, c.body::text, c.icon::text, c.link_url::text, c.show_qr,
+         c.zone::text, c.is_enabled, c.hidden_by_admin, c.created_at
+  FROM promo_own_cards c LEFT JOIN users u ON u.id = c.user_id
+  ORDER BY c.hidden_by_admin DESC, c.id DESC
 $$;
 
 
@@ -5466,10 +5497,18 @@ CREATE TABLE public.promo_channel_settings (
     cmd_name character varying(20) DEFAULT 'dpromo'::character varying NOT NULL,
     cmd_cooldown_seconds integer DEFAULT 10 NOT NULL,
     cmd_min_role character varying(12) DEFAULT 'moderator'::character varying NOT NULL,
+    trigger_start_enabled boolean DEFAULT false NOT NULL,
+    trigger_start_piece_id bigint,
+    trigger_start_delay_seconds integer DEFAULT 10 NOT NULL,
+    trigger_raid_enabled boolean DEFAULT false NOT NULL,
+    trigger_raid_piece_id bigint,
+    trigger_raid_delay_seconds integer DEFAULT 10 NOT NULL,
     CONSTRAINT promo_channel_settings_cmd_cooldown_seconds_check CHECK (((cmd_cooldown_seconds >= 0) AND (cmd_cooldown_seconds <= 600))),
     CONSTRAINT promo_channel_settings_cmd_min_role_check CHECK (((cmd_min_role)::text = ANY ((ARRAY['moderator'::character varying, 'vip'::character varying, 'subscriber'::character varying, 'everyone'::character varying])::text[]))),
     CONSTRAINT promo_channel_settings_hourly_cap_seconds_check CHECK (((hourly_cap_seconds IS NULL) OR ((hourly_cap_seconds >= 0) AND (hourly_cap_seconds <= 3600)))),
-    CONSTRAINT promo_channel_settings_min_gap_seconds_check CHECK (((min_gap_seconds IS NULL) OR ((min_gap_seconds >= 0) AND (min_gap_seconds <= 3600))))
+    CONSTRAINT promo_channel_settings_min_gap_seconds_check CHECK (((min_gap_seconds IS NULL) OR ((min_gap_seconds >= 0) AND (min_gap_seconds <= 3600)))),
+    CONSTRAINT promo_channel_settings_trigger_raid_delay_seconds_check CHECK (((trigger_raid_delay_seconds >= 0) AND (trigger_raid_delay_seconds <= 120))),
+    CONSTRAINT promo_channel_settings_trigger_start_delay_seconds_check CHECK (((trigger_start_delay_seconds >= 0) AND (trigger_start_delay_seconds <= 120)))
 );
 
 

@@ -17,6 +17,7 @@ import { DesignTab } from './promo-extension/DesignTab';
 import type { SlotValues } from '../../components/promo-overlay/slots';
 import { OwnCardsSection } from './promo-extension/OwnCardsSection';
 import { ShowNowButton } from './promo-extension/ShowNowButton';
+import { TriggersCard, type Triggers } from './promo-extension/TriggersCard';
 import { isEmptyPieceOv, emptyPieceOv, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
 
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
@@ -40,7 +41,7 @@ interface Catalog {
     views: Record<string, number>;
 }
 interface CmdSettings { enabled: boolean; name: string; cooldownSeconds: number; minRole: 'moderator' | 'vip' | 'subscriber' | 'everyone' }
-interface Mine { paused: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null; command: CmdSettings }
+interface Mine { paused: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null; command: CmdSettings; triggers: Triggers }
 
 const overlayUrl = (channel: string, source?: 'twitch' | 'kick') => `${window.location.origin}/overlay/promo?channel=${channel}${source ? `&source=${source}` : ''}`;
 
@@ -104,7 +105,7 @@ export default function PromoConfig() {
         if (!mine) return;
         setSaving(true);
         try {
-            await api.put('/promo-panel/settings', { paused: mine.paused, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds, command: mine.command });
+            await api.put('/promo-panel/settings', { paused: mine.paused, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds, command: mine.command, triggers: mine.triggers });
             // Lo que cambió de piezas y zonas: solo se envía la diferencia con lo último guardado.
             const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
             for (const id of new Set([...Object.keys(saved.current.pieces), ...Object.keys(pieceOv)].map(Number))) {
@@ -124,7 +125,7 @@ export default function PromoConfig() {
             setMessage({ ok: true, text: t('panel.settings.saved') });
         } catch (e: any) {
             const code = e?.response?.data?.errors?.[0];
-            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : ['durationRange', 'scaleRange', 'templateInvalid', 'anchorInvalid', 'marginRange', 'slotUnknown', 'slotValueInvalid', 'slotValuesInvalid'].includes(code) ? t(`panel.errors.${code}`) : t('panel.settings.saveFailed') });
+            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : ['triggerPieceInvalid', 'durationRange', 'scaleRange', 'templateInvalid', 'anchorInvalid', 'marginRange', 'slotUnknown', 'slotValueInvalid', 'slotValuesInvalid'].includes(code) ? t(`panel.errors.${code}`) : t('panel.settings.saveFailed') });
         }
         setSaving(false);
         window.setTimeout(() => setMessage(null), 4000);
@@ -266,6 +267,7 @@ export default function PromoConfig() {
                             </div>
                         </div>
                     </Card>
+                    <TriggersCard triggers={mine.triggers} pieces={catalog.pieces} ownCards={catalog.ownCards} lang={lang} onChange={triggers => change({ triggers })} />
                     <Card title={t('panel.command.title')} description={t('panel.command.description')}>
                         <div className="space-y-6">
                             <Toggle checked={mine.command.enabled} onChange={v => changeCmd({ enabled: v })} label={t('panel.command.enable')} hint={t('panel.command.enableHint')} />

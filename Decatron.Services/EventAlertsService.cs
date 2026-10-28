@@ -21,6 +21,7 @@ namespace Decatron.Services
         private readonly ITtsCreditService _creditService;
         private readonly IMessageSender _messageSender;
         private readonly Decatron.Core.Services.ChannelAudioGate _audioGate;
+        private readonly Decatron.Services.Promo.PromoTriggerService? _promoTriggers;
 
         // Cooldown tracking: key = "channelName:eventType", value = last trigger time
         private static readonly ConcurrentDictionary<string, DateTime> _lastAlertTimes = new();
@@ -35,8 +36,10 @@ namespace Decatron.Services
             ITtsService ttsService,
             ITtsCreditService creditService,
             IMessageSender messageSender,
-            Decatron.Core.Services.ChannelAudioGate audioGate)
+            Decatron.Core.Services.ChannelAudioGate audioGate,
+            Decatron.Services.Promo.PromoTriggerService? promoTriggers = null)
         {
+            _promoTriggers = promoTriggers;
             _audioGate = audioGate;
             _context = context;
             _logger = logger;
@@ -127,6 +130,8 @@ namespace Decatron.Services
             bool hypeTrainCompleted = false)
         {
             Decatron.Core.Services.AudioTurn? audioTurn = null;
+            // Disparador de Promociones «tras una raid»: aquí pasan todas las raids reales, tenga o no alertas el canal (el handler de EventSub no se toca).
+            if (eventType == "raids") _promoTriggers?.Fire(channelName, Decatron.Services.Promo.PromoTriggers.Raid);
             try
             {
                 var config = await GetConfigByChannel(channelName);

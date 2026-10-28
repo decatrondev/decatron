@@ -13,7 +13,8 @@ namespace Decatron.Services
     public interface IStreamStatusService
     {
         bool IsLive(string broadcasterUserId);
-        Task SetStreamOnlineAsync(string broadcasterUserId, string channelName);
+        /// <param name="fromBoot">true cuando es la rehidratación al arrancar el backend (el directo ya estaba en curso): no cuenta como inicio para los disparadores de Promociones.</param>
+        Task SetStreamOnlineAsync(string broadcasterUserId, string channelName, bool fromBoot = false);
         Task SetStreamOfflineAsync(string broadcasterUserId, string channelName);
     }
 
@@ -39,10 +40,14 @@ namespace Decatron.Services
         public bool IsLive(string broadcasterUserId) =>
             _liveStatus.TryGetValue(broadcasterUserId, out var v) && v;
 
-        public async Task SetStreamOnlineAsync(string broadcasterUserId, string channelName)
+        public async Task SetStreamOnlineAsync(string broadcasterUserId, string channelName, bool fromBoot = false)
         {
+            var wasLive = IsLive(broadcasterUserId);
             _liveStatus[broadcasterUserId] = true;
             _logger.LogInformation("🟢 [StreamStatus] {Channel} está EN VIVO", channelName);
+
+            // Disparador de Promociones «al empezar el directo»: solo en un inicio real (no al rehidratar tras reiniciar ni si ya estaba en vivo).
+            if (!fromBoot && !wasLive) _serviceProvider.GetService<Decatron.Services.Promo.PromoTriggerService>()?.Fire(channelName, Decatron.Services.Promo.PromoTriggers.Start);
 
             var config = await GetStreamTimerConfigAsync(channelName);
             if (config?.AutoPlayOnStreamOnline != true) return;
