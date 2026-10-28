@@ -3614,7 +3614,7 @@
               "Qué se muestra: las piezas activas dibujadas como salen en pantalla, con un interruptor para apagar las que no quieras en tu canal.",
               "Tiempos: cuántos segundos queda cada pieza en pantalla, dentro del rango que fija Decatron.",
               "Posición: arrastra cada tarjeta sobre el lienzo de tu escena (o ajusta esquina y separación con números). Se nota en OBS en unos 20 segundos, sin recargar.",
-              "Diseño: elige la plantilla de cada pieza entre las de su zona y su tamaño. Cada ajuste tiene un botón «Valor del dueño» para volver al original.",
+              "Diseño: elige la plantilla de cada pieza entre las de su zona y su tamaño. Cada ajuste tiene un botón «Valor del dueño» para volver al original. Si la plantilla lo permite, también puedes cambiar sus colores, textos fijos y tipografía (aparecen en una tarjeta aparte, con vista previa y un aviso si algún texto queda con poco contraste); solo cambia tu canal.",
               "Ajustes: pausar todas las promociones, más pausa entre piezas y menos segundos por hora. Los cambios se aplican en la siguiente pieza, sin tocar OBS."
             ]
           },

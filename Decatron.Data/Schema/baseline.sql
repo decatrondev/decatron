@@ -5505,6 +5505,43 @@ CREATE TABLE public.promo_piece_daily (
 
 
 --
+-- Name: promo_piece_overrides; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_piece_overrides (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    piece_id bigint NOT NULL,
+    duration_seconds integer,
+    template_id bigint,
+    scale_percent integer,
+    updated_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    CONSTRAINT promo_piece_overrides_duration_seconds_check CHECK (((duration_seconds IS NULL) OR ((duration_seconds >= 1) AND (duration_seconds <= 300)))),
+    CONSTRAINT promo_piece_overrides_scale_percent_check CHECK (((scale_percent IS NULL) OR ((scale_percent >= 20) AND (scale_percent <= 300))))
+);
+
+
+--
+-- Name: promo_piece_overrides_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_piece_overrides_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_piece_overrides_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_piece_overrides_id_seq OWNED BY public.promo_piece_overrides.id;
+
+
+--
 -- Name: promo_pieces; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5568,8 +5605,51 @@ CREATE TABLE public.promo_settings (
     id bigint NOT NULL,
     min_gap_seconds integer DEFAULT 60 NOT NULL,
     hourly_cap_seconds integer DEFAULT 600 NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    min_duration_seconds integer DEFAULT 5 NOT NULL,
+    max_duration_seconds integer DEFAULT 60 NOT NULL,
+    min_scale_percent integer DEFAULT 60 NOT NULL,
+    max_scale_percent integer DEFAULT 150 NOT NULL,
+    max_zone_margin integer DEFAULT 600 NOT NULL,
+    CONSTRAINT promo_settings_max_duration_seconds_check CHECK (((max_duration_seconds >= 1) AND (max_duration_seconds <= 300))),
+    CONSTRAINT promo_settings_max_scale_percent_check CHECK (((max_scale_percent >= 20) AND (max_scale_percent <= 300))),
+    CONSTRAINT promo_settings_max_zone_margin_check CHECK (((max_zone_margin >= 0) AND (max_zone_margin <= 1000))),
+    CONSTRAINT promo_settings_min_duration_seconds_check CHECK (((min_duration_seconds >= 1) AND (min_duration_seconds <= 300))),
+    CONSTRAINT promo_settings_min_scale_percent_check CHECK (((min_scale_percent >= 20) AND (min_scale_percent <= 300)))
 );
+
+
+--
+-- Name: promo_template_overrides; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_template_overrides (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    template_id bigint NOT NULL,
+    style text DEFAULT '{}'::text NOT NULL,
+    updated_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: promo_template_overrides_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_template_overrides_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_template_overrides_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_template_overrides_id_seq OWNED BY public.promo_template_overrides.id;
 
 
 --
@@ -5640,6 +5720,43 @@ CREATE SEQUENCE public.promo_view_counts_id_seq
 --
 
 ALTER SEQUENCE public.promo_view_counts_id_seq OWNED BY public.promo_view_counts.id;
+
+
+--
+-- Name: promo_zone_overrides; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_zone_overrides (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    zone_key character varying(40) NOT NULL,
+    anchor character varying(16) NOT NULL,
+    margin_x integer NOT NULL,
+    margin_y integer NOT NULL,
+    updated_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    CONSTRAINT promo_zone_overrides_margin_x_check CHECK (((margin_x >= 0) AND (margin_x <= 1000))),
+    CONSTRAINT promo_zone_overrides_margin_y_check CHECK (((margin_y >= 0) AND (margin_y <= 1000)))
+);
+
+
+--
+-- Name: promo_zone_overrides_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_zone_overrides_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_zone_overrides_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_zone_overrides_id_seq OWNED BY public.promo_zone_overrides.id;
 
 
 --
@@ -11751,10 +11868,24 @@ ALTER TABLE ONLY public.promo_channel_settings ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: promo_piece_overrides id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_overrides ALTER COLUMN id SET DEFAULT nextval('public.promo_piece_overrides_id_seq'::regclass);
+
+
+--
 -- Name: promo_pieces id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.promo_pieces ALTER COLUMN id SET DEFAULT nextval('public.promo_pieces_id_seq'::regclass);
+
+
+--
+-- Name: promo_template_overrides id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_template_overrides ALTER COLUMN id SET DEFAULT nextval('public.promo_template_overrides_id_seq'::regclass);
 
 
 --
@@ -11769,6 +11900,13 @@ ALTER TABLE ONLY public.promo_templates ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.promo_view_counts ALTER COLUMN id SET DEFAULT nextval('public.promo_view_counts_id_seq'::regclass);
+
+
+--
+-- Name: promo_zone_overrides id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_zone_overrides ALTER COLUMN id SET DEFAULT nextval('public.promo_zone_overrides_id_seq'::regclass);
 
 
 --
@@ -13968,6 +14106,22 @@ ALTER TABLE ONLY public.promo_piece_daily
 
 
 --
+-- Name: promo_piece_overrides promo_piece_overrides_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_overrides
+    ADD CONSTRAINT promo_piece_overrides_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_piece_overrides promo_piece_overrides_user_id_piece_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_overrides
+    ADD CONSTRAINT promo_piece_overrides_user_id_piece_id_key UNIQUE (user_id, piece_id);
+
+
+--
 -- Name: promo_pieces promo_pieces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -13981,6 +14135,22 @@ ALTER TABLE ONLY public.promo_pieces
 
 ALTER TABLE ONLY public.promo_settings
     ADD CONSTRAINT promo_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_template_overrides promo_template_overrides_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_template_overrides
+    ADD CONSTRAINT promo_template_overrides_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_template_overrides promo_template_overrides_user_id_template_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_template_overrides
+    ADD CONSTRAINT promo_template_overrides_user_id_template_id_key UNIQUE (user_id, template_id);
 
 
 --
@@ -14013,6 +14183,22 @@ ALTER TABLE ONLY public.promo_view_counts
 
 ALTER TABLE ONLY public.promo_view_counts
     ADD CONSTRAINT promo_view_counts_user_id_piece_id_day_key UNIQUE (user_id, piece_id, day);
+
+
+--
+-- Name: promo_zone_overrides promo_zone_overrides_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_zone_overrides
+    ADD CONSTRAINT promo_zone_overrides_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_zone_overrides promo_zone_overrides_user_id_zone_key_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_zone_overrides
+    ADD CONSTRAINT promo_zone_overrides_user_id_zone_key_key UNIQUE (user_id, zone_key);
 
 
 --
@@ -20584,11 +20770,51 @@ ALTER TABLE ONLY public.promo_piece_daily
 
 
 --
+-- Name: promo_piece_overrides promo_piece_overrides_piece_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_overrides
+    ADD CONSTRAINT promo_piece_overrides_piece_id_fkey FOREIGN KEY (piece_id) REFERENCES public.promo_pieces(id) ON DELETE CASCADE;
+
+
+--
+-- Name: promo_piece_overrides promo_piece_overrides_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_overrides
+    ADD CONSTRAINT promo_piece_overrides_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.promo_templates(id) ON DELETE SET NULL;
+
+
+--
+-- Name: promo_piece_overrides promo_piece_overrides_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_overrides
+    ADD CONSTRAINT promo_piece_overrides_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: promo_pieces promo_pieces_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.promo_pieces
     ADD CONSTRAINT promo_pieces_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.promo_templates(id) ON DELETE SET NULL;
+
+
+--
+-- Name: promo_template_overrides promo_template_overrides_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_template_overrides
+    ADD CONSTRAINT promo_template_overrides_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.promo_templates(id) ON DELETE CASCADE;
+
+
+--
+-- Name: promo_template_overrides promo_template_overrides_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_template_overrides
+    ADD CONSTRAINT promo_template_overrides_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
 
 
 --
@@ -20605,6 +20831,14 @@ ALTER TABLE ONLY public.promo_view_counts
 
 ALTER TABLE ONLY public.promo_view_counts
     ADD CONSTRAINT promo_view_counts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: promo_zone_overrides promo_zone_overrides_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_zone_overrides
+    ADD CONSTRAINT promo_zone_overrides_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
 
 
 --
@@ -22366,10 +22600,28 @@ ALTER TABLE public.player_pity_counter ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promo_channel_settings ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: promo_piece_overrides; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promo_piece_overrides ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: promo_template_overrides; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promo_template_overrides ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: promo_view_counts; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.promo_view_counts ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: promo_zone_overrides; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promo_zone_overrides ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: public_command_overrides; Type: ROW SECURITY; Schema: public; Owner: -
@@ -23389,10 +23641,31 @@ CREATE POLICY tenant_isolation ON public.promo_channel_settings USING ((tenant_i
 
 
 --
+-- Name: promo_piece_overrides tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.promo_piece_overrides USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: promo_template_overrides tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.promo_template_overrides USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
 -- Name: promo_view_counts tenant_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY tenant_isolation ON public.promo_view_counts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: promo_zone_overrides tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.promo_zone_overrides USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --
