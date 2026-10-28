@@ -84,7 +84,7 @@ public class PromoPlaybackTests
     public void MinimoEntrePiezas()
     {
         var s = new PromoPlayback.State();
-        var limits = new PromoOverlayLimits { MinGapSeconds = 60, HourlyCapSeconds = 600 };
+        var limits = new PromoOverlayLimits { MinGapSeconds = 60, HourlyCapSeconds = 600, OneAtATime = false };
         var p = P(1, seconds: 10);
         Assert.Equal(0, PromoPlayback.WaitSeconds(s, "corner", limits, 10, Now));
         PromoPlayback.MarkShown(s, p, limits, Now);

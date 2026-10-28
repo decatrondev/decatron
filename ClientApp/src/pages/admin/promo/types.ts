@@ -30,7 +30,7 @@ export interface PromoZone {
 
 export interface PromoLimits {
     minGapSeconds: number; hourlyCapSeconds: number;
-    minDurationSeconds: number; maxDurationSeconds: number; minScalePercent: number; maxScalePercent: number; maxZoneMargin: number; botPerOwn: number; ownMinIntervalMinutes: number;
+    minDurationSeconds: number; maxDurationSeconds: number; minScalePercent: number; maxScalePercent: number; maxZoneMargin: number; botPerOwn: number; ownMinIntervalMinutes: number; oneAtATime: boolean;
 }
 
 export interface PromoOptions {

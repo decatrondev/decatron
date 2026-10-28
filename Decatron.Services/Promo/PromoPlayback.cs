@@ -26,6 +26,8 @@ namespace Decatron.Services.Promo
             public Dictionary<long, DateTime> OwnLastShown { get; } = new();
             /// <summary>Un disparador (inicio de directo, raid) pidió que salga ya la siguiente pieza de la rotación, sin esperar la pausa entre piezas. Vence solo.</summary>
             public DateTime? RotateNowUntil { get; set; }
+            /// <summary>Hasta cuándo está en pantalla la última pieza de cada zona (sin contar la pausa posterior). Sirve para «una pieza a la vez entre todas las zonas».</summary>
+            public Dictionary<string, DateTime> ShownUntil { get; } = new();
         }
 
         private static readonly ConcurrentDictionary<string, State> States = new();
@@ -36,6 +38,7 @@ namespace Decatron.Services.Promo
         {
             MinGapSeconds = Math.Max(global.MinGapSeconds, mine?.MinGapSeconds ?? 0),
             HourlyCapSeconds = mine?.HourlyCapSeconds is int cap ? (global.HourlyCapSeconds > 0 ? Math.Min(global.HourlyCapSeconds, cap) : cap) : global.HourlyCapSeconds,
+            OneAtATime = global.OneAtATime,
         };
 
         /// <summary>Ids de piezas que el streamer apagó (JSON de números; lo ilegible se ignora).</summary>
@@ -103,10 +106,20 @@ namespace Decatron.Services.Promo
         /// Segundos que debe esperar la zona antes de mostrar otra pieza (0 = puede salir ya): el mínimo entre piezas de la zona
         /// y el tope de segundos por hora (que libera cuando la entrada más vieja sale de la ventana).
         /// </summary>
+        /// <summary>Segundos que le quedan en pantalla a la pieza de OTRA zona (0 si ninguna). Con «una a la vez», una zona no saca nada ni lo pedido hasta que termine.</summary>
+        public static int OtherZoneBusySeconds(State s, string zone, DateTime now)
+        {
+            var left = 0.0;
+            foreach (var kv in s.ShownUntil) if (kv.Key != zone) left = Math.Max(left, (kv.Value - now).TotalSeconds);
+            return (int)Math.Ceiling(Math.Max(0, left));
+        }
+
         public static int WaitSeconds(State s, string zone, PromoOverlayLimits limits, int nextDuration, DateTime now)
         {
             var wait = 0.0;
-            if (s.ZoneFreeAt.TryGetValue(zone, out var freeAt)) wait = Math.Max(wait, (freeAt - now).TotalSeconds);
+            // Con «una a la vez» manda la zona más ocupada (pieza en pantalla + pausa); si no, solo la propia.
+            if (limits.OneAtATime) { foreach (var f in s.ZoneFreeAt.Values) wait = Math.Max(wait, (f - now).TotalSeconds); }
+            else if (s.ZoneFreeAt.TryGetValue(zone, out var freeAt)) wait = Math.Max(wait, (freeAt - now).TotalSeconds);
             var used = SecondsLastHour(s, now);
             if (limits.HourlyCapSeconds > 0 && used + nextDuration > limits.HourlyCapSeconds && s.Shown.Count > 0)
             {
@@ -124,6 +137,7 @@ namespace Decatron.Services.Promo
         public static void MarkShown(State s, PromoPiece p, PromoOverlayLimits limits, DateTime now)
         {
             s.ZoneFreeAt[p.Zone] = now.AddSeconds(p.DurationSeconds + Math.Max(0, limits.MinGapSeconds));
+            s.ShownUntil[p.Zone] = now.AddSeconds(p.DurationSeconds);
             s.LastPiece[p.Zone] = p.Id;
             s.Shown.Add((now, p.DurationSeconds));
             if (PromoOwnCards.IsOwnPieceId(p.Id)) { s.BotSinceOwn = 0; s.OwnLastShown[-p.Id] = now; }

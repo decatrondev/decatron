@@ -126,7 +126,7 @@ namespace Decatron.Controllers
                     limits = new
                     {
                         snap.Limits.MinGapSeconds, snap.Limits.HourlyCapSeconds, snap.Limits.MinDurationSeconds, snap.Limits.MaxDurationSeconds,
-                        snap.Limits.MinScalePercent, snap.Limits.MaxScalePercent, snap.Limits.MaxZoneMargin, snap.Limits.BotPerOwn, snap.Limits.OwnMinIntervalMinutes,
+                        snap.Limits.MinScalePercent, snap.Limits.MaxScalePercent, snap.Limits.MaxZoneMargin, snap.Limits.BotPerOwn, snap.Limits.OwnMinIntervalMinutes, snap.Limits.OneAtATime,
                     },
                     pieceOverrides = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.PieceId, o.DurationSeconds, o.TemplateId, o.ScalePercent }).ToListAsync(),

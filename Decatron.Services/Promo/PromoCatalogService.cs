@@ -296,6 +296,7 @@ namespace Decatron.Services.Promo
             s.MaxZoneMargin = req.MaxZoneMargin;
             s.BotPerOwn = req.BotPerOwn;
             s.OwnMinIntervalMinutes = req.OwnMinIntervalMinutes;
+            s.OneAtATime = req.OneAtATime;
             s.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             Invalidate();

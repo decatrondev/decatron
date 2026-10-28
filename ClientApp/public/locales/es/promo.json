@@ -162,7 +162,9 @@
       "botPerOwn": "Piezas del bot por cada tarjeta propia",
       "botPerOwnHint": "Cuántas piezas del bot salen antes de cada tarjeta propia del streamer. 1 = alternan. Sin piezas del bot activas no sale ninguna propia.",
       "ownInterval": "Minutos mínimos entre repeticiones de una tarjeta propia",
-      "ownIntervalHint": "Ninguna tarjeta propia puede repetirse más seguido que esto, aunque el streamer ponga menos."
+      "ownIntervalHint": "Ninguna tarjeta propia puede repetirse más seguido que esto, aunque el streamer ponga menos.",
+      "oneAtATime": "Una pieza a la vez entre todas las zonas",
+      "oneAtATimeHint": "Encendido: mientras una zona muestra una pieza, las demás esperan. Así el overlay no abruma el stream, aunque el streamer coloque dos zonas una sobre otra. Apagado: cada zona va por su cuenta."
     },
     "errors": {
       "unknown": "No se pudo guardar. Inténtalo de nuevo.",

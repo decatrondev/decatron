@@ -98,6 +98,14 @@ namespace Decatron.Controllers
                 var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
                 var ownCards = await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId).ToListAsync();
 
+                // «Una pieza a la vez»: mientras otra zona tiene una pieza en pantalla, esta espera (también lo pedido con el comando o un disparador).
+                if (limits.OneAtATime)
+                {
+                    int busy;
+                    lock (state.Gate) busy = PromoPlayback.OtherZoneBusySeconds(state, zone, DateTime.UtcNow);
+                    if (busy > 0) return Ok(new { success = true, found = true, wait = Math.Max(busy, 2) });
+                }
+
                 // Pieza pedida con el comando del chat: sale ya, aunque el streamer tenga pausado o apagada esa pieza (la pidió él o su equipo).
                 long? forcedId;
                 lock (state.Gate) forcedId = PromoCommand.TakeForced(state, zone, DateTime.UtcNow);

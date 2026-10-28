@@ -3600,6 +3600,10 @@
           {
             "t": "p",
             "x": "Si Decatron publica un aviso de emergencia (por ejemplo, un mantenimiento), reemplaza a todas las piezas en tu overlay mientras esté vigente, sin importar tu pausa ni lo que hayas apagado. Se quita solo cuando Decatron lo retira o vence."
+          },
+          {
+            "t": "p",
+            "x": "Para no abrumar el stream, Decatron muestra una sola pieza a la vez entre todas las zonas: mientras una está en pantalla, las demás esperan su turno, aunque hayas colocado dos zonas una encima de la otra. Una pieza que pides con «Mostrar ahora», el comando o un disparador también espera su turno."
           }
         ]
       },

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Gauge } from 'lucide-react';
 import { Alert, Button, Field, Input } from '../../../components/ds';
-import { ConfigCard } from '../../../components/dashboard/config';
+import { ConfigCard, ToggleRow } from '../../../components/dashboard/config';
 import { errorCodes, promoAdminApi } from './api';
 import { errorText } from './shared';
 import type { PromoLimits } from './types';
@@ -45,6 +45,7 @@ export function LimitsTab({ limits, onChanged, notify }: { limits: PromoLimits; 
                 <Field label={t('admin.limits.maxMargin')} hint={t('admin.limits.maxMarginHint')}>
                     <Input type="number" min={0} max={1000} value={v.maxZoneMargin} onChange={e => setV({ ...v, maxZoneMargin: Number(e.target.value) || 0 })} />
                 </Field>
+                <ToggleRow title={t('admin.limits.oneAtATime')} description={t('admin.limits.oneAtATimeHint')} checked={v.oneAtATime} onChange={on => setV({ ...v, oneAtATime: on })} />
                 <Field label={t('admin.limits.botPerOwn')} hint={t('admin.limits.botPerOwnHint')}>
                     <Input type="number" min={1} max={10} value={v.botPerOwn} onChange={e => setV({ ...v, botPerOwn: Number(e.target.value) || 1 })} />
                 </Field>

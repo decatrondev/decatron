@@ -5696,6 +5696,7 @@ CREATE TABLE public.promo_settings (
     max_zone_margin integer DEFAULT 600 NOT NULL,
     bot_per_own integer DEFAULT 1 NOT NULL,
     own_min_interval_minutes integer DEFAULT 5 NOT NULL,
+    one_at_a_time boolean DEFAULT true NOT NULL,
     CONSTRAINT promo_settings_bot_per_own_check CHECK (((bot_per_own >= 1) AND (bot_per_own <= 10))),
     CONSTRAINT promo_settings_max_duration_seconds_check CHECK (((max_duration_seconds >= 1) AND (max_duration_seconds <= 300))),
     CONSTRAINT promo_settings_max_scale_percent_check CHECK (((max_scale_percent >= 20) AND (max_scale_percent <= 300))),

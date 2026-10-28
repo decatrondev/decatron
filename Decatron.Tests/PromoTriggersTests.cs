@@ -40,3 +40,39 @@ public class PromoTriggersTests
         Assert.True(PromoTriggers.CooledDown(Now.AddMinutes(-3), Now, PromoTriggers.Raid));
     }
 }
+
+/// <summary>Promociones: «una pieza a la vez entre todas las zonas».</summary>
+public class PromoOneAtATimeTests
+{
+    private static readonly DateTime Now = new(2026, 10, 29, 12, 0, 0, DateTimeKind.Utc);
+    private static PromoPiece P(string zone, int seconds) => new() { Id = 1, Zone = zone, DurationSeconds = seconds };
+
+    [Fact(DisplayName = "Promo una a la vez: otra zona espera a que termine la pieza en pantalla y su pausa")]
+    public void Other_zone_waits()
+    {
+        var limits = new PromoOverlayLimits { MinGapSeconds = 60, HourlyCapSeconds = 0, OneAtATime = true };
+        var st = new PromoPlayback.State();
+        PromoPlayback.MarkShown(st, P("corner", 10), limits, Now);
+        Assert.Equal(70, PromoPlayback.WaitSeconds(st, "banner", limits, 8, Now));
+        Assert.Equal(10, PromoPlayback.OtherZoneBusySeconds(st, "banner", Now));
+        Assert.Equal(0, PromoPlayback.OtherZoneBusySeconds(st, "corner", Now));
+        Assert.Equal(0, PromoPlayback.OtherZoneBusySeconds(st, "banner", Now.AddSeconds(10)));
+    }
+
+    [Fact(DisplayName = "Promo una a la vez: apagado, cada zona espera solo la suya")]
+    public void Off_zones_independent()
+    {
+        var limits = new PromoOverlayLimits { MinGapSeconds = 60, HourlyCapSeconds = 0, OneAtATime = false };
+        var st = new PromoPlayback.State();
+        PromoPlayback.MarkShown(st, P("corner", 10), limits, Now);
+        Assert.Equal(0, PromoPlayback.WaitSeconds(st, "banner", limits, 8, Now));
+        Assert.Equal(70, PromoPlayback.WaitSeconds(st, "corner", limits, 8, Now));
+    }
+
+    [Fact(DisplayName = "Promo una a la vez: el streamer hereda el interruptor del dueño")]
+    public void Streamer_inherits()
+    {
+        Assert.True(PromoPlayback.EffectiveLimits(new PromoOverlayLimits { OneAtATime = true }, null).OneAtATime);
+        Assert.False(PromoPlayback.EffectiveLimits(new PromoOverlayLimits { OneAtATime = false }, new PromoChannelSettings()).OneAtATime);
+    }
+}

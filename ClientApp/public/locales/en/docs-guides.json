@@ -3600,6 +3600,10 @@
           {
             "t": "p",
             "x": "If Decatron publishes an emergency notice (for example, maintenance), it replaces every piece on your overlay while it is active, regardless of your pause or what you turned off. It goes away on its own when Decatron withdraws it or it expires."
+          },
+          {
+            "t": "p",
+            "x": "To avoid overwhelming your stream, Decatron shows only one piece at a time across all zones: while one is on screen, the others wait their turn, even if you placed two zones on top of each other. A piece you request with “Show now”, the command or a trigger also waits its turn."
           }
         ]
       },

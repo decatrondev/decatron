@@ -162,7 +162,9 @@
       "botPerOwn": "Bot pieces per own card",
       "botPerOwnHint": "How many bot pieces play before each of the streamer's own cards. 1 = they alternate. With no active bot pieces, no own card plays.",
       "ownInterval": "Minimum minutes between repeats of an own card",
-      "ownIntervalHint": "No own card can repeat more often than this, even if the streamer sets less."
+      "ownIntervalHint": "No own card can repeat more often than this, even if the streamer sets less.",
+      "oneAtATime": "One piece at a time across all zones",
+      "oneAtATimeHint": "On: while one zone shows a piece, the others wait. This keeps the overlay from overwhelming the stream, even if the streamer places two zones on top of each other. Off: each zone runs on its own."
     },
     "errors": {
       "unknown": "It could not be saved. Try again.",

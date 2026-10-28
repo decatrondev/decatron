@@ -217,6 +217,10 @@ public class PromoOverlayLimits
     [Column("own_min_interval_minutes")]
     public int OwnMinIntervalMinutes { get; set; } = 5;
 
+    /// <summary>true = una sola pieza a la vez entre TODAS las zonas (el overlay no abruma aunque las zonas queden una sobre otra). false = cada zona va por su cuenta.</summary>
+    [Column("one_at_a_time")]
+    public bool OneAtATime { get; set; } = true;
+
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

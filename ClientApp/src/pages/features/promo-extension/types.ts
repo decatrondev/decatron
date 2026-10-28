@@ -10,7 +10,7 @@ export interface Template { id: number; zone: string; design: PromoDesign }
 export interface Zone extends ZonePlacement { key: string; nameEs: string; nameEn: string }
 export interface Limits {
     minGapSeconds: number; hourlyCapSeconds: number;
-    minDurationSeconds: number; maxDurationSeconds: number; minScalePercent: number; maxScalePercent: number; maxZoneMargin: number; botPerOwn: number; ownMinIntervalMinutes: number;
+    minDurationSeconds: number; maxDurationSeconds: number; minScalePercent: number; maxScalePercent: number; maxZoneMargin: number; botPerOwn: number; ownMinIntervalMinutes: number; oneAtATime: boolean;
 }
 /** Tarjeta propia del streamer (solo texto). */
 export interface OwnCard {
