@@ -9,7 +9,7 @@ export interface PromoPiece {
     titleEs: string; titleEn: string; bodyEs: string; bodyEn: string;
     linkUrl: string | null; showQr: boolean; imageUrl: string | null; icon: string | null;
     /** Clave de una zona. */
-    templateId: number | null; zone: string; priority: number; weight: number; durationSeconds: number;
+    templateId: number | null; zone: string; priority: number; weight: number; durationSeconds: number; isPinned: boolean;
     startsAt: string | null; endsAt: string | null; platforms: PromoPlatforms; onlyChannels: string | null;
     status: PromoStatus; sortOrder: number;
 }
@@ -51,7 +51,7 @@ export interface PromoOverview {
 export const EMPTY_PIECE: PromoPiece = {
     id: 0, kind: 'news', origin: 'bot', titleEs: '', titleEn: '', bodyEs: '', bodyEn: '',
     linkUrl: null, showQr: false, imageUrl: null, icon: null, templateId: null, zone: 'corner',
-    priority: 0, weight: 1, durationSeconds: 8, startsAt: null, endsAt: null, platforms: 'all', onlyChannels: null,
+    priority: 0, weight: 1, durationSeconds: 8, isPinned: false, startsAt: null, endsAt: null, platforms: 'all', onlyChannels: null,
     status: 'draft', sortOrder: 0,
 };
 

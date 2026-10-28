@@ -106,7 +106,7 @@ namespace Decatron.Services.Promo
                     case "lista":
                     case "list":
                     {
-                        var disabled = PromoPlayback.DisabledIds(row);
+                        var disabled = PromoPlayback.EffectiveDisabled(PromoPlayback.DisabledIds(row), snap.Pieces, PromoOwnCards.InUse(ownAll.Select(x => x.Card)));
                         var names = mine.Where(p => !disabled.Contains(p.Id)).Concat(ownAll.Where(x => x.Card.IsEnabled).Select(x => x.Piece))
                             .Select(p => PromoCommand.DisplayName(p, en)).Where(n => n != "").Distinct().ToList();
                         await sender.SendMessageAsync(ctx.Channel, names.Count == 0 ? Say("list_empty") : Say("list", string.Join(", ", names)));

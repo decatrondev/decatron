@@ -88,6 +88,9 @@ namespace Decatron.Services.Promo
         public static bool OwnTurn(int botSinceOwn, int botEligibleCount, PromoOverlayLimits limits) =>
             botEligibleCount > 0 && botSinceOwn >= Math.Max(1, limits.BotPerOwn);
 
+        /// <summary>¿El canal usa tarjetas propias? Las que están encendidas y no ocultas por el dueño; con eso las piezas fijas dejan de poder apagarse.</summary>
+        public static bool InUse(IEnumerable<PromoOwnCard> cards) => cards.Any(c => c.IsEnabled && !c.HiddenByAdmin);
+
         public static PromoOwnCard? Pick(IReadOnlyList<PromoOwnCard> eligible, long? lastPieceId, double roll)
         {
             if (eligible.Count == 0) return null;

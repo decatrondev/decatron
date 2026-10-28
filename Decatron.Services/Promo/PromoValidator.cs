@@ -55,6 +55,7 @@ namespace Decatron.Services.Promo
             p.LinkUrl = CleanOrNull(p.LinkUrl);
             p.ImageUrl = CleanOrNull(p.ImageUrl);
             p.Icon = CleanOrNull(p.Icon)?.ToLowerInvariant();
+            if (p.Kind == "emergency") p.IsPinned = false; // la emergencia ya ignora lo que apague el streamer
             p.Weight = Math.Clamp(p.Weight, 0, 100);
             p.Priority = Math.Clamp(p.Priority, 0, 100);
             p.DurationSeconds = Math.Clamp(p.DurationSeconds, 3, 30);

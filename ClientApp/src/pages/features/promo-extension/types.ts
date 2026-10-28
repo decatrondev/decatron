@@ -4,7 +4,7 @@ import type { ZonePlacement } from '../../../components/promo-overlay/PromoPrevi
 export interface Piece {
     id: number; kind: string; titleEs: string; titleEn: string; bodyEs: string; bodyEn: string; zone: string; platforms: string;
     durationSeconds: number; priority: number; weight: number; startsAt: string | null; endsAt: string | null; templateId: number | null;
-    linkUrl: string | null; showQr: boolean; imageUrl: string | null; icon: string | null;
+    linkUrl: string | null; showQr: boolean; imageUrl: string | null; icon: string | null; isPinned?: boolean;
 }
 export interface Template { id: number; zone: string; design: PromoDesign }
 export interface Zone extends ZonePlacement { key: string; nameEs: string; nameEn: string }
@@ -26,5 +26,8 @@ export const emptyPieceOv: PieceOv = { durationSeconds: null, templateId: null, 
 export const isEmptyPieceOv = (o: PieceOv | undefined) => !o || (o.durationSeconds == null && o.templateId == null && o.scalePercent == null);
 
 export interface PieceChange { piece: Piece; ov: PieceOv | undefined; set: (patch: Partial<PieceOv>) => void; reset: () => void }
+
+/** Pieza fija con tarjetas propias en uso: el streamer no la puede apagar ni dejar por debajo de la duración y el tamaño del dueño. */
+export const isPinnedLocked = (p: Piece, cards: OwnCard[]) => !!p.isPinned && cards.some(c => c.isEnabled && !c.hiddenByAdmin);
 
 export const pieceTitle = (p: Piece, lang: string) => (lang === 'en' && p.titleEn) || p.titleEs || p.bodyEs;

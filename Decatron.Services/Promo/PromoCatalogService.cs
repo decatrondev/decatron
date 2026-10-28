@@ -222,7 +222,7 @@ namespace Decatron.Services.Promo
             p.TitleEs = input.TitleEs; p.TitleEn = input.TitleEn; p.BodyEs = input.BodyEs; p.BodyEn = input.BodyEn;
             p.LinkUrl = input.LinkUrl; p.ShowQr = input.ShowQr; p.ImageUrl = input.ImageUrl; p.Icon = input.Icon;
             p.TemplateId = input.TemplateId; p.Zone = input.Zone;
-            p.Priority = input.Priority; p.Weight = input.Weight; p.DurationSeconds = input.DurationSeconds;
+            p.Priority = input.Priority; p.Weight = input.Weight; p.DurationSeconds = input.DurationSeconds; p.IsPinned = input.IsPinned;
             p.StartsAt = input.StartsAt; p.EndsAt = input.EndsAt;
             p.Platforms = input.Platforms; p.OnlyChannels = input.OnlyChannels;
             p.Status = input.Status; p.SortOrder = input.SortOrder;

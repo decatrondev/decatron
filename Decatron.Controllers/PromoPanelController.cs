@@ -107,6 +107,7 @@ namespace Decatron.Controllers
                 var principalId = account.Principal.UserId;
                 var prefs = await _db.PromoChannelSettings.AsNoTracking().FirstOrDefaultAsync(c => c.UserId == principalId);
                 var logins = account.Members.Select(m => m.Login).ToList();
+                var ownInUse = PromoOwnCards.InUse(await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId).ToListAsync());
                 var mine = logins.Select(l => l.ToLowerInvariant()).ToHashSet();
                 var pieces = snap.Pieces
                     .Where(p => p.Kind != PromoPlayback.EmergencyKind)
@@ -115,7 +116,7 @@ namespace Decatron.Controllers
                     .Select(p => new
                     {
                         p.Id, p.Kind, p.TitleEs, p.TitleEn, p.BodyEs, p.BodyEn, p.Zone, p.Platforms, p.DurationSeconds, p.Priority, p.Weight,
-                        p.StartsAt, p.EndsAt, p.TemplateId, p.LinkUrl, p.ShowQr, p.ImageUrl, p.Icon,
+                        p.StartsAt, p.EndsAt, p.TemplateId, p.LinkUrl, p.ShowQr, p.ImageUrl, p.Icon, p.IsPinned,
                     });
                 return Ok(new
                 {
@@ -138,7 +139,7 @@ namespace Decatron.Controllers
                     zoneOverrides = await _db.PromoZoneOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.ZoneKey, o.Anchor, o.MarginX, o.MarginY }).ToListAsync(),
                     views = await _catalog.GetChannelViewsAsync(principalId),
-                    mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.DisabledIds(prefs), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
+                    mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.EffectiveDisabled(PromoPlayback.DisabledIds(prefs), snap.Pieces, ownInUse), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
                     command = new { enabled = prefs?.CmdEnabled ?? false, name = prefs?.CmdName ?? PromoCommand.DefaultName, cooldownSeconds = prefs?.CmdCooldownSeconds ?? 10, minRole = prefs?.CmdMinRole ?? "moderator" },
                     triggers = new
                     {
@@ -337,6 +338,9 @@ namespace Decatron.Controllers
                 var piece = snap.Pieces.FirstOrDefault(p => p.Id == pieceId && p.Kind != PromoPlayback.EmergencyKind);
                 if (piece == null) return NotFound(new { success = false, message = "Pieza no encontrada" });
                 var errors = PromoOverrides.ValidatePiece(req.DurationSeconds, req.ScalePercent, req.TemplateId, piece, snap.Limits, snap.Templates);
+                if (piece.IsPinned && PromoOwnCards.InUse(await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == account.Principal.UserId).ToListAsync())
+                    && (req.DurationSeconds is int pd && pd < piece.DurationSeconds || req.ScalePercent is int ps && ps < 100))
+                    errors.Add("pinnedFloor");
                 if (errors.Count > 0) return BadRequest(new { success = false, errors });
 
                 var principalId = account.Principal.UserId;
@@ -440,9 +444,12 @@ namespace Decatron.Controllers
                     return BadRequest(new { success = false, errors = new[] { "moreInsistent" } });
 
                 var known = snap.Pieces.Select(p => p.Id).ToHashSet();
-                var disabled = (req.DisabledPieces ?? Array.Empty<long>()).Where(known.Contains).Distinct().OrderBy(i => i).ToList();
-
                 var principalId = account.Principal.UserId;
+                // Con tarjetas propias en uso, las piezas fijas no se pueden apagar: se ignoran en lo que llega.
+                var ownInUse = PromoOwnCards.InUse(await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId).ToListAsync());
+                var pinned = ownInUse ? snap.Pieces.Where(p => p.IsPinned).Select(p => p.Id).ToHashSet() : new HashSet<long>();
+                var disabled = (req.DisabledPieces ?? Array.Empty<long>()).Where(known.Contains).Where(id => !pinned.Contains(id)).Distinct().OrderBy(i => i).ToList();
+
                 string? cmdName = null;
                 if (req.Command != null)
                 {

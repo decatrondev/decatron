@@ -34,13 +34,14 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
     );
 }
 
-export function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
+export function Toggle({ checked, onChange, label, hint, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string; disabled?: boolean }) {
     return (
-        <label className="flex items-start gap-3 cursor-pointer select-none">
+        <label className={`flex items-start gap-3 select-none ${disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
             <button
                 type="button"
                 role="switch"
                 aria-checked={checked}
+                disabled={disabled}
                 onClick={() => onChange(!checked)}
                 className={`mt-0.5 relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? 'bg-ds-accent' : 'bg-ds-border '}`}
             >

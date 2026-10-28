@@ -97,6 +97,7 @@ namespace Decatron.Controllers
                 var limits = PromoPlayback.EffectiveLimits(snap.Limits, mine);
                 var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
                 var ownCards = await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId).ToListAsync();
+                var pinnedLocked = PromoOwnCards.InUse(ownCards); // con tarjetas propias en uso, las piezas fijas no se pueden apagar ni acortar
 
                 // «Una pieza a la vez»: mientras otra zona tiene una pieza en pantalla, esta espera (también lo pedido con el comando o un disparador).
                 if (limits.OneAtATime)
@@ -122,7 +123,7 @@ namespace Decatron.Controllers
                     else
                         forcedRaw = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
                             && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow));
-                    var forced = forcedRaw == null ? null : PromoOverrides.ApplyToPiece(forcedRaw, PromoOwnCards.IsOwnPieceId(forcedRaw.Id) ? null : await PieceOverrideAsync(principalId, forcedRaw.Id), snap.Limits, snap.Templates);
+                    var forced = forcedRaw == null ? null : PromoOverrides.ApplyToPiece(forcedRaw, PromoOwnCards.IsOwnPieceId(forcedRaw.Id) ? null : await PieceOverrideAsync(principalId, forcedRaw.Id), snap.Limits, snap.Templates, pinnedLocked);
                     if (forced != null && TemplateFor(snap, forced.Piece) != null)
                     {
                         lock (state.Gate) PromoPlayback.MarkShown(state, forced.Piece, limits, DateTime.UtcNow);
@@ -132,7 +133,7 @@ namespace Decatron.Controllers
                 }
 
                 if (mine?.Paused == true) return Ok(new { success = true, found = true, wait = 60 });
-                var disabled = PromoPlayback.DisabledIds(mine);
+                var disabled = PromoPlayback.EffectiveDisabled(PromoPlayback.DisabledIds(mine), snap.Pieces, pinnedLocked);
                 var zoneRow = snap.Zones.FirstOrDefault(z => z.Key == zone);
                 if (zoneRow == null) return Ok(new { success = true, found = true, wait = 60 });
 
@@ -143,7 +144,7 @@ namespace Decatron.Controllers
                 var eligible = new List<PromoPiece>();
                 foreach (var raw in snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now) && p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id)))
                 {
-                    var merged = PromoOverrides.ApplyToPiece(raw, pieceOver.FirstOrDefault(o => o.PieceId == raw.Id), snap.Limits, snap.Templates);
+                    var merged = PromoOverrides.ApplyToPiece(raw, pieceOver.FirstOrDefault(o => o.PieceId == raw.Id), snap.Limits, snap.Templates, pinnedLocked);
                     if (TemplateFor(snap, merged.Piece) == null) continue;
                     eligible.Add(merged.Piece);
                     scales[raw.Id] = merged.ScalePercent;

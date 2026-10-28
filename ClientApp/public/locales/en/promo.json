@@ -72,7 +72,9 @@
         "kick": "Kick only"
       },
       "emergencyNote": "A published emergency piece replaces all the others while it is in effect.",
-      "views": "Delivered to overlays: {{d7}} in 7 days · {{d30}} in 30 days · {{total}} total"
+      "views": "Delivered to overlays: {{d7}} in 7 days · {{d30}} in 30 days · {{total}} total",
+      "pinned": "Fixed",
+      "pinnedMany": "More than one piece is fixed. One is recommended, so it does not feel like imposed advertising."
     },
     "editor": {
       "titleNew": "New piece",
@@ -111,7 +113,9 @@
       "platforms": "Platforms",
       "onlyChannels": "Only in these channels",
       "onlyChannelsHint": "Logins separated by commas. Empty = all channels.",
-      "status": "Status"
+      "status": "Status",
+      "pinned": "Fixed piece",
+      "pinnedHint": "While the channel uses its own cards, the streamer cannot turn it off or make it shorter or smaller than your value. Without own cards, nothing changes. Recommended: just one."
     },
     "templates": {
       "new": "New template",
@@ -533,7 +537,8 @@
       "until": "Until {{date}}",
       "on": "On",
       "off": "Off: it won't show on your channel",
-      "shown": "Shown {{n}} times in 30 days"
+      "shown": "Shown {{n}} times in 30 days",
+      "pinned": "Fixed while you use your own cards"
     },
     "settings": {
       "title": "Settings",
@@ -579,7 +584,8 @@
       "description": "How many seconds each piece stays on screen. You can choose between {{min}} and {{max}} seconds.",
       "custom": "Changed (owner uses {{n}} s)",
       "default": "Default value",
-      "unit": "seconds"
+      "unit": "seconds",
+      "pinned": "Fixed: cannot be shorter than Decatron's {{n}} s while you use your own cards"
     },
     "position": {
       "title": "Position",
@@ -607,7 +613,8 @@
       "description": "Pick each piece's template and size. Size can go from {{min}}% to {{max}}%.",
       "template": "Template",
       "templateN": "Template {{n}}",
-      "scale": "Size"
+      "scale": "Size",
+      "pinned": "Fixed: cannot go below 100 % while you use your own cards"
     },
     "errors": {
       "durationRange": "The duration is outside the allowed range.",
@@ -618,7 +625,8 @@
       "slotUnknown": "That setting does not exist on the template.",
       "slotValueInvalid": "A value is not valid (color, font or text).",
       "slotValuesInvalid": "Too many settings.",
-      "triggerPieceInvalid": "That piece is no longer available."
+      "triggerPieceInvalid": "That piece is no longer available.",
+      "pinnedFloor": "This piece is fixed while you use your own cards: it cannot be shorter or smaller than Decatron's value."
     },
     "style": {
       "title": "Colors, texts and fonts",

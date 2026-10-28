@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Eye, EyeOff, Megaphone, Pencil, Plus, Trash2 } from 'lucide-react';
-import { Badge, Button, Card, Empty } from '../../../components/ds';
+import { Alert, Badge, Button, Card, Empty } from '../../../components/ds';
 import { PromoZoom } from '../../../components/promo-overlay/PromoPreview';
 import ModalShell from '../../../components/dashboard/ModalShell';
 import { errorCodes, promoAdminApi } from './api';
@@ -45,6 +45,8 @@ export function PiecesTab({ data, lang, onLang, onChanged, notify }: {
                 <Button icon={<Plus />} onClick={() => setEditing({ ...EMPTY_PIECE, sortOrder: data.pieces.length })}>{t('admin.pieces.new')}</Button>
             </div>
 
+            {data.pieces.filter(p => p.isPinned).length > 1 && <Alert tone="warn">{t('admin.pieces.pinnedMany')}</Alert>}
+
             {data.pieces.length === 0 && (
                 <Empty icon={<Megaphone />} title={t('admin.pieces.emptyTitle')}>{t('admin.pieces.emptyHint')}</Empty>
             )}
@@ -59,6 +61,7 @@ export function PiecesTab({ data, lang, onLang, onChanged, notify }: {
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Badge tone={p.status === 'published' ? 'ok' : undefined}>{t(`admin.pieces.status.${p.status}`)}</Badge>
                                     <Badge tone={p.kind === 'emergency' ? 'danger' : 'accent'}>{t(`admin.pieces.kind.${p.kind}`)}</Badge>
+                                    {p.isPinned && <Badge tone="warn">{t('admin.pieces.pinned')}</Badge>}
                                     {p.origin === 'tercero' && <Badge tone="warn">{t('admin.pieces.origin.tercero')}</Badge>}
                                     <span className="text-sm font-bold text-ds-text truncate min-w-0">{title}</span>
                                 </div>

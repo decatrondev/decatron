@@ -5,11 +5,11 @@ import { applySlotValues, hasLowContrast, slotDefault, slotLabel, type SlotValue
 import { PromoStage } from '../../../components/promo-overlay/PromoPreview';
 import { useBrand } from '../../../brand/BrandContext';
 import type { PromoContent } from '../../../components/promo-overlay/types';
-import { pieceTitle, type Limits, type Piece, type PieceOv, type Template, type Zone } from './types';
+import { isPinnedLocked, pieceTitle, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone } from './types';
 
 /** Pestaña «Diseño»: qué plantilla usa cada pieza (entre las de su zona) y a qué tamaño sale, dentro de los límites del dueño. */
-export function DesignTab({ pieces, templates, zones, limits, overrides, styles, lang, channel, onChange, onStyleChange }: {
-    pieces: Piece[]; templates: Template[]; zones: Zone[]; limits: Limits; overrides: Record<number, PieceOv>; styles: Record<number, SlotValues>; lang: string; channel: string;
+export function DesignTab({ pieces, cards, templates, zones, limits, overrides, styles, lang, channel, onChange, onStyleChange }: {
+    pieces: Piece[]; cards: OwnCard[]; templates: Template[]; zones: Zone[]; limits: Limits; overrides: Record<number, PieceOv>; styles: Record<number, SlotValues>; lang: string; channel: string;
     onChange: (id: number, patch: Partial<PieceOv>) => void; onStyleChange: (templateId: number, values: SlotValues) => void;
 }) {
     const { t } = useTranslation('promo');
@@ -24,7 +24,9 @@ export function DesignTab({ pieces, templates, zones, limits, overrides, styles,
                     const options = templates.filter(x => x.zone === p.zone);
                     const tplId = ov?.templateId ?? p.templateId ?? options[0]?.id;
                     const tpl = templates.find(x => x.id === tplId) ?? options[0];
-                    const scale = ov?.scalePercent ?? 100;
+                    const locked = isPinnedLocked(p, cards);
+                    const floorScale = locked ? 100 : limits.minScalePercent;
+                    const scale = Math.max(floorScale, ov?.scalePercent ?? 100);
                     const zone = zones.find(z => z.key === p.zone);
                     const content: PromoContent = {
                         title: (lang === 'en' && p.titleEn) || p.titleEs, body: (lang === 'en' && p.bodyEn) || p.bodyEs,
@@ -45,9 +47,9 @@ export function DesignTab({ pieces, templates, zones, limits, overrides, styles,
                                     </div>
                                 </Field>
                             )}
-                            <Field label={t('panel.design.scale')}>
+                            <Field label={t('panel.design.scale')} hint={locked ? t('panel.design.pinned') : undefined}>
                                 <div className="flex gap-2 items-center">
-                                    <div className="flex-1"><Slider value={scale} min={limits.minScalePercent} max={limits.maxScalePercent} step={5} suffix="%"
+                                    <div className="flex-1"><Slider value={scale} min={floorScale} max={limits.maxScalePercent} step={5} suffix="%"
                                         onChange={v => onChange(p.id, { scalePercent: v === 100 ? null : v })} /></div>
                                     <button className="ds-btn ds-btn--secondary ds-btn--sm" disabled={ov?.scalePercent == null} onClick={() => onChange(p.id, { scalePercent: null })}>{t('panel.reset')}</button>
                                 </div>

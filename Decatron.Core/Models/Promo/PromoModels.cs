@@ -145,6 +145,10 @@ public class PromoPiece
     [Column("weight")]
     public int Weight { get; set; } = 1;
 
+    /// <summary>Fija: mientras el canal tenga tarjetas propias en uso, el streamer no puede apagarla ni dejarla más corta o más chica que el valor del dueño.</summary>
+    [Column("is_pinned")]
+    public bool IsPinned { get; set; }
+
     [Column("duration_seconds")]
     public int DurationSeconds { get; set; } = 8;
 

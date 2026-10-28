@@ -19,7 +19,7 @@ import type { SlotValues } from '../../components/promo-overlay/slots';
 import { OwnCardsSection } from './promo-extension/OwnCardsSection';
 import { ShowNowButton } from './promo-extension/ShowNowButton';
 import { TriggersCard, type Triggers } from './promo-extension/TriggersCard';
-import { isEmptyPieceOv, emptyPieceOv, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
+import { isEmptyPieceOv, isPinnedLocked, emptyPieceOv, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
 
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
 // su estado, y otra con las piezas que se están mostrando. La personalización por streamer llega en la fase siguiente.
@@ -126,7 +126,7 @@ export default function PromoConfig() {
             setMessage({ ok: true, text: t('panel.settings.saved') });
         } catch (e: any) {
             const code = e?.response?.data?.errors?.[0];
-            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : ['triggerPieceInvalid', 'durationRange', 'scaleRange', 'templateInvalid', 'anchorInvalid', 'marginRange', 'slotUnknown', 'slotValueInvalid', 'slotValuesInvalid'].includes(code) ? t(`panel.errors.${code}`) : t('panel.settings.saveFailed') });
+            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : ['triggerPieceInvalid', 'pinnedFloor', 'durationRange', 'scaleRange', 'templateInvalid', 'anchorInvalid', 'marginRange', 'slotUnknown', 'slotValueInvalid', 'slotValuesInvalid'].includes(code) ? t(`panel.errors.${code}`) : t('panel.settings.saveFailed') });
         }
         setSaving(false);
         window.setTimeout(() => setMessage(null), 4000);
@@ -209,13 +209,15 @@ export default function PromoConfig() {
                             {catalog?.pieces.map(p => {
                                 const tpl = catalog.templates.find(x => x.id === p.templateId) ?? catalog.templates.find(x => x.zone === p.zone);
                                 const zone = catalog.zones.find(z => z.key === p.zone);
+                                const locked = isPinnedLocked(p, catalog.ownCards);
                                 const content: PromoContent = {
                                     title: (lang === 'en' && p.titleEn) || p.titleEs, body: (lang === 'en' && p.bodyEn) || p.bodyEs,
                                     link: p.linkUrl, imageUrl: p.imageUrl, icon: p.icon, showQr: p.showQr,
                                 };
                                 return (
-                                    <div key={p.id} className={`rounded-lg border border-ds-border bg-ds-raised/40 p-3 space-y-3 min-w-0 ${mine?.disabledPieces.includes(p.id) ? 'opacity-50' : ''}`}>
-                                        <Toggle checked={!mine?.disabledPieces.includes(p.id)} onChange={on => toggle(p.id, on)} label={content.title || p.titleEs} hint={mine?.disabledPieces.includes(p.id) ? t('panel.pieces.off') : t('panel.pieces.on')} />
+                                    <div key={p.id} className={`rounded-lg border border-ds-border bg-ds-raised/40 p-3 space-y-3 min-w-0 ${!locked && mine?.disabledPieces.includes(p.id) ? 'opacity-50' : ''}`}>
+                                        <Toggle checked={locked || !mine?.disabledPieces.includes(p.id)} disabled={locked} onChange={on => toggle(p.id, on)} label={content.title || p.titleEs}
+                                            hint={locked ? t('panel.pieces.pinned') : mine?.disabledPieces.includes(p.id) ? t('panel.pieces.off') : t('panel.pieces.on')} />
                                         {tpl && <PromoZoom design={tpl.design} content={content} resolveImage={resolve}
                                             vars={{ channel, commands: '!title · !game', link: (p.linkUrl || 'https://decatron.net').replace(/^https:\/\//, '') }} />}
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs 3xl:text-sm text-ds-soft">
@@ -237,17 +239,17 @@ export default function PromoConfig() {
                 )}
                 {tab === 'pieces' && catalog && mine && (
                     <OwnCardsSection cards={catalog.ownCards} max={catalog.ownQuota.max} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} lang={lang} channel={channel}
-                        botActive={catalog.pieces.some(p => !mine.disabledPieces.includes(p.id))} onChanged={reloadCatalog} />
+                        botActive={catalog.pieces.some(p => !mine.disabledPieces.includes(p.id) || p.isPinned)} onChanged={reloadCatalog} />
                 )}
                 {tab === 'timing' && catalog && (
-                    <TimingTab pieces={catalog.pieces} limits={catalog.limits} overrides={pieceOv} lang={lang} onChange={changePiece} />
+                    <TimingTab pieces={catalog.pieces} cards={catalog.ownCards} limits={catalog.limits} overrides={pieceOv} lang={lang} onChange={changePiece} />
                 )}
                 {tab === 'position' && catalog && (
                     <PositionTab zones={zonesNow} defaults={catalog.zones} overrides={zoneOv} pieces={catalog.pieces} templates={catalog.templates} limits={catalog.limits}
                         lang={lang} channel={channel} onChange={changeZone} onReset={resetZone} />
                 )}
                 {tab === 'design' && catalog && (
-                    <DesignTab pieces={catalog.pieces} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} overrides={pieceOv} styles={styleOv} lang={lang} channel={channel} onChange={changePiece} onStyleChange={changeStyle} />
+                    <DesignTab pieces={catalog.pieces} cards={catalog.ownCards} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} overrides={pieceOv} styles={styleOv} lang={lang} channel={channel} onChange={changePiece} onStyleChange={changeStyle} />
                 )}
                 {tab === 'stats' && catalog && <StatsTab pieces={catalog.pieces} cards={catalog.ownCards} lang={lang} />}
                 {tab === 'settings' && mine && catalog && (

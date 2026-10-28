@@ -5722,6 +5722,7 @@ CREATE TABLE public.promo_pieces (
     created_by bigint,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    is_pinned boolean DEFAULT false NOT NULL,
     CONSTRAINT promo_pieces_kind_check CHECK (((kind)::text = ANY ((ARRAY['commands'::character varying, 'module'::character varying, 'qr'::character varying, 'news'::character varying, 'credits'::character varying, 'community'::character varying, 'emergency'::character varying])::text[]))),
     CONSTRAINT promo_pieces_origin_check CHECK (((origin)::text = ANY ((ARRAY['bot'::character varying, 'tercero'::character varying])::text[]))),
     CONSTRAINT promo_pieces_platforms_check CHECK (((platforms)::text = ANY ((ARRAY['all'::character varying, 'twitch'::character varying, 'kick'::character varying])::text[]))),

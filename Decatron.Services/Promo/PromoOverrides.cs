@@ -22,19 +22,21 @@ namespace Decatron.Services.Promo
         /// La pieza tal como la ve este canal: duración y plantilla del streamer si las cambió (recortadas a los límites; la plantilla solo si
         /// existe, está activa y es de la misma zona), y su escala. Devuelve una copia: el catálogo compartido no se toca.
         /// </summary>
-        public static PieceResult ApplyToPiece(PromoPiece piece, PromoPieceOverride? o, PromoOverlayLimits limits, IReadOnlyCollection<PromoTemplate> templates)
+        public static PieceResult ApplyToPiece(PromoPiece piece, PromoPieceOverride? o, PromoOverlayLimits limits, IReadOnlyCollection<PromoTemplate> templates, bool pinnedLocked = false)
         {
             if (o == null) return new PieceResult(piece, 100);
             var copy = new PromoPiece
             {
-                Id = piece.Id, Kind = piece.Kind, Origin = piece.Origin, TitleEs = piece.TitleEs, TitleEn = piece.TitleEn, BodyEs = piece.BodyEs, BodyEn = piece.BodyEn,
+                Id = piece.Id, IsPinned = piece.IsPinned, Kind = piece.Kind, Origin = piece.Origin, TitleEs = piece.TitleEs, TitleEn = piece.TitleEn, BodyEs = piece.BodyEs, BodyEn = piece.BodyEn,
                 LinkUrl = piece.LinkUrl, ShowQr = piece.ShowQr, ImageUrl = piece.ImageUrl, Icon = piece.Icon, TemplateId = piece.TemplateId, Zone = piece.Zone,
                 Priority = piece.Priority, Weight = piece.Weight, DurationSeconds = piece.DurationSeconds, StartsAt = piece.StartsAt, EndsAt = piece.EndsAt,
                 Platforms = piece.Platforms, OnlyChannels = piece.OnlyChannels, Status = piece.Status, SortOrder = piece.SortOrder,
             };
-            if (o.DurationSeconds is int d) copy.DurationSeconds = ClampDuration(d, limits);
+            // Pieza fija con tarjetas propias en uso: nunca más corta ni más chica que lo del dueño (sí puede ser más larga o más grande).
+            var floorDuration = pinnedLocked && piece.IsPinned ? piece.DurationSeconds : 0;
+            if (o.DurationSeconds is int d) copy.DurationSeconds = Math.Max(floorDuration, ClampDuration(d, limits));
             if (o.TemplateId is long t && templates.Any(x => x.Id == t && x.IsEnabled && x.Zone == piece.Zone)) copy.TemplateId = t;
-            return new PieceResult(copy, o.ScalePercent is int s ? ClampScale(s, limits) : 100);
+            return new PieceResult(copy, o.ScalePercent is int s ? Math.Max(pinnedLocked && piece.IsPinned ? 100 : 0, ClampScale(s, limits)) : 100);
         }
 
         /// <summary>La zona con la posición del streamer (ancla válida y márgenes recortados), o la del dueño si no cambió nada.</summary>

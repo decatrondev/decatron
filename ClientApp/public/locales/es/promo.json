@@ -72,7 +72,9 @@
         "kick": "Solo Kick"
       },
       "emergencyNote": "Una pieza de emergencia publicada reemplaza a todas las demás mientras esté vigente.",
-      "views": "Entregas al overlay: {{d7}} en 7 días · {{d30}} en 30 días · {{total}} en total"
+      "views": "Entregas al overlay: {{d7}} en 7 días · {{d30}} en 30 días · {{total}} en total",
+      "pinned": "Fija",
+      "pinnedMany": "Hay más de una pieza fija. Lo recomendado es una sola, para que no se sienta como publicidad impuesta."
     },
     "editor": {
       "titleNew": "Nueva pieza",
@@ -111,7 +113,9 @@
       "platforms": "Plataformas",
       "onlyChannels": "Solo en estos canales",
       "onlyChannelsHint": "Logins separados por coma. Vacío = todos los canales.",
-      "status": "Estado"
+      "status": "Estado",
+      "pinned": "Pieza fija",
+      "pinnedHint": "Mientras el canal use tarjetas propias, el streamer no puede apagarla ni dejarla más corta o más chica que tu valor. Sin tarjetas propias, nada cambia. Recomendado: una sola."
     },
     "templates": {
       "new": "Nueva plantilla",
@@ -533,7 +537,8 @@
       "until": "Hasta {{date}}",
       "on": "Activa",
       "off": "Apagada: no saldrá en tu canal",
-      "shown": "Salió {{n}} veces en 30 días"
+      "shown": "Salió {{n}} veces en 30 días",
+      "pinned": "Fija mientras uses tarjetas propias"
     },
     "settings": {
       "title": "Ajustes",
@@ -579,7 +584,8 @@
       "description": "Cuántos segundos queda cada pieza en pantalla. Puedes elegir entre {{min}} y {{max}} segundos.",
       "custom": "Cambiado (el dueño usa {{n}} s)",
       "default": "Valor por defecto",
-      "unit": "segundos"
+      "unit": "segundos",
+      "pinned": "Fija: no puede ser menor que los {{n}} s de Decatron mientras uses tarjetas propias"
     },
     "position": {
       "title": "Posición",
@@ -607,7 +613,8 @@
       "description": "Elige la plantilla de cada pieza y su tamaño. El tamaño puede ir de {{min}} % a {{max}} %.",
       "template": "Plantilla",
       "templateN": "Plantilla {{n}}",
-      "scale": "Tamaño"
+      "scale": "Tamaño",
+      "pinned": "Fija: no puede ser menor al 100 % mientras uses tarjetas propias"
     },
     "errors": {
       "durationRange": "La duración está fuera del rango permitido.",
@@ -618,7 +625,8 @@
       "slotUnknown": "Ese ajuste no existe en la plantilla.",
       "slotValueInvalid": "Un valor no es válido (color, tipografía o texto).",
       "slotValuesInvalid": "Hay demasiados ajustes.",
-      "triggerPieceInvalid": "Esa pieza ya no está disponible."
+      "triggerPieceInvalid": "Esa pieza ya no está disponible.",
+      "pinnedFloor": "Esta pieza es fija mientras uses tarjetas propias: no puede quedar más corta ni más chica que el valor de Decatron."
     },
     "style": {
       "title": "Colores, textos y tipografías",

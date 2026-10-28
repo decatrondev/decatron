@@ -49,6 +49,14 @@ namespace Decatron.Services.Promo
             catch (System.Text.Json.JsonException) { return new(); }
         }
 
+        /// <summary>Lo apagado que realmente vale: si el canal usa tarjetas propias, las piezas fijas no se pueden apagar y se descuentan de la lista.</summary>
+        public static HashSet<long> EffectiveDisabled(HashSet<long> disabled, IEnumerable<PromoPiece> pieces, bool ownCardsInUse)
+        {
+            if (!ownCardsInUse) return disabled;
+            var pinned = pieces.Where(p => p.IsPinned).Select(p => p.Id).ToHashSet();
+            return disabled.Where(id => !pinned.Contains(id)).ToHashSet();
+        }
+
         /// <summary>true si la pieza puede salir en este canal ahora (vigencia, plataforma y canales permitidos).</summary>
         public static bool IsEligible(PromoPiece p, string zone, string variant, IReadOnlyCollection<string> logins, DateTime now)
         {

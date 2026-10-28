@@ -111,6 +111,7 @@ export function PieceEditor({ initial, templates, zones, options, lang, onLang, 
                             </Select>
                         </Field>
                     </div>
+                    {p.kind !== 'emergency' && <ToggleRow title={t('admin.editor.pinned')} description={t('admin.editor.pinnedHint')} checked={p.isPinned} onChange={v => set('isPinned', v)} />}
                     <Field label={t('admin.editor.onlyChannels')} hint={t('admin.editor.onlyChannelsHint')}>
                         <Input value={p.onlyChannels ?? ''} maxLength={500} onChange={e => set('onlyChannels', e.target.value || null)} />
                     </Field>
