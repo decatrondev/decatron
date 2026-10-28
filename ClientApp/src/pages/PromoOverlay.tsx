@@ -150,6 +150,18 @@ export default function PromoOverlay() {
         return () => { disposed = true; if (retry) clearTimeout(retry); connection?.stop(); };
     }, [channel, source]);
 
+    // La posición de las zonas la puede cambiar el streamer desde su panel: se vuelve a leer cada 20 s para que se note sin recargar OBS.
+    useEffect(() => {
+        if (!channel) return;
+        const id = window.setInterval(async () => {
+            try {
+                const d = await (await fetch(`/api/promo/resolve/${encodeURIComponent(channel)}`)).json();
+                if (d?.found) setZones(prev => (JSON.stringify(prev) === JSON.stringify(d.zones) ? prev : d.zones));
+            } catch { /* se reintenta en la próxima vuelta */ }
+        }, 20000);
+        return () => window.clearInterval(id);
+    }, [channel]);
+
     // Una pieza de emergencia publicada reemplaza a todas las demás: se consulta cada pocos segundos y, mientras haya una,
     // la rotación se detiene y la pieza se queda en pantalla hasta que el dueño la despublique o venza.
     useEffect(() => {

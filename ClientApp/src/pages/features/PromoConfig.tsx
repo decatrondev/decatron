@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
@@ -7,28 +7,29 @@ import TabIcon from '../../components/dashboard/TabIcon';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Card, Field, NumberInput, Select, Toggle, inputClass } from '../../components/overlay-editor/ui';
 import { LinkRow, Warning, useOverlayStatus } from '../../components/overlay-editor/OverlayLinks';
-import { PromoZoom, type ZonePlacement } from '../../components/promo-overlay/PromoPreview';
+import { PromoZoom } from '../../components/promo-overlay/PromoPreview';
 import { docUrl } from '../docs/registry';
 import { useBrand } from '../../brand/BrandContext';
-import type { PromoDesign, PromoContent } from '../../components/promo-overlay/types';
+import type { PromoContent } from '../../components/promo-overlay/types';
+import { TimingTab } from './promo-extension/TimingTab';
+import { PositionTab } from './promo-extension/PositionTab';
+import { DesignTab } from './promo-extension/DesignTab';
+import { isEmptyPieceOv, emptyPieceOv, type Limits, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
 
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
 // su estado, y otra con las piezas que se están mostrando. La personalización por streamer llega en la fase siguiente.
 
-type TabId = 'guide' | 'pieces' | 'settings';
-const TABS: { id: TabId; icon: string }[] = [{ id: 'guide', icon: '📚' }, { id: 'pieces', icon: '🖼️' }, { id: 'settings', icon: '⚙️' }];
+type TabId = 'guide' | 'pieces' | 'timing' | 'position' | 'design' | 'settings';
+const TABS: { id: TabId; icon: string }[] = [{ id: 'guide', icon: '📚' }, { id: 'pieces', icon: '🖼️' }, { id: 'timing', icon: '⏱️' }, { id: 'position', icon: '📍' }, { id: 'design', icon: '🎨' }, { id: 'settings', icon: '⚙️' }];
 
-interface Piece {
-    id: number; kind: string; titleEs: string; titleEn: string; bodyEs: string; bodyEn: string; zone: string; platforms: string;
-    durationSeconds: number; priority: number; weight: number; startsAt: string | null; endsAt: string | null; templateId: number | null;
-    linkUrl: string | null; showQr: boolean; imageUrl: string | null; icon: string | null;
-}
 interface Catalog {
     pieces: Piece[];
-    templates: { id: number; zone: string; design: PromoDesign }[];
-    zones: (ZonePlacement & { key: string; nameEs: string; nameEn: string })[];
-    limits: { minGapSeconds: number; hourlyCapSeconds: number };
+    templates: Template[];
+    zones: Zone[];
+    limits: Limits;
     mine: Mine;
+    pieceOverrides: ({ pieceId: number } & PieceOv)[];
+    zoneOverrides: ({ zoneKey: string } & ZoneOv)[];
     /** Veces que salió cada pieza en este canal en los últimos 30 días. */
     views: Record<string, number>;
 }
@@ -47,6 +48,9 @@ export default function PromoConfig() {
     const [catalog, setCatalog] = useState<Catalog | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [mine, setMine] = useState<Mine | null>(null);
+    const [pieceOv, setPieceOv] = useState<Record<number, PieceOv>>({});
+    const [zoneOv, setZoneOv] = useState<Record<string, ZoneOv>>({});
+    const saved = useRef<{ pieces: Record<number, PieceOv>; zones: Record<string, ZoneOv> }>({ pieces: {}, zones: {} });
     const [dirty, setDirty] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -58,7 +62,13 @@ export default function PromoConfig() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permsLoading]);
     useEffect(() => {
-        api.get('/promo-panel/catalog').then(r => { setCatalog(r.data); setMine(r.data.mine); }).catch(e => setError(e?.response?.status === 403 ? 'forbidden' : 'loadFailed'));
+        api.get('/promo-panel/catalog').then(r => {
+            const c: Catalog = r.data;
+            const p: Record<number, PieceOv> = {}; c.pieceOverrides.forEach(o => { p[o.pieceId] = { durationSeconds: o.durationSeconds, templateId: o.templateId, scalePercent: o.scalePercent }; });
+            const z: Record<string, ZoneOv> = {}; c.zoneOverrides.forEach(o => { z[o.zoneKey] = { anchor: o.anchor, marginX: o.marginX, marginY: o.marginY }; });
+            saved.current = { pieces: p, zones: z };
+            setPieceOv(p); setZoneOv(z); setCatalog(c); setMine(c.mine);
+        }).catch(e => setError(e?.response?.status === 403 ? 'forbidden' : 'loadFailed'));
     }, []);
 
     const channel = status.overlayKey || 'tu_canal';
@@ -71,16 +81,33 @@ export default function PromoConfig() {
     const change = (patch: Partial<Mine>) => { setMine(m => (m ? { ...m, ...patch } : m)); setDirty(true); };
     const changeCmd = (patch: Partial<CmdSettings>) => change({ command: { ...(mine as Mine).command, ...patch } });
     const toggle = (id: number, on: boolean) => change({ disabledPieces: on ? (mine?.disabledPieces ?? []).filter(x => x !== id) : [...(mine?.disabledPieces ?? []), id] });
+    const changePiece = (id: number, patch: Partial<PieceOv>) => { setPieceOv(m => ({ ...m, [id]: { ...emptyPieceOv, ...m[id], ...patch } })); setDirty(true); };
+    const changeZone = (key: string, v: ZoneOv) => { setZoneOv(m => ({ ...m, [key]: v })); setDirty(true); };
+    const resetZone = (key: string) => { setZoneOv(m => { const { [key]: _gone, ...rest } = m; return rest; }); setDirty(true); };
+    // Las zonas como las ve este canal: la del dueño, o la que el streamer movió.
+    const zonesNow = useMemo(() => (catalog?.zones ?? []).map(z => (zoneOv[z.key] ? { ...z, ...zoneOv[z.key] } : z)), [catalog, zoneOv]);
     const save = async () => {
         if (!mine) return;
         setSaving(true);
         try {
             await api.put('/promo-panel/settings', { paused: mine.paused, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds, command: mine.command });
+            // Lo que cambió de piezas y zonas: solo se envía la diferencia con lo último guardado.
+            const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+            for (const id of new Set([...Object.keys(saved.current.pieces), ...Object.keys(pieceOv)].map(Number))) {
+                const cur = isEmptyPieceOv(pieceOv[id]) ? undefined : pieceOv[id];
+                const old = isEmptyPieceOv(saved.current.pieces[id]) ? undefined : saved.current.pieces[id];
+                if (!same(cur, old)) await api.put(`/promo-panel/piece/${id}`, cur ?? emptyPieceOv);
+            }
+            for (const key of new Set([...Object.keys(saved.current.zones), ...Object.keys(zoneOv)])) {
+                if (same(zoneOv[key], saved.current.zones[key])) continue;
+                if (zoneOv[key]) await api.put(`/promo-panel/zone/${key}`, zoneOv[key]); else await api.delete(`/promo-panel/zone/${key}`);
+            }
+            saved.current = { pieces: { ...pieceOv }, zones: { ...zoneOv } };
             setDirty(false);
             setMessage({ ok: true, text: t('panel.settings.saved') });
         } catch (e: any) {
             const code = e?.response?.data?.errors?.[0];
-            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : t('panel.settings.saveFailed') });
+            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : ['durationRange', 'scaleRange', 'templateInvalid', 'anchorInvalid', 'marginRange'].includes(code) ? t(`panel.errors.${code}`) : t('panel.settings.saveFailed') });
         }
         setSaving(false);
         window.setTimeout(() => setMessage(null), 4000);
@@ -187,6 +214,16 @@ export default function PromoConfig() {
                             })}
                         </div>
                     </Card>
+                )}
+                {tab === 'timing' && catalog && (
+                    <TimingTab pieces={catalog.pieces} limits={catalog.limits} overrides={pieceOv} lang={lang} onChange={changePiece} />
+                )}
+                {tab === 'position' && catalog && (
+                    <PositionTab zones={zonesNow} defaults={catalog.zones} overrides={zoneOv} pieces={catalog.pieces} templates={catalog.templates} limits={catalog.limits}
+                        lang={lang} channel={channel} onChange={changeZone} onReset={resetZone} />
+                )}
+                {tab === 'design' && catalog && (
+                    <DesignTab pieces={catalog.pieces} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} overrides={pieceOv} lang={lang} channel={channel} onChange={changePiece} />
                 )}
                 {tab === 'settings' && mine && catalog && (
                     <div className="space-y-6">

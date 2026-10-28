@@ -37,13 +37,13 @@ function useFit(natural: number, max: number) {
 }
 
 /** El lienzo de 1920×1080 reducido, con la ficha en su zona. Para ver tamaño y posición reales. */
-export function PromoStage({ zone, background, ...c }: Common & { zone: ZonePlacement; background?: string }) {
+export function PromoStage({ zone, background, pieceScale = 1, ...c }: Common & { zone: ZonePlacement; background?: string; pieceScale?: number }) {
     const { box, scale } = useFit(STAGE.width, 1);
-    const pos = placeInZone(zone, c.design.canvas.width, c.design.canvas.height);
+    const pos = placeInZone(zone, c.design.canvas.width * pieceScale, c.design.canvas.height * pieceScale);
     return (
         <div ref={box} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 10, border: '1px solid var(--ds-border)', background: background ?? 'radial-gradient(120% 120% at 30% 20%, var(--ds-raised), var(--ds-bg))' }}>
             <div style={{ position: 'absolute', left: 0, top: 0, width: STAGE.width, height: STAGE.height, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-                <div style={{ position: 'absolute', left: pos.x, top: pos.y }}><PromoDesignRenderer {...c} /></div>
+                <div style={{ position: 'absolute', left: pos.x, top: pos.y, transform: pieceScale === 1 ? undefined : `scale(${pieceScale})`, transformOrigin: 'top left' }}><PromoDesignRenderer {...c} /></div>
             </div>
         </div>
     );

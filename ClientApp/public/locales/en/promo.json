@@ -410,7 +410,10 @@
     "tabs": {
       "guide": "Guide",
       "pieces": "What is shown",
-      "settings": "Settings"
+      "settings": "Settings",
+      "timing": "Timing",
+      "position": "Position",
+      "design": "Design"
     },
     "guide": {
       "title": "How to use it",
@@ -491,6 +494,49 @@
       "cmdInvalid": "The command name isn't valid: use 2 to 20 lowercase letters, numbers or underscore.",
       "cmdReserved": "That name is already used by a bot command. Pick another.",
       "cmdCustom": "You already have a custom command with that name. Pick another."
+    },
+    "reset": "Owner's value",
+    "timing": {
+      "title": "Timing",
+      "description": "How many seconds each piece stays on screen. You can choose between {{min}} and {{max}} seconds.",
+      "custom": "Changed (owner uses {{n}} s)",
+      "default": "Default value",
+      "unit": "seconds"
+    },
+    "position": {
+      "title": "Position",
+      "description": "Drag each card to where you want it in your scene. You can move it away from the edge up to {{max}} pixels.",
+      "custom": "Your position",
+      "default": "Default position",
+      "anchor": "Reference corner or side",
+      "marginX": "Horizontal gap",
+      "marginY": "Vertical gap",
+      "ownerHas": "Default: {{x}} px and {{y}} px.",
+      "anchors": {
+        "top-left": "Top left",
+        "top-center": "Top center",
+        "top-right": "Top right",
+        "middle-left": "Middle left",
+        "center": "Center",
+        "middle-right": "Middle right",
+        "bottom-left": "Bottom left",
+        "bottom-center": "Bottom center",
+        "bottom-right": "Bottom right"
+      }
+    },
+    "design": {
+      "title": "Design",
+      "description": "Pick each piece's template and size. Size can go from {{min}}% to {{max}}%.",
+      "template": "Template",
+      "templateN": "Template {{n}}",
+      "scale": "Size"
+    },
+    "errors": {
+      "durationRange": "The duration is outside the allowed range.",
+      "scaleRange": "The size is outside the allowed range.",
+      "templateInvalid": "That template can't be used on this piece.",
+      "anchorInvalid": "The chosen corner isn't valid.",
+      "marginRange": "The gap is above the allowed maximum."
     }
   }
 }

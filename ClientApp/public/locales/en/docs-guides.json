@@ -3612,6 +3612,9 @@
             "items": [
               "Guide: OBS link with its connection status, steps and warnings if two sources overlap.",
               "What is shown: the active pieces drawn as they appear on screen, with a switch to turn off the ones you don't want on your channel.",
+              "Timing: how many seconds each piece stays on screen, within the range Decatron sets.",
+              "Position: drag each card on your scene canvas (or set corner and gap with numbers). It shows up in OBS in about 20 seconds, without reloading.",
+              "Design: pick each piece's template among those of its zone and its size. Every setting has an «Owner's value» button to go back to the original.",
               "Settings: pause all promotions, a longer pause between pieces and fewer seconds per hour. Changes apply from the next piece, without touching OBS."
             ]
           },

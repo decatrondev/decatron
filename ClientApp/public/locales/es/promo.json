@@ -410,7 +410,10 @@
     "tabs": {
       "guide": "Guía",
       "pieces": "Qué se muestra",
-      "settings": "Ajustes"
+      "settings": "Ajustes",
+      "timing": "Tiempos",
+      "position": "Posición",
+      "design": "Diseño"
     },
     "guide": {
       "title": "Cómo usarlo",
@@ -491,6 +494,49 @@
       "cmdInvalid": "El nombre del comando no es válido: usa de 2 a 20 letras minúsculas, números o guion bajo.",
       "cmdReserved": "Ese nombre ya lo usa un comando del bot. Elige otro.",
       "cmdCustom": "Ya tienes un comando propio con ese nombre. Elige otro."
+    },
+    "reset": "Valor del dueño",
+    "timing": {
+      "title": "Tiempos",
+      "description": "Cuántos segundos queda cada pieza en pantalla. Puedes elegir entre {{min}} y {{max}} segundos.",
+      "custom": "Cambiado (el dueño usa {{n}} s)",
+      "default": "Valor por defecto",
+      "unit": "segundos"
+    },
+    "position": {
+      "title": "Posición",
+      "description": "Arrastra cada tarjeta a donde quieras verla en tu escena. Puedes separarla del borde hasta {{max}} píxeles.",
+      "custom": "Tu posición",
+      "default": "Posición por defecto",
+      "anchor": "Esquina o lado de referencia",
+      "marginX": "Separación horizontal",
+      "marginY": "Separación vertical",
+      "ownerHas": "Por defecto: {{x}} px y {{y}} px.",
+      "anchors": {
+        "top-left": "Arriba a la izquierda",
+        "top-center": "Arriba al centro",
+        "top-right": "Arriba a la derecha",
+        "middle-left": "Centro a la izquierda",
+        "center": "Centro",
+        "middle-right": "Centro a la derecha",
+        "bottom-left": "Abajo a la izquierda",
+        "bottom-center": "Abajo al centro",
+        "bottom-right": "Abajo a la derecha"
+      }
+    },
+    "design": {
+      "title": "Diseño",
+      "description": "Elige la plantilla de cada pieza y su tamaño. El tamaño puede ir de {{min}} % a {{max}} %.",
+      "template": "Plantilla",
+      "templateN": "Plantilla {{n}}",
+      "scale": "Tamaño"
+    },
+    "errors": {
+      "durationRange": "La duración está fuera del rango permitido.",
+      "scaleRange": "El tamaño está fuera del rango permitido.",
+      "templateInvalid": "Esa plantilla no se puede usar en esta pieza.",
+      "anchorInvalid": "La esquina elegida no es válida.",
+      "marginRange": "La separación supera el máximo permitido."
     }
   }
 }
