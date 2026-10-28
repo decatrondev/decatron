@@ -306,6 +306,33 @@ public class PromoViewCount
 
     [Column("views")]
     public int Views { get; set; }
+
+    /// <summary>Tiempo en pantalla acumulado (suma de la duración de cada entrega).</summary>
+    [Column("seconds")]
+    public int Seconds { get; set; }
+}
+
+/// <summary>Entregas de una tarjeta propia en un día (UTC), por canal. Agregado, no identifica a nadie. Tabla de tenant con RLS; se borra con la tarjeta.</summary>
+[Table("promo_own_card_counts")]
+public class PromoOwnCardCount
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("card_id")]
+    public long CardId { get; set; }
+
+    [Column("day", TypeName = "date")]
+    public DateTime Day { get; set; }
+
+    [Column("views")]
+    public int Views { get; set; }
+
+    [Column("seconds")]
+    public int Seconds { get; set; }
 }
 
 /// <summary>Total global de entregas de una pieza por día (sin canal), para el dueño.</summary>
@@ -320,6 +347,9 @@ public class PromoPieceDaily
 
     [Column("views")]
     public int Views { get; set; }
+
+    [Column("seconds")]
+    public long Seconds { get; set; }
 }
 
 /// <summary>Lo que un streamer cambió de una pieza (duración, plantilla, escala). Null = usa el valor del dueño. Tabla de tenant con RLS.</summary>

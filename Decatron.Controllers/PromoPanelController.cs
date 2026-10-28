@@ -154,6 +154,25 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>Estadísticas del canal: entregas y tiempo en pantalla por día, ranking de piezas y de tarjetas propias. days = 7, 30 o 90.</summary>
+        [HttpGet("stats")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> Stats([FromQuery] int days = 30)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                return Ok(new { success = true, stats = await _catalog.GetChannelStatsAsync(account.Principal.UserId, days) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error obteniendo las estadísticas de promociones del streamer");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
         /// <summary>
         /// «Mostrar ahora»: deja la pieza (del bot si id &gt; 0, tarjeta propia si id &lt; 0, igual que en el overlay) pedida en su zona y el overlay la saca en
         /// su próxima consulta, aunque el streamer la tenga apagada o el overlay en pausa. Misma regla que `!dpromo mostrar`.

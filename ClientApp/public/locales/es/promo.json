@@ -8,7 +8,8 @@
       "templates": "Plantillas",
       "limits": "Topes",
       "zones": "Zonas",
-      "ownCards": "Tarjetas propias"
+      "ownCards": "Tarjetas propias",
+      "stats": "Estadísticas"
     },
     "preview": {
       "title": "Vista previa",
@@ -458,6 +459,23 @@
         "hidden": "Tarjeta oculta.",
         "shown": "Tarjeta visible otra vez."
       }
+    },
+    "stats": {
+      "intro": "Entregas de todos los canales. El historial global no se borra; el de cada canal se conserva 90 días.",
+      "range": {
+        "30": "30 días",
+        "90": "90 días",
+        "365": "1 año"
+      },
+      "period": "En el período",
+      "disabledIn": "Apagada en",
+      "channels": "{{count}} canales",
+      "channels_one": "{{count}} canal",
+      "none": "Ninguno",
+      "pieces": "Piezas, de la más a la menos vista",
+      "colPiece": "Pieza",
+      "loadFailed": "No se pudieron cargar las estadísticas.",
+      "emptyAll": "Todavía no hay entregas en este período."
     }
   },
   "panel": {
@@ -472,7 +490,8 @@
       "settings": "Ajustes",
       "timing": "Tiempos",
       "position": "Posición",
-      "design": "Diseño"
+      "design": "Diseño",
+      "stats": "Estadísticas"
     },
     "guide": {
       "title": "Cómo usarlo",
@@ -678,6 +697,39 @@
         "hint": "Sale cuando te llega una raid. No se repite si llegan varias seguidas (3 minutos entre una y otra)."
       },
       "note": "Los disparadores respetan la pausa de Promociones: si la tienes activada, no sale nada. «Después de una pausa del directo» llegará más adelante."
+    },
+    "stats": {
+      "title": "Estadísticas",
+      "intro": "Cuántas veces salió cada pieza en tu overlay. Solo se cuentan entregas al overlay, sin identificar a ningún espectador. Se guardan 90 días.",
+      "range": {
+        "7": "7 días",
+        "30": "30 días",
+        "90": "90 días"
+      },
+      "metric": {
+        "views": "Entregas",
+        "seconds": "Tiempo en pantalla"
+      },
+      "week": "Últimos 7 días",
+      "period": "En el período",
+      "views": "entregas",
+      "onScreen": "en pantalla",
+      "chartLabel": "Entregas por día",
+      "chartLabelSeconds": "Tiempo en pantalla por día",
+      "showTable": "Ver como tabla",
+      "hideTable": "Ver como gráfico",
+      "colDay": "Día",
+      "colViews": "Entregas",
+      "colTime": "Tiempo",
+      "pieces": "Piezas del bot",
+      "cards": "Tus tarjetas",
+      "piece": "Pieza",
+      "card": "Tarjeta",
+      "removedPiece": "Pieza retirada",
+      "removedCard": "Tarjeta borrada",
+      "emptyAll": "Todavía no hay datos. Cuando el overlay muestre una pieza en OBS, aparecerá aquí.",
+      "emptyList": "Sin entregas en este período.",
+      "loadFailed": "No se pudieron cargar las estadísticas."
     }
   }
 }

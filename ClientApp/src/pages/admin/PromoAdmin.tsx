@@ -10,6 +10,7 @@ import { TemplatesTab } from './promo/TemplatesTab';
 import { LimitsTab } from './promo/LimitsTab';
 import { ZonesTab } from './promo/ZonesTab';
 import { OwnCardsTab } from './promo/OwnCardsTab';
+import { StatsTab } from './promo/StatsTab';
 import type { Lang } from './promo/shared';
 import type { PromoOverview } from './promo/types';
 
@@ -38,11 +39,12 @@ export default function PromoAdmin() {
         <div className="panel-scale space-y-6">
             <ConfigHeader onBack={() => navigate('/admin')} icon={<Megaphone />} title={t('admin.title')} subtitle={t('admin.subtitle')} />
             {note && <Alert tone={note.ok ? 'ok' : 'danger'}>{note.text}</Alert>}
-            <Tabs items={[{ id: 'pieces', label: t('admin.tabs.pieces') }, { id: 'templates', label: t('admin.tabs.templates') }, { id: 'zones', label: t('admin.tabs.zones') }, { id: 'ownCards', label: t('admin.tabs.ownCards') }, { id: 'limits', label: t('admin.tabs.limits') }]} value={tab} onChange={setTab} />
+            <Tabs items={[{ id: 'pieces', label: t('admin.tabs.pieces') }, { id: 'templates', label: t('admin.tabs.templates') }, { id: 'zones', label: t('admin.tabs.zones') }, { id: 'ownCards', label: t('admin.tabs.ownCards') }, { id: 'stats', label: t('admin.tabs.stats') }, { id: 'limits', label: t('admin.tabs.limits') }]} value={tab} onChange={setTab} />
             {tab === 'pieces' && <PiecesTab data={data} lang={lang} onLang={setLang} onChanged={load} notify={notify} />}
             {tab === 'templates' && <TemplatesTab data={data} lang={lang} onLang={setLang} onChanged={load} notify={notify} />}
             {tab === 'zones' && <ZonesTab data={data} lang={lang} onChanged={load} notify={notify} />}
             {tab === 'ownCards' && <OwnCardsTab notify={notify} />}
+            {tab === 'stats' && <StatsTab data={data} lang={lang} />}
             {tab === 'limits' && <LimitsTab limits={data.limits} onChanged={load} notify={notify} />}
         </div>
     );

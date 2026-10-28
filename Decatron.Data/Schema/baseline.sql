@@ -101,6 +101,20 @@ $$;
 
 
 --
+-- Name: promo_disabled_counts(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.promo_disabled_counts() RETURNS TABLE(piece_id bigint, channels integer)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT (e.value)::bigint, COUNT(*)::integer
+  FROM promo_channel_settings s, jsonb_array_elements_text(s.disabled_pieces) e
+  GROUP BY 1
+$$;
+
+
+--
 -- Name: promo_own_card_set_hidden(bigint, boolean); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -127,6 +141,25 @@ CREATE FUNCTION public.promo_own_cards_all() RETURNS TABLE(id bigint, user_id bi
          c.zone::text, c.is_enabled, c.hidden_by_admin, c.created_at
   FROM promo_own_cards c LEFT JOIN users u ON u.id = c.user_id
   ORDER BY c.hidden_by_admin DESC, c.id DESC
+$$;
+
+
+--
+-- Name: promo_purge_old_views(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.promo_purge_old_views(p_days integer) RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE n integer; m integer;
+BEGIN
+  DELETE FROM promo_view_counts WHERE day < ((now() AT TIME ZONE 'utc')::date - p_days);
+  GET DIAGNOSTICS n = ROW_COUNT;
+  DELETE FROM promo_own_card_counts WHERE day < ((now() AT TIME ZONE 'utc')::date - p_days);
+  GET DIAGNOSTICS m = ROW_COUNT;
+  RETURN n + m;
+END
 $$;
 
 
@@ -5532,6 +5565,40 @@ ALTER SEQUENCE public.promo_channel_settings_id_seq OWNED BY public.promo_channe
 
 
 --
+-- Name: promo_own_card_counts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_own_card_counts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    card_id bigint NOT NULL,
+    day date NOT NULL,
+    views integer DEFAULT 0 NOT NULL,
+    seconds integer DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: promo_own_card_counts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_own_card_counts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_own_card_counts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_own_card_counts_id_seq OWNED BY public.promo_own_card_counts.id;
+
+
+--
 -- Name: promo_own_cards; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5583,7 +5650,8 @@ ALTER SEQUENCE public.promo_own_cards_id_seq OWNED BY public.promo_own_cards.id;
 CREATE TABLE public.promo_piece_daily (
     piece_id bigint NOT NULL,
     day date NOT NULL,
-    views integer DEFAULT 0 NOT NULL
+    views integer DEFAULT 0 NOT NULL,
+    seconds bigint DEFAULT 0 NOT NULL
 );
 
 
@@ -5787,7 +5855,8 @@ CREATE TABLE public.promo_view_counts (
     piece_id bigint NOT NULL,
     day date NOT NULL,
     views integer DEFAULT 0 NOT NULL,
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    seconds integer DEFAULT 0 NOT NULL
 );
 
 
@@ -11956,6 +12025,13 @@ ALTER TABLE ONLY public.promo_channel_settings ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: promo_own_card_counts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_card_counts ALTER COLUMN id SET DEFAULT nextval('public.promo_own_card_counts_id_seq'::regclass);
+
+
+--
 -- Name: promo_own_cards id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -14190,6 +14266,22 @@ ALTER TABLE ONLY public.promo_channel_settings
 
 ALTER TABLE ONLY public.promo_channel_settings
     ADD CONSTRAINT promo_channel_settings_user_id_key UNIQUE (user_id);
+
+
+--
+-- Name: promo_own_card_counts promo_own_card_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_card_counts
+    ADD CONSTRAINT promo_own_card_counts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_own_card_counts promo_own_card_counts_user_id_card_id_day_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_card_counts
+    ADD CONSTRAINT promo_own_card_counts_user_id_card_id_day_key UNIQUE (user_id, card_id, day);
 
 
 --
@@ -18390,6 +18482,13 @@ CREATE INDEX ix_platform_webhook_events_received ON public.platform_webhook_even
 
 
 --
+-- Name: ix_promo_own_card_counts_user_day; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_promo_own_card_counts_user_day ON public.promo_own_card_counts USING btree (user_id, day);
+
+
+--
 -- Name: ix_promo_own_cards_user; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -20872,6 +20971,22 @@ ALTER TABLE ONLY public.promo_channel_settings
 
 
 --
+-- Name: promo_own_card_counts promo_own_card_counts_card_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_card_counts
+    ADD CONSTRAINT promo_own_card_counts_card_id_fkey FOREIGN KEY (card_id) REFERENCES public.promo_own_cards(id) ON DELETE CASCADE;
+
+
+--
+-- Name: promo_own_card_counts promo_own_card_counts_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_card_counts
+    ADD CONSTRAINT promo_own_card_counts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: promo_own_cards promo_own_cards_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -22726,6 +22841,12 @@ ALTER TABLE public.player_pity_counter ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promo_channel_settings ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: promo_own_card_counts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promo_own_card_counts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: promo_own_cards; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -23770,6 +23891,13 @@ CREATE POLICY tenant_isolation ON public.player_pity_counter USING ((tenant_id =
 --
 
 CREATE POLICY tenant_isolation ON public.promo_channel_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: promo_own_card_counts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.promo_own_card_counts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --

@@ -126,7 +126,7 @@ namespace Decatron.Controllers
                     if (forced != null && TemplateFor(snap, forced.Piece) != null)
                     {
                         lock (state.Gate) PromoPlayback.MarkShown(state, forced.Piece, limits, DateTime.UtcNow);
-                        await _catalog.CountViewAsync(principalId, forced.Piece.Id);
+                        await _catalog.CountViewAsync(principalId, forced.Piece.Id, forced.Piece.DurationSeconds);
                         return Ok(await BuildNextAsync(resolved, forced.Piece, snap, forced.ScalePercent));
                     }
                 }
@@ -170,7 +170,7 @@ namespace Decatron.Controllers
                 }
                 if (piece == null || wait > 0) return Ok(new { success = true, found = true, wait = Math.Max(wait, 5) });
 
-                await _catalog.CountViewAsync(principalId, piece.Id);
+                await _catalog.CountViewAsync(principalId, piece.Id, piece.DurationSeconds);
                 return Ok(await BuildNextAsync(resolved, piece, snap, scales.GetValueOrDefault(piece.Id, 100)));
             }
             catch (Exception ex)

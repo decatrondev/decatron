@@ -193,6 +193,7 @@ namespace Decatron.Data
         public DbSet<Core.Models.Promo.PromoOwnCard> PromoOwnCards { get; set; }
         public DbSet<Core.Models.Promo.PromoViewCount> PromoViewCounts { get; set; }
         public DbSet<Core.Models.Promo.PromoPieceDaily> PromoPieceDaily { get; set; }
+        public DbSet<Core.Models.Promo.PromoOwnCardCount> PromoOwnCardCounts { get; set; }
         public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }
         public DbSet<Core.Models.Brand.BrandSlot> BrandSlots { get; set; }
         public DbSet<Core.Models.Design.DesignVersion> DesignVersions { get; set; }

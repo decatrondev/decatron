@@ -14,6 +14,7 @@ import type { PromoContent } from '../../components/promo-overlay/types';
 import { TimingTab } from './promo-extension/TimingTab';
 import { PositionTab } from './promo-extension/PositionTab';
 import { DesignTab } from './promo-extension/DesignTab';
+import { StatsTab } from './promo-extension/StatsTab';
 import type { SlotValues } from '../../components/promo-overlay/slots';
 import { OwnCardsSection } from './promo-extension/OwnCardsSection';
 import { ShowNowButton } from './promo-extension/ShowNowButton';
@@ -23,8 +24,8 @@ import { isEmptyPieceOv, emptyPieceOv, type Limits, type OwnCard, type Piece, ty
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
 // su estado, y otra con las piezas que se están mostrando. La personalización por streamer llega en la fase siguiente.
 
-type TabId = 'guide' | 'pieces' | 'timing' | 'position' | 'design' | 'settings';
-const TABS: { id: TabId; icon: string }[] = [{ id: 'guide', icon: '📚' }, { id: 'pieces', icon: '🖼️' }, { id: 'timing', icon: '⏱️' }, { id: 'position', icon: '📍' }, { id: 'design', icon: '🎨' }, { id: 'settings', icon: '⚙️' }];
+type TabId = 'guide' | 'pieces' | 'timing' | 'position' | 'design' | 'stats' | 'settings';
+const TABS: { id: TabId; icon: string }[] = [{ id: 'guide', icon: '📚' }, { id: 'pieces', icon: '🖼️' }, { id: 'timing', icon: '⏱️' }, { id: 'position', icon: '📍' }, { id: 'design', icon: '🎨' }, { id: 'stats', icon: '📊' }, { id: 'settings', icon: '⚙️' }];
 
 interface Catalog {
     pieces: Piece[];
@@ -248,6 +249,7 @@ export default function PromoConfig() {
                 {tab === 'design' && catalog && (
                     <DesignTab pieces={catalog.pieces} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} overrides={pieceOv} styles={styleOv} lang={lang} channel={channel} onChange={changePiece} onStyleChange={changeStyle} />
                 )}
+                {tab === 'stats' && catalog && <StatsTab pieces={catalog.pieces} cards={catalog.ownCards} lang={lang} />}
                 {tab === 'settings' && mine && catalog && (
                     <div className="space-y-6">
                     <Card title={t('panel.settings.title')} description={t('panel.settings.description')}>

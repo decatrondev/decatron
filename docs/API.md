@@ -956,6 +956,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | Method | Route | Access |
 |---|---|---|
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` |
+| `GET` | `/api/promo-panel/stats` | JWT + `overlays` |
 | `PUT` | `/api/promo-panel/settings` | JWT + `overlays` |
 | `PUT` | `/api/promo-panel/piece/{id}` | JWT + `overlays` |
 | `PUT` | `/api/promo-panel/zone/{key}` | JWT + `overlays` |

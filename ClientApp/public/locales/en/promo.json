@@ -8,7 +8,8 @@
       "templates": "Templates",
       "limits": "Limits",
       "zones": "Zones",
-      "ownCards": "Own cards"
+      "ownCards": "Own cards",
+      "stats": "Statistics"
     },
     "preview": {
       "title": "Preview",
@@ -458,6 +459,23 @@
         "hidden": "Card hidden.",
         "shown": "Card visible again."
       }
+    },
+    "stats": {
+      "intro": "Deliveries across all channels. The global history is never deleted; each channel keeps 90 days.",
+      "range": {
+        "30": "30 days",
+        "90": "90 days",
+        "365": "1 year"
+      },
+      "period": "In the period",
+      "disabledIn": "Turned off in",
+      "channels": "{{count}} channels",
+      "channels_one": "{{count}} channel",
+      "none": "None",
+      "pieces": "Pieces, most to least shown",
+      "colPiece": "Piece",
+      "loadFailed": "Could not load the statistics.",
+      "emptyAll": "No deliveries in this period yet."
     }
   },
   "panel": {
@@ -472,7 +490,8 @@
       "settings": "Settings",
       "timing": "Timing",
       "position": "Position",
-      "design": "Design"
+      "design": "Design",
+      "stats": "Statistics"
     },
     "guide": {
       "title": "How to use it",
@@ -678,6 +697,39 @@
         "hint": "Shows when a raid arrives. It does not repeat if several arrive in a row (3 minutes between them)."
       },
       "note": "Triggers respect the Promotions pause: if it is on, nothing shows. “After a break in the stream” is coming later."
+    },
+    "stats": {
+      "title": "Statistics",
+      "intro": "How many times each piece appeared on your overlay. Only deliveries to the overlay are counted, with no viewer identified. Kept for 90 days.",
+      "range": {
+        "7": "7 days",
+        "30": "30 days",
+        "90": "90 days"
+      },
+      "metric": {
+        "views": "Deliveries",
+        "seconds": "Time on screen"
+      },
+      "week": "Last 7 days",
+      "period": "In the period",
+      "views": "deliveries",
+      "onScreen": "on screen",
+      "chartLabel": "Deliveries per day",
+      "chartLabelSeconds": "Time on screen per day",
+      "showTable": "View as table",
+      "hideTable": "View as chart",
+      "colDay": "Day",
+      "colViews": "Deliveries",
+      "colTime": "Time",
+      "pieces": "Bot pieces",
+      "cards": "Your cards",
+      "piece": "Piece",
+      "card": "Card",
+      "removedPiece": "Removed piece",
+      "removedCard": "Deleted card",
+      "emptyAll": "No data yet. Once the overlay shows a piece in OBS, it will appear here.",
+      "emptyList": "No deliveries in this period.",
+      "loadFailed": "Could not load the statistics."
     }
   }
 }

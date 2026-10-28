@@ -43,20 +43,93 @@ namespace Decatron.Services.Promo
 
         public record ViewTotals(long Last7, long Last30, long Total);
 
-        /// <summary>Suma una entrega de una pieza al overlay de una cuenta (contador del streamer y total global). Nunca rompe la rotación.</summary>
-        public async Task CountViewAsync(long principalUserId, long pieceId)
+        /// <summary>Días de historial por canal (piezas y tarjetas propias). El total global de piezas no se borra.</summary>
+        public const int ChannelHistoryDays = 90;
+        private static DateOnly _lastPurge;
+
+        /// <summary>Suma una entrega al overlay de una cuenta: pieza del bot (contador del canal y global) o tarjeta propia (id negativo). Nunca rompe la rotación.</summary>
+        public async Task CountViewAsync(long principalUserId, long pieceId, int seconds = 0)
         {
-            if (PromoOwnCards.IsOwnPieceId(pieceId)) return; // las tarjetas propias se cuentan en la fase de estadísticas
             try
             {
                 var day = DateOnly.FromDateTime(DateTime.UtcNow);
-                await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_view_counts (user_id, piece_id, day, views) VALUES ({principalUserId}, {pieceId}, {day}, 1)
-                    ON CONFLICT (user_id, piece_id, day) DO UPDATE SET views = promo_view_counts.views + 1");
-                await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_piece_daily (piece_id, day, views) VALUES ({pieceId}, {day}, 1)
-                    ON CONFLICT (piece_id, day) DO UPDATE SET views = promo_piece_daily.views + 1");
+                seconds = Math.Max(0, seconds);
+                if (PromoOwnCards.IsOwnPieceId(pieceId))
+                {
+                    var cardId = -pieceId;
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_own_card_counts (user_id, card_id, day, views, seconds) VALUES ({principalUserId}, {cardId}, {day}, 1, {seconds})
+                        ON CONFLICT (user_id, card_id, day) DO UPDATE SET views = promo_own_card_counts.views + 1, seconds = promo_own_card_counts.seconds + {seconds}");
+                }
+                else
+                {
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_view_counts (user_id, piece_id, day, views, seconds) VALUES ({principalUserId}, {pieceId}, {day}, 1, {seconds})
+                        ON CONFLICT (user_id, piece_id, day) DO UPDATE SET views = promo_view_counts.views + 1, seconds = promo_view_counts.seconds + {seconds}");
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_piece_daily (piece_id, day, views, seconds) VALUES ({pieceId}, {day}, 1, {seconds})
+                        ON CONFLICT (piece_id, day) DO UPDATE SET views = promo_piece_daily.views + 1, seconds = promo_piece_daily.seconds + {seconds}");
+                }
+                await PurgeOldAsync(day);
             }
             catch (Exception) { /* el conteo es accesorio: si falla, la promoción sale igual */ }
         }
+
+        /// <summary>Una vez al día (por proceso) borra el historial por canal con más de 90 días; sin tarea de fondo aparte.</summary>
+        private async Task PurgeOldAsync(DateOnly today)
+        {
+            if (_lastPurge == today) return;
+            _lastPurge = today;
+            await _db.Database.ExecuteSqlInterpolatedAsync($"SELECT promo_purge_old_views({ChannelHistoryDays})");
+        }
+
+        // ─── Estadísticas ────────────────────────────────────────────────────
+
+        public record DayStat(string Day, long Views, long Seconds);
+        public record ItemStat(long Id, long Views, long Seconds);
+        public record ChannelStats(int Days, List<DayStat> PerDay, List<ItemStat> Pieces, List<ItemStat> Cards, long WeekViews, long WeekSeconds, long TotalViews, long TotalSeconds);
+        public record GlobalPieceStat(long Id, long Views, long Seconds, int DisabledIn);
+        public record GlobalStats(int Days, List<DayStat> PerDay, List<GlobalPieceStat> Pieces, long TotalViews, long TotalSeconds);
+
+        private static List<DayStat> Fill(int days, Dictionary<DateTime, (long v, long s)> byDay)
+        {
+            var today = DateTime.UtcNow.Date;
+            return Enumerable.Range(0, days).Select(i => today.AddDays(i - days + 1))
+                .Select(d => byDay.TryGetValue(d, out var x) ? new DayStat(d.ToString("yyyy-MM-dd"), x.v, x.s) : new DayStat(d.ToString("yyyy-MM-dd"), 0, 0)).ToList();
+        }
+
+        /// <summary>Estadísticas del canal (últimos 7, 30 o 90 días): por día, ranking de piezas y de tarjetas propias, y lo de la semana.</summary>
+        public async Task<ChannelStats> GetChannelStatsAsync(long principalUserId, int days)
+        {
+            days = NormalizeDays(days, 7, 30, ChannelHistoryDays);
+            var today = DateTime.UtcNow.Date;
+            var since = today.AddDays(-days + 1);
+            var pieces = await _db.PromoViewCounts.AsNoTracking().Where(v => v.UserId == principalUserId && v.Day >= since).ToListAsync();
+            var cards = await _db.PromoOwnCardCounts.AsNoTracking().Where(v => v.UserId == principalUserId && v.Day >= since).ToListAsync();
+            var all = pieces.Select(p => (p.Day, (long)p.Views, (long)p.Seconds)).Concat(cards.Select(c => (c.Day, (long)c.Views, (long)c.Seconds))).ToList();
+            var byDay = all.GroupBy(x => x.Day.Date).ToDictionary(g => g.Key, g => (g.Sum(x => x.Item2), g.Sum(x => x.Item3)));
+            var week = all.Where(x => x.Day.Date > today.AddDays(-7)).ToList();
+            return new ChannelStats(days, Fill(days, byDay),
+                pieces.GroupBy(p => p.PieceId).Select(g => new ItemStat(g.Key, g.Sum(x => (long)x.Views), g.Sum(x => (long)x.Seconds))).OrderByDescending(x => x.Views).ToList(),
+                cards.GroupBy(c => c.CardId).Select(g => new ItemStat(g.Key, g.Sum(x => (long)x.Views), g.Sum(x => (long)x.Seconds))).OrderByDescending(x => x.Views).ToList(),
+                week.Sum(x => x.Item2), week.Sum(x => x.Item3), all.Sum(x => x.Item2), all.Sum(x => x.Item3));
+        }
+
+        /// <summary>Estadísticas globales para el dueño (30, 90 o 365 días, sin límite de historial): por día, piezas y en cuántos canales está apagada cada una.</summary>
+        public async Task<GlobalStats> GetGlobalStatsAsync(int days)
+        {
+            days = NormalizeDays(days, 30, 90, 365);
+            var since = DateTime.UtcNow.Date.AddDays(-days + 1);
+            var rows = await _db.PromoPieceDaily.AsNoTracking().Where(r => r.Day >= since).ToListAsync();
+            var disabled = (await _db.Database.SqlQueryRaw<DisabledRow>(@"SELECT piece_id AS ""PieceId"", channels AS ""Channels"" FROM promo_disabled_counts()").ToListAsync())
+                .ToDictionary(r => r.PieceId, r => r.Channels);
+            var pieceIds = await _db.PromoPieces.AsNoTracking().Select(p => p.Id).ToListAsync();
+            var perPiece = rows.GroupBy(r => r.PieceId).ToDictionary(g => g.Key, g => (v: g.Sum(x => (long)x.Views), s: g.Sum(x => x.Seconds)));
+            return new GlobalStats(days,
+                Fill(days, rows.GroupBy(r => r.Day.Date).ToDictionary(g => g.Key, g => (g.Sum(x => (long)x.Views), g.Sum(x => x.Seconds)))),
+                pieceIds.Select(id => new GlobalPieceStat(id, perPiece.GetValueOrDefault(id).v, perPiece.GetValueOrDefault(id).s, disabled.GetValueOrDefault(id))).OrderByDescending(p => p.Views).ToList(),
+                rows.Sum(r => (long)r.Views), rows.Sum(r => r.Seconds));
+        }
+
+        private record DisabledRow(long PieceId, int Channels);
+        private static int NormalizeDays(int days, params int[] allowed) => allowed.Contains(days) ? days : allowed[1];
 
         /// <summary>Entregas por pieza de todos los canales (para el dueño): últimos 7 y 30 días y total.</summary>
         public async Task<Dictionary<long, ViewTotals>> GetGlobalViewsAsync()

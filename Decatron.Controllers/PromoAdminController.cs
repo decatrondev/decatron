@@ -46,6 +46,14 @@ namespace Decatron.Controllers
             return Ok(new { success = true, cards = await _catalog.GetAllOwnCardsAsync() });
         }
 
+        /// <summary>Estadísticas globales: entregas por día, ranking de piezas y en cuántos canales está apagada cada una. days = 30, 90 o 365.</summary>
+        [HttpGet("stats")]
+        public async Task<IActionResult> Stats([FromQuery] int days = 30)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            return Ok(new { success = true, stats = await _catalog.GetGlobalStatsAsync(days) });
+        }
+
         public record HideRequest(bool Hidden);
 
         /// <summary>El dueño oculta (o vuelve a mostrar) una tarjeta propia que no cumple las reglas; el streamer la sigue viendo pero no sale.</summary>
