@@ -1,0 +1,298 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 340,
+    "height": 446
+  },
+  "animation": {
+    "enter": {
+      "type": "slide",
+      "direction": "right",
+      "durationMs": 650,
+      "easing": "ease-out",
+      "delayMs": 0
+    },
+    "exit": {
+      "type": "fade",
+      "direction": "right",
+      "durationMs": 400,
+      "easing": "ease-in",
+      "delayMs": 0
+    }
+  },
+  "elements": [
+    {
+      "id": "e01",
+      "name": "Fondo",
+      "kind": "shape",
+      "enabled": true,
+      "x": 0,
+      "y": 0,
+      "width": 340,
+      "height": 446,
+      "rotation": 0,
+      "opacity": 100,
+      "animation": {
+        "enter": {
+          "type": "none",
+          "direction": "left",
+          "durationMs": 500,
+          "easing": "ease-out",
+          "delayMs": 0
+        },
+        "exit": {
+          "type": "none",
+          "direction": "right",
+          "durationMs": 500,
+          "easing": "ease-out",
+          "delayMs": 0
+        }
+      },
+      "loop": {
+        "type": "none",
+        "durationMs": 2000,
+        "delayMs": 0
+      },
+      "fill": {
+        "type": "gradient",
+        "color": "#0f1d42",
+        "gradient": {
+          "color1": "#0f1d42",
+          "color2": "#05070d",
+          "angle": 120
+        }
+      },
+      "border": {
+        "enabled": true,
+        "color": "rgba(90,150,255,0.5)",
+        "width": 1.5
+      },
+      "radius": 30,
+      "cut": "none",
+      "cutSize": 24,
+      "shadow": "0 10px 32px rgba(0,0,0,0.5)",
+      "glow": {
+        "enabled": true,
+        "color": "rgba(47,123,255,0.35)",
+        "blur": 30
+      },
+      "backdropBlur": 0
+    },
+    {
+      "id": "e02",
+      "name": "Mascota",
+      "kind": "image",
+      "enabled": true,
+      "x": -12,
+      "y": -26,
+      "width": 104,
+      "height": 136,
+      "rotation": 0,
+      "opacity": 100,
+      "animation": {
+        "enter": {
+          "type": "bounce",
+          "direction": "left",
+          "durationMs": 700,
+          "easing": "ease-out",
+          "delayMs": 250
+        },
+        "exit": {
+          "type": "fade",
+          "direction": "left",
+          "durationMs": 300,
+          "easing": "ease-out",
+          "delayMs": 0
+        }
+      },
+      "loop": {
+        "type": "float",
+        "durationMs": 3400,
+        "delayMs": 0
+      },
+      "source": "library",
+      "ref": "builtin:mascot-hd",
+      "fit": "contain",
+      "radius": 0,
+      "border": {
+        "enabled": false,
+        "color": "#ffffff",
+        "width": 1
+      },
+      "shadow": "0 6px 20px rgba(0,0,0,0.35)",
+      "glow": {
+        "enabled": true,
+        "color": "rgba(47,123,255,0.7)",
+        "blur": 14
+      }
+    },
+    {
+      "id": "e03",
+      "name": "Título",
+      "kind": "text",
+      "enabled": true,
+      "x": 96,
+      "y": 14,
+      "width": 230,
+      "height": 76,
+      "rotation": 0,
+      "opacity": 100,
+      "animation": {
+        "enter": {
+          "type": "slide",
+          "direction": "left",
+          "durationMs": 500,
+          "easing": "ease-out",
+          "delayMs": 350
+        },
+        "exit": {
+          "type": "fade",
+          "direction": "left",
+          "durationMs": 300,
+          "easing": "ease-out",
+          "delayMs": 0
+        }
+      },
+      "loop": {
+        "type": "none",
+        "durationMs": 2000,
+        "delayMs": 0
+      },
+      "template": "{{title}}",
+      "fontFamily": "Big Shoulders Display",
+      "fontSize": 32,
+      "fontWeight": 900,
+      "color": "#ffffff",
+      "align": "left",
+      "verticalAlign": "center",
+      "lineHeight": 1.0,
+      "letterSpacing": 0,
+      "italic": false,
+      "uppercase": true,
+      "maxLines": 2,
+      "shadow": "soft",
+      "glowColor": "#2f7bff",
+      "fill": {
+        "type": "transparent",
+        "color": "#000000",
+        "gradient": {
+          "color1": "#000000",
+          "color2": "#000000",
+          "angle": 135
+        }
+      },
+      "border": {
+        "enabled": false,
+        "color": "#ffffff",
+        "width": 1
+      },
+      "radius": 0,
+      "padding": 0
+    },
+    {
+      "id": "e04",
+      "name": "QR",
+      "kind": "qr",
+      "enabled": true,
+      "x": 30,
+      "y": 98,
+      "width": 280,
+      "height": 280,
+      "rotation": 0,
+      "opacity": 100,
+      "animation": {
+        "enter": {
+          "type": "zoom",
+          "direction": "left",
+          "durationMs": 450,
+          "easing": "ease-out",
+          "delayMs": 500
+        },
+        "exit": {
+          "type": "fade",
+          "direction": "left",
+          "durationMs": 300,
+          "easing": "ease-out",
+          "delayMs": 0
+        }
+      },
+      "loop": {
+        "type": "none",
+        "durationMs": 2000,
+        "delayMs": 0
+      },
+      "color": "#06080e",
+      "background": "#ffffff",
+      "radius": 20,
+      "padding": 28,
+      "border": {
+        "enabled": false,
+        "color": "#ffffff",
+        "width": 1
+      }
+    },
+    {
+      "id": "e05",
+      "name": "Enlace",
+      "kind": "text",
+      "enabled": true,
+      "x": 30,
+      "y": 392,
+      "width": 280,
+      "height": 40,
+      "rotation": 0,
+      "opacity": 100,
+      "animation": {
+        "enter": {
+          "type": "fade",
+          "direction": "left",
+          "durationMs": 500,
+          "easing": "ease-out",
+          "delayMs": 650
+        },
+        "exit": {
+          "type": "fade",
+          "direction": "left",
+          "durationMs": 300,
+          "easing": "ease-out",
+          "delayMs": 0
+        }
+      },
+      "loop": {
+        "type": "none",
+        "durationMs": 2000,
+        "delayMs": 0
+      },
+      "template": "{{link}}",
+      "fontFamily": "Chakra Petch",
+      "fontSize": 20,
+      "fontWeight": 600,
+      "color": "#cfe0ff",
+      "align": "center",
+      "verticalAlign": "center",
+      "lineHeight": 1.15,
+      "letterSpacing": 0,
+      "italic": false,
+      "uppercase": false,
+      "maxLines": 0,
+      "shadow": "none",
+      "glowColor": "#2f7bff",
+      "fill": {
+        "type": "color",
+        "color": "rgba(47,123,255,0.18)",
+        "gradient": {
+          "color1": "rgba(47,123,255,0.18)",
+          "color2": "rgba(47,123,255,0.18)",
+          "angle": 135
+        }
+      },
+      "border": {
+        "enabled": true,
+        "color": "rgba(106,168,255,0.6)",
+        "width": 1
+      },
+      "radius": 20,
+      "padding": 10
+    }
+  ]
+}
