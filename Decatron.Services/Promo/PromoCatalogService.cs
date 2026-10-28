@@ -264,14 +264,20 @@ namespace Decatron.Services.Promo
 
         // ─── Topes ───────────────────────────────────────────────────────────
 
-        public async Task<Result<PromoOverlayLimits>> UpdateLimitsAsync(int minGapSeconds, int hourlyCapSeconds)
+        public async Task<Result<PromoOverlayLimits>> UpdateLimitsAsync(PromoOverlayLimits req)
         {
-            var errors = PromoValidator.ValidateLimits(minGapSeconds, hourlyCapSeconds);
+            var errors = PromoValidator.ValidateLimits(req.MinGapSeconds, req.HourlyCapSeconds);
+            errors.AddRange(PromoOverrides.ValidateLimits(req));
             if (errors.Count > 0) return new Result<PromoOverlayLimits>(null, errors);
             var s = await _db.PromoLimits.FirstOrDefaultAsync(x => x.Id == 1);
             if (s == null) { s = new PromoOverlayLimits { Id = 1 }; _db.PromoLimits.Add(s); }
-            s.MinGapSeconds = minGapSeconds;
-            s.HourlyCapSeconds = hourlyCapSeconds;
+            s.MinGapSeconds = req.MinGapSeconds;
+            s.HourlyCapSeconds = req.HourlyCapSeconds;
+            s.MinDurationSeconds = req.MinDurationSeconds;
+            s.MaxDurationSeconds = req.MaxDurationSeconds;
+            s.MinScalePercent = req.MinScalePercent;
+            s.MaxScalePercent = req.MaxScalePercent;
+            s.MaxZoneMargin = req.MaxZoneMargin;
             s.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             Invalidate();

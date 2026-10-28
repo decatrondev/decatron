@@ -187,6 +187,8 @@ namespace Decatron.Data
         public DbSet<Core.Models.Promo.PromoPiece> PromoPieces { get; set; }
         public DbSet<Core.Models.Promo.PromoOverlayLimits> PromoLimits { get; set; }
         public DbSet<Core.Models.Promo.PromoChannelSettings> PromoChannelSettings { get; set; }
+        public DbSet<Core.Models.Promo.PromoPieceOverride> PromoPieceOverrides { get; set; }
+        public DbSet<Core.Models.Promo.PromoZoneOverride> PromoZoneOverrides { get; set; }
         public DbSet<Core.Models.Promo.PromoViewCount> PromoViewCounts { get; set; }
         public DbSet<Core.Models.Promo.PromoPieceDaily> PromoPieceDaily { get; set; }
         public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }

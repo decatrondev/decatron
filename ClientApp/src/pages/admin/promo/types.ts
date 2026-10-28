@@ -28,7 +28,10 @@ export interface PromoZone {
     id: number; key: string; nameEs: string; nameEn: string; anchor: Anchor; marginX: number; marginY: number; isEnabled: boolean; sortOrder: number;
 }
 
-export interface PromoLimits { minGapSeconds: number; hourlyCapSeconds: number }
+export interface PromoLimits {
+    minGapSeconds: number; hourlyCapSeconds: number;
+    minDurationSeconds: number; maxDurationSeconds: number; minScalePercent: number; maxScalePercent: number; maxZoneMargin: number;
+}
 
 export interface PromoOptions {
     kinds: PromoKind[]; origins: string[]; anchors: Anchor[]; platforms: PromoPlatforms[]; variables: string[]; icons: string[];

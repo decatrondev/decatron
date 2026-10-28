@@ -194,6 +194,22 @@ public class PromoOverlayLimits
     [Column("hourly_cap_seconds")]
     public int HourlyCapSeconds { get; set; } = 600;
 
+    /// <summary>Límites de lo que el streamer puede cambiar de cada pieza y de cada zona (duración, escala y margen de la zona).</summary>
+    [Column("min_duration_seconds")]
+    public int MinDurationSeconds { get; set; } = 5;
+
+    [Column("max_duration_seconds")]
+    public int MaxDurationSeconds { get; set; } = 60;
+
+    [Column("min_scale_percent")]
+    public int MinScalePercent { get; set; } = 60;
+
+    [Column("max_scale_percent")]
+    public int MaxScalePercent { get; set; } = 150;
+
+    [Column("max_zone_margin")]
+    public int MaxZoneMargin { get; set; } = 600;
+
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -274,4 +290,56 @@ public class PromoPieceDaily
 
     [Column("views")]
     public int Views { get; set; }
+}
+
+/// <summary>Lo que un streamer cambió de una pieza (duración, plantilla, escala). Null = usa el valor del dueño. Tabla de tenant con RLS.</summary>
+[Table("promo_piece_overrides")]
+public class PromoPieceOverride
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("piece_id")]
+    public long PieceId { get; set; }
+
+    [Column("duration_seconds")]
+    public int? DurationSeconds { get; set; }
+
+    [Column("template_id")]
+    public long? TemplateId { get; set; }
+
+    [Column("scale_percent")]
+    public int? ScalePercent { get; set; }
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Dónde puso el streamer una zona (ancla y márgenes sobre el lienzo de 1920×1080). Sin fila = usa el valor del dueño. Tabla de tenant con RLS.</summary>
+[Table("promo_zone_overrides")]
+public class PromoZoneOverride
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("zone_key"), MaxLength(40)]
+    public string ZoneKey { get; set; } = "";
+
+    [Column("anchor"), MaxLength(16)]
+    public string Anchor { get; set; } = "top-right";
+
+    [Column("margin_x")]
+    public int MarginX { get; set; }
+
+    [Column("margin_y")]
+    public int MarginY { get; set; }
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

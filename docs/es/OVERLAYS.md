@@ -446,6 +446,8 @@ Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pa
 
 Comando de chat: apagado por defecto, por cuenta (`cmd_enabled`, `cmd_name` por defecto `dpromo`, `cmd_cooldown_seconds`, `cmd_min_role` moderator|vip|subscriber|everyone, en `promo_channel_settings`). `CommandService` llama a `PromoCommandService` (Twitch y Kick) después del comando de clips y solo si el plan tiene `module.ov_promo`. Subcomandos: `lista`, `mostrar <nombre>`, `pausar`, `reanudar` (también en inglés). `mostrar` deja la pieza en el estado en memoria de la cuenta (`PromoPlayback.State.Forced`, vence a los 90 s) y el siguiente `GET /api/promo/next` de su zona la devuelve, sin respetar pausa ni piezas apagadas; no pasa por encima de una emergencia. Al guardar se rechaza el nombre si coincide con un comando del bot (`CommandService.IsReservedCommandName`) o con un comando propio activo (`cmdReserved`, `cmdCustom`, `cmdInvalid`). El streamer y el Lead Moderator siempre pasan la validación de rol; las respuestas salen de `Resources/bot-messages`, grupo `dpromo`.
 
+Dos capas: el dueño fija el valor por defecto y los **límites** (`promo_settings`: duración mínima y máxima, tamaño mínimo y máximo en %, margen máximo de una zona); el streamer guarda sus cambios aparte (`promo_piece_overrides`: duración, plantilla y tamaño; `promo_zone_overrides`: ancla y márgenes; ambas tablas de tenant con RLS) y vuelve al valor del dueño borrando la fila. `PromoOverrides` las mezcla: los límites siempre mandan, el catálogo compartido nunca se modifica (se trabaja sobre una copia) y una plantilla de otra zona o apagada se ignora. `GET /api/promo/next` devuelve `scale` y usa la duración mezclada para la espera y para el comando de chat; `GET /api/promo/resolve` devuelve las zonas con la posición del streamer.
+
 ### API de Promociones
 
 | Método | Endpoint | Auth | Descripción |
@@ -456,6 +458,9 @@ Comando de chat: apagado por defecto, por cuenta (`cmd_enabled`, `cmd_name` por 
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Fuentes conectadas por variante y avisos |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Piezas activas, plantillas, zonas, topes y lo que eligió el streamer |
 | `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Guardar pausa, piezas apagadas, topes y el comando de chat |
+| `PUT` | `/api/promo-panel/piece/{id}` | JWT + `overlays` | Duración, plantilla y tamaño propios del streamer para una pieza, dentro de los límites del dueño (todo vacío = vuelve al valor del dueño) |
+| `PUT` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Ancla y márgenes propios del streamer para una zona, dentro del margen máximo del dueño |
+| `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Devuelve la zona a donde la puso el dueño |
 
 El módulo es `module.ov_promo`. El catálogo (piezas, plantillas, zonas y topes globales) lo edita el dueño desde el área de administración.
 

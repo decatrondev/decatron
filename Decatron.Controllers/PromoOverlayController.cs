@@ -54,6 +54,9 @@ namespace Decatron.Controllers
                 if (resolved == null) return Ok(new { success = true, found = false });
                 var snap = await _catalog.GetPublishedAsync();
                 var lang = await LanguageOfAsync(resolved.Account.Principal.UserId);
+                // El overlay es anónimo: se fija el tenant del canal para leer la posición de zonas que eligió el streamer (RLS).
+                using var tenantScope = TenantAmbient.Push(_tenants.ByChannelKey(resolved.Account.OverlayKey).TenantId);
+                var zoneOver = await _db.PromoZoneOverrides.AsNoTracking().Where(o => o.UserId == resolved.Account.Principal.UserId).ToListAsync();
                 return Ok(new
                 {
                     success = true,
@@ -61,7 +64,8 @@ namespace Decatron.Controllers
                     overlayKey = resolved.Account.OverlayKey,
                     variant = resolved.LegacyVariant,
                     language = lang,
-                    zones = snap.Zones.Select(z => new { z.Key, z.Anchor, z.MarginX, z.MarginY }),
+                    zones = snap.Zones.Select(z => PromoOverrides.ApplyToZone(z, zoneOver.FirstOrDefault(o => o.ZoneKey == z.Key), snap.Limits))
+                        .Select(z => new { z.Key, z.Anchor, z.MarginX, z.MarginY }),
                 });
             }
             catch (Exception ex)
@@ -99,13 +103,14 @@ namespace Decatron.Controllers
                 if (forcedId != null)
                 {
                     var loginsF = resolved.Account.Members.Select(m => m.Login).ToList();
-                    var forced = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
-                        && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow) && TemplateFor(snap, p) != null);
-                    if (forced != null)
+                    var forcedRaw = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
+                        && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow));
+                    var forced = forcedRaw == null ? null : PromoOverrides.ApplyToPiece(forcedRaw, await PieceOverrideAsync(principalId, forcedRaw.Id), snap.Limits, snap.Templates);
+                    if (forced != null && TemplateFor(snap, forced.Piece) != null)
                     {
-                        lock (state.Gate) PromoPlayback.MarkShown(state, forced, limits, DateTime.UtcNow);
-                        await _catalog.CountViewAsync(principalId, forced.Id);
-                        return Ok(await BuildNextAsync(resolved, forced, snap));
+                        lock (state.Gate) PromoPlayback.MarkShown(state, forced.Piece, limits, DateTime.UtcNow);
+                        await _catalog.CountViewAsync(principalId, forced.Piece.Id);
+                        return Ok(await BuildNextAsync(resolved, forced.Piece, snap, forced.ScalePercent));
                     }
                 }
 
@@ -116,8 +121,16 @@ namespace Decatron.Controllers
 
                 var now = DateTime.UtcNow;
                 var logins = resolved.Account.Members.Select(m => m.Login).ToList();
-                var eligible = snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now))
-                    .Where(p => p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id) && TemplateFor(snap, p) != null).ToList();
+                var pieceOver = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId).ToListAsync();
+                var scales = new Dictionary<long, int>();
+                var eligible = new List<PromoPiece>();
+                foreach (var raw in snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now) && p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id)))
+                {
+                    var merged = PromoOverrides.ApplyToPiece(raw, pieceOver.FirstOrDefault(o => o.PieceId == raw.Id), snap.Limits, snap.Templates);
+                    if (TemplateFor(snap, merged.Piece) == null) continue;
+                    eligible.Add(merged.Piece);
+                    scales[raw.Id] = merged.ScalePercent;
+                }
                 if (eligible.Count == 0) return Ok(new { success = true, found = true, wait = 60 });
 
                 PromoPiece? piece;
@@ -132,7 +145,7 @@ namespace Decatron.Controllers
                 if (piece == null || wait > 0) return Ok(new { success = true, found = true, wait = Math.Max(wait, 5) });
 
                 await _catalog.CountViewAsync(principalId, piece.Id);
-                return Ok(await BuildNextAsync(resolved, piece, snap));
+                return Ok(await BuildNextAsync(resolved, piece, snap, scales.GetValueOrDefault(piece.Id, 100)));
             }
             catch (Exception ex)
             {
@@ -189,7 +202,7 @@ namespace Decatron.Controllers
         }
 
         /// <summary>Cuerpo de la respuesta de "next" cuando hay una pieza para mostrar (la de la rotación o la pedida por el comando).</summary>
-        private async Task<object> BuildNextAsync(ResolvedAlias resolved, PromoPiece piece, PromoCatalogService.PublishedSnapshot snap)
+        private async Task<object> BuildNextAsync(ResolvedAlias resolved, PromoPiece piece, PromoCatalogService.PublishedSnapshot snap, int scalePercent = 100)
         {
             var template = TemplateFor(snap, piece)!;
             var en = await LanguageOfAsync(resolved.Account.Principal.UserId) == "en";
@@ -200,6 +213,7 @@ namespace Decatron.Controllers
                 wait = 0,
                 pieceId = piece.Id,
                 seconds = piece.DurationSeconds,
+                scale = scalePercent / 100.0,
                 design = JsonDocument.Parse(template.Design).RootElement,
                 content = new
                 {
@@ -214,6 +228,9 @@ namespace Decatron.Controllers
                 needsCommands = (piece.BodyEs + piece.BodyEn + piece.TitleEs + piece.TitleEn).Contains("{{commands}}", StringComparison.OrdinalIgnoreCase),
             };
         }
+
+        private Task<PromoPieceOverride?> PieceOverrideAsync(long principalId, long pieceId) =>
+            _db.PromoPieceOverrides.AsNoTracking().FirstOrDefaultAsync(o => o.UserId == principalId && o.PieceId == pieceId);
 
         private static PromoTemplate? TemplateFor(PromoCatalogService.PublishedSnapshot snap, PromoPiece p) =>
             (p.TemplateId != null ? snap.Templates.FirstOrDefault(t => t.Id == p.TemplateId) : null)

@@ -8,7 +8,7 @@ import { useBrand } from '../brand/BrandContext';
 
 interface Zone extends ZonePlacement { key: string }
 interface Emergency { pieceId: number; zone: string; design: PromoDesign; content: PromoContent; channel: string }
-interface Shown { pieceId: number; seconds: number; design: PromoDesign; content: PromoContent; vars: PromoVars }
+interface Shown { pieceId: number; seconds: number; scale: number; design: PromoDesign; content: PromoContent; vars: PromoVars }
 
 /** Cuánto se deja correr la animación de salida antes de quitar la ficha y pedir la siguiente. */
 const EXIT_MS = 1200;
@@ -49,7 +49,7 @@ function ZoneSlot({ zone, alias, source, language, stopped }: { zone: Zone; alia
                         const link = d.content.link || 'https://decatron.net';
                         const vars: PromoVars = { channel: d.channel, link, commands: d.needsCommands ? await loadCommands(d.channel) : '' };
                         setPhase('enter');
-                        setShown({ pieceId: d.pieceId, seconds: d.seconds, design: d.design, content: d.content, vars });
+                        setShown({ pieceId: d.pieceId, seconds: d.seconds, scale: typeof d.scale === 'number' ? d.scale : 1, design: d.design, content: d.content, vars });
                         await sleep(d.seconds * 1000);
                         if (!alive) return;
                         setPhase('exit');
@@ -67,9 +67,10 @@ function ZoneSlot({ zone, alias, source, language, stopped }: { zone: Zone; alia
     }, [zone.key, alias, source, language, stopped]);
 
     if (!shown) return null;
-    const pos = placeInZone(zone, shown.design.canvas.width, shown.design.canvas.height);
+    // La escala la elige el streamer dentro de los límites del dueño: el ancla de la zona se calcula con el tamaño ya escalado.
+    const pos = placeInZone(zone, shown.design.canvas.width * shown.scale, shown.design.canvas.height * shown.scale);
     return (
-        <div key={shown.pieceId} style={{ position: 'absolute', left: pos.x, top: pos.y }}>
+        <div key={shown.pieceId} style={{ position: 'absolute', left: pos.x, top: pos.y, transform: shown.scale === 1 ? undefined : `scale(${shown.scale})`, transformOrigin: 'top left' }}>
             <PromoDesignRenderer design={shown.design} content={shown.content} vars={shown.vars} resolveImage={resolve} phase={phase} />
         </div>
     );

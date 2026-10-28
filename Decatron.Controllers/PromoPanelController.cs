@@ -122,7 +122,15 @@ namespace Decatron.Controllers
                     pieces,
                     templates = snap.Templates.Select(t => new { t.Id, t.Zone, design = System.Text.Json.JsonDocument.Parse(t.Design).RootElement }),
                     zones = snap.Zones.Select(z => new { z.Key, z.NameEs, z.NameEn, z.Anchor, z.MarginX, z.MarginY }),
-                    limits = new { snap.Limits.MinGapSeconds, snap.Limits.HourlyCapSeconds },
+                    limits = new
+                    {
+                        snap.Limits.MinGapSeconds, snap.Limits.HourlyCapSeconds, snap.Limits.MinDurationSeconds, snap.Limits.MaxDurationSeconds,
+                        snap.Limits.MinScalePercent, snap.Limits.MaxScalePercent, snap.Limits.MaxZoneMargin,
+                    },
+                    pieceOverrides = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId)
+                        .Select(o => new { o.PieceId, o.DurationSeconds, o.TemplateId, o.ScalePercent }).ToListAsync(),
+                    zoneOverrides = await _db.PromoZoneOverrides.AsNoTracking().Where(o => o.UserId == principalId)
+                        .Select(o => new { o.ZoneKey, o.Anchor, o.MarginX, o.MarginY }).ToListAsync(),
                     views = await _catalog.GetChannelViewsAsync(principalId),
                     mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.DisabledIds(prefs), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
                     command = new { enabled = prefs?.CmdEnabled ?? false, name = prefs?.CmdName ?? PromoCommand.DefaultName, cooldownSeconds = prefs?.CmdCooldownSeconds ?? 10, minRole = prefs?.CmdMinRole ?? "moderator" } },
@@ -131,6 +139,101 @@ namespace Decatron.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error obteniendo el catálogo de promociones del streamer");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        public record PieceOverrideRequest(int? DurationSeconds, long? TemplateId, int? ScalePercent);
+        public record ZoneOverrideRequest(string Anchor, int MarginX, int MarginY);
+
+        /// <summary>Lo que el streamer cambia de una pieza (duración, plantilla, escala), dentro de los límites del dueño. Todo vacío = vuelve al valor del dueño.</summary>
+        [HttpPut("piece/{pieceId:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> SavePiece(long pieceId, [FromBody] PieceOverrideRequest req)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var snap = await _catalog.GetPublishedAsync();
+                var piece = snap.Pieces.FirstOrDefault(p => p.Id == pieceId && p.Kind != PromoPlayback.EmergencyKind);
+                if (piece == null) return NotFound(new { success = false, message = "Pieza no encontrada" });
+                var errors = PromoOverrides.ValidatePiece(req.DurationSeconds, req.ScalePercent, req.TemplateId, piece, snap.Limits, snap.Templates);
+                if (errors.Count > 0) return BadRequest(new { success = false, errors });
+
+                var principalId = account.Principal.UserId;
+                var row = await _db.PromoPieceOverrides.FirstOrDefaultAsync(o => o.UserId == principalId && o.PieceId == pieceId);
+                if (req.DurationSeconds == null && req.TemplateId == null && req.ScalePercent == null)
+                {
+                    if (row != null) { _db.PromoPieceOverrides.Remove(row); await _db.SaveChangesAsync(); }
+                    return Ok(new { success = true });
+                }
+                if (row == null) { row = new PromoPieceOverride { UserId = principalId, PieceId = pieceId }; _db.PromoPieceOverrides.Add(row); }
+                row.DurationSeconds = req.DurationSeconds;
+                row.TemplateId = req.TemplateId;
+                row.ScalePercent = req.ScalePercent;
+                row.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando los ajustes de una pieza de promociones");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>Dónde pone el streamer una zona (ancla y márgenes), dentro del margen máximo del dueño.</summary>
+        [HttpPut("zone/{key}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> SaveZone(string key, [FromBody] ZoneOverrideRequest req)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var snap = await _catalog.GetPublishedAsync();
+                if (!snap.Zones.Any(z => z.Key == key)) return NotFound(new { success = false, message = "Zona no encontrada" });
+                var errors = PromoOverrides.ValidateZone(req.Anchor ?? "", req.MarginX, req.MarginY, snap.Limits);
+                if (errors.Count > 0) return BadRequest(new { success = false, errors });
+
+                var principalId = account.Principal.UserId;
+                var row = await _db.PromoZoneOverrides.FirstOrDefaultAsync(o => o.UserId == principalId && o.ZoneKey == key);
+                if (row == null) { row = new PromoZoneOverride { UserId = principalId, ZoneKey = key }; _db.PromoZoneOverrides.Add(row); }
+                row.Anchor = req.Anchor!;
+                row.MarginX = req.MarginX;
+                row.MarginY = req.MarginY;
+                row.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando la posición de una zona de promociones");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>Vuelve la zona a la posición del dueño.</summary>
+        [HttpDelete("zone/{key}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> ResetZone(string key)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var principalId = account.Principal.UserId;
+                var row = await _db.PromoZoneOverrides.FirstOrDefaultAsync(o => o.UserId == principalId && o.ZoneKey == key);
+                if (row != null) { _db.PromoZoneOverrides.Remove(row); await _db.SaveChangesAsync(); }
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restableciendo la posición de una zona de promociones");
                 return StatusCode(500, new { success = false, message = "Error interno del servidor" });
             }
         }

@@ -146,7 +146,18 @@
       "minGapHint": "De 10 a 3600.",
       "hourlyCap": "Segundos máximos de promoción en pantalla por hora",
       "hourlyCapHint": "De 30 a 3600.",
-      "save": "Guardar topes"
+      "save": "Guardar topes",
+      "streamerTitle": "Lo que puede cambiar el streamer",
+      "minDuration": "Duración mínima de una pieza (segundos)",
+      "minDurationHint": "Ningún streamer puede dejar una pieza menos tiempo que esto.",
+      "maxDuration": "Duración máxima de una pieza (segundos)",
+      "maxDurationHint": "Tope de lo que puede alargarla.",
+      "minScale": "Tamaño mínimo (%)",
+      "minScaleHint": "100 es el tamaño del diseño. Por debajo de este valor no se puede achicar.",
+      "maxScale": "Tamaño máximo (%)",
+      "maxScaleHint": "Por encima de este valor no se puede agrandar.",
+      "maxMargin": "Margen máximo de una zona (píxeles)",
+      "maxMarginHint": "Cuánto puede separar el streamer una zona del borde del lienzo de 1920×1080."
     },
     "errors": {
       "unknown": "No se pudo guardar. Inténtalo de nuevo.",
@@ -195,7 +206,10 @@
       "designTextInvalid": "Un texto no es válido (sin < ni >, máximo 400 caracteres).",
       "designUnknownVariable": "Un texto usa una variable desconocida.",
       "designIconInvalid": "Hay un icono que no está en la lista.",
-      "designAnimationInvalid": "Hay una animación no válida."
+      "designAnimationInvalid": "Hay una animación no válida.",
+      "durationLimitsRange": "Los límites de duración deben estar entre 1 y 300 segundos y el mínimo no puede superar al máximo.",
+      "scaleLimitsRange": "Los límites de tamaño deben estar entre 20 % y 300 % y el mínimo no puede superar al máximo.",
+      "zoneMarginLimitRange": "El margen máximo de una zona debe estar entre 0 y 1000 píxeles."
     },
     "design": {
       "back": "Volver a las plantillas",

@@ -146,7 +146,18 @@
       "minGapHint": "From 10 to 3600.",
       "hourlyCap": "Maximum seconds of promotion on screen per hour",
       "hourlyCapHint": "From 30 to 3600.",
-      "save": "Save limits"
+      "save": "Save limits",
+      "streamerTitle": "What the streamer can change",
+      "minDuration": "Minimum piece duration (seconds)",
+      "minDurationHint": "No streamer can leave a piece on screen for less than this.",
+      "maxDuration": "Maximum piece duration (seconds)",
+      "maxDurationHint": "Cap on how long they can make it.",
+      "minScale": "Minimum size (%)",
+      "minScaleHint": "100 is the design's size. They can't shrink it below this.",
+      "maxScale": "Maximum size (%)",
+      "maxScaleHint": "They can't enlarge it above this.",
+      "maxMargin": "Maximum zone margin (pixels)",
+      "maxMarginHint": "How far the streamer can move a zone from the edge of the 1920×1080 canvas."
     },
     "errors": {
       "unknown": "It could not be saved. Try again.",
@@ -195,7 +206,10 @@
       "designTextInvalid": "A text is not valid (no < or >, 400 characters at most).",
       "designUnknownVariable": "A text uses an unknown variable.",
       "designIconInvalid": "There is an icon that is not in the list.",
-      "designAnimationInvalid": "There is an invalid animation."
+      "designAnimationInvalid": "There is an invalid animation.",
+      "durationLimitsRange": "Duration limits must be between 1 and 300 seconds and the minimum can't exceed the maximum.",
+      "scaleLimitsRange": "Size limits must be between 20% and 300% and the minimum can't exceed the maximum.",
+      "zoneMarginLimitRange": "The maximum zone margin must be between 0 and 1000 pixels."
     },
     "design": {
       "back": "Back to templates",

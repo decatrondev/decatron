@@ -30,6 +30,21 @@ export function LimitsTab({ limits, onChanged, notify }: { limits: PromoLimits; 
                 <Field label={t('admin.limits.hourlyCap')} hint={t('admin.limits.hourlyCapHint')}>
                     <Input type="number" min={30} max={3600} value={v.hourlyCapSeconds} onChange={e => setV({ ...v, hourlyCapSeconds: Number(e.target.value) || 0 })} />
                 </Field>
+                <Field label={t('admin.limits.minDuration')} hint={t('admin.limits.minDurationHint')}>
+                    <Input type="number" min={1} max={300} value={v.minDurationSeconds} onChange={e => setV({ ...v, minDurationSeconds: Number(e.target.value) || 0 })} />
+                </Field>
+                <Field label={t('admin.limits.maxDuration')} hint={t('admin.limits.maxDurationHint')}>
+                    <Input type="number" min={1} max={300} value={v.maxDurationSeconds} onChange={e => setV({ ...v, maxDurationSeconds: Number(e.target.value) || 0 })} />
+                </Field>
+                <Field label={t('admin.limits.minScale')} hint={t('admin.limits.minScaleHint')}>
+                    <Input type="number" min={20} max={300} value={v.minScalePercent} onChange={e => setV({ ...v, minScalePercent: Number(e.target.value) || 0 })} />
+                </Field>
+                <Field label={t('admin.limits.maxScale')} hint={t('admin.limits.maxScaleHint')}>
+                    <Input type="number" min={20} max={300} value={v.maxScalePercent} onChange={e => setV({ ...v, maxScalePercent: Number(e.target.value) || 0 })} />
+                </Field>
+                <Field label={t('admin.limits.maxMargin')} hint={t('admin.limits.maxMarginHint')}>
+                    <Input type="number" min={0} max={1000} value={v.maxZoneMargin} onChange={e => setV({ ...v, maxZoneMargin: Number(e.target.value) || 0 })} />
+                </Field>
                 <Button loading={saving} onClick={save}>{t('admin.limits.save')}</Button>
             </div>
         </ConfigCard>

@@ -446,6 +446,8 @@ Guide, What is shown (turn pieces on or off) and Settings (pause everything, lon
 
 Chat command: off by default, per account (`cmd_enabled`, `cmd_name` default `dpromo`, `cmd_cooldown_seconds`, `cmd_min_role` moderator|vip|subscriber|everyone, in `promo_channel_settings`). `PromoCommandService` is called from `CommandService` (Twitch and Kick) after the clip command and only if the plan has `module.ov_promo`. Subcommands: `list`, `show <name>`, `pause`, `resume` (also in Spanish). `show` leaves the piece in the in-memory state of the account (`PromoPlayback.State.Forced`, expires in 90 s) and the next `GET /api/promo/next` for its zone returns it, ignoring pause and switched-off pieces; it does not skip an emergency. When saving, the name is rejected if it matches a bot command (`CommandService.IsReservedCommandName`) or an active custom command (`cmdReserved`, `cmdCustom`, `cmdInvalid`). The streamer and the Lead Moderator always pass the role check; replies come from `Resources/bot-messages` group `dpromo`.
 
+Two layers: the owner sets the default and the **limits** (`promo_settings`: min/max duration, min/max size in %, maximum zone margin); the streamer saves their own changes apart (`promo_piece_overrides`: duration, template, size; `promo_zone_overrides`: anchor and margins; both tenant tables with RLS) and can go back to the owner's value by deleting the row. `PromoOverrides` merges them: limits always win, the shared catalog is never modified (the merge works on a copy), and a template of another zone or a disabled one is ignored. `GET /api/promo/next` returns `scale` and uses the merged duration for the wait and for the chat command; `GET /api/promo/resolve` returns the zones with the streamer's position.
+
 ### Promo API
 
 | Method | Endpoint | Auth | Description |
@@ -456,6 +458,9 @@ Chat command: off by default, per account (`cmd_enabled`, `cmd_name` default `dp
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Connected sources by variant and warnings |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Active pieces, templates, zones, limits and the streamer's choices |
 | `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Save pause, switched-off pieces, limits and the chat command |
+| `PUT` | `/api/promo-panel/piece/{id}` | JWT + `overlays` | Streamer's own duration, template and size for a piece, within the owner's limits (all empty = back to the owner's value) |
+| `PUT` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Streamer's own anchor and margins for a zone, within the owner's maximum margin |
+| `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` | Put the zone back where the owner placed it |
 
 The module is `module.ov_promo`. The catalog itself (pieces, templates, zones, global limits) is edited by the owner from the admin area.
 

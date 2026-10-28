@@ -145,7 +145,11 @@ namespace Decatron.Controllers
         public async Task<IActionResult> UpdateLimits([FromBody] LimitsRequest req)
         {
             if (!_settings.CurrentValue.Enabled) return NotFound();
-            var r = await _catalog.UpdateLimitsAsync(req.MinGapSeconds, req.HourlyCapSeconds);
+            var r = await _catalog.UpdateLimitsAsync(new PromoOverlayLimits
+            {
+                MinGapSeconds = req.MinGapSeconds, HourlyCapSeconds = req.HourlyCapSeconds, MinDurationSeconds = req.MinDurationSeconds, MaxDurationSeconds = req.MaxDurationSeconds,
+                MinScalePercent = req.MinScalePercent, MaxScalePercent = req.MaxScalePercent, MaxZoneMargin = req.MaxZoneMargin,
+            });
             return r.Ok ? Ok(new { success = true, limits = r.Value }) : Failed(r);
         }
 
@@ -161,6 +165,12 @@ namespace Decatron.Controllers
             public JsonElement Design { get; set; }
         }
         public class StatusRequest { public string Status { get; set; } = ""; }
-        public class LimitsRequest { public int MinGapSeconds { get; set; } = 60; public int HourlyCapSeconds { get; set; } = 600; }
+        public class LimitsRequest
+        {
+            public int MinGapSeconds { get; set; } = 60; public int HourlyCapSeconds { get; set; } = 600;
+            public int MinDurationSeconds { get; set; } = 5; public int MaxDurationSeconds { get; set; } = 60;
+            public int MinScalePercent { get; set; } = 60; public int MaxScalePercent { get; set; } = 150;
+            public int MaxZoneMargin { get; set; } = 600;
+        }
     }
 }
