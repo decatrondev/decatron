@@ -72,7 +72,8 @@ function Qr({ e, link }: { e: QrElement; link: string }) {
     const [src, setSrc] = useState<string | null>(null);
     useEffect(() => {
         let alive = true;
-        QRCode.toDataURL(link, { margin: 0, width: 360, errorCorrectionLevel: 'M', color: { dark: e.color, light: e.background } })
+        // Nivel L: el overlay es una imagen limpia (nada que corregir) y así el enlace corto del QR sigue en 25 módulos; con M pasaba a 29 y cada módulo salía más chico.
+        QRCode.toDataURL(link, { margin: 0, width: 360, errorCorrectionLevel: 'L', color: { dark: e.color, light: e.background } })
             .then(u => { if (alive) setSrc(u); }).catch(() => { if (alive) setSrc(null); });
         return () => { alive = false; };
     }, [link, e.color, e.background]);
