@@ -54,6 +54,7 @@ En Kick, `!title`/`!t` y `!game`/`!g` también funcionan, con las mismas reglas 
 | Comando | Descripción | Quién puede usarlo | Ejemplo |
 |---------|-------------|--------------------|---------|
 | `!so` | Hace shoutout a un usuario mostrando su último clip y perfil en el overlay | Streamer y moderadores | `!so @usuario` |
+| `!dpromo` | Maneja el overlay de Promociones desde el chat: `lista`, `mostrar <nombre>`, `pausar`, `reanudar`. Apagado por defecto; el streamer lo activa y lo renombra en Overlays → Promociones → Ajustes | Streamer, Lead Moderator y moderadores (configurable) | `!dpromo mostrar discord` |
 | `!followage` | Muestra el tiempo que llevas siguiendo el canal | Todos | `!followage`, `!followage @usuario` |
 | `!ia` | Pregunta a Decatron IA | Lo define la configuración de IA del canal (tiempo de espera por canal y por usuario) | `!ia dame un dato curioso` |
 | `!raffle` | Sorteo de chat: `join`, `create <nombre>`, `close`, `draw`, `status` | Crear, cerrar y sortear: streamer y moderadores. Unirse y ver el estado: todos | `!raffle join` |

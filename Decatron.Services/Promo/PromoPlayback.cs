@@ -19,6 +19,8 @@ namespace Decatron.Services.Promo
             public Dictionary<string, DateTime> ZoneFreeAt { get; } = new();
             public Dictionary<string, long> LastPiece { get; } = new();
             public List<(DateTime At, int Seconds)> Shown { get; } = new();
+            /// <summary>Pieza pedida con el comando del chat, por zona: sale en la próxima consulta del overlay y se consume.</summary>
+            public Dictionary<string, (long PieceId, DateTime Expires)> Forced { get; } = new();
         }
 
         private static readonly ConcurrentDictionary<string, State> States = new();

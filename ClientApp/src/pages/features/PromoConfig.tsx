@@ -5,7 +5,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-react';
 import api from '../../services/api';
 import TabIcon from '../../components/dashboard/TabIcon';
 import { usePermissions } from '../../hooks/usePermissions';
-import { Card, NumberInput, Toggle } from '../../components/overlay-editor/ui';
+import { Card, Field, NumberInput, Select, Toggle, inputClass } from '../../components/overlay-editor/ui';
 import { LinkRow, Warning, useOverlayStatus } from '../../components/overlay-editor/OverlayLinks';
 import { PromoZoom, type ZonePlacement } from '../../components/promo-overlay/PromoPreview';
 import { docUrl } from '../docs/registry';
@@ -32,7 +32,8 @@ interface Catalog {
     /** Veces que salió cada pieza en este canal en los últimos 30 días. */
     views: Record<string, number>;
 }
-interface Mine { paused: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null }
+interface CmdSettings { enabled: boolean; name: string; cooldownSeconds: number; minRole: 'moderator' | 'vip' | 'subscriber' | 'everyone' }
+interface Mine { paused: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null; command: CmdSettings }
 
 const overlayUrl = (channel: string, source?: 'twitch' | 'kick') => `${window.location.origin}/overlay/promo?channel=${channel}${source ? `&source=${source}` : ''}`;
 
@@ -68,15 +69,19 @@ export default function PromoConfig() {
     const dateFmt = useMemo(() => new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }), [lang]);
 
     const change = (patch: Partial<Mine>) => { setMine(m => (m ? { ...m, ...patch } : m)); setDirty(true); };
+    const changeCmd = (patch: Partial<CmdSettings>) => change({ command: { ...(mine as Mine).command, ...patch } });
     const toggle = (id: number, on: boolean) => change({ disabledPieces: on ? (mine?.disabledPieces ?? []).filter(x => x !== id) : [...(mine?.disabledPieces ?? []), id] });
     const save = async () => {
         if (!mine) return;
         setSaving(true);
         try {
-            await api.put('/promo-panel/settings', { paused: mine.paused, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds });
+            await api.put('/promo-panel/settings', { paused: mine.paused, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds, command: mine.command });
             setDirty(false);
             setMessage({ ok: true, text: t('panel.settings.saved') });
-        } catch { setMessage({ ok: false, text: t('panel.settings.saveFailed') }); }
+        } catch (e: any) {
+            const code = e?.response?.data?.errors?.[0];
+            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : t('panel.settings.saveFailed') });
+        }
         setSaving(false);
         window.setTimeout(() => setMessage(null), 4000);
     };
@@ -184,6 +189,7 @@ export default function PromoConfig() {
                     </Card>
                 )}
                 {tab === 'settings' && mine && catalog && (
+                    <div className="space-y-6">
                     <Card title={t('panel.settings.title')} description={t('panel.settings.description')}>
                         <div className="space-y-6">
                             <Toggle checked={mine.paused} onChange={v => change({ paused: v })} label={t('panel.settings.pause')} hint={t('panel.settings.pauseHint')} />
@@ -201,6 +207,33 @@ export default function PromoConfig() {
                             </div>
                         </div>
                     </Card>
+                    <Card title={t('panel.command.title')} description={t('panel.command.description')}>
+                        <div className="space-y-6">
+                            <Toggle checked={mine.command.enabled} onChange={v => changeCmd({ enabled: v })} label={t('panel.command.enable')} hint={t('panel.command.enableHint')} />
+                            {mine.command.enabled && (
+                                <>
+                                    <Field label={t('panel.command.name')} hint={t('panel.command.nameHint')}>
+                                        <div className="flex items-center gap-2 max-w-xs">
+                                            <span className="text-ds-soft font-bold">!</span>
+                                            <input className={inputClass} value={mine.command.name} maxLength={20} onChange={e => changeCmd({ name: e.target.value.replace(/^!/, '') })} />
+                                        </div>
+                                    </Field>
+                                    <Field label={t('panel.command.role')} hint={t('panel.command.roleHint')}>
+                                        <div className="max-w-xs"><Select value={mine.command.minRole} onChange={v => changeCmd({ minRole: v })}
+                                            options={(['moderator', 'vip', 'subscriber', 'everyone'] as const).map(r => ({ value: r, label: t(`panel.command.roles.${r}`) }))} /></div>
+                                    </Field>
+                                    <Field label={t('panel.command.cooldown')} hint={t('panel.command.cooldownHint')}>
+                                        <div className="max-w-xs"><NumberInput value={mine.command.cooldownSeconds} min={0} max={600} step={5} onChange={v => changeCmd({ cooldownSeconds: v })} /></div>
+                                    </Field>
+                                    <div className="text-sm 3xl:text-base text-ds-soft space-y-1">
+                                        <p>{t('panel.command.usage', { name: mine.command.name || 'dpromo' })}</p>
+                                        <p>{t('panel.command.otherBot')}</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </Card>
+                    </div>
                 )}
             </div>
         </div>

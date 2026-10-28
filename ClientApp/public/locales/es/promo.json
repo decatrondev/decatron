@@ -454,6 +454,29 @@
       "saved": "Guardado. Se aplica en la siguiente pieza.",
       "saveFailed": "No se pudo guardar.",
       "unsaved": "Cambios sin guardar"
+    },
+    "command": {
+      "title": "Comando de chat",
+      "description": "Para que tú o tu equipo manejen las promociones desde el chat, sin abrir el panel.",
+      "enable": "Activar el comando",
+      "enableHint": "Está apagado por defecto. Funciona en Twitch y en Kick.",
+      "name": "Nombre del comando",
+      "nameHint": "De 2 a 20 letras, números o guion bajo. No puede coincidir con un comando del bot ni con uno tuyo.",
+      "role": "Quién puede usarlo",
+      "roleHint": "El streamer y el Lead Moderator siempre pueden.",
+      "roles": {
+        "moderator": "Moderadores",
+        "vip": "VIPs y moderadores",
+        "subscriber": "Suscriptores, VIPs y moderadores",
+        "everyone": "Todos"
+      },
+      "cooldown": "Pausa entre usos (segundos)",
+      "cooldownHint": "Durante ese tiempo el bot no responde a nuevos usos.",
+      "usage": "Uso: !{{name}} mostrar <nombre> · !{{name}} lista · !{{name}} pausar · !{{name}} reanudar. «Mostrar» saca esa pieza en la próxima oportunidad, aunque haya pausa o la hayas apagado.",
+      "otherBot": "Si usas otro bot (Nightbot, StreamElements…), revisa que no tenga ya un comando con ese nombre: no se puede detectar desde aquí.",
+      "cmdInvalid": "El nombre del comando no es válido: usa de 2 a 20 letras minúsculas, números o guion bajo.",
+      "cmdReserved": "Ese nombre ya lo usa un comando del bot. Elige otro.",
+      "cmdCustom": "Ya tienes un comando propio con ese nombre. Elige otro."
     }
   }
 }

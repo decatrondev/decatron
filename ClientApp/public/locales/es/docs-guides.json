@@ -3622,6 +3622,28 @@
         ]
       },
       {
+        "id": "comando",
+        "title": "Comando de chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Puedes manejar las promociones desde el chat. El comando nace apagado: actívalo en Ajustes, elige su nombre (por defecto !dpromo) y quién puede usarlo. Funciona en Twitch y en Kick."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "!dpromo lista: dice en el chat qué promociones hay activas.",
+              "!dpromo mostrar <nombre>: saca esa pieza en la próxima oportunidad, aunque haya pausa o la hayas apagado. Una emergencia sigue teniendo prioridad.",
+              "!dpromo pausar y !dpromo reanudar: lo mismo que el interruptor de pausa de Ajustes."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "El nombre no puede coincidir con un comando del bot ni con uno tuyo; el panel te avisa. Si usas otro bot (Nightbot, StreamElements…), revisa tú que no tenga ya ese nombre, porque Decatron no puede verlo. El streamer y el Lead Moderator siempre pueden usarlo."
+          }
+        ]
+      },
+      {
         "id": "avisos",
         "title": "Si algo no se ve",
         "blocks": [

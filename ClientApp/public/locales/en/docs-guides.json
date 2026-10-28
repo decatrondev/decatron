@@ -3622,6 +3622,28 @@
         ]
       },
       {
+        "id": "comando",
+        "title": "Chat command",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "You can run the promos from chat. The command starts off: turn it on in Settings, pick its name (default !dpromo) and who can use it. Works on Twitch and Kick."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "!dpromo list: says in chat which promos are active.",
+              "!dpromo show <name>: puts that piece on screen at the next chance, even if paused or switched off. An emergency still has priority.",
+              "!dpromo pause and !dpromo resume: the same as the pause switch in Settings."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The name can't match a bot command or one of your own; the panel warns you. If you use another bot (Nightbot, StreamElements…), check yourself that it doesn't already have that name, because Decatron can't see it. The streamer and the Lead Moderator can always use it."
+          }
+        ]
+      },
+      {
         "id": "avisos",
         "title": "If nothing shows",
         "blocks": [

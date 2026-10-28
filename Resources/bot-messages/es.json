@@ -482,5 +482,16 @@
     "too_few_views": "🎵 @{user}, esa canción tiene menos de {views} vistas, el mínimo del canal.",
     "recently_played": "🎵 @{user}, «{title}» sonó hace poco. Pídela de nuevo en un rato ({minutes} min).",
     "song_current_fallback": "🎵 Suena «{title}» de {artist}, de la playlist del canal · {url}"
+  },
+  "dpromo": {
+    "no_permission": "@{0}, no tienes permiso para usar este comando.",
+    "usage": "Uso: !{0} mostrar <nombre> · lista · pausar · reanudar",
+    "show_usage": "Uso: !{0} mostrar <nombre de la promoción>",
+    "not_found": "No encontré una promoción llamada «{0}». Usa lista para ver las disponibles.",
+    "shown": "📣 Mostrando «{0}» en el overlay.",
+    "list": "📣 Promociones: {0}",
+    "list_empty": "No hay promociones activas para este canal.",
+    "paused": "⏸️ Promociones en pausa. Usa reanudar para volver.",
+    "resumed": "▶️ Promociones reanudadas."
   }
 }

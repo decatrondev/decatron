@@ -482,5 +482,16 @@
     "too_few_views": "🎵 @{user}, that song has fewer than {views} views, the channel's minimum.",
     "recently_played": "🎵 @{user}, “{title}” played recently. Request it again later ({minutes} min).",
     "song_current_fallback": "🎵 Now playing “{title}” by {artist}, from the channel playlist · {url}"
+  },
+  "dpromo": {
+    "no_permission": "@{0}, you don't have permission to use this command.",
+    "usage": "Usage: !{0} show <name> · list · pause · resume",
+    "show_usage": "Usage: !{0} show <promo name>",
+    "not_found": "I couldn't find a promo called «{0}». Use list to see the available ones.",
+    "shown": "📣 Showing «{0}» on the overlay.",
+    "list": "📣 Promos: {0}",
+    "list_empty": "There are no active promos for this channel.",
+    "paused": "⏸️ Promos paused. Use resume to bring them back.",
+    "resumed": "▶️ Promos resumed."
   }
 }

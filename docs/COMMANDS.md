@@ -54,6 +54,7 @@ On Kick, `!title`/`!t` and `!game`/`!g` work too, with the same rules as Twitch 
 | Command | Description | Who can use it | Example |
 |---------|-------------|----------------|---------|
 | `!so` | Shoutout a user, showing their latest clip and profile in the overlay | Streamer and moderators | `!so @username` |
+| `!dpromo` | Runs the Promo overlay from chat: `list`, `show <name>`, `pause`, `resume`. Off by default; the streamer turns it on and renames it in Overlays → Promos → Settings | Streamer, Lead Moderator and moderators (configurable) | `!dpromo show discord` |
 | `!followage` | Shows how long you have been following the channel | Everyone | `!followage`, `!followage @user` |
 | `!ia` | Ask Decatron AI | Set by the channel's AI configuration (per-channel and per-user cooldown) | `!ia give me a fun fact` |
 | `!raffle` | Chat raffle: `join`, `create <name>`, `close`, `draw`, `status` | Create, close, draw: streamer and moderators. Join and status: everyone | `!raffle join` |

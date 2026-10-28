@@ -35,6 +35,7 @@ namespace Decatron.Services
         private readonly Dictionary<string, ICommand> _commands;
         private readonly Decatron.Services.SongRequest.SongRequestChatHandler _songRequestHandler;
         private readonly Decatron.Services.ClipCommand.ClipCommandService _clipCommand;
+        private readonly Decatron.Services.Promo.PromoCommandService _promoCommand;
         private readonly Decatron.Services.Platforms.Kick.KickTitleCategoryHandler _kickTitleCategory;
         private readonly Dictionary<string, Dictionary<string, string>> _microCommandsCache;
         private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
@@ -72,6 +73,16 @@ namespace Decatron.Services
         // Comandos de Game Overlays y del Coach de LoL: se llenan al registrarlos (cada alias es una instancia con su Name).
         private readonly Dictionary<string, string> _overlayCommandModule = new(StringComparer.OrdinalIgnoreCase);
 
+        // Comandos que se atienden por su cuenta (no están en _commands): el panel no deja usar su nombre para otro comando.
+        private static readonly HashSet<string> SpecialCommandNames = new(StringComparer.OrdinalIgnoreCase)
+        { "!crear", "!editcom", "!delcom", "!join", "!clip", "!so", "!sr", "!playlist", "!commands" };
+
+        /// <summary>true si el nombre (con "!") ya lo usa un comando del bot, de un módulo o de Song Request.</summary>
+        public bool IsReservedCommandName(string commandName) =>
+            _commands.ContainsKey(commandName) || ModuleByCommand.ContainsKey(commandName) || _overlayCommandModule.ContainsKey(commandName)
+            || SpecialCommandNames.Contains(commandName) || commandName.StartsWith("!gc", StringComparison.OrdinalIgnoreCase)
+            || Decatron.Services.SongRequest.SongRequestChatHandler.IsSongRequestCommand(commandName);
+
         private Task<bool> CommandModuleOnAsync(string commandName) =>
             ModuleByCommand.TryGetValue(commandName, out var module) || _overlayCommandModule.TryGetValue(commandName, out module)
                 ? ModuleOnAsync(module) : Task.FromResult(true);
@@ -87,6 +98,7 @@ namespace Decatron.Services
             Decatron.Services.SongRequest.SongRequestChatHandler songRequestHandler,
             IBotListService botList,
             Decatron.Services.ClipCommand.ClipCommandService clipCommand,
+            Decatron.Services.Promo.PromoCommandService promoCommand,
             Decatron.Services.Platforms.Kick.KickTitleCategoryHandler kickTitleCategory,
             Decatron.Services.Tenancy.TenantShadow tenantShadow,
             Decatron.Core.Interfaces.IEntitlements? entitlements = null)
@@ -98,6 +110,7 @@ namespace Decatron.Services
             // Tras un !g set / !g remove en Kick, el caché de micro comandos se recarga (el handler no puede depender de CommandService)
             _kickTitleCategory.OnMicroCommandsChanged = RefreshMicroCommandsForChannelAsync;
             _clipCommand = clipCommand;
+            _promoCommand = promoCommand;
             _songRequestHandler = songRequestHandler;
             _instanceId = ++_instanceCount;
             _petEventBridge = petEventBridge;
@@ -812,6 +825,14 @@ namespace Decatron.Services
                 {
                     var clipCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
                     if (await _clipCommand.TryHandleAsync(clipCtx, _messageSender))
+                        return;
+                }
+
+                // 1g. Comando de Promociones (por defecto !dpromo) — solo si el canal lo activó y tiene el módulo
+                if (commandName.StartsWith("!") && channelUserId != null && await ModuleOnAsync("module.ov_promo"))
+                {
+                    var promoCtx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                    if (await _promoCommand.TryHandleAsync(promoCtx, _messageSender))
                         return;
                 }
 

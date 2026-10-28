@@ -442,7 +442,9 @@ Shows Decatron cards and banners on stream on their own (`/overlay/promo`), publ
 
 ### Configuration tabs
 
-Guide, What is shown (turn pieces on or off) and Settings (pause everything, longer pause between pieces, fewer seconds per hour). Per-streamer choices live in `promo_channel_settings` (tenant table with RLS). Each piece delivered to an overlay adds one to a daily counter (`promo_view_counts` per account, with RLS, and `promo_piece_daily` global); nothing that identifies viewers is stored.
+Guide, What is shown (turn pieces on or off) and Settings (pause everything, longer pause between pieces, fewer seconds per hour, chat command). Per-streamer choices live in `promo_channel_settings` (tenant table with RLS). Each piece delivered to an overlay adds one to a daily counter (`promo_view_counts` per account, with RLS, and `promo_piece_daily` global); nothing that identifies viewers is stored.
+
+Chat command: off by default, per account (`cmd_enabled`, `cmd_name` default `dpromo`, `cmd_cooldown_seconds`, `cmd_min_role` moderator|vip|subscriber|everyone, in `promo_channel_settings`). `PromoCommandService` is called from `CommandService` (Twitch and Kick) after the clip command and only if the plan has `module.ov_promo`. Subcommands: `list`, `show <name>`, `pause`, `resume` (also in Spanish). `show` leaves the piece in the in-memory state of the account (`PromoPlayback.State.Forced`, expires in 90 s) and the next `GET /api/promo/next` for its zone returns it, ignoring pause and switched-off pieces; it does not skip an emergency. When saving, the name is rejected if it matches a bot command (`CommandService.IsReservedCommandName`) or an active custom command (`cmdReserved`, `cmdCustom`, `cmdInvalid`). The streamer and the Lead Moderator always pass the role check; replies come from `Resources/bot-messages` group `dpromo`.
 
 ### Promo API
 
@@ -453,7 +455,7 @@ Guide, What is shown (turn pieces on or off) and Settings (pause everything, lon
 | `GET` | `/api/promo/emergency/{alias}` | Anonymous | Active emergency piece for the channel, if any |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Connected sources by variant and warnings |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Active pieces, templates, zones, limits and the streamer's choices |
-| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Save pause, switched-off pieces and limits |
+| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Save pause, switched-off pieces, limits and the chat command |
 
 The module is `module.ov_promo`. The catalog itself (pieces, templates, zones, global limits) is edited by the owner from the admin area.
 

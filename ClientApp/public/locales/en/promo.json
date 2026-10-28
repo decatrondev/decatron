@@ -454,6 +454,29 @@
       "saved": "Saved. It applies from the next piece.",
       "saveFailed": "Couldn't save.",
       "unsaved": "Unsaved changes"
+    },
+    "command": {
+      "title": "Chat command",
+      "description": "Lets you or your team run the promos from chat, without opening the panel.",
+      "enable": "Turn the command on",
+      "enableHint": "It is off by default. Works on Twitch and Kick.",
+      "name": "Command name",
+      "nameHint": "2 to 20 letters, numbers or underscore. It cannot match a bot command or one of your own.",
+      "role": "Who can use it",
+      "roleHint": "The streamer and the Lead Moderator always can.",
+      "roles": {
+        "moderator": "Moderators",
+        "vip": "VIPs and moderators",
+        "subscriber": "Subscribers, VIPs and moderators",
+        "everyone": "Everyone"
+      },
+      "cooldown": "Pause between uses (seconds)",
+      "cooldownHint": "During that time the bot ignores new uses.",
+      "usage": "Usage: !{{name}} show <name> · !{{name}} list · !{{name}} pause · !{{name}} resume. «Show» puts that piece on screen at the next chance, even if paused or if you turned it off.",
+      "otherBot": "If you use another bot (Nightbot, StreamElements…), check it has no command with that name: it can't be detected from here.",
+      "cmdInvalid": "The command name isn't valid: use 2 to 20 lowercase letters, numbers or underscore.",
+      "cmdReserved": "That name is already used by a bot command. Pick another.",
+      "cmdCustom": "You already have a custom command with that name. Pick another."
     }
   }
 }

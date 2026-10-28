@@ -442,7 +442,9 @@ Muestra tarjetas y banners de Decatron en el stream de forma automática (`/over
 
 ### Pestañas de configuración
 
-Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pausa entre piezas, menos segundos por hora). Lo que elige cada streamer vive en `promo_channel_settings` (tabla de tenant con RLS). Cada pieza entregada a un overlay suma uno a un contador diario (`promo_view_counts` por cuenta, con RLS, y `promo_piece_daily` global); no se guarda nada que identifique a quienes ven el stream.
+Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pausa entre piezas, menos segundos por hora, comando de chat). Lo que elige cada streamer vive en `promo_channel_settings` (tabla de tenant con RLS). Cada pieza entregada a un overlay suma uno a un contador diario (`promo_view_counts` por cuenta, con RLS, y `promo_piece_daily` global); no se guarda nada que identifique a quienes ven el stream.
+
+Comando de chat: apagado por defecto, por cuenta (`cmd_enabled`, `cmd_name` por defecto `dpromo`, `cmd_cooldown_seconds`, `cmd_min_role` moderator|vip|subscriber|everyone, en `promo_channel_settings`). `CommandService` llama a `PromoCommandService` (Twitch y Kick) después del comando de clips y solo si el plan tiene `module.ov_promo`. Subcomandos: `lista`, `mostrar <nombre>`, `pausar`, `reanudar` (también en inglés). `mostrar` deja la pieza en el estado en memoria de la cuenta (`PromoPlayback.State.Forced`, vence a los 90 s) y el siguiente `GET /api/promo/next` de su zona la devuelve, sin respetar pausa ni piezas apagadas; no pasa por encima de una emergencia. Al guardar se rechaza el nombre si coincide con un comando del bot (`CommandService.IsReservedCommandName`) o con un comando propio activo (`cmdReserved`, `cmdCustom`, `cmdInvalid`). El streamer y el Lead Moderator siempre pasan la validación de rol; las respuestas salen de `Resources/bot-messages`, grupo `dpromo`.
 
 ### API de Promociones
 
@@ -453,7 +455,7 @@ Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pa
 | `GET` | `/api/promo/emergency/{alias}` | Anónimo | Pieza de emergencia activa para el canal, si hay |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Fuentes conectadas por variante y avisos |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Piezas activas, plantillas, zonas, topes y lo que eligió el streamer |
-| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Guardar pausa, piezas apagadas y topes |
+| `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Guardar pausa, piezas apagadas, topes y el comando de chat |
 
 El módulo es `module.ov_promo`. El catálogo (piezas, plantillas, zonas y topes globales) lo edita el dueño desde el área de administración.
 

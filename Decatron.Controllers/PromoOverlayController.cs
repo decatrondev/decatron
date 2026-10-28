@@ -88,12 +88,29 @@ namespace Decatron.Controllers
                 using var tenantScope = TenantAmbient.Push(_tenants.ByChannelKey(resolved.Account.OverlayKey).TenantId);
                 var principalId = resolved.Account.Principal.UserId;
                 var mine = await _db.PromoChannelSettings.AsNoTracking().FirstOrDefaultAsync(c => c.UserId == principalId);
-                if (mine?.Paused == true) return Ok(new { success = true, found = true, wait = 60 });
-                var disabled = PromoPlayback.DisabledIds(mine);
-
                 var variant = OverlayVariant.Parse(source) ?? resolved.LegacyVariant;
                 var snap = await _catalog.GetPublishedAsync();
                 var limits = PromoPlayback.EffectiveLimits(snap.Limits, mine);
+                var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
+
+                // Pieza pedida con el comando del chat: sale ya, aunque el streamer tenga pausado o apagada esa pieza (la pidió él o su equipo).
+                long? forcedId;
+                lock (state.Gate) forcedId = PromoCommand.TakeForced(state, zone, DateTime.UtcNow);
+                if (forcedId != null)
+                {
+                    var loginsF = resolved.Account.Members.Select(m => m.Login).ToList();
+                    var forced = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
+                        && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow) && TemplateFor(snap, p) != null);
+                    if (forced != null)
+                    {
+                        lock (state.Gate) PromoPlayback.MarkShown(state, forced, limits, DateTime.UtcNow);
+                        await _catalog.CountViewAsync(principalId, forced.Id);
+                        return Ok(await BuildNextAsync(resolved, forced, snap));
+                    }
+                }
+
+                if (mine?.Paused == true) return Ok(new { success = true, found = true, wait = 60 });
+                var disabled = PromoPlayback.DisabledIds(mine);
                 var zoneRow = snap.Zones.FirstOrDefault(z => z.Key == zone);
                 if (zoneRow == null) return Ok(new { success = true, found = true, wait = 60 });
 
@@ -103,7 +120,6 @@ namespace Decatron.Controllers
                     .Where(p => p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id) && TemplateFor(snap, p) != null).ToList();
                 if (eligible.Count == 0) return Ok(new { success = true, found = true, wait = 60 });
 
-                var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
                 PromoPiece? piece;
                 int wait;
                 lock (state.Gate)
@@ -116,29 +132,7 @@ namespace Decatron.Controllers
                 if (piece == null || wait > 0) return Ok(new { success = true, found = true, wait = Math.Max(wait, 5) });
 
                 await _catalog.CountViewAsync(principalId, piece.Id);
-                var template = TemplateFor(snap, piece)!;
-                var lang = await LanguageOfAsync(resolved.Account.Principal.UserId);
-                var en = lang == "en";
-                return Ok(new
-                {
-                    success = true,
-                    found = true,
-                    wait = 0,
-                    pieceId = piece.Id,
-                    seconds = piece.DurationSeconds,
-                    design = JsonDocument.Parse(template.Design).RootElement,
-                    content = new
-                    {
-                        title = en && piece.TitleEn != "" ? piece.TitleEn : piece.TitleEs,
-                        body = en && piece.BodyEn != "" ? piece.BodyEn : piece.BodyEs,
-                        link = piece.LinkUrl,
-                        imageUrl = piece.ImageUrl,
-                        icon = piece.Icon,
-                        showQr = piece.ShowQr,
-                    },
-                    channel = resolved.Account.Principal.Login,
-                    needsCommands = (piece.BodyEs + piece.BodyEn + piece.TitleEs + piece.TitleEn).Contains("{{commands}}", StringComparison.OrdinalIgnoreCase),
-                });
+                return Ok(await BuildNextAsync(resolved, piece, snap));
             }
             catch (Exception ex)
             {
@@ -192,6 +186,33 @@ namespace Decatron.Controllers
                 _logger.LogError(ex, "Error consultando la promoción de emergencia");
                 return StatusCode(500, new { success = false, message = "Error interno del servidor" });
             }
+        }
+
+        /// <summary>Cuerpo de la respuesta de "next" cuando hay una pieza para mostrar (la de la rotación o la pedida por el comando).</summary>
+        private async Task<object> BuildNextAsync(ResolvedAlias resolved, PromoPiece piece, PromoCatalogService.PublishedSnapshot snap)
+        {
+            var template = TemplateFor(snap, piece)!;
+            var en = await LanguageOfAsync(resolved.Account.Principal.UserId) == "en";
+            return new
+            {
+                success = true,
+                found = true,
+                wait = 0,
+                pieceId = piece.Id,
+                seconds = piece.DurationSeconds,
+                design = JsonDocument.Parse(template.Design).RootElement,
+                content = new
+                {
+                    title = en && piece.TitleEn != "" ? piece.TitleEn : piece.TitleEs,
+                    body = en && piece.BodyEn != "" ? piece.BodyEn : piece.BodyEs,
+                    link = piece.LinkUrl,
+                    imageUrl = piece.ImageUrl,
+                    icon = piece.Icon,
+                    showQr = piece.ShowQr,
+                },
+                channel = resolved.Account.Principal.Login,
+                needsCommands = (piece.BodyEs + piece.BodyEn + piece.TitleEs + piece.TitleEn).Contains("{{commands}}", StringComparison.OrdinalIgnoreCase),
+            };
         }
 
         private static PromoTemplate? TemplateFor(PromoCatalogService.PublishedSnapshot snap, PromoPiece p) =>

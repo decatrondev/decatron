@@ -8,6 +8,7 @@ using Decatron.Core.Settings;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
 using Decatron.Hubs;
+using Decatron.Services;
 using Decatron.Services.Accounts;
 using Decatron.Services.Promo;
 using Microsoft.AspNetCore.Authorization;
@@ -33,15 +34,20 @@ namespace Decatron.Controllers
         private readonly PromoCatalogService _catalog;
         private readonly IOptionsMonitor<PromoOverlaySettings> _settings;
         private readonly DecatronDbContext _db;
+        private readonly CommandService _commands;
+        private readonly PromoCommandService _promoCommand;
         private readonly ILogger<PromoPanelController> _logger;
 
         public PromoPanelController(AccountChannelResolver accounts, PromoCatalogService catalog,
-            IOptionsMonitor<PromoOverlaySettings> settings, DecatronDbContext db, ILogger<PromoPanelController> logger)
+            IOptionsMonitor<PromoOverlaySettings> settings, DecatronDbContext db, CommandService commands,
+            PromoCommandService promoCommand, ILogger<PromoPanelController> logger)
         {
             _accounts = accounts;
             _catalog = catalog;
             _settings = settings;
             _db = db;
+            _commands = commands;
+            _promoCommand = promoCommand;
             _logger = logger;
         }
 
@@ -118,7 +124,8 @@ namespace Decatron.Controllers
                     zones = snap.Zones.Select(z => new { z.Key, z.NameEs, z.NameEn, z.Anchor, z.MarginX, z.MarginY }),
                     limits = new { snap.Limits.MinGapSeconds, snap.Limits.HourlyCapSeconds },
                     views = await _catalog.GetChannelViewsAsync(principalId),
-                    mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.DisabledIds(prefs), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds },
+                    mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.DisabledIds(prefs), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
+                    command = new { enabled = prefs?.CmdEnabled ?? false, name = prefs?.CmdName ?? PromoCommand.DefaultName, cooldownSeconds = prefs?.CmdCooldownSeconds ?? 10, minRole = prefs?.CmdMinRole ?? "moderator" } },
                 });
             }
             catch (Exception ex)
@@ -128,7 +135,8 @@ namespace Decatron.Controllers
             }
         }
 
-        public record SaveRequest(bool Paused, long[]? DisabledPieces, int? MinGapSeconds, int? HourlyCapSeconds);
+        public record CommandRequest(bool Enabled, string? Name, int? CooldownSeconds, string? MinRole);
+        public record SaveRequest(bool Paused, long[]? DisabledPieces, int? MinGapSeconds, int? HourlyCapSeconds, CommandRequest? Command = null);
 
         /// <summary>Guarda lo que el streamer decide: pausar, piezas apagadas y topes más discretos (nunca más insistentes que los globales).</summary>
         [HttpPut("settings")]
@@ -151,14 +159,40 @@ namespace Decatron.Controllers
                 var disabled = (req.DisabledPieces ?? Array.Empty<long>()).Where(known.Contains).Distinct().OrderBy(i => i).ToList();
 
                 var principalId = account.Principal.UserId;
+                string? cmdName = null;
+                if (req.Command != null)
+                {
+                    cmdName = PromoCommand.NormalizeName(req.Command.Name ?? PromoCommand.DefaultName);
+                    if (cmdName == null) return BadRequest(new { success = false, errors = new[] { "cmdInvalid" } });
+                    if (req.Command.CooldownSeconds is < 0 or > 600 || req.Command.MinRole != null && !PromoCommand.Roles.Contains(req.Command.MinRole))
+                        return BadRequest(new { success = false, errors = new[] { "outOfRange" } });
+                    // Solo se revisa el nombre al activarlo o cambiarlo: un nombre que ya funcionaba no se bloquea después.
+                    var current = await _db.PromoChannelSettings.AsNoTracking().Where(c => c.UserId == principalId).Select(c => new { c.CmdEnabled, c.CmdName }).FirstOrDefaultAsync();
+                    if (req.Command.Enabled && (current is not { CmdEnabled: true } || current.CmdName != cmdName))
+                    {
+                        if (_commands.IsReservedCommandName("!" + cmdName)) return BadRequest(new { success = false, errors = new[] { "cmdReserved" } });
+                        var memberIds = account.Members.Select(m => m.UserId).ToList();
+                        var taken = await _db.CustomCommands.AsNoTracking().AnyAsync(c => memberIds.Contains(c.UserId) && c.IsActive
+                            && (c.CommandName.ToLower() == "!" + cmdName || c.CommandName.ToLower() == cmdName));
+                        if (taken) return BadRequest(new { success = false, errors = new[] { "cmdCustom" } });
+                    }
+                }
                 var row = await _db.PromoChannelSettings.FirstOrDefaultAsync(c => c.UserId == principalId);
                 if (row == null) { row = new PromoChannelSettings { UserId = principalId }; _db.PromoChannelSettings.Add(row); }
                 row.Paused = req.Paused;
                 row.DisabledPieces = System.Text.Json.JsonSerializer.Serialize(disabled);
                 row.MinGapSeconds = req.MinGapSeconds;
                 row.HourlyCapSeconds = req.HourlyCapSeconds;
+                if (req.Command != null)
+                {
+                    row.CmdEnabled = req.Command.Enabled;
+                    row.CmdName = cmdName!;
+                    row.CmdCooldownSeconds = req.Command.CooldownSeconds ?? row.CmdCooldownSeconds;
+                    row.CmdMinRole = req.Command.MinRole ?? row.CmdMinRole;
+                }
                 row.UpdatedAt = DateTime.UtcNow;
                 await _db.SaveChangesAsync();
+                _promoCommand.Invalidate(principalId);
                 return Ok(new { success = true });
             }
             catch (Exception ex)

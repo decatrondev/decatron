@@ -224,6 +224,20 @@ public class PromoChannelSettings
     [Column("hourly_cap_seconds")]
     public int? HourlyCapSeconds { get; set; }
 
+    /// <summary>Comando de chat del streamer (nace apagado). Nombre sin "!", quién puede usarlo y pausa entre usos.</summary>
+    [Column("cmd_enabled")]
+    public bool CmdEnabled { get; set; }
+
+    [Column("cmd_name")]
+    public string CmdName { get; set; } = "dpromo";
+
+    [Column("cmd_cooldown_seconds")]
+    public int CmdCooldownSeconds { get; set; } = 10;
+
+    /// <summary>moderator | vip | subscriber | everyone. El streamer y el Lead Moderator siempre pueden.</summary>
+    [Column("cmd_min_role")]
+    public string CmdMinRole { get; set; } = "moderator";
+
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
