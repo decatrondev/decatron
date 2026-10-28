@@ -100,7 +100,7 @@ namespace Decatron.Controllers
                 var now = DateTime.UtcNow;
                 var logins = resolved.Account.Members.Select(m => m.Login).ToList();
                 var eligible = snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now))
-                    .Where(p => !disabled.Contains(p.Id) && TemplateFor(snap, p) != null).ToList();
+                    .Where(p => p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id) && TemplateFor(snap, p) != null).ToList();
                 if (eligible.Count == 0) return Ok(new { success = true, found = true, wait = 60 });
 
                 var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
@@ -143,6 +143,53 @@ namespace Decatron.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error eligiendo la siguiente promoción");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/promo/emergency/{alias}?source=: la pieza de emergencia vigente para este canal, si hay. El overlay lo consulta cada pocos
+        /// segundos; mientras haya una, detiene la rotación y la deja en pantalla hasta que el dueño la despublique o venza.
+        /// </summary>
+        [HttpGet("emergency/{alias}")]
+        public async Task<IActionResult> Emergency(string alias, [FromQuery] string? source)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var resolved = await _accounts.ResolveAliasAsync(alias);
+                if (resolved == null) return Ok(new { success = true, found = false });
+                var variant = OverlayVariant.Parse(source) ?? resolved.LegacyVariant;
+                var snap = await _catalog.GetPublishedAsync();
+                var logins = resolved.Account.Members.Select(m => m.Login).ToList();
+                var piece = PromoPlayback.PickEmergency(snap.Pieces, variant, logins, DateTime.UtcNow);
+                var template = piece == null ? null : TemplateFor(snap, piece);
+                if (piece == null || template == null) return Ok(new { success = true, found = true, active = false });
+
+                var en = await LanguageOfAsync(resolved.Account.Principal.UserId) == "en";
+                return Ok(new
+                {
+                    success = true,
+                    found = true,
+                    active = true,
+                    pieceId = piece.Id,
+                    zone = piece.Zone,
+                    design = JsonDocument.Parse(template.Design).RootElement,
+                    content = new
+                    {
+                        title = en && piece.TitleEn != "" ? piece.TitleEn : piece.TitleEs,
+                        body = en && piece.BodyEn != "" ? piece.BodyEn : piece.BodyEs,
+                        link = piece.LinkUrl,
+                        imageUrl = piece.ImageUrl,
+                        icon = piece.Icon,
+                        showQr = piece.ShowQr,
+                    },
+                    channel = resolved.Account.Principal.Login,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consultando la promoción de emergencia");
                 return StatusCode(500, new { success = false, message = "Error interno del servidor" });
             }
         }

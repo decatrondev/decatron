@@ -947,6 +947,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 
 | Método | Ruta | Acceso |
 |---|---|---|
+| `GET` | `/api/promo/emergency/{alias}` | Público |
 | `GET` | `/api/promo/next/{alias}` | Público |
 | `GET` | `/api/promo/resolve/{alias}` | Público |
 

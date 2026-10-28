@@ -3596,6 +3596,10 @@
               "There is a cap of seconds of promotion per hour (600 by default).",
               "You can be more discreet than those values, never more insistent: the Settings tab won't let you lower the pause or raise the cap."
             ]
+          },
+          {
+            "t": "p",
+            "x": "If Decatron publishes an emergency notice (for example, maintenance), it replaces every piece on your overlay while it is active, regardless of your pause or what you turned off. It goes away on its own when Decatron withdraws it or it expires."
           }
         ]
       },

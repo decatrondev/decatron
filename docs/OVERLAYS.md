@@ -437,7 +437,8 @@ Shows Decatron cards and banners on stream on their own (`/overlay/promo`), publ
 2. Each zone asks `GET /api/promo/next/{alias}?zone=...&source=...` and gets either a piece (design, content, seconds) or a number of seconds to wait. It draws the piece for that time, removes it and asks again.
 3. Selection (`PromoPlayback`): only published pieces of the zone that are inside their dates, match the platform and the allowed channels; the highest priority wins, the previous piece is not repeated if another exists, and ties are drawn by weight.
 4. Care for the chat: a minimum pause between two pieces of a zone and a cap of seconds of promotion per hour (defaults 60 s and 600 s, set by the owner). The streamer can only be more discreet, never more insistent.
-5. `{{commands}}` is filled by the overlay with up to five public commands of the channel (`/api/public/commands/{channel}`), without one- or two-letter aliases.
+5. Emergency: a published piece of kind `emergency` replaces every other piece. The overlay asks `GET /api/promo/emergency/{alias}` every 15 s; while one is active, normal rotation stops and the piece stays on screen until the owner unpublishes it or it expires. It ignores the pause between pieces, the hourly cap and what the streamer switched off, and does not count as a view.
+6. `{{commands}}` is filled by the overlay with up to five public commands of the channel (`/api/public/commands/{channel}`), without one- or two-letter aliases.
 
 ### Configuration tabs
 
@@ -449,6 +450,7 @@ Guide, What is shown (turn pieces on or off) and Settings (pause everything, lon
 |--------|----------|------|-------------|
 | `GET` | `/api/promo/resolve/{alias}` | Anonymous | Account key, zones and language for the OBS source |
 | `GET` | `/api/promo/next/{alias}` | Anonymous | Next piece of a zone, or seconds to wait |
+| `GET` | `/api/promo/emergency/{alias}` | Anonymous | Active emergency piece for the channel, if any |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Connected sources by variant and warnings |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Active pieces, templates, zones, limits and the streamer's choices |
 | `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Save pause, switched-off pieces and limits |

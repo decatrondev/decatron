@@ -3596,6 +3596,10 @@
               "Hay un tope de segundos de promoción por hora (por defecto 600).",
               "Tú puedes ser más discreto que esos valores, nunca más insistente: la pestaña Ajustes no te deja bajar la pausa ni subir el tope."
             ]
+          },
+          {
+            "t": "p",
+            "x": "Si Decatron publica un aviso de emergencia (por ejemplo, un mantenimiento), reemplaza a todas las piezas en tu overlay mientras esté vigente, sin importar tu pausa ni lo que hayas apagado. Se quita solo cuando Decatron lo retira o vence."
           }
         ]
       },

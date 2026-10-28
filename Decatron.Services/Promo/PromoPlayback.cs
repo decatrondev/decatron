@@ -55,6 +55,17 @@ namespace Decatron.Services.Promo
             return true;
         }
 
+        /// <summary>Tipo de pieza que reemplaza a todas las demás mientras esté publicada y vigente: no entra en la rotación normal.</summary>
+        public const string EmergencyKind = "emergency";
+
+        /// <summary>
+        /// La pieza de emergencia vigente para este canal (mayor prioridad, y la más reciente si empatan), o null. Ignora la pausa entre piezas,
+        /// el tope por hora y lo que el streamer apagó: es un aviso del dueño que debe llegar a todos los canales a los que aplica.
+        /// </summary>
+        public static PromoPiece? PickEmergency(IEnumerable<PromoPiece> published, string variant, IReadOnlyCollection<string> logins, DateTime now) =>
+            published.Where(p => p.Kind == EmergencyKind && IsEligible(p, p.Zone, variant, logins, now))
+                .OrderByDescending(p => p.Priority).ThenByDescending(p => p.Id).FirstOrDefault();
+
         /// <summary>
         /// Elige la pieza: solo las de mayor prioridad, sin repetir la anterior si hay otra, sorteo por peso.
         /// <paramref name="roll"/> es un número en [0,1) (inyectable para las pruebas).

@@ -102,6 +102,7 @@ namespace Decatron.Controllers
                 var logins = account.Members.Select(m => m.Login).ToList();
                 var mine = logins.Select(l => l.ToLowerInvariant()).ToHashSet();
                 var pieces = snap.Pieces
+                    .Where(p => p.Kind != PromoPlayback.EmergencyKind)
                     .Where(p => string.IsNullOrWhiteSpace(p.OnlyChannels)
                         || p.OnlyChannels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(c => mine.Contains(c.ToLowerInvariant())))
                     .Select(p => new

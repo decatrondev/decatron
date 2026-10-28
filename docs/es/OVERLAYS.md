@@ -437,7 +437,8 @@ Muestra tarjetas y banners de Decatron en el stream de forma automática (`/over
 2. Cada zona pide `GET /api/promo/next/{alias}?zone=...&source=...` y recibe una pieza (diseño, contenido, segundos) o los segundos que debe esperar. Dibuja la pieza ese tiempo, la retira y vuelve a pedir.
 3. Selección (`PromoPlayback`): solo piezas publicadas de la zona, dentro de sus fechas y que coincidan con la plataforma y los canales permitidos; gana la de mayor prioridad, no se repite la anterior si hay otra y los empates se sortean por peso.
 4. Cuidado del chat: una pausa mínima entre dos piezas de una zona y un tope de segundos de promoción por hora (por defecto 60 s y 600 s, los fija el dueño). El streamer solo puede ser más discreto, nunca más insistente.
-5. `{{commands}}` lo completa el overlay con hasta cinco comandos públicos del canal (`/api/public/commands/{canal}`), sin alias de una o dos letras.
+5. Emergencia: una pieza publicada de tipo `emergency` reemplaza a todas las demás. El overlay consulta `GET /api/promo/emergency/{alias}` cada 15 s; mientras haya una activa, la rotación normal se detiene y la pieza se queda en pantalla hasta que el dueño la despublique o venza. Ignora la pausa entre piezas, el tope por hora y lo que el streamer apagó, y no cuenta como vista.
+6. `{{commands}}` lo completa el overlay con hasta cinco comandos públicos del canal (`/api/public/commands/{canal}`), sin alias de una o dos letras.
 
 ### Pestañas de configuración
 
@@ -449,6 +450,7 @@ Guía, Qué se muestra (prender o apagar piezas) y Ajustes (pausar todo, más pa
 |--------|----------|------|-------------|
 | `GET` | `/api/promo/resolve/{alias}` | Anónimo | Clave de la cuenta, zonas e idioma para la fuente de OBS |
 | `GET` | `/api/promo/next/{alias}` | Anónimo | Siguiente pieza de una zona, o segundos de espera |
+| `GET` | `/api/promo/emergency/{alias}` | Anónimo | Pieza de emergencia activa para el canal, si hay |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` | Fuentes conectadas por variante y avisos |
 | `GET` | `/api/promo-panel/catalog` | JWT + `overlays` | Piezas activas, plantillas, zonas, topes y lo que eligió el streamer |
 | `PUT` | `/api/promo-panel/settings` | JWT + `overlays` | Guardar pausa, piezas apagadas y topes |

@@ -125,4 +125,21 @@ public class PromoPlaybackTests
         Assert.Empty(PromoPlayback.DisabledIds(new PromoChannelSettings { DisabledPieces = "no es json" }));
         Assert.Empty(PromoPlayback.DisabledIds(null));
     }
+
+    [Fact(DisplayName = "Promo: la emergencia vigente gana, la más prioritaria primero, y respeta vigencia, plataforma y canales")]
+    public void Emergencia()
+    {
+        PromoPiece E(long id, int prio = 0) { var p = P(id, priority: prio); p.Kind = "emergency"; return p; }
+        var normal = P(1, priority: 99);
+        var e1 = E(2, 1); var e2 = E(3, 5);
+        Assert.Equal(3, PromoPlayback.PickEmergency(new[] { normal, e1, e2 }, "all", Logins, Now)!.Id);
+        Assert.Null(PromoPlayback.PickEmergency(new[] { normal }, "all", Logins, Now));
+
+        var vencida = E(4); vencida.EndsAt = Now.AddMinutes(-1);
+        var kick = E(5); kick.Platforms = "kick";
+        var otro = E(6); otro.OnlyChannels = "otro";
+        Assert.Null(PromoPlayback.PickEmergency(new[] { vencida, otro }, "all", Logins, Now));
+        Assert.Null(PromoPlayback.PickEmergency(new[] { kick }, "twitch", Logins, Now));
+        Assert.Equal(5, PromoPlayback.PickEmergency(new[] { kick }, "kick", Logins, Now)!.Id);
+    }
 }

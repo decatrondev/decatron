@@ -7,6 +7,7 @@ import type { PromoContent, PromoDesign, PromoVars } from '../components/promo-o
 import { useBrand } from '../brand/BrandContext';
 
 interface Zone extends ZonePlacement { key: string }
+interface Emergency { pieceId: number; zone: string; design: PromoDesign; content: PromoContent; channel: string }
 interface Shown { pieceId: number; seconds: number; design: PromoDesign; content: PromoContent; vars: PromoVars }
 
 /** Cuánto se deja correr la animación de salida antes de quitar la ficha y pedir la siguiente. */
@@ -34,7 +35,7 @@ function ZoneSlot({ zone, alias, source, language, stopped }: { zone: Zone; alia
     const [phase, setPhase] = useState<Phase>('enter');
 
     useEffect(() => {
-        if (stopped) return;
+        if (stopped) { setShown(null); return; }
         let alive = true;
         (async () => {
             while (alive) {
@@ -88,6 +89,8 @@ export default function PromoOverlay() {
     const [language, setLanguage] = useState('es');
     const [scale, setScale] = useState(() => Math.min(window.innerWidth / STAGE.width, window.innerHeight / STAGE.height));
     const variantRef = useRef<string>('all');
+    const [emergency, setEmergency] = useState<Emergency | null>(null);
+    const { resolve } = useBrand();
 
     useEffect(() => {
         const onResize = () => setScale(Math.min(window.innerWidth / STAGE.width, window.innerHeight / STAGE.height));
@@ -145,12 +148,43 @@ export default function PromoOverlay() {
         return () => { disposed = true; if (retry) clearTimeout(retry); connection?.stop(); };
     }, [channel, source]);
 
+    // Una pieza de emergencia publicada reemplaza a todas las demás: se consulta cada pocos segundos y, mientras haya una,
+    // la rotación se detiene y la pieza se queda en pantalla hasta que el dueño la despublique o venza.
+    useEffect(() => {
+        if (!channel) return;
+        let alive = true;
+        const check = async () => {
+            try {
+                const q = source ? `?source=${source}` : '';
+                const d = await (await fetch(`/api/promo/emergency/${encodeURIComponent(channel)}${q}`)).json();
+                if (!alive) return;
+                setEmergency(prev => {
+                    if (!d?.active) return null;
+                    return prev && prev.pieceId === d.pieceId ? prev : { pieceId: d.pieceId, zone: d.zone, design: d.design, content: d.content, channel: d.channel };
+                });
+            } catch { /* se conserva el estado anterior */ }
+        };
+        check();
+        const id = window.setInterval(check, 15000);
+        return () => { alive = false; window.clearInterval(id); };
+    }, [channel, source]);
+
     if (!channel || zones.length === 0) return <div style={{ width: '100vw', height: '100vh' }} />;
 
     return (
         <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: 'transparent' }}>
             <div style={{ position: 'relative', width: STAGE.width, height: STAGE.height, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-                {zones.map(z => <ZoneSlot key={z.key} zone={z} alias={channel} source={source} language={language} stopped={false} />)}
+                {zones.map(z => <ZoneSlot key={z.key} zone={z} alias={channel} source={source} language={language} stopped={!!emergency} />)}
+                {emergency && (() => {
+                    const zone = zones.find(z => z.key === emergency.zone) ?? zones[0];
+                    const pos = placeInZone(zone, emergency.design.canvas.width, emergency.design.canvas.height);
+                    const link = emergency.content.link || 'https://decatron.net';
+                    return (
+                        <div key={`e${emergency.pieceId}`} style={{ position: 'absolute', left: pos.x, top: pos.y }}>
+                            <PromoDesignRenderer design={emergency.design} content={emergency.content} vars={{ channel: emergency.channel, link, commands: '' }} resolveImage={resolve} phase="enter" />
+                        </div>
+                    );
+                })()}
             </div>
         </div>
     );
