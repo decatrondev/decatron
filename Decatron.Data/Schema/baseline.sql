@@ -21,8 +21,7 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-10-28
---
+-- Snapshot date: 2026-10-29
 --
 --
 -- PostgreSQL database dump
@@ -5494,6 +5493,51 @@ ALTER SEQUENCE public.promo_channel_settings_id_seq OWNED BY public.promo_channe
 
 
 --
+-- Name: promo_own_cards; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_own_cards (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    title character varying(80) DEFAULT ''::character varying NOT NULL,
+    body character varying(200) DEFAULT ''::character varying NOT NULL,
+    icon character varying(40),
+    link_url character varying(500),
+    show_qr boolean DEFAULT false NOT NULL,
+    zone character varying(40) DEFAULT 'corner'::character varying NOT NULL,
+    template_id bigint,
+    duration_seconds integer DEFAULT 8 NOT NULL,
+    interval_minutes integer DEFAULT 10 NOT NULL,
+    is_enabled boolean DEFAULT true NOT NULL,
+    hidden_by_admin boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    updated_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    CONSTRAINT promo_own_cards_duration_seconds_check CHECK (((duration_seconds >= 3) AND (duration_seconds <= 60))),
+    CONSTRAINT promo_own_cards_interval_minutes_check CHECK (((interval_minutes >= 1) AND (interval_minutes <= 240)))
+);
+
+
+--
+-- Name: promo_own_cards_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_own_cards_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_own_cards_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_own_cards_id_seq OWNED BY public.promo_own_cards.id;
+
+
+--
 -- Name: promo_piece_daily; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5611,11 +5655,15 @@ CREATE TABLE public.promo_settings (
     min_scale_percent integer DEFAULT 60 NOT NULL,
     max_scale_percent integer DEFAULT 150 NOT NULL,
     max_zone_margin integer DEFAULT 600 NOT NULL,
+    bot_per_own integer DEFAULT 1 NOT NULL,
+    own_min_interval_minutes integer DEFAULT 5 NOT NULL,
+    CONSTRAINT promo_settings_bot_per_own_check CHECK (((bot_per_own >= 1) AND (bot_per_own <= 10))),
     CONSTRAINT promo_settings_max_duration_seconds_check CHECK (((max_duration_seconds >= 1) AND (max_duration_seconds <= 300))),
     CONSTRAINT promo_settings_max_scale_percent_check CHECK (((max_scale_percent >= 20) AND (max_scale_percent <= 300))),
     CONSTRAINT promo_settings_max_zone_margin_check CHECK (((max_zone_margin >= 0) AND (max_zone_margin <= 1000))),
     CONSTRAINT promo_settings_min_duration_seconds_check CHECK (((min_duration_seconds >= 1) AND (min_duration_seconds <= 300))),
-    CONSTRAINT promo_settings_min_scale_percent_check CHECK (((min_scale_percent >= 20) AND (min_scale_percent <= 300)))
+    CONSTRAINT promo_settings_min_scale_percent_check CHECK (((min_scale_percent >= 20) AND (min_scale_percent <= 300))),
+    CONSTRAINT promo_settings_own_min_interval_minutes_check CHECK (((own_min_interval_minutes >= 1) AND (own_min_interval_minutes <= 240)))
 );
 
 
@@ -11868,6 +11916,13 @@ ALTER TABLE ONLY public.promo_channel_settings ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: promo_own_cards id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_cards ALTER COLUMN id SET DEFAULT nextval('public.promo_own_cards_id_seq'::regclass);
+
+
+--
 -- Name: promo_piece_overrides id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -14095,6 +14150,14 @@ ALTER TABLE ONLY public.promo_channel_settings
 
 ALTER TABLE ONLY public.promo_channel_settings
     ADD CONSTRAINT promo_channel_settings_user_id_key UNIQUE (user_id);
+
+
+--
+-- Name: promo_own_cards promo_own_cards_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_cards
+    ADD CONSTRAINT promo_own_cards_pkey PRIMARY KEY (id);
 
 
 --
@@ -18287,6 +18350,13 @@ CREATE INDEX ix_platform_webhook_events_received ON public.platform_webhook_even
 
 
 --
+-- Name: ix_promo_own_cards_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_promo_own_cards_user ON public.promo_own_cards USING btree (user_id);
+
+
+--
 -- Name: ix_promo_pieces_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -20762,6 +20832,22 @@ ALTER TABLE ONLY public.promo_channel_settings
 
 
 --
+-- Name: promo_own_cards promo_own_cards_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_cards
+    ADD CONSTRAINT promo_own_cards_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.promo_templates(id) ON DELETE SET NULL;
+
+
+--
+-- Name: promo_own_cards promo_own_cards_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_cards
+    ADD CONSTRAINT promo_own_cards_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: promo_piece_daily promo_piece_daily_piece_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -22600,6 +22686,12 @@ ALTER TABLE public.player_pity_counter ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.promo_channel_settings ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: promo_own_cards; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promo_own_cards ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: promo_piece_overrides; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -23638,6 +23730,13 @@ CREATE POLICY tenant_isolation ON public.player_pity_counter USING ((tenant_id =
 --
 
 CREATE POLICY tenant_isolation ON public.promo_channel_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: promo_own_cards tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.promo_own_cards USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --
