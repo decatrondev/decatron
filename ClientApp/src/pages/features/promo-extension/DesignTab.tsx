@@ -5,7 +5,7 @@ import { applySlotValues, hasLowContrast, slotDefault, slotLabel, type SlotValue
 import { PromoStage } from '../../../components/promo-overlay/PromoPreview';
 import { useBrand } from '../../../brand/BrandContext';
 import type { PromoContent } from '../../../components/promo-overlay/types';
-import { isPinnedLocked, pieceTitle, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone } from './types';
+import { isPinnedLocked, pieceTitle, templateLabel, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone } from './types';
 
 /** Pestaña «Diseño»: qué plantilla usa cada pieza (entre las de su zona) y a qué tamaño sale, dentro de los límites del dueño. */
 export function DesignTab({ pieces, cards, templates, zones, limits, overrides, styles, lang, channel, onChange, onStyleChange }: {
@@ -32,7 +32,7 @@ export function DesignTab({ pieces, cards, templates, zones, limits, overrides, 
                         title: (lang === 'en' && p.titleEn) || p.titleEs, body: (lang === 'en' && p.bodyEn) || p.bodyEs,
                         link: p.linkUrl, imageUrl: p.imageUrl, icon: p.icon, showQr: p.showQr,
                     };
-                    const nameOf = (_x: Template, i: number) => t('panel.design.templateN', { n: i + 1 });
+                    const nameOf = (x: Template, i: number) => templateLabel(x, lang, t('panel.design.templateN', { n: i + 1 }));
                     return (
                         <div key={p.id} className="rounded-lg border border-ds-border bg-ds-raised/40 p-3 space-y-3 min-w-0">
                             <h4 className="font-bold text-ds-text text-sm 3xl:text-base truncate">{pieceTitle(p, lang)}</h4>
@@ -78,7 +78,7 @@ export function DesignTab({ pieces, cards, templates, zones, limits, overrides, 
                         };
                         return (
                             <div key={tpl.id} className="rounded-lg border border-ds-border bg-ds-raised/40 p-3 space-y-3 min-w-0">
-                                <h4 className="font-bold text-ds-text text-sm 3xl:text-base truncate">{t('panel.design.templateN', { n: i + 1 })}</h4>
+                                <h4 className="font-bold text-ds-text text-sm 3xl:text-base truncate">{templateLabel(tpl, lang, t('panel.design.templateN', { n: i + 1 }))}</h4>
                                 {content && zone && <PromoStage design={applied} content={content} zone={zone} pieceScale={1} resolveImage={resolve}
                                     vars={{ channel, commands: '!title · !game', link: (piece?.linkUrl || 'https://decatron.net').replace(/^https:\/\//, '') }} />}
                                 {hasLowContrast(applied) && <p className="text-xs 3xl:text-sm text-ds-warn">{t('panel.style.lowContrast')}</p>}

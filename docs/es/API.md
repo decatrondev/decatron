@@ -964,6 +964,8 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` |
 | `PUT` | `/api/promo-panel/card/{id}` | JWT + `overlays` |
 | `DELETE` | `/api/promo-panel/card/{id}` | JWT + `overlays` |
+| `POST` | `/api/promo-panel/card/{id}/image` | JWT + `overlays` |
+| `DELETE` | `/api/promo-panel/card/{id}/image` | JWT + `overlays` |
 | `POST` | `/api/promo-panel/show/{pieceId}` | JWT + `overlays` |
 | `PUT` | `/api/promo-panel/template/{id}` | JWT + `overlays` |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` |

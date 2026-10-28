@@ -461,8 +461,11 @@
       "show": "Show",
       "toast": {
         "hidden": "Card hidden.",
-        "shown": "Card visible again."
-      }
+        "shown": "Card visible again.",
+        "imageRemoved": "Image removed."
+      },
+      "hasImage": "Image",
+      "removeImage": "Remove image"
     },
     "stats": {
       "intro": "Deliveries across all channels. The global history is never deleted; each channel keeps 90 days.",
@@ -679,6 +682,23 @@
         "durationRange": "The duration is outside the allowed range.",
         "intervalRange": "The interval is outside the allowed range.",
         "templateInvalid": "That template does not fit that zone."
+      },
+      "image": {
+        "label": "Card image",
+        "hint": "PNG, JPG or WebP, up to 1 MB. It is reduced to 1024 px and saved in your media library (it counts against your storage). It only shows on your channel and in templates that have an image slot.",
+        "saveFirst": "Save the card first, then you can add an image.",
+        "upload": "Upload image",
+        "change": "Change image",
+        "remove": "Remove image",
+        "noSlot": "The chosen template has no image slot, so it will not show. Pick another one, such as «Card with image».",
+        "errors": {
+          "empty": "No file was received.",
+          "tooLarge": "The image is larger than 1 MB.",
+          "notImage": "The file is not a valid PNG, JPG or WebP image.",
+          "tooBig": "The image has too many pixels (4096 per side at most).",
+          "storageFull": "Your media storage is full. Delete files or upgrade your plan.",
+          "quotaReached": "Your plan reached its storage limit."
+        }
       }
     },
     "showNow": {

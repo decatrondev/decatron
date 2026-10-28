@@ -70,7 +70,7 @@ namespace Decatron.Services.Promo
             return new PromoPiece
             {
                 Id = PieceId(c.Id), Kind = OwnKind, Origin = "own", TitleEs = c.Title, TitleEn = c.Title, BodyEs = c.Body, BodyEn = c.Body,
-                LinkUrl = c.LinkUrl, ShowQr = c.ShowQr, Icon = c.Icon, TemplateId = tpl?.Id, Zone = c.Zone, Priority = 0, Weight = 1,
+                LinkUrl = c.LinkUrl, ShowQr = c.ShowQr, Icon = c.Icon, ImageUrl = c.ImageMediaId != null ? c.ImageUrl : null, TemplateId = tpl?.Id, Zone = c.Zone, Priority = 0, Weight = 1,
                 DurationSeconds = PromoOverrides.ClampDuration(c.DurationSeconds, limits), Platforms = "all", Status = "published",
             };
         }

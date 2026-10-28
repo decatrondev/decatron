@@ -75,4 +75,26 @@ public class PromoStatsTests
         Assert.Equal(1, await db.PromoPieceDaily.CountAsync(v => v.PieceId == pieceId));
         await tx.RollbackAsync();
     }
+
+    [Fact(DisplayName = "El dueño quita la imagen de una tarjeta: se borra la fila de la biblioteca (libera cuota) y la función devuelve la ruta")]
+    public async Task ClearOwnCardImage_FreesMediaRow()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        // El esquema de pruebas no trae usuarios: se crea uno dentro de la transacción (se revierte).
+        await db.Database.ExecuteSqlRawAsync("INSERT INTO users (id, display_name, email, profile_image_url, offline_image_url, broadcaster_type, view_count, description, access_token, refresh_token, token_expiration, created_at, updated_at, is_active, unique_id) VALUES (987654322, 'zz', 'zz@x', '', '', '', 0, '', '', '', now(), now(), now(), true, 'zz-987654322')");
+        var mediaId = (await db.Database.SqlQueryRaw<int>("INSERT INTO timer_media_files (channel_name, user_id, file_type, file_path, original_file_name, file_name, category, file_size, usage_count, uploaded_at, created_at) VALUES ('zz_prueba', 987654322, 'image', '/x/timerextensible/zz_prueba/promo/a.webp', 'a.webp', 'a.webp', 'promo', 1234, 1, now(), now()) RETURNING id AS \"Value\"").ToListAsync()).Single();
+        var cardId = (await db.Database.SqlQueryRaw<long>($"INSERT INTO promo_own_cards (user_id, image_media_id, image_url) VALUES ({User}, {mediaId}, '/timerextensible/zz_prueba/promo/a.webp') RETURNING id AS \"Value\"").ToListAsync()).Single();
+        var svc = new PromoCatalogService(db, new MemoryCache(new MemoryCacheOptions()));
+
+        var path = await svc.ClearOwnCardImageAsync(cardId);
+
+        Assert.Equal("/x/timerextensible/zz_prueba/promo/a.webp", path);
+        Assert.Equal(0, await db.TimerMediaFiles.CountAsync(m => m.Id == mediaId));
+        var card = await db.PromoOwnCards.AsNoTracking().SingleAsync(c => c.Id == cardId);
+        Assert.Null(card.ImageMediaId); Assert.Null(card.ImageUrl);
+        Assert.Null(await svc.ClearOwnCardImageAsync(cardId)); // sin imagen: nada que borrar
+        await tx.RollbackAsync();
+    }
 }

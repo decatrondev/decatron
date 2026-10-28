@@ -24,11 +24,13 @@ namespace Decatron.Controllers
     {
         private readonly PromoCatalogService _catalog;
         private readonly IOptionsMonitor<PromoOverlaySettings> _settings;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
-        public PromoAdminController(PromoCatalogService catalog, IOptionsMonitor<PromoOverlaySettings> settings)
+        public PromoAdminController(PromoCatalogService catalog, IOptionsMonitor<PromoOverlaySettings> settings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             _catalog = catalog;
             _settings = settings;
+            _env = env;
         }
 
         private long? GetUserId() => long.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var n) ? n : null;
@@ -44,6 +46,15 @@ namespace Decatron.Controllers
         {
             if (!_settings.CurrentValue.Enabled) return NotFound();
             return Ok(new { success = true, cards = await _catalog.GetAllOwnCardsAsync() });
+        }
+
+        /// <summary>El dueño quita la imagen de una tarjeta propia de cualquier canal (borra el archivo y libera la cuota del streamer). La tarjeta queda con su texto.</summary>
+        [HttpDelete("own-cards/{id:long}/image")]
+        public async Task<IActionResult> ClearOwnCardImage(long id)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            PromoCardImageFiles.TryDelete(_env.ContentRootPath, await _catalog.ClearOwnCardImageAsync(id));
+            return Ok(new { success = true });
         }
 
         /// <summary>Estadísticas globales: entregas por día, ranking de piezas y en cuántos canales está apagada cada una. days = 30, 90 o 365.</summary>

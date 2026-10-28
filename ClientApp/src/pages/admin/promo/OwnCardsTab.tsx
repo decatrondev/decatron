@@ -29,6 +29,13 @@ export function OwnCardsTab({ notify }: { notify: (ok: boolean, text: string) =>
         finally { setBusy(null); }
     };
 
+    const clearImage = async (c: PromoOwnCardAdmin) => {
+        setBusy(c.id);
+        try { await promoAdminApi.clearOwnCardImage(c.id); await load(); notify(true, t('admin.ownCards.toast.imageRemoved')); }
+        catch (e) { notify(false, errorText(t, errorCodes(e))); }
+        finally { setBusy(null); }
+    };
+
     if (failed) return <Alert tone="danger">{t('admin.loadFailed')}</Alert>;
     if (!cards) return <div className="flex justify-center py-10"><Spinner /></div>;
 
@@ -48,6 +55,12 @@ export function OwnCardsTab({ notify }: { notify: (ok: boolean, text: string) =>
                                     </div>
                                     {c.body && <p className="text-sm text-ds-soft break-words">{c.body}</p>}
                                     {c.linkUrl && <p className="text-xs text-ds-soft break-all">{c.linkUrl}</p>}
+                                    {c.imageUrl && (
+                                        <div className="flex items-center gap-3 pt-1">
+                                            <img src={c.imageUrl} alt="" className="h-14 w-14 rounded-md object-cover border border-ds-border" />
+                                            <Button size="sm" variant="secondary" loading={busy === c.id} onClick={() => clearImage(c)}>{t('admin.ownCards.removeImage')}</Button>
+                                        </div>
+                                    )}
                                     <p className="text-xs text-ds-soft">{t('admin.ownCards.channel', { login: c.login || `#${c.userId}` })}</p>
                                 </div>
                                 <Button size="sm" variant="secondary" loading={busy === c.id} icon={c.hiddenByAdmin ? <Eye /> : <EyeOff />} onClick={() => toggle(c)}>

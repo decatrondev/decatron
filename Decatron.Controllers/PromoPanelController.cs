@@ -38,11 +38,13 @@ namespace Decatron.Controllers
         private readonly CommandService _commands;
         private readonly PromoCommandService _promoCommand;
         private readonly ILogger<PromoPanelController> _logger;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
         public PromoPanelController(AccountChannelResolver accounts, PromoCatalogService catalog,
             IOptionsMonitor<PromoOverlaySettings> settings, DecatronDbContext db, CommandService commands,
-            PromoCommandService promoCommand, ILogger<PromoPanelController> logger)
+            PromoCommandService promoCommand, ILogger<PromoPanelController> logger, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
+            _env = env;
             _accounts = accounts;
             _catalog = catalog;
             _settings = settings;
@@ -122,7 +124,7 @@ namespace Decatron.Controllers
                 {
                     success = true,
                     pieces,
-                    templates = snap.Templates.Select(t => new { t.Id, t.Zone, design = System.Text.Json.JsonDocument.Parse(t.Design).RootElement }),
+                    templates = snap.Templates.Select(t => new { t.Id, t.Zone, t.NameEs, t.NameEn, design = System.Text.Json.JsonDocument.Parse(t.Design).RootElement }),
                     zones = snap.Zones.Select(z => new { z.Key, z.NameEs, z.NameEn, z.Anchor, z.MarginX, z.MarginY }),
                     limits = new
                     {
@@ -132,7 +134,7 @@ namespace Decatron.Controllers
                     pieceOverrides = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.PieceId, o.DurationSeconds, o.TemplateId, o.ScalePercent }).ToListAsync(),
                     ownCards = (await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId).OrderBy(c => c.Id).ToListAsync())
-                        .Select(c => new { c.Id, c.Title, c.Body, c.Icon, c.LinkUrl, c.ShowQr, c.Zone, c.TemplateId, c.DurationSeconds, c.IntervalMinutes, c.IsEnabled, c.HiddenByAdmin }),
+                        .Select(c => new { c.Id, c.Title, c.Body, c.Icon, c.LinkUrl, c.ShowQr, c.Zone, c.TemplateId, c.DurationSeconds, c.IntervalMinutes, c.IsEnabled, c.HiddenByAdmin, imageUrl = c.ImageMediaId != null ? c.ImageUrl : null }),
                     ownQuota = new { max = PromoOwnCards.MaxCards(await TierResolver.GetEffectiveTierAsync(_db, principalId)) },
                     templateOverrides = (await _db.PromoTemplateOverrides.AsNoTracking().Where(o => o.UserId == principalId).ToListAsync())
                         .Select(o => new { o.TemplateId, values = PromoSlots.Sanitize(snap.Templates.FirstOrDefault(t => t.Id == o.TemplateId)?.Design, PromoSlots.ParseStyle(o.Style)) }),
@@ -275,12 +277,123 @@ namespace Decatron.Controllers
                 if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
                 var principalId = account.Principal.UserId;
                 var row = await _db.PromoOwnCards.FirstOrDefaultAsync(c => c.Id == id && c.UserId == principalId);
-                if (row != null) { _db.PromoOwnCards.Remove(row); await _db.SaveChangesAsync(); }
+                if (row != null)
+                {
+                    var media = row.ImageMediaId is int mid ? await _db.TimerMediaFiles.FirstOrDefaultAsync(m => m.Id == mid) : null;
+                    _db.PromoOwnCards.Remove(row);
+                    if (media != null) _db.TimerMediaFiles.Remove(media);
+                    await _db.SaveChangesAsync();
+                    PromoCardImageFiles.TryDelete(_env.ContentRootPath, media?.FilePath);
+                }
                 return Ok(new { success = true });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error borrando una tarjeta propia de promociones");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>Mismo nombre de canal con el que la biblioteca de medios guarda los archivos de la cuenta (Twitch si lo hay, si no Kick).</summary>
+        private async Task<string?> MediaChannelNameAsync(long userId)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return null;
+            var linked = user.AccountId != null ? await _db.Users.Where(u => u.AccountId == user.AccountId).ToListAsync() : new System.Collections.Generic.List<Decatron.Core.Models.User> { user };
+            var twitch = linked.FirstOrDefault(u => u.TwitchId != null);
+            if (twitch != null) return twitch.Login?.ToLower();
+            return linked.FirstOrDefault(u => u.KickUsername != null)?.KickUsername?.ToLower() ?? user.Login?.ToLower();
+        }
+
+        /// <summary>
+        /// Sube o reemplaza la imagen de una tarjeta propia. PNG, JPG o WebP reales, hasta 1 MB y 1024 px; se reprocesa a WebP (sin metadatos), con nombre aleatorio,
+        /// y se registra en la biblioteca de medios (categoría «promo»), así que cuenta contra la cuota de almacenamiento del plan igual que cualquier otro medio.
+        /// </summary>
+        [HttpPost("card/{id:long}/image")]
+        [RequirePermission("overlays")]
+        [RequestSizeLimit(2 * 1024 * 1024)]
+        public async Task<IActionResult> UploadCardImage(long id, [FromForm] Microsoft.AspNetCore.Http.IFormFile? file)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            string? newPath = null;
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var principalId = account.Principal.UserId;
+                var card = await _db.PromoOwnCards.FirstOrDefaultAsync(c => c.Id == id && c.UserId == principalId);
+                if (card == null) return NotFound(new { success = false, message = "Tarjeta no encontrada" });
+                if (file == null) return BadRequest(new { success = false, errors = new[] { "empty" } });
+
+                PromoImage.Result img;
+                await using (var stream = file.OpenReadStream()) img = PromoImage.Process(stream, file.Length);
+                if (img.Webp == null) return BadRequest(new { success = false, errors = new[] { img.Error ?? "notImage" } });
+
+                var channel = await MediaChannelNameAsync(principalId);
+                if (string.IsNullOrEmpty(channel)) return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var old = card.ImageMediaId is int oid ? await _db.TimerMediaFiles.FirstOrDefaultAsync(m => m.Id == oid) : null;
+                // Misma cuota que el resto de la biblioteca: la del tier de la cuenta y el tope de almacenamiento del plan de la plataforma.
+                var used = (await _db.TimerMediaFiles.Where(f => f.ChannelName == channel).SumAsync(f => (long?)f.FileSize) ?? 0) - (old?.FileSize ?? 0);
+                var limit = await TierResolver.GetStorageBytesLimitAsync(_db, await TierResolver.GetEffectiveTierAsync(_db, principalId));
+                if (limit != TierResolver.Unlimited && used + img.Webp.Length > limit) return BadRequest(new { success = false, errors = new[] { "storageFull" } });
+                var planQuota = await Decatron.Services.Tenancy.StorageQuota.CheckUploadAsync(HttpContext.RequestServices.GetService<Decatron.Core.Interfaces.IEntitlements>(), _db, img.Webp.Length,
+                    HttpContext.RequestServices.GetService<Decatron.Core.Interfaces.ITenantContext>()?.TenantId);
+                if (!planQuota.IsAllowed) return StatusCode(403, new { success = false, errors = new[] { "quotaReached" } });
+
+                var folder = PromoCardImageFiles.Folder(_env.ContentRootPath, channel);
+                System.IO.Directory.CreateDirectory(folder);
+                var fileName = PromoCardImageFiles.NewFileName();
+                newPath = System.IO.Path.Combine(folder, fileName);
+                await System.IO.File.WriteAllBytesAsync(newPath, img.Webp);
+
+                var media = new Decatron.Core.Models.TimerMediaFile
+                {
+                    ChannelName = channel, UserId = principalId, FileType = "image", FilePath = newPath,
+                    OriginalFileName = $"promo-tarjeta-{card.Id}.webp", FileName = fileName, Category = PromoCardImageFiles.Category,
+                    FileSize = img.Webp.Length, UsageCount = 1, UploadedAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow,
+                };
+                _db.TimerMediaFiles.Add(media);
+                if (old != null) _db.TimerMediaFiles.Remove(old);
+                await _db.SaveChangesAsync();
+                card.ImageMediaId = media.Id;
+                card.ImageUrl = PromoCardImageFiles.PublicUrl(channel, fileName);
+                card.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                PromoCardImageFiles.TryDelete(_env.ContentRootPath, old?.FilePath);
+                return Ok(new { success = true, imageUrl = card.ImageUrl, width = img.Width, height = img.Height, bytes = img.Webp.Length });
+            }
+            catch (Exception ex)
+            {
+                PromoCardImageFiles.TryDelete(_env.ContentRootPath, newPath);
+                _logger.LogError(ex, "Error subiendo la imagen de una tarjeta propia de promociones");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>Quita la imagen de una tarjeta propia (borra el archivo y libera la cuota). La tarjeta queda con su texto.</summary>
+        [HttpDelete("card/{id:long}/image")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> DeleteCardImage(long id)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var principalId = account.Principal.UserId;
+                var card = await _db.PromoOwnCards.FirstOrDefaultAsync(c => c.Id == id && c.UserId == principalId);
+                if (card == null) return NotFound(new { success = false, message = "Tarjeta no encontrada" });
+                var media = card.ImageMediaId is int mid ? await _db.TimerMediaFiles.FirstOrDefaultAsync(m => m.Id == mid) : null;
+                card.ImageMediaId = null; card.ImageUrl = null; card.UpdatedAt = DateTime.UtcNow;
+                if (media != null) _db.TimerMediaFiles.Remove(media);
+                await _db.SaveChangesAsync();
+                PromoCardImageFiles.TryDelete(_env.ContentRootPath, media?.FilePath);
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error quitando la imagen de una tarjeta propia de promociones");
                 return StatusCode(500, new { success = false, message = "Error interno del servidor" });
             }
         }

@@ -19,5 +19,6 @@ export const promoAdminApi = {
     deleteZone: async (id: number): Promise<void> => { await api.delete(`/admin/promo/zones/${id}`); },
     ownCards: async (): Promise<PromoOwnCardAdmin[]> => (await api.get('/admin/promo/own-cards')).data.cards,
     setOwnCardHidden: async (id: number, hidden: boolean): Promise<void> => { await api.post(`/admin/promo/own-cards/${id}/hidden`, { hidden }); },
+    clearOwnCardImage: async (id: number): Promise<void> => { await api.delete(`/admin/promo/own-cards/${id}/image`); },
     updateLimits: async (l: PromoLimits): Promise<PromoLimits> => (await api.put('/admin/promo/limits', l)).data.limits,
 };

@@ -60,5 +60,5 @@ export const EMPTY_ZONE: PromoZone = { id: 0, key: '', nameEs: '', nameEn: '', a
 /** Tarjeta propia de un streamer, vista por el dueño. */
 export interface PromoOwnCardAdmin {
     id: number; userId: number; login: string; tenantId: number; title: string; body: string; icon: string | null; linkUrl: string | null;
-    showQr: boolean; zone: string; isEnabled: boolean; hiddenByAdmin: boolean; createdAt: string;
+    showQr: boolean; zone: string; isEnabled: boolean; hiddenByAdmin: boolean; createdAt: string; imageUrl: string | null;
 }

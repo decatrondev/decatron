@@ -115,6 +115,27 @@ $$;
 
 
 --
+-- Name: promo_own_card_clear_image(bigint); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.promo_own_card_clear_image(p_id bigint) RETURNS text
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE v_media int; v_path text;
+BEGIN
+  SELECT image_media_id INTO v_media FROM promo_own_cards WHERE id = p_id;
+  IF v_media IS NOT NULL THEN
+    SELECT file_path INTO v_path FROM timer_media_files WHERE id = v_media;
+    DELETE FROM timer_media_files WHERE id = v_media;
+  END IF;
+  UPDATE promo_own_cards SET image_media_id = NULL, image_url = NULL, updated_at = (now() AT TIME ZONE 'utc') WHERE id = p_id;
+  RETURN v_path;
+END
+$$;
+
+
+--
 -- Name: promo_own_card_set_hidden(bigint, boolean); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -133,12 +154,12 @@ $$;
 -- Name: promo_own_cards_all(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.promo_own_cards_all() RETURNS TABLE(id bigint, user_id bigint, login text, tenant_id bigint, title text, body text, icon text, link_url text, show_qr boolean, zone text, is_enabled boolean, hidden_by_admin boolean, created_at timestamp without time zone)
+CREATE FUNCTION public.promo_own_cards_all() RETURNS TABLE(id bigint, user_id bigint, login text, tenant_id bigint, title text, body text, icon text, link_url text, show_qr boolean, zone text, is_enabled boolean, hidden_by_admin boolean, created_at timestamp without time zone, image_url text)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
   SELECT c.id, c.user_id, COALESCE(u.login, '')::text, c.tenant_id, c.title::text, c.body::text, c.icon::text, c.link_url::text, c.show_qr,
-         c.zone::text, c.is_enabled, c.hidden_by_admin, c.created_at
+         c.zone::text, c.is_enabled, c.hidden_by_admin, c.created_at, CASE WHEN c.image_media_id IS NULL THEN NULL ELSE c.image_url END::text
   FROM promo_own_cards c LEFT JOIN users u ON u.id = c.user_id
   ORDER BY c.hidden_by_admin DESC, c.id DESC
 $$;
@@ -5620,6 +5641,8 @@ CREATE TABLE public.promo_own_cards (
     created_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     updated_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
     tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    image_media_id integer,
+    image_url character varying(300),
     CONSTRAINT promo_own_cards_duration_seconds_check CHECK (((duration_seconds >= 3) AND (duration_seconds <= 60))),
     CONSTRAINT promo_own_cards_interval_minutes_check CHECK (((interval_minutes >= 1) AND (interval_minutes <= 240)))
 );
@@ -20988,6 +21011,14 @@ ALTER TABLE ONLY public.promo_own_card_counts
 
 ALTER TABLE ONLY public.promo_own_card_counts
     ADD CONSTRAINT promo_own_card_counts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: promo_own_cards promo_own_cards_image_media_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_own_cards
+    ADD CONSTRAINT promo_own_cards_image_media_id_fkey FOREIGN KEY (image_media_id) REFERENCES public.timer_media_files(id) ON DELETE SET NULL;
 
 
 --

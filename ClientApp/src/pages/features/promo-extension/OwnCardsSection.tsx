@@ -8,11 +8,11 @@ import { PROMO_ICONS } from '../../../components/promo/icons';
 import { useBrand } from '../../../brand/BrandContext';
 import type { PromoContent } from '../../../components/promo-overlay/types';
 import { ShowNowButton } from './ShowNowButton';
-import type { Limits, OwnCard, Template, Zone } from './types';
+import { hasPieceImage, templateLabel, type Limits, type OwnCard, type Template, type Zone } from './types';
 
 const blank = (zone: string, limits: Limits): OwnCard => ({
     id: 0, title: '', body: '', icon: null, linkUrl: null, showQr: false, zone, templateId: null,
-    durationSeconds: Math.min(Math.max(8, limits.minDurationSeconds), limits.maxDurationSeconds), intervalMinutes: Math.max(10, limits.ownMinIntervalMinutes), isEnabled: true, hiddenByAdmin: false,
+    durationSeconds: Math.min(Math.max(8, limits.minDurationSeconds), limits.maxDurationSeconds), intervalMinutes: Math.max(10, limits.ownMinIntervalMinutes), isEnabled: true, hiddenByAdmin: false, imageUrl: null,
 });
 
 /**
@@ -33,12 +33,30 @@ export function OwnCardsSection({ cards, max, templates, zones, limits, lang, ch
         const code = (e as { response?: { data?: { errors?: string[] } } })?.response?.data?.errors?.[0];
         return code ? t(`panel.cards.errors.${code}`, { defaultValue: t('panel.cards.errors.unknown') }) : t('panel.cards.errors.unknown');
     };
+    const imageErrorText = (e: unknown) => {
+        const code = (e as { response?: { data?: { errors?: string[] } } })?.response?.data?.errors?.[0];
+        return code ? t(`panel.cards.image.errors.${code}`, { defaultValue: t('panel.cards.errors.unknown') }) : t('panel.cards.errors.unknown');
+    };
     const save = async (c: OwnCard) => {
         setBusy(true); setError(null);
         try {
             await api.put(`/promo-panel/card/${c.id}`, { title: c.title, body: c.body, icon: c.icon, linkUrl: c.linkUrl, showQr: c.showQr, zone: c.zone, templateId: c.templateId, durationSeconds: c.durationSeconds, intervalMinutes: c.intervalMinutes, isEnabled: c.isEnabled });
             await onChanged(); setDraft(null);
         } catch (e) { setError(errorText(e)); }
+        setBusy(false);
+    };
+    const upload = async (c: OwnCard, file: File) => {
+        setBusy(true); setError(null);
+        try {
+            const body = new FormData(); body.append('file', file);
+            const r = await api.post(`/promo-panel/card/${c.id}/image`, body);
+            await onChanged(); setDraft(d => (d && d.id === c.id ? { ...d, imageUrl: r.data.imageUrl } : d));
+        } catch (e) { setError(imageErrorText(e)); }
+        setBusy(false);
+    };
+    const removeImage = async (c: OwnCard) => {
+        setBusy(true); setError(null);
+        try { await api.delete(`/promo-panel/card/${c.id}/image`); await onChanged(); setDraft(d => (d && d.id === c.id ? { ...d, imageUrl: null } : d)); } catch (e) { setError(errorText(e)); }
         setBusy(false);
     };
     const remove = async (c: OwnCard) => {
@@ -48,7 +66,7 @@ export function OwnCardsSection({ cards, max, templates, zones, limits, lang, ch
         setBusy(false);
     };
 
-    const contentOf = (c: OwnCard): PromoContent => ({ title: c.title, body: c.body, link: c.linkUrl, imageUrl: null, icon: c.icon, showQr: c.showQr });
+    const contentOf = (c: OwnCard): PromoContent => ({ title: c.title, body: c.body, link: c.linkUrl, imageUrl: c.imageUrl, icon: c.icon, showQr: c.showQr });
     const tplFor = (c: OwnCard) => templates.find(x => x.id === c.templateId && x.zone === c.zone) ?? templates.find(x => x.zone === c.zone);
     const varsOf = (c: OwnCard) => ({ channel, commands: '!title · !game', link: (c.linkUrl || 'https://decatron.net').replace(/^https:\/\//, '') });
     const zoneName = (key: string) => { const z = zones.find(x => x.key === key); return z ? (lang === 'en' ? z.nameEn : z.nameEs) || key : key; };
@@ -82,7 +100,7 @@ export function OwnCardsSection({ cards, max, templates, zones, limits, lang, ch
                             {templates.filter(x => x.zone === draft.zone).length > 1 && (
                                 <Field label={t('panel.cards.fields.template')}>
                                     <Select value={String(draft.templateId ?? templates.find(x => x.zone === draft.zone)?.id ?? '')} onChange={v => set({ templateId: Number(v) })}
-                                        options={templates.filter(x => x.zone === draft.zone).map((x, i) => ({ value: String(x.id), label: t('panel.design.templateN', { n: i + 1 }) }))} />
+                                        options={templates.filter(x => x.zone === draft.zone).map((x, i) => ({ value: String(x.id), label: templateLabel(x, lang, t('panel.design.templateN', { n: i + 1 })) }))} />
                                 </Field>
                             )}
                             <Field label={t('panel.cards.fields.duration')}><Slider value={draft.durationSeconds} min={limits.minDurationSeconds} max={limits.maxDurationSeconds} suffix=" s" onChange={v => set({ durationSeconds: v })} /></Field>
@@ -90,6 +108,20 @@ export function OwnCardsSection({ cards, max, templates, zones, limits, lang, ch
                                 <Slider value={draft.intervalMinutes} min={limits.ownMinIntervalMinutes} max={120} suffix=" min" onChange={v => set({ intervalMinutes: v })} />
                             </Field>
                         </div>
+                        <Field label={t('panel.cards.image.label')} hint={draft.id > 0 ? t('panel.cards.image.hint') : t('panel.cards.image.saveFirst')}>
+                            {draft.id > 0 && (
+                                <div className="flex flex-wrap items-center gap-3">
+                                    {draft.imageUrl && <img src={draft.imageUrl} alt="" className="h-16 w-16 rounded-md object-cover border border-ds-border" />}
+                                    <label className={`ds-btn ds-btn--secondary ds-btn--sm ${busy ? 'opacity-60 pointer-events-none' : 'cursor-pointer'}`}>
+                                        {draft.imageUrl ? t('panel.cards.image.change') : t('panel.cards.image.upload')}
+                                        <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={busy}
+                                            onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) upload(draft, f); }} />
+                                    </label>
+                                    {draft.imageUrl && <button className="ds-btn ds-btn--secondary ds-btn--sm" disabled={busy} onClick={() => removeImage(draft)}>{t('panel.cards.image.remove')}</button>}
+                                </div>
+                            )}
+                        </Field>
+                        {draft.imageUrl && !hasPieceImage(tplFor(draft)) && <p className="text-sm 3xl:text-base text-ds-warn">{t('panel.cards.image.noSlot')}</p>}
                         <Toggle checked={draft.isEnabled} onChange={v => set({ isEnabled: v })} label={t('panel.cards.fields.enabled')} />
                         {tplFor(draft) && <PromoZoom design={tplFor(draft)!.design} content={contentOf(draft)} resolveImage={resolve} vars={varsOf(draft)} />}
                         <div className="flex gap-2">

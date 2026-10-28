@@ -45,6 +45,7 @@ export default function PrivacidadPage() {
                             <li>Historial de interacciones con el bot</li>
                             <li>Audio del micrófono del streamer, solo cuando activa la traducción en vivo, para generar la transcripción, la traducción y la voz</li>
                             <li>Cuántas veces se muestra cada promoción de Decatron en el overlay de un canal, y cuánto tiempo estuvo en pantalla y cuántas veces se abrió su enlace corto (QR), como un contador por día (por canal se conserva 90 días; el total global, sin canal, no se borra); no se guarda ninguna información de quienes ven el stream</li>
+                            <li>La imagen que el streamer sube a una tarjeta propia de Promociones: se reduce y se convierte a WebP sin metadatos, se guarda en su biblioteca de medios (cuenta contra su almacenamiento) y solo se muestra en su propio canal; se borra al quitarla o al borrar la tarjeta</li>
                         </ul>
 
                         <h3 className="font-semibold text-[#1e293b] dark:text-white mt-4 mb-2">2.3 Datos de pago (solo Supporters)</h3>

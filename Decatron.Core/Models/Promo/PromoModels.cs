@@ -485,6 +485,14 @@ public class PromoOwnCard
     [Column("hidden_by_admin")]
     public bool HiddenByAdmin { get; set; }
 
+    /// <summary>Archivo de la biblioteca de medios (timer_media_files, categoría «promo»). Null si no hay imagen o si alguien la borró de la biblioteca.</summary>
+    [Column("image_media_id")]
+    public int? ImageMediaId { get; set; }
+
+    /// <summary>Ruta pública de la imagen (WebP ya reprocesado); solo vale si <see cref="ImageMediaId"/> no es null.</summary>
+    [Column("image_url"), MaxLength(300)]
+    public string? ImageUrl { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

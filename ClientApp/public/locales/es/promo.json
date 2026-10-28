@@ -461,8 +461,11 @@
       "show": "Mostrar",
       "toast": {
         "hidden": "Tarjeta oculta.",
-        "shown": "Tarjeta visible otra vez."
-      }
+        "shown": "Tarjeta visible otra vez.",
+        "imageRemoved": "Imagen quitada."
+      },
+      "hasImage": "Imagen",
+      "removeImage": "Quitar imagen"
     },
     "stats": {
       "intro": "Entregas de todos los canales. El historial global no se borra; el de cada canal se conserva 90 días.",
@@ -679,6 +682,23 @@
         "durationRange": "La duración está fuera del rango permitido.",
         "intervalRange": "El intervalo está fuera del rango permitido.",
         "templateInvalid": "Esa plantilla no sirve para esa zona."
+      },
+      "image": {
+        "label": "Imagen de la tarjeta",
+        "hint": "PNG, JPG o WebP, hasta 1 MB. Se reduce a 1024 px y se guarda en tu biblioteca de medios (cuenta contra tu almacenamiento). Solo se ve en tu canal y en las plantillas que tienen un hueco de imagen.",
+        "saveFirst": "Guarda la tarjeta primero y luego podrás añadirle una imagen.",
+        "upload": "Subir imagen",
+        "change": "Cambiar imagen",
+        "remove": "Quitar imagen",
+        "noSlot": "La plantilla elegida no tiene hueco de imagen, así que no se verá. Elige otra, por ejemplo «Tarjeta con imagen».",
+        "errors": {
+          "empty": "No se recibió ningún archivo.",
+          "tooLarge": "La imagen pesa más de 1 MB.",
+          "notImage": "El archivo no es una imagen PNG, JPG o WebP válida.",
+          "tooBig": "La imagen tiene demasiados píxeles (máximo 4096 por lado).",
+          "storageFull": "Tu almacenamiento de medios está lleno. Borra archivos o sube de plan.",
+          "quotaReached": "Tu plan alcanzó el máximo de almacenamiento."
+        }
       }
     },
     "showNow": {
