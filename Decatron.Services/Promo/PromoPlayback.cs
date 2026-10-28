@@ -21,6 +21,9 @@ namespace Decatron.Services.Promo
             public List<(DateTime At, int Seconds)> Shown { get; } = new();
             /// <summary>Pieza pedida con el comando del chat, por zona: sale en la próxima consulta del overlay y se consume.</summary>
             public Dictionary<string, (long PieceId, DateTime Expires)> Forced { get; } = new();
+            /// <summary>Piezas del bot mostradas desde la última tarjeta propia (empieza en 0: la primera siempre es del bot) y cuándo salió cada tarjeta propia.</summary>
+            public int BotSinceOwn { get; set; }
+            public Dictionary<long, DateTime> OwnLastShown { get; } = new();
         }
 
         private static readonly ConcurrentDictionary<string, State> States = new();
@@ -121,6 +124,8 @@ namespace Decatron.Services.Promo
             s.ZoneFreeAt[p.Zone] = now.AddSeconds(p.DurationSeconds + Math.Max(0, limits.MinGapSeconds));
             s.LastPiece[p.Zone] = p.Id;
             s.Shown.Add((now, p.DurationSeconds));
+            if (PromoOwnCards.IsOwnPieceId(p.Id)) { s.BotSinceOwn = 0; s.OwnLastShown[-p.Id] = now; }
+            else s.BotSinceOwn++;
         }
     }
 }

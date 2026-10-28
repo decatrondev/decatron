@@ -190,6 +190,7 @@ namespace Decatron.Data
         public DbSet<Core.Models.Promo.PromoPieceOverride> PromoPieceOverrides { get; set; }
         public DbSet<Core.Models.Promo.PromoZoneOverride> PromoZoneOverrides { get; set; }
         public DbSet<Core.Models.Promo.PromoTemplateOverride> PromoTemplateOverrides { get; set; }
+        public DbSet<Core.Models.Promo.PromoOwnCard> PromoOwnCards { get; set; }
         public DbSet<Core.Models.Promo.PromoViewCount> PromoViewCounts { get; set; }
         public DbSet<Core.Models.Promo.PromoPieceDaily> PromoPieceDaily { get; set; }
         public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }

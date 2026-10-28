@@ -45,6 +45,12 @@ export function LimitsTab({ limits, onChanged, notify }: { limits: PromoLimits; 
                 <Field label={t('admin.limits.maxMargin')} hint={t('admin.limits.maxMarginHint')}>
                     <Input type="number" min={0} max={1000} value={v.maxZoneMargin} onChange={e => setV({ ...v, maxZoneMargin: Number(e.target.value) || 0 })} />
                 </Field>
+                <Field label={t('admin.limits.botPerOwn')} hint={t('admin.limits.botPerOwnHint')}>
+                    <Input type="number" min={1} max={10} value={v.botPerOwn} onChange={e => setV({ ...v, botPerOwn: Number(e.target.value) || 1 })} />
+                </Field>
+                <Field label={t('admin.limits.ownInterval')} hint={t('admin.limits.ownIntervalHint')}>
+                    <Input type="number" min={1} max={240} value={v.ownMinIntervalMinutes} onChange={e => setV({ ...v, ownMinIntervalMinutes: Number(e.target.value) || 1 })} />
+                </Field>
                 <Button loading={saving} onClick={save}>{t('admin.limits.save')}</Button>
             </div>
         </ConfigCard>

@@ -30,7 +30,7 @@ namespace Decatron.Services.Promo
         /// <summary>Variables que el overlay sabe reemplazar. Cualquier otra {{x}} se rechaza para que no salga cruda en pantalla.</summary>
         public static readonly string[] Variables = { "channel", "commands", "link" };
 
-        private static readonly Regex VariableRx = new(@"\{\{\s*([A-Za-z_]+)\s*\}\}", RegexOptions.Compiled);
+        public static readonly Regex VariableRx = new(@"\{\{\s*([A-Za-z_]+)\s*\}\}", RegexOptions.Compiled);
         private static readonly Regex ControlRx = new(@"[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]", RegexOptions.Compiled);
         private static readonly Regex ChannelRx = new(@"^[a-z0-9_]{1,40}$", RegexOptions.Compiled);
         private static readonly Regex KeyRx = new(@"^[a-z0-9_-]{2,40}$", RegexOptions.Compiled);

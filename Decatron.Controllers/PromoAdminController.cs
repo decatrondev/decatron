@@ -149,6 +149,7 @@ namespace Decatron.Controllers
             {
                 MinGapSeconds = req.MinGapSeconds, HourlyCapSeconds = req.HourlyCapSeconds, MinDurationSeconds = req.MinDurationSeconds, MaxDurationSeconds = req.MaxDurationSeconds,
                 MinScalePercent = req.MinScalePercent, MaxScalePercent = req.MaxScalePercent, MaxZoneMargin = req.MaxZoneMargin,
+                BotPerOwn = req.BotPerOwn, OwnMinIntervalMinutes = req.OwnMinIntervalMinutes,
             });
             return r.Ok ? Ok(new { success = true, limits = r.Value }) : Failed(r);
         }
@@ -171,6 +172,7 @@ namespace Decatron.Controllers
             public int MinDurationSeconds { get; set; } = 5; public int MaxDurationSeconds { get; set; } = 60;
             public int MinScalePercent { get; set; } = 60; public int MaxScalePercent { get; set; } = 150;
             public int MaxZoneMargin { get; set; } = 600;
+            public int BotPerOwn { get; set; } = 1; public int OwnMinIntervalMinutes { get; set; } = 5;
         }
     }
 }

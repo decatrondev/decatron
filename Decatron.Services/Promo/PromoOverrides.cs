@@ -70,6 +70,8 @@ namespace Decatron.Services.Promo
             if (l.MinDurationSeconds < 1 || l.MaxDurationSeconds > 300 || l.MinDurationSeconds > l.MaxDurationSeconds) e.Add("durationLimitsRange");
             if (l.MinScalePercent < 20 || l.MaxScalePercent > 300 || l.MinScalePercent > l.MaxScalePercent) e.Add("scaleLimitsRange");
             if (l.MaxZoneMargin < 0 || l.MaxZoneMargin > 1000) e.Add("zoneMarginLimitRange");
+            if (l.BotPerOwn < 1 || l.BotPerOwn > 10) e.Add("botPerOwnRange");
+            if (l.OwnMinIntervalMinutes < 1 || l.OwnMinIntervalMinutes > 240) e.Add("ownIntervalRange");
             return e;
         }
     }

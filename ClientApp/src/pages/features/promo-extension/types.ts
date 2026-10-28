@@ -10,7 +10,12 @@ export interface Template { id: number; zone: string; design: PromoDesign }
 export interface Zone extends ZonePlacement { key: string; nameEs: string; nameEn: string }
 export interface Limits {
     minGapSeconds: number; hourlyCapSeconds: number;
-    minDurationSeconds: number; maxDurationSeconds: number; minScalePercent: number; maxScalePercent: number; maxZoneMargin: number;
+    minDurationSeconds: number; maxDurationSeconds: number; minScalePercent: number; maxScalePercent: number; maxZoneMargin: number; botPerOwn: number; ownMinIntervalMinutes: number;
+}
+/** Tarjeta propia del streamer (solo texto). */
+export interface OwnCard {
+    id: number; title: string; body: string; icon: string | null; linkUrl: string | null; showQr: boolean; zone: string; templateId: number | null;
+    durationSeconds: number; intervalMinutes: number; isEnabled: boolean; hiddenByAdmin: boolean;
 }
 /** Lo que el streamer cambió de una pieza; null = usa el valor del dueño. */
 export interface PieceOv { durationSeconds: number | null; templateId: number | null; scalePercent: number | null }

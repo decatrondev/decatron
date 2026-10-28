@@ -110,6 +110,7 @@ public static class TenantTables
         "player_pack_inventory",
         "player_pity_counter",
         "promo_channel_settings",
+        "promo_own_cards",
         "promo_piece_overrides",
         "promo_template_overrides",
         "promo_view_counts",

@@ -157,7 +157,11 @@
       "maxScale": "Maximum size (%)",
       "maxScaleHint": "They can't enlarge it above this.",
       "maxMargin": "Maximum zone margin (pixels)",
-      "maxMarginHint": "How far the streamer can move a zone from the edge of the 1920×1080 canvas."
+      "maxMarginHint": "How far the streamer can move a zone from the edge of the 1920×1080 canvas.",
+      "botPerOwn": "Bot pieces per own card",
+      "botPerOwnHint": "How many bot pieces play before each of the streamer's own cards. 1 = they alternate. With no active bot pieces, no own card plays.",
+      "ownInterval": "Minimum minutes between repeats of an own card",
+      "ownIntervalHint": "No own card can repeat more often than this, even if the streamer sets less."
     },
     "errors": {
       "unknown": "It could not be saved. Try again.",
@@ -210,7 +214,9 @@
       "durationLimitsRange": "Duration limits must be between 1 and 300 seconds and the minimum can't exceed the maximum.",
       "scaleLimitsRange": "Size limits must be between 20% and 300% and the minimum can't exceed the maximum.",
       "zoneMarginLimitRange": "The maximum zone margin must be between 0 and 1000 pixels.",
-      "designSlotsInvalid": "The streamer settings are not valid."
+      "designSlotsInvalid": "The streamer settings are not valid.",
+      "botPerOwnRange": "Bot pieces per own card must be between 1 and 10.",
+      "ownIntervalRange": "The minimum own-card interval must be between 1 and 240 minutes."
     },
     "design": {
       "back": "Back to templates",
@@ -580,6 +586,54 @@
       "title": "Colors, texts and fonts",
       "description": "Customize what the owner allowed on each template. Changes only affect your channel.",
       "lowContrast": "Some text has low contrast against the background and may be hard to read."
+    },
+    "cards": {
+      "title": "Your cards",
+      "description": "Cards with your own message. They only play on your channel, after a bot piece. You have {{count}} of {{max}}.",
+      "add": "New card",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save card",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete this card?",
+      "empty": "You have no own cards yet.",
+      "quota": "You reached the card limit of your plan ({{max}}).",
+      "needsBot": "Your cards only play if you have at least one bot piece on. Turn one on in the list above.",
+      "hidden": "Hidden by Decatron",
+      "every": "At least every {{n}} min",
+      "fields": {
+        "title": "Title",
+        "icon": "Icon",
+        "noIcon": "No icon",
+        "body": "Text",
+        "bodyHint": "You can use {{channel}}, {{commands}} and {{link}}.",
+        "link": "Link",
+        "linkHint": "https only.",
+        "qr": "Show a QR for the link",
+        "zone": "Where it plays",
+        "template": "Template",
+        "duration": "Duration",
+        "interval": "Repeats every",
+        "intervalHint": "At least {{min}} min (set by Decatron).",
+        "enabled": "On"
+      },
+      "errors": {
+        "unknown": "The card could not be saved.",
+        "cardQuota": "You reached the card limit of your plan.",
+        "titleTooLong": "The title is too long.",
+        "bodyTooLong": "The text is too long.",
+        "titleOrBodyRequired": "Write a title or a text.",
+        "noAngleBrackets": "Do not use the < or > signs.",
+        "unknownVariable": "You used a variable that does not exist.",
+        "linkVariableNeedsLink": "You used {{link}} without a link.",
+        "linkInvalid": "The link must start with https://.",
+        "qrNeedsLink": "A QR needs a link.",
+        "iconInvalid": "That icon is not available.",
+        "zoneInvalid": "That zone is not valid.",
+        "durationRange": "The duration is outside the allowed range.",
+        "intervalRange": "The interval is outside the allowed range.",
+        "templateInvalid": "That template does not fit that zone."
+      }
     }
   }
 }

@@ -157,7 +157,11 @@
       "maxScale": "Tamaño máximo (%)",
       "maxScaleHint": "Por encima de este valor no se puede agrandar.",
       "maxMargin": "Margen máximo de una zona (píxeles)",
-      "maxMarginHint": "Cuánto puede separar el streamer una zona del borde del lienzo de 1920×1080."
+      "maxMarginHint": "Cuánto puede separar el streamer una zona del borde del lienzo de 1920×1080.",
+      "botPerOwn": "Piezas del bot por cada tarjeta propia",
+      "botPerOwnHint": "Cuántas piezas del bot salen antes de cada tarjeta propia del streamer. 1 = alternan. Sin piezas del bot activas no sale ninguna propia.",
+      "ownInterval": "Minutos mínimos entre repeticiones de una tarjeta propia",
+      "ownIntervalHint": "Ninguna tarjeta propia puede repetirse más seguido que esto, aunque el streamer ponga menos."
     },
     "errors": {
       "unknown": "No se pudo guardar. Inténtalo de nuevo.",
@@ -210,7 +214,9 @@
       "durationLimitsRange": "Los límites de duración deben estar entre 1 y 300 segundos y el mínimo no puede superar al máximo.",
       "scaleLimitsRange": "Los límites de tamaño deben estar entre 20 % y 300 % y el mínimo no puede superar al máximo.",
       "zoneMarginLimitRange": "El margen máximo de una zona debe estar entre 0 y 1000 píxeles.",
-      "designSlotsInvalid": "Los ajustes del streamer no son válidos."
+      "designSlotsInvalid": "Los ajustes del streamer no son válidos.",
+      "botPerOwnRange": "Las piezas del bot por tarjeta propia deben estar entre 1 y 10.",
+      "ownIntervalRange": "El intervalo mínimo de las tarjetas propias debe estar entre 1 y 240 minutos."
     },
     "design": {
       "back": "Volver a las plantillas",
@@ -580,6 +586,54 @@
       "title": "Colores, textos y tipografías",
       "description": "Personaliza lo que el dueño permitió en cada plantilla. Los cambios solo afectan a tu canal.",
       "lowContrast": "Algún texto queda con poco contraste contra el fondo y podría leerse mal."
+    },
+    "cards": {
+      "title": "Tus tarjetas",
+      "description": "Tarjetas con tu propio mensaje. Salen solo en tu canal, después de una pieza del bot. Tienes {{count}} de {{max}}.",
+      "add": "Nueva tarjeta",
+      "edit": "Editar",
+      "delete": "Borrar",
+      "save": "Guardar tarjeta",
+      "cancel": "Cancelar",
+      "confirmDelete": "¿Borrar esta tarjeta?",
+      "empty": "Aún no tienes tarjetas propias.",
+      "quota": "Llegaste al máximo de tarjetas de tu plan ({{max}}).",
+      "needsBot": "Tus tarjetas solo salen si tienes al menos una pieza del bot activa. Enciende una en la lista de arriba.",
+      "hidden": "Oculta por Decatron",
+      "every": "Cada {{n}} min como mínimo",
+      "fields": {
+        "title": "Título",
+        "icon": "Icono",
+        "noIcon": "Sin icono",
+        "body": "Texto",
+        "bodyHint": "Puedes usar {{channel}}, {{commands}} y {{link}}.",
+        "link": "Enlace",
+        "linkHint": "Solo https.",
+        "qr": "Mostrar un QR del enlace",
+        "zone": "Dónde sale",
+        "template": "Plantilla",
+        "duration": "Duración",
+        "interval": "Se repite cada",
+        "intervalHint": "Mínimo {{min}} min (lo fija Decatron).",
+        "enabled": "Activa"
+      },
+      "errors": {
+        "unknown": "No se pudo guardar la tarjeta.",
+        "cardQuota": "Llegaste al máximo de tarjetas de tu plan.",
+        "titleTooLong": "El título es demasiado largo.",
+        "bodyTooLong": "El texto es demasiado largo.",
+        "titleOrBodyRequired": "Escribe un título o un texto.",
+        "noAngleBrackets": "No uses los signos < ni >.",
+        "unknownVariable": "Usaste una variable que no existe.",
+        "linkVariableNeedsLink": "Usaste {{link}} sin poner un enlace.",
+        "linkInvalid": "El enlace debe empezar con https://.",
+        "qrNeedsLink": "Para mostrar un QR hace falta un enlace.",
+        "iconInvalid": "Ese icono no está disponible.",
+        "zoneInvalid": "Esa zona no es válida.",
+        "durationRange": "La duración está fuera del rango permitido.",
+        "intervalRange": "El intervalo está fuera del rango permitido.",
+        "templateInvalid": "Esa plantilla no sirve para esa zona."
+      }
     }
   }
 }

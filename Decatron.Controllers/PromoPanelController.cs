@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Decatron.Attributes;
+using Decatron.Core.Helpers;
 using Decatron.Core.Models.Promo;
 using Decatron.Core.Settings;
 using Decatron.Data;
@@ -125,10 +126,13 @@ namespace Decatron.Controllers
                     limits = new
                     {
                         snap.Limits.MinGapSeconds, snap.Limits.HourlyCapSeconds, snap.Limits.MinDurationSeconds, snap.Limits.MaxDurationSeconds,
-                        snap.Limits.MinScalePercent, snap.Limits.MaxScalePercent, snap.Limits.MaxZoneMargin,
+                        snap.Limits.MinScalePercent, snap.Limits.MaxScalePercent, snap.Limits.MaxZoneMargin, snap.Limits.BotPerOwn, snap.Limits.OwnMinIntervalMinutes,
                     },
                     pieceOverrides = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.PieceId, o.DurationSeconds, o.TemplateId, o.ScalePercent }).ToListAsync(),
+                    ownCards = (await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId).OrderBy(c => c.Id).ToListAsync())
+                        .Select(c => new { c.Id, c.Title, c.Body, c.Icon, c.LinkUrl, c.ShowQr, c.Zone, c.TemplateId, c.DurationSeconds, c.IntervalMinutes, c.IsEnabled, c.HiddenByAdmin }),
+                    ownQuota = new { max = PromoOwnCards.MaxCards(await TierResolver.GetEffectiveTierAsync(_db, principalId)) },
                     templateOverrides = (await _db.PromoTemplateOverrides.AsNoTracking().Where(o => o.UserId == principalId).ToListAsync())
                         .Select(o => new { o.TemplateId, values = PromoSlots.Sanitize(snap.Templates.FirstOrDefault(t => t.Id == o.TemplateId)?.Design, PromoSlots.ParseStyle(o.Style)) }),
                     zoneOverrides = await _db.PromoZoneOverrides.AsNoTracking().Where(o => o.UserId == principalId)
@@ -147,6 +151,76 @@ namespace Decatron.Controllers
 
         public record PieceOverrideRequest(int? DurationSeconds, long? TemplateId, int? ScalePercent);
         public record ZoneOverrideRequest(string Anchor, int MarginX, int MarginY);
+        public record OwnCardRequest(string? Title, string? Body, string? Icon, string? LinkUrl, bool ShowQr, string? Zone, long? TemplateId, int DurationSeconds, int IntervalMinutes, bool IsEnabled);
+
+        /// <summary>Crea (id = 0) o edita una tarjeta propia del streamer. Solo texto; sale únicamente en su canal.</summary>
+        [HttpPut("card/{id:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> SaveCard(long id, [FromBody] OwnCardRequest req)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var principalId = account.Principal.UserId;
+                var snap = await _catalog.GetPublishedAsync();
+                PromoOwnCard? row = null;
+                if (id > 0)
+                {
+                    row = await _db.PromoOwnCards.FirstOrDefaultAsync(c => c.Id == id && c.UserId == principalId);
+                    if (row == null) return NotFound(new { success = false, message = "Tarjeta no encontrada" });
+                }
+                else
+                {
+                    var max = PromoOwnCards.MaxCards(await TierResolver.GetEffectiveTierAsync(_db, principalId));
+                    if (await _db.PromoOwnCards.CountAsync(c => c.UserId == principalId) >= max) return BadRequest(new { success = false, errors = new[] { "cardQuota" } });
+                }
+                var draft = new PromoOwnCard
+                {
+                    Title = req.Title ?? "", Body = req.Body ?? "", Icon = req.Icon, LinkUrl = req.LinkUrl, ShowQr = req.ShowQr, Zone = req.Zone ?? "",
+                    TemplateId = req.TemplateId, DurationSeconds = req.DurationSeconds, IntervalMinutes = req.IntervalMinutes, IsEnabled = req.IsEnabled,
+                };
+                PromoOwnCards.Normalize(draft);
+                var errors = PromoOwnCards.Validate(draft, snap.Limits, snap.Zones);
+                if (draft.TemplateId is long t && !snap.Templates.Any(x => x.Id == t && x.IsEnabled && x.Zone == draft.Zone)) errors.Add("templateInvalid");
+                if (errors.Count > 0) return BadRequest(new { success = false, errors });
+
+                if (row == null) { row = new PromoOwnCard { UserId = principalId }; _db.PromoOwnCards.Add(row); }
+                row.Title = draft.Title; row.Body = draft.Body; row.Icon = draft.Icon; row.LinkUrl = draft.LinkUrl; row.ShowQr = draft.ShowQr; row.Zone = draft.Zone;
+                row.TemplateId = draft.TemplateId; row.DurationSeconds = draft.DurationSeconds; row.IntervalMinutes = draft.IntervalMinutes; row.IsEnabled = draft.IsEnabled;
+                row.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                return Ok(new { success = true, id = row.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando una tarjeta propia de promociones");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpDelete("card/{id:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> DeleteCard(long id)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var principalId = account.Principal.UserId;
+                var row = await _db.PromoOwnCards.FirstOrDefaultAsync(c => c.Id == id && c.UserId == principalId);
+                if (row != null) { _db.PromoOwnCards.Remove(row); await _db.SaveChangesAsync(); }
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error borrando una tarjeta propia de promociones");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
         public record TemplateStyleRequest(System.Collections.Generic.Dictionary<string, string>? Values);
 
         /// <summary>Colores, textos y tipografía que el streamer elige para una plantilla, solo entre los ajustes que el dueño declaró. Vacío = vuelve al valor del dueño.</summary>

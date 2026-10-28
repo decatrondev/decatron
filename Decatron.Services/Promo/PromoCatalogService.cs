@@ -46,6 +46,7 @@ namespace Decatron.Services.Promo
         /// <summary>Suma una entrega de una pieza al overlay de una cuenta (contador del streamer y total global). Nunca rompe la rotación.</summary>
         public async Task CountViewAsync(long principalUserId, long pieceId)
         {
+            if (PromoOwnCards.IsOwnPieceId(pieceId)) return; // las tarjetas propias se cuentan en la fase de estadísticas
             try
             {
                 var day = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -278,6 +279,8 @@ namespace Decatron.Services.Promo
             s.MinScalePercent = req.MinScalePercent;
             s.MaxScalePercent = req.MaxScalePercent;
             s.MaxZoneMargin = req.MaxZoneMargin;
+            s.BotPerOwn = req.BotPerOwn;
+            s.OwnMinIntervalMinutes = req.OwnMinIntervalMinutes;
             s.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             Invalidate();

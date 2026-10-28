@@ -97,6 +97,9 @@ namespace Decatron.Services.Promo
                             || p.OnlyChannels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(c => logins.Any(l => string.Equals(l, c, StringComparison.OrdinalIgnoreCase)))))
                     .ToList();
                 var en = lang == "en";
+                // Tarjetas propias del streamer: `mostrar` las saca aunque estén apagadas; `lista` solo las encendidas.
+                var ownAll = (await db0.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId && !c.HiddenByAdmin).ToListAsync())
+                    .Select(c => (Card: c, Piece: PromoOwnCards.ToPiece(c, snap.Templates, snap.Limits))).Where(x => x.Piece.TemplateId != null).ToList();
 
                 switch (verb)
                 {
@@ -104,7 +107,8 @@ namespace Decatron.Services.Promo
                     case "list":
                     {
                         var disabled = PromoPlayback.DisabledIds(row);
-                        var names = mine.Where(p => !disabled.Contains(p.Id)).Select(p => PromoCommand.DisplayName(p, en)).Where(n => n != "").Distinct().ToList();
+                        var names = mine.Where(p => !disabled.Contains(p.Id)).Concat(ownAll.Where(x => x.Card.IsEnabled).Select(x => x.Piece))
+                            .Select(p => PromoCommand.DisplayName(p, en)).Where(n => n != "").Distinct().ToList();
                         await sender.SendMessageAsync(ctx.Channel, names.Count == 0 ? Say("list_empty") : Say("list", string.Join(", ", names)));
                         break;
                     }
@@ -112,7 +116,7 @@ namespace Decatron.Services.Promo
                     case "show":
                     {
                         if (arg == "") { await sender.SendMessageAsync(ctx.Channel, Say("show_usage", row.CmdName)); break; }
-                        var piece = PromoCommand.FindByName(mine, arg);
+                        var piece = PromoCommand.FindByName(mine.Concat(ownAll.Select(x => x.Piece)).ToList(), arg);
                         if (piece == null) { await sender.SendMessageAsync(ctx.Channel, Say("not_found", arg)); break; }
                         PromoCommand.Force(PromoPlayback.StateOf(account.OverlayKey), piece, now);
                         await sender.SendMessageAsync(ctx.Channel, Say("shown", PromoCommand.DisplayName(piece, en)));

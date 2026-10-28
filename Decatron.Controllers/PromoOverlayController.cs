@@ -96,6 +96,7 @@ namespace Decatron.Controllers
                 var snap = await _catalog.GetPublishedAsync();
                 var limits = PromoPlayback.EffectiveLimits(snap.Limits, mine);
                 var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
+                var ownCards = await _db.PromoOwnCards.AsNoTracking().Where(c => c.UserId == principalId).ToListAsync();
 
                 // Pieza pedida con el comando del chat: sale ya, aunque el streamer tenga pausado o apagada esa pieza (la pidió él o su equipo).
                 long? forcedId;
@@ -103,9 +104,17 @@ namespace Decatron.Controllers
                 if (forcedId != null)
                 {
                     var loginsF = resolved.Account.Members.Select(m => m.Login).ToList();
-                    var forcedRaw = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
-                        && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow));
-                    var forced = forcedRaw == null ? null : PromoOverrides.ApplyToPiece(forcedRaw, await PieceOverrideAsync(principalId, forcedRaw.Id), snap.Limits, snap.Templates);
+                    PromoPiece? forcedRaw;
+                    if (PromoOwnCards.IsOwnPieceId(forcedId.Value))
+                    {
+                        // Tarjeta propia pedida con el comando: sale aunque esté apagada, pero no si el dueño la ocultó.
+                        var card = ownCards.FirstOrDefault(c => PromoOwnCards.PieceId(c.Id) == forcedId && c.Zone == zone && !c.HiddenByAdmin);
+                        forcedRaw = card == null ? null : PromoOwnCards.ToPiece(card, snap.Templates, snap.Limits);
+                    }
+                    else
+                        forcedRaw = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
+                            && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow));
+                    var forced = forcedRaw == null ? null : PromoOverrides.ApplyToPiece(forcedRaw, PromoOwnCards.IsOwnPieceId(forcedRaw.Id) ? null : await PieceOverrideAsync(principalId, forcedRaw.Id), snap.Limits, snap.Templates);
                     if (forced != null && TemplateFor(snap, forced.Piece) != null)
                     {
                         lock (state.Gate) PromoPlayback.MarkShown(state, forced.Piece, limits, DateTime.UtcNow);
@@ -138,7 +147,15 @@ namespace Decatron.Controllers
                 lock (state.Gate)
                 {
                     state.LastPiece.TryGetValue(zone, out var last);
-                    piece = PromoPlayback.Pick(eligible, state.LastPiece.ContainsKey(zone) ? last : null, Random.Shared.NextDouble());
+                    long? lastId = state.LastPiece.ContainsKey(zone) ? last : null;
+                    // Tarjetas propias: solo después de pieza(s) del bot (proporción que fija el dueño) y si hay alguna del bot activa en este canal.
+                    PromoPiece? ownPiece = null;
+                    if (PromoOwnCards.OwnTurn(state.BotSinceOwn, eligible.Count, snap.Limits))
+                    {
+                        var card = PromoOwnCards.Pick(PromoOwnCards.Eligible(ownCards, zone, snap.Limits, snap.Templates, state.OwnLastShown, now), lastId, Random.Shared.NextDouble());
+                        if (card != null) ownPiece = PromoOwnCards.ToPiece(card, snap.Templates, snap.Limits);
+                    }
+                    piece = ownPiece ?? PromoPlayback.Pick(eligible, lastId, Random.Shared.NextDouble());
                     wait = piece == null ? 60 : PromoPlayback.WaitSeconds(state, zone, limits, piece.DurationSeconds, now);
                     if (piece != null && wait == 0) PromoPlayback.MarkShown(state, piece, limits, now);
                 }

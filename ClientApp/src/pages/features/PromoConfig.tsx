@@ -15,7 +15,8 @@ import { TimingTab } from './promo-extension/TimingTab';
 import { PositionTab } from './promo-extension/PositionTab';
 import { DesignTab } from './promo-extension/DesignTab';
 import type { SlotValues } from '../../components/promo-overlay/slots';
-import { isEmptyPieceOv, emptyPieceOv, type Limits, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
+import { OwnCardsSection } from './promo-extension/OwnCardsSection';
+import { isEmptyPieceOv, emptyPieceOv, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
 
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
 // su estado, y otra con las piezas que se están mostrando. La personalización por streamer llega en la fase siguiente.
@@ -32,6 +33,8 @@ interface Catalog {
     pieceOverrides: ({ pieceId: number } & PieceOv)[];
     zoneOverrides: ({ zoneKey: string } & ZoneOv)[];
     templateOverrides: { templateId: number; values: SlotValues }[];
+    ownCards: OwnCard[];
+    ownQuota: { max: number };
     /** Veces que salió cada pieza en este canal en los últimos 30 días. */
     views: Record<string, number>;
 }
@@ -64,6 +67,11 @@ export default function PromoConfig() {
         if (!permsLoading && !hasMinimumLevel('moderation')) navigate('/dashboard');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permsLoading]);
+    // Solo vuelve a leer las tarjetas propias: no pisa lo que el streamer ya cambió y aún no guardó en las demás pestañas.
+    const reloadCatalog = async () => {
+        const r = await api.get('/promo-panel/catalog');
+        setCatalog(c => (c ? { ...c, ownCards: r.data.ownCards, ownQuota: r.data.ownQuota } : c));
+    };
     useEffect(() => {
         api.get('/promo-panel/catalog').then(r => {
             const c: Catalog = r.data;
@@ -222,6 +230,10 @@ export default function PromoConfig() {
                             })}
                         </div>
                     </Card>
+                )}
+                {tab === 'pieces' && catalog && mine && (
+                    <OwnCardsSection cards={catalog.ownCards} max={catalog.ownQuota.max} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} lang={lang} channel={channel}
+                        botActive={catalog.pieces.some(p => !mine.disabledPieces.includes(p.id))} onChanged={reloadCatalog} />
                 )}
                 {tab === 'timing' && catalog && (
                     <TimingTab pieces={catalog.pieces} limits={catalog.limits} overrides={pieceOv} lang={lang} onChange={changePiece} />

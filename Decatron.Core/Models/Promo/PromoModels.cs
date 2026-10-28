@@ -210,6 +210,13 @@ public class PromoOverlayLimits
     [Column("max_zone_margin")]
     public int MaxZoneMargin { get; set; } = 600;
 
+    /// <summary>Tarjetas propias: cuántas piezas del bot salen antes de cada una propia (1 = alternan) y cada cuántos minutos puede repetirse una misma tarjeta, como mínimo.</summary>
+    [Column("bot_per_own")]
+    public int BotPerOwn { get; set; } = 1;
+
+    [Column("own_min_interval_minutes")]
+    public int OwnMinIntervalMinutes { get; set; } = 5;
+
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -359,6 +366,59 @@ public class PromoTemplateOverride
 
     [Column("style")]
     public string Style { get; set; } = "{}";
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Tarjeta propia de un streamer (solo texto): sale solo en su canal, después de una pieza del bot. Tabla de tenant con RLS. Plan: PLAN.md §3.5</summary>
+[Table("promo_own_cards")]
+public class PromoOwnCard
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("title"), MaxLength(80)]
+    public string Title { get; set; } = "";
+
+    [Column("body"), MaxLength(200)]
+    public string Body { get; set; } = "";
+
+    [Column("icon"), MaxLength(40)]
+    public string? Icon { get; set; }
+
+    /// <summary>Solo https.</summary>
+    [Column("link_url"), MaxLength(500)]
+    public string? LinkUrl { get; set; }
+
+    [Column("show_qr")]
+    public bool ShowQr { get; set; }
+
+    [Column("zone"), MaxLength(40)]
+    public string Zone { get; set; } = "corner";
+
+    [Column("template_id")]
+    public long? TemplateId { get; set; }
+
+    [Column("duration_seconds")]
+    public int DurationSeconds { get; set; } = 8;
+
+    /// <summary>Cada cuántos minutos puede volver a salir esta tarjeta, como mínimo.</summary>
+    [Column("interval_minutes")]
+    public int IntervalMinutes { get; set; } = 10;
+
+    [Column("is_enabled")]
+    public bool IsEnabled { get; set; } = true;
+
+    /// <summary>La oculta el dueño (no cumple las reglas); el streamer la ve pero no sale.</summary>
+    [Column("hidden_by_admin")]
+    public bool HiddenByAdmin { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
