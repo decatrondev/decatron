@@ -21,7 +21,7 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-10-20
+-- Snapshot date: 2026-10-28
 --
 --
 --
@@ -5448,6 +5448,237 @@ CREATE TABLE public.player_pity_counter (
     last_reset_at timestamp without time zone,
     tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
 );
+
+
+--
+-- Name: promo_channel_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_channel_settings (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    paused boolean DEFAULT false NOT NULL,
+    disabled_pieces jsonb DEFAULT '[]'::jsonb NOT NULL,
+    min_gap_seconds integer,
+    hourly_cap_seconds integer,
+    updated_at timestamp without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    cmd_enabled boolean DEFAULT false NOT NULL,
+    cmd_name character varying(20) DEFAULT 'dpromo'::character varying NOT NULL,
+    cmd_cooldown_seconds integer DEFAULT 10 NOT NULL,
+    cmd_min_role character varying(12) DEFAULT 'moderator'::character varying NOT NULL,
+    CONSTRAINT promo_channel_settings_cmd_cooldown_seconds_check CHECK (((cmd_cooldown_seconds >= 0) AND (cmd_cooldown_seconds <= 600))),
+    CONSTRAINT promo_channel_settings_cmd_min_role_check CHECK (((cmd_min_role)::text = ANY ((ARRAY['moderator'::character varying, 'vip'::character varying, 'subscriber'::character varying, 'everyone'::character varying])::text[]))),
+    CONSTRAINT promo_channel_settings_hourly_cap_seconds_check CHECK (((hourly_cap_seconds IS NULL) OR ((hourly_cap_seconds >= 0) AND (hourly_cap_seconds <= 3600)))),
+    CONSTRAINT promo_channel_settings_min_gap_seconds_check CHECK (((min_gap_seconds IS NULL) OR ((min_gap_seconds >= 0) AND (min_gap_seconds <= 3600))))
+);
+
+
+--
+-- Name: promo_channel_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_channel_settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_channel_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_channel_settings_id_seq OWNED BY public.promo_channel_settings.id;
+
+
+--
+-- Name: promo_piece_daily; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_piece_daily (
+    piece_id bigint NOT NULL,
+    day date NOT NULL,
+    views integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: promo_pieces; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_pieces (
+    id bigint NOT NULL,
+    kind character varying(24) DEFAULT 'news'::character varying NOT NULL,
+    origin character varying(12) DEFAULT 'bot'::character varying NOT NULL,
+    title_es character varying(120) DEFAULT ''::character varying NOT NULL,
+    title_en character varying(120) DEFAULT ''::character varying NOT NULL,
+    body_es character varying(300) DEFAULT ''::character varying NOT NULL,
+    body_en character varying(300) DEFAULT ''::character varying NOT NULL,
+    link_url character varying(500),
+    show_qr boolean DEFAULT false NOT NULL,
+    image_url character varying(500),
+    icon character varying(40),
+    template_id bigint,
+    zone character varying(40) DEFAULT 'corner'::character varying NOT NULL,
+    priority integer DEFAULT 0 NOT NULL,
+    weight integer DEFAULT 1 NOT NULL,
+    duration_seconds integer DEFAULT 8 NOT NULL,
+    starts_at timestamp with time zone,
+    ends_at timestamp with time zone,
+    platforms character varying(8) DEFAULT 'all'::character varying NOT NULL,
+    only_channels character varying(500),
+    status character varying(12) DEFAULT 'draft'::character varying NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    created_by bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT promo_pieces_kind_check CHECK (((kind)::text = ANY ((ARRAY['commands'::character varying, 'module'::character varying, 'qr'::character varying, 'news'::character varying, 'credits'::character varying, 'community'::character varying, 'emergency'::character varying])::text[]))),
+    CONSTRAINT promo_pieces_origin_check CHECK (((origin)::text = ANY ((ARRAY['bot'::character varying, 'tercero'::character varying])::text[]))),
+    CONSTRAINT promo_pieces_platforms_check CHECK (((platforms)::text = ANY ((ARRAY['all'::character varying, 'twitch'::character varying, 'kick'::character varying])::text[]))),
+    CONSTRAINT promo_pieces_status_check CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'published'::character varying])::text[])))
+);
+
+
+--
+-- Name: promo_pieces_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_pieces_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_pieces_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_pieces_id_seq OWNED BY public.promo_pieces.id;
+
+
+--
+-- Name: promo_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_settings (
+    id bigint NOT NULL,
+    min_gap_seconds integer DEFAULT 60 NOT NULL,
+    hourly_cap_seconds integer DEFAULT 600 NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: promo_templates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_templates (
+    id bigint NOT NULL,
+    key character varying(40) NOT NULL,
+    name_es character varying(80) DEFAULT ''::character varying NOT NULL,
+    name_en character varying(80) DEFAULT ''::character varying NOT NULL,
+    zone character varying(40) DEFAULT 'corner'::character varying NOT NULL,
+    is_enabled boolean DEFAULT true NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    design jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
+
+--
+-- Name: promo_templates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_templates_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_templates_id_seq OWNED BY public.promo_templates.id;
+
+
+--
+-- Name: promo_view_counts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_view_counts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    piece_id bigint NOT NULL,
+    day date NOT NULL,
+    views integer DEFAULT 0 NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+);
+
+
+--
+-- Name: promo_view_counts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_view_counts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_view_counts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_view_counts_id_seq OWNED BY public.promo_view_counts.id;
+
+
+--
+-- Name: promo_zones; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.promo_zones (
+    id bigint NOT NULL,
+    key character varying(40) NOT NULL,
+    name_es character varying(80) DEFAULT ''::character varying NOT NULL,
+    name_en character varying(80) DEFAULT ''::character varying NOT NULL,
+    anchor character varying(16) DEFAULT 'top-right'::character varying NOT NULL,
+    margin_x integer DEFAULT 96 NOT NULL,
+    margin_y integer DEFAULT 54 NOT NULL,
+    is_enabled boolean DEFAULT true NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT promo_zones_anchor_check CHECK (((anchor)::text = ANY ((ARRAY['top-left'::character varying, 'top-center'::character varying, 'top-right'::character varying, 'middle-left'::character varying, 'center'::character varying, 'middle-right'::character varying, 'bottom-left'::character varying, 'bottom-center'::character varying, 'bottom-right'::character varying])::text[])))
+);
+
+
+--
+-- Name: promo_zones_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.promo_zones_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: promo_zones_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.promo_zones_id_seq OWNED BY public.promo_zones.id;
 
 
 --
@@ -11513,6 +11744,41 @@ ALTER TABLE ONLY public.player_pack_inventory ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- Name: promo_channel_settings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_channel_settings ALTER COLUMN id SET DEFAULT nextval('public.promo_channel_settings_id_seq'::regclass);
+
+
+--
+-- Name: promo_pieces id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_pieces ALTER COLUMN id SET DEFAULT nextval('public.promo_pieces_id_seq'::regclass);
+
+
+--
+-- Name: promo_templates id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_templates ALTER COLUMN id SET DEFAULT nextval('public.promo_templates_id_seq'::regclass);
+
+
+--
+-- Name: promo_view_counts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_view_counts ALTER COLUMN id SET DEFAULT nextval('public.promo_view_counts_id_seq'::regclass);
+
+
+--
+-- Name: promo_zones id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_zones ALTER COLUMN id SET DEFAULT nextval('public.promo_zones_id_seq'::regclass);
+
+
+--
 -- Name: public_command_overrides id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -13675,6 +13941,94 @@ ALTER TABLE ONLY public.player_pack_inventory
 
 ALTER TABLE ONLY public.player_pity_counter
     ADD CONSTRAINT player_pity_counter_pkey PRIMARY KEY (owner_account_id);
+
+
+--
+-- Name: promo_channel_settings promo_channel_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_channel_settings
+    ADD CONSTRAINT promo_channel_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_channel_settings promo_channel_settings_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_channel_settings
+    ADD CONSTRAINT promo_channel_settings_user_id_key UNIQUE (user_id);
+
+
+--
+-- Name: promo_piece_daily promo_piece_daily_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_daily
+    ADD CONSTRAINT promo_piece_daily_pkey PRIMARY KEY (piece_id, day);
+
+
+--
+-- Name: promo_pieces promo_pieces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_pieces
+    ADD CONSTRAINT promo_pieces_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_settings promo_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_settings
+    ADD CONSTRAINT promo_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_templates promo_templates_key_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_templates
+    ADD CONSTRAINT promo_templates_key_key UNIQUE (key);
+
+
+--
+-- Name: promo_templates promo_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_templates
+    ADD CONSTRAINT promo_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_view_counts promo_view_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_view_counts
+    ADD CONSTRAINT promo_view_counts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: promo_view_counts promo_view_counts_user_id_piece_id_day_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_view_counts
+    ADD CONSTRAINT promo_view_counts_user_id_piece_id_day_key UNIQUE (user_id, piece_id, day);
+
+
+--
+-- Name: promo_zones promo_zones_key_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_zones
+    ADD CONSTRAINT promo_zones_key_key UNIQUE (key);
+
+
+--
+-- Name: promo_zones promo_zones_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_zones
+    ADD CONSTRAINT promo_zones_pkey PRIMARY KEY (id);
 
 
 --
@@ -17747,6 +18101,20 @@ CREATE INDEX ix_platform_webhook_events_received ON public.platform_webhook_even
 
 
 --
+-- Name: ix_promo_pieces_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_promo_pieces_status ON public.promo_pieces USING btree (status, sort_order);
+
+
+--
+-- Name: ix_promo_view_counts_user_day; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_promo_view_counts_user_day ON public.promo_view_counts USING btree (user_id, day);
+
+
+--
 -- Name: ix_sound_alert_history_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -20200,6 +20568,46 @@ ALTER TABLE ONLY public.player_pity_counter
 
 
 --
+-- Name: promo_channel_settings promo_channel_settings_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_channel_settings
+    ADD CONSTRAINT promo_channel_settings_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
+-- Name: promo_piece_daily promo_piece_daily_piece_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_piece_daily
+    ADD CONSTRAINT promo_piece_daily_piece_id_fkey FOREIGN KEY (piece_id) REFERENCES public.promo_pieces(id) ON DELETE CASCADE;
+
+
+--
+-- Name: promo_pieces promo_pieces_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_pieces
+    ADD CONSTRAINT promo_pieces_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.promo_templates(id) ON DELETE SET NULL;
+
+
+--
+-- Name: promo_view_counts promo_view_counts_piece_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_view_counts
+    ADD CONSTRAINT promo_view_counts_piece_id_fkey FOREIGN KEY (piece_id) REFERENCES public.promo_pieces(id) ON DELETE CASCADE;
+
+
+--
+-- Name: promo_view_counts promo_view_counts_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.promo_view_counts
+    ADD CONSTRAINT promo_view_counts_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
+
+
+--
 -- Name: public_command_overrides public_command_overrides_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21952,6 +22360,18 @@ ALTER TABLE public.player_pack_inventory ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.player_pity_counter ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: promo_channel_settings; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promo_channel_settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: promo_view_counts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.promo_view_counts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: public_command_overrides; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -22959,6 +23379,20 @@ CREATE POLICY tenant_isolation ON public.player_pack_inventory USING ((tenant_id
 --
 
 CREATE POLICY tenant_isolation ON public.player_pity_counter USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: promo_channel_settings tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.promo_channel_settings USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: promo_view_counts tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.promo_view_counts USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --
