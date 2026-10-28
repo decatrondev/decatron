@@ -10,6 +10,7 @@ import { newElement } from '../../../components/promo-overlay/defaults';
 import type { PromoElementKind } from '../../../components/promo-overlay/types';
 import { errorCodes, promoAdminApi } from './api';
 import ElementPanel from './design/ElementPanel';
+import SlotsPanel from './design/SlotsPanel';
 import { StepFields } from './design/AnimationFields';
 import { addElement, duplicateElement, moveElement, patchElement, removeElement } from './design/designOps';
 import { PreviewPane, errorText, sampleContent, sampleVars, useResolveImage, zonePlacement, type Lang } from './shared';
@@ -30,7 +31,7 @@ export function TemplateEditor({ initial, zones, options, lang, onLang, onBack, 
     const { t, i18n } = useTranslation(['promo', 'overlays']);
     const [draft, setDraft] = useState<PromoTemplate>(initial);
     const [selected, setSelected] = useState<string>(initial.design.elements[0]?.id ?? '');
-    const [tab, setTab] = useState<'general' | 'design' | 'animation' | 'preview'>(initial.id ? 'design' : 'general');
+    const [tab, setTab] = useState<'general' | 'design' | 'animation' | 'slots' | 'preview'>(initial.id ? 'design' : 'general');
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const resolveImage = useResolveImage();
@@ -61,7 +62,7 @@ export function TemplateEditor({ initial, zones, options, lang, onLang, onBack, 
             </div>
             {error && <Alert tone="danger">{error}</Alert>}
 
-            <Tabs items={[{ id: 'general', label: t('admin.design.tabs.general') }, { id: 'design', label: t('admin.design.tabs.design') }, { id: 'animation', label: t('admin.design.tabs.animation') }, { id: 'preview', label: t('admin.design.tabs.preview') }]} value={tab} onChange={id => setTab(id as typeof tab)} />
+            <Tabs items={[{ id: 'general', label: t('admin.design.tabs.general') }, { id: 'design', label: t('admin.design.tabs.design') }, { id: 'animation', label: t('admin.design.tabs.animation') }, { id: 'slots', label: t('admin.design.tabs.slots') }, { id: 'preview', label: t('admin.design.tabs.preview') }]} value={tab} onChange={id => setTab(id as typeof tab)} />
 
             {tab === 'general' && (
             <Card title={t(draft.id ? 'admin.templates.titleEdit' : 'admin.templates.titleNew')} description={t('admin.templates.hint')}>
@@ -128,6 +129,7 @@ export function TemplateEditor({ initial, zones, options, lang, onLang, onBack, 
                     </div>
                 </Card>
             )}
+            {tab === 'slots' && <SlotsPanel design={design} onChange={slots => setDesign(d => ({ ...d, slots }))} />}
             {tab === 'preview' && (
                 <Card title={t('admin.design.livePreview')} description={t('admin.design.livePreviewHint')}>
                     <PreviewPane design={design} content={content} vars={vars} zone={zonePlacement(draft.zone, zones)} t={t} lang={lang} onLang={onLang} />

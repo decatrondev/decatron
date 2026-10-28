@@ -960,6 +960,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `PUT` | `/api/promo-panel/piece/{id}` | JWT + `overlays` |
 | `PUT` | `/api/promo-panel/zone/{key}` | JWT + `overlays` |
 | `DELETE` | `/api/promo-panel/zone/{key}` | JWT + `overlays` |
+| `PUT` | `/api/promo-panel/template/{id}` | JWT + `overlays` |
 | `GET` | `/api/promo-panel/status` | JWT + `overlays` |
 
 ### Public Commands

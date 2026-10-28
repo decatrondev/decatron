@@ -3,6 +3,7 @@
 // Alerts (components/event-alert-overlay): misma estructura de animaciones y mismo editor de lienzo, sin tocarlo.
 // Plan: .dev/plans/overlay-promo/PLAN.md §3.3c. El servidor valida este mismo JSON (PromoDesignValidator.cs).
 import type { ElementAnimation } from '../event-alert-overlay/types';
+import type { Slot } from './slots';
 
 export type { AnimationStep, AnimationType, Direction, Easing, ElementAnimation } from '../event-alert-overlay/types';
 
@@ -124,6 +125,8 @@ export interface PromoDesign {
     elements: PromoElement[];
     /** Animación de la pieza entera (encima de la de cada elemento). */
     animation: ElementAnimation;
+    /** Ajustes que el streamer puede cambiar (colores, textos fijos, tipografía). Ver slots.ts. */
+    slots?: Slot[];
 }
 
 /** Lo que dibuja el diseño: el contenido de la pieza, ya con sus variables resueltas. */

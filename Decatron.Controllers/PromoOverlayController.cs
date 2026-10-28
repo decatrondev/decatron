@@ -205,6 +205,8 @@ namespace Decatron.Controllers
         private async Task<object> BuildNextAsync(ResolvedAlias resolved, PromoPiece piece, PromoCatalogService.PublishedSnapshot snap, int scalePercent = 100)
         {
             var template = TemplateFor(snap, piece)!;
+            var styleRow = await _db.PromoTemplateOverrides.AsNoTracking().FirstOrDefaultAsync(o => o.UserId == resolved.Account.Principal.UserId && o.TemplateId == template.Id);
+            var style = styleRow == null ? new System.Collections.Generic.Dictionary<string, string>() : PromoSlots.Sanitize(template.Design, PromoSlots.ParseStyle(styleRow.Style));
             var en = await LanguageOfAsync(resolved.Account.Principal.UserId) == "en";
             return new
             {
@@ -215,6 +217,7 @@ namespace Decatron.Controllers
                 seconds = piece.DurationSeconds,
                 scale = scalePercent / 100.0,
                 design = JsonDocument.Parse(template.Design).RootElement,
+                style,
                 content = new
                 {
                     title = en && piece.TitleEn != "" ? piece.TitleEn : piece.TitleEs,

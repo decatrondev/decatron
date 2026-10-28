@@ -129,6 +129,8 @@ namespace Decatron.Controllers
                     },
                     pieceOverrides = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.PieceId, o.DurationSeconds, o.TemplateId, o.ScalePercent }).ToListAsync(),
+                    templateOverrides = (await _db.PromoTemplateOverrides.AsNoTracking().Where(o => o.UserId == principalId).ToListAsync())
+                        .Select(o => new { o.TemplateId, values = PromoSlots.Sanitize(snap.Templates.FirstOrDefault(t => t.Id == o.TemplateId)?.Design, PromoSlots.ParseStyle(o.Style)) }),
                     zoneOverrides = await _db.PromoZoneOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.ZoneKey, o.Anchor, o.MarginX, o.MarginY }).ToListAsync(),
                     views = await _catalog.GetChannelViewsAsync(principalId),
@@ -145,6 +147,44 @@ namespace Decatron.Controllers
 
         public record PieceOverrideRequest(int? DurationSeconds, long? TemplateId, int? ScalePercent);
         public record ZoneOverrideRequest(string Anchor, int MarginX, int MarginY);
+        public record TemplateStyleRequest(System.Collections.Generic.Dictionary<string, string>? Values);
+
+        /// <summary>Colores, textos y tipografía que el streamer elige para una plantilla, solo entre los ajustes que el dueño declaró. Vacío = vuelve al valor del dueño.</summary>
+        [HttpPut("template/{templateId:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> SaveTemplateStyle(long templateId, [FromBody] TemplateStyleRequest req)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            try
+            {
+                var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+                var snap = await _catalog.GetPublishedAsync();
+                var template = snap.Templates.FirstOrDefault(t => t.Id == templateId);
+                if (template == null) return NotFound(new { success = false, message = "Plantilla no encontrada" });
+                var errors = PromoSlots.ValidateValues(template.Design, req.Values);
+                if (errors.Count > 0) return BadRequest(new { success = false, errors });
+
+                var principalId = account.Principal.UserId;
+                var values = PromoSlots.Sanitize(template.Design, req.Values);
+                var row = await _db.PromoTemplateOverrides.FirstOrDefaultAsync(o => o.UserId == principalId && o.TemplateId == templateId);
+                if (values.Count == 0)
+                {
+                    if (row != null) { _db.PromoTemplateOverrides.Remove(row); await _db.SaveChangesAsync(); }
+                    return Ok(new { success = true });
+                }
+                if (row == null) { row = new PromoTemplateOverride { UserId = principalId, TemplateId = templateId }; _db.PromoTemplateOverrides.Add(row); }
+                row.Style = System.Text.Json.JsonSerializer.Serialize(values);
+                row.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando el estilo de una plantilla de promociones");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
 
         /// <summary>Lo que el streamer cambia de una pieza (duración, plantilla, escala), dentro de los límites del dueño. Todo vacío = vuelve al valor del dueño.</summary>
         [HttpPut("piece/{pieceId:long}")]

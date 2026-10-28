@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
+import { applySlotValues } from '../components/promo-overlay/slots';
 import PromoDesignRenderer, { type Phase } from '../components/promo-overlay/PromoDesignRenderer';
 import { placeInZone, STAGE, type ZonePlacement } from '../components/promo-overlay/PromoPreview';
 import type { PromoContent, PromoDesign, PromoVars } from '../components/promo-overlay/types';
@@ -49,7 +50,7 @@ function ZoneSlot({ zone, alias, source, language, stopped }: { zone: Zone; alia
                         const link = d.content.link || 'https://decatron.net';
                         const vars: PromoVars = { channel: d.channel, link, commands: d.needsCommands ? await loadCommands(d.channel) : '' };
                         setPhase('enter');
-                        setShown({ pieceId: d.pieceId, seconds: d.seconds, scale: typeof d.scale === 'number' ? d.scale : 1, design: d.design, content: d.content, vars });
+                        setShown({ pieceId: d.pieceId, seconds: d.seconds, scale: typeof d.scale === 'number' ? d.scale : 1, design: applySlotValues(d.design, d.style), content: d.content, vars });
                         await sleep(d.seconds * 1000);
                         if (!alive) return;
                         setPhase('exit');

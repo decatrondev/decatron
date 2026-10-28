@@ -90,6 +90,7 @@ namespace Decatron.Services.Promo
                 }
 
                 if (root.TryGetProperty("animation", out var a)) Animation(c, a); else c.Bad("designValueInvalid");
+                PromoSlots.ValidateDeclaration(root, c.Bad);
 
                 if (!root.TryGetProperty("elements", out var els) || els.ValueKind != JsonValueKind.Array) c.Bad("designInvalid");
                 else if (els.GetArrayLength() > MaxElements) c.Bad("designTooManyElements");
@@ -128,6 +129,13 @@ namespace Decatron.Services.Promo
             var s = Str(o, name);
             if (s == null || s.Length > 80 || !ColorRx.IsMatch(s)) c.Bad("designColorInvalid");
         }
+
+        public static bool IsColor(string? s) => s != null && s.Length <= 80 && ColorRx.IsMatch(s);
+
+        /// <summary>Texto libre con variables de la lista (el de un elemento de texto o el que escribe un streamer).</summary>
+        public static bool IsTemplateText(string? s, int max) =>
+            s != null && s.Length <= max && !s.Contains('<') && !s.Contains('>') && !s.Any(ch => char.IsControl(ch) && ch != '\n')
+            && !VarRx.Matches(s).Any(m => !TextVariables.Contains(m.Groups[1].Value.ToLowerInvariant()));
 
         private static void Text(Ctx c, string? s, int max)
         {

@@ -209,7 +209,8 @@
       "designAnimationInvalid": "Hay una animación no válida.",
       "durationLimitsRange": "Los límites de duración deben estar entre 1 y 300 segundos y el mínimo no puede superar al máximo.",
       "scaleLimitsRange": "Los límites de tamaño deben estar entre 20 % y 300 % y el mínimo no puede superar al máximo.",
-      "zoneMarginLimitRange": "El margen máximo de una zona debe estar entre 0 y 1000 píxeles."
+      "zoneMarginLimitRange": "El margen máximo de una zona debe estar entre 0 y 1000 píxeles.",
+      "designSlotsInvalid": "Los ajustes del streamer no son válidos."
     },
     "design": {
       "back": "Volver a las plantillas",
@@ -373,7 +374,8 @@
         "general": "Datos",
         "design": "Diseño",
         "animation": "Animación",
-        "preview": "Vista previa"
+        "preview": "Vista previa",
+        "slots": "Personalizable"
       }
     },
     "zones": {
@@ -399,6 +401,39 @@
       "usedBy": "La usan {{pieces}} piezas y {{templates}} plantillas",
       "deleteTitle": "Eliminar zona",
       "deleteBody": "Se elimina «{{name}}». Solo se puede si ninguna pieza ni plantilla la usa."
+    },
+    "slots": {
+      "title": "Lo que puede cambiar el streamer",
+      "description": "Cada ajuste es un color, un texto fijo o una tipografía. Elige a qué elementos llega; el streamer guarda un solo valor por ajuste y puede volver al tuyo. Lo que no declares aquí no se puede tocar.",
+      "empty": "Esta plantilla no tiene ajustes para el streamer.",
+      "kind": "Tipo",
+      "kinds": {
+        "color": "Color",
+        "text": "Texto fijo",
+        "font": "Tipografía"
+      },
+      "labelEs": "Nombre (español)",
+      "labelEn": "Nombre (inglés)",
+      "maxLength": "Largo máximo",
+      "targets": "Elementos que cambia",
+      "targetsHint": "Un color puede mover varias propiedades a la vez.",
+      "missing": "(elemento eliminado)",
+      "addTarget": "Agregar elemento",
+      "noTargets": "Este diseño no tiene elementos que acepten este tipo de ajuste.",
+      "remove": "Quitar ajuste",
+      "add": "Agregar ajuste",
+      "prop": {
+        "color": "Color",
+        "fill.color": "Color de relleno",
+        "fill.gradient.color1": "Degradado, color 1",
+        "fill.gradient.color2": "Degradado, color 2",
+        "border.color": "Color del borde",
+        "glow.color": "Color del brillo",
+        "glowColor": "Color del brillo del texto",
+        "background": "Fondo",
+        "template": "Texto",
+        "fontFamily": "Tipografía"
+      }
     }
   },
   "panel": {
@@ -536,7 +571,15 @@
       "scaleRange": "El tamaño está fuera del rango permitido.",
       "templateInvalid": "Esa plantilla no se puede usar en esta pieza.",
       "anchorInvalid": "La esquina elegida no es válida.",
-      "marginRange": "La separación supera el máximo permitido."
+      "marginRange": "La separación supera el máximo permitido.",
+      "slotUnknown": "Ese ajuste no existe en la plantilla.",
+      "slotValueInvalid": "Un valor no es válido (color, tipografía o texto).",
+      "slotValuesInvalid": "Hay demasiados ajustes."
+    },
+    "style": {
+      "title": "Colores, textos y tipografías",
+      "description": "Personaliza lo que el dueño permitió en cada plantilla. Los cambios solo afectan a tu canal.",
+      "lowContrast": "Algún texto queda con poco contraste contra el fondo y podría leerse mal."
     }
   }
 }

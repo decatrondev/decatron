@@ -209,7 +209,8 @@
       "designAnimationInvalid": "There is an invalid animation.",
       "durationLimitsRange": "Duration limits must be between 1 and 300 seconds and the minimum can't exceed the maximum.",
       "scaleLimitsRange": "Size limits must be between 20% and 300% and the minimum can't exceed the maximum.",
-      "zoneMarginLimitRange": "The maximum zone margin must be between 0 and 1000 pixels."
+      "zoneMarginLimitRange": "The maximum zone margin must be between 0 and 1000 pixels.",
+      "designSlotsInvalid": "The streamer settings are not valid."
     },
     "design": {
       "back": "Back to templates",
@@ -373,7 +374,8 @@
         "general": "Details",
         "design": "Design",
         "animation": "Animation",
-        "preview": "Preview"
+        "preview": "Preview",
+        "slots": "Customizable"
       }
     },
     "zones": {
@@ -399,6 +401,39 @@
       "usedBy": "Used by {{pieces}} pieces and {{templates}} templates",
       "deleteTitle": "Delete zone",
       "deleteBody": "“{{name}}” will be removed. It can only be deleted if no piece or template uses it."
+    },
+    "slots": {
+      "title": "What the streamer can change",
+      "description": "Each setting is a color, a fixed text or a font. Choose which elements it reaches; the streamer saves one value per setting and can go back to yours. Anything not declared here cannot be changed.",
+      "empty": "This template has no settings for the streamer.",
+      "kind": "Type",
+      "kinds": {
+        "color": "Color",
+        "text": "Fixed text",
+        "font": "Font"
+      },
+      "labelEs": "Name (Spanish)",
+      "labelEn": "Name (English)",
+      "maxLength": "Max length",
+      "targets": "Elements it changes",
+      "targetsHint": "One color can drive several properties at once.",
+      "missing": "(removed element)",
+      "addTarget": "Add element",
+      "noTargets": "This design has no elements that accept this kind of setting.",
+      "remove": "Remove setting",
+      "add": "Add setting",
+      "prop": {
+        "color": "Color",
+        "fill.color": "Fill color",
+        "fill.gradient.color1": "Gradient, color 1",
+        "fill.gradient.color2": "Gradient, color 2",
+        "border.color": "Border color",
+        "glow.color": "Glow color",
+        "glowColor": "Text glow color",
+        "background": "Background",
+        "template": "Text",
+        "fontFamily": "Font"
+      }
     }
   },
   "panel": {
@@ -536,7 +571,15 @@
       "scaleRange": "The size is outside the allowed range.",
       "templateInvalid": "That template can't be used on this piece.",
       "anchorInvalid": "The chosen corner isn't valid.",
-      "marginRange": "The gap is above the allowed maximum."
+      "marginRange": "The gap is above the allowed maximum.",
+      "slotUnknown": "That setting does not exist on the template.",
+      "slotValueInvalid": "A value is not valid (color, font or text).",
+      "slotValuesInvalid": "Too many settings."
+    },
+    "style": {
+      "title": "Colors, texts and fonts",
+      "description": "Customize what the owner allowed on each template. Changes only affect your channel.",
+      "lowContrast": "Some text has low contrast against the background and may be hard to read."
     }
   }
 }

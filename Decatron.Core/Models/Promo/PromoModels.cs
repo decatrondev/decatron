@@ -343,3 +343,23 @@ public class PromoZoneOverride
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
+
+/// <summary>Los colores, textos y tipografía que un streamer eligió para una plantilla (JSON {idDelAjuste: valor}). Sin fila = valores del dueño. Tabla de tenant con RLS.</summary>
+[Table("promo_template_overrides")]
+public class PromoTemplateOverride
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("template_id")]
+    public long TemplateId { get; set; }
+
+    [Column("style")]
+    public string Style { get; set; } = "{}";
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}

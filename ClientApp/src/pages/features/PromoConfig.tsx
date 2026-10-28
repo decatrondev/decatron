@@ -14,6 +14,7 @@ import type { PromoContent } from '../../components/promo-overlay/types';
 import { TimingTab } from './promo-extension/TimingTab';
 import { PositionTab } from './promo-extension/PositionTab';
 import { DesignTab } from './promo-extension/DesignTab';
+import type { SlotValues } from '../../components/promo-overlay/slots';
 import { isEmptyPieceOv, emptyPieceOv, type Limits, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
 
 // Promociones, panel del streamer (.dev/plans/overlay-promo/PLAN.md, fase 2): una pestaña Guía primera con el enlace de OBS y
@@ -30,6 +31,7 @@ interface Catalog {
     mine: Mine;
     pieceOverrides: ({ pieceId: number } & PieceOv)[];
     zoneOverrides: ({ zoneKey: string } & ZoneOv)[];
+    templateOverrides: { templateId: number; values: SlotValues }[];
     /** Veces que salió cada pieza en este canal en los últimos 30 días. */
     views: Record<string, number>;
 }
@@ -50,7 +52,8 @@ export default function PromoConfig() {
     const [mine, setMine] = useState<Mine | null>(null);
     const [pieceOv, setPieceOv] = useState<Record<number, PieceOv>>({});
     const [zoneOv, setZoneOv] = useState<Record<string, ZoneOv>>({});
-    const saved = useRef<{ pieces: Record<number, PieceOv>; zones: Record<string, ZoneOv> }>({ pieces: {}, zones: {} });
+    const [styleOv, setStyleOv] = useState<Record<number, SlotValues>>({});
+    const saved = useRef<{ pieces: Record<number, PieceOv>; zones: Record<string, ZoneOv>; styles: Record<number, SlotValues> }>({ pieces: {}, zones: {}, styles: {} });
     const [dirty, setDirty] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -66,8 +69,9 @@ export default function PromoConfig() {
             const c: Catalog = r.data;
             const p: Record<number, PieceOv> = {}; c.pieceOverrides.forEach(o => { p[o.pieceId] = { durationSeconds: o.durationSeconds, templateId: o.templateId, scalePercent: o.scalePercent }; });
             const z: Record<string, ZoneOv> = {}; c.zoneOverrides.forEach(o => { z[o.zoneKey] = { anchor: o.anchor, marginX: o.marginX, marginY: o.marginY }; });
-            saved.current = { pieces: p, zones: z };
-            setPieceOv(p); setZoneOv(z); setCatalog(c); setMine(c.mine);
+            const st: Record<number, SlotValues> = {}; (c.templateOverrides ?? []).forEach(o => { if (Object.keys(o.values).length) st[o.templateId] = o.values; });
+            saved.current = { pieces: p, zones: z, styles: st };
+            setPieceOv(p); setZoneOv(z); setStyleOv(st); setCatalog(c); setMine(c.mine);
         }).catch(e => setError(e?.response?.status === 403 ? 'forbidden' : 'loadFailed'));
     }, []);
 
@@ -82,6 +86,7 @@ export default function PromoConfig() {
     const changeCmd = (patch: Partial<CmdSettings>) => change({ command: { ...(mine as Mine).command, ...patch } });
     const toggle = (id: number, on: boolean) => change({ disabledPieces: on ? (mine?.disabledPieces ?? []).filter(x => x !== id) : [...(mine?.disabledPieces ?? []), id] });
     const changePiece = (id: number, patch: Partial<PieceOv>) => { setPieceOv(m => ({ ...m, [id]: { ...emptyPieceOv, ...m[id], ...patch } })); setDirty(true); };
+    const changeStyle = (templateId: number, values: SlotValues) => { setStyleOv(m => { const { [templateId]: _old, ...rest } = m; return Object.keys(values).length ? { ...rest, [templateId]: values } : rest; }); setDirty(true); };
     const changeZone = (key: string, v: ZoneOv) => { setZoneOv(m => ({ ...m, [key]: v })); setDirty(true); };
     const resetZone = (key: string) => { setZoneOv(m => { const { [key]: _gone, ...rest } = m; return rest; }); setDirty(true); };
     // Las zonas como las ve este canal: la del dueño, o la que el streamer movió.
@@ -102,12 +107,15 @@ export default function PromoConfig() {
                 if (same(zoneOv[key], saved.current.zones[key])) continue;
                 if (zoneOv[key]) await api.put(`/promo-panel/zone/${key}`, zoneOv[key]); else await api.delete(`/promo-panel/zone/${key}`);
             }
-            saved.current = { pieces: { ...pieceOv }, zones: { ...zoneOv } };
+            for (const id of new Set([...Object.keys(saved.current.styles), ...Object.keys(styleOv)].map(Number))) {
+                if (!same(styleOv[id], saved.current.styles[id])) await api.put(`/promo-panel/template/${id}`, { values: styleOv[id] ?? {} });
+            }
+            saved.current = { pieces: { ...pieceOv }, zones: { ...zoneOv }, styles: { ...styleOv } };
             setDirty(false);
             setMessage({ ok: true, text: t('panel.settings.saved') });
         } catch (e: any) {
             const code = e?.response?.data?.errors?.[0];
-            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : ['durationRange', 'scaleRange', 'templateInvalid', 'anchorInvalid', 'marginRange'].includes(code) ? t(`panel.errors.${code}`) : t('panel.settings.saveFailed') });
+            setMessage({ ok: false, text: ['cmdInvalid', 'cmdReserved', 'cmdCustom'].includes(code) ? t(`panel.command.${code}`) : ['durationRange', 'scaleRange', 'templateInvalid', 'anchorInvalid', 'marginRange', 'slotUnknown', 'slotValueInvalid', 'slotValuesInvalid'].includes(code) ? t(`panel.errors.${code}`) : t('panel.settings.saveFailed') });
         }
         setSaving(false);
         window.setTimeout(() => setMessage(null), 4000);
@@ -223,7 +231,7 @@ export default function PromoConfig() {
                         lang={lang} channel={channel} onChange={changeZone} onReset={resetZone} />
                 )}
                 {tab === 'design' && catalog && (
-                    <DesignTab pieces={catalog.pieces} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} overrides={pieceOv} lang={lang} channel={channel} onChange={changePiece} />
+                    <DesignTab pieces={catalog.pieces} templates={catalog.templates} zones={zonesNow} limits={catalog.limits} overrides={pieceOv} styles={styleOv} lang={lang} channel={channel} onChange={changePiece} onStyleChange={changeStyle} />
                 )}
                 {tab === 'settings' && mine && catalog && (
                     <div className="space-y-6">
