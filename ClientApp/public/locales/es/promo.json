@@ -7,7 +7,8 @@
       "pieces": "Piezas",
       "templates": "Plantillas",
       "limits": "Topes",
-      "zones": "Zonas"
+      "zones": "Zonas",
+      "ownCards": "Tarjetas propias"
     },
     "preview": {
       "title": "Vista previa",
@@ -216,7 +217,8 @@
       "zoneMarginLimitRange": "El margen máximo de una zona debe estar entre 0 y 1000 píxeles.",
       "designSlotsInvalid": "Los ajustes del streamer no son válidos.",
       "botPerOwnRange": "Las piezas del bot por tarjeta propia deben estar entre 1 y 10.",
-      "ownIntervalRange": "El intervalo mínimo de las tarjetas propias debe estar entre 1 y 240 minutos."
+      "ownIntervalRange": "El intervalo mínimo de las tarjetas propias debe estar entre 1 y 240 minutos.",
+      "cardNotFound": "La tarjeta ya no existe."
     },
     "design": {
       "back": "Volver a las plantillas",
@@ -439,6 +441,20 @@
         "background": "Fondo",
         "template": "Texto",
         "fontFamily": "Tipografía"
+      }
+    },
+    "ownCards": {
+      "hint": "Tarjetas que escriben los streamers para su propio canal. Oculta las que no cumplan las reglas: el streamer la sigue viendo, pero no sale en su overlay.",
+      "empty": "Ningún streamer ha creado tarjetas propias todavía.",
+      "noTitle": "(sin título)",
+      "hiddenBadge": "Oculta",
+      "off": "Apagada",
+      "channel": "Canal: {{login}}",
+      "hide": "Ocultar",
+      "show": "Mostrar",
+      "toast": {
+        "hidden": "Tarjeta oculta.",
+        "shown": "Tarjeta visible otra vez."
       }
     }
   },

@@ -7,7 +7,8 @@
       "pieces": "Pieces",
       "templates": "Templates",
       "limits": "Limits",
-      "zones": "Zones"
+      "zones": "Zones",
+      "ownCards": "Own cards"
     },
     "preview": {
       "title": "Preview",
@@ -216,7 +217,8 @@
       "zoneMarginLimitRange": "The maximum zone margin must be between 0 and 1000 pixels.",
       "designSlotsInvalid": "The streamer settings are not valid.",
       "botPerOwnRange": "Bot pieces per own card must be between 1 and 10.",
-      "ownIntervalRange": "The minimum own-card interval must be between 1 and 240 minutes."
+      "ownIntervalRange": "The minimum own-card interval must be between 1 and 240 minutes.",
+      "cardNotFound": "That card no longer exists."
     },
     "design": {
       "back": "Back to templates",
@@ -439,6 +441,20 @@
         "background": "Background",
         "template": "Text",
         "fontFamily": "Font"
+      }
+    },
+    "ownCards": {
+      "hint": "Cards that streamers write for their own channel. Hide the ones that break the rules: the streamer still sees it, but it does not appear in their overlay.",
+      "empty": "No streamer has created own cards yet.",
+      "noTitle": "(no title)",
+      "hiddenBadge": "Hidden",
+      "off": "Off",
+      "channel": "Channel: {{login}}",
+      "hide": "Hide",
+      "show": "Show",
+      "toast": {
+        "hidden": "Card hidden.",
+        "shown": "Card visible again."
       }
     }
   },

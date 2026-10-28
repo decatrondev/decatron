@@ -1,5 +1,5 @@
 import api from '../../../services/api';
-import type { PromoLimits, PromoOverview, PromoPiece, PromoTemplate, PromoZone } from './types';
+import type { PromoOwnCardAdmin, PromoLimits, PromoOverview, PromoPiece, PromoTemplate, PromoZone } from './types';
 
 /** Códigos de error que devuelve el servidor (se traducen en el panel). Si no vienen, un código genérico. */
 export function errorCodes(e: unknown): string[] {
@@ -17,5 +17,7 @@ export const promoAdminApi = {
     deleteTemplate: async (id: number): Promise<void> => { await api.delete(`/admin/promo/templates/${id}`); },
     upsertZone: async (z: PromoZone): Promise<PromoZone> => (await api.put('/admin/promo/zones', z)).data.zone,
     deleteZone: async (id: number): Promise<void> => { await api.delete(`/admin/promo/zones/${id}`); },
+    ownCards: async (): Promise<PromoOwnCardAdmin[]> => (await api.get('/admin/promo/own-cards')).data.cards,
+    setOwnCardHidden: async (id: number, hidden: boolean): Promise<void> => { await api.post(`/admin/promo/own-cards/${id}/hidden`, { hidden }); },
     updateLimits: async (l: PromoLimits): Promise<PromoLimits> => (await api.put('/admin/promo/limits', l)).data.limits,
 };

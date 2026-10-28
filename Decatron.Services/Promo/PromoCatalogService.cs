@@ -77,6 +77,21 @@ namespace Decatron.Services.Promo
             return rows.GroupBy(r => r.PieceId).ToDictionary(g => g.Key, g => g.Sum(r => (long)r.Views));
         }
 
+        // ─── Tarjetas propias de todos los canales (solo el dueño) ───────────
+
+        public record OwnCardAdminRow(long Id, long UserId, string Login, long TenantId, string Title, string Body, string? Icon, string? LinkUrl, bool ShowQr,
+            string Zone, bool IsEnabled, bool HiddenByAdmin, DateTime CreatedAt);
+
+        /// <summary>promo_own_cards tiene RLS y el admin corre como tenant 1: la lectura cruza tenants solo por la función promo_own_cards_all.</summary>
+        public Task<List<OwnCardAdminRow>> GetAllOwnCardsAsync() => _db.Database.SqlQueryRaw<OwnCardAdminRow>(
+            @"SELECT id AS ""Id"", user_id AS ""UserId"", login AS ""Login"", tenant_id AS ""TenantId"", title AS ""Title"", body AS ""Body"", icon AS ""Icon"",
+                     link_url AS ""LinkUrl"", show_qr AS ""ShowQr"", zone AS ""Zone"", is_enabled AS ""IsEnabled"", hidden_by_admin AS ""HiddenByAdmin"", created_at AS ""CreatedAt""
+              FROM promo_own_cards_all()").ToListAsync();
+
+        /// <summary>Oculta o muestra una tarjeta de cualquier canal (función promo_own_card_set_hidden). False si no existe.</summary>
+        public async Task<bool> SetOwnCardHiddenAsync(long id, bool hidden)
+            => (await _db.Database.SqlQueryRaw<bool>(@"SELECT promo_own_card_set_hidden({0}, {1}) AS ""Value""", id, hidden).ToListAsync()).FirstOrDefault();
+
         // ─── Lectura ─────────────────────────────────────────────────────────
 
         public async Task<Overview> GetOverviewAsync()

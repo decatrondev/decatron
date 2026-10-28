@@ -56,3 +56,9 @@ export const EMPTY_PIECE: PromoPiece = {
 };
 
 export const EMPTY_ZONE: PromoZone = { id: 0, key: '', nameEs: '', nameEn: '', anchor: 'top-right', marginX: 96, marginY: 54, isEnabled: true, sortOrder: 0 };
+
+/** Tarjeta propia de un streamer, vista por el dueño. */
+export interface PromoOwnCardAdmin {
+    id: number; userId: number; login: string; tenantId: number; title: string; body: string; icon: string | null; linkUrl: string | null;
+    showQr: boolean; zone: string; isEnabled: boolean; hiddenByAdmin: boolean; createdAt: string;
+}

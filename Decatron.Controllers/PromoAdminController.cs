@@ -38,6 +38,24 @@ namespace Decatron.Controllers
                 ? NotFound(new { success = false, errors = r.Errors })
                 : BadRequest(new { success = false, errors = r.Errors });
 
+        /// <summary>Tarjetas propias de todos los canales, las ocultas primero.</summary>
+        [HttpGet("own-cards")]
+        public async Task<IActionResult> OwnCards()
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            return Ok(new { success = true, cards = await _catalog.GetAllOwnCardsAsync() });
+        }
+
+        public record HideRequest(bool Hidden);
+
+        /// <summary>El dueño oculta (o vuelve a mostrar) una tarjeta propia que no cumple las reglas; el streamer la sigue viendo pero no sale.</summary>
+        [HttpPost("own-cards/{id:long}/hidden")]
+        public async Task<IActionResult> SetOwnCardHidden(long id, [FromBody] HideRequest req)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            return await _catalog.SetOwnCardHiddenAsync(id, req.Hidden) ? Ok(new { success = true }) : NotFound(new { success = false, errors = new[] { "cardNotFound" } });
+        }
+
         /// <summary>Todo lo que pinta la pantalla: piezas, plantillas (con cuántas piezas las usan) y topes. Incluye los catálogos de valores válidos.</summary>
         [HttpGet("overview")]
         public async Task<IActionResult> Overview()
