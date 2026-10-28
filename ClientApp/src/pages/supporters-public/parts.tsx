@@ -243,6 +243,8 @@ export function PlanComparison() {
             { key: 'gamesHidePromo', label: t('rHidePromo'), fmt: flag } ] },
         { title: t('tGroupTranslation'), rows: [
             { key: 'translationListeners', label: t('rTranslationListeners'), fmt: num } ] },
+        { title: t('tGroupPromo'), rows: [
+            { key: 'promoOwnCards', label: t('rPromoOwnCards'), fmt: num } ] },
         { title: t('tGroupMultiview'), rows: [
             { key: 'multiviewSlots', label: t('rMultiviewSlots'), fmt: num }, { key: 'multiviewLayouts', label: t('rMultiviewLayouts'), fmt: num } ] },
         { title: t('tGroupStorage'), rows: [

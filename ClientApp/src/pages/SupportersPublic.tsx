@@ -196,6 +196,7 @@ function TierCards() {
         if (billingType === 'permanent' && (v('creditsOnce') ?? 0) > 0) out.push(t('bCreditsOnce', { n: v('creditsOnce')!.toLocaleString() }));
         else if ((v('creditsMonthly') ?? 0) > 0) out.push(t('bCreditsMonthly', { n: v('creditsMonthly')!.toLocaleString() }));
         if (v('standardChars') !== undefined && v('standardChars')! > 0) out.push(t('bVoice', { n: v('standardChars')!.toLocaleString() }));
+        if (v('promoOwnCards') !== undefined) out.push(t('bPromoCards', { n: v('promoOwnCards') }));
         if (v('songHidePromo')) out.push(t('bHidePromo'));
         return out;
     };

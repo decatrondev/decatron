@@ -6,14 +6,15 @@ import { DayBars, type Metric } from './DayBars';
 import { formatDay, formatDuration, formatNumber, type DayStat, type ItemStat } from './statsFormat';
 import { pieceTitle, type OwnCard, type Piece } from './types';
 
-interface ChannelStats { days: number; perDay: DayStat[]; pieces: ItemStat[]; cards: ItemStat[]; weekViews: number; weekSeconds: number; totalViews: number; totalSeconds: number }
+interface ChannelStats { days: number; perDay: DayStat[]; pieces: ItemStat[]; cards: ItemStat[]; weekViews: number; weekSeconds: number; totalViews: number; totalSeconds: number; weekClicks: number; totalClicks: number }
 
 /** Una fila de ranking: nombre, barra proporcional al máximo de la lista y las dos cifras. */
-export function RankRow({ name, views, seconds, max, lang, extra }: { name: string; views: number; seconds: number; max: number; lang: string; extra?: string }) {
+export function RankRow({ name, views, seconds, clicks, max, lang, extra }: { name: string; views: number; seconds: number; clicks: number; max: number; lang: string; extra?: string }) {
+    const { t } = useTranslation('promo');
     return (
         <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 py-2.5 border-t border-ds-border first:border-t-0">
             <span className="text-sm text-ds-text truncate">{name}</span>
-            <span className="text-sm text-ds-text tabular-nums text-right">{formatNumber(views, lang)} <span className="text-ds-soft">· {formatDuration(seconds)}</span></span>
+            <span className="text-sm text-ds-text tabular-nums text-right">{formatNumber(views, lang)} <span className="text-ds-soft">· {formatDuration(seconds)} · {formatNumber(clicks, lang)} {t('panel.stats.clicks')}</span></span>
             <span className="col-span-2 h-1.5 rounded-full bg-ds-border overflow-hidden" aria-hidden="true">
                 <span className="block h-full rounded-full" style={{ width: `${max ? Math.max((views / max) * 100, views ? 2 : 0) : 0}%`, background: 'var(--ds-accent)' }} />
             </span>
@@ -39,12 +40,12 @@ export function DayTable({ days, lang }: { days: DayStat[]; lang: string }) {
         <div className="max-h-72 overflow-auto rounded-md border border-ds-border">
             <table className="w-full text-sm tabular-nums">
                 <thead className="sticky top-0 bg-ds-raised text-ds-soft"><tr>
-                    <th className="text-left font-semibold px-3 py-2">{t('panel.stats.colDay')}</th><th className="text-right font-semibold px-3 py-2">{t('panel.stats.colViews')}</th><th className="text-right font-semibold px-3 py-2">{t('panel.stats.colTime')}</th>
+                    <th className="text-left font-semibold px-3 py-2">{t('panel.stats.colDay')}</th><th className="text-right font-semibold px-3 py-2">{t('panel.stats.colViews')}</th><th className="text-right font-semibold px-3 py-2">{t('panel.stats.colTime')}</th><th className="text-right font-semibold px-3 py-2">{t('panel.stats.colClicks')}</th>
                 </tr></thead>
                 <tbody>
                     {[...days].reverse().map(d => (
                         <tr key={d.day} className="border-t border-ds-border"><td className="px-3 py-1.5">{formatDay(d.day, lang)}</td>
-                            <td className="px-3 py-1.5 text-right">{formatNumber(d.views, lang)}</td><td className="px-3 py-1.5 text-right">{formatDuration(d.seconds)}</td></tr>
+                            <td className="px-3 py-1.5 text-right">{formatNumber(d.views, lang)}</td><td className="px-3 py-1.5 text-right">{formatDuration(d.seconds)}</td><td className="px-3 py-1.5 text-right">{formatNumber(d.clicks, lang)}</td></tr>
                     ))}
                 </tbody>
             </table>
@@ -84,18 +85,18 @@ export function StatsTab({ pieces, cards, lang }: { pieces: Piece[]; cards: OwnC
             <Card>
                 <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
                     <div className="flex flex-wrap gap-x-10 gap-y-3">
-                        <Figure label={ts('week')} value={formatNumber(stats.weekViews, lang)} hint={`${ts('views')} · ${formatDuration(stats.weekSeconds)} ${ts('onScreen')}`} />
-                        <Figure label={`${ts('period')} (${ts(`range.${days}`)})`} value={formatNumber(stats.totalViews, lang)} hint={`${ts('views')} · ${formatDuration(stats.totalSeconds)} ${ts('onScreen')}`} />
+                        <Figure label={ts('week')} value={formatNumber(stats.weekViews, lang)} hint={`${ts('views')} · ${formatDuration(stats.weekSeconds)} ${ts('onScreen')} · ${formatNumber(stats.weekClicks, lang)} ${ts('clicks')}`} />
+                        <Figure label={`${ts('period')} (${ts(`range.${days}`)})`} value={formatNumber(stats.totalViews, lang)} hint={`${ts('views')} · ${formatDuration(stats.totalSeconds)} ${ts('onScreen')} · ${formatNumber(stats.totalClicks, lang)} ${ts('clicks')}`} />
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        <Segmented items={[{ id: 'views', label: ts('metric.views') }, { id: 'seconds', label: ts('metric.seconds') }]} value={metric} onChange={v => setMetric(v as Metric)} />
+                        <Segmented items={[{ id: 'views', label: ts('metric.views') }, { id: 'seconds', label: ts('metric.seconds') }, { id: 'clicks', label: ts('metric.clicks') }]} value={metric} onChange={v => setMetric(v as Metric)} />
                         <Segmented items={['7', '30', '90'].map(d => ({ id: d, label: ts(`range.${d}`) }))} value={days} onChange={setDays} />
                     </div>
                 </div>
                 {empty ? <Alert tone="info">{ts('emptyAll')}</Alert> : (
                     <>
                         {table ? <DayTable days={stats.perDay} lang={lang} />
-                            : <DayBars days={stats.perDay} metric={metric} lang={lang} label={ts(metric === 'views' ? 'chartLabel' : 'chartLabelSeconds')} />}
+                            : <DayBars days={stats.perDay} metric={metric} lang={lang} label={ts(metric === 'views' ? 'chartLabel' : metric === 'seconds' ? 'chartLabelSeconds' : 'chartLabelClicks')} />}
                         <button type="button" onClick={() => setTable(v => !v)} className="mt-3 text-xs 3xl:text-sm text-ds-accent hover:underline bg-transparent border-0 p-0 cursor-pointer">{ts(table ? 'hideTable' : 'showTable')}</button>
                     </>
                 )}
@@ -108,7 +109,7 @@ export function StatsTab({ pieces, cards, lang }: { pieces: Piece[]; cards: OwnC
                         <ul className="list-none m-0 p-0">
                             {stats.pieces.map(p => {
                                 const piece = pieces.find(x => x.id === p.id);
-                                return <RankRow key={p.id} name={piece ? pieceTitle(piece, lang) : ts('removedPiece')} views={p.views} seconds={p.seconds} max={maxP} lang={lang} />;
+                                return <RankRow key={p.id} name={piece ? pieceTitle(piece, lang) : ts('removedPiece')} views={p.views} seconds={p.seconds} clicks={p.clicks} max={maxP} lang={lang} />;
                             })}
                         </ul>
                     )}
@@ -119,7 +120,7 @@ export function StatsTab({ pieces, cards, lang }: { pieces: Piece[]; cards: OwnC
                         <ul className="list-none m-0 p-0">
                             {stats.cards.map(c => {
                                 const card = cards.find(x => x.id === c.id);
-                                return <RankRow key={c.id} name={card ? (card.title || card.body) : ts('removedCard')} views={c.views} seconds={c.seconds} max={maxC} lang={lang} />;
+                                return <RankRow key={c.id} name={card ? (card.title || card.body) : ts('removedCard')} views={c.views} seconds={c.seconds} clicks={c.clicks} max={maxC} lang={lang} />;
                             })}
                         </ul>
                     )}

@@ -708,7 +708,7 @@
     },
     "stats": {
       "title": "Estadísticas",
-      "intro": "Cuántas veces salió cada pieza en tu overlay. Solo se cuentan entregas al overlay, sin identificar a ningún espectador. Se guardan 90 días.",
+      "intro": "Cuántas veces salió cada pieza en tu overlay y cuántas veces se abrió su QR. Solo se cuentan totales, sin identificar a ningún espectador. Se guardan 90 días.",
       "range": {
         "7": "7 días",
         "30": "30 días",
@@ -716,7 +716,8 @@
       },
       "metric": {
         "views": "Entregas",
-        "seconds": "Tiempo en pantalla"
+        "seconds": "Tiempo en pantalla",
+        "clicks": "Clics"
       },
       "week": "Últimos 7 días",
       "period": "En el período",
@@ -737,7 +738,10 @@
       "removedCard": "Tarjeta borrada",
       "emptyAll": "Todavía no hay datos. Cuando el overlay muestre una pieza en OBS, aparecerá aquí.",
       "emptyList": "Sin entregas en este período.",
-      "loadFailed": "No se pudieron cargar las estadísticas."
+      "loadFailed": "No se pudieron cargar las estadísticas.",
+      "clicks": "clics",
+      "chartLabelClicks": "Clics por día",
+      "colClicks": "Clics"
     }
   }
 }

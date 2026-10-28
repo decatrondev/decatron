@@ -8,7 +8,7 @@ import { formatDuration, formatNumber, type DayStat } from '../../features/promo
 import type { Lang } from './shared';
 import type { PromoOverview } from './types';
 
-interface GlobalStats { days: number; perDay: DayStat[]; pieces: { id: number; views: number; seconds: number; disabledIn: number }[]; totalViews: number; totalSeconds: number }
+interface GlobalStats { days: number; perDay: DayStat[]; pieces: { id: number; views: number; seconds: number; clicks: number; disabledIn: number }[]; totalViews: number; totalSeconds: number; totalClicks: number }
 
 /** Estadísticas globales del dueño: entregas por día de todos los canales y ranking de piezas con cuántos canales las tienen apagadas. */
 export function StatsTab({ data, lang }: { data: PromoOverview; lang: Lang }) {
@@ -41,15 +41,15 @@ export function StatsTab({ data, lang }: { data: PromoOverview; lang: Lang }) {
             <p className="text-sm text-ds-soft max-w-2xl">{ts('intro')}</p>
             <Card>
                 <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
-                    <Figure label={`${ts('period')} (${ts(`range.${days}`)})`} value={formatNumber(stats.totalViews, lang)} hint={`${tp('views')} · ${formatDuration(stats.totalSeconds)} ${tp('onScreen')}`} />
+                    <Figure label={`${ts('period')} (${ts(`range.${days}`)})`} value={formatNumber(stats.totalViews, lang)} hint={`${tp('views')} · ${formatDuration(stats.totalSeconds)} ${tp('onScreen')} · ${formatNumber(stats.totalClicks, lang)} ${tp('clicks')}`} />
                     <div className="flex flex-wrap gap-3">
-                        <Segmented items={[{ id: 'views', label: tp('metric.views') }, { id: 'seconds', label: tp('metric.seconds') }]} value={metric} onChange={v => setMetric(v as Metric)} />
+                        <Segmented items={[{ id: 'views', label: tp('metric.views') }, { id: 'seconds', label: tp('metric.seconds') }, { id: 'clicks', label: tp('metric.clicks') }]} value={metric} onChange={v => setMetric(v as Metric)} />
                         <Segmented items={['30', '90', '365'].map(d => ({ id: d, label: ts(`range.${d}`) }))} value={days} onChange={setDays} />
                     </div>
                 </div>
                 {stats.totalViews === 0 ? <Alert tone="info">{ts('emptyAll')}</Alert> : (
                     <>
-                        {table ? <DayTable days={stats.perDay} lang={lang} /> : <DayBars days={stats.perDay} metric={metric} lang={lang} label={tp(metric === 'views' ? 'chartLabel' : 'chartLabelSeconds')} />}
+                        {table ? <DayTable days={stats.perDay} lang={lang} /> : <DayBars days={stats.perDay} metric={metric} lang={lang} label={tp(metric === 'views' ? 'chartLabel' : metric === 'seconds' ? 'chartLabelSeconds' : 'chartLabelClicks')} />}
                         <button type="button" onClick={() => setTable(v => !v)} className="mt-3 text-xs text-ds-accent hover:underline bg-transparent border-0 p-0 cursor-pointer">{tp(table ? 'hideTable' : 'showTable')}</button>
                     </>
                 )}
@@ -58,7 +58,7 @@ export function StatsTab({ data, lang }: { data: PromoOverview; lang: Lang }) {
                 <h2 className="text-base font-bold text-ds-text mb-2">{ts('pieces')}</h2>
                 <ul className="list-none m-0 p-0 max-w-3xl">
                     {stats.pieces.map(p => (
-                        <RankRow key={p.id} name={name(p.id)} views={p.views} seconds={p.seconds} max={max} lang={lang}
+                        <RankRow key={p.id} name={name(p.id)} views={p.views} seconds={p.seconds} clicks={p.clicks} max={max} lang={lang}
                             extra={`${ts('disabledIn')}: ${p.disabledIn ? ts('channels', { count: p.disabledIn }) : ts('none')}`} />
                     ))}
                 </ul>

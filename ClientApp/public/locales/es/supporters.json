@@ -191,5 +191,8 @@
   "tGroupCredits": "Créditos premium",
   "rCreditsMonthly": "Créditos premium cada mes",
   "rCreditsOnce": "Bono único del plan permanente",
-  "tableDiscretion": "A discreción"
+  "tableDiscretion": "A discreción",
+  "tGroupPromo": "Promociones",
+  "rPromoOwnCards": "Tarjetas propias",
+  "bPromoCards": "{{n}} tarjetas propias en el overlay de Promociones"
 }

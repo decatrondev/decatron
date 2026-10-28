@@ -1,5 +1,5 @@
-export interface DayStat { day: string; views: number; seconds: number }
-export interface ItemStat { id: number; views: number; seconds: number }
+export interface DayStat { day: string; views: number; seconds: number; clicks: number }
+export interface ItemStat { id: number; views: number; seconds: number; clicks: number }
 
 /** Tiempo en pantalla legible: «45 s», «12 min», «3 h 20 min». */
 export function formatDuration(seconds: number): string {

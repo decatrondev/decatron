@@ -133,7 +133,7 @@ function renderBody(e: PromoElement, c: ElementCtx): ReactNode {
             );
         }
         case 'qr': {
-            const link = c.content.showQr ? c.content.link : null;
+            const link = c.content.showQr ? (c.content.qrLink || c.content.link) : null;
             if (!link) return c.editing ? <Placeholder radius={e.radius} label="QR" /> : null;
             return <Qr e={e} link={link} />;
         }

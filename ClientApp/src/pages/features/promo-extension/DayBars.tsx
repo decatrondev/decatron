@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDay, formatDuration, formatNumber, type DayStat } from './statsFormat';
 
-export type Metric = 'views' | 'seconds';
+export type Metric = 'views' | 'seconds' | 'clicks';
 
 /** Cifra «redonda» por encima del máximo para que la última línea de la cuadrícula quede cerca de la barra más alta. */
 function niceMax(v: number): number {
@@ -21,7 +21,7 @@ const axisLabel = (v: number, metric: Metric, lang: string) => (metric === 'seco
 export function DayBars({ days, metric, lang, label }: { days: DayStat[]; metric: Metric; lang: string; label: string }) {
     const { t } = useTranslation('promo');
     const [active, setActive] = useState<number | null>(null);
-    const values = days.map(d => (metric === 'seconds' ? d.seconds : d.views));
+    const values = days.map(d => (metric === 'seconds' ? d.seconds : metric === 'clicks' ? d.clicks : d.views));
     const top = niceMax(Math.max(0, ...values));
     const ticks = [top, top / 2, 0];
     const labelEvery = days.length > 60 ? 14 : days.length > 14 ? 7 : 1;
@@ -44,7 +44,7 @@ export function DayBars({ days, metric, lang, label }: { days: DayStat[]; metric
                                 const h = top ? (v / top) * 100 : 0;
                                 return (
                                     <button key={d.day} type="button" onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)} onBlur={() => setActive(null)}
-                                        aria-label={`${formatDay(d.day, lang)}: ${formatNumber(d.views, lang)} ${t('panel.stats.views')} · ${formatDuration(d.seconds)}`}
+                                        aria-label={`${formatDay(d.day, lang)}: ${formatNumber(d.views, lang)} ${t('panel.stats.views')} · ${formatDuration(d.seconds)} · ${formatNumber(d.clicks, lang)} ${t('panel.stats.clicks')}`}
                                         className="relative flex-1 min-w-0 bg-transparent border-0 p-0 cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-ds-accent rounded-sm">
                                         {v > 0 && <span className="absolute inset-x-0 bottom-0 rounded-t-[4px] transition-opacity"
                                             style={{ height: `max(${h}%, 2px)`, background: 'var(--ds-accent)', opacity: active == null || active === i ? 1 : 0.45 }} />}
@@ -55,7 +55,7 @@ export function DayBars({ days, metric, lang, label }: { days: DayStat[]; metric
                         {act && (
                             <div role="tooltip" className={`pointer-events-none absolute z-10 top-1 ${side === 'right' ? 'right-1' : 'left-1'} rounded-md border border-ds-border bg-ds-raised px-3 py-2 text-xs shadow-lg`}>
                                 <div className="font-semibold text-ds-text">{formatDay(act.day, lang)}</div>
-                                <div className="text-ds-soft tabular-nums">{formatNumber(act.views, lang)} {t('panel.stats.views')} · {formatDuration(act.seconds)}</div>
+                                <div className="text-ds-soft tabular-nums">{formatNumber(act.views, lang)} {t('panel.stats.views')} · {formatDuration(act.seconds)} · {formatNumber(act.clicks, lang)} {t('panel.stats.clicks')}</div>
                             </div>
                         )}
                     </div>

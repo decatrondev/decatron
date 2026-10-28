@@ -314,6 +314,10 @@ public class PromoViewCount
     /// <summary>Tiempo en pantalla acumulado (suma de la duración de cada entrega).</summary>
     [Column("seconds")]
     public int Seconds { get; set; }
+
+    /// <summary>Clics del QR o del enlace corto (agregado, sin identificar a nadie).</summary>
+    [Column("clicks")]
+    public int Clicks { get; set; }
 }
 
 /// <summary>Entregas de una tarjeta propia en un día (UTC), por canal. Agregado, no identifica a nadie. Tabla de tenant con RLS; se borra con la tarjeta.</summary>
@@ -337,6 +341,10 @@ public class PromoOwnCardCount
 
     [Column("seconds")]
     public int Seconds { get; set; }
+
+    /// <summary>Clics del QR o del enlace corto (agregado, sin identificar a nadie).</summary>
+    [Column("clicks")]
+    public int Clicks { get; set; }
 }
 
 /// <summary>Total global de entregas de una pieza por día (sin canal), para el dueño.</summary>
@@ -354,6 +362,9 @@ public class PromoPieceDaily
 
     [Column("seconds")]
     public long Seconds { get; set; }
+
+    [Column("clicks")]
+    public long Clicks { get; set; }
 }
 
 /// <summary>Lo que un streamer cambió de una pieza (duración, plantilla, escala). Null = usa el valor del dueño. Tabla de tenant con RLS.</summary>

@@ -704,7 +704,8 @@
       "wheelHistoryDays": "Wheel history days",
       "multiviewSlots": "Tiles at once",
       "multiviewLayouts": "Saved layouts",
-      "translationListeners": "Simultaneous listeners"
+      "translationListeners": "Simultaneous listeners",
+      "promoOwnCards": "Own cards in Promotions"
     },
     "unlimited": "No limit",
     "yes": "Yes",

@@ -138,6 +138,8 @@ export interface PromoContent {
     imageUrl: string | null;
     icon: string | null;
     showQr: boolean;
+    /** Enlace corto de Decatron que lleva el QR (cuenta el clic y redirige). Si falta, el QR usa `link`. */
+    qrLink?: string | null;
 }
 
 /** Valores de las variables del texto. */

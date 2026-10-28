@@ -708,7 +708,7 @@
     },
     "stats": {
       "title": "Statistics",
-      "intro": "How many times each piece appeared on your overlay. Only deliveries to the overlay are counted, with no viewer identified. Kept for 90 days.",
+      "intro": "How many times each piece appeared on your overlay and how many times its QR was opened. Only totals are counted, with no viewer identified. Kept for 90 days.",
       "range": {
         "7": "7 days",
         "30": "30 days",
@@ -716,7 +716,8 @@
       },
       "metric": {
         "views": "Deliveries",
-        "seconds": "Time on screen"
+        "seconds": "Time on screen",
+        "clicks": "Clicks"
       },
       "week": "Last 7 days",
       "period": "In the period",
@@ -737,7 +738,10 @@
       "removedCard": "Deleted card",
       "emptyAll": "No data yet. Once the overlay shows a piece in OBS, it will appear here.",
       "emptyList": "No deliveries in this period.",
-      "loadFailed": "Could not load the statistics."
+      "loadFailed": "Could not load the statistics.",
+      "clicks": "clicks",
+      "chartLabelClicks": "Clicks per day",
+      "colClicks": "Clicks"
     }
   }
 }

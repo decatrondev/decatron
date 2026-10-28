@@ -5575,7 +5575,8 @@ CREATE TABLE public.promo_own_card_counts (
     day date NOT NULL,
     views integer DEFAULT 0 NOT NULL,
     seconds integer DEFAULT 0 NOT NULL,
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    clicks integer DEFAULT 0 NOT NULL
 );
 
 
@@ -5651,7 +5652,8 @@ CREATE TABLE public.promo_piece_daily (
     piece_id bigint NOT NULL,
     day date NOT NULL,
     views integer DEFAULT 0 NOT NULL,
-    seconds bigint DEFAULT 0 NOT NULL
+    seconds bigint DEFAULT 0 NOT NULL,
+    clicks bigint DEFAULT 0 NOT NULL
 );
 
 
@@ -5857,7 +5859,8 @@ CREATE TABLE public.promo_view_counts (
     day date NOT NULL,
     views integer DEFAULT 0 NOT NULL,
     tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
-    seconds integer DEFAULT 0 NOT NULL
+    seconds integer DEFAULT 0 NOT NULL,
+    clicks integer DEFAULT 0 NOT NULL
 );
 
 

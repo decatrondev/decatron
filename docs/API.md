@@ -950,6 +950,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/promo/emergency/{alias}` | Public |
 | `GET` | `/api/promo/next/{alias}` | Public |
 | `GET` | `/api/promo/resolve/{alias}` | Public |
+| `GET` | `/r/{code}` | Public |
 
 ### Promo Panel
 

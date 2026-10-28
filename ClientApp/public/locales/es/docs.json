@@ -704,7 +704,8 @@
       "wheelHistoryDays": "Días de historial de la rueda",
       "multiviewSlots": "Casillas a la vez",
       "multiviewLayouts": "Layouts guardados",
-      "translationListeners": "Oyentes simultáneos"
+      "translationListeners": "Oyentes simultáneos",
+      "promoOwnCards": "Tarjetas propias de Promociones"
     },
     "unlimited": "Sin tope",
     "yes": "Sí",

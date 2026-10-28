@@ -35,6 +35,9 @@ public class PromoStatsTests
         await svc.CountViewAsync(User, pieceId, 8);
         await svc.CountViewAsync(User, pieceId, 8);
         await svc.CountViewAsync(User, -cardId, 5);
+        await svc.CountClickAsync(User, pieceId);
+        await svc.CountClickAsync(User, pieceId);
+        await svc.CountClickAsync(User, -cardId);
 
         var s = await svc.GetChannelStatsAsync(User, 30);
         Assert.Equal(30, s.PerDay.Count);
@@ -44,13 +47,15 @@ public class PromoStatsTests
         var p = Assert.Single(s.Pieces); Assert.Equal((pieceId, 2L, 16L), (p.Id, p.Views, p.Seconds));
         var c = Assert.Single(s.Cards); Assert.Equal((cardId, 1L, 5L), (c.Id, c.Views, c.Seconds));
         Assert.Equal((3L, 21L, 3L, 21L), (s.WeekViews, s.WeekSeconds, s.TotalViews, s.TotalSeconds));
+        Assert.Equal((3L, 3L, 3L), (s.PerDay[^1].Clicks, s.WeekClicks, s.TotalClicks));
+        Assert.Equal((2L, 1L), (p.Clicks, c.Clicks));
 
         // Un rango que no existe se normaliza al de 30 días.
         Assert.Equal(30, (await svc.GetChannelStatsAsync(User, 5)).Days);
 
         var g = await svc.GetGlobalStatsAsync(30);
         var gp = g.Pieces.Single(x => x.Id == pieceId);
-        Assert.Equal((2L, 16L), (gp.Views, gp.Seconds));
+        Assert.Equal((2L, 16L, 2L), (gp.Views, gp.Seconds, gp.Clicks));
         await tx.RollbackAsync();
     }
 

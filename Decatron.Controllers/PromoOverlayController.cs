@@ -253,6 +253,8 @@ namespace Decatron.Controllers
                     imageUrl = piece.ImageUrl,
                     icon = piece.Icon,
                     showQr = piece.ShowQr,
+                    // El QR apunta al enlace corto de Decatron (cuenta el clic y redirige); el texto visible conserva el enlace real.
+                    qrLink = piece.ShowQr && !string.IsNullOrWhiteSpace(piece.LinkUrl) ? PromoLinks.ShortUrl(piece.Id, resolved.Account.Principal.UserId) : null,
                 },
                 channel = resolved.Account.Principal.Login,
                 needsCommands = (piece.BodyEs + piece.BodyEn + piece.TitleEs + piece.TitleEn).Contains("{{commands}}", StringComparison.OrdinalIgnoreCase),

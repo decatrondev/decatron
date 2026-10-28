@@ -3619,13 +3619,23 @@
               "Timing: how many seconds each piece stays on screen, within the range Decatron sets.",
               "Position: drag each card on your scene canvas (or set corner and gap with numbers). It shows up in OBS in about 20 seconds, without reloading.",
               "Design: pick each piece's template among those of its zone and its size. Every setting has an «Owner's value» button to go back to the original. If the template allows it, you can also change its colors, fixed texts and font (shown in a separate card, with a preview and a warning if some text has low contrast); it only changes your channel.",
-              "Statistics: deliveries and time on screen per day (7, 30 or 90 days), plus a ranking of the bot's pieces and your own cards. The chart shows the exact figure on hover and can be viewed as a table.",
+              "Statistics: deliveries, time on screen and QR clicks per day (7, 30 or 90 days), plus a ranking of the bot's pieces and your own cards. The chart shows the exact figure on hover and can be viewed as a table.",
               "Settings: pause all promotions, a longer pause between pieces and fewer seconds per hour. Changes apply from the next piece, without touching OBS."
             ]
           },
           {
             "t": "p",
-            "x": "Every time a piece shows on your overlay it is added to a daily counter, which you see as «Shown N times in 30 days» on the What is shown tab. Only how many times it showed and for how long is counted, never who watches your stream. Your channel's history is kept for 90 days."
+            "x": "Every time a piece shows on your overlay it is added to a daily counter, which you see as «Shown N times in 30 days» on the What is shown tab. Only how many times it showed, for how long and how many times its QR link was opened is counted, never who watches your stream or who clicks. The QR goes through a short Decatron link (decatron.net/r/…) only to count the click; the text on screen is still the real link. Your channel's history is kept for 90 days."
+          },
+          {
+            "t": "p",
+            "x": "Own cards are free; the plan only changes how many you can have:"
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "promoOwnCards"
+            ]
           }
         ]
       },

@@ -191,5 +191,8 @@
   "tGroupCredits": "Premium credits",
   "rCreditsMonthly": "Premium credits every month",
   "rCreditsOnce": "One-time bonus of the permanent plan",
-  "tableDiscretion": "At our discretion"
+  "tableDiscretion": "At our discretion",
+  "tGroupPromo": "Promotions",
+  "rPromoOwnCards": "Own cards",
+  "bPromoCards": "{{n}} own cards on the Promotions overlay"
 }

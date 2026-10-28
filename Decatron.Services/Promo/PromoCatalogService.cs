@@ -72,6 +72,29 @@ namespace Decatron.Services.Promo
             catch (Exception) { /* el conteo es accesorio: si falla, la promoción sale igual */ }
         }
 
+        /// <summary>Suma un clic del QR o del enlace corto (agregado, sin identificar a nadie) a la pieza o tarjeta propia de una cuenta. Nunca lanza.</summary>
+        public async Task CountClickAsync(long principalUserId, long pieceId)
+        {
+            try
+            {
+                var day = DateOnly.FromDateTime(DateTime.UtcNow);
+                if (PromoOwnCards.IsOwnPieceId(pieceId))
+                {
+                    var cardId = -pieceId;
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_own_card_counts (user_id, card_id, day, views, seconds, clicks) VALUES ({principalUserId}, {cardId}, {day}, 0, 0, 1)
+                        ON CONFLICT (user_id, card_id, day) DO UPDATE SET clicks = promo_own_card_counts.clicks + 1");
+                }
+                else
+                {
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_view_counts (user_id, piece_id, day, views, seconds, clicks) VALUES ({principalUserId}, {pieceId}, {day}, 0, 0, 1)
+                        ON CONFLICT (user_id, piece_id, day) DO UPDATE SET clicks = promo_view_counts.clicks + 1");
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_piece_daily (piece_id, day, views, seconds, clicks) VALUES ({pieceId}, {day}, 0, 0, 1)
+                        ON CONFLICT (piece_id, day) DO UPDATE SET clicks = promo_piece_daily.clicks + 1");
+                }
+            }
+            catch (Exception) { /* el conteo es accesorio: la persona llega a su destino igual */ }
+        }
+
         /// <summary>Una vez al día (por proceso) borra el historial por canal con más de 90 días; sin tarea de fondo aparte.</summary>
         private async Task PurgeOldAsync(DateOnly today)
         {
@@ -82,17 +105,17 @@ namespace Decatron.Services.Promo
 
         // ─── Estadísticas ────────────────────────────────────────────────────
 
-        public record DayStat(string Day, long Views, long Seconds);
-        public record ItemStat(long Id, long Views, long Seconds);
-        public record ChannelStats(int Days, List<DayStat> PerDay, List<ItemStat> Pieces, List<ItemStat> Cards, long WeekViews, long WeekSeconds, long TotalViews, long TotalSeconds);
-        public record GlobalPieceStat(long Id, long Views, long Seconds, int DisabledIn);
-        public record GlobalStats(int Days, List<DayStat> PerDay, List<GlobalPieceStat> Pieces, long TotalViews, long TotalSeconds);
+        public record DayStat(string Day, long Views, long Seconds, long Clicks);
+        public record ItemStat(long Id, long Views, long Seconds, long Clicks);
+        public record ChannelStats(int Days, List<DayStat> PerDay, List<ItemStat> Pieces, List<ItemStat> Cards, long WeekViews, long WeekSeconds, long TotalViews, long TotalSeconds, long WeekClicks, long TotalClicks);
+        public record GlobalPieceStat(long Id, long Views, long Seconds, long Clicks, int DisabledIn);
+        public record GlobalStats(int Days, List<DayStat> PerDay, List<GlobalPieceStat> Pieces, long TotalViews, long TotalSeconds, long TotalClicks);
 
-        private static List<DayStat> Fill(int days, Dictionary<DateTime, (long v, long s)> byDay)
+        private static List<DayStat> Fill(int days, Dictionary<DateTime, (long v, long s, long c)> byDay)
         {
             var today = DateTime.UtcNow.Date;
             return Enumerable.Range(0, days).Select(i => today.AddDays(i - days + 1))
-                .Select(d => byDay.TryGetValue(d, out var x) ? new DayStat(d.ToString("yyyy-MM-dd"), x.v, x.s) : new DayStat(d.ToString("yyyy-MM-dd"), 0, 0)).ToList();
+                .Select(d => byDay.TryGetValue(d, out var x) ? new DayStat(d.ToString("yyyy-MM-dd"), x.v, x.s, x.c) : new DayStat(d.ToString("yyyy-MM-dd"), 0, 0, 0)).ToList();
         }
 
         /// <summary>Estadísticas del canal (últimos 7, 30 o 90 días): por día, ranking de piezas y de tarjetas propias, y lo de la semana.</summary>
@@ -103,13 +126,13 @@ namespace Decatron.Services.Promo
             var since = today.AddDays(-days + 1);
             var pieces = await _db.PromoViewCounts.AsNoTracking().Where(v => v.UserId == principalUserId && v.Day >= since).ToListAsync();
             var cards = await _db.PromoOwnCardCounts.AsNoTracking().Where(v => v.UserId == principalUserId && v.Day >= since).ToListAsync();
-            var all = pieces.Select(p => (p.Day, (long)p.Views, (long)p.Seconds)).Concat(cards.Select(c => (c.Day, (long)c.Views, (long)c.Seconds))).ToList();
-            var byDay = all.GroupBy(x => x.Day.Date).ToDictionary(g => g.Key, g => (g.Sum(x => x.Item2), g.Sum(x => x.Item3)));
+            var all = pieces.Select(p => (p.Day, V: (long)p.Views, S: (long)p.Seconds, C: (long)p.Clicks)).Concat(cards.Select(c => (c.Day, V: (long)c.Views, S: (long)c.Seconds, C: (long)c.Clicks))).ToList();
+            var byDay = all.GroupBy(x => x.Day.Date).ToDictionary(g => g.Key, g => (g.Sum(x => x.V), g.Sum(x => x.S), g.Sum(x => x.C)));
             var week = all.Where(x => x.Day.Date > today.AddDays(-7)).ToList();
             return new ChannelStats(days, Fill(days, byDay),
-                pieces.GroupBy(p => p.PieceId).Select(g => new ItemStat(g.Key, g.Sum(x => (long)x.Views), g.Sum(x => (long)x.Seconds))).OrderByDescending(x => x.Views).ToList(),
-                cards.GroupBy(c => c.CardId).Select(g => new ItemStat(g.Key, g.Sum(x => (long)x.Views), g.Sum(x => (long)x.Seconds))).OrderByDescending(x => x.Views).ToList(),
-                week.Sum(x => x.Item2), week.Sum(x => x.Item3), all.Sum(x => x.Item2), all.Sum(x => x.Item3));
+                pieces.GroupBy(p => p.PieceId).Select(g => new ItemStat(g.Key, g.Sum(x => (long)x.Views), g.Sum(x => (long)x.Seconds), g.Sum(x => (long)x.Clicks))).OrderByDescending(x => x.Views).ThenByDescending(x => x.Clicks).ToList(),
+                cards.GroupBy(c => c.CardId).Select(g => new ItemStat(g.Key, g.Sum(x => (long)x.Views), g.Sum(x => (long)x.Seconds), g.Sum(x => (long)x.Clicks))).OrderByDescending(x => x.Views).ThenByDescending(x => x.Clicks).ToList(),
+                week.Sum(x => x.V), week.Sum(x => x.S), all.Sum(x => x.V), all.Sum(x => x.S), week.Sum(x => x.C), all.Sum(x => x.C));
         }
 
         /// <summary>Estadísticas globales para el dueño (30, 90 o 365 días, sin límite de historial): por día, piezas y en cuántos canales está apagada cada una.</summary>
@@ -121,11 +144,11 @@ namespace Decatron.Services.Promo
             var disabled = (await _db.Database.SqlQueryRaw<DisabledRow>(@"SELECT piece_id AS ""PieceId"", channels AS ""Channels"" FROM promo_disabled_counts()").ToListAsync())
                 .ToDictionary(r => r.PieceId, r => r.Channels);
             var pieceIds = await _db.PromoPieces.AsNoTracking().Select(p => p.Id).ToListAsync();
-            var perPiece = rows.GroupBy(r => r.PieceId).ToDictionary(g => g.Key, g => (v: g.Sum(x => (long)x.Views), s: g.Sum(x => x.Seconds)));
+            var perPiece = rows.GroupBy(r => r.PieceId).ToDictionary(g => g.Key, g => (v: g.Sum(x => (long)x.Views), s: g.Sum(x => x.Seconds), c: g.Sum(x => x.Clicks)));
             return new GlobalStats(days,
-                Fill(days, rows.GroupBy(r => r.Day.Date).ToDictionary(g => g.Key, g => (g.Sum(x => (long)x.Views), g.Sum(x => x.Seconds)))),
-                pieceIds.Select(id => new GlobalPieceStat(id, perPiece.GetValueOrDefault(id).v, perPiece.GetValueOrDefault(id).s, disabled.GetValueOrDefault(id))).OrderByDescending(p => p.Views).ToList(),
-                rows.Sum(r => (long)r.Views), rows.Sum(r => r.Seconds));
+                Fill(days, rows.GroupBy(r => r.Day.Date).ToDictionary(g => g.Key, g => (g.Sum(x => (long)x.Views), g.Sum(x => x.Seconds), g.Sum(x => x.Clicks)))),
+                pieceIds.Select(id => new GlobalPieceStat(id, perPiece.GetValueOrDefault(id).v, perPiece.GetValueOrDefault(id).s, perPiece.GetValueOrDefault(id).c, disabled.GetValueOrDefault(id))).OrderByDescending(p => p.Views).ThenByDescending(p => p.Clicks).ToList(),
+                rows.Sum(r => (long)r.Views), rows.Sum(r => r.Seconds), rows.Sum(r => r.Clicks));
         }
 
         private record DisabledRow(long PieceId, int Channels);
