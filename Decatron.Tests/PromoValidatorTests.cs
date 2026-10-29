@@ -132,6 +132,32 @@ public class PromoValidatorTests
         Assert.Contains("emergencyNeedsBody", Check(p));
     }
 
+    [Fact(DisplayName = "Promo: una pieza de tercero exige anunciante, no es fija ni emergencia")]
+    public void Tercero()
+    {
+        var sin = Valid(); sin.Origin = "tercero";
+        Assert.Contains("advertiserRequired", Check(sin));
+
+        var ok = Valid(); ok.Origin = "tercero"; ok.AdvertiserName = "  Tienda Sol "; ok.IsPinned = true;
+        Assert.Empty(Check(ok));
+        Assert.Equal("Tienda Sol", ok.AdvertiserName);
+        Assert.False(ok.IsPinned);
+
+        var em = Valid(); em.Origin = "tercero"; em.AdvertiserName = "X"; em.Kind = "emergency";
+        Assert.Contains("thirdPartyNotEmergency", Check(em));
+
+        var largo = Valid(); largo.Origin = "tercero"; largo.AdvertiserName = new string('a', 81);
+        Assert.Contains("advertiserTooLong", Check(largo));
+    }
+
+    [Fact(DisplayName = "Promo: una pieza del bot no guarda datos de anunciante")]
+    public void BotSinAnunciante()
+    {
+        var p = Valid(); p.AdvertiserName = "X"; p.AdvertiserNote = "nota";
+        Check(p);
+        Assert.Null(p.AdvertiserName); Assert.Null(p.AdvertiserNote);
+    }
+
     [Fact(DisplayName = "Promo: el icono debe ser uno de la lista")]
     public void Iconos()
     {

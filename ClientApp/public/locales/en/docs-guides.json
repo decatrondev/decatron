@@ -3608,6 +3608,26 @@
         ]
       },
       {
+        "id": "terceros",
+        "title": "Third-party advertising",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Besides Decatron's own pieces, the owner can load pieces paid for by an advertiser. By default your channel does not receive them: you have to turn on «Accept third-party advertising» in the Settings tab."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "If you turn it on, those pieces appear in «What is shown» with the advertiser's name and you can turn each one off whenever you want.",
+              "They always carry the «Ad» label in a corner; no template or setting can remove it.",
+              "They respect your limits (pause between pieces and seconds per hour), like everything else.",
+              "They are never fixed pieces or emergency notices: you can always turn them off.",
+              "If you turn it off, they stop appearing immediately, also with «Show now», the command and the triggers."
+            ]
+          }
+        ]
+      },
+      {
         "id": "pestanas",
         "title": "Panel tabs",
         "blocks": [

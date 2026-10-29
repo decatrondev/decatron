@@ -9,7 +9,7 @@ import { useBrand } from '../brand/BrandContext';
 
 interface Zone extends ZonePlacement { key: string }
 interface Emergency { pieceId: number; zone: string; design: PromoDesign; content: PromoContent; channel: string }
-interface Shown { pieceId: number; seconds: number; scale: number; design: PromoDesign; content: PromoContent; vars: PromoVars }
+interface Shown { pieceId: number; seconds: number; scale: number; sponsored: boolean; design: PromoDesign; content: PromoContent; vars: PromoVars }
 
 /** Cuánto se deja correr la animación de salida antes de quitar la ficha y pedir la siguiente. */
 const EXIT_MS = 1200;
@@ -50,7 +50,7 @@ function ZoneSlot({ zone, alias, source, language, stopped }: { zone: Zone; alia
                         const link = d.content.link || 'https://decatron.net';
                         const vars: PromoVars = { channel: d.channel, link, commands: d.needsCommands ? await loadCommands(d.channel) : '' };
                         setPhase('enter');
-                        setShown({ pieceId: d.pieceId, seconds: d.seconds, scale: typeof d.scale === 'number' ? d.scale : 1, design: applySlotValues(d.design, d.style), content: d.content, vars });
+                        setShown({ pieceId: d.pieceId, seconds: d.seconds, scale: typeof d.scale === 'number' ? d.scale : 1, sponsored: d.sponsored === true, design: applySlotValues(d.design, d.style), content: d.content, vars });
                         await sleep(d.seconds * 1000);
                         if (!alive) return;
                         setPhase('exit');
@@ -73,7 +73,20 @@ function ZoneSlot({ zone, alias, source, language, stopped }: { zone: Zone; alia
     return (
         <div key={shown.pieceId} style={{ position: 'absolute', left: pos.x, top: pos.y, transform: shown.scale === 1 ? undefined : `scale(${shown.scale})`, transformOrigin: 'top left' }}>
             <PromoDesignRenderer design={shown.design} content={shown.content} vars={shown.vars} resolveImage={resolve} phase={phase} />
+            {shown.sponsored && <SponsoredTag language={language} phase={phase} />}
         </div>
+    );
+}
+
+/** Etiqueta fija de la publicidad de terceros: la dibuja el overlay, no la plantilla, así nadie puede quitarla ni editarla. */
+function SponsoredTag({ language, phase }: { language: string; phase: Phase }) {
+    return (
+        <div style={{
+            position: 'absolute', top: 8, right: 8, padding: '3px 10px', borderRadius: 6, pointerEvents: 'none',
+            background: 'rgba(15, 18, 24, 0.82)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.35)',
+            fontFamily: 'system-ui, sans-serif', fontSize: 16, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', lineHeight: 1.3,
+            opacity: phase === 'exit' ? 0 : 1, transition: 'opacity 400ms ease',
+        }}>{language === 'en' ? 'Ad' : 'Publicidad'}</div>
     );
 }
 

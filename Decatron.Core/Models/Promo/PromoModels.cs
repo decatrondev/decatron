@@ -149,6 +149,14 @@ public class PromoPiece
     [Column("is_pinned")]
     public bool IsPinned { get; set; }
 
+    /// <summary>Solo piezas de origen «tercero»: quién paga la publicidad. Nunca sale en el overlay.</summary>
+    [Column("advertiser_name"), MaxLength(80)]
+    public string? AdvertiserName { get; set; }
+
+    /// <summary>Nota libre del dueño sobre el anunciante (contacto, acuerdo). Nunca sale en el overlay.</summary>
+    [Column("advertiser_note"), MaxLength(500)]
+    public string? AdvertiserNote { get; set; }
+
     [Column("duration_seconds")]
     public int DurationSeconds { get; set; } = 8;
 
@@ -244,6 +252,10 @@ public class PromoChannelSettings
 
     [Column("paused")]
     public bool Paused { get; set; }
+
+    /// <summary>El canal acepta piezas de terceros (publicidad). Nace apagado.</summary>
+    [Column("accept_third_party")]
+    public bool AcceptThirdParty { get; set; }
 
     /// <summary>JSON con la lista de ids de piezas apagadas, p. ej. [3,7].</summary>
     [Column("disabled_pieces", TypeName = "jsonb")]

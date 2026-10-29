@@ -122,7 +122,7 @@ namespace Decatron.Controllers
                     }
                     else
                         forcedRaw = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
-                            && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow));
+                            && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow, mine?.AcceptThirdParty ?? false));
                     var forced = forcedRaw == null ? null : PromoOverrides.ApplyToPiece(forcedRaw, PromoOwnCards.IsOwnPieceId(forcedRaw.Id) ? null : await PieceOverrideAsync(principalId, forcedRaw.Id), snap.Limits, snap.Templates, pinnedLocked);
                     if (forced != null && TemplateFor(snap, forced.Piece) != null)
                     {
@@ -142,7 +142,7 @@ namespace Decatron.Controllers
                 var pieceOver = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId).ToListAsync();
                 var scales = new Dictionary<long, int>();
                 var eligible = new List<PromoPiece>();
-                foreach (var raw in snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now) && p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id)))
+                foreach (var raw in snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now, mine?.AcceptThirdParty ?? false) && p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id)))
                 {
                     var merged = PromoOverrides.ApplyToPiece(raw, pieceOver.FirstOrDefault(o => o.PieceId == raw.Id), snap.Limits, snap.Templates, pinnedLocked);
                     if (TemplateFor(snap, merged.Piece) == null) continue;
@@ -243,6 +243,8 @@ namespace Decatron.Controllers
                 pieceId = piece.Id,
                 seconds = piece.DurationSeconds,
                 scale = scalePercent / 100.0,
+                // Publicidad de un tercero: el overlay dibuja la etiqueta «Publicidad» por su cuenta; ninguna plantilla puede quitarla.
+                sponsored = piece.Origin == "tercero",
                 design = JsonDocument.Parse(template.Design).RootElement,
                 style,
                 content = new

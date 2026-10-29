@@ -7,6 +7,7 @@ import { DayTable, Figure, RankRow } from '../../features/promo-extension/StatsT
 import { formatDuration, formatNumber, type DayStat } from '../../features/promo-extension/statsFormat';
 import type { Lang } from './shared';
 import type { PromoOverview } from './types';
+import { AdvertiserReport } from './AdvertiserReport';
 
 interface GlobalStats { days: number; perDay: DayStat[]; pieces: { id: number; views: number; seconds: number; clicks: number; disabledIn: number }[]; totalViews: number; totalSeconds: number; totalClicks: number }
 
@@ -63,6 +64,7 @@ export function StatsTab({ data, lang }: { data: PromoOverview; lang: Lang }) {
                     ))}
                 </ul>
             </Card>
+            <AdvertiserReport data={data} />
         </div>
     );
 }

@@ -57,10 +57,11 @@ namespace Decatron.Services.Promo
             return disabled.Where(id => !pinned.Contains(id)).ToHashSet();
         }
 
-        /// <summary>true si la pieza puede salir en este canal ahora (vigencia, plataforma y canales permitidos).</summary>
-        public static bool IsEligible(PromoPiece p, string zone, string variant, IReadOnlyCollection<string> logins, DateTime now)
+        /// <summary>true si la pieza puede salir en este canal ahora (vigencia, plataforma, canales permitidos y, si es de un tercero, que el canal acepte publicidad).</summary>
+        public static bool IsEligible(PromoPiece p, string zone, string variant, IReadOnlyCollection<string> logins, DateTime now, bool acceptThirdParty)
         {
             if (p.Status != "published" || p.Weight <= 0 || p.Zone != zone) return false;
+            if (p.Origin == "tercero" && !acceptThirdParty) return false;
             if (p.StartsAt != null && now < p.StartsAt.Value) return false;
             if (p.EndsAt != null && now > p.EndsAt.Value) return false;
             if (variant != "all" && p.Platforms != "all" && p.Platforms != variant) return false;
@@ -81,7 +82,7 @@ namespace Decatron.Services.Promo
         /// el tope por hora y lo que el streamer apagó: es un aviso del dueño que debe llegar a todos los canales a los que aplica.
         /// </summary>
         public static PromoPiece? PickEmergency(IEnumerable<PromoPiece> published, string variant, IReadOnlyCollection<string> logins, DateTime now) =>
-            published.Where(p => p.Kind == EmergencyKind && IsEligible(p, p.Zone, variant, logins, now))
+            published.Where(p => p.Kind == EmergencyKind && IsEligible(p, p.Zone, variant, logins, now, true)) // un tercero nunca es emergencia (lo valida el catálogo)
                 .OrderByDescending(p => p.Priority).ThenByDescending(p => p.Id).FirstOrDefault();
 
         /// <summary>

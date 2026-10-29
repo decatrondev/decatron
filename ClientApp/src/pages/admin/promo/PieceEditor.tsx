@@ -111,7 +111,19 @@ export function PieceEditor({ initial, templates, zones, options, lang, onLang, 
                             </Select>
                         </Field>
                     </div>
-                    {p.kind !== 'emergency' && <ToggleRow title={t('admin.editor.pinned')} description={t('admin.editor.pinnedHint')} checked={p.isPinned} onChange={v => set('isPinned', v)} />}
+                    {p.kind !== 'emergency' && p.origin !== 'tercero' && <ToggleRow title={t('admin.editor.pinned')} description={t('admin.editor.pinnedHint')} checked={p.isPinned} onChange={v => set('isPinned', v)} />}
+                    {p.origin === 'tercero' && (
+                        <div className="space-y-4">
+                            <p className={sectionCls}>{t('admin.editor.thirdPartySection')}</p>
+                            <Alert tone="info">{t('admin.editor.thirdPartyHint')}</Alert>
+                            <Field label={t('admin.editor.advertiser')} hint={t('admin.editor.advertiserHint')}>
+                                <Input value={p.advertiserName ?? ''} maxLength={80} onChange={e => set('advertiserName', e.target.value || null)} />
+                            </Field>
+                            <Field label={t('admin.editor.advertiserNote')} hint={t('admin.editor.advertiserNoteHint')}>
+                                <Textarea value={p.advertiserNote ?? ''} maxLength={500} rows={3} onChange={e => set('advertiserNote', e.target.value || null)} />
+                            </Field>
+                        </div>
+                    )}
                     <Field label={t('admin.editor.onlyChannels')} hint={t('admin.editor.onlyChannelsHint')}>
                         <Input value={p.onlyChannels ?? ''} maxLength={500} onChange={e => set('onlyChannels', e.target.value || null)} />
                     </Field>

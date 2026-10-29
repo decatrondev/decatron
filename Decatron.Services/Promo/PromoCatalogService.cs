@@ -151,6 +151,19 @@ namespace Decatron.Services.Promo
                 rows.Sum(r => (long)r.Views), rows.Sum(r => r.Seconds), rows.Sum(r => r.Clicks));
         }
 
+        /// <summary>Filas del informe de publicidad de terceros (todos los anunciantes o uno, comparado sin mayúsculas) entre dos fechas, ambas incluidas.</summary>
+        public async Task<List<PromoReportRow>> GetAdvertiserReportAsync(string? advertiser, DateTime from, DateTime to)
+        {
+            var pieces = await _db.PromoPieces.AsNoTracking().Where(p => p.Origin == "tercero").ToListAsync();
+            if (!string.IsNullOrWhiteSpace(advertiser))
+                pieces = pieces.Where(p => string.Equals(p.AdvertiserName, advertiser.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+            var ids = pieces.Select(p => p.Id).ToList();
+            var daily = await _db.PromoPieceDaily.AsNoTracking().Where(r => ids.Contains(r.PieceId) && r.Day >= from && r.Day <= to).ToListAsync();
+            var byId = pieces.ToDictionary(p => p.Id);
+            return daily.Select(r => new PromoReportRow(byId[r.PieceId].AdvertiserName ?? "", r.PieceId,
+                byId[r.PieceId].TitleEs != "" ? byId[r.PieceId].TitleEs : byId[r.PieceId].BodyEs, r.Day.Date, r.Views, r.Seconds, r.Clicks)).ToList();
+        }
+
         private record DisabledRow(long PieceId, int Channels);
         private static int NormalizeDays(int days, params int[] allowed) => allowed.Contains(days) ? days : allowed[1];
 
@@ -250,6 +263,7 @@ namespace Decatron.Services.Promo
             p.LinkUrl = input.LinkUrl; p.ShowQr = input.ShowQr; p.ImageUrl = input.ImageUrl; p.Icon = input.Icon;
             p.TemplateId = input.TemplateId; p.Zone = input.Zone;
             p.Priority = input.Priority; p.Weight = input.Weight; p.DurationSeconds = input.DurationSeconds; p.IsPinned = input.IsPinned;
+            p.AdvertiserName = input.AdvertiserName; p.AdvertiserNote = input.AdvertiserNote;
             p.StartsAt = input.StartsAt; p.EndsAt = input.EndsAt;
             p.Platforms = input.Platforms; p.OnlyChannels = input.OnlyChannels;
             p.Status = input.Status; p.SortOrder = input.SortOrder;
@@ -272,6 +286,7 @@ namespace Decatron.Services.Promo
                 BodyEs = src.BodyEs, BodyEn = src.BodyEn, LinkUrl = src.LinkUrl, ShowQr = src.ShowQr, ImageUrl = src.ImageUrl, Icon = src.Icon,
                 TemplateId = src.TemplateId, Zone = src.Zone, Priority = src.Priority, Weight = src.Weight, DurationSeconds = src.DurationSeconds,
                 StartsAt = src.StartsAt, EndsAt = src.EndsAt, Platforms = src.Platforms, OnlyChannels = src.OnlyChannels,
+                AdvertiserName = src.AdvertiserName, AdvertiserNote = src.AdvertiserNote,
                 Status = "draft", SortOrder = max + 1, CreatedBy = adminUserId,
             };
             _db.PromoPieces.Add(copy);

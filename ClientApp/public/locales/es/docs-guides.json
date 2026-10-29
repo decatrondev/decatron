@@ -3608,6 +3608,26 @@
         ]
       },
       {
+        "id": "terceros",
+        "title": "Publicidad de terceros",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Además de las piezas de Decatron, el dueño puede cargar piezas pagadas por un anunciante. Por defecto tu canal no las recibe: tienes que activar «Aceptar publicidad de terceros» en la pestaña Ajustes."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Si lo activas, esas piezas aparecen en «Qué se muestra» con el nombre del anunciante y puedes apagar cada una cuando quieras.",
+              "Siempre salen con la etiqueta «Publicidad» en una esquina; ninguna plantilla ni ajuste puede quitarla.",
+              "Respetan tus topes (pausa entre piezas y segundos por hora), igual que el resto.",
+              "Nunca son piezas fijas ni avisos de emergencia: siempre puedes apagarlas.",
+              "Si lo desactivas, dejan de salir de inmediato, también con «Mostrar ahora», el comando y los disparadores."
+            ]
+          }
+        ]
+      },
+      {
         "id": "pestanas",
         "title": "Pestañas del panel",
         "blocks": [

@@ -115,7 +115,13 @@
       "onlyChannelsHint": "Logins separados por coma. Vacío = todos los canales.",
       "status": "Estado",
       "pinned": "Pieza fija",
-      "pinnedHint": "Mientras el canal use tarjetas propias, el streamer no puede apagarla ni dejarla más corta o más chica que tu valor. Sin tarjetas propias, nada cambia. Recomendado: una sola."
+      "pinnedHint": "Mientras el canal use tarjetas propias, el streamer no puede apagarla ni dejarla más corta o más chica que tu valor. Sin tarjetas propias, nada cambia. Recomendado: una sola.",
+      "advertiser": "Anunciante",
+      "advertiserHint": "Quién paga esta publicidad. El streamer lo ve en su panel; en el overlay solo sale la etiqueta «Publicidad».",
+      "advertiserNote": "Nota interna",
+      "advertiserNoteHint": "Contacto, acuerdo, lo que quieras recordar. Solo la ves tú.",
+      "thirdPartySection": "Publicidad de terceros",
+      "thirdPartyHint": "Solo sale en canales que activaron «Aceptar publicidad de terceros». Lleva siempre la etiqueta «Publicidad», no puede ser fija ni de emergencia."
     },
     "templates": {
       "new": "Nueva plantilla",
@@ -190,6 +196,10 @@
       "imageInvalid": "La imagen debe ser una dirección https o una ruta del sitio que empiece con una sola /.",
       "iconInvalid": "Ese icono no está en la lista.",
       "datesOrder": "La fecha de fin debe ser posterior a la de inicio.",
+      "advertiserRequired": "Una pieza de terceros necesita el nombre del anunciante.",
+      "advertiserTooLong": "El nombre del anunciante admite hasta 80 caracteres.",
+      "advertiserNoteTooLong": "La nota admite hasta 500 caracteres.",
+      "thirdPartyNotEmergency": "Una pieza de terceros no puede ser un aviso de emergencia.",
       "channelsInvalid": "Los canales deben ser logins válidos separados por coma (máximo 50).",
       "templateNotFound": "La plantilla ya no existe.",
       "pieceNotFound": "La pieza ya no existe.",
@@ -483,6 +493,17 @@
       "colPiece": "Pieza",
       "loadFailed": "No se pudieron cargar las estadísticas.",
       "emptyAll": "Todavía no hay entregas en este período."
+    },
+    "report": {
+      "title": "Informe de publicidad",
+      "description": "Descarga en CSV las vistas, segundos y clics de las piezas de terceros, por pieza y día, sumando todos los canales. Sirve para mostrarle resultados a un anunciante.",
+      "advertiser": "Anunciante",
+      "all": "Todos",
+      "from": "Desde",
+      "to": "Hasta",
+      "download": "Descargar CSV",
+      "rangeInvalid": "El rango no es válido: la fecha de inicio debe ser anterior a la de fin y no pasar de un año.",
+      "failed": "No se pudo generar el informe."
     }
   },
   "panel": {
@@ -535,6 +556,8 @@
       "seconds": "{{n}} s en pantalla",
       "priority": "Prioridad {{n}}",
       "onlyTwitch": "Solo Twitch",
+      "sponsored": "Publicidad",
+      "sponsoredBy": "Publicidad de {{name}}",
       "onlyKick": "Solo Kick",
       "from": "Desde {{date}}",
       "until": "Hasta {{date}}",
@@ -542,6 +565,12 @@
       "off": "Apagada: no saldrá en tu canal",
       "shown": "Salió {{n}} veces en 30 días",
       "pinned": "Fija mientras uses tarjetas propias"
+    },
+    "thirdParty": {
+      "title": "Publicidad de terceros",
+      "description": "Decide si tu canal acepta piezas pagadas por anunciantes externos a Decatron.",
+      "accept": "Aceptar publicidad de terceros",
+      "acceptHint": "Apagado por defecto: mientras no lo actives, nunca saldrá publicidad de terceros. Si lo activas, esas piezas aparecen en «Qué se muestra» con su anunciante, llevan siempre la etiqueta «Publicidad» y puedes apagar cada una."
     },
     "settings": {
       "title": "Ajustes",

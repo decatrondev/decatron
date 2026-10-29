@@ -18,10 +18,18 @@ public class PromoPlaybackTests
         Id = id, Status = "published", Zone = "corner", Platforms = "all", Priority = priority, Weight = weight, DurationSeconds = seconds,
     };
 
-    private static bool Ok(PromoPiece p, string variant = "all") => PromoPlayback.IsEligible(p, "corner", variant, Logins, Now);
+    private static bool Ok(PromoPiece p, string variant = "all", bool third = false) => PromoPlayback.IsEligible(p, "corner", variant, Logins, Now, third);
 
     [Fact(DisplayName = "Promo: una pieza publicada de la zona es elegible")]
     public void Elegible() => Assert.True(Ok(P(1)));
+
+    [Fact(DisplayName = "Promo: una pieza de tercero solo sale en canales que aceptan publicidad")]
+    public void TerceroSoloSiElCanalAcepta()
+    {
+        var t = P(1); t.Origin = "tercero";
+        Assert.False(Ok(t)); Assert.True(Ok(t, third: true));
+        Assert.True(Ok(P(2))); // las del bot no dependen del interruptor
+    }
 
     [Fact(DisplayName = "Promo: borrador, peso 0 o zona distinta no salen")]
     public void NoElegible()

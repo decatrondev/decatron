@@ -65,6 +65,19 @@ namespace Decatron.Controllers
             return Ok(new { success = true, stats = await _catalog.GetGlobalStatsAsync(days) });
         }
 
+        /// <summary>Informe CSV de un anunciante (o de todos) entre dos fechas: vistas, segundos y clics por pieza y día. Totales de todos los canales.</summary>
+        [HttpGet("report")]
+        public async Task<IActionResult> Report([FromQuery] string? advertiser, [FromQuery] System.DateTime? from, [FromQuery] System.DateTime? to)
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            var (f, t, error) = PromoReport.Range(from, to, System.DateTime.UtcNow.Date);
+            if (error != null) return BadRequest(new { success = false, errors = new[] { error } });
+            var csv = PromoReport.ToCsv(await _catalog.GetAdvertiserReportAsync(advertiser, f, t));
+            // BOM para que Excel abra bien los acentos.
+            var bytes = new System.Text.UTF8Encoding(true).GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv)).ToArray();
+            return File(bytes, "text/csv; charset=utf-8", $"promociones-informe-{f:yyyyMMdd}-{t:yyyyMMdd}.csv");
+        }
+
         public record HideRequest(bool Hidden);
 
         /// <summary>El dueño oculta (o vuelve a mostrar) una tarjeta propia que no cumple las reglas; el streamer la sigue viendo pero no sale.</summary>

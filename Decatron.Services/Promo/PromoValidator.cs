@@ -56,6 +56,10 @@ namespace Decatron.Services.Promo
             p.ImageUrl = CleanOrNull(p.ImageUrl);
             p.Icon = CleanOrNull(p.Icon)?.ToLowerInvariant();
             if (p.Kind == "emergency") p.IsPinned = false; // la emergencia ya ignora lo que apague el streamer
+            if (p.Origin == "tercero") p.IsPinned = false; // la publicidad de terceros el streamer siempre puede apagarla
+            p.AdvertiserName = CleanOrNull(p.AdvertiserName);
+            p.AdvertiserNote = CleanOrNull(p.AdvertiserNote);
+            if (p.Origin != "tercero") { p.AdvertiserName = null; p.AdvertiserNote = null; }
             p.Weight = Math.Clamp(p.Weight, 0, 100);
             p.Priority = Math.Clamp(p.Priority, 0, 100);
             p.DurationSeconds = Math.Clamp(p.DurationSeconds, 3, 30);
@@ -92,6 +96,11 @@ namespace Decatron.Services.Promo
             if (p.Icon != null && !Icons.Contains(p.Icon)) e.Add("iconInvalid");
 
             if (p.StartsAt.HasValue && p.EndsAt.HasValue && p.EndsAt <= p.StartsAt) e.Add("datesOrder");
+
+            if (p.Origin == "tercero" && p.AdvertiserName == null) e.Add("advertiserRequired");
+            if ((p.AdvertiserName?.Length ?? 0) > 80) e.Add("advertiserTooLong");
+            if ((p.AdvertiserNote?.Length ?? 0) > 500) e.Add("advertiserNoteTooLong");
+            if (p.Origin == "tercero" && p.Kind == "emergency") e.Add("thirdPartyNotEmergency");
 
             if (p.OnlyChannels != null)
             {

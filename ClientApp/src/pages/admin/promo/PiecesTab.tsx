@@ -62,7 +62,7 @@ export function PiecesTab({ data, lang, onLang, onChanged, notify }: {
                                     <Badge tone={p.status === 'published' ? 'ok' : undefined}>{t(`admin.pieces.status.${p.status}`)}</Badge>
                                     <Badge tone={p.kind === 'emergency' ? 'danger' : 'accent'}>{t(`admin.pieces.kind.${p.kind}`)}</Badge>
                                     {p.isPinned && <Badge tone="warn">{t('admin.pieces.pinned')}</Badge>}
-                                    {p.origin === 'tercero' && <Badge tone="warn">{t('admin.pieces.origin.tercero')}</Badge>}
+                                    {p.origin === 'tercero' && <Badge tone="warn">{p.advertiserName ? `${t('admin.pieces.origin.tercero')}: ${p.advertiserName}` : t('admin.pieces.origin.tercero')}</Badge>}
                                     <span className="text-sm font-bold text-ds-text truncate min-w-0">{title}</span>
                                 </div>
                                 {templateOf(p, templates)?.design?.elements ? <PromoZoom design={templateOf(p, templates)!.design} content={contentOf(p, lang)} vars={sampleVars(t, p.linkUrl)} resolveImage={resolveImage} phase="enter" /> : <p className="text-sm text-ds-soft">{t('admin.pieces.noTemplate')}</p>}

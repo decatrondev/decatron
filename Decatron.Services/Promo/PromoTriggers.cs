@@ -103,7 +103,7 @@ namespace Decatron.Services.Promo
                     else
                     {
                         var logins = resolved.Account.Members.Select(m => m.Login).ToList();
-                        piece = snap.Pieces.FirstOrDefault(p => p.Id == id && p.Kind != PromoPlayback.EmergencyKind && PromoPlayback.IsEligible(p, p.Zone, "all", logins, now));
+                        piece = snap.Pieces.FirstOrDefault(p => p.Id == id && p.Kind != PromoPlayback.EmergencyKind && PromoPlayback.IsEligible(p, p.Zone, "all", logins, now, prefs?.AcceptThirdParty ?? false));
                     }
                     if (piece != null) { PromoCommand.Force(state, piece, now); return; }
                     // La pieza elegida ya no existe o no aplica: cae a la siguiente de la rotación en vez de no mostrar nada.

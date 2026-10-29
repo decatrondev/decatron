@@ -12,6 +12,8 @@ export interface PromoPiece {
     templateId: number | null; zone: string; priority: number; weight: number; durationSeconds: number; isPinned: boolean;
     startsAt: string | null; endsAt: string | null; platforms: PromoPlatforms; onlyChannels: string | null;
     status: PromoStatus; sortOrder: number;
+    /** Solo piezas de terceros: quién paga y una nota interna. */
+    advertiserName: string | null; advertiserNote: string | null;
 }
 
 export interface PromoTemplate {
@@ -52,7 +54,7 @@ export const EMPTY_PIECE: PromoPiece = {
     id: 0, kind: 'news', origin: 'bot', titleEs: '', titleEn: '', bodyEs: '', bodyEn: '',
     linkUrl: null, showQr: false, imageUrl: null, icon: null, templateId: null, zone: 'corner',
     priority: 0, weight: 1, durationSeconds: 8, isPinned: false, startsAt: null, endsAt: null, platforms: 'all', onlyChannels: null,
-    status: 'draft', sortOrder: 0,
+    status: 'draft', sortOrder: 0, advertiserName: null, advertiserNote: null,
 };
 
 export const EMPTY_ZONE: PromoZone = { id: 0, key: '', nameEs: '', nameEn: '', anchor: 'top-right', marginX: 96, marginY: 54, isEnabled: true, sortOrder: 0 };

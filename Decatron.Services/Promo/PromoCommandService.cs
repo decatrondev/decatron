@@ -91,7 +91,7 @@ namespace Decatron.Services.Promo
                 var logins = account.Members.Select(m => m.Login).ToList();
                 var variant = ctx.Metadata != null && ctx.Metadata.TryGetValue("platform", out var pl) && string.Equals(pl?.ToString(), "kick", StringComparison.OrdinalIgnoreCase) ? "kick" : "twitch";
                 var mine = snap.Pieces
-                    .Where(p => p.Kind != PromoPlayback.EmergencyKind && p.Status == "published" && p.Weight > 0
+                    .Where(p => p.Kind != PromoPlayback.EmergencyKind && p.Status == "published" && p.Weight > 0 && (p.Origin != "tercero" || row.AcceptThirdParty)
                         && (p.StartsAt == null || now >= p.StartsAt) && (p.EndsAt == null || now <= p.EndsAt)
                         && (string.IsNullOrWhiteSpace(p.OnlyChannels)
                             || p.OnlyChannels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(c => logins.Any(l => string.Equals(l, c, StringComparison.OrdinalIgnoreCase)))))

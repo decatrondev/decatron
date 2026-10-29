@@ -115,7 +115,13 @@
       "onlyChannelsHint": "Logins separated by commas. Empty = all channels.",
       "status": "Status",
       "pinned": "Fixed piece",
-      "pinnedHint": "While the channel uses its own cards, the streamer cannot turn it off or make it shorter or smaller than your value. Without own cards, nothing changes. Recommended: just one."
+      "pinnedHint": "While the channel uses its own cards, the streamer cannot turn it off or make it shorter or smaller than your value. Without own cards, nothing changes. Recommended: just one.",
+      "advertiser": "Advertiser",
+      "advertiserHint": "Who pays for this ad. The streamer sees it in their panel; the overlay only shows the «Ad» label.",
+      "advertiserNote": "Internal note",
+      "advertiserNoteHint": "Contact, agreement, anything you want to remember. Only you see it.",
+      "thirdPartySection": "Third-party advertising",
+      "thirdPartyHint": "Only shown in channels that turned on «Accept third-party advertising». It always carries the «Ad» label and cannot be fixed or an emergency."
     },
     "templates": {
       "new": "New template",
@@ -190,6 +196,10 @@
       "imageInvalid": "The image must be an https address or a site path starting with a single /.",
       "iconInvalid": "That icon is not in the list.",
       "datesOrder": "The end date must be after the start date.",
+      "advertiserRequired": "A third-party piece needs the advertiser's name.",
+      "advertiserTooLong": "The advertiser name allows up to 80 characters.",
+      "advertiserNoteTooLong": "The note allows up to 500 characters.",
+      "thirdPartyNotEmergency": "A third-party piece cannot be an emergency notice.",
       "channelsInvalid": "Channels must be valid logins separated by commas (50 at most).",
       "templateNotFound": "The template no longer exists.",
       "pieceNotFound": "The piece no longer exists.",
@@ -483,6 +493,17 @@
       "colPiece": "Piece",
       "loadFailed": "Could not load the statistics.",
       "emptyAll": "No deliveries in this period yet."
+    },
+    "report": {
+      "title": "Advertising report",
+      "description": "Download a CSV with views, seconds and clicks of third-party pieces, per piece and day, adding up all channels. Useful to show results to an advertiser.",
+      "advertiser": "Advertiser",
+      "all": "All",
+      "from": "From",
+      "to": "To",
+      "download": "Download CSV",
+      "rangeInvalid": "The range is not valid: the start date must be before the end date and span at most one year.",
+      "failed": "The report could not be generated."
     }
   },
   "panel": {
@@ -535,6 +556,8 @@
       "seconds": "{{n}} s on screen",
       "priority": "Priority {{n}}",
       "onlyTwitch": "Twitch only",
+      "sponsored": "Ad",
+      "sponsoredBy": "Ad from {{name}}",
       "onlyKick": "Kick only",
       "from": "From {{date}}",
       "until": "Until {{date}}",
@@ -542,6 +565,12 @@
       "off": "Off: it won't show on your channel",
       "shown": "Shown {{n}} times in 30 days",
       "pinned": "Fixed while you use your own cards"
+    },
+    "thirdParty": {
+      "title": "Third-party advertising",
+      "description": "Decide whether your channel accepts pieces paid for by advertisers outside Decatron.",
+      "accept": "Accept third-party advertising",
+      "acceptHint": "Off by default: until you turn it on, no third-party advertising will ever appear. If you turn it on, those pieces show up in «What is shown» with their advertiser, always carry the «Ad» label, and you can turn each one off."
     },
     "settings": {
       "title": "Settings",

@@ -113,12 +113,13 @@ namespace Decatron.Controllers
                 var mine = logins.Select(l => l.ToLowerInvariant()).ToHashSet();
                 var pieces = snap.Pieces
                     .Where(p => p.Kind != PromoPlayback.EmergencyKind)
+                    .Where(p => p.Origin != "tercero" || (prefs?.AcceptThirdParty ?? false))
                     .Where(p => string.IsNullOrWhiteSpace(p.OnlyChannels)
                         || p.OnlyChannels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(c => mine.Contains(c.ToLowerInvariant())))
                     .Select(p => new
                     {
                         p.Id, p.Kind, p.TitleEs, p.TitleEn, p.BodyEs, p.BodyEn, p.Zone, p.Platforms, p.DurationSeconds, p.Priority, p.Weight,
-                        p.StartsAt, p.EndsAt, p.TemplateId, p.LinkUrl, p.ShowQr, p.ImageUrl, p.Icon, p.IsPinned,
+                        p.StartsAt, p.EndsAt, p.TemplateId, p.LinkUrl, p.ShowQr, p.ImageUrl, p.Icon, p.IsPinned, p.Origin, p.AdvertiserName,
                     });
                 return Ok(new
                 {
@@ -141,7 +142,7 @@ namespace Decatron.Controllers
                     zoneOverrides = await _db.PromoZoneOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.ZoneKey, o.Anchor, o.MarginX, o.MarginY }).ToListAsync(),
                     views = await _catalog.GetChannelViewsAsync(principalId),
-                    mine = new { paused = prefs?.Paused ?? false, disabledPieces = PromoPlayback.EffectiveDisabled(PromoPlayback.DisabledIds(prefs), snap.Pieces, ownInUse), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
+                    mine = new { paused = prefs?.Paused ?? false, acceptThirdParty = prefs?.AcceptThirdParty ?? false, disabledPieces = PromoPlayback.EffectiveDisabled(PromoPlayback.DisabledIds(prefs), snap.Pieces, ownInUse), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
                     command = new { enabled = prefs?.CmdEnabled ?? false, name = prefs?.CmdName ?? PromoCommand.DefaultName, cooldownSeconds = prefs?.CmdCooldownSeconds ?? 10, minRole = prefs?.CmdMinRole ?? "moderator" },
                     triggers = new
                     {
@@ -202,7 +203,8 @@ namespace Decatron.Controllers
                 else
                 {
                     var logins = account.Members.Select(m => m.Login).ToList();
-                    piece = snap.Pieces.FirstOrDefault(p => p.Id == pieceId && p.Kind != PromoPlayback.EmergencyKind && PromoPlayback.IsEligible(p, p.Zone, "all", logins, now));
+                    var accept = await _db.PromoChannelSettings.AsNoTracking().Where(c => c.UserId == principalId).Select(c => c.AcceptThirdParty).FirstOrDefaultAsync();
+                    piece = snap.Pieces.FirstOrDefault(p => p.Id == pieceId && p.Kind != PromoPlayback.EmergencyKind && PromoPlayback.IsEligible(p, p.Zone, "all", logins, now, accept));
                 }
                 if (piece == null) return NotFound(new { success = false, errors = new[] { "pieceNotFound" } });
                 PromoCommand.Force(PromoPlayback.StateOf(account.OverlayKey), piece, now);
@@ -537,7 +539,7 @@ namespace Decatron.Controllers
         public record CommandRequest(bool Enabled, string? Name, int? CooldownSeconds, string? MinRole);
         public record TriggerRequest(bool Enabled, long? PieceId, int DelaySeconds);
         public record TriggersRequest(TriggerRequest? Start, TriggerRequest? Raid);
-        public record SaveRequest(bool Paused, long[]? DisabledPieces, int? MinGapSeconds, int? HourlyCapSeconds, CommandRequest? Command = null, TriggersRequest? Triggers = null);
+        public record SaveRequest(bool Paused, long[]? DisabledPieces, int? MinGapSeconds, int? HourlyCapSeconds, CommandRequest? Command = null, TriggersRequest? Triggers = null, bool? AcceptThirdParty = null);
 
         /// <summary>Guarda lo que el streamer decide: pausar, piezas apagadas y topes más discretos (nunca más insistentes que los globales).</summary>
         [HttpPut("settings")]
@@ -599,6 +601,7 @@ namespace Decatron.Controllers
                 if (req.Triggers?.Start is { } st) { row.TriggerStartEnabled = st.Enabled; row.TriggerStartPieceId = st.PieceId == 0 ? null : st.PieceId; row.TriggerStartDelaySeconds = st.DelaySeconds; }
                 if (req.Triggers?.Raid is { } rd) { row.TriggerRaidEnabled = rd.Enabled; row.TriggerRaidPieceId = rd.PieceId == 0 ? null : rd.PieceId; row.TriggerRaidDelaySeconds = rd.DelaySeconds; }
                 row.Paused = req.Paused;
+                if (req.AcceptThirdParty is bool accept) row.AcceptThirdParty = accept;
                 row.DisabledPieces = System.Text.Json.JsonSerializer.Serialize(disabled);
                 row.MinGapSeconds = req.MinGapSeconds;
                 row.HourlyCapSeconds = req.HourlyCapSeconds;

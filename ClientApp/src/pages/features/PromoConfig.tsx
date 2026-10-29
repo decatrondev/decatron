@@ -42,7 +42,7 @@ interface Catalog {
     views: Record<string, number>;
 }
 interface CmdSettings { enabled: boolean; name: string; cooldownSeconds: number; minRole: 'moderator' | 'vip' | 'subscriber' | 'everyone' }
-interface Mine { paused: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null; command: CmdSettings; triggers: Triggers }
+interface Mine { paused: boolean; acceptThirdParty: boolean; disabledPieces: number[]; minGapSeconds: number | null; hourlyCapSeconds: number | null; command: CmdSettings; triggers: Triggers }
 
 const overlayUrl = (channel: string, source?: 'twitch' | 'kick') => `${window.location.origin}/overlay/promo?channel=${channel}${source ? `&source=${source}` : ''}`;
 
@@ -106,7 +106,7 @@ export default function PromoConfig() {
         if (!mine) return;
         setSaving(true);
         try {
-            await api.put('/promo-panel/settings', { paused: mine.paused, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds, command: mine.command, triggers: mine.triggers });
+            await api.put('/promo-panel/settings', { paused: mine.paused, acceptThirdParty: mine.acceptThirdParty, disabledPieces: mine.disabledPieces, minGapSeconds: mine.minGapSeconds, hourlyCapSeconds: mine.hourlyCapSeconds, command: mine.command, triggers: mine.triggers });
             // Lo que cambió de piezas y zonas: solo se envía la diferencia con lo último guardado.
             const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
             for (const id of new Set([...Object.keys(saved.current.pieces), ...Object.keys(pieceOv)].map(Number))) {
@@ -225,6 +225,7 @@ export default function PromoConfig() {
                                             <span>{t('panel.pieces.seconds', { n: p.durationSeconds })}</span>
                                             <span>{t('panel.pieces.shown', { n: catalog.views?.[p.id] ?? 0 })}</span>
                                             <span>{t('panel.pieces.priority', { n: p.priority })}</span>
+                                            {p.origin === 'tercero' && <span>{p.advertiserName ? t('panel.pieces.sponsoredBy', { name: p.advertiserName }) : t('panel.pieces.sponsored')}</span>}
                                             {p.platforms === 'twitch' && <span>{t('panel.pieces.onlyTwitch')}</span>}
                                             {p.platforms === 'kick' && <span>{t('panel.pieces.onlyKick')}</span>}
                                             {p.startsAt && <span>{t('panel.pieces.from', { date: dateFmt.format(new Date(p.startsAt)) })}</span>}
@@ -270,6 +271,9 @@ export default function PromoConfig() {
                                     onChange={v => change({ hourlyCapSeconds: v >= catalog.limits.hourlyCapSeconds ? null : v })} /></div>
                             </div>
                         </div>
+                    </Card>
+                    <Card title={t('panel.thirdParty.title')} description={t('panel.thirdParty.description')}>
+                        <Toggle checked={mine.acceptThirdParty} onChange={v => change({ acceptThirdParty: v })} label={t('panel.thirdParty.accept')} hint={t('panel.thirdParty.acceptHint')} />
                     </Card>
                     <TriggersCard triggers={mine.triggers} pieces={catalog.pieces} ownCards={catalog.ownCards} lang={lang} onChange={triggers => change({ triggers })} />
                     <Card title={t('panel.command.title')} description={t('panel.command.description')}>

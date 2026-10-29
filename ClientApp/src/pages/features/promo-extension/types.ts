@@ -5,6 +5,8 @@ export interface Piece {
     id: number; kind: string; titleEs: string; titleEn: string; bodyEs: string; bodyEn: string; zone: string; platforms: string;
     durationSeconds: number; priority: number; weight: number; startsAt: string | null; endsAt: string | null; templateId: number | null;
     linkUrl: string | null; showQr: boolean; imageUrl: string | null; icon: string | null; isPinned?: boolean;
+    /** 'tercero' = publicidad de un anunciante (el canal solo la recibe si la aceptó). */
+    origin?: string; advertiserName?: string | null;
 }
 export interface Template { id: number; zone: string; nameEs?: string; nameEn?: string; design: PromoDesign }
 /** Nombre de la plantilla para listas; si el servidor no lo trae, «Plantilla N». */
