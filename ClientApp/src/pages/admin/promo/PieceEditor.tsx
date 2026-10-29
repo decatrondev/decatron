@@ -55,6 +55,13 @@ export function PieceEditor({ initial, templates, zones, options, lang, onLang, 
                                 {options.origins.map(o => <option key={o} value={o}>{t(`admin.pieces.origin.${o}`)}</option>)}
                             </Select>
                         </Field>
+                        {p.origin === 'tercero' && (
+                            <div className="sm:col-span-2">
+                                <Field label={t('admin.editor.advertiser')} hint={t('admin.editor.advertiserHint')}>
+                                    <Input value={p.advertiserName ?? ''} maxLength={80} placeholder={t('admin.editor.advertiserPlaceholder')} onChange={e => set('advertiserName', e.target.value || null)} />
+                                </Field>
+                            </div>
+                        )}
                         <Field label={t('admin.editor.titleEs')}><Input value={p.titleEs} maxLength={120} onChange={e => set('titleEs', e.target.value)} /></Field>
                         <Field label={t('admin.editor.titleEn')}><Input value={p.titleEn} maxLength={120} onChange={e => set('titleEn', e.target.value)} /></Field>
                         <Field label={t('admin.editor.bodyEs')}><Textarea value={p.bodyEs} maxLength={300} rows={3} onChange={e => set('bodyEs', e.target.value)} /></Field>
@@ -116,9 +123,6 @@ export function PieceEditor({ initial, templates, zones, options, lang, onLang, 
                         <div className="space-y-4">
                             <p className={sectionCls}>{t('admin.editor.thirdPartySection')}</p>
                             <Alert tone="info">{t('admin.editor.thirdPartyHint')}</Alert>
-                            <Field label={t('admin.editor.advertiser')} hint={t('admin.editor.advertiserHint')}>
-                                <Input value={p.advertiserName ?? ''} maxLength={80} onChange={e => set('advertiserName', e.target.value || null)} />
-                            </Field>
                             <Field label={t('admin.editor.advertiserNote')} hint={t('admin.editor.advertiserNoteHint')}>
                                 <Textarea value={p.advertiserNote ?? ''} maxLength={500} rows={3} onChange={e => set('advertiserNote', e.target.value || null)} />
                             </Field>
