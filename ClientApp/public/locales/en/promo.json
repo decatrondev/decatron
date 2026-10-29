@@ -497,7 +497,7 @@
     },
     "report": {
       "title": "Advertising report",
-      "description": "Download a CSV with views, seconds and clicks of third-party pieces, per piece and day, adding up all channels. Useful to show results to an advertiser.",
+      "description": "Download a CSV with views, seconds and clicks of third-party pieces, per piece and day, adding up all channels; it includes deliveries made while the channel was live and the average viewers in them (sampled every 5 minutes). Useful to show results to an advertiser.",
       "advertiser": "Advertiser",
       "all": "All",
       "from": "From",
@@ -571,7 +571,7 @@
       "title": "Third-party advertising",
       "description": "Decide whether your channel accepts pieces paid for by advertisers outside Decatron.",
       "accept": "Accept third-party advertising",
-      "acceptHint": "Off by default: until you turn it on, no third-party advertising will ever appear. If you turn it on, those pieces show up in «What is shown» with their advertiser, always carry the «Ad» label, and you can turn each one off."
+      "acceptHint": "Off by default: until you turn it on, no third-party advertising will ever appear. If you turn it on, those pieces show up in «What is shown» with their advertiser, always carry the «Ad» label, and you can turn each one off. On Twitch they only appear while the «Branded content» box is on in Edit stream info (Twitch requires it when you receive something in return); on Kick use #Ad or #Sponsored in the title and Kick's sponsorship notice."
     },
     "settings": {
       "title": "Settings",

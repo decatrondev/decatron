@@ -67,6 +67,19 @@ namespace Decatron.Services.Platforms.Kick
             return PostTokenRequestAsync(fields, "refresh");
         }
 
+        /// <summary>Token de aplicación (client_credentials): para leer datos públicos de canales sin sesión de nadie. Sin refresh: se pide otro al vencer.</summary>
+        public Task<KickTokenResponse> GetAppTokenAsync()
+        {
+            var fields = new[]
+            {
+                new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                new KeyValuePair<string, string>("client_id", _kickSettings.ClientId),
+                new KeyValuePair<string, string>("client_secret", _kickSettings.ClientSecret)
+            };
+
+            return PostTokenRequestAsync(fields, "token de aplicacion");
+        }
+
         private async Task<KickTokenResponse> PostTokenRequestAsync(KeyValuePair<string, string>[] fields, string operacion)
         {
             HttpResponseMessage response;

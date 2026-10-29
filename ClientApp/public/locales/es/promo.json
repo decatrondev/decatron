@@ -497,7 +497,7 @@
     },
     "report": {
       "title": "Informe de publicidad",
-      "description": "Descarga en CSV las vistas, segundos y clics de las piezas de terceros, por pieza y día, sumando todos los canales. Sirve para mostrarle resultados a un anunciante.",
+      "description": "Descarga en CSV las vistas, segundos y clics de las piezas de terceros, por pieza y día, sumando todos los canales; incluye las entregas con el canal en directo y el promedio de espectadores en ellas (muestreo cada 5 minutos). Sirve para mostrarle resultados a un anunciante.",
       "advertiser": "Anunciante",
       "all": "Todos",
       "from": "Desde",
@@ -571,7 +571,7 @@
       "title": "Publicidad de terceros",
       "description": "Decide si tu canal acepta piezas pagadas por anunciantes externos a Decatron.",
       "accept": "Aceptar publicidad de terceros",
-      "acceptHint": "Apagado por defecto: mientras no lo actives, nunca saldrá publicidad de terceros. Si lo activas, esas piezas aparecen en «Qué se muestra» con su anunciante, llevan siempre la etiqueta «Publicidad» y puedes apagar cada una."
+      "acceptHint": "Apagado por defecto: mientras no lo actives, nunca saldrá publicidad de terceros. Si lo activas, esas piezas aparecen en «Qué se muestra» con su anunciante, llevan siempre la etiqueta «Publicidad» y puedes apagar cada una. En Twitch solo salen mientras tengas activada la casilla «Contenido de marca» en Editar información del stream (Twitch lo exige cuando recibes algo a cambio); en Kick usa #Ad o #Sponsored en el título y el aviso de patrocinio de Kick."
     },
     "settings": {
       "title": "Ajustes",

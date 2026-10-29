@@ -30,16 +30,18 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _db;
         private readonly IOptionsMonitor<PromoOverlaySettings> _settings;
         private readonly ITenantResolver _tenants;
+        private readonly PromoAudienceService _audience;
         private readonly ILogger<PromoOverlayController> _logger;
 
         public PromoOverlayController(PromoCatalogService catalog, AccountChannelResolver accounts, DecatronDbContext db,
-            IOptionsMonitor<PromoOverlaySettings> settings, ITenantResolver tenants, ILogger<PromoOverlayController> logger)
+            IOptionsMonitor<PromoOverlaySettings> settings, ITenantResolver tenants, PromoAudienceService audience, ILogger<PromoOverlayController> logger)
         {
             _catalog = catalog;
             _accounts = accounts;
             _db = db;
             _settings = settings;
             _tenants = tenants;
+            _audience = audience;
             _logger = logger;
         }
 
@@ -93,6 +95,13 @@ namespace Decatron.Controllers
                 var principalId = resolved.Account.Principal.UserId;
                 var mine = await _db.PromoChannelSettings.AsNoTracking().FirstOrDefaultAsync(c => c.UserId == principalId);
                 var variant = OverlayVariant.Parse(source) ?? resolved.LegacyVariant;
+                // Audiencia: se marca la cuenta como activa para el muestreo y se lee lo último que se supo (directo, espectadores, contenido de marca).
+                _audience.Touch(principalId, resolved.Account.TwitchId, resolved.Account.KickId);
+                var audience = _audience.Current(principalId);
+                var (liveNow, viewersNow) = PromoAudience.Reading(audience, DateTime.UtcNow);
+                // Pieza de tercero: solo si el canal la aceptó y, en Twitch, tiene activada la divulgación de contenido de marca.
+                var thirdOk = (mine?.AcceptThirdParty ?? false)
+                    && PromoAudience.ThirdPartyAllowed(audience, resolved.Account.HasTwitch, variant, _settings.CurrentValue.RequireBrandedContentOnTwitch, DateTime.UtcNow);
                 var snap = await _catalog.GetPublishedAsync();
                 var limits = PromoPlayback.EffectiveLimits(snap.Limits, mine);
                 var state = PromoPlayback.StateOf(resolved.Account.OverlayKey);
@@ -122,12 +131,12 @@ namespace Decatron.Controllers
                     }
                     else
                         forcedRaw = snap.Pieces.FirstOrDefault(p => p.Id == forcedId && p.Kind != PromoPlayback.EmergencyKind
-                            && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow, mine?.AcceptThirdParty ?? false));
+                            && PromoPlayback.IsEligible(p, zone, variant, loginsF, DateTime.UtcNow, thirdOk));
                     var forced = forcedRaw == null ? null : PromoOverrides.ApplyToPiece(forcedRaw, PromoOwnCards.IsOwnPieceId(forcedRaw.Id) ? null : await PieceOverrideAsync(principalId, forcedRaw.Id), snap.Limits, snap.Templates, pinnedLocked);
                     if (forced != null && TemplateFor(snap, forced.Piece) != null)
                     {
                         lock (state.Gate) PromoPlayback.MarkShown(state, forced.Piece, limits, DateTime.UtcNow);
-                        await _catalog.CountViewAsync(principalId, forced.Piece.Id, forced.Piece.DurationSeconds);
+                        await _catalog.CountViewAsync(principalId, forced.Piece.Id, forced.Piece.DurationSeconds, liveNow, viewersNow);
                         return Ok(await BuildNextAsync(resolved, forced.Piece, snap, forced.ScalePercent));
                     }
                 }
@@ -142,7 +151,7 @@ namespace Decatron.Controllers
                 var pieceOver = await _db.PromoPieceOverrides.AsNoTracking().Where(o => o.UserId == principalId).ToListAsync();
                 var scales = new Dictionary<long, int>();
                 var eligible = new List<PromoPiece>();
-                foreach (var raw in snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now, mine?.AcceptThirdParty ?? false) && p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id)))
+                foreach (var raw in snap.Pieces.Where(p => PromoPlayback.IsEligible(p, zone, variant, logins, now, thirdOk) && p.Kind != PromoPlayback.EmergencyKind && !disabled.Contains(p.Id)))
                 {
                     var merged = PromoOverrides.ApplyToPiece(raw, pieceOver.FirstOrDefault(o => o.PieceId == raw.Id), snap.Limits, snap.Templates, pinnedLocked);
                     if (TemplateFor(snap, merged.Piece) == null) continue;
@@ -171,7 +180,7 @@ namespace Decatron.Controllers
                 }
                 if (piece == null || wait > 0) return Ok(new { success = true, found = true, wait = Math.Max(wait, 5) });
 
-                await _catalog.CountViewAsync(principalId, piece.Id, piece.DurationSeconds);
+                await _catalog.CountViewAsync(principalId, piece.Id, piece.DurationSeconds, liveNow, viewersNow);
                 return Ok(await BuildNextAsync(resolved, piece, snap, scales.GetValueOrDefault(piece.Id, 100)));
             }
             catch (Exception ex)

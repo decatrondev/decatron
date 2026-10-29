@@ -5677,7 +5677,9 @@ CREATE TABLE public.promo_piece_daily (
     day date NOT NULL,
     views integer DEFAULT 0 NOT NULL,
     seconds bigint DEFAULT 0 NOT NULL,
-    clicks bigint DEFAULT 0 NOT NULL
+    clicks bigint DEFAULT 0 NOT NULL,
+    live_views integer DEFAULT 0 NOT NULL,
+    viewers_sum bigint DEFAULT 0 NOT NULL
 );
 
 
@@ -5886,7 +5888,9 @@ CREATE TABLE public.promo_view_counts (
     views integer DEFAULT 0 NOT NULL,
     tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
     seconds integer DEFAULT 0 NOT NULL,
-    clicks integer DEFAULT 0 NOT NULL
+    clicks integer DEFAULT 0 NOT NULL,
+    live_views integer DEFAULT 0 NOT NULL,
+    viewers_sum bigint DEFAULT 0 NOT NULL
 );
 
 

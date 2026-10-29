@@ -7,7 +7,7 @@ using System.Text;
 namespace Decatron.Services.Promo
 {
     /// <summary>Una fila del informe de un anunciante: una pieza en un día (totales de todos los canales, sin identificar personas).</summary>
-    public record PromoReportRow(string Advertiser, long PieceId, string Title, DateTime Day, long Views, long Seconds, long Clicks);
+    public record PromoReportRow(string Advertiser, long PieceId, string Title, DateTime Day, long Views, long Seconds, long Clicks, long LiveViews = 0, long ViewersSum = 0);
 
     /// <summary>
     /// Informe CSV de publicidad de terceros para el dueño. Sin base de datos: recibe las filas y arma el texto.
@@ -15,7 +15,7 @@ namespace Decatron.Services.Promo
     /// </summary>
     public static class PromoReport
     {
-        public const string Header = "advertiser,piece_id,piece,day,views,seconds,clicks";
+        public const string Header = "advertiser,piece_id,piece,day,views,seconds,clicks,live_views,avg_viewers";
 
         /// <summary>Un campo de texto seguro para CSV: comillas dobles escapadas y, si empieza con = + - @ (o tab/retorno), una comilla simple delante para que la hoja de cálculo no lo ejecute como fórmula.</summary>
         public static string Field(string? s)
@@ -24,6 +24,9 @@ namespace Decatron.Services.Promo
             if (s.Length > 0 && "=+-@\t\r".Contains(s[0])) s = "'" + s;
             return s.IndexOfAny(new[] { ',', '"', '\n', '\r' }) >= 0 ? "\"" + s.Replace("\"", "\"\"") + "\"" : s;
         }
+
+        /// <summary>Promedio de espectadores en las entregas en directo (entero, redondeado); 0 si no hubo ninguna.</summary>
+        public static long AvgViewers(long liveViews, long viewersSum) => liveViews <= 0 ? 0 : (long)Math.Round((double)viewersSum / liveViews, MidpointRounding.AwayFromZero);
 
         /// <summary>Filas ordenadas por anunciante, pieza y día, más una fila TOTAL al final con la suma (si hay datos).</summary>
         public static string ToCsv(IEnumerable<PromoReportRow> rows)
@@ -34,10 +37,13 @@ namespace Decatron.Services.Promo
                 sb.Append(Field(r.Advertiser)).Append(',').Append(r.PieceId.ToString(CultureInfo.InvariantCulture)).Append(',').Append(Field(r.Title)).Append(',')
                   .Append(r.Day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).Append(',')
                   .Append(r.Views.ToString(CultureInfo.InvariantCulture)).Append(',').Append(r.Seconds.ToString(CultureInfo.InvariantCulture)).Append(',')
-                  .Append(r.Clicks.ToString(CultureInfo.InvariantCulture)).Append('\n');
+                  .Append(r.Clicks.ToString(CultureInfo.InvariantCulture)).Append(',').Append(r.LiveViews.ToString(CultureInfo.InvariantCulture)).Append(',')
+                  .Append(AvgViewers(r.LiveViews, r.ViewersSum).ToString(CultureInfo.InvariantCulture)).Append('\n');
             if (list.Count > 0)
                 sb.Append("TOTAL,,,,").Append(list.Sum(r => r.Views).ToString(CultureInfo.InvariantCulture)).Append(',')
-                  .Append(list.Sum(r => r.Seconds).ToString(CultureInfo.InvariantCulture)).Append(',').Append(list.Sum(r => r.Clicks).ToString(CultureInfo.InvariantCulture)).Append('\n');
+                  .Append(list.Sum(r => r.Seconds).ToString(CultureInfo.InvariantCulture)).Append(',').Append(list.Sum(r => r.Clicks).ToString(CultureInfo.InvariantCulture)).Append(',')
+                  .Append(list.Sum(r => r.LiveViews).ToString(CultureInfo.InvariantCulture)).Append(',')
+                  .Append(AvgViewers(list.Sum(r => r.LiveViews), list.Sum(r => r.ViewersSum)).ToString(CultureInfo.InvariantCulture)).Append('\n');
             return sb.ToString();
         }
 

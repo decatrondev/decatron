@@ -10,5 +10,8 @@ namespace Decatron.Core.Settings
         public const string SectionName = "PromoOverlay";
 
         public bool Enabled { get; set; } = true;
+
+        /// <summary>En Twitch, una pieza de tercero solo sale si el canal tiene activada la divulgación de contenido de marca (política de Twitch). Sin dato reciente no sale.</summary>
+        public bool RequireBrandedContentOnTwitch { get; set; } = true;
     }
 }

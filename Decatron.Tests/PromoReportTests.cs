@@ -15,14 +15,22 @@ public class PromoReportTests
     {
         var csv = PromoReport.ToCsv(new[]
         {
-            new PromoReportRow("Tienda Sol", 7, "Oferta", new DateTime(2026, 10, 2), 10, 80, 1),
-            new PromoReportRow("Tienda Sol", 7, "Oferta", new DateTime(2026, 10, 1), 5, 40, 0),
+            new PromoReportRow("Tienda Sol", 7, "Oferta", new DateTime(2026, 10, 2), 10, 80, 1, 8, 160),
+            new PromoReportRow("Tienda Sol", 7, "Oferta", new DateTime(2026, 10, 1), 5, 40, 0, 2, 30),
         });
         var lines = csv.TrimEnd('\n').Split('\n');
         Assert.Equal(PromoReport.Header, lines[0]);
-        Assert.Equal("Tienda Sol,7,Oferta,2026-10-01,5,40,0", lines[1]);
-        Assert.Equal("Tienda Sol,7,Oferta,2026-10-02,10,80,1", lines[2]);
-        Assert.Equal("TOTAL,,,,15,120,1", lines[3]);
+        Assert.Equal("Tienda Sol,7,Oferta,2026-10-01,5,40,0,2,15", lines[1]);
+        Assert.Equal("Tienda Sol,7,Oferta,2026-10-02,10,80,1,8,20", lines[2]);
+        Assert.Equal("TOTAL,,,,15,120,1,10,19", lines[3]);
+    }
+
+    [Fact(DisplayName = "Promo: el promedio de espectadores se redondea y es 0 sin entregas en directo")]
+    public void PromedioEspectadores()
+    {
+        Assert.Equal(0, PromoReport.AvgViewers(0, 0));
+        Assert.Equal(0, PromoReport.AvgViewers(0, 50));
+        Assert.Equal(13, PromoReport.AvgViewers(3, 38));
     }
 
     [Fact(DisplayName = "Promo: el informe vacío trae solo el encabezado")]

@@ -3613,7 +3613,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Además de las piezas de Decatron, el dueño puede cargar piezas pagadas por un anunciante. Por defecto tu canal no las recibe: tienes que activar «Aceptar publicidad de terceros» en la pestaña Ajustes."
+            "x": "Además de las piezas de Decatron, el dueño puede cargar piezas pagadas por un anunciante. Por defecto tu canal no las recibe: tienes que activar «Aceptar publicidad de terceros» en la pestaña Ajustes. En Twitch, además, solo salen mientras tengas activada la casilla «Contenido de marca» en Editar información del stream; sin ella no se muestran."
           },
           {
             "t": "ul",

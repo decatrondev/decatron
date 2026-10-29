@@ -330,6 +330,14 @@ public class PromoViewCount
     /// <summary>Clics del QR o del enlace corto (agregado, sin identificar a nadie).</summary>
     [Column("clicks")]
     public int Clicks { get; set; }
+
+    /// <summary>Entregas hechas con el canal en directo (muestreo de la plataforma, ver PromoAudienceService).</summary>
+    [Column("live_views")]
+    public int LiveViews { get; set; }
+
+    /// <summary>Suma de los espectadores del canal en cada entrega en directo; promedio = ViewersSum / LiveViews.</summary>
+    [Column("viewers_sum")]
+    public long ViewersSum { get; set; }
 }
 
 /// <summary>Entregas de una tarjeta propia en un día (UTC), por canal. Agregado, no identifica a nadie. Tabla de tenant con RLS; se borra con la tarjeta.</summary>
@@ -377,6 +385,12 @@ public class PromoPieceDaily
 
     [Column("clicks")]
     public long Clicks { get; set; }
+
+    [Column("live_views")]
+    public int LiveViews { get; set; }
+
+    [Column("viewers_sum")]
+    public long ViewersSum { get; set; }
 }
 
 /// <summary>Lo que un streamer cambió de una pieza (duración, plantilla, escala). Null = usa el valor del dueño. Tabla de tenant con RLS.</summary>

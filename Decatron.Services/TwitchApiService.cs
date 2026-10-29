@@ -567,6 +567,27 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Si el canal tiene activada la divulgación de contenido de marca (<c>is_branded_content</c> de Get Channel Information, token de app, sin scope).
+        /// null si no se pudo saber.
+        /// </summary>
+        public async Task<bool?> GetIsBrandedContentAsync(string broadcasterId)
+        {
+            try
+            {
+                using var response = await SendWithAppTokenAsync(new HttpRequestMessage(HttpMethod.Get, $"{TwitchApiBaseUrl}/channels?broadcaster_id={Uri.EscapeDataString(broadcasterId)}"));
+                if (!response.IsSuccessStatusCode) return null;
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array || data.GetArrayLength() == 0) return null;
+                return data[0].TryGetProperty("is_branded_content", out var b) && b.ValueKind is JsonValueKind.True or JsonValueKind.False ? b.GetBoolean() : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo leer is_branded_content de {Id}", broadcasterId);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Obtiene toda la información necesaria para un shoutout
         /// </summary>
         public async Task<ShoutoutData?> GetShoutoutDataAsync(string targetUsername, ShoutoutClipOptions? clipOptions = null)

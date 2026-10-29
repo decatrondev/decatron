@@ -48,12 +48,14 @@ namespace Decatron.Services.Promo
         private static DateOnly _lastPurge;
 
         /// <summary>Suma una entrega al overlay de una cuenta: pieza del bot (contador del canal y global) o tarjeta propia (id negativo). Nunca rompe la rotación.</summary>
-        public async Task CountViewAsync(long principalUserId, long pieceId, int seconds = 0)
+        public async Task CountViewAsync(long principalUserId, long pieceId, int seconds = 0, bool live = false, int viewers = 0)
         {
             try
             {
                 var day = DateOnly.FromDateTime(DateTime.UtcNow);
                 seconds = Math.Max(0, seconds);
+                var liveViews = live ? 1 : 0;
+                var viewersSum = live ? Math.Max(0, viewers) : 0;
                 if (PromoOwnCards.IsOwnPieceId(pieceId))
                 {
                     var cardId = -pieceId;
@@ -62,10 +64,12 @@ namespace Decatron.Services.Promo
                 }
                 else
                 {
-                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_view_counts (user_id, piece_id, day, views, seconds) VALUES ({principalUserId}, {pieceId}, {day}, 1, {seconds})
-                        ON CONFLICT (user_id, piece_id, day) DO UPDATE SET views = promo_view_counts.views + 1, seconds = promo_view_counts.seconds + {seconds}");
-                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_piece_daily (piece_id, day, views, seconds) VALUES ({pieceId}, {day}, 1, {seconds})
-                        ON CONFLICT (piece_id, day) DO UPDATE SET views = promo_piece_daily.views + 1, seconds = promo_piece_daily.seconds + {seconds}");
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_view_counts (user_id, piece_id, day, views, seconds, live_views, viewers_sum) VALUES ({principalUserId}, {pieceId}, {day}, 1, {seconds}, {liveViews}, {viewersSum})
+                        ON CONFLICT (user_id, piece_id, day) DO UPDATE SET views = promo_view_counts.views + 1, seconds = promo_view_counts.seconds + {seconds},
+                            live_views = promo_view_counts.live_views + {liveViews}, viewers_sum = promo_view_counts.viewers_sum + {viewersSum}");
+                    await _db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO promo_piece_daily (piece_id, day, views, seconds, live_views, viewers_sum) VALUES ({pieceId}, {day}, 1, {seconds}, {liveViews}, {viewersSum})
+                        ON CONFLICT (piece_id, day) DO UPDATE SET views = promo_piece_daily.views + 1, seconds = promo_piece_daily.seconds + {seconds},
+                            live_views = promo_piece_daily.live_views + {liveViews}, viewers_sum = promo_piece_daily.viewers_sum + {viewersSum}");
                 }
                 await PurgeOldAsync(day);
             }
@@ -161,7 +165,7 @@ namespace Decatron.Services.Promo
             var daily = await _db.PromoPieceDaily.AsNoTracking().Where(r => ids.Contains(r.PieceId) && r.Day >= from && r.Day <= to).ToListAsync();
             var byId = pieces.ToDictionary(p => p.Id);
             return daily.Select(r => new PromoReportRow(byId[r.PieceId].AdvertiserName ?? "", r.PieceId,
-                byId[r.PieceId].TitleEs != "" ? byId[r.PieceId].TitleEs : byId[r.PieceId].BodyEs, r.Day.Date, r.Views, r.Seconds, r.Clicks)).ToList();
+                byId[r.PieceId].TitleEs != "" ? byId[r.PieceId].TitleEs : byId[r.PieceId].BodyEs, r.Day.Date, r.Views, r.Seconds, r.Clicks, r.LiveViews, r.ViewersSum)).ToList();
         }
 
         private record DisabledRow(long PieceId, int Channels);

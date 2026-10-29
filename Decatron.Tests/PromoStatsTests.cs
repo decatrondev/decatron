@@ -59,6 +59,26 @@ public class PromoStatsTests
         await tx.RollbackAsync();
     }
 
+    [Fact(DisplayName = "Las entregas en directo suman entregas y espectadores aparte; las de fuera de directo solo suman vistas")]
+    public async Task LiveViews_SumViewersOnlyWhenLive()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        var pieceId = (await db.Database.SqlQueryRaw<long>("INSERT INTO promo_pieces DEFAULT VALUES RETURNING id AS \"Value\"").ToListAsync()).Single();
+        var svc = new PromoCatalogService(db, new MemoryCache(new MemoryCacheOptions()));
+
+        await svc.CountViewAsync(User, pieceId, 8, live: true, viewers: 30);
+        await svc.CountViewAsync(User, pieceId, 8, live: true, viewers: 10);
+        await svc.CountViewAsync(User, pieceId, 8, live: false, viewers: 99); // fuera de directo: los espectadores no se suman
+
+        var d = await db.PromoPieceDaily.AsNoTracking().SingleAsync(x => x.PieceId == pieceId);
+        Assert.Equal((3, 2, 40L), (d.Views, d.LiveViews, d.ViewersSum));
+        var v = await db.PromoViewCounts.AsNoTracking().SingleAsync(x => x.UserId == User && x.PieceId == pieceId);
+        Assert.Equal((3, 2, 40L), (v.Views, v.LiveViews, v.ViewersSum));
+        await tx.RollbackAsync();
+    }
+
     [Fact(DisplayName = "El borrado diario quita solo el historial por canal con más de 90 días y deja el global")]
     public async Task Purge_KeepsGlobal()
     {

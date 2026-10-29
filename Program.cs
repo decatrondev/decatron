@@ -606,6 +606,8 @@ try
     builder.Services.AddSingleton<Decatron.Services.ClipCommand.ClipCommandService>();
     builder.Services.AddSingleton<Decatron.Services.Promo.PromoCommandService>(); // Comando de chat de Promociones (!dpromo)
     builder.Services.AddSingleton<Decatron.Services.Promo.PromoTriggerService>(); // Disparadores de Promociones (inicio de directo, raid)
+    builder.Services.AddSingleton<Decatron.Services.Promo.PromoAudienceService>(); // Muestreo de directo/espectadores/contenido de marca para las entregas de Promociones
+    builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Services.Promo.PromoAudienceService>());
     builder.Services.AddHostedService<Decatron.Services.ClipCommand.ClipHistoryCleanupService>();
     builder.Services.AddSingleton<TwitchBotService>();
     builder.Services.AddSingleton<Lazy<TwitchBotService>>(provider =>
