@@ -37,14 +37,16 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _db;
         private readonly CommandService _commands;
         private readonly PromoCommandService _promoCommand;
+        private readonly PromoAudienceService _audience;
         private readonly ILogger<PromoPanelController> _logger;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
         public PromoPanelController(AccountChannelResolver accounts, PromoCatalogService catalog,
             IOptionsMonitor<PromoOverlaySettings> settings, DecatronDbContext db, CommandService commands,
-            PromoCommandService promoCommand, ILogger<PromoPanelController> logger, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
+            PromoCommandService promoCommand, PromoAudienceService audience, ILogger<PromoPanelController> logger, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             _env = env;
+            _audience = audience;
             _accounts = accounts;
             _catalog = catalog;
             _settings = settings;
@@ -142,6 +144,7 @@ namespace Decatron.Controllers
                     zoneOverrides = await _db.PromoZoneOverrides.AsNoTracking().Where(o => o.UserId == principalId)
                         .Select(o => new { o.ZoneKey, o.Anchor, o.MarginX, o.MarginY }).ToListAsync(),
                     views = await _catalog.GetChannelViewsAsync(principalId),
+                    audience = _audience.Status(principalId, account.TwitchId, account.KickId),
                     mine = new { paused = prefs?.Paused ?? false, acceptThirdParty = prefs?.AcceptThirdParty ?? false, disabledPieces = PromoPlayback.EffectiveDisabled(PromoPlayback.DisabledIds(prefs), snap.Pieces, ownInUse), minGapSeconds = prefs?.MinGapSeconds, hourlyCapSeconds = prefs?.HourlyCapSeconds,
                     command = new { enabled = prefs?.CmdEnabled ?? false, name = prefs?.CmdName ?? PromoCommand.DefaultName, cooldownSeconds = prefs?.CmdCooldownSeconds ?? 10, minRole = prefs?.CmdMinRole ?? "moderator" },
                     triggers = new
@@ -156,6 +159,17 @@ namespace Decatron.Controllers
                 _logger.LogError(ex, "Error obteniendo el catálogo de promociones del streamer");
                 return StatusCode(500, new { success = false, message = "Error interno del servidor" });
             }
+        }
+
+        /// <summary>Estado de la publicidad de terceros del canal (directo, espectadores, contenido de marca). Al pedirlo, se muestrea la cuenta si el dato venció.</summary>
+        [HttpGet("audience")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> Audience()
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            var account = await _accounts.ResolveByUserIdAsync(GetChannelOwnerId());
+            if (account == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+            return Ok(new { success = true, audience = _audience.Status(account.Principal.UserId, account.TwitchId, account.KickId) });
         }
 
         /// <summary>Estadísticas del canal: entregas y tiempo en pantalla por día, ranking de piezas y de tarjetas propias. days = 7, 30 o 90.</summary>

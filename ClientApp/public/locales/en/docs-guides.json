@@ -3613,7 +3613,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Besides Decatron's own pieces, the owner can load pieces paid for by an advertiser. By default your channel does not receive them: you have to turn on «Accept third-party advertising» in the Settings tab. On Twitch they also only appear while the «Branded content» box is on in Edit stream info; without it they are not shown."
+            "x": "Besides Decatron's own pieces, the owner can load pieces paid for by an advertiser. By default your channel does not receive them: you have to turn on «Accept third-party advertising» in the Settings tab. On Twitch they also only appear while the «Branded content» box is on in Edit stream info; without it they are not shown; in Settings you will see a notice telling you whether it still needs turning on (it is not an error), and it refreshes by itself."
           },
           {
             "t": "ul",

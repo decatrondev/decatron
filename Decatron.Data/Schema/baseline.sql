@@ -166,6 +166,18 @@ $$;
 
 
 --
+-- Name: promo_third_party_channels(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.promo_third_party_channels() RETURNS TABLE(user_id bigint)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT s.user_id FROM promo_channel_settings s WHERE s.accept_third_party
+$$;
+
+
+--
 -- Name: promo_purge_old_views(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 

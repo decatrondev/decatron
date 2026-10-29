@@ -25,9 +25,14 @@ namespace Decatron.Controllers
         private readonly PromoCatalogService _catalog;
         private readonly IOptionsMonitor<PromoOverlaySettings> _settings;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
+        private readonly Decatron.Services.Accounts.AccountChannelResolver _accounts;
+        private readonly PromoAudienceService _audience;
 
-        public PromoAdminController(PromoCatalogService catalog, IOptionsMonitor<PromoOverlaySettings> settings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
+        public PromoAdminController(PromoCatalogService catalog, IOptionsMonitor<PromoOverlaySettings> settings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env,
+            Decatron.Services.Accounts.AccountChannelResolver accounts, PromoAudienceService audience)
         {
+            _accounts = accounts;
+            _audience = audience;
             _catalog = catalog;
             _settings = settings;
             _env = env;
@@ -76,6 +81,23 @@ namespace Decatron.Controllers
             // BOM para que Excel abra bien los acentos.
             var bytes = new System.Text.UTF8Encoding(true).GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv)).ToArray();
             return File(bytes, "text/csv; charset=utf-8", $"promociones-informe-{f:yyyyMMdd}-{t:yyyyMMdd}.csv");
+        }
+
+        /// <summary>Canales que aceptan publicidad de terceros y su estado (listo, falta contenido de marca, sin dato) con directo y espectadores. Solo se ven datos de cuentas con el overlay abierto en los últimos 20 minutos.</summary>
+        [HttpGet("third-party-channels")]
+        public async Task<IActionResult> ThirdPartyChannels()
+        {
+            if (!_settings.CurrentValue.Enabled) return NotFound();
+            var rows = new System.Collections.Generic.List<object>();
+            foreach (var id in await _catalog.GetThirdPartyChannelIdsAsync())
+            {
+                var account = await _accounts.ResolveByUserIdAsync(id);
+                if (account == null) continue;
+                var s = PromoAudience.Describe(_audience.Current(account.Principal.UserId), account.HasTwitch, account.HasKick,
+                    _settings.CurrentValue.RequireBrandedContentOnTwitch, System.DateTime.UtcNow);
+                rows.Add(new { login = account.Principal.Login, s.Status, s.Live, s.Viewers, s.SampledAt, s.HasTwitch, s.HasKick });
+            }
+            return Ok(new { success = true, channels = rows });
         }
 
         public record HideRequest(bool Hidden);

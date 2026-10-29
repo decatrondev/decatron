@@ -48,4 +48,24 @@ public class PromoAudienceTests
 
     [Fact(DisplayName = "Promo audiencia: sin ningún dato, una pieza de tercero en Twitch no sale")]
     public void TerceroSinDato() => Assert.False(PromoAudience.ThirdPartyAllowed(null, true, OverlayVariant.Twitch, true, Ahora));
+
+    [Theory(DisplayName = "Promo audiencia: el estado para pantalla distingue listo, falta contenido de marca, sin dato y no aplica")]
+    [InlineData(true, true, false, true, 2, "ready")]
+    [InlineData(true, false, false, true, 2, "needsBranded")]
+    [InlineData(true, true, false, true, 30, "unknown")]     // dato viejo
+    [InlineData(true, null, false, true, 2, "unknown")]      // la API no respondió: no se sabe
+    [InlineData(false, false, true, true, 2, "notRequired")]  // cuenta solo de Kick
+    [InlineData(true, false, false, false, 2, "notRequired")] // control apagado
+    public void EstadoParaPantalla(bool hasTwitch, bool? branded, bool hasKick, bool required, int minutosDeEdad, string esperado)
+    {
+        var s = new AudienceSample(true, 10, branded, Ahora.AddMinutes(-minutosDeEdad));
+        Assert.Equal(esperado, PromoAudience.Describe(s, hasTwitch, hasKick, required, Ahora).Status);
+    }
+
+    [Fact(DisplayName = "Promo audiencia: sin muestreo el estado es desconocido, sin hora y sin espectadores")]
+    public void EstadoSinDato()
+    {
+        var d = PromoAudience.Describe(null, true, false, true, Ahora);
+        Assert.Equal(("unknown", false, 0, (DateTime?)null), (d.Status, d.Live, d.Viewers, d.SampledAt));
+    }
 }

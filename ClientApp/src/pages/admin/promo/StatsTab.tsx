@@ -8,6 +8,7 @@ import { formatDuration, formatNumber, type DayStat } from '../../features/promo
 import type { Lang } from './shared';
 import type { PromoOverview } from './types';
 import { AdvertiserReport } from './AdvertiserReport';
+import { ThirdPartyChannels } from './ThirdPartyChannels';
 
 interface GlobalStats { days: number; perDay: DayStat[]; pieces: { id: number; views: number; seconds: number; clicks: number; disabledIn: number }[]; totalViews: number; totalSeconds: number; totalClicks: number }
 
@@ -64,6 +65,7 @@ export function StatsTab({ data, lang }: { data: PromoOverview; lang: Lang }) {
                     ))}
                 </ul>
             </Card>
+            <ThirdPartyChannels />
             <AdvertiserReport data={data} />
         </div>
     );

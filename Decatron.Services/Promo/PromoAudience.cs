@@ -45,6 +45,21 @@ namespace Decatron.Services.Promo
         }
 
         /// <summary>
+        /// Estado para mostrar: ready (puede salir), needsBranded (Twitch con «Contenido de marca» apagado), unknown (aún sin dato reciente o la API no respondió),
+        /// notRequired (no se exige: control apagado o cuenta sin Twitch). Los espectadores y el directo salen del último dato fresco.
+        /// </summary>
+        public static AudienceStatus Describe(AudienceSample? s, bool hasTwitch, bool hasKick, bool required, DateTime now)
+        {
+            var fresh = Fresh(s, now);
+            var (live, viewers) = Reading(s, now);
+            string status;
+            if (!required || !hasTwitch) status = "notRequired";
+            else if (!fresh || s!.Branded == null) status = "unknown";
+            else status = s.Branded == true ? "ready" : "needsBranded";
+            return new AudienceStatus(status, live, viewers, fresh ? s!.At : null, hasTwitch, hasKick);
+        }
+
+        /// <summary>
         /// ¿Puede salir una pieza de tercero en este overlay? En Twitch (cuenta con Twitch y overlay no solo-Kick) exige contenido de marca activado y un dato reciente;
         /// si el control está apagado o el overlay es solo de Kick, no se pide (Kick no expone ese dato).
         /// </summary>
@@ -54,6 +69,9 @@ namespace Decatron.Services.Promo
             return Fresh(s, now) && s!.Branded == true;
         }
     }
+
+    /// <summary>Lo que ve el streamer o el dueño sobre la publicidad de terceros de una cuenta. Status: ready | needsBranded | unknown | notRequired.</summary>
+    public sealed record AudienceStatus(string Status, bool Live, int Viewers, DateTime? SampledAt, bool HasTwitch, bool HasKick);
 
     /// <summary>
     /// Muestrea cada 5 minutos, solo las cuentas cuyo overlay de Promociones está pidiendo piezas, si están en directo y cuántos espectadores tienen
@@ -99,6 +117,14 @@ namespace Decatron.Services.Promo
             e.KickId = string.IsNullOrEmpty(kickId) ? null : kickId;
             e.Touched = now;
             if (!PromoAudience.Fresh(e.Sample, now) && (e.TwitchId != null || e.KickId != null)) _ = Task.Run(() => SampleAsync(e));
+        }
+
+        /// <summary>Marca la cuenta como activa (para que se muestree) y devuelve el estado para pantalla.</summary>
+        public AudienceStatus Status(long principalUserId, string? twitchId, string? kickId)
+        {
+            Touch(principalUserId, twitchId, kickId);
+            return PromoAudience.Describe(Current(principalUserId), !string.IsNullOrEmpty(twitchId), !string.IsNullOrEmpty(kickId),
+                _settings.CurrentValue.RequireBrandedContentOnTwitch, DateTime.UtcNow);
         }
 
         public AudienceSample? Current(long principalUserId) => _accounts.TryGetValue(principalUserId, out var e) ? e.Sample : null;

@@ -505,6 +505,20 @@
       "download": "Download CSV",
       "rangeInvalid": "The range is not valid: the start date must be before the end date and span at most one year.",
       "failed": "The report could not be generated."
+    },
+    "thirdChannels": {
+      "title": "Channels with third-party advertising",
+      "description": "Channels that turned on «Accept third-party advertising» and whether they could receive it today. There is only data for those with the OBS overlay open (or open in the last 20 minutes).",
+      "refresh": "Refresh",
+      "none": "No channel has accepted third-party advertising yet.",
+      "live": "Live · {{n}} viewers",
+      "offline": "Not streaming or no data",
+      "status": {
+        "ready": "Ready",
+        "needsBranded": "Branded content missing",
+        "unknown": "No recent data",
+        "notRequired": "Not applicable"
+      }
     }
   },
   "panel": {
@@ -565,7 +579,8 @@
       "on": "On",
       "off": "Off: it won't show on your channel",
       "shown": "Shown {{n}} times in 30 days",
-      "pinned": "Fixed while you use your own cards"
+      "pinned": "Fixed while you use your own cards",
+      "waitingBranded": "Waiting: «Branded content» is off in Twitch"
     },
     "thirdParty": {
       "title": "Third-party advertising",
@@ -792,6 +807,29 @@
       "clicks": "clicks",
       "chartLabelClicks": "Clicks per day",
       "colClicks": "Clicks"
+    },
+    "audience": {
+      "ready": {
+        "title": "Ready: your third-party pieces can play",
+        "text": "Your channel has «Branded content» turned on in Twitch. Third-party pieces join the rotation along with the others."
+      },
+      "needsBranded": {
+        "title": "Waiting: «Branded content» is not turned on in Twitch",
+        "text": "This is not an error. Twitch requires you to tell your community when you receive something in return for promoting, so while that box is off no third-party advertising will play. Turn it on in Twitch, in Edit stream info, and this updates by itself in a few minutes."
+      },
+      "unknown": {
+        "title": "Checking your channel…",
+        "text": "We do not have a recent reading of your channel yet. It is checked again every 5 minutes while your OBS overlay is open. If it does not change, press Refresh."
+      },
+      "notRequired": {
+        "title": "Branded content is not required on this channel",
+        "text": "This check only applies to channels with Twitch. Third-party pieces play according to what you turned on above."
+      },
+      "kick": "On Kick, put #Ad or #Sponsored in the stream title and use Kick's sponsorship notice: it cannot be checked from here.",
+      "live": "Live now · {{n}} viewers",
+      "offline": "Not streaming now",
+      "checked": "checked at {{time}}",
+      "refresh": "Refresh"
     }
   }
 }

@@ -168,6 +168,12 @@ namespace Decatron.Services.Promo
                 byId[r.PieceId].TitleEs != "" ? byId[r.PieceId].TitleEs : byId[r.PieceId].BodyEs, r.Day.Date, r.Views, r.Seconds, r.Clicks, r.LiveViews, r.ViewersSum)).ToList();
         }
 
+        private record UserIdRow(long UserId);
+
+        /// <summary>Ids de las cuentas (de todos los tenants) que activaron «Aceptar publicidad de terceros».</summary>
+        public async Task<List<long>> GetThirdPartyChannelIdsAsync() =>
+            (await _db.Database.SqlQueryRaw<UserIdRow>(@"SELECT user_id AS ""UserId"" FROM promo_third_party_channels()").ToListAsync()).Select(r => r.UserId).ToList();
+
         private record DisabledRow(long PieceId, int Channels);
         private static int NormalizeDays(int days, params int[] allowed) => allowed.Contains(days) ? days : allowed[1];
 

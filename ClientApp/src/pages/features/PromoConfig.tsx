@@ -18,6 +18,7 @@ import { StatsTab } from './promo-extension/StatsTab';
 import type { SlotValues } from '../../components/promo-overlay/slots';
 import { OwnCardsSection } from './promo-extension/OwnCardsSection';
 import { ShowNowButton } from './promo-extension/ShowNowButton';
+import { ThirdPartyStatus, type AudienceStatus } from './promo-extension/ThirdPartyStatus';
 import { TriggersCard, type Triggers } from './promo-extension/TriggersCard';
 import { isEmptyPieceOv, isPinnedLocked, emptyPieceOv, type Limits, type OwnCard, type Piece, type PieceOv, type Template, type Zone, type ZoneOv } from './promo-extension/types';
 
@@ -38,6 +39,8 @@ interface Catalog {
     templateOverrides: { templateId: number; values: SlotValues }[];
     ownCards: OwnCard[];
     ownQuota: { max: number };
+    /** Estado de la publicidad de terceros del canal (contenido de marca, directo, espectadores). */
+    audience?: AudienceStatus;
     /** Veces que salió cada pieza en este canal en los últimos 30 días. */
     views: Record<string, number>;
 }
@@ -226,6 +229,7 @@ export default function PromoConfig() {
                                             <span>{t('panel.pieces.shown', { n: catalog.views?.[p.id] ?? 0 })}</span>
                                             <span>{t('panel.pieces.priority', { n: p.priority })}</span>
                                             {p.origin === 'tercero' && <span>{p.advertiserName ? t('panel.pieces.sponsoredBy', { name: p.advertiserName }) : t('panel.pieces.sponsored')}</span>}
+                                            {p.origin === 'tercero' && catalog.audience?.status === 'needsBranded' && <span className="text-ds-warn font-bold">{t('panel.pieces.waitingBranded')}</span>}
                                             {p.platforms === 'twitch' && <span>{t('panel.pieces.onlyTwitch')}</span>}
                                             {p.platforms === 'kick' && <span>{t('panel.pieces.onlyKick')}</span>}
                                             {p.startsAt && <span>{t('panel.pieces.from', { date: dateFmt.format(new Date(p.startsAt)) })}</span>}
@@ -274,6 +278,7 @@ export default function PromoConfig() {
                     </Card>
                     <Card title={t('panel.thirdParty.title')} description={t('panel.thirdParty.description')}>
                         <Toggle checked={mine.acceptThirdParty} onChange={v => change({ acceptThirdParty: v })} label={t('panel.thirdParty.accept')} hint={t('panel.thirdParty.acceptHint')} />
+                        {mine.acceptThirdParty && <div className="mt-4"><ThirdPartyStatus initial={catalog.audience ?? null} /></div>}
                     </Card>
                     <TriggersCard triggers={mine.triggers} pieces={catalog.pieces} ownCards={catalog.ownCards} lang={lang} onChange={triggers => change({ triggers })} />
                     <Card title={t('panel.command.title')} description={t('panel.command.description')}>

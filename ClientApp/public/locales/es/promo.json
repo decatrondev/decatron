@@ -505,6 +505,20 @@
       "download": "Descargar CSV",
       "rangeInvalid": "El rango no es válido: la fecha de inicio debe ser anterior a la de fin y no pasar de un año.",
       "failed": "No se pudo generar el informe."
+    },
+    "thirdChannels": {
+      "title": "Canales con publicidad de terceros",
+      "description": "Canales que activaron «Aceptar publicidad de terceros» y si hoy podrían recibirla. Solo hay dato de quienes tienen el overlay de OBS abierto (o lo tuvieron en los últimos 20 minutos).",
+      "refresh": "Actualizar",
+      "none": "Ningún canal aceptó publicidad de terceros todavía.",
+      "live": "En directo · {{n}} espectadores",
+      "offline": "Sin transmitir o sin dato",
+      "status": {
+        "ready": "Lista",
+        "needsBranded": "Falta contenido de marca",
+        "unknown": "Sin dato reciente",
+        "notRequired": "No aplica"
+      }
     }
   },
   "panel": {
@@ -565,7 +579,8 @@
       "on": "Activa",
       "off": "Apagada: no saldrá en tu canal",
       "shown": "Salió {{n}} veces en 30 días",
-      "pinned": "Fija mientras uses tarjetas propias"
+      "pinned": "Fija mientras uses tarjetas propias",
+      "waitingBranded": "En espera: falta «Contenido de marca» en Twitch"
     },
     "thirdParty": {
       "title": "Publicidad de terceros",
@@ -792,6 +807,29 @@
       "clicks": "clics",
       "chartLabelClicks": "Clics por día",
       "colClicks": "Clics"
+    },
+    "audience": {
+      "ready": {
+        "title": "Listo: tus piezas de terceros pueden salir",
+        "text": "Tu canal tiene activado «Contenido de marca» en Twitch. Las piezas de terceros entran en la rotación junto con las demás."
+      },
+      "needsBranded": {
+        "title": "En espera: falta activar «Contenido de marca» en Twitch",
+        "text": "Esto no es un error. Twitch exige avisar a tu comunidad cuando recibes algo a cambio de promocionar, así que mientras esa casilla esté apagada no saldrá publicidad de terceros. Actívala en Twitch, en Editar información del stream, y aquí se actualiza sola en unos minutos."
+      },
+      "unknown": {
+        "title": "Comprobando tu canal…",
+        "text": "Todavía no tenemos un dato reciente de tu canal. Se vuelve a comprobar cada 5 minutos mientras tengas abierto el overlay de OBS. Si no cambia, pulsa Actualizar."
+      },
+      "notRequired": {
+        "title": "No hace falta contenido de marca en este canal",
+        "text": "Esta comprobación solo aplica a canales con Twitch. Las piezas de terceros salen según lo que activaste arriba."
+      },
+      "kick": "En Kick, pon #Ad o #Sponsored en el título del stream y usa el aviso de patrocinio de Kick: no se puede comprobar desde aquí.",
+      "live": "En directo ahora · {{n}} espectadores",
+      "offline": "Sin transmitir ahora",
+      "checked": "comprobado a las {{time}}",
+      "refresh": "Actualizar"
     }
   }
 }
