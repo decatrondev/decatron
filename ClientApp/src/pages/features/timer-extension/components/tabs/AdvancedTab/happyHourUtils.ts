@@ -98,9 +98,15 @@ export const localTz = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 export type HHMode = 'schedule' | 'progress' | 'remaining';
 
 /** Campos del modo progreso, todos en segundos. 0 = sin valor. */
-export interface HHProgress { startAfter: number; endHow: 'duration' | 'end'; endAfter: number; duration: number; repeatOn: boolean; repeatEvery: number }
+export type RemainingEnd = 'above' | 'rise_to' | 'fall_to' | 'duration';
+export const REMAINING_ENDS: RemainingEnd[] = ['above', 'rise_to', 'fall_to', 'duration'];
+export interface HHProgress {
+    startAfter: number; endHow: 'duration' | 'end'; endAfter: number; duration: number; repeatOn: boolean; repeatEvery: number;
+    /** Solo «por tiempo restante»: cómo termina. Usa endAfter (rise_to / fall_to) o duration. */
+    remainingEnd: RemainingEnd;
+}
 
-export const DEFAULT_PROGRESS: HHProgress = { startAfter: 12 * 3600, endHow: 'duration', endAfter: 0, duration: 2 * 3600, repeatOn: false, repeatEvery: 6 * 3600 };
+export const DEFAULT_PROGRESS: HHProgress = { startAfter: 12 * 3600, endHow: 'duration', endAfter: 0, duration: 2 * 3600, repeatOn: false, repeatEvery: 6 * 3600, remainingEnd: 'above' };
 
 /** Clave de traducción del error de la configuración, o null si es válida. */
 export function progressError(p: HHProgress): string | null {
@@ -112,5 +118,11 @@ export function progressError(p: HHProgress): string | null {
     return null;
 }
 
-/** Modo «por tiempo restante»: solo hace falta un umbral mayor que cero. */
-export const remainingError = (p: HHProgress): string | null => (p.startAfter > 0 ? null : 'timerAdvanced.hh.remaining.errThreshold');
+/** Modo «por tiempo restante»: un umbral mayor que cero y, según cómo termine, el punto de fin o la duración (misma regla que el servidor). */
+export function remainingError(p: HHProgress): string | null {
+    if (p.startAfter <= 0) return 'timerAdvanced.hh.remaining.errThreshold';
+    if (p.remainingEnd === 'rise_to' && p.endAfter <= p.startAfter) return 'timerAdvanced.hh.remaining.errRise';
+    if (p.remainingEnd === 'fall_to' && p.endAfter >= p.startAfter) return 'timerAdvanced.hh.remaining.errFall';
+    if (p.remainingEnd === 'duration' && p.duration <= 0) return 'timerAdvanced.hh.remaining.errDuration';
+    return null;
+}

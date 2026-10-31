@@ -8130,7 +8130,9 @@ CREATE TABLE public.timer_happyhour (
     start_after_seconds integer,
     end_after_seconds integer,
     duration_seconds integer,
-    repeat_every_seconds integer
+    repeat_every_seconds integer,
+    end_mode character varying(16) DEFAULT 'above'::character varying NOT NULL,
+    latched_elapsed_seconds bigint
 );
 
 

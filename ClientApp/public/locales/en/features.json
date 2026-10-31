@@ -2528,11 +2528,42 @@
       "endsAt": "Ends at {{time}} ({{city}} time)",
       "remaining": {
         "startAt": "Turns on when the timer has this much left…",
-        "hint": "While the time left is this or less, the Happy Hour is active. If the time left rises above it (for example with a donation), it turns off; when it drops again, it turns on again. If you pause the timer, it stays as it was.",
-        "summary": "Turns on while the timer has {{start}} or less left. x{{m}} on {{events}}.",
-        "card": "While {{start}} or less is left",
+        "hint": "It is active when the time remaining reaches this or less.",
+        "summary": {
+          "above": "Turns on while the timer has {{start}} or less left. x{{m}} on {{events}}.",
+          "rise_to": "Turns on when the timer has {{start}} left and stays on until it has {{end}} left. x{{m}} on {{events}}.",
+          "fall_to": "Turns on while the timer has between {{start}} and {{end}} left. x{{m}} on {{events}}.",
+          "duration": "Turns on when the timer has {{start}} left and lasts {{end}} of timer time. x{{m}} on {{events}}."
+        },
+        "card": {
+          "above": "While {{start}} or less is left",
+          "rise_to": "From {{start}} left until {{end}}",
+          "fall_to": "Between {{start}} and {{end}} left",
+          "duration": "From {{start}} left, lasts {{end}}"
+        },
         "badge": "By time remaining",
-        "errThreshold": "Say how much remaining time turns it on (greater than zero)."
+        "errThreshold": "Say how much remaining time turns it on (greater than zero).",
+        "endTitle": "How it ends",
+        "end": {
+          "above": "When it rises above that time",
+          "rise_to": "When it rises to…",
+          "fall_to": "When it drops to…",
+          "duration": "After a set time"
+        },
+        "label": {
+          "rise_to": "It stays active until the timer has this much left…",
+          "fall_to": "It turns off when the timer has this much left…",
+          "duration": "Lasts…"
+        },
+        "hintEnd": {
+          "above": "It turns off as soon as the time remaining goes above the one above. If it drops again, it turns on again.",
+          "rise_to": "Even if donations raise the time, it stays active until the time remaining reaches this (it must be greater than the one above). Then it turns off, and turns on again when it drops back to the time above.",
+          "fall_to": "Active only between the two times: it turns off when it drops to this (it must be less than the one above).",
+          "duration": "Timer time (it freezes while paused), even if the time remaining rises. Once it runs out, it doesn't turn on again until the time remaining rises above the one above and drops again."
+        },
+        "errRise": "The time it turns off at must be greater than the one that turns it on.",
+        "errFall": "The time it turns off at must be less than the one that turns it on.",
+        "errDuration": "Say how long it lasts (greater than zero)."
       },
       "events": {
         "all": "All",

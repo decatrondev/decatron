@@ -128,7 +128,7 @@ A scheduled happy hour (`/api/timer/happyhour`) has a multiplier (1 to 10), the 
 |------|----------|--------|
 | `schedule` (default) | Days of the week and a time range in the channel's time zone (it can cross midnight) | `startTime`, `endTime`, `daysOfWeek` |
 | `progress` | When the timer has run for a set time, not counting pauses. Ends after a duration or at a second time; once or repeating | `startAfterSeconds`, `durationSeconds` or `endAfterSeconds`, optional `repeatEverySeconds` (must be longer than the window) |
-| `remaining` | While the timer has `startAfterSeconds` or less left. Turns off if the time left rises above it (for example with a donation) and on again when it drops; no fixed end | `startAfterSeconds` |
+| `remaining` | While the timer has `startAfterSeconds` or less left. How it ends is set by `remainingEndMode`: `above` (default, turns off when the time left rises above the threshold and on again when it drops), `rise_to` (stays on, even with donations, until the time left reaches `endAfterSeconds`, which must be greater than the threshold; then it re-arms when it drops to the threshold), `fall_to` (turns off when the time left drops to `endAfterSeconds`, which must be lower), `duration` (lasts `durationSeconds` of timer time; re-arms after the time left rises above the threshold and drops again) | `startAfterSeconds`, `remainingEndMode`, `endAfterSeconds` or `durationSeconds` |
 
 With the timer paused, `progress` and `remaining` happy hours stay frozen; stopping or resetting the timer sends the elapsed time back to zero. The mode cannot be changed after creation. The channel's time zone (Advanced → General) only matters for `schedule`.
 

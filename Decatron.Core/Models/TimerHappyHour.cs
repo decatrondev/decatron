@@ -12,6 +12,21 @@ namespace Decatron.Core.Models
         public const string Remaining = "remaining";
     }
 
+    /// <summary>Cómo termina una Happy Hour por tiempo restante.</summary>
+    public static class RemainingEndModes
+    {
+        /// <summary>Se apaga en cuanto el tiempo restante sube sobre el umbral (lo de siempre).</summary>
+        public const string Above = "above";
+        /// <summary>Se mantiene activa hasta que el tiempo restante suba a EndAfterSeconds (mayor que el umbral).</summary>
+        public const string RiseTo = "rise_to";
+        /// <summary>Se apaga cuando el tiempo restante baja a EndAfterSeconds (menor que el umbral).</summary>
+        public const string FallTo = "fall_to";
+        /// <summary>Dura DurationSeconds de tiempo del timer desde que se activó.</summary>
+        public const string Duration = "duration";
+
+        public static bool IsValid(string? m) => m is Above or RiseTo or FallTo or Duration;
+    }
+
     [Table("timer_happyhour")]
     public class TimerHappyHour
     {
@@ -73,6 +88,16 @@ namespace Decatron.Core.Models
         /// <summary>Modo progreso: null = una sola vez; con valor, la ventana se repite cada tanto.</summary>
         [Column("repeat_every_seconds")]
         public int? RepeatEverySeconds { get; set; }
+
+        /// <summary>Solo modo "remaining": cómo termina (ver <see cref="RemainingEndModes"/>).</summary>
+        [Required]
+        [MaxLength(16)]
+        [Column("end_mode")]
+        public string EndMode { get; set; } = RemainingEndModes.Above;
+
+        /// <summary>Estado de rise_to y duration: null = esperando el umbral; >= 0 = activa desde ese tiempo del timer; -1 = ya cumplió su duración.</summary>
+        [Column("latched_elapsed_seconds")]
+        public long? LatchedElapsedSeconds { get; set; }
 
         [Required]
         [Column("enabled")]

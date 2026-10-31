@@ -128,7 +128,7 @@ Una happy hour programada (`/api/timer/happyhour`) tiene un multiplicador (de 1 
 |------|-----------|--------|
 | `schedule` (por defecto) | Días de la semana y una franja de horas en la zona horaria del canal (puede cruzar la medianoche) | `startTime`, `endTime`, `daysOfWeek` |
 | `progress` | Cuando el timer lleva cierto tiempo corriendo, sin contar pausas. Termina tras una duración o en un segundo tiempo; una vez o repetida | `startAfterSeconds`, `durationSeconds` o `endAfterSeconds`, opcional `repeatEverySeconds` (debe ser mayor que la ventana) |
-| `remaining` | Mientras al timer le queden `startAfterSeconds` o menos. Se apaga si el tiempo restante sube por encima (por ejemplo con una donación) y se enciende al bajar; sin hora de fin fija | `startAfterSeconds` |
+| `remaining` | Mientras al timer le queden `startAfterSeconds` o menos. Cómo termina lo define `remainingEndMode`: `above` (por defecto, se apaga si el tiempo restante sube sobre el umbral y se enciende al bajar), `rise_to` (se mantiene, aunque donen, hasta que el tiempo restante llegue a `endAfterSeconds`, que debe ser mayor que el umbral; luego se rearma al bajar al umbral), `fall_to` (se apaga al bajar el tiempo restante a `endAfterSeconds`, que debe ser menor), `duration` (dura `durationSeconds` de tiempo del timer; se rearma cuando el tiempo restante sube sobre el umbral y vuelve a bajar) | `startAfterSeconds`, `remainingEndMode`, `endAfterSeconds` o `durationSeconds` |
 
 Con el timer en pausa, las happy hour `progress` y `remaining` quedan congeladas; al detener o reiniciar el timer, el tiempo transcurrido vuelve a cero. El modo no se puede cambiar después de crearla. La zona horaria del canal (Avanzado → General) solo importa en `schedule`.
 

@@ -473,9 +473,18 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         const base: any = { ...rest, name: happyHourForm.name.trim() || suggestHappyHourName(happyHourForm, t) };
         if (happyHourForm.mode === 'schedule') return { ...base, startTime: happyHourForm.startTime, endTime: happyHourForm.endTime, daysOfWeek: happyHourForm.daysOfWeek };
         // Lo que el streamer no usa va vacío al crear y en 0 al editar (el servidor lo toma como «quitar»)
-        // Por tiempo restante: solo el umbral
-        if (happyHourForm.mode === 'remaining') return { ...base, startAfterSeconds: progress.startAfter };
         const unused = creating ? null : 0;
+        // Por tiempo restante: el umbral y, según cómo termina, el punto de fin o la duración
+        if (happyHourForm.mode === 'remaining') {
+            const e = progress.remainingEnd;
+            return {
+                ...base,
+                startAfterSeconds: progress.startAfter,
+                remainingEndMode: e,
+                endAfterSeconds: e === 'rise_to' || e === 'fall_to' ? progress.endAfter : unused,
+                durationSeconds: e === 'duration' ? progress.duration : unused,
+            };
+        }
         return {
             ...base,
             startAfterSeconds: progress.startAfter,

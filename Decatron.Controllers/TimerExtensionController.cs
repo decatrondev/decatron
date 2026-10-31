@@ -1678,7 +1678,7 @@ namespace Decatron.Controllers
             {
                 var userId = GetChannelOwnerId();
                 var happyHours = await _dbContext.TimerHappyHours.Where(h => h.UserId == userId).OrderBy(h => h.StartTime).ToListAsync();
-                var dtos = happyHours.Select(h => new { h.Id, h.Name, h.Description, startTime = h.StartTime.ToString(@"hh\:mm"), endTime = h.EndTime.ToString(@"hh\:mm"), multiplier = h.Multiplier, daysOfWeek = h.DaysOfWeek, eventTypes = ParseHappyHourEvents(h.EventTypes), mode = h.Mode, startAfterSeconds = h.StartAfterSeconds, endAfterSeconds = h.EndAfterSeconds, durationSeconds = h.DurationSeconds, repeatEverySeconds = h.RepeatEverySeconds, enabled = h.Enabled, createdAt = h.CreatedAt, updatedAt = h.UpdatedAt });
+                var dtos = happyHours.Select(h => new { h.Id, h.Name, h.Description, startTime = h.StartTime.ToString(@"hh\:mm"), endTime = h.EndTime.ToString(@"hh\:mm"), multiplier = h.Multiplier, daysOfWeek = h.DaysOfWeek, eventTypes = ParseHappyHourEvents(h.EventTypes), mode = h.Mode, remainingEndMode = h.EndMode, startAfterSeconds = h.StartAfterSeconds, endAfterSeconds = h.EndAfterSeconds, durationSeconds = h.DurationSeconds, repeatEverySeconds = h.RepeatEverySeconds, enabled = h.Enabled, createdAt = h.CreatedAt, updatedAt = h.UpdatedAt });
                 return Ok(new { success = true, happyHours = dtos });
             }
             catch (Exception ex) { return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." }); }
@@ -1697,10 +1697,14 @@ namespace Decatron.Controllers
                 var mode = string.IsNullOrWhiteSpace(request.Mode) ? HappyHourModes.Schedule : request.Mode.Trim().ToLowerInvariant();
                 if (mode != HappyHourModes.Schedule && mode != HappyHourModes.Progress && mode != HappyHourModes.Remaining) return BadRequest(new { success = false, message = "Modo inválido" });
                 var isProgress = mode != HappyHourModes.Schedule; // progreso y restante no dependen del reloj ni de los días
+                var remainingEnd = string.IsNullOrWhiteSpace(request.RemainingEndMode) ? RemainingEndModes.Above : request.RemainingEndMode.Trim().ToLowerInvariant();
                 if (mode == HappyHourModes.Remaining)
                 {
-                    request.EndAfterSeconds = null; request.DurationSeconds = null; request.RepeatEverySeconds = null;
-                    var remError = HappyHourProgressRule.ValidateRemaining(request.StartAfterSeconds);
+                    request.RepeatEverySeconds = null;
+                    // Cada forma de terminar usa un solo campo; lo demás se descarta
+                    if (remainingEnd != RemainingEndModes.RiseTo && remainingEnd != RemainingEndModes.FallTo) request.EndAfterSeconds = null;
+                    if (remainingEnd != RemainingEndModes.Duration) request.DurationSeconds = null;
+                    var remError = HappyHourProgressRule.ValidateRemaining(request.StartAfterSeconds, remainingEnd, request.EndAfterSeconds, request.DurationSeconds);
                     if (remError != null) return BadRequest(new { success = false, message = remError });
                 }
                 else if (isProgress)
@@ -1762,6 +1766,7 @@ namespace Decatron.Controllers
                     DaysOfWeek = System.Text.Json.JsonSerializer.Serialize(request.DaysOfWeek ?? new bool[7] { true, true, true, true, true, true, true }),
                     EventTypes = events.Json,
                     Mode = mode,
+                    EndMode = mode == HappyHourModes.Remaining ? remainingEnd : RemainingEndModes.Above,
                     StartAfterSeconds = isProgress ? request.StartAfterSeconds : null,
                     EndAfterSeconds = isProgress ? request.EndAfterSeconds : null,
                     DurationSeconds = isProgress ? request.DurationSeconds : null,
@@ -1792,9 +1797,19 @@ namespace Decatron.Controllers
                 if (happyHour.Mode == HappyHourModes.Remaining)
                 {
                     var nThreshold = request.StartAfterSeconds ?? happyHour.StartAfterSeconds;
-                    var remError = HappyHourProgressRule.ValidateRemaining(nThreshold);
+                    var nEndMode = string.IsNullOrWhiteSpace(request.RemainingEndMode) ? happyHour.EndMode : request.RemainingEndMode.Trim().ToLowerInvariant();
+                    var nEndAt = request.EndAfterSeconds ?? happyHour.EndAfterSeconds;
+                    var nDur = request.DurationSeconds ?? happyHour.DurationSeconds;
+                    // El panel manda 0 en lo que ya no se usa
+                    if (request.EndAfterSeconds == 0 && nEndMode != RemainingEndModes.FallTo) nEndAt = null;
+                    if (request.DurationSeconds == 0) nDur = null;
+                    if (nEndMode != RemainingEndModes.RiseTo && nEndMode != RemainingEndModes.FallTo) nEndAt = null;
+                    if (nEndMode != RemainingEndModes.Duration) nDur = null;
+                    var remError = HappyHourProgressRule.ValidateRemaining(nThreshold, nEndMode, nEndAt, nDur);
                     if (remError != null) return BadRequest(new { success = false, message = remError });
-                    happyHour.StartAfterSeconds = nThreshold;
+                    happyHour.StartAfterSeconds = nThreshold; happyHour.EndMode = nEndMode;
+                    happyHour.EndAfterSeconds = nEndAt; happyHour.DurationSeconds = nDur;
+                    happyHour.LatchedElapsedSeconds = null; // cambió cómo se activa o termina: empieza de cero
                 }
                 else if (isProgress)
                 {
@@ -2063,6 +2078,8 @@ namespace Decatron.Controllers
         public int? EndAfterSeconds { get; set; }
         public int? DurationSeconds { get; set; }
         public int? RepeatEverySeconds { get; set; }
+        /// <summary>Solo modo "remaining": "above" (por defecto), "rise_to", "fall_to" o "duration".</summary>
+        public string? RemainingEndMode { get; set; }
         public bool Enabled { get; set; } = true;
     }
 
@@ -2079,6 +2096,7 @@ namespace Decatron.Controllers
         public int? EndAfterSeconds { get; set; }
         public int? DurationSeconds { get; set; }
         public int? RepeatEverySeconds { get; set; }
+        public string? RemainingEndMode { get; set; }
         public bool? Enabled { get; set; }
     }
 }

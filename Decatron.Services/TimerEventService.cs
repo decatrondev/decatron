@@ -1657,7 +1657,7 @@ namespace Decatron.Services
             if (progress.Count == 0) return result;
 
             var state = await _dbContext.TimerStates.AsNoTracking().FirstOrDefaultAsync(st => st.UserId == user.Id);
-            if (state == null) return result;
+            if (state == null) { await SaveRemainingLatchesAsync(progress, null); return result; }
 
             var nowUtc = DateTime.UtcNow;
             var elapsed = HappyHourProgressRule.ElapsedSeconds(
@@ -1665,7 +1665,12 @@ namespace Decatron.Services
                 state.StartedAt.HasValue ? TimerDateTimeHelper.NormalizeToUtc(state.StartedAt.Value) : null,
                 state.PausedAt.HasValue ? TimerDateTimeHelper.NormalizeToUtc(state.PausedAt.Value) : null,
                 state.ElapsedPausedTime, nowUtc);
-            if (elapsed == null) return result;
+            if (elapsed == null)
+            {
+                // Timer detenido o terminado: lo recordado de las Happy Hour por tiempo restante ya no vale
+                await SaveRemainingLatchesAsync(progress, null);
+                return result;
+            }
 
             var remaining = HappyHourProgressRule.RemainingSeconds(
                 state.Status,
@@ -1673,18 +1678,41 @@ namespace Decatron.Services
                 state.PausedAt.HasValue ? TimerDateTimeHelper.NormalizeToUtc(state.PausedAt.Value) : null,
                 state.ElapsedPausedTime, state.TotalTime, nowUtc) ?? 0;
 
+            var latchChanged = false;
             foreach (var hh in progress)
             {
                 if (hh.Mode == HappyHourModes.Remaining)
                 {
-                    // Sin hora de fin: se apaga sola si el tiempo restante sube por encima del umbral (donaciones)
-                    if (HappyHourProgressRule.EvaluateRemaining(remaining, hh.StartAfterSeconds)) result.Add((hh, null));
+                    // Lo recordado (activa desde…) vive en la base: sobrevive a reinicios y lo comparten el vigilante y los eventos
+                    var (on, newLatched) = HappyHourProgressRule.EvaluateRemainingWindow(
+                        remaining, elapsed.Value, hh.StartAfterSeconds, hh.EndMode, hh.EndAfterSeconds, hh.DurationSeconds, hh.LatchedElapsedSeconds);
+                    if (newLatched != hh.LatchedElapsedSeconds) { hh.LatchedElapsedSeconds = newLatched; latchChanged = true; }
+                    if (on) result.Add((hh, null)); // sin hora de fin fija: depende de las donaciones
                     continue;
                 }
                 var (active, left) = HappyHourProgressRule.Evaluate(elapsed.Value, hh.StartAfterSeconds, hh.EndAfterSeconds, hh.DurationSeconds, hh.RepeatEverySeconds);
                 if (active) result.Add((hh, !HappyHourProgressRule.IsPausedStatus(state.Status) ? nowUtc.AddSeconds(left) : null));
             }
+            if (latchChanged) await TrySaveLatchesAsync();
             return result;
+        }
+
+        /// <summary>Borra el estado recordado de las Happy Hour por tiempo restante (el timer no está corriendo).</summary>
+        private async Task SaveRemainingLatchesAsync(List<TimerHappyHour> rows, long? value)
+        {
+            var changed = false;
+            foreach (var hh in rows.Where(h => h.Mode == HappyHourModes.Remaining && h.LatchedElapsedSeconds != value))
+            {
+                hh.LatchedElapsedSeconds = value; changed = true;
+            }
+            if (changed) await TrySaveLatchesAsync();
+        }
+
+        /// <summary>Guardar lo recordado nunca rompe lo principal: si falla, se vuelve a calcular en la próxima vuelta.</summary>
+        private async Task TrySaveLatchesAsync()
+        {
+            try { await _dbContext.SaveChangesAsync(); }
+            catch (Exception ex) { _logger.LogWarning(ex, "[HAPPY HOUR] No se pudo guardar el estado de una Happy Hour por tiempo restante"); }
         }
 
         /// <summary>

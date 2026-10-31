@@ -190,4 +190,93 @@ public class HappyHourProgressRuleTests
     [InlineData(12 * H, true)]
     public void Remaining_Validate(int? threshold, bool valida)
         => Assert.Equal(valida, HappyHourProgressRule.ValidateRemaining(threshold) == null);
+
+    // ── Por tiempo restante: cómo termina ────────────────────────────────────
+
+    private static (bool Active, long? Latched) Rem(long remaining, long elapsed, string mode, int? end, int? dur, long? latched)
+        => HappyHourProgressRule.EvaluateRemainingWindow(remaining, elapsed, 12 * H, mode, end, dur, latched);
+
+    [Theory]
+    [InlineData(13 * H, false)]
+    [InlineData(12 * H, true)]
+    [InlineData(1, true)]
+    [InlineData(0, false)]
+    public void RemainingEnd_Above_EsLoDeSiempre(long remaining, bool esperado)
+        => Assert.Equal((esperado, (long?)null), Rem(remaining, 5000, "above", null, null, null));
+
+    [Theory]
+    [InlineData(13 * H, false)]       // todavía no
+    [InlineData(12 * H, true)]        // se activa
+    [InlineData(7 * H, true)]
+    [InlineData(6 * H + 1, true)]
+    [InlineData(6 * H, false)]        // bajó a 6 h: se apaga
+    [InlineData(2 * H, false)]
+    public void RemainingEnd_FallTo_ActivaEntreUmbralYFin(long remaining, bool esperado)
+        => Assert.Equal(esperado, Rem(remaining, 5000, "fall_to", 6 * H, null, null).Active);
+
+    [Fact]
+    public void RemainingEnd_RiseTo_SeMantieneHastaQueSubaAlFinYSeRearmaAlBajar()
+    {
+        long? latched = null;
+        // 13 h: todavía no
+        var r = Rem(13 * H, 100, "rise_to", 48 * H, null, latched); Assert.Equal((false, (long?)null), r); latched = r.Latched;
+        // 12 h: se activa y recuerda en qué momento
+        r = Rem(12 * H, 200, "rise_to", 48 * H, null, latched); Assert.Equal((true, (long?)200), r); latched = r.Latched;
+        // donan: sube a 30 h, sigue activa
+        r = Rem(30 * H, 300, "rise_to", 48 * H, null, latched); Assert.Equal((true, (long?)200), r); latched = r.Latched;
+        // 47 h 59: sigue activa
+        r = Rem(48 * H - 1, 400, "rise_to", 48 * H, null, latched); Assert.True(r.Active); latched = r.Latched;
+        // llega a 48 h: se apaga
+        r = Rem(48 * H, 500, "rise_to", 48 * H, null, latched); Assert.Equal((false, (long?)null), r); latched = r.Latched;
+        // baja a 30 h: sigue apagada (no se rearma hasta bajar al umbral)
+        r = Rem(30 * H, 600, "rise_to", 48 * H, null, latched); Assert.Equal((false, (long?)null), r); latched = r.Latched;
+        // vuelve a 12 h: se activa otra vez
+        r = Rem(12 * H, 700, "rise_to", 48 * H, null, latched); Assert.True(r.Active);
+    }
+
+    [Fact]
+    public void RemainingEnd_RiseTo_SeApagaSiElTimerTermina()
+        => Assert.Equal((false, (long?)null), Rem(0, 900, "rise_to", 48 * H, null, 200));
+
+    [Fact]
+    public void RemainingEnd_RiseTo_ElEstadoDeUnTimerReiniciadoNoVale()
+        // guardado «activa desde 5000 s» pero el timer ya va en 100 s: se reinició; con 30 h restantes no está activa
+        => Assert.Equal((false, (long?)null), Rem(30 * H, 100, "rise_to", 48 * H, null, 5000));
+
+    [Fact]
+    public void RemainingEnd_Duration_DuraLoConfiguradoAunqueSubanElTiempo()
+    {
+        long? latched = null;
+        var r = Rem(12 * H, 1000, "duration", null, 3 * H, latched); Assert.Equal((true, (long?)1000), r); latched = r.Latched;
+        // una donación sube el restante a 40 h: sigue activa porque dura 3 h del timer
+        r = Rem(40 * H, 1000 + 3 * H - 1, "duration", null, 3 * H, latched); Assert.True(r.Active); latched = r.Latched;
+        // se cumplen las 3 h: se apaga
+        r = Rem(40 * H, 1000 + 3 * H, "duration", null, 3 * H, latched); Assert.Equal((false, (long?)HappyHourProgressRule.Spent), r); latched = r.Latched;
+        // aunque el restante siga bajo el umbral, no se vuelve a activar
+        r = Rem(11 * H, 1000 + 4 * H, "duration", null, 3 * H, latched); Assert.Equal((false, (long?)HappyHourProgressRule.Spent), r); latched = r.Latched;
+        // al subir sobre el umbral se rearma
+        r = Rem(13 * H, 1000 + 5 * H, "duration", null, 3 * H, latched); Assert.Equal((false, (long?)null), r); latched = r.Latched;
+        // y al volver a bajar, se activa de nuevo
+        r = Rem(12 * H, 1000 + 6 * H, "duration", null, 3 * H, latched); Assert.True(r.Active);
+    }
+
+    [Theory]
+    [InlineData(12 * H, "above", null, null, true)]
+    [InlineData(12 * H, null, null, null, true)]                 // sin elegir = como siempre
+    [InlineData(12 * H, "rise_to", 48 * H, null, true)]
+    [InlineData(12 * H, "rise_to", 12 * H, null, false)]         // debe ser mayor que el umbral
+    [InlineData(12 * H, "rise_to", 6 * H, null, false)]
+    [InlineData(12 * H, "rise_to", null, null, false)]
+    [InlineData(12 * H, "fall_to", 6 * H, null, true)]
+    [InlineData(12 * H, "fall_to", 0, null, true)]
+    [InlineData(12 * H, "fall_to", 12 * H, null, false)]         // debe ser menor que el umbral
+    [InlineData(12 * H, "fall_to", 24 * H, null, false)]
+    [InlineData(12 * H, "fall_to", null, null, false)]
+    [InlineData(12 * H, "duration", null, 3 * H, true)]
+    [InlineData(12 * H, "duration", null, 0, false)]
+    [InlineData(12 * H, "duration", null, null, false)]
+    [InlineData(12 * H, "otra", null, null, false)]
+    [InlineData(0, "above", null, null, false)]                   // sin umbral
+    public void RemainingEnd_Validate(int threshold, string? mode, int? end, int? dur, bool valida)
+        => Assert.Equal(valida, HappyHourProgressRule.ValidateRemaining(threshold, mode, end, dur) == null);
 }

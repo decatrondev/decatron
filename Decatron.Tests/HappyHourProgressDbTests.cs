@@ -153,4 +153,100 @@ public class HappyHourProgressDbTests
         Assert.True((await Service(db).GetActiveHappyHourInfoAsync(Login)).Active);
         await tx.RollbackAsync();
     }
+
+    // ── Por tiempo restante con memoria (rise_to / duration) y sin memoria (fall_to), contra la base ──
+
+    private static async Task SeedRemainingEnd(DecatronDbContext db, string status, int totalSeconds, TimeSpan startedAgo,
+        string endMode, int? endAfter, int? duration, long? latched = null)
+    {
+        await SeedRemaining(db, status, totalSeconds, startedAgo);
+        var hh = await db.TimerHappyHours.SingleAsync(h => h.UserId == UserId);
+        hh.EndMode = endMode; hh.EndAfterSeconds = endAfter; hh.DurationSeconds = duration; hh.LatchedElapsedSeconds = latched;
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task<(bool Active, long? Latched)> Ask(DecatronDbContext db)
+    {
+        var info = await Service(db).GetActiveHappyHourInfoAsync(Login);
+        db.ChangeTracker.Clear(); // lo siguiente se lee de la base, como lo haría otro proceso o un reinicio
+        var latched = (await db.TimerHappyHours.AsNoTracking().SingleAsync(h => h.UserId == UserId)).LatchedElapsedSeconds;
+        return (info.Active, latched);
+    }
+
+    private static async Task SetTotal(DecatronDbContext db, int totalSeconds)
+    {
+        var st = await db.TimerStates.SingleAsync(x => x.ChannelName == Login);
+        st.TotalTime = totalSeconds;
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
+
+    [Fact(DisplayName = "Restante rise_to: se activa a las 12 h, aguanta donaciones hasta las 48 h, se apaga y se rearma al bajar")]
+    public async Task RemainingRiseTo_FullCycleAgainstDb()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        // total 480 h, lleva 470 h: quedan 10 h
+        await SeedRemainingEnd(db, "running", 480 * 3600, TimeSpan.FromHours(470), RemainingEndModes.RiseTo, 48 * 3600, null);
+        var r = await Ask(db);
+        Assert.True(r.Active); Assert.NotNull(r.Latched);                    // activa y lo recuerda
+        await SetTotal(db, 500 * 3600); r = await Ask(db);                   // donan 20 h: quedan 30 h
+        Assert.True(r.Active);                                               // sigue activa
+        await SetTotal(db, 520 * 3600); r = await Ask(db);                   // quedan 50 h: llegó a 48
+        Assert.False(r.Active); Assert.Null(r.Latched);                      // se apaga y olvida
+        await SetTotal(db, 500 * 3600); r = await Ask(db);                   // quedan 30 h: no se rearma aún
+        Assert.False(r.Active);
+        await SetTotal(db, 480 * 3600); r = await Ask(db);                   // quedan 10 h: se activa otra vez
+        Assert.True(r.Active);
+        await tx.RollbackAsync();
+    }
+
+    [Fact(DisplayName = "Restante duration: dura lo configurado del timer; al cumplirse no se reactiva hasta subir sobre el umbral")]
+    public async Task RemainingDuration_ExpiresAndRearmsAgainstDb()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        await SeedRemainingEnd(db, "running", 480 * 3600, TimeSpan.FromHours(470), RemainingEndModes.Duration, null, 3 * 3600);
+        var r = await Ask(db);
+        Assert.True(r.Active); Assert.True(r.Latched >= 0);
+        // pasan 4 h del timer desde que se activó: el estado guardado queda 4 h atrás
+        var hh = await db.TimerHappyHours.SingleAsync(h => h.UserId == UserId);
+        hh.LatchedElapsedSeconds = r.Latched - 4 * 3600; await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+        r = await Ask(db);
+        Assert.False(r.Active); Assert.Equal(HappyHourProgressRule.Spent, r.Latched);   // ya cumplió
+        r = await Ask(db);
+        Assert.False(r.Active);                                                          // sigue bajo el umbral y no se reactiva
+        await SetTotal(db, 500 * 3600); r = await Ask(db);                               // sube sobre el umbral
+        Assert.False(r.Active); Assert.Null(r.Latched);                                  // se rearma
+        await SetTotal(db, 480 * 3600); r = await Ask(db);                               // vuelve a bajar
+        Assert.True(r.Active);
+        await tx.RollbackAsync();
+    }
+
+    [Fact(DisplayName = "Restante fall_to: activa entre las 12 h y las 6 h restantes")]
+    public async Task RemainingFallTo_ActiveOnlyBetweenThresholds()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        await SeedRemainingEnd(db, "running", 480 * 3600, TimeSpan.FromHours(470), RemainingEndModes.FallTo, 6 * 3600, null); // quedan 10 h
+        Assert.True((await Ask(db)).Active);
+        await SetTotal(db, 475 * 3600);                                                                                         // quedan 5 h
+        Assert.False((await Ask(db)).Active);
+        await tx.RollbackAsync();
+    }
+
+    [Fact(DisplayName = "Restante: con el timer detenido se borra lo recordado")]
+    public async Task Remaining_TimerStopped_ClearsLatch()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        await SeedRemainingEnd(db, "stopped", 480 * 3600, TimeSpan.FromHours(470), RemainingEndModes.RiseTo, 48 * 3600, null, latched: 1234);
+        var r = await Ask(db);
+        Assert.False(r.Active); Assert.Null(r.Latched);
+        await tx.RollbackAsync();
+    }
 }

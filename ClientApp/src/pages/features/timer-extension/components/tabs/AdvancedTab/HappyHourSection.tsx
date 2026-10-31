@@ -11,7 +11,7 @@ import { Plus, Edit2, Trash2, Copy, Zap, Clock, AlertTriangle } from 'lucide-rea
 import type { EventsConfig } from '../../../types';
 import {
     HH_EVENTS, DAY_ORDER, type HHEvent, crossesMidnight, isActiveNow, nextStart, overlaps,
-    minutesUntil, nowIn, timeIn, tzCity, localTz, fromMinutes, type HHMode, type HHProgress, progressError, remainingError,
+    minutesUntil, nowIn, timeIn, tzCity, localTz, fromMinutes, type HHMode, type HHProgress, type RemainingEnd, REMAINING_ENDS, progressError, remainingError,
 } from './happyHourUtils';
 
 export interface HappyHour {
@@ -26,6 +26,8 @@ export interface HappyHour {
     eventTypes: string[] | null;
     /** 'schedule' (por horario, lo de siempre) o 'progress' (por tiempo transcurrido del timer). */
     mode?: HHMode;
+    /** Solo «por tiempo restante»: cómo termina. */
+    remainingEndMode?: RemainingEnd;
     startAfterSeconds?: number | null;
     endAfterSeconds?: number | null;
     durationSeconds?: number | null;
@@ -150,12 +152,23 @@ function progressLine(pr: HHProgress, t: (k: string, o?: any) => string): string
     return parts.join(' · ');
 }
 
+/** Resumen de «por tiempo restante» según cómo termina. */
+function remainingText(pr: HHProgress, mult: number, events: string, t: (k: string, o?: any) => string): string {
+    return t(`timerAdvanced.hh.remaining.summary.${pr.remainingEnd}`, { start: formatSeconds(pr.startAfter, t), end: formatSeconds(pr.remainingEnd === 'duration' ? pr.duration : pr.endAfter, t) || '0 min', m: mult, events });
+}
+
+/** Línea corta de la tarjeta de una Happy Hour por tiempo restante. */
+function remainingCard(pr: HHProgress, t: (k: string, o?: any) => string): string {
+    return t(`timerAdvanced.hh.remaining.card.${pr.remainingEnd}`, { start: formatSeconds(pr.startAfter, t), end: formatSeconds(pr.remainingEnd === 'duration' ? pr.duration : pr.endAfter, t) || '0 min' });
+}
+
 /** Lo guardado en el servidor, como campos del formulario. */
-export function progressFrom(h: { startAfterSeconds?: number | null; endAfterSeconds?: number | null; durationSeconds?: number | null; repeatEverySeconds?: number | null }): HHProgress {
+export function progressFrom(h: { remainingEndMode?: string | null; startAfterSeconds?: number | null; endAfterSeconds?: number | null; durationSeconds?: number | null; repeatEverySeconds?: number | null }): HHProgress {
     const byEnd = !h.durationSeconds && !!h.endAfterSeconds;
     return {
         startAfter: h.startAfterSeconds ?? 0, endHow: byEnd ? 'end' : 'duration', endAfter: h.endAfterSeconds ?? 0,
         duration: h.durationSeconds ?? 0, repeatOn: !!h.repeatEverySeconds, repeatEvery: h.repeatEverySeconds ?? 6 * 3600,
+        remainingEnd: (REMAINING_ENDS as string[]).includes(h.remainingEndMode ?? '') ? (h.remainingEndMode as RemainingEnd) : 'above',
     };
 }
 
@@ -388,6 +401,26 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                     <DurationInput value={f.progress.startAfter} onChange={v => setF({ progress: { ...f.progress, startAfter: v } })} />
                                     <p className="text-xs text-ds-soft mt-1">{t('timerAdvanced.hh.remaining.hint')}</p>
                                 </div>
+                                <div>
+                                    <p className="text-sm text-ds-text mb-2">{t('timerAdvanced.hh.remaining.endTitle')}</p>
+                                    <div className="flex flex-wrap gap-2 mb-2">
+                                        {REMAINING_ENDS.map(k => (
+                                            <button key={k} type="button" className={chip(f.progress.remainingEnd === k)} onClick={() => setF({ progress: { ...f.progress, remainingEnd: k } })}>
+                                                {t(`timerAdvanced.hh.remaining.end.${k}`)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {f.progress.remainingEnd !== 'above' && (
+                                        <p className="text-sm text-ds-text mb-2">{t(`timerAdvanced.hh.remaining.label.${f.progress.remainingEnd}`)}</p>
+                                    )}
+                                    {(f.progress.remainingEnd === 'rise_to' || f.progress.remainingEnd === 'fall_to') && (
+                                        <DurationInput value={f.progress.endAfter} onChange={v => setF({ progress: { ...f.progress, endAfter: v } })} />
+                                    )}
+                                    {f.progress.remainingEnd === 'duration' && (
+                                        <DurationInput value={f.progress.duration} onChange={v => setF({ progress: { ...f.progress, duration: v } })} />
+                                    )}
+                                    <p className="text-xs text-ds-soft mt-1">{t(`timerAdvanced.hh.remaining.hintEnd.${f.progress.remainingEnd}`)}</p>
+                                </div>
                             </div>
                         )}
 
@@ -486,7 +519,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                             {progErrKey ? (
                                 <p className="text-sm font-bold text-ds-danger">{t(progErrKey)}</p>
                             ) : isRemaining ? (
-                                <p className="text-sm text-ds-text">{t('timerAdvanced.hh.remaining.summary', { start: formatSeconds(f.progress.startAfter, t), events: eventsText(f.eventTypes, t), m: f.multiplier })}</p>
+                                <p className="text-sm text-ds-text">{remainingText(f.progress, f.multiplier, eventsText(f.eventTypes, t), t)}</p>
                             ) : isProgress ? (
                                 <p className="text-sm text-ds-text">{t('timerAdvanced.hh.progress.summary', { line: progressLine(f.progress, t), events: eventsText(f.eventTypes, t), m: f.multiplier })}</p>
                             ) : sameTime ? (
@@ -536,7 +569,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0">
                                                 <p className="font-bold text-ds-text truncate">{h.name}</p>
-                                                <p className="text-sm text-ds-soft mt-0.5"><span className="font-black text-ds-accent-text">x{h.multiplier}</span> · {isRem ? t('timerAdvanced.hh.remaining.card', { start: formatSeconds(pr.startAfter, t) }) : progressLine(pr, t)}</p>
+                                                <p className="text-sm text-ds-soft mt-0.5"><span className="font-black text-ds-accent-text">x{h.multiplier}</span> · {isRem ? remainingCard(pr, t) : progressLine(pr, t)}</p>
                                                 <p className="text-xs text-ds-soft mt-0.5">{eventsText(h.eventTypes, t)}</p>
                                             </div>
                                             <button

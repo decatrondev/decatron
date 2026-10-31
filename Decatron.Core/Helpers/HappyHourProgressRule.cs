@@ -1,3 +1,5 @@
+using Decatron.Core.Models;
+
 namespace Decatron.Core.Helpers
 {
     /// <summary>
@@ -39,9 +41,69 @@ namespace Decatron.Core.Helpers
         public static bool EvaluateRemaining(long remainingSeconds, int? thresholdSeconds)
             => thresholdSeconds is > 0 && remainingSeconds > 0 && remainingSeconds <= thresholdSeconds;
 
+        /// <summary>Marca de «ya cumplió su duración»: no se vuelve a activar hasta que el tiempo restante suba sobre el umbral.</summary>
+        public const long Spent = -1;
+
+        /// <summary>
+        /// Modo «por tiempo restante» completo, con cómo termina. <paramref name="latched"/> es el estado guardado
+        /// (null = esperando el umbral, >= 0 = activa desde ese tiempo transcurrido, <see cref="Spent"/> = ya cumplió su duración) y
+        /// devuelve el estado nuevo, que el llamador debe guardar si cambió.
+        /// </summary>
+        public static (bool Active, long? NewLatched) EvaluateRemainingWindow(
+            long remaining, long elapsed, int? threshold, string? endMode, int? endSeconds, int? durationSeconds, long? latched)
+        {
+            if (threshold is not > 0) return (false, null);
+            var inside = remaining > 0 && remaining <= threshold;
+            switch (endMode ?? RemainingEndModes.Above)
+            {
+                case RemainingEndModes.FallTo:
+                    // Sin memoria: activa entre el umbral y el punto de fin
+                    return (inside && remaining > (endSeconds ?? 0), null);
+
+                case RemainingEndModes.RiseTo:
+                case RemainingEndModes.Duration:
+                {
+                    var byDuration = endMode == RemainingEndModes.Duration;
+                    // Si el timer se reinició, el estado guardado ya no vale
+                    if (latched is >= 0 && latched > elapsed) latched = null;
+
+                    if (latched == Spent) // cumplió su duración: se rearma cuando el tiempo restante sube sobre el umbral
+                        return remaining > threshold ? (false, null) : (false, Spent);
+
+                    if (latched is null) // esperando el umbral
+                        return inside ? (true, elapsed) : (false, null);
+
+                    // Activa desde `latched`
+                    if (remaining <= 0) return (false, null);
+                    if (byDuration)
+                        return durationSeconds is > 0 && elapsed - latched.Value >= durationSeconds ? (false, Spent) : (true, latched);
+                    return endSeconds is > 0 && remaining >= endSeconds ? (false, null) : (true, latched);
+                }
+
+                default: // Above: se apaga en cuanto el tiempo restante sube sobre el umbral
+                    return (inside, null);
+            }
+        }
+
         /// <summary>Texto de error del modo «por tiempo restante»; null si es válido.</summary>
         public static string? ValidateRemaining(int? thresholdSeconds)
             => thresholdSeconds is > 0 ? null : "Indica cuánto tiempo restante activa la Happy Hour";
+
+        /// <summary>Validación completa del modo «por tiempo restante» con su forma de terminar; null si es válida.</summary>
+        public static string? ValidateRemaining(int? thresholdSeconds, string? endMode, int? endSeconds, int? durationSeconds)
+        {
+            var basic = ValidateRemaining(thresholdSeconds);
+            if (basic != null) return basic;
+            var mode = endMode ?? RemainingEndModes.Above;
+            if (!RemainingEndModes.IsValid(mode)) return "Forma de terminar inválida";
+            return mode switch
+            {
+                RemainingEndModes.RiseTo => endSeconds > thresholdSeconds ? null : "El tiempo en que se apaga debe ser mayor que el que la activa",
+                RemainingEndModes.FallTo => endSeconds is >= 0 && endSeconds < thresholdSeconds ? null : "El tiempo en que se apaga debe ser menor que el que la activa",
+                RemainingEndModes.Duration => durationSeconds is > 0 ? null : "Indica cuánto dura",
+                _ => null,
+            };
+        }
 
         /// <summary>Largo de la ventana: la duración, o la distancia entre los dos umbrales. null = configuración inválida.</summary>
         public static long? WindowSeconds(int? startAfter, int? endAfter, int? duration)
