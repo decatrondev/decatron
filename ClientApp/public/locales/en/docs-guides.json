@@ -503,12 +503,12 @@
             "t": "ul",
             "items": [
               "Basic: initial time, controls (pause, resume, reset, emergency stop), automatic start when the overlay loads, reaction to the stream starting and ending, session backup and the Game Over rules.",
-              "Events: how much time each event type adds.",
+              "Events: how much time each type of event adds, including channel point rewards.",
               "Theme, Bar, Display, Typography and Animations: the timer's look: colors and background, progress bar, which elements and time format are shown, fonts and entrance, exit and final-countdown effects.",
               "Alerts: what shows on screen when an event that adds time arrives, with a quick test button.",
               "Commands and Info Cmds: permissions of the control commands and messages of the information commands.",
               "Raffles: raffles among people who took part in a timer session.",
-              "Advanced: time zone, templates, scheduled auto-pause and Happy Hour.",
+              "Advanced: time zone, templates, scheduled auto-pause and Happy Hour (by schedule, by timer progress or by time remaining).",
               "History: previous sessions, with the total added per event type, the session logs and the option to restore.",
               "Media: your gallery of audio, video and images for the alerts.",
               "Widgets: loose text elements for the overlay: live statistics, uptime and a Happy Hour indicator.",
@@ -523,13 +523,28 @@
         "blocks": [
           {
             "t": "p",
-            "x": "In the Events tab you pick a type and set its time. The types are bits, follow, subscriptions (Prime, Tier 1, Tier 2 and Tier 3 separately), gifted subs, raids, hype train and donations."
+            "x": "In the Events tab you pick a type and set its time. The types are bits, follow, subscriptions (Prime, Tier 1, Tier 2 and Tier 3 separately), gifted subs, raids, hype train, donations and channel points."
           },
           {
             "t": "ul",
             "items": [
               "Base time: what the event adds. In events with an amount (bits, donations, raids, gifted subs) it is set per unit: for example, a time for every certain amount of bits, or for every viewer of a raid, with a minimum per raid.",
               "Advanced rules: a fixed time when the amount falls in a range. For example, \"minimum 10 subs: 1 hour\" adds exactly 1 hour when 10 subs arrive, instead of the base calculation. If no rule matches, the base calculation is used."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Channel points"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "In «Channel points» you add one or more rewards from your channel (they come from Twitch) and set how much time each redemption adds. You can have a cheap one and a premium one.",
+              "Each row can be turned off without deleting it. If you delete the reward on Twitch, the row is marked «no longer exists on your channel» and adds nothing.",
+              "It only adds time if the timer is running or manually paused. With the timer stopped or finished, a redemption adds nothing, doesn't post in chat and doesn't spend extra lives: it's best to pause the reward on Twitch when there is no timer, so people don't spend points.",
+              "If the timer is on scheduled auto-pause, a redemption doesn't add time either.",
+              "If a redemption is cancelled or refunded on Twitch, the time already added is not removed. It stays in the history with the reward's name.",
+              "Happy Hour also multiplies these redemptions, unless you limit it to other events. It only works on Twitch."
             ]
           },
           {
@@ -616,7 +631,7 @@
               "Automatic start: the timer begins when the overlay loads (useful for scheduled events).",
               "According to the stream: if you turn it on, the timer resumes when you start streaming and pauses when you finish, keeping the time.",
               "Scheduled auto-pause: in Advanced you schedule moments when the timer stops by itself (sleeping, eating…), with a name, reason, hours and days.",
-              "Happy Hour: in Advanced you multiply the time certain events add: right now for a while, or scheduled on days and hours with the channel's time zone.",
+              "Happy Hour: in Advanced you multiply the time certain events add. It turns on in three ways: right now for a while, by schedule (days and hours in the channel's time zone), or according to the timer (by elapsed time or by time remaining).",
               "Templates: predefined (Subathon, Gaming Marathon, Speedrun) or your own, to apply the whole configuration, or only some parts, at once."
             ]
           },
@@ -625,6 +640,26 @@
             "kind": "warning",
             "x": "In Advanced there is a factory reset that erases the visual configuration, the templates, the schedules, the Happy Hours and the history. It cannot be undone.",
             "title": "Danger zone"
+          }
+        ]
+      },
+      {
+        "id": "happyhour",
+        "title": "Happy Hour",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When you create a scheduled Happy Hour you choose how it turns on. The multiplier (1 to 10) and the events it applies to are chosen the same way in all three modes; if two overlap, the higher multiplier wins."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "By schedule: days of the week and a range of hours in the channel's time zone (it can cross midnight). Pick the zone in Advanced → General, with a search box; the hours are read in that zone.",
+              "By timer progress: it turns on when the timer has been running for a set time, not counting pauses (for example, at 12 hours). It ends after a duration, or on reaching a second time; it can happen once or repeat every so often (the interval must be longer than how long it lasts).",
+              "By time remaining: it is active while the timer has a set time or less left (for example, 12 hours). If the time left rises above it, for example with a donation, it turns off, and it turns on again when it drops. It has no fixed end time.",
+              "Pause: with the timer paused (manually or by the scheduled auto-pause) the progress and time-remaining Happy Hours stay as they were, frozen, and don't advance. When the timer is stopped or reset, the elapsed time goes back to zero.",
+              "The mode can't be changed while editing; to change it, create a new one. While a Happy Hour is active, the overlay's Happy Hour widget shows it, with a countdown if it has an end time and you turn that on in its settings."
+            ]
           }
         ]
       },

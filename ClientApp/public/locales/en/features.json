@@ -2681,5 +2681,10 @@
     "noTimerNote": "If the timer is stopped or finished, a redemption adds nothing and doesn't post in chat. It's best to pause the reward on Twitch when there's no timer, so people don't spend points.",
     "refundNote": "If a redemption is cancelled or refunded on Twitch, the time already added is not removed; it stays in the history.",
     "happyHourNote": "Happy Hour also multiplies these redemptions, unless you limit it to other events."
+  },
+  "timerGuideNew": {
+    "cpName": "Channel points",
+    "cpText": "Pick rewards from your channel and how much time each redemption adds. It only adds time while the timer is running or paused.",
+    "hhText": "Multiplies the time added (x2, x3…). It turns on by schedule, when the timer has run for X time, or while it has X hours or less left."
   }
 }

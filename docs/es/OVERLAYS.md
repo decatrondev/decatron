@@ -101,7 +101,7 @@ La extensión del timer muestra una cuenta regresiva visual (estilo subathon) qu
 | Barras de progreso | Horizontales, verticales o circulares, con indicadores personalizados |
 | Alertas de eventos | Alertas visuales y de audio cuando los espectadores agregan tiempo |
 | Modo pánico | Efectos especiales y lista de audio cuando queda muy poco tiempo |
-| Happy hours | Multiplicadores de tiempo durante periodos configurados |
+| Happy hours | Multiplicadores de tiempo que se activan por horario, por tiempo transcurrido del timer o por tiempo restante |
 | Pausa/reanudación automática | Pausa automática por horario (por ejemplo, horas de sueño) |
 | Vidas extra | Sistema de resurrección con mensajes personalizados cuando el timer llega a cero |
 | TTS | Texto a voz para los anuncios de eventos |
@@ -118,6 +118,19 @@ La extensión del timer muestra una cuenta regresiva visual (estilo subathon) qu
 | Hype train | Tiempo por nivel |
 | Follows | Tiempo fijo con enfriamiento (anti-abuso) |
 | Donaciones/propinas | Soporte multimoneda |
+| Puntos de canal | Una o varias recompensas del canal elegidas por el streamer, cada una con el tiempo que suma un canje (solo Twitch) |
+
+### Happy hours
+
+Una happy hour programada (`/api/timer/happyhour`) tiene un multiplicador (de 1 a 10), los tipos de evento a los que aplica (`sub`, `giftsub`, `bits`, `tip`, `raid`, `hypetrain`, `follow`, `channelpoints`; todos por defecto) y un `mode`. Si varias están activas a la vez, gana el mayor multiplicador.
+
+| Modo | Se activa | Campos |
+|------|-----------|--------|
+| `schedule` (por defecto) | Días de la semana y una franja de horas en la zona horaria del canal (puede cruzar la medianoche) | `startTime`, `endTime`, `daysOfWeek` |
+| `progress` | Cuando el timer lleva cierto tiempo corriendo, sin contar pausas. Termina tras una duración o en un segundo tiempo; una vez o repetida | `startAfterSeconds`, `durationSeconds` o `endAfterSeconds`, opcional `repeatEverySeconds` (debe ser mayor que la ventana) |
+| `remaining` | Mientras al timer le queden `startAfterSeconds` o menos. Se apaga si el tiempo restante sube por encima (por ejemplo con una donación) y se enciende al bajar; sin hora de fin fija | `startAfterSeconds` |
+
+Con el timer en pausa, las happy hour `progress` y `remaining` quedan congeladas; al detener o reiniciar el timer, el tiempo transcurrido vuelve a cero. El modo no se puede cambiar después de crearla. La zona horaria del canal (Avanzado → General) solo importa en `schedule`.
 
 ### Control
 

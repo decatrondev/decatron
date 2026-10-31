@@ -10,6 +10,7 @@ import {
     Clock, Gift, Palette, Monitor, Copy, BookOpen
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { TabType } from '../../types';
 import api from '../../../../../services/api';
 
@@ -20,6 +21,7 @@ interface GuideTabProps {
 }
 
 export const GuideTab: React.FC<GuideTabProps> = ({ config, onNavigate, overlayUrl }) => {
+    const { t: tr } = useTranslation('features');
     const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [copied, setCopied] = useState(false);
     const [selectedGuide, setSelectedGuide] = useState<string>('basic');
@@ -322,6 +324,7 @@ export const GuideTab: React.FC<GuideTabProps> = ({ config, onNavigate, overlayU
                                                 <li>• <strong>Bits:</strong> Configura tiempo base o reglas avanzadas (ej: "Min 1000 bits = 10 min").</li>
                                                 <li>• <strong>Subs:</strong> Diferencia entre Prime, Tier 1, 2 y 3.</li>
                                                 <li>• <strong>Raids:</strong> Puedes dar tiempo fijo + tiempo extra por cada viewer que traigan.</li>
+                                                <li>• <strong>{tr('timerGuideNew.cpName')}:</strong> {tr('timerGuideNew.cpText')}</li>
                                             </ul>
                                         </div>
                                         <div className="p-4 bg-ds-accent/10 rounded-lg border border-ds-accent">
@@ -423,7 +426,7 @@ export const GuideTab: React.FC<GuideTabProps> = ({ config, onNavigate, overlayU
                                         <div className="p-4 bg-ds-bg rounded-lg">
                                             <h5 className="font-bold text-xs uppercase text-ds-soft mb-2">CAPACIDADES</h5>
                                             <ul className="text-sm space-y-2 text-ds-soft">
-                                                <li>• <strong>Happy Hour:</strong> Multiplica el tiempo añadido en horas específicas (x2, x3).</li>
+                                                <li>• <strong>Happy Hour:</strong> {tr('timerGuideNew.hhText')}</li>
                                                 <li>• <strong>Auto-Pause:</strong> Pausa el timer automáticamente para dormir (ej: 3am - 9am).</li>
                                                 <li>• <strong>Plantillas:</strong> Guarda tu configuración de "Subathon" y "Speedrun" por separado.</li>
                                             </ul>

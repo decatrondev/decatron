@@ -101,7 +101,7 @@ The Timer Extension displays a visual countdown (subathon style) that viewers ex
 | Progress bars | Horizontal, vertical or circular, with custom indicators |
 | Event alerts | Visual and audio alerts when viewers add time |
 | Panic mode | Special effects and audio playlist when time is critically low |
-| Happy hours | Time multipliers during configured periods |
+| Happy hours | Time multipliers that turn on by schedule, by elapsed timer time, or by time remaining |
 | Auto-pause/resume | Schedule-based automatic pause (for example sleep hours) |
 | Extra lives | Resurrection system with custom messages when the timer reaches zero |
 | TTS | Text-to-speech for event announcements |
@@ -118,6 +118,19 @@ The Timer Extension displays a visual countdown (subathon style) that viewers ex
 | Hype train | Time per level |
 | Follows | Fixed time with cooldown (anti-abuse) |
 | Donations/tips | Multi-currency support |
+| Channel points | One or more channel rewards chosen by the streamer, each with the time one redemption adds (Twitch only) |
+
+### Happy hours
+
+A scheduled happy hour (`/api/timer/happyhour`) has a multiplier (1 to 10), the event types it applies to (`sub`, `giftsub`, `bits`, `tip`, `raid`, `hypetrain`, `follow`, `channelpoints`; all by default) and a `mode`. If several are active at once, the highest multiplier wins.
+
+| Mode | Turns on | Fields |
+|------|----------|--------|
+| `schedule` (default) | Days of the week and a time range in the channel's time zone (it can cross midnight) | `startTime`, `endTime`, `daysOfWeek` |
+| `progress` | When the timer has run for a set time, not counting pauses. Ends after a duration or at a second time; once or repeating | `startAfterSeconds`, `durationSeconds` or `endAfterSeconds`, optional `repeatEverySeconds` (must be longer than the window) |
+| `remaining` | While the timer has `startAfterSeconds` or less left. Turns off if the time left rises above it (for example with a donation) and on again when it drops; no fixed end | `startAfterSeconds` |
+
+With the timer paused, `progress` and `remaining` happy hours stay frozen; stopping or resetting the timer sends the elapsed time back to zero. The mode cannot be changed after creation. The channel's time zone (Advanced → General) only matters for `schedule`.
 
 ### Control
 

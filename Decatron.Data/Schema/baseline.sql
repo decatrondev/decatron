@@ -21,7 +21,7 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-10-29
+-- Snapshot date: 2026-10-31
 --
 --
 --
@@ -166,18 +166,6 @@ $$;
 
 
 --
--- Name: promo_third_party_channels(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.promo_third_party_channels() RETURNS TABLE(user_id bigint)
-    LANGUAGE sql STABLE SECURITY DEFINER
-    SET search_path TO 'public'
-    AS $$
-  SELECT s.user_id FROM promo_channel_settings s WHERE s.accept_third_party
-$$;
-
-
---
 -- Name: promo_purge_old_views(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -193,6 +181,18 @@ BEGIN
   GET DIAGNOSTICS m = ROW_COUNT;
   RETURN n + m;
 END
+$$;
+
+
+--
+-- Name: promo_third_party_channels(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.promo_third_party_channels() RETURNS TABLE(user_id bigint)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT s.user_id FROM promo_channel_settings s WHERE s.accept_third_party
 $$;
 
 
@@ -8125,7 +8125,12 @@ CREATE TABLE public.timer_happyhour (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     event_types jsonb,
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    mode character varying(16) DEFAULT 'schedule'::character varying NOT NULL,
+    start_after_seconds integer,
+    end_after_seconds integer,
+    duration_seconds integer,
+    repeat_every_seconds integer
 );
 
 

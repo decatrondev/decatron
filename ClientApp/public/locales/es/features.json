@@ -2681,5 +2681,10 @@
     "noTimerNote": "Si el timer está detenido o terminó, el canje no suma nada y no avisa en el chat. Conviene pausar la recompensa en Twitch cuando no haya timer, para que la gente no gaste puntos.",
     "refundNote": "Si un canje se cancela o se reembolsa en Twitch, el tiempo ya sumado no se resta; queda anotado en el historial.",
     "happyHourNote": "La Happy Hour también multiplica estos canjes, salvo que la limites a otros eventos."
+  },
+  "timerGuideNew": {
+    "cpName": "Puntos de canal",
+    "cpText": "Elige recompensas de tu canal y cuánto tiempo suma cada canje. Solo suma con el timer corriendo o en pausa.",
+    "hhText": "Multiplica el tiempo añadido (x2, x3…). Se activa por horario, cuando el timer lleva X tiempo corriendo, o mientras le queden X horas o menos."
   }
 }
