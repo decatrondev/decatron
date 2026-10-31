@@ -92,3 +92,22 @@ export const tzCity = (tz?: string) => (tz ? tz.split('/').pop()!.replace(/_/g, 
 
 /** Nombre corto del navegador (la hora de quien está configurando). */
 export const localTz = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// ── Happy Hour por progreso del timer (misma regla que HappyHourProgressRule del servidor) ──
+
+export type HHMode = 'schedule' | 'progress';
+
+/** Campos del modo progreso, todos en segundos. 0 = sin valor. */
+export interface HHProgress { startAfter: number; endHow: 'duration' | 'end'; endAfter: number; duration: number; repeatOn: boolean; repeatEvery: number }
+
+export const DEFAULT_PROGRESS: HHProgress = { startAfter: 12 * 3600, endHow: 'duration', endAfter: 0, duration: 2 * 3600, repeatOn: false, repeatEvery: 6 * 3600 };
+
+/** Clave de traducción del error de la configuración, o null si es válida. */
+export function progressError(p: HHProgress): string | null {
+    const len = p.endHow === 'duration' ? p.duration : p.endAfter - p.startAfter;
+    if (p.endHow === 'duration' && p.duration <= 0) return 'timerAdvanced.hh.progress.errNoEnd';
+    if (p.endHow === 'end' && p.endAfter <= 0) return 'timerAdvanced.hh.progress.errNoEnd';
+    if (len <= 0) return 'timerAdvanced.hh.progress.errEndBefore';
+    if (p.repeatOn && p.repeatEvery <= len) return 'timerAdvanced.hh.progress.errRepeat';
+    return null;
+}

@@ -1543,7 +1543,7 @@ namespace Decatron.Services
             var today = (int)now.DayOfWeek; // 0 = domingo
             var yesterday = (today + 6) % 7;
 
-            var happyHours = await _dbContext.TimerHappyHours.Where(hh => hh.UserId == user.Id && hh.Enabled).ToListAsync();
+            var happyHours = await _dbContext.TimerHappyHours.Where(hh => hh.UserId == user.Id && hh.Enabled && hh.Mode == HappyHourModes.Schedule).ToListAsync();
             foreach (var hh in happyHours)
             {
                 bool[]? days;
@@ -1564,6 +1564,41 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Happy Hour por progreso en curso: se miden con el tiempo que lleva corriendo el timer (sin pausas).
+        /// EndsAtUtc es null cuando el timer está en pausa: la ventana queda congelada y no tiene hora de fin fija.
+        /// Todo sale de la base de datos (StartedAt, pausas), sin estado en memoria: sobrevive a un reinicio.
+        /// </summary>
+        private async Task<List<(TimerHappyHour Hh, DateTime? EndsAtUtc)>> GetProgressHappyHoursNowAsync(string channelName)
+        {
+            var result = new List<(TimerHappyHour, DateTime?)>();
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login.ToLower() == channelName);
+            if (user == null) return result;
+
+            var progress = await _dbContext.TimerHappyHours
+                .Where(hh => hh.UserId == user.Id && hh.Enabled && hh.Mode == HappyHourModes.Progress)
+                .ToListAsync();
+            if (progress.Count == 0) return result;
+
+            var state = await _dbContext.TimerStates.AsNoTracking().FirstOrDefaultAsync(st => st.UserId == user.Id);
+            if (state == null) return result;
+
+            var nowUtc = DateTime.UtcNow;
+            var elapsed = HappyHourProgressRule.ElapsedSeconds(
+                state.Status,
+                state.StartedAt.HasValue ? TimerDateTimeHelper.NormalizeToUtc(state.StartedAt.Value) : null,
+                state.PausedAt.HasValue ? TimerDateTimeHelper.NormalizeToUtc(state.PausedAt.Value) : null,
+                state.ElapsedPausedTime, nowUtc);
+            if (elapsed == null) return result;
+
+            foreach (var hh in progress)
+            {
+                var (active, left) = HappyHourProgressRule.Evaluate(elapsed.Value, hh.StartAfterSeconds, hh.EndAfterSeconds, hh.DurationSeconds, hh.RepeatEverySeconds);
+                if (active) result.Add((hh, state.Status == "running" ? nowUtc.AddSeconds(left) : null));
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Multiplicador para un evento. Primero el Happy Hour manual; si no, el mayor de los programados
         /// en curso que se aplican a ese evento.
         /// </summary>
@@ -1579,9 +1614,11 @@ namespace Decatron.Services
                 }
 
                 var (active, _) = await GetScheduledHappyHoursNowAsync(channelName);
-                var applicable = active.Where(a => HappyHourAppliesTo(a.Hh.EventTypes, eventType)).ToList();
+                var byProgress = await GetProgressHappyHoursNowAsync(channelName);
+                var applicable = active.Select(a => a.Hh).Concat(byProgress.Select(a => a.Hh))
+                    .Where(h => HappyHourAppliesTo(h.EventTypes, eventType)).ToList();
                 if (applicable.Count == 0) return 1.0;
-                var best = applicable.OrderByDescending(a => a.Hh.Multiplier).First().Hh;
+                var best = applicable.OrderByDescending(h => h.Multiplier).First();
                 _logger.LogInformation($"[HAPPY HOUR] ✨ '{best.Name}' activo para {channelName}: {best.Multiplier}x en {eventType}");
                 return (double)best.Multiplier;
             }
@@ -1601,11 +1638,18 @@ namespace Decatron.Services
                     return (true, manual.Multiplier, TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt));
 
                 var (active, tz) = await GetScheduledHappyHoursNowAsync(channelName);
-                if (active.Count == 0) return (false, 1.0, null);
-                var best = active.OrderByDescending(a => a.Hh.Multiplier).First();
+                var byProgress = await GetProgressHappyHoursNowAsync(channelName);
+                if (active.Count == 0 && byProgress.Count == 0) return (false, 1.0, null);
+
+                // Gana la de mayor multiplicador, sea por horario o por progreso
+                var bestSchedule = active.Count == 0 ? default : active.OrderByDescending(a => a.Hh.Multiplier).First();
+                var bestProgress = byProgress.Count == 0 ? default : byProgress.OrderByDescending(a => a.Hh.Multiplier).First();
+                if (byProgress.Count > 0 && (active.Count == 0 || bestProgress.Hh.Multiplier > bestSchedule.Hh.Multiplier))
+                    return (true, (double)bestProgress.Hh.Multiplier, bestProgress.EndsAtUtc); // null = timer en pausa
+
                 // Sin zona horaria, la hora local viene de NowForDb() (Lima): se normaliza igual para el countdown
-                var endsAtUtc = tz != null ? TimeZoneInfo.ConvertTimeToUtc(best.EndsAtLocal, tz) : TimerDateTimeHelper.NormalizeToUtc(best.EndsAtLocal);
-                return (true, (double)best.Hh.Multiplier, endsAtUtc);
+                var endsAtUtc = tz != null ? TimeZoneInfo.ConvertTimeToUtc(bestSchedule.EndsAtLocal, tz) : TimerDateTimeHelper.NormalizeToUtc(bestSchedule.EndsAtLocal);
+                return (true, (double)bestSchedule.Hh.Multiplier, endsAtUtc);
             }
             catch (Exception ex)
             {

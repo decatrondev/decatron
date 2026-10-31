@@ -4,6 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Decatron.Core.Models
 {
+    public static class HappyHourModes
+    {
+        public const string Schedule = "schedule";
+        public const string Progress = "progress";
+    }
+
     [Table("timer_happyhour")]
     public class TimerHappyHour
     {
@@ -43,6 +49,28 @@ namespace Decatron.Core.Models
         /// <summary>A qué eventos se aplica (JSON: ["sub","bits",...]). Null = a todos.</summary>
         [Column("event_types", TypeName = "jsonb")]
         public string? EventTypes { get; set; }
+
+        /// <summary>"schedule" = por horario (lo de siempre); "progress" = por tiempo transcurrido del timer.</summary>
+        [Required]
+        [MaxLength(16)]
+        [Column("mode")]
+        public string Mode { get; set; } = HappyHourModes.Schedule;
+
+        /// <summary>Modo progreso: segundos de timer corriendo en que se activa.</summary>
+        [Column("start_after_seconds")]
+        public int? StartAfterSeconds { get; set; }
+
+        /// <summary>Modo progreso: segundo umbral en que se apaga (alternativa a la duración).</summary>
+        [Column("end_after_seconds")]
+        public int? EndAfterSeconds { get; set; }
+
+        /// <summary>Modo progreso: cuánto dura la ventana (alternativa al segundo umbral).</summary>
+        [Column("duration_seconds")]
+        public int? DurationSeconds { get; set; }
+
+        /// <summary>Modo progreso: null = una sola vez; con valor, la ventana se repite cada tanto.</summary>
+        [Column("repeat_every_seconds")]
+        public int? RepeatEverySeconds { get; set; }
 
         [Required]
         [Column("enabled")]

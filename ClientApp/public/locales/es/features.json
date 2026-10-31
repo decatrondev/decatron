@@ -2603,6 +2603,43 @@
       "edit": "Editar",
       "duplicate": "Duplicar",
       "delete": "Eliminar",
+      "mode": {
+        "title": "Cómo se activa",
+        "schedule": "Por horario",
+        "progress": "Por progreso del timer",
+        "scheduleHint": "Un día y una hora del reloj del canal, por ejemplo los viernes de 20:00 a 22:00.",
+        "progressHint": "Cuando el timer lleve cierto tiempo corriendo, por ejemplo a las 12 horas. Las pausas no cuentan.",
+        "fixed": "El modo no se puede cambiar al editar. Para cambiarlo, crea una nueva."
+      },
+      "progress": {
+        "startAt": "Se activa cuando el timer lleve…",
+        "startHint": "Tiempo corriendo desde que el timer arrancó, sin contar las pausas. 0 = desde el inicio.",
+        "endHow": "Cómo termina",
+        "byDuration": "Dura un tiempo",
+        "byEnd": "Termina a un tiempo del timer",
+        "duration": "Dura…",
+        "endAt": "Se apaga cuando el timer lleve…",
+        "repeat": "Repetir",
+        "once": "Una sola vez",
+        "every": "Repetir cada…",
+        "everyHint": "Se vuelve a activar cada tanto, contando desde el inicio de la anterior.",
+        "hoursUnit": "horas",
+        "minutesUnit": "minutos",
+        "pauseNote": "Si pausas el timer, la cuenta se congela: la Happy Hour no avanza ni se acaba mientras esté en pausa. Al detener o reiniciar el timer, todo vuelve a cero.",
+        "badge": "Por progreso",
+        "cardStart": "Se activa a las {{start}} del timer",
+        "cardStartZero": "Se activa desde el inicio del timer",
+        "cardDuration": "dura {{d}}",
+        "cardEnd": "se apaga a las {{e}}",
+        "cardRepeat": "se repite cada {{r}}",
+        "summary": "{{line}}. x{{m}} en {{events}}.",
+        "errNoEnd": "Indica cuánto dura o cuándo se apaga.",
+        "errEndBefore": "El tiempo de fin debe ser mayor que el de inicio.",
+        "errRepeat": "Repetir cada debe ser mayor que lo que dura."
+      },
+      "namePhrase": {
+        "progress": "{{mult}} a las {{start}} del timer"
+      },
       "copySuffix": "(copia)",
       "name": {
         "double": "Doble tiempo",

@@ -11,7 +11,7 @@ import { Plus, Edit2, Trash2, Copy, Zap, Clock, AlertTriangle } from 'lucide-rea
 import type { EventsConfig } from '../../../types';
 import {
     HH_EVENTS, DAY_ORDER, type HHEvent, crossesMidnight, isActiveNow, nextStart, overlaps,
-    minutesUntil, nowIn, timeIn, tzCity, localTz, fromMinutes,
+    minutesUntil, nowIn, timeIn, tzCity, localTz, fromMinutes, type HHMode, type HHProgress, progressError,
 } from './happyHourUtils';
 
 export interface HappyHour {
@@ -24,6 +24,12 @@ export interface HappyHour {
     daysOfWeek: string; // JSON string
     /** A qué eventos se aplica; null = a todos. */
     eventTypes: string[] | null;
+    /** 'schedule' (por horario, lo de siempre) o 'progress' (por tiempo transcurrido del timer). */
+    mode?: HHMode;
+    startAfterSeconds?: number | null;
+    endAfterSeconds?: number | null;
+    durationSeconds?: number | null;
+    repeatEverySeconds?: number | null;
     enabled: boolean;
     createdAt: string;
     updatedAt: string;
@@ -37,6 +43,8 @@ export interface HappyHourFormData {
     multiplier: number;
     daysOfWeek: boolean[];
     eventTypes: string[];
+    mode: HHMode;
+    progress: HHProgress;
     enabled: boolean;
 }
 
@@ -95,6 +103,7 @@ export const parseDays = (json: string): boolean[] => {
 /** Nombre sugerido si el streamer no escribe uno: "Doble tiempo fines de semana". */
 export function suggestHappyHourName(f: HappyHourFormData, t: (k: string, o?: any) => string): string {
     const mult = f.multiplier === 2 ? t('timerAdvanced.hh.name.double') : f.multiplier === 3 ? t('timerAdvanced.hh.name.triple') : t('timerAdvanced.hh.name.times', { m: f.multiplier });
+    if (f.mode === 'progress') return t('timerAdvanced.hh.namePhrase.progress', { mult, start: formatSeconds(f.progress.startAfter, t) || '0 min' });
     return `${mult} ${daysPhrase(f.daysOfWeek, t)}`.trim();
 }
 
@@ -115,6 +124,38 @@ function formatSeconds(sec: number, t: (k: string, o?: any) => string): string {
     if (s < 60) return t('timerAdvanced.hh.sec', { n: s });
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
     return [h ? t('timerAdvanced.hh.hours', { n: h }) : '', m ? t('timerAdvanced.hh.min', { n: m }) : '', !h && r ? t('timerAdvanced.hh.sec', { n: r }) : ''].filter(Boolean).join(' ');
+}
+
+/** Horas y minutos para un tiempo en segundos (el servidor guarda segundos). */
+function DurationInput({ value, onChange }: { value: number; onChange: (seconds: number) => void }) {
+    const { t } = useTranslation('features');
+    const h = Math.floor(value / 3600), m = Math.floor((value % 3600) / 60);
+    const clamp = (n: number, max: number) => (Number.isNaN(n) ? 0 : Math.min(max, Math.max(0, Math.floor(n))));
+    return (
+        <span className="inline-flex items-center gap-2 flex-wrap">
+            <input type="number" min={0} max={999} value={h} onChange={e => onChange(clamp(parseInt(e.target.value, 10), 999) * 3600 + m * 60)} className={`${input} w-24`} />
+            <span className="text-sm text-ds-soft">{t('timerAdvanced.hh.progress.hoursUnit')}</span>
+            <input type="number" min={0} max={59} value={m} onChange={e => onChange(h * 3600 + clamp(parseInt(e.target.value, 10), 59) * 60)} className={`${input} w-24`} />
+            <span className="text-sm text-ds-soft">{t('timerAdvanced.hh.progress.minutesUnit')}</span>
+        </span>
+    );
+}
+
+/** Resumen en una línea de una Happy Hour por progreso (ya guardada o en el formulario). */
+function progressLine(pr: HHProgress, t: (k: string, o?: any) => string): string {
+    const parts = [pr.startAfter > 0 ? t('timerAdvanced.hh.progress.cardStart', { start: formatSeconds(pr.startAfter, t) }) : t('timerAdvanced.hh.progress.cardStartZero')];
+    parts.push(pr.endHow === 'duration' ? t('timerAdvanced.hh.progress.cardDuration', { d: formatSeconds(pr.duration, t) }) : t('timerAdvanced.hh.progress.cardEnd', { e: formatSeconds(pr.endAfter, t) }));
+    if (pr.repeatOn) parts.push(t('timerAdvanced.hh.progress.cardRepeat', { r: formatSeconds(pr.repeatEvery, t) }));
+    return parts.join(' · ');
+}
+
+/** Lo guardado en el servidor, como campos del formulario. */
+export function progressFrom(h: { startAfterSeconds?: number | null; endAfterSeconds?: number | null; durationSeconds?: number | null; repeatEverySeconds?: number | null }): HHProgress {
+    const byEnd = !h.durationSeconds && !!h.endAfterSeconds;
+    return {
+        startAfter: h.startAfterSeconds ?? 0, endHow: byEnd ? 'end' : 'duration', endAfter: h.endAfterSeconds ?? 0,
+        duration: h.durationSeconds ?? 0, repeatOn: !!h.repeatEverySeconds, repeatEvery: h.repeatEverySeconds ?? 6 * 3600,
+    };
 }
 
 const formatDuration = (min: number, t: (k: string, o?: any) => string) => formatSeconds(min * 60, t);
@@ -202,12 +243,14 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
     useEffect(() => { if (untilMode) p.setManualDuration(minutesUntil(untilTime, tz)); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [untilMode, untilTime, tz]);
     const manualEnd = new Date(Date.now() + manualMinutes * 60000);
 
-    const overlapping = useMemo(() => p.happyHours.filter(h => h.enabled && h.id !== p.editingId
-        && overlaps({ startTime: f.startTime, endTime: f.endTime, daysOfWeek: f.daysOfWeek }, { startTime: h.startTime, endTime: h.endTime, daysOfWeek: parseDays(h.daysOfWeek) })), [p.happyHours, p.editingId, f]);
+    const isProgress = f.mode === 'progress';
+    const overlapping = useMemo(() => isProgress ? [] : p.happyHours.filter(h => h.enabled && h.id !== p.editingId && h.mode !== 'progress'
+        && overlaps({ startTime: f.startTime, endTime: f.endTime, daysOfWeek: f.daysOfWeek }, { startTime: h.startTime, endTime: h.endTime, daysOfWeek: parseDays(h.daysOfWeek) })), [p.happyHours, p.editingId, f, isProgress]);
 
-    const sameTime = f.startTime === f.endTime;
-    const noDays = !f.daysOfWeek.some(Boolean);
-    const next = !noDays && !sameTime ? nextStart(f, tz) : null;
+    const progErrKey = isProgress ? progressError(f.progress) : null;
+    const sameTime = !isProgress && f.startTime === f.endTime;
+    const noDays = !isProgress && !f.daysOfWeek.some(Boolean);
+    const next = !isProgress && !noDays && !sameTime ? nextStart(f, tz) : null;
     const nextText = next ? (next.inDays === 0 ? t('timerAdvanced.hh.today') : next.inDays === 1 ? t('timerAdvanced.hh.tomorrow') : t(`timerAdvanced.hh.days.long.${next.dow}`)) : '';
     const ex = example(f.eventTypes, f.multiplier, p.eventsConfig, t);
 
@@ -309,6 +352,22 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                         </div>
 
                         <div>
+                            <span className={label}>{t('timerAdvanced.hh.mode.title')}</span>
+                            {p.isEditingHappyHour ? (
+                                <p className="text-sm text-ds-text"><strong>{t(`timerAdvanced.hh.mode.${f.mode}`)}</strong> · <span className="text-ds-soft">{t('timerAdvanced.hh.mode.fixed')}</span></p>
+                            ) : (
+                                <>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(['schedule', 'progress'] as HHMode[]).map(m => (
+                                            <button key={m} type="button" className={chip(f.mode === m)} onClick={() => setF({ mode: m })}>{t(`timerAdvanced.hh.mode.${m}`)}</button>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-ds-soft mt-2">{t(`timerAdvanced.hh.mode.${f.mode}Hint`)}</p>
+                                </>
+                            )}
+                        </div>
+
+                        <div>
                             <span className={label}>1. {t('timerAdvanced.hh.q.howMuch')}</span>
                             <MultiplierPicker value={f.multiplier} onChange={v => setF({ multiplier: v })} />
                             {ex && <p className="text-sm text-ds-accent-text mt-2">{ex}</p>}
@@ -319,6 +378,46 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                             <EventPicker value={f.eventTypes} onChange={v => setF({ eventTypes: v })} />
                         </div>
 
+                        {isProgress && (
+                            <div className="space-y-4">
+                                <span className={label}>3. {t('timerAdvanced.hh.q.when')}</span>
+                                <div>
+                                    <p className="text-sm text-ds-text mb-2">{t('timerAdvanced.hh.progress.startAt')}</p>
+                                    <DurationInput value={f.progress.startAfter} onChange={v => setF({ progress: { ...f.progress, startAfter: v } })} />
+                                    <p className="text-xs text-ds-soft mt-1">{t('timerAdvanced.hh.progress.startHint')}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-ds-text mb-2">{t('timerAdvanced.hh.progress.endHow')}</p>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {(['duration', 'end'] as const).map(k => (
+                                            <button key={k} type="button" className={chip(f.progress.endHow === k)} onClick={() => setF({ progress: { ...f.progress, endHow: k } })}>
+                                                {t(k === 'duration' ? 'timerAdvanced.hh.progress.byDuration' : 'timerAdvanced.hh.progress.byEnd')}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-ds-text mb-2">{t(f.progress.endHow === 'duration' ? 'timerAdvanced.hh.progress.duration' : 'timerAdvanced.hh.progress.endAt')}</p>
+                                    {f.progress.endHow === 'duration'
+                                        ? <DurationInput value={f.progress.duration} onChange={v => setF({ progress: { ...f.progress, duration: v } })} />
+                                        : <DurationInput value={f.progress.endAfter} onChange={v => setF({ progress: { ...f.progress, endAfter: v } })} />}
+                                </div>
+                                <div>
+                                    <p className="text-sm text-ds-text mb-2">{t('timerAdvanced.hh.progress.repeat')}</p>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        <button type="button" className={chip(!f.progress.repeatOn)} onClick={() => setF({ progress: { ...f.progress, repeatOn: false } })}>{t('timerAdvanced.hh.progress.once')}</button>
+                                        <button type="button" className={chip(f.progress.repeatOn)} onClick={() => setF({ progress: { ...f.progress, repeatOn: true } })}>{t('timerAdvanced.hh.progress.every')}</button>
+                                    </div>
+                                    {f.progress.repeatOn && (
+                                        <>
+                                            <DurationInput value={f.progress.repeatEvery} onChange={v => setF({ progress: { ...f.progress, repeatEvery: v } })} />
+                                            <p className="text-xs text-ds-soft mt-1">{t('timerAdvanced.hh.progress.everyHint')}</p>
+                                        </>
+                                    )}
+                                </div>
+                                <p className="text-xs text-ds-soft">⏸ {t('timerAdvanced.hh.progress.pauseNote')}</p>
+                            </div>
+                        )}
+
+                        {!isProgress && (
                         <div className="space-y-3">
                             <span className={label}>3. {t('timerAdvanced.hh.q.when')}</span>
                             <div className="flex flex-wrap gap-2">
@@ -361,6 +460,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                 <p className="text-sm text-ds-accent-text">🌙 {t('timerAdvanced.hh.crossesMidnight', { time: f.endTime })}</p>
                             )}
                         </div>
+                        )}
 
                         <div>
                             <span className={label}>4. {t('timerAdvanced.hh.q.name')}</span>
@@ -370,7 +470,11 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
 
                         {/* Resumen y avisos */}
                         <div className="p-4 rounded-lg bg-ds-accent/10 border border-ds-accent space-y-2">
-                            {sameTime ? (
+                            {progErrKey ? (
+                                <p className="text-sm font-bold text-ds-danger">{t(progErrKey)}</p>
+                            ) : isProgress ? (
+                                <p className="text-sm text-ds-text">{t('timerAdvanced.hh.progress.summary', { line: progressLine(f.progress, t), events: eventsText(f.eventTypes, t), m: f.multiplier })}</p>
+                            ) : sameTime ? (
                                 <p className="text-sm font-bold text-ds-danger">{t('timerAdvanced.hh.errorSameTime')}</p>
                             ) : noDays ? (
                                 <p className="text-sm font-bold text-ds-danger">{t('timerAdvanced.hh.errorNoDays')}</p>
@@ -389,7 +493,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
 
                         <div className="flex justify-end gap-2">
                             <button onClick={p.onResetForm} className="px-4 py-2.5 rounded-lg font-bold text-ds-soft hover:bg-ds-raised">{t('timerAdvanced.cancel')}</button>
-                            <button onClick={p.isEditingHappyHour ? p.onEditHappyHour : p.onCreateHappyHour} disabled={sameTime || noDays}
+                            <button onClick={p.isEditingHappyHour ? p.onEditHappyHour : p.onCreateHappyHour} disabled={sameTime || noDays || !!progErrKey}
                                 className="ds-btn ds-btn--primary">
                                 {p.isEditingHappyHour ? t('timerAdvanced.saveChanges') : t('timerAdvanced.hh.create')}
                             </button>
@@ -409,6 +513,35 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         {p.happyHours.map(h => {
+                            if (h.mode === 'progress') {
+                                const pr = progressFrom(h);
+                                return (
+                                    <div key={h.id} className={`p-4 rounded-lg border border-ds-border bg-ds-bg ${h.enabled ? '' : 'opacity-60'}`}>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-ds-text truncate">{h.name}</p>
+                                                <p className="text-sm text-ds-soft mt-0.5"><span className="font-black text-ds-accent-text">x{h.multiplier}</span> · {progressLine(pr, t)}</p>
+                                                <p className="text-xs text-ds-soft mt-0.5">{eventsText(h.eventTypes, t)}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => p.onToggleHappyHour(h.id, !h.enabled)}
+                                                title={h.enabled ? t('timerAdvanced.deactivate') : t('timerAdvanced.hh.turnOn')}
+                                                className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${h.enabled ? 'bg-ds-accent' : 'bg-ds-border '}`}
+                                            >
+                                                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-ds-surface shadow transition-transform ${h.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2 mt-3">
+                                            <span className="text-xs font-bold px-2 py-1 rounded-lg bg-ds-raised text-ds-soft">{h.enabled ? t('timerAdvanced.hh.progress.badge') : t('timerAdvanced.inactive')}</span>
+                                            <div className="flex gap-1">
+                                                <button onClick={() => p.onPrepareEdit(h)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('timerAdvanced.hh.edit')}><Edit2 className="w-4 h-4" /></button>
+                                                <button onClick={() => p.onDuplicate(h)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('timerAdvanced.hh.duplicate')}><Copy className="w-4 h-4" /></button>
+                                                <button onClick={() => p.onDeleteHappyHour(h.id)} className="p-2 rounded-lg hover:bg-ds-danger/10 text-ds-danger" title={t('timerAdvanced.hh.delete')}><Trash2 className="w-4 h-4" /></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
                             const days = parseDays(h.daysOfWeek);
                             const sched = { startTime: h.startTime, endTime: h.endTime, daysOfWeek: days };
                             const active = h.enabled && isActiveNow(sched, tz);

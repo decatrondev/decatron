@@ -26,6 +26,8 @@ namespace Decatron.Services
 
         // Último estado conocido por canal, para emitir solo en los cambios y no en cada vuelta.
         private readonly Dictionary<string, bool> _lastKnownActive = new();
+        // Última hora de fin avisada, para reenviar si cambia estando activa (pausa/reanudar de una Happy Hour por progreso).
+        private readonly Dictionary<string, DateTime?> _lastEndsAt = new();
 
         private readonly Decatron.Services.Tenancy.TenantTaskRunner _tenants;
 
@@ -79,7 +81,13 @@ namespace Decatron.Services
                     var info = await timerEventService.GetActiveHappyHourInfoAsync(channel);
                     var wasActive = _lastKnownActive.TryGetValue(channel, out var prev) && prev;
 
-                    if (info.Active == wasActive) continue;
+                    _lastEndsAt.TryGetValue(channel, out var prevEnds);
+                    // Sigue activa pero su fin cambió (más de 5 s, o pasó de tener hora de fin a no tenerla): se reenvía
+                    var endsChanged = info.Active && wasActive &&
+                        ((info.EndsAt == null) != (prevEnds == null) ||
+                         (info.EndsAt != null && prevEnds != null && Math.Abs((info.EndsAt.Value - prevEnds.Value).TotalSeconds) > 5));
+
+                    if (info.Active == wasActive && !endsChanged) continue;
 
                     if (info.Active)
                         await overlayService.SendHappyHourStartedAsync(channel, info.Multiplier, info.EndsAt);
@@ -87,6 +95,7 @@ namespace Decatron.Services
                         await overlayService.SendHappyHourEndedAsync(channel);
 
                     _lastKnownActive[channel] = info.Active;
+                    _lastEndsAt[channel] = info.Active ? info.EndsAt : null;
                 }
                 catch (Exception ex)
                 {

@@ -2603,6 +2603,43 @@
       "edit": "Edit",
       "duplicate": "Duplicate",
       "delete": "Delete",
+      "mode": {
+        "title": "How it turns on",
+        "schedule": "By schedule",
+        "progress": "By timer progress",
+        "scheduleHint": "A day and time on the channel's clock, for example Fridays from 20:00 to 22:00.",
+        "progressHint": "When the timer has been running for a set time, for example at 12 hours. Pauses don't count.",
+        "fixed": "The mode can't be changed while editing. To change it, create a new one."
+      },
+      "progress": {
+        "startAt": "Turns on when the timer has run for…",
+        "startHint": "Running time since the timer started, not counting pauses. 0 = from the start.",
+        "endHow": "How it ends",
+        "byDuration": "Lasts a set time",
+        "byEnd": "Ends at a timer time",
+        "duration": "Lasts…",
+        "endAt": "Turns off when the timer has run for…",
+        "repeat": "Repeat",
+        "once": "Only once",
+        "every": "Repeat every…",
+        "everyHint": "It turns on again every so often, counting from the start of the previous one.",
+        "hoursUnit": "hours",
+        "minutesUnit": "minutes",
+        "pauseNote": "If you pause the timer, the count freezes: the Happy Hour doesn't advance or run out while paused. When the timer is stopped or reset, everything goes back to zero.",
+        "badge": "By progress",
+        "cardStart": "Turns on at {{start}} of the timer",
+        "cardStartZero": "Turns on from the start of the timer",
+        "cardDuration": "lasts {{d}}",
+        "cardEnd": "turns off at {{e}}",
+        "cardRepeat": "repeats every {{r}}",
+        "summary": "{{line}}. x{{m}} on {{events}}.",
+        "errNoEnd": "Say how long it lasts or when it turns off.",
+        "errEndBefore": "The end time must be later than the start time.",
+        "errRepeat": "Repeat every must be longer than how long it lasts."
+      },
+      "namePhrase": {
+        "progress": "{{mult}} at {{start}} of the timer"
+      },
       "copySuffix": "(copy)",
       "name": {
         "double": "Double time",

@@ -1678,7 +1678,7 @@ namespace Decatron.Controllers
             {
                 var userId = GetChannelOwnerId();
                 var happyHours = await _dbContext.TimerHappyHours.Where(h => h.UserId == userId).OrderBy(h => h.StartTime).ToListAsync();
-                var dtos = happyHours.Select(h => new { h.Id, h.Name, h.Description, startTime = h.StartTime.ToString(@"hh\:mm"), endTime = h.EndTime.ToString(@"hh\:mm"), multiplier = h.Multiplier, daysOfWeek = h.DaysOfWeek, eventTypes = ParseHappyHourEvents(h.EventTypes), enabled = h.Enabled, createdAt = h.CreatedAt, updatedAt = h.UpdatedAt });
+                var dtos = happyHours.Select(h => new { h.Id, h.Name, h.Description, startTime = h.StartTime.ToString(@"hh\:mm"), endTime = h.EndTime.ToString(@"hh\:mm"), multiplier = h.Multiplier, daysOfWeek = h.DaysOfWeek, eventTypes = ParseHappyHourEvents(h.EventTypes), mode = h.Mode, startAfterSeconds = h.StartAfterSeconds, endAfterSeconds = h.EndAfterSeconds, durationSeconds = h.DurationSeconds, repeatEverySeconds = h.RepeatEverySeconds, enabled = h.Enabled, createdAt = h.CreatedAt, updatedAt = h.UpdatedAt });
                 return Ok(new { success = true, happyHours = dtos });
             }
             catch (Exception ex) { return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." }); }
@@ -1694,23 +1694,38 @@ namespace Decatron.Controllers
                 // Fix 5: Validate name is required
                 if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest(new { success = false, message = "Name is required" });
 
+                var mode = string.IsNullOrWhiteSpace(request.Mode) ? HappyHourModes.Schedule : request.Mode.Trim().ToLowerInvariant();
+                if (mode != HappyHourModes.Schedule && mode != HappyHourModes.Progress) return BadRequest(new { success = false, message = "Modo inválido" });
+                var isProgress = mode == HappyHourModes.Progress;
+                if (isProgress)
+                {
+                    // 0 o vacío = "sin valor" (el panel manda 0 en lo que el streamer no usa)
+                    if (request.EndAfterSeconds <= 0) request.EndAfterSeconds = null;
+                    if (request.DurationSeconds <= 0) request.DurationSeconds = null;
+                    if (request.RepeatEverySeconds <= 0) request.RepeatEverySeconds = null;
+                    var progressError = HappyHourProgressRule.Validate(request.StartAfterSeconds, request.EndAfterSeconds, request.DurationSeconds, request.RepeatEverySeconds);
+                    if (progressError != null) return BadRequest(new { success = false, message = progressError });
+                }
+
                 // Un fin menor que el inicio cruza la medianoche (22:00 → 02:00): es válido
-                if (request.StartTime == request.EndTime) return BadRequest(new { success = false, message = "El inicio y el fin no pueden ser la misma hora" });
+                if (!isProgress && request.StartTime == request.EndTime) return BadRequest(new { success = false, message = "El inicio y el fin no pueden ser la misma hora" });
                 if (request.Multiplier < 1 || request.Multiplier > 10) return BadRequest(new { success = false, message = "Multiplicador inválido (1-10)" });
-                if (request.DaysOfWeek == null || !request.DaysOfWeek.Any(d => d)) return BadRequest(new { success = false, message = "Elige al menos un día" });
+                if (!isProgress && (request.DaysOfWeek == null || !request.DaysOfWeek.Any(d => d))) return BadRequest(new { success = false, message = "Elige al menos un día" });
                 var events = NormalizeHappyHourEvents(request.EventTypes);
                 if (!events.Ok) return BadRequest(new { success = false, message = events.Error });
 
-                // Fix 4: Validate timezone is configured
+                // Fix 4: Validate timezone is configured (solo importa al programar por horario)
                 var timerConfig = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == userId);
-                if (timerConfig == null || string.IsNullOrWhiteSpace(timerConfig.TimeZone))
+                if (!isProgress && (timerConfig == null || string.IsNullOrWhiteSpace(timerConfig.TimeZone)))
                     return BadRequest(new { success = false, message = "Configura tu zona horaria en la pestaña General antes de crear un Happy Hour" });
 
                 // Fix 2: Check for duplicate Happy Hours (same start_time, end_time, overlapping days)
                 var requestDaysJson = System.Text.Json.JsonSerializer.Serialize(request.DaysOfWeek);
-                var existingHappyHours = await _dbContext.TimerHappyHours
-                    .Where(h => h.UserId == userId && h.StartTime == request.StartTime && h.EndTime == request.EndTime)
-                    .ToListAsync();
+                var existingHappyHours = isProgress
+                    ? new List<TimerHappyHour>()
+                    : await _dbContext.TimerHappyHours
+                        .Where(h => h.UserId == userId && h.Mode == HappyHourModes.Schedule && h.StartTime == request.StartTime && h.EndTime == request.EndTime)
+                        .ToListAsync();
                 foreach (var existing in existingHappyHours)
                 {
                     try
@@ -1735,11 +1750,16 @@ namespace Decatron.Controllers
                     UserId = userId,
                     Name = request.Name,
                     Description = request.Description,
-                    StartTime = request.StartTime,
-                    EndTime = request.EndTime,
+                    StartTime = isProgress ? TimeSpan.Zero : request.StartTime,
+                    EndTime = isProgress ? TimeSpan.Zero : request.EndTime,
                     Multiplier = request.Multiplier,
-                    DaysOfWeek = System.Text.Json.JsonSerializer.Serialize(request.DaysOfWeek),
+                    DaysOfWeek = System.Text.Json.JsonSerializer.Serialize(request.DaysOfWeek ?? new bool[7] { true, true, true, true, true, true, true }),
                     EventTypes = events.Json,
+                    Mode = mode,
+                    StartAfterSeconds = isProgress ? request.StartAfterSeconds : null,
+                    EndAfterSeconds = isProgress ? request.EndAfterSeconds : null,
+                    DurationSeconds = isProgress ? request.DurationSeconds : null,
+                    RepeatEverySeconds = isProgress ? request.RepeatEverySeconds : null,
                     Enabled = request.Enabled,
                     CreatedAt = TimerDateTimeHelper.NowForDb(),
                     UpdatedAt = DateTime.UtcNow
@@ -1762,7 +1782,23 @@ namespace Decatron.Controllers
 
                 var newStart = request.StartTime ?? happyHour.StartTime;
                 var newEnd = request.EndTime ?? happyHour.EndTime;
-                if (newStart == newEnd) return BadRequest(new { success = false, message = "El inicio y el fin no pueden ser la misma hora" });
+                var isProgress = happyHour.Mode == HappyHourModes.Progress; // el modo no se cambia al editar
+                if (isProgress)
+                {
+                    var nStart = request.StartAfterSeconds ?? happyHour.StartAfterSeconds;
+                    var nEnd = request.EndAfterSeconds ?? happyHour.EndAfterSeconds;
+                    var nDur = request.DurationSeconds ?? happyHour.DurationSeconds;
+                    var nRep = request.RepeatEverySeconds ?? happyHour.RepeatEverySeconds;
+                    // Quitar la repetición o cambiar de «duración» a «fin» llega como 0 desde el panel
+                    if (request.RepeatEverySeconds == 0) nRep = null;
+                    if (request.DurationSeconds == 0) nDur = null;
+                    if (request.EndAfterSeconds == 0) nEnd = null;
+                    var progressError = HappyHourProgressRule.Validate(nStart, nEnd, nDur, nRep);
+                    if (progressError != null) return BadRequest(new { success = false, message = progressError });
+                    happyHour.StartAfterSeconds = nStart; happyHour.EndAfterSeconds = nEnd;
+                    happyHour.DurationSeconds = nDur; happyHour.RepeatEverySeconds = nRep;
+                }
+                if (!isProgress && newStart == newEnd) return BadRequest(new { success = false, message = "El inicio y el fin no pueden ser la misma hora" });
                 if (request.DaysOfWeek != null && !request.DaysOfWeek.Any(d => d)) return BadRequest(new { success = false, message = "Elige al menos un día" });
                 var events = NormalizeHappyHourEvents(request.EventTypes);
                 if (request.EventTypes != null && !events.Ok) return BadRequest(new { success = false, message = events.Error });
@@ -2008,6 +2044,12 @@ namespace Decatron.Controllers
         public bool[] DaysOfWeek { get; set; } = new bool[7] { true, true, true, true, true, true, true };
         /// <summary>A qué eventos se aplica; null = a todos.</summary>
         public string[]? EventTypes { get; set; }
+        /// <summary>"schedule" (por horario, por defecto) o "progress" (por tiempo transcurrido del timer).</summary>
+        public string? Mode { get; set; }
+        public int? StartAfterSeconds { get; set; }
+        public int? EndAfterSeconds { get; set; }
+        public int? DurationSeconds { get; set; }
+        public int? RepeatEverySeconds { get; set; }
         public bool Enabled { get; set; } = true;
     }
 
@@ -2020,6 +2062,10 @@ namespace Decatron.Controllers
         public decimal? Multiplier { get; set; }
         public bool[]? DaysOfWeek { get; set; }
         public string[]? EventTypes { get; set; }
+        public int? StartAfterSeconds { get; set; }
+        public int? EndAfterSeconds { get; set; }
+        public int? DurationSeconds { get; set; }
+        public int? RepeatEverySeconds { get; set; }
         public bool? Enabled { get; set; }
     }
 }

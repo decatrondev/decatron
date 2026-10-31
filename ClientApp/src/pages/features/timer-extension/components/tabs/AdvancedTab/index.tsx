@@ -12,8 +12,8 @@ import type { AdvancedConfig, EventsConfig } from '../../../types';
 import { GeneralSection } from './GeneralSection';
 import { TemplatesSection, type CustomTemplate } from './TemplatesSection';
 import { SchedulesSection, type Schedule, type ScheduleFormData } from './SchedulesSection';
-import { HappyHourSection, suggestHappyHourName, parseDays, type HappyHour, type HappyHourFormData } from './HappyHourSection';
-import { HH_EVENTS } from './happyHourUtils';
+import { HappyHourSection, suggestHappyHourName, parseDays, progressFrom, type HappyHour, type HappyHourFormData } from './HappyHourSection';
+import { HH_EVENTS, DEFAULT_PROGRESS } from './happyHourUtils';
 
 interface AdvancedTabProps {
     advancedConfig: AdvancedConfig;
@@ -88,6 +88,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         multiplier: 2.0,
         daysOfWeek: [true, true, true, true, true, true, true],
         eventTypes: [...HH_EVENTS],
+        mode: 'schedule',
+        progress: { ...DEFAULT_PROGRESS },
         enabled: true
     });
 
@@ -458,20 +460,36 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             multiplier: 2.0,
             daysOfWeek: [true, true, true, true, true, true, true],
             eventTypes: [...HH_EVENTS],
+            mode: 'schedule',
+            progress: { ...DEFAULT_PROGRESS },
             enabled: true
         });
     };
 
     /** Lo que se manda al servidor: sin nombre, el sugerido. */
-    const happyHourPayload = () => ({ ...happyHourForm, name: happyHourForm.name.trim() || suggestHappyHourName(happyHourForm, t) });
+    const happyHourPayload = (creating: boolean) => {
+        // En modo progreso no van horas ni días: no se usan y no deben pisar lo guardado
+        const { progress, startTime: _s, endTime: _e, daysOfWeek: _d, ...rest } = happyHourForm;
+        const base: any = { ...rest, name: happyHourForm.name.trim() || suggestHappyHourName(happyHourForm, t) };
+        if (happyHourForm.mode !== 'progress') return { ...base, startTime: happyHourForm.startTime, endTime: happyHourForm.endTime, daysOfWeek: happyHourForm.daysOfWeek };
+        // Lo que el streamer no usa va vacío al crear y en 0 al editar (el servidor lo toma como «quitar»)
+        const unused = creating ? null : 0;
+        return {
+            ...base,
+            startAfterSeconds: progress.startAfter,
+            durationSeconds: progress.endHow === 'duration' ? progress.duration : unused,
+            endAfterSeconds: progress.endHow === 'end' ? progress.endAfter : unused,
+            repeatEverySeconds: progress.repeatOn ? progress.repeatEvery : unused,
+        };
+    };
 
     const handleCreateHappyHour = async () => {
-        if (!timeZone) {
+        if (happyHourForm.mode !== 'progress' && !timeZone) {
             showMessage('error', t('timerAdvanced.configureTimezoneFirst'));
             return;
         }
         try {
-            const res = await api.post('/timer/happyhour', happyHourPayload());
+            const res = await api.post('/timer/happyhour', happyHourPayload(true));
             if (res.data.success) {
                 showMessage('success', t('timerAdvanced.happyHourCreated'));
                 resetHappyHourForm();
@@ -485,7 +503,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     const handleEditHappyHour = async () => {
         if (!editingHappyHour) return;
         try {
-            const res = await api.put(`/timer/happyhour/${editingHappyHour.id}`, happyHourPayload());
+            const res = await api.put(`/timer/happyhour/${editingHappyHour.id}`, happyHourPayload(false));
             if (res.data.success) {
                 showMessage('success', t('timerAdvanced.happyHourUpdated'));
                 resetHappyHourForm();
@@ -559,6 +577,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         multiplier: Number(hh.multiplier),
         daysOfWeek: parseDays(hh.daysOfWeek),
         eventTypes: hh.eventTypes ?? [...HH_EVENTS],
+        mode: hh.mode === 'progress' ? 'progress' : 'schedule',
+        progress: hh.mode === 'progress' ? progressFrom(hh) : { ...DEFAULT_PROGRESS },
         enabled: hh.enabled
     });
 
