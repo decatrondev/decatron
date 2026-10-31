@@ -152,6 +152,15 @@ function progressLine(pr: HHProgress, t: (k: string, o?: any) => string): string
     return parts.join(' · ');
 }
 
+/** Al elegir cómo termina, deja un valor sugerido (editable) para que el formulario no quede en 0: 4 veces el umbral para subir (12 h → 48 h), la mitad para bajar, 3 h de duración. */
+function suggestRemainingEnd(pr: HHProgress, k: RemainingEnd): HHProgress {
+    const next = { ...pr, remainingEnd: k };
+    if (k === 'rise_to' && pr.endAfter <= pr.startAfter) next.endAfter = pr.startAfter * 4;
+    if (k === 'fall_to' && (pr.endAfter >= pr.startAfter || pr.endAfter === 0)) next.endAfter = Math.floor(pr.startAfter / 2);
+    if (k === 'duration' && pr.duration <= 0) next.duration = 3 * 3600;
+    return next;
+}
+
 /** Resumen de «por tiempo restante» según cómo termina. */
 function remainingText(pr: HHProgress, mult: number, events: string, t: (k: string, o?: any) => string): string {
     return t(`timerAdvanced.hh.remaining.summary.${pr.remainingEnd}`, { start: formatSeconds(pr.startAfter, t), end: formatSeconds(pr.remainingEnd === 'duration' ? pr.duration : pr.endAfter, t) || '0 min', m: mult, events });
@@ -405,7 +414,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                     <p className="text-sm text-ds-text mb-2">{t('timerAdvanced.hh.remaining.endTitle')}</p>
                                     <div className="flex flex-wrap gap-2 mb-2">
                                         {REMAINING_ENDS.map(k => (
-                                            <button key={k} type="button" className={chip(f.progress.remainingEnd === k)} onClick={() => setF({ progress: { ...f.progress, remainingEnd: k } })}>
+                                            <button key={k} type="button" className={chip(f.progress.remainingEnd === k)} onClick={() => setF({ progress: suggestRemainingEnd(f.progress, k) })}>
                                                 {t(`timerAdvanced.hh.remaining.end.${k}`)}
                                             </button>
                                         ))}
