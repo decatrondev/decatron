@@ -11,7 +11,7 @@ import { Plus, Edit2, Trash2, Copy, Zap, Clock, AlertTriangle } from 'lucide-rea
 import type { EventsConfig } from '../../../types';
 import {
     HH_EVENTS, DAY_ORDER, type HHEvent, crossesMidnight, isActiveNow, nextStart, overlaps,
-    minutesUntil, nowIn, timeIn, tzCity, localTz, fromMinutes, type HHMode, type HHProgress, progressError,
+    minutesUntil, nowIn, timeIn, tzCity, localTz, fromMinutes, type HHMode, type HHProgress, progressError, remainingError,
 } from './happyHourUtils';
 
 export interface HappyHour {
@@ -103,6 +103,7 @@ export const parseDays = (json: string): boolean[] => {
 /** Nombre sugerido si el streamer no escribe uno: "Doble tiempo fines de semana". */
 export function suggestHappyHourName(f: HappyHourFormData, t: (k: string, o?: any) => string): string {
     const mult = f.multiplier === 2 ? t('timerAdvanced.hh.name.double') : f.multiplier === 3 ? t('timerAdvanced.hh.name.triple') : t('timerAdvanced.hh.name.times', { m: f.multiplier });
+    if (f.mode === 'remaining') return t('timerAdvanced.hh.namePhrase.remaining', { mult, start: formatSeconds(f.progress.startAfter, t) || '0 min' });
     if (f.mode === 'progress') return t('timerAdvanced.hh.namePhrase.progress', { mult, start: formatSeconds(f.progress.startAfter, t) || '0 min' });
     return `${mult} ${daysPhrase(f.daysOfWeek, t)}`.trim();
 }
@@ -243,11 +244,12 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
     useEffect(() => { if (untilMode) p.setManualDuration(minutesUntil(untilTime, tz)); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [untilMode, untilTime, tz]);
     const manualEnd = new Date(Date.now() + manualMinutes * 60000);
 
-    const isProgress = f.mode === 'progress';
+    const isRemaining = f.mode === 'remaining';
+    const isProgress = f.mode !== 'schedule'; // progreso y restante: no dependen del reloj ni de los días
     const overlapping = useMemo(() => isProgress ? [] : p.happyHours.filter(h => h.enabled && h.id !== p.editingId && h.mode !== 'progress'
         && overlaps({ startTime: f.startTime, endTime: f.endTime, daysOfWeek: f.daysOfWeek }, { startTime: h.startTime, endTime: h.endTime, daysOfWeek: parseDays(h.daysOfWeek) })), [p.happyHours, p.editingId, f, isProgress]);
 
-    const progErrKey = isProgress ? progressError(f.progress) : null;
+    const progErrKey = isRemaining ? remainingError(f.progress) : isProgress ? progressError(f.progress) : null;
     const sameTime = !isProgress && f.startTime === f.endTime;
     const noDays = !isProgress && !f.daysOfWeek.some(Boolean);
     const next = !isProgress && !noDays && !sameTime ? nextStart(f, tz) : null;
@@ -358,7 +360,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                             ) : (
                                 <>
                                     <div className="flex flex-wrap gap-2">
-                                        {(['schedule', 'progress'] as HHMode[]).map(m => (
+                                        {(['schedule', 'progress', 'remaining'] as HHMode[]).map(m => (
                                             <button key={m} type="button" className={chip(f.mode === m)} onClick={() => setF({ mode: m })}>{t(`timerAdvanced.hh.mode.${m}`)}</button>
                                         ))}
                                     </div>
@@ -378,7 +380,18 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                             <EventPicker value={f.eventTypes} onChange={v => setF({ eventTypes: v })} />
                         </div>
 
-                        {isProgress && (
+                        {isRemaining && (
+                            <div className="space-y-4">
+                                <span className={label}>3. {t('timerAdvanced.hh.q.when')}</span>
+                                <div>
+                                    <p className="text-sm text-ds-text mb-2">{t('timerAdvanced.hh.remaining.startAt')}</p>
+                                    <DurationInput value={f.progress.startAfter} onChange={v => setF({ progress: { ...f.progress, startAfter: v } })} />
+                                    <p className="text-xs text-ds-soft mt-1">{t('timerAdvanced.hh.remaining.hint')}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {isProgress && !isRemaining && (
                             <div className="space-y-4">
                                 <span className={label}>3. {t('timerAdvanced.hh.q.when')}</span>
                                 <div>
@@ -472,6 +485,8 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                         <div className="p-4 rounded-lg bg-ds-accent/10 border border-ds-accent space-y-2">
                             {progErrKey ? (
                                 <p className="text-sm font-bold text-ds-danger">{t(progErrKey)}</p>
+                            ) : isRemaining ? (
+                                <p className="text-sm text-ds-text">{t('timerAdvanced.hh.remaining.summary', { start: formatSeconds(f.progress.startAfter, t), events: eventsText(f.eventTypes, t), m: f.multiplier })}</p>
                             ) : isProgress ? (
                                 <p className="text-sm text-ds-text">{t('timerAdvanced.hh.progress.summary', { line: progressLine(f.progress, t), events: eventsText(f.eventTypes, t), m: f.multiplier })}</p>
                             ) : sameTime ? (
@@ -513,14 +528,15 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         {p.happyHours.map(h => {
-                            if (h.mode === 'progress') {
+                            if (h.mode === 'progress' || h.mode === 'remaining') {
                                 const pr = progressFrom(h);
+                                const isRem = h.mode === 'remaining';
                                 return (
                                     <div key={h.id} className={`p-4 rounded-lg border border-ds-border bg-ds-bg ${h.enabled ? '' : 'opacity-60'}`}>
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0">
                                                 <p className="font-bold text-ds-text truncate">{h.name}</p>
-                                                <p className="text-sm text-ds-soft mt-0.5"><span className="font-black text-ds-accent-text">x{h.multiplier}</span> · {progressLine(pr, t)}</p>
+                                                <p className="text-sm text-ds-soft mt-0.5"><span className="font-black text-ds-accent-text">x{h.multiplier}</span> · {isRem ? t('timerAdvanced.hh.remaining.card', { start: formatSeconds(pr.startAfter, t) }) : progressLine(pr, t)}</p>
                                                 <p className="text-xs text-ds-soft mt-0.5">{eventsText(h.eventTypes, t)}</p>
                                             </div>
                                             <button
@@ -532,7 +548,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                             </button>
                                         </div>
                                         <div className="flex items-center justify-between gap-2 mt-3">
-                                            <span className="text-xs font-bold px-2 py-1 rounded-lg bg-ds-raised text-ds-soft">{h.enabled ? t('timerAdvanced.hh.progress.badge') : t('timerAdvanced.inactive')}</span>
+                                            <span className="text-xs font-bold px-2 py-1 rounded-lg bg-ds-raised text-ds-soft">{h.enabled ? t(isRem ? 'timerAdvanced.hh.remaining.badge' : 'timerAdvanced.hh.progress.badge') : t('timerAdvanced.inactive')}</span>
                                             <div className="flex gap-1">
                                                 <button onClick={() => p.onPrepareEdit(h)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('timerAdvanced.hh.edit')}><Edit2 className="w-4 h-4" /></button>
                                                 <button onClick={() => p.onDuplicate(h)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('timerAdvanced.hh.duplicate')}><Copy className="w-4 h-4" /></button>

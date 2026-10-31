@@ -471,8 +471,10 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         // En modo progreso no van horas ni días: no se usan y no deben pisar lo guardado
         const { progress, startTime: _s, endTime: _e, daysOfWeek: _d, ...rest } = happyHourForm;
         const base: any = { ...rest, name: happyHourForm.name.trim() || suggestHappyHourName(happyHourForm, t) };
-        if (happyHourForm.mode !== 'progress') return { ...base, startTime: happyHourForm.startTime, endTime: happyHourForm.endTime, daysOfWeek: happyHourForm.daysOfWeek };
+        if (happyHourForm.mode === 'schedule') return { ...base, startTime: happyHourForm.startTime, endTime: happyHourForm.endTime, daysOfWeek: happyHourForm.daysOfWeek };
         // Lo que el streamer no usa va vacío al crear y en 0 al editar (el servidor lo toma como «quitar»)
+        // Por tiempo restante: solo el umbral
+        if (happyHourForm.mode === 'remaining') return { ...base, startAfterSeconds: progress.startAfter };
         const unused = creating ? null : 0;
         return {
             ...base,
@@ -484,7 +486,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     };
 
     const handleCreateHappyHour = async () => {
-        if (happyHourForm.mode !== 'progress' && !timeZone) {
+        if (happyHourForm.mode === 'schedule' && !timeZone) {
             showMessage('error', t('timerAdvanced.configureTimezoneFirst'));
             return;
         }
@@ -577,8 +579,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         multiplier: Number(hh.multiplier),
         daysOfWeek: parseDays(hh.daysOfWeek),
         eventTypes: hh.eventTypes ?? [...HH_EVENTS],
-        mode: hh.mode === 'progress' ? 'progress' : 'schedule',
-        progress: hh.mode === 'progress' ? progressFrom(hh) : { ...DEFAULT_PROGRESS },
+        mode: hh.mode === 'progress' || hh.mode === 'remaining' ? hh.mode : 'schedule',
+        progress: hh.mode === 'progress' || hh.mode === 'remaining' ? progressFrom(hh) : { ...DEFAULT_PROGRESS },
         enabled: hh.enabled
     });
 

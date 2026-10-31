@@ -135,4 +135,59 @@ public class HappyHourProgressRuleTests
     [InlineData(12 * H, null, 2 * H, H, false)]           // repetir menor que la duración
     public void Validate(int? start, int? end, int? dur, int? repeat, bool valida)
         => Assert.Equal(valida, HappyHourProgressRule.Validate(start, end, dur, repeat) == null);
+
+    // ── Estados de pausa: manual, por horario y por corte de directo congelan igual ──
+
+    [Theory]
+    [InlineData("paused")]
+    [InlineData("auto_paused")]
+    [InlineData("stream_paused")]
+    public void Elapsed_TodasLasPausasCongelan(string status)
+        => Assert.Equal(3 * H, HappyHourProgressRule.ElapsedSeconds(status, T0, T0.AddHours(3), 0, T0.AddHours(10)));
+
+    // ── Por tiempo restante (el caso del timer que baja de 12 h, lo suben con donaciones y vuelve a bajar) ──
+
+    [Fact]
+    public void Remaining_EsElTotalMenosLoTranscurrido()
+        // total 480 h acumuladas, lleva 464 h corriendo: quedan 16 h
+        => Assert.Equal(16 * H, HappyHourProgressRule.RemainingSeconds("running", T0, null, 0, 480 * H, T0.AddHours(464)));
+
+    [Fact]
+    public void Remaining_NoPasaDeCeroNiEsNegativo()
+        => Assert.Equal(0, HappyHourProgressRule.RemainingSeconds("running", T0, null, 0, 10 * H, T0.AddHours(99)));
+
+    [Fact]
+    public void Remaining_EnPausaSeCongela()
+        // total 100 h, pausó a las 90 h: quedan 10 h aunque pasen días
+        => Assert.Equal(10 * H, HappyHourProgressRule.RemainingSeconds("stream_paused", T0, T0.AddHours(90), 0, 100 * H, T0.AddDays(5)));
+
+    [Fact]
+    public void Remaining_SinTimerNoHayTiempo()
+        => Assert.Null(HappyHourProgressRule.RemainingSeconds("stopped", T0, null, 0, 100 * H, T0.AddHours(1)));
+
+    [Theory]
+    [InlineData(12 * H + 1, false)]   // todavía le quedan un poco más de 12 h
+    [InlineData(12 * H, true)]        // borde exacto: 12 h o menos
+    [InlineData(5 * H, true)]
+    [InlineData(1, true)]
+    [InlineData(0, false)]            // ya terminó
+    public void Remaining_SeActivaConDocehorasOMenos(long remaining, bool esperado)
+        => Assert.Equal(esperado, HappyHourProgressRule.EvaluateRemaining(remaining, 12 * H));
+
+    [Fact]
+    public void Remaining_UnaDonacionLoApagaYAlBajarOtraVezSeEnciende()
+    {
+        // total 480 h; a las 470 h quedan 10 h (activa); donan 5 h y quedan 15 h (se apaga); al pasar 4 h vuelven a quedar 11 h (activa)
+        Assert.True(HappyHourProgressRule.EvaluateRemaining(HappyHourProgressRule.RemainingSeconds("running", T0, null, 0, 480 * H, T0.AddHours(470))!.Value, 12 * H));
+        Assert.False(HappyHourProgressRule.EvaluateRemaining(HappyHourProgressRule.RemainingSeconds("running", T0, null, 0, 485 * H, T0.AddHours(470))!.Value, 12 * H));
+        Assert.True(HappyHourProgressRule.EvaluateRemaining(HappyHourProgressRule.RemainingSeconds("running", T0, null, 0, 485 * H, T0.AddHours(474))!.Value, 12 * H));
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData(0, false)]
+    [InlineData(-5, false)]
+    [InlineData(12 * H, true)]
+    public void Remaining_Validate(int? threshold, bool valida)
+        => Assert.Equal(valida, HappyHourProgressRule.ValidateRemaining(threshold) == null);
 }

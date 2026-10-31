@@ -2526,7 +2526,14 @@
       "manualSummary": "x{{m}} en {{events}} durante {{duration}}: termina a las {{time}} (hora del canal)",
       "activeNow": "Activo: x{{m}} en {{events}}",
       "endsAt": "Termina a las {{time}} (hora de {{city}})",
-      "remaining": "quedan {{time}}",
+      "remaining": {
+        "startAt": "Se activa cuando al timer le queden…",
+        "hint": "Mientras le queden esto o menos, la Happy Hour está activa. Si el tiempo restante sube por encima (por ejemplo con una donación), se apaga; al volver a bajar, se enciende otra vez. Si pausas el timer, queda como estaba.",
+        "summary": "Se activa mientras al timer le queden {{start}} o menos. x{{m}} en {{events}}.",
+        "card": "Mientras le queden {{start}} o menos",
+        "badge": "Por tiempo restante",
+        "errThreshold": "Indica cuánto tiempo restante la activa (mayor que cero)."
+      },
       "events": {
         "all": "Todos",
         "allLower": "todos los eventos",
@@ -2610,7 +2617,9 @@
         "progress": "Por progreso del timer",
         "scheduleHint": "Un día y una hora del reloj del canal, por ejemplo los viernes de 20:00 a 22:00.",
         "progressHint": "Cuando el timer lleve cierto tiempo corriendo, por ejemplo a las 12 horas. Las pausas no cuentan.",
-        "fixed": "El modo no se puede cambiar al editar. Para cambiarlo, crea una nueva."
+        "fixed": "El modo no se puede cambiar al editar. Para cambiarlo, crea una nueva.",
+        "remaining": "Por tiempo restante",
+        "remainingHint": "Cuando al timer le queden cierto tiempo o menos, por ejemplo 12 horas. Se enciende y se apaga sola según le quede: si suben el tiempo con donaciones se apaga, y vuelve a encenderse al bajar."
       },
       "progress": {
         "startAt": "Se activa cuando el timer lleve…",
@@ -2639,7 +2648,8 @@
         "errRepeat": "Repetir cada debe ser mayor que lo que dura."
       },
       "namePhrase": {
-        "progress": "{{mult}} a las {{start}} del timer"
+        "progress": "{{mult}} a las {{start}} del timer",
+        "remaining": "{{mult}} en las últimas {{start}}"
       },
       "copySuffix": "(copia)",
       "name": {

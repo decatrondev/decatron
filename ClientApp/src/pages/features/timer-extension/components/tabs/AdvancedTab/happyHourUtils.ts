@@ -95,7 +95,7 @@ export const localTz = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 // ── Happy Hour por progreso del timer (misma regla que HappyHourProgressRule del servidor) ──
 
-export type HHMode = 'schedule' | 'progress';
+export type HHMode = 'schedule' | 'progress' | 'remaining';
 
 /** Campos del modo progreso, todos en segundos. 0 = sin valor. */
 export interface HHProgress { startAfter: number; endHow: 'duration' | 'end'; endAfter: number; duration: number; repeatOn: boolean; repeatEvery: number }
@@ -111,3 +111,6 @@ export function progressError(p: HHProgress): string | null {
     if (p.repeatOn && p.repeatEvery <= len) return 'timerAdvanced.hh.progress.errRepeat';
     return null;
 }
+
+/** Modo «por tiempo restante»: solo hace falta un umbral mayor que cero. */
+export const remainingError = (p: HHProgress): string | null => (p.startAfter > 0 ? null : 'timerAdvanced.hh.remaining.errThreshold');

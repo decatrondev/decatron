@@ -108,4 +108,49 @@ public class HappyHourProgressDbTests
         Assert.False((await Service(db).GetActiveHappyHourInfoAsync(Login)).Active);
         await tx.RollbackAsync();
     }
+
+    // ── Por tiempo restante, de punta a punta ────────────────────────────────
+
+    private static async Task SeedRemaining(DecatronDbContext db, string status, int totalSeconds, TimeSpan startedAgo, TimeSpan? pausedAfterStart = null)
+    {
+        await db.Database.ExecuteSqlRawAsync($"INSERT INTO users (id, login, display_name, email, profile_image_url, offline_image_url, broadcaster_type, view_count, description, access_token, refresh_token, token_expiration, created_at, updated_at, is_active, unique_id) VALUES ({UserId}, '{Login}', 'zz', 'zz@x', '', '', '', 0, '', '', '', now(), now(), now(), true, 'zz-{UserId}')");
+        var started = TimerDateTimeHelper.NowForDb().Subtract(startedAgo);
+        db.TimerStates.Add(new TimerState
+        {
+            ChannelName = Login, UserId = UserId, Status = status, StartedAt = started,
+            PausedAt = pausedAfterStart == null ? null : started.Add(pausedAfterStart.Value), ElapsedPausedTime = 0,
+            CurrentTime = 0, TotalTime = totalSeconds,
+        });
+        db.TimerHappyHours.Add(new TimerHappyHour { UserId = UserId, Name = "Ultimas 12 h", Multiplier = 2m, Mode = HappyHourModes.Remaining, StartAfterSeconds = 12 * 3600 });
+        await db.SaveChangesAsync();
+    }
+
+    [Theory(DisplayName = "Restante: se activa con 12 h o menos por delante y no con más (el caso de un timer que baja, lo suben y vuelve a bajar)")]
+    [InlineData(480, 470, true)]   // quedan 10 h
+    [InlineData(485, 470, false)]  // donaron 5 h: quedan 15 h
+    [InlineData(485, 474, true)]   // pasaron 4 h más: quedan 11 h
+    [InlineData(480, 500, false)]  // ya terminó (quedan 0)
+    public async Task Remaining_ActiveOnlyWhenWithinThreshold(int totalHours, int elapsedHours, bool esperado)
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        await SeedRemaining(db, "running", totalHours * 3600, TimeSpan.FromHours(elapsedHours));
+        var info = await Service(db).GetActiveHappyHourInfoAsync(Login);
+        Assert.Equal(esperado, info.Active);
+        if (esperado) { Assert.Equal(2.0, info.Multiplier); Assert.Null(info.EndsAt); } // sin hora de fin: depende de las donaciones
+        await tx.RollbackAsync();
+    }
+
+    [Fact(DisplayName = "Restante: con el timer pausado por corte de directo (stream_paused) sigue activa y congelada")]
+    public async Task Remaining_StreamPaused_StaysActive()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        using var db = NewContext();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        // total 100 h; se cortó el directo a las 95 h (quedan 5 h) y pasaron 20 h reales
+        await SeedRemaining(db, "stream_paused", 100 * 3600, TimeSpan.FromHours(115), pausedAfterStart: TimeSpan.FromHours(95));
+        Assert.True((await Service(db).GetActiveHappyHourInfoAsync(Login)).Active);
+        await tx.RollbackAsync();
+    }
 }

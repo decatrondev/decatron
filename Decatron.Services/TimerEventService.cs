@@ -1652,7 +1652,7 @@ namespace Decatron.Services
             if (user == null) return result;
 
             var progress = await _dbContext.TimerHappyHours
-                .Where(hh => hh.UserId == user.Id && hh.Enabled && hh.Mode == HappyHourModes.Progress)
+                .Where(hh => hh.UserId == user.Id && hh.Enabled && (hh.Mode == HappyHourModes.Progress || hh.Mode == HappyHourModes.Remaining))
                 .ToListAsync();
             if (progress.Count == 0) return result;
 
@@ -1667,10 +1667,22 @@ namespace Decatron.Services
                 state.ElapsedPausedTime, nowUtc);
             if (elapsed == null) return result;
 
+            var remaining = HappyHourProgressRule.RemainingSeconds(
+                state.Status,
+                state.StartedAt.HasValue ? TimerDateTimeHelper.NormalizeToUtc(state.StartedAt.Value) : null,
+                state.PausedAt.HasValue ? TimerDateTimeHelper.NormalizeToUtc(state.PausedAt.Value) : null,
+                state.ElapsedPausedTime, state.TotalTime, nowUtc) ?? 0;
+
             foreach (var hh in progress)
             {
+                if (hh.Mode == HappyHourModes.Remaining)
+                {
+                    // Sin hora de fin: se apaga sola si el tiempo restante sube por encima del umbral (donaciones)
+                    if (HappyHourProgressRule.EvaluateRemaining(remaining, hh.StartAfterSeconds)) result.Add((hh, null));
+                    continue;
+                }
                 var (active, left) = HappyHourProgressRule.Evaluate(elapsed.Value, hh.StartAfterSeconds, hh.EndAfterSeconds, hh.DurationSeconds, hh.RepeatEverySeconds);
-                if (active) result.Add((hh, state.Status == "running" ? nowUtc.AddSeconds(left) : null));
+                if (active) result.Add((hh, !HappyHourProgressRule.IsPausedStatus(state.Status) ? nowUtc.AddSeconds(left) : null));
             }
             return result;
         }

@@ -1695,9 +1695,15 @@ namespace Decatron.Controllers
                 if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest(new { success = false, message = "Name is required" });
 
                 var mode = string.IsNullOrWhiteSpace(request.Mode) ? HappyHourModes.Schedule : request.Mode.Trim().ToLowerInvariant();
-                if (mode != HappyHourModes.Schedule && mode != HappyHourModes.Progress) return BadRequest(new { success = false, message = "Modo inválido" });
-                var isProgress = mode == HappyHourModes.Progress;
-                if (isProgress)
+                if (mode != HappyHourModes.Schedule && mode != HappyHourModes.Progress && mode != HappyHourModes.Remaining) return BadRequest(new { success = false, message = "Modo inválido" });
+                var isProgress = mode != HappyHourModes.Schedule; // progreso y restante no dependen del reloj ni de los días
+                if (mode == HappyHourModes.Remaining)
+                {
+                    request.EndAfterSeconds = null; request.DurationSeconds = null; request.RepeatEverySeconds = null;
+                    var remError = HappyHourProgressRule.ValidateRemaining(request.StartAfterSeconds);
+                    if (remError != null) return BadRequest(new { success = false, message = remError });
+                }
+                else if (isProgress)
                 {
                     // 0 o vacío = "sin valor" (el panel manda 0 en lo que el streamer no usa)
                     if (request.EndAfterSeconds <= 0) request.EndAfterSeconds = null;
@@ -1782,8 +1788,15 @@ namespace Decatron.Controllers
 
                 var newStart = request.StartTime ?? happyHour.StartTime;
                 var newEnd = request.EndTime ?? happyHour.EndTime;
-                var isProgress = happyHour.Mode == HappyHourModes.Progress; // el modo no se cambia al editar
-                if (isProgress)
+                var isProgress = happyHour.Mode != HappyHourModes.Schedule; // el modo no se cambia al editar
+                if (happyHour.Mode == HappyHourModes.Remaining)
+                {
+                    var nThreshold = request.StartAfterSeconds ?? happyHour.StartAfterSeconds;
+                    var remError = HappyHourProgressRule.ValidateRemaining(nThreshold);
+                    if (remError != null) return BadRequest(new { success = false, message = remError });
+                    happyHour.StartAfterSeconds = nThreshold;
+                }
+                else if (isProgress)
                 {
                     var nStart = request.StartAfterSeconds ?? happyHour.StartAfterSeconds;
                     var nEnd = request.EndAfterSeconds ?? happyHour.EndAfterSeconds;

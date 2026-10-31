@@ -6,6 +6,9 @@ namespace Decatron.Core.Helpers
     /// </summary>
     public static class HappyHourProgressRule
     {
+        /// <summary>Estados en que el timer está en pausa (a mano, por horario o porque se cortó el directo): el reloj queda congelado.</summary>
+        public static bool IsPausedStatus(string? status) => status is "paused" or "auto_paused" or "stream_paused";
+
         /// <summary>
         /// Segundos que lleva corriendo el timer sin contar pausas, o null si no corre ni está pausado.
         /// Misma cuenta que usa el panel: ahora − inicio − tiempo en pausa; si está pausado, se congela en el momento de la pausa.
@@ -15,11 +18,30 @@ namespace Decatron.Core.Helpers
             if (startedAtUtc == null) return null;
             double total;
             if (status == "running") total = (nowUtc - startedAtUtc.Value).TotalSeconds;
-            else if (status == "paused" && pausedAtUtc != null) total = (pausedAtUtc.Value - startedAtUtc.Value).TotalSeconds;
+            else if (IsPausedStatus(status) && pausedAtUtc != null) total = (pausedAtUtc.Value - startedAtUtc.Value).TotalSeconds;
             else return null;
             var v = (long)(total - elapsedPausedSeconds);
             return v < 0 ? 0 : v;
         }
+
+        /// <summary>
+        /// Segundos que le quedan al timer (total acumulado menos lo transcurrido), o null si no corre ni está pausado.
+        /// Misma cuenta que el panel: sube con las donaciones y baja con el tiempo.
+        /// </summary>
+        public static long? RemainingSeconds(string? status, DateTime? startedAtUtc, DateTime? pausedAtUtc, int elapsedPausedSeconds, int totalSeconds, DateTime nowUtc)
+        {
+            var elapsed = ElapsedSeconds(status, startedAtUtc, pausedAtUtc, elapsedPausedSeconds, nowUtc);
+            if (elapsed == null) return null;
+            return Math.Max(0, totalSeconds - Math.Min(elapsed.Value, totalSeconds));
+        }
+
+        /// <summary>Modo «por tiempo restante»: activa mientras al timer le quede ese tiempo o menos (y todavía le quede algo).</summary>
+        public static bool EvaluateRemaining(long remainingSeconds, int? thresholdSeconds)
+            => thresholdSeconds is > 0 && remainingSeconds > 0 && remainingSeconds <= thresholdSeconds;
+
+        /// <summary>Texto de error del modo «por tiempo restante»; null si es válido.</summary>
+        public static string? ValidateRemaining(int? thresholdSeconds)
+            => thresholdSeconds is > 0 ? null : "Indica cuánto tiempo restante activa la Happy Hour";
 
         /// <summary>Largo de la ventana: la duración, o la distancia entre los dos umbrales. null = configuración inválida.</summary>
         public static long? WindowSeconds(int? startAfter, int? endAfter, int? duration)

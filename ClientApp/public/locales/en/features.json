@@ -2526,7 +2526,14 @@
       "manualSummary": "x{{m}} on {{events}} for {{duration}}: ends at {{time}} (channel time)",
       "activeNow": "On: x{{m}} on {{events}}",
       "endsAt": "Ends at {{time}} ({{city}} time)",
-      "remaining": "{{time}} left",
+      "remaining": {
+        "startAt": "Turns on when the timer has this much left…",
+        "hint": "While the time left is this or less, the Happy Hour is active. If the time left rises above it (for example with a donation), it turns off; when it drops again, it turns on again. If you pause the timer, it stays as it was.",
+        "summary": "Turns on while the timer has {{start}} or less left. x{{m}} on {{events}}.",
+        "card": "While {{start}} or less is left",
+        "badge": "By time remaining",
+        "errThreshold": "Say how much remaining time turns it on (greater than zero)."
+      },
       "events": {
         "all": "All",
         "allLower": "all events",
@@ -2610,7 +2617,9 @@
         "progress": "By timer progress",
         "scheduleHint": "A day and time on the channel's clock, for example Fridays from 20:00 to 22:00.",
         "progressHint": "When the timer has been running for a set time, for example at 12 hours. Pauses don't count.",
-        "fixed": "The mode can't be changed while editing. To change it, create a new one."
+        "fixed": "The mode can't be changed while editing. To change it, create a new one.",
+        "remaining": "By time remaining",
+        "remainingHint": "When the timer has a set time or less left, for example 12 hours. It turns on and off by itself as the time left changes: if donations raise it, it turns off, and it turns on again when it drops."
       },
       "progress": {
         "startAt": "Turns on when the timer has run for…",
@@ -2639,7 +2648,8 @@
         "errRepeat": "Repeat every must be longer than how long it lasts."
       },
       "namePhrase": {
-        "progress": "{{mult}} at {{start}} of the timer"
+        "progress": "{{mult}} at {{start}} of the timer",
+        "remaining": "{{mult}} in the last {{start}}"
       },
       "copySuffix": "(copy)",
       "name": {

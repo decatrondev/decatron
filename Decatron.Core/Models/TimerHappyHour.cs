@@ -8,6 +8,8 @@ namespace Decatron.Core.Models
     {
         public const string Schedule = "schedule";
         public const string Progress = "progress";
+        /// <summary>Activa mientras al timer le quede el tiempo de StartAfterSeconds o menos (sube y baja con las donaciones).</summary>
+        public const string Remaining = "remaining";
     }
 
     [Table("timer_happyhour")]
@@ -50,7 +52,7 @@ namespace Decatron.Core.Models
         [Column("event_types", TypeName = "jsonb")]
         public string? EventTypes { get; set; }
 
-        /// <summary>"schedule" = por horario (lo de siempre); "progress" = por tiempo transcurrido del timer.</summary>
+        /// <summary>"schedule" = por horario (lo de siempre); "progress" = por tiempo transcurrido del timer; "remaining" = por tiempo restante (usa StartAfterSeconds como umbral).</summary>
         [Required]
         [MaxLength(16)]
         [Column("mode")]
