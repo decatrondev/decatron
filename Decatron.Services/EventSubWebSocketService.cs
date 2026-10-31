@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +40,15 @@ namespace Decatron.Services
         private string? _conduitId;
         private CancellationToken _stoppingToken;
 
+        // Vigilante de shards (incidente 2026-10-31: 20 de 30 shards en websocket_failed_ping_pong
+        // sin que nadie lo supiera). Se despierta cada WatchdogMinutes o cuando Twitch avisa.
+        private static readonly HttpClient AlertHttp = new() { Timeout = TimeSpan.FromSeconds(10) };
+        private readonly SemaphoreSlim _watchdogWake = new(0, int.MaxValue);
+        private readonly object _shardsLock = new();
+        private readonly HashSet<EventSubWebsocketClient> _retired = new();
+        private DateTime _lastFailureAlertUtc = DateTime.MinValue;
+        private int _shardCount;
+
         public EventSubWebSocketService(
             ILogger<EventSubWebSocketService> logger,
             ILoggerFactory loggerFactory,
@@ -57,6 +69,7 @@ namespace Decatron.Services
             await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
             var shardCount = _configuration.GetValue<int?>("EventSubSettings:ShardCount") ?? 1;
+            _shardCount = shardCount;
 
             using (var scope = _serviceProvider.CreateScope())
             {
@@ -100,14 +113,16 @@ namespace Decatron.Services
 
             try
             {
-                await Task.Delay(Timeout.Infinite, stoppingToken);
+                await RunWatchdogAsync(stoppingToken);
             }
             catch (OperationCanceledException)
             {
                 // Apagado normal del host
             }
 
-            foreach (var client in _shards)
+            List<EventSubWebsocketClient> toStop;
+            lock (_shardsLock) toStop = _shards.ToList();
+            foreach (var client in toStop)
             {
                 try
                 {
@@ -189,18 +204,21 @@ namespace Decatron.Services
 
             client.WebsocketConnected += async (_, e) =>
             {
+                if (IsRetired(client)) return;
                 _logger.LogInformation($"✅ [Conduit shard {shardId}] Conectado (reconexión solicitada: {e.IsRequestedReconnect}). SessionId: {client.SessionId}");
                 await AssociateShardAsync(shardId, client.SessionId);
             };
 
             client.WebsocketReconnected += async (_, __) =>
             {
+                if (IsRetired(client)) return;
                 _logger.LogWarning($"🔄 [Conduit shard {shardId}] Reconectado por Twitch. Nueva SessionId: {client.SessionId}");
                 await AssociateShardAsync(shardId, client.SessionId);
             };
 
             client.WebsocketDisconnected += async (_, __) =>
             {
+                if (IsRetired(client)) return;
                 _logger.LogWarning($"⚠️ [Conduit shard {shardId}] Desconectado. Intentando reconectar...");
                 await ReconnectWithBackoffAsync(client, shardId);
             };
@@ -217,7 +235,8 @@ namespace Decatron.Services
             client.ConduitShardDisabled += (_, e) =>
             {
                 var payload = e.Payload.Event;
-                _logger.LogError($"🚨 [Conduit] Twitch reportó el shard {payload.ShardId} como deshabilitado (status={payload.Status}). Eventos de ese shard pueden perderse hasta que se reasocie.");
+                _logger.LogError($"🚨 [Conduit] Twitch reportó el shard {payload.ShardId} como deshabilitado (status={payload.Status}). Se despierta al vigilante para reasociarlo.");
+                _watchdogWake.Release();
                 return Task.CompletedTask;
             };
 
@@ -291,6 +310,176 @@ namespace Decatron.Services
                 }
 
                 delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, maxDelay.TotalSeconds));
+            }
+        }
+
+        private bool IsRetired(EventSubWebsocketClient client)
+        {
+            lock (_shardsLock) return _retired.Contains(client);
+        }
+
+        /// <summary>
+        /// Bucle del vigilante: cada WatchdogMinutes (5 por defecto) o apenas Twitch avisa de un
+        /// shard deshabilitado, compara contra Twitch y reasocia lo que esté caído.
+        /// </summary>
+        private async Task RunWatchdogAsync(CancellationToken ct)
+        {
+            var minutes = Math.Max(1, _configuration.GetValue<int?>("EventSubSettings:WatchdogMinutes") ?? 5);
+            var interval = TimeSpan.FromMinutes(minutes);
+
+            // Deja que los shards terminen de conectarse y asociarse antes de la primera revisión.
+            await Task.Delay(TimeSpan.FromSeconds(60), ct);
+
+            while (!ct.IsCancellationRequested)
+            {
+                try
+                {
+                    await CheckAndRecoverAsync(ct);
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[Conduit] Error en el vigilante de shards");
+                }
+
+                var woken = await _watchdogWake.WaitAsync(interval, ct);
+                if (woken)
+                {
+                    // Twitch suele avisar de muchos shards a la vez: junta los avisos y revisa una sola vez.
+                    await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                    while (_watchdogWake.Wait(0)) { }
+                }
+            }
+        }
+
+        /// <summary>Shards que Twitch no reporta como "enabled" (o que ni aparecen). Null si la consulta falla.</summary>
+        private async Task<List<string>?> GetUnhealthyShardsAsync()
+        {
+            if (string.IsNullOrEmpty(_conduitId)) return null;
+
+            List<(string Id, string Status)>? shards;
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var eventSubService = scope.ServiceProvider.GetRequiredService<EventSubService>();
+                shards = await eventSubService.GetConduitShardsAsync(_conduitId);
+            }
+            if (shards == null) return null;
+
+            var bad = new List<string>();
+            for (var i = 0; i < _shardCount; i++)
+            {
+                var id = i.ToString();
+                var found = shards.FirstOrDefault(s => s.Id == id);
+                if (found.Id == null || found.Status != "enabled") bad.Add(id);
+            }
+            return bad;
+        }
+
+        private async Task CheckAndRecoverAsync(CancellationToken ct)
+        {
+            var pending = await GetUnhealthyShardsAsync();
+            if (pending == null)
+            {
+                _logger.LogWarning("[Conduit] El vigilante no pudo consultar el estado de los shards en Twitch; se reintenta en el próximo ciclo.");
+                return;
+            }
+            if (pending.Count == 0) return;
+
+            var initial = pending.ToList();
+            _logger.LogWarning($"🛟 [Conduit] {initial.Count} shard(s) no están enabled en Twitch ({string.Join(",", initial)}). Reasociando...");
+            var started = DateTime.UtcNow;
+
+            for (var attempt = 1; attempt <= 3 && pending.Count > 0 && !ct.IsCancellationRequested; attempt++)
+            {
+                foreach (var id in pending)
+                    await RestartShardAsync(id);
+
+                await Task.Delay(TimeSpan.FromSeconds(10), ct);
+
+                var still = await GetUnhealthyShardsAsync();
+                if (still == null) break;
+                pending = pending.Where(still.Contains).ToList();
+                if (pending.Count > 0)
+                    _logger.LogWarning($"[Conduit] Tras el intento {attempt} siguen caídos: {string.Join(",", pending)}");
+            }
+
+            var seconds = (int)(DateTime.UtcNow - started).TotalSeconds;
+            var recovered = initial.Where(i => !pending.Contains(i)).ToList();
+
+            if (recovered.Count > 0)
+                _logger.LogInformation($"✅ [Conduit] Shards recuperados: {string.Join(",", recovered)} ({seconds}s)");
+
+            if (pending.Count == 0)
+            {
+                await SendAlertAsync($"✅ **Decatron EventSub**: se cayeron {initial.Count} shard(s) del conduit ({string.Join(", ", initial)}) y el bot los recuperó solo en {seconds}s. Los canales en esos shards no recibieron eventos durante ese lapso.");
+            }
+            else
+            {
+                _logger.LogError($"🚨 [Conduit] No se pudieron recuperar los shards: {string.Join(",", pending)}");
+                if (DateTime.UtcNow - _lastFailureAlertUtc > TimeSpan.FromMinutes(30))
+                {
+                    _lastFailureAlertUtc = DateTime.UtcNow;
+                    await SendAlertAsync($"🚨 **Decatron EventSub**: {pending.Count} shard(s) siguen caídos tras 3 intentos de recuperación ({string.Join(", ", pending)}). Los canales en esos shards no reciben chat ni eventos. Reiniciar con `sudo /root/web-services.sh restart decatron-b`.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Reemplaza el cliente del shard por uno nuevo. El viejo se marca "retirado" para que sus
+        /// eventos de desconexión no lancen una reconexión paralela ni reasocien una sesión muerta.
+        /// </summary>
+        private async Task RestartShardAsync(string shardId)
+        {
+            if (!int.TryParse(shardId, out var index)) return;
+
+            EventSubWebsocketClient? old;
+            var fresh = CreateShardClient(shardId);
+            lock (_shardsLock)
+            {
+                old = index < _shards.Count ? _shards[index] : null;
+                if (old != null) _retired.Add(old);
+                if (index < _shards.Count) _shards[index] = fresh;
+                else _shards.Add(fresh);
+            }
+
+            if (old != null)
+            {
+                try { await old.DisconnectAsync(); }
+                catch (Exception ex) { _logger.LogDebug(ex, $"[Conduit shard {shardId}] Error cerrando el cliente anterior (ignorado)"); }
+            }
+
+            try
+            {
+                // WebsocketConnected asocia el shard con la sesión nueva.
+                var ok = await fresh.ConnectAsync(EventSubWebSocketUrl);
+                if (!ok) _logger.LogError($"❌ [Conduit shard {shardId}] ConnectAsync devolvió false al recuperar el shard");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error reconectando el shard {shardId} desde el vigilante");
+            }
+        }
+
+        /// <summary>Aviso a Discord (DiscordSettings:AlertWebhookUrl, se lee en cada envío: recarga en caliente). Nunca lanza.</summary>
+        private async Task SendAlertAsync(string message)
+        {
+            try
+            {
+                var url = _configuration["DiscordSettings:AlertWebhookUrl"];
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    _logger.LogWarning("[Conduit] Sin DiscordSettings:AlertWebhookUrl: no se envía el aviso a Discord.");
+                    return;
+                }
+
+                var body = Newtonsoft.Json.JsonConvert.SerializeObject(new { content = message });
+                using var response = await AlertHttp.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json"));
+                if (!response.IsSuccessStatusCode)
+                    _logger.LogWarning($"[Conduit] Discord respondió {(int)response.StatusCode} al enviar el aviso.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[Conduit] No se pudo enviar el aviso a Discord");
             }
         }
 

@@ -1193,6 +1193,45 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Estado de cada shard del conduit según Twitch (id, status). Es la única fuente real:
+        /// un shard puede estar "websocket_failed_ping_pong" mientras el cliente local cree que
+        /// sigue conectado y las suscripciones sigan "enabled" (incidentes 2026-09-11 y 2026-10-31).
+        /// Devuelve null si la consulta falla.
+        /// </summary>
+        public async Task<List<(string Id, string Status)>?> GetConduitShardsAsync(string conduitId)
+        {
+            try
+            {
+                var accessToken = await GetBotAppAccessTokenAsync();
+                var clientId = _credentials.GetTwitchApp().ClientId;
+
+                var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"https://api.twitch.tv/helix/eventsub/conduits/shards?conduit_id={Uri.EscapeDataString(conduitId)}&first=100");
+                request.Headers.Add("Client-ID", clientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+                var body = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"❌ Error al listar shards del conduit {conduitId}: {response.StatusCode} - {body}");
+                    return null;
+                }
+
+                var result = new List<(string, string)>();
+                foreach (var s in JsonDocument.Parse(body).RootElement.GetProperty("data").EnumerateArray())
+                    result.Add((s.GetProperty("id").GetString() ?? "", s.GetProperty("status").GetString() ?? ""));
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al listar shards del conduit {conduitId}");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Escala un conduit existente a un número distinto de shards, sin recrearlo
         /// ni tocar sus suscripciones.
         /// </summary>
