@@ -73,7 +73,8 @@ namespace Decatron.Core.Services.Moderation
             {
                 FilterKey = FilterKey,
                 Severity = config.Severity,
-                Detail = blocked,
+                // Si el regex agotó el tiempo no hay dominio: que el log lo diga claro y no parezca un link.
+                Detail = blocked == LinkDetector.TimeoutMarker ? "regex-tiempo-agotado (sin dominio detectado)" : blocked,
                 Reason = "Link no permitido",
                 MinimumAction = "delete",
                 DefaultMessage = "🔗 $(user), no se permiten links sin permiso de un moderador. Strike $(strike)/5"
@@ -131,7 +132,11 @@ namespace Decatron.Core.Services.Moderation
         // para no convertir en link una frase como "fin. es que...".
         private const string ObfuscationTlds = "com|net|org|io|gg|tv|xyz|ru|ly|online|site|store|shop|live|link|app|club|top|info|co";
 
-        private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
+        // Solo frena mensajes armados para colgar el regex. Con 100 ms hubo falsos positivos en chat
+        // normal ("fakin primero", "buena rey como estamos"): cualquier pausa del proceso (GC, JIT tras un
+        // reinicio, hilos ocupados) vencía el reloj y el mensaje se trataba como link. Un match real tarda
+        // microsegundos, así que 1 s deja el mismo resguardo sin ese ruido.
+        private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(1);
 
         private static readonly Regex SchemeUrl = new(@"\b(?:https?|ftp)://([^\s/:?#]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled, Timeout);
 
@@ -145,6 +150,17 @@ namespace Decatron.Core.Services.Moderation
         private static readonly Regex WordDot = new(@"\s+(?:dot|punto)\s+(?=(?:" + ObfuscationTlds + @")\b)", RegexOptions.IgnoreCase | RegexOptions.Compiled, Timeout);
         // dominio . com, dominio .com, dominio. com
         private static readonly Regex SpacedDot = new(@"(?<=[a-z0-9])\s*\.\s*(?=(?:" + ObfuscationTlds + @")\b)", RegexOptions.IgnoreCase | RegexOptions.Compiled, Timeout);
+
+        /// <summary>Marca que devuelve FindHosts cuando un regex agota el tiempo (no es un dominio real).</summary>
+        public const string TimeoutMarker = "mensaje-sospechoso";
+
+        // Precalienta los regex compilados al cargar la clase: la primera pasada paga el JIT y,
+        // con el reloj corriendo, podía vencer el tiempo límite justo después de un reinicio.
+        static LinkDetector()
+        {
+            try { FindHosts("calentando https://ejemplo.com ejemplo . com ejemplo(dot)com hola.xd", true); }
+            catch (Exception) { /* el calentamiento nunca debe romper el arranque */ }
+        }
 
         public static List<string> FindHosts(string text, bool detectObfuscated)
         {
@@ -172,7 +188,7 @@ namespace Decatron.Core.Services.Moderation
             catch (RegexMatchTimeoutException)
             {
                 // Mensaje armado para colgar el regex: se trata como link
-                hosts.Add("mensaje-sospechoso");
+                hosts.Add(TimeoutMarker);
             }
 
             return hosts;
