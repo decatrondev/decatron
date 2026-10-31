@@ -6,7 +6,7 @@ namespace Decatron.Core.Helpers
     /// </summary>
     public static class HappyHourProgressRule
     {
-        /// <summary>Estados en que el timer está en pausa (a mano, por horario o porque se cortó el directo): el reloj queda congelado.</summary>
+        /// <summary>Estados en que el timer está en pausa (a mano o por la auto-pausa por horario; stream_paused se trata igual por si algún flujo lo usa): el reloj queda congelado.</summary>
         public static bool IsPausedStatus(string? status) => status is "paused" or "auto_paused" or "stream_paused";
 
         /// <summary>
