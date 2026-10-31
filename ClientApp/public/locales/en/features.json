@@ -2501,6 +2501,9 @@
     "timeRange": "Time range",
     "timezone": "Time zone",
     "timezoneDescription": "Sets the base time for the Auto-pause and Happy Hour features.",
+    "timezoneSearch": "Search zone (e.g. Lima, Madrid)",
+    "timezoneInvalid": "The saved zone (\"{{zone}}\") is not recognized by this browser. Pick one from the list.",
+    "timezoneUseBrowser": "Use my browser's ({{zone}})",
     "hh": {
       "nowTitle": "Happy Hour now",
       "nowDescription": "Turn it on instantly, for a while or until a set time, without scheduling anything.",

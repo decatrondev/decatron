@@ -2501,6 +2501,9 @@
     "timeRange": "Rango de Horas",
     "timezone": "Zona Horaria",
     "timezoneDescription": "Define la hora base para las funciones de Auto-Pausa y Happy Hour.",
+    "timezoneSearch": "Buscar zona (ej. Lima, Madrid)",
+    "timezoneInvalid": "La zona guardada («{{zone}}») no la reconoce este navegador. Elige una de la lista.",
+    "timezoneUseBrowser": "Usar la de mi navegador ({{zone}})",
     "hh": {
       "nowTitle": "Happy Hour ahora",
       "nowDescription": "Actívalo al instante, por un rato o hasta una hora, sin programar nada.",
