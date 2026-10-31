@@ -66,8 +66,22 @@ namespace Decatron.Services
         public string currency { get; set; } = "USD";
     }
 
+    /// <summary>Una recompensa de puntos de canal que suma tiempo al timer (la elige el streamer).</summary>
+    public class ChannelPointRule
+    {
+        /// <summary>Id de la recompensa en Twitch.</summary>
+        public string rewardId { get; set; } = "";
+        /// <summary>Nombre al elegirla; solo para mostrar si Twitch ya no la devuelve.</summary>
+        public string title { get; set; } = "";
+        /// <summary>Segundos que suma cada canje.</summary>
+        public int timeAdded { get; set; }
+        public bool enabled { get; set; } = true;
+    }
+
     public class EventsConfig
     {
+        /// <summary>Recompensas de puntos de canal que suman tiempo. Vacío = ninguna (lo de siempre).</summary>
+        public List<ChannelPointRule> channelPoints { get; set; } = new List<ChannelPointRule>();
         public BitsEventConfig bits { get; set; } = new BitsEventConfig();
         public EventConfig follow { get; set; } = new EventConfig();
         public EventConfig subPrime { get; set; } = new EventConfig();
@@ -1198,6 +1212,69 @@ namespace Decatron.Services
         }
 
         // ========================================================================
+        // PUNTOS DE CANAL
+        // ========================================================================
+
+        /// <summary>
+        /// Un canje de recompensa de puntos de canal suma tiempo si el streamer la eligió en el timer.
+        /// Con el timer detenido o terminado no hace nada ni escribe al chat (a diferencia de los otros eventos,
+        /// no gasta vidas extra): el panel explica que conviene pausar la recompensa cuando no hay timer.
+        /// Los canjes cancelados o reembolsados no restan tiempo.
+        /// </summary>
+        public async Task<bool> ProcessChannelPointsEventAsync(string channelName, string userName, string? userId, string rewardId, string? rewardTitle, bool isTest = false)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(rewardId)) return false;
+                var channelLower = channelName.ToLower();
+
+                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == channelLower);
+                if (config == null) return false;
+
+                var eventsConfig = ParseEventsConfig(config.EventsConfig);
+                var rule = eventsConfig?.channelPoints?.FirstOrDefault(r => r.enabled && r.timeAdded > 0 && r.rewardId == rewardId);
+                if (rule == null) return false; // no es una de las recompensas del timer: no es asunto de este módulo
+
+                var title = !string.IsNullOrWhiteSpace(rewardTitle) ? rewardTitle! : rule.title;
+                var secondsToAdd = rule.timeAdded;
+
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "channelpoints");
+                if (happyHourMultiplier > 1.0)
+                    secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
+
+                if (!isTest)
+                {
+                    var timerState = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
+                    if (timerState == null || (timerState.Status != "running" && timerState.Status != "paused"))
+                    {
+                        _logger.LogInformation($"[TIMER EVENT] Canje '{title}' de {userName} en {channelLower} ignorado: el timer no está corriendo");
+                        return false;
+                    }
+
+                    var added = await AddTimeToTimerAsync(timerState, secondsToAdd, "channelpoints", userName,
+                        new { time = secondsToAdd, rewardId, rewardTitle = title }, title);
+                    if (!added) return false;
+
+                    await _overlayNotificationService.SendAddTimeAsync(channelLower, secondsToAdd);
+                }
+
+                await SendEventAlertWithTurnAsync(channelLower, new
+                {
+                    eventType = "channelpoints",
+                    userName,
+                    secondsAdded = secondsToAdd,
+                    message = $"+{FormatTime(secondsToAdd)} por «{title}» de {userName}! ✨",
+                }, null);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[TIMER EVENT] Error procesando canje de puntos de canal");
+                return false;
+            }
+        }
+
+        // ========================================================================
         // MÉTODOS PRIVADOS / HELPERS
         // ========================================================================
 
@@ -1506,7 +1583,7 @@ namespace Decatron.Services
         /// <param name="channelName">Nombre del canal</param>
         /// <returns>Multiplicador (1.0 si no hay Happy Hour activo, o el multiplicador configurado)</returns>
         /// <summary>Claves de evento que entiende el Happy Hour.</summary>
-        public static readonly string[] HappyHourEventTypes = { "sub", "giftsub", "bits", "tip", "raid", "hypetrain", "follow" };
+        public static readonly string[] HappyHourEventTypes = { "sub", "giftsub", "bits", "tip", "raid", "hypetrain", "follow", "channelpoints" };
 
         /// <summary>Si el Happy Hour se aplica a ese evento. Sin lista (null) se aplica a todos.</summary>
         private static bool HappyHourAppliesTo(string? eventTypesJson, string? eventType)

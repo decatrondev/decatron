@@ -257,6 +257,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
         if (type === 'hypetrain' || type === 'hype') return '🔥 Hype Train';
         if (type === 'command') return '💬 Comando';
         if (type === 'tips' || type === 'tip' || type === 'donation') return '💰 Tip';
+        if (type === 'channelpoints') return `✨ ${log.details || 'Puntos de canal'}`;
         if (type === 'gacha') return '🎰 Gachapón';
         if (type === 'wheel') return '🎡 Ruleta';
         if (type === 'migration_offset') return '📦 Tiempo base';

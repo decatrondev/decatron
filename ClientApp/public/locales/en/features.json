@@ -2536,7 +2536,8 @@
         "tip": "Tips",
         "raid": "Raids",
         "hypetrain": "Hype train",
-        "follow": "Follows"
+        "follow": "Follows",
+        "channelpoints": "Channel points"
       },
       "example": {
         "text": "Example: {{what}} adds {{before}} today; with x{{m}} it will add {{after}}.",
@@ -2650,5 +2651,25 @@
       "min": "{{n}} min",
       "hours": "{{n}} h"
     }
+  },
+  "timerChannelPoints": {
+    "category": "Channel points",
+    "title": "Channel point rewards",
+    "help": "Pick which of your channel's rewards add time to the timer and how much each redemption adds. You can add several: a cheap one and a premium one, for example.",
+    "add": "Add reward",
+    "choose": "Pick a reward...",
+    "missing": "(no longer exists on your channel)",
+    "remove": "Remove",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "timePerRedeem": "Time added per redemption",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "zeroWarning": "With 0 it adds nothing. Set at least 1 second.",
+    "empty": "No reward adds time yet. Add one so your viewers can extend the timer with points.",
+    "loadFailed": "We couldn't load your Twitch rewards. This isn't a timer error: reconnect your account and reload the page.",
+    "noTimerNote": "If the timer is stopped or finished, a redemption adds nothing and doesn't post in chat. It's best to pause the reward on Twitch when there's no timer, so people don't spend points.",
+    "refundNote": "If a redemption is cancelled or refunded on Twitch, the time already added is not removed; it stays in the history.",
+    "happyHourNote": "Happy Hour also multiplies these redemptions, unless you limit it to other events."
   }
 }

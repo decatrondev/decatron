@@ -2536,7 +2536,8 @@
         "tip": "Tips",
         "raid": "Raids",
         "hypetrain": "Hype train",
-        "follow": "Follows"
+        "follow": "Follows",
+        "channelpoints": "Puntos de canal"
       },
       "example": {
         "text": "Ejemplo: {{what}} hoy suma {{before}}; con x{{m}} sumará {{after}}.",
@@ -2650,5 +2651,25 @@
       "min": "{{n}} min",
       "hours": "{{n}} h"
     }
+  },
+  "timerChannelPoints": {
+    "category": "Puntos de canal",
+    "title": "Recompensas de puntos de canal",
+    "help": "Elige qué recompensas de tu canal suman tiempo al timer y cuánto suma cada canje. Puedes agregar varias: una barata y una premium, por ejemplo.",
+    "add": "Agregar recompensa",
+    "choose": "Elige una recompensa...",
+    "missing": "(ya no existe en tu canal)",
+    "remove": "Quitar",
+    "turnOn": "Activar",
+    "turnOff": "Desactivar",
+    "timePerRedeem": "Tiempo que suma cada canje",
+    "minutes": "minutos",
+    "seconds": "segundos",
+    "zeroWarning": "Con 0 no suma nada. Pon al menos 1 segundo.",
+    "empty": "Todavía no hay ninguna recompensa que sume tiempo. Agrega una para que tu gente pueda alargar el timer con puntos.",
+    "loadFailed": "No pudimos traer tus recompensas de Twitch. No es un error del timer: vuelve a conectar tu cuenta y recarga la página.",
+    "noTimerNote": "Si el timer está detenido o terminó, el canje no suma nada y no avisa en el chat. Conviene pausar la recompensa en Twitch cuando no haya timer, para que la gente no gaste puntos.",
+    "refundNote": "Si un canje se cancela o se reembolsa en Twitch, el tiempo ya sumado no se resta; queda anotado en el historial.",
+    "happyHourNote": "La Happy Hour también multiplica estos canjes, salvo que la limites a otros eventos."
   }
 }

@@ -3,7 +3,7 @@
 // (22:00 → 02:00) pertenece al día en que empieza.
 
 /** Claves de evento que entiende el servidor, en el orden en que se muestran. */
-export const HH_EVENTS = ['sub', 'giftsub', 'bits', 'tip', 'raid', 'hypetrain', 'follow'] as const;
+export const HH_EVENTS = ['sub', 'giftsub', 'bits', 'tip', 'raid', 'hypetrain', 'follow', 'channelpoints'] as const;
 export type HHEvent = typeof HH_EVENTS[number];
 
 /** Orden de los días en pantalla: lunes primero. Los índices son los del servidor (0 = domingo). */

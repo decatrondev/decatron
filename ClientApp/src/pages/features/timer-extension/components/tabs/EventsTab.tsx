@@ -6,8 +6,10 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Layers } from 'lucide-react';
 import { TimeRuleManager } from '../TimeRuleManager';
+import { ChannelPointsEvents } from './ChannelPointsEvents';
 import type { EventsConfig, TimeUnit, EventRule } from '../../types';
 import { TIME_UNITS, convertSecondsToUnit, convertUnitToSeconds } from '../../utils';
 
@@ -31,7 +33,7 @@ interface EventsTabProps {
     onEventTimeUnitsChange: (updates: any) => void;
 }
 
-type EventCategory = 'bits' | 'follow' | 'subs' | 'giftSub' | 'raid' | 'hypeTrain' | 'tips';
+type EventCategory = 'bits' | 'follow' | 'subs' | 'giftSub' | 'raid' | 'hypeTrain' | 'tips' | 'channelPoints';
 
 const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) => void }> = ({ checked, onChange }) => (
     <label className="relative inline-flex items-center cursor-pointer">
@@ -51,6 +53,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
     onEventsConfigChange,
     onEventTimeUnitsChange
 }) => {
+    const { t } = useTranslation('features');
     const [selectedCategory, setSelectedCategory] = useState<EventCategory>('bits');
     const [selectedSubTier, setSelectedSubTier] = useState<'subPrime' | 'subTier1' | 'subTier2' | 'subTier3'>('subPrime');
 
@@ -61,7 +64,8 @@ export const EventsTab: React.FC<EventsTabProps> = ({
         { key: 'giftSub' as EventCategory, icon: '🎁', label: 'Gift Sub' },
         { key: 'raid' as EventCategory, icon: '🚀', label: 'Raid' },
         { key: 'hypeTrain' as EventCategory, icon: '🔥', label: 'Hype Train' },
-        { key: 'tips' as EventCategory, icon: '💰', label: 'Donaciones' }
+        { key: 'tips' as EventCategory, icon: '💰', label: 'Donaciones' },
+        { key: 'channelPoints' as EventCategory, icon: '✨', label: t('timerChannelPoints.category') }
     ];
 
     const subTiers = [
@@ -151,7 +155,15 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                 )}
             </div>
 
+            {selectedCategory === 'channelPoints' && (
+                <ChannelPointsEvents
+                    rules={eventsConfig.channelPoints ?? []}
+                    onChange={(rules) => onEventsConfigChange({ channelPoints: rules })}
+                />
+            )}
+
             {/* Event Configuration */}
+            {selectedCategory !== 'channelPoints' && (
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <h3 className="text-sm font-bold text-ds-text mb-4">
                     ⚙️ Configuración para {categories.find(c => c.key === selectedCategory)?.label}
@@ -375,6 +387,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 };

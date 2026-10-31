@@ -556,6 +556,16 @@ namespace Decatron.Services
                 await AcreditarEnRuedaAsync(broadcasterUserName, redeemerUserName,
                     Decatron.Core.Models.WheelOfLuck.WheelSources.ChannelPoints, 1, rewardId);
 
+                // Timer: si la recompensa es una de las que el streamer eligió, suma tiempo. Nunca rompe el resto del canje.
+                try
+                {
+                    await _timerEventService.ProcessChannelPointsEventAsync(broadcasterUserName, redeemerUserName, redeemerUserId, rewardId, rewardTitle);
+                }
+                catch (Exception timerEx)
+                {
+                    _logger.LogError(timerEx, "❌ [Timer] Error procesando canje en [{Channel}]", broadcasterUserName);
+                }
+
                 // Speak Chat TTS por canje (recompensas con texto que no pasan por el chat).
                 // Si el canje ya se procesó por el mensaje de chat, el servicio lo deduplica.
                 try

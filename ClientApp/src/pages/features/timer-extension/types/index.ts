@@ -154,7 +154,18 @@ export interface EventConfig {
 // Deprecated: BitTier se reemplaza por EventRule
 export type BitTier = EventRule; 
 
+/** Una recompensa de puntos de canal que suma tiempo al timer. */
+export interface ChannelPointRule {
+    rewardId: string;
+    title: string;
+    /** Segundos que suma cada canje. */
+    timeAdded: number;
+    enabled: boolean;
+}
+
 export interface EventsConfig {
+    /** Recompensas de puntos de canal que suman tiempo; vacío o ausente = ninguna. */
+    channelPoints?: ChannelPointRule[];
     bits: EventConfig & {
         perBits: number; // Legacy: Cada X bits (se mantiene por compatibilidad)
     };
