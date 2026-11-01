@@ -167,6 +167,7 @@ export default function TimerOverlay() {
     // Tarjeta de Decatron: null si el plan del canal la ocultó (mismo criterio que Song Request)
     const [promos, setPromos] = useState<PromoCatalog | null>(null);
     const [promoLang, setPromoLang] = useState<'es' | 'en'>('es');
+    const promoSigRef = useRef('');
     const [displayConfig, setDisplayConfig] = useState<DisplayConfig>({} as any);
     const [progressBarConfig, setProgressBarConfig] = useState<ProgressBarConfig>({} as any);
     const [styleConfig, setStyleConfig] = useState<StyleConfig>({} as any);
@@ -264,7 +265,10 @@ export default function TimerOverlay() {
                     setAlertsConfig(data.config.alertsConfig || DEFAULT_ALERTS_CONFIG);
                     setCanvasWidth(data.config.canvasWidth || 1000);
                     setCanvasHeight(data.config.canvasHeight || 300);
-                    setPromos(data.promos ?? null);
+                    // El overlay recarga la configuración cada 30 s y con cada evento: el catálogo solo se reemplaza si cambió de
+                    // verdad, porque un objeto nuevo reinicia el reloj de la tarjeta y nunca llegaría a salir.
+                    const promoSig = JSON.stringify(data.promos ?? null);
+                    if (promoSig !== promoSigRef.current) { promoSigRef.current = promoSig; setPromos(data.promos ?? null); }
                     setPromoLang(data.lang === 'en' ? 'en' : 'es');
                     if (data.config.advancedConfig?.initialTimeOffset) {
                         setInitialTimeOffset(data.config.advancedConfig.initialTimeOffset);
