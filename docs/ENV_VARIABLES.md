@@ -335,7 +335,7 @@ The `LiveTranslation` section of `appsettings.json` holds limits and client timi
 | `EpicSettings` | `ClientId`, `ClientSecret` | | Epic Games OAuth app |
 | `EpicSettings` | `RedirectUri` | `https://decatron.net/api/auth/epic/callback` | Epic OAuth callback (set your own domain) |
 | `EpicSettings` | `Scopes` | `basic_profile friends_list country presence` | Epic scopes |
-| `Fortnite` | `CurrentSeason` | `Unknown` | Season label used by the Fortnite modules |
+| `Fortnite` | `CurrentSeason` | `Unknown` | Fallback season label, used only when none is chosen in `/admin/fortnite` |
 
 A missing Riot key is treated as not configured for that game.
 

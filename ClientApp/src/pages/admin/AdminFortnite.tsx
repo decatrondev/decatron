@@ -118,6 +118,9 @@ function SpritesTab() {
     const [filterSeason, setFilterSeason] = useState('');
     const [allSeasons, setAllSeasons] = useState<string[]>([]);
     const [currentSeason, setCurrentSeason] = useState('');
+    const [seasonDraft, setSeasonDraft] = useState('');
+    const [savingSeason, setSavingSeason] = useState(false);
+    const [seasonResult, setSeasonResult] = useState<{ ok: boolean; msg: string } | null>(null);
     const [modal, setModal] = useState<{ mode: 'create' | 'edit'; data: Partial<FortniteSprite> } | null>(null);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
@@ -136,7 +139,7 @@ function SpritesTab() {
         try {
             const r = await api.post(`/admin/fortnite/sync?dryRun=${dryRun}`, null, { timeout: 200000 });
             setSyncResult({ ok: r.data.success, dryRun, msg: r.data.message, output: r.data.output ?? '' });
-            if (!dryRun && r.data.success) load();
+            if (!dryRun && r.data.success) { load(); loadSeasons(); }
         } catch (e: any) {
             setSyncResult({ ok: false, dryRun, msg: e.response?.data?.message || 'Error al sincronizar', output: e.response?.data?.output ?? '' });
         }
@@ -173,16 +176,35 @@ function SpritesTab() {
     useEffect(() => { load(); }, [load]);
 
     // Temporada actual + lista de temporadas: fuente unica en el backend
-    useEffect(() => {
+    const loadSeasons = useCallback(() => {
         api.get('/fortnite/current-season')
             .then(r => {
-                setCurrentSeason(r.data.currentSeason ?? '');
+                const cs = r.data.currentSeason ?? '';
+                setCurrentSeason(cs);
+                setSeasonDraft(cs);
                 const found = [...(r.data.seasons ?? [])] as string[];
-                found.sort((a, b) => a === r.data.currentSeason ? -1 : b === r.data.currentSeason ? 1 : a.localeCompare(b));
+                found.sort((a, b) => a === cs ? -1 : b === cs ? 1 : a.localeCompare(b));
                 setAllSeasons(found);
             })
             .catch(() => {});
     }, []);
+
+    useEffect(() => { loadSeasons(); }, [loadSeasons]);
+
+    // Cambia la temporada que usan por defecto !spirits, /me/spirits, /sprites y este panel
+    const handleSaveSeason = async () => {
+        if (!seasonDraft || seasonDraft === currentSeason) return;
+        setSavingSeason(true);
+        setSeasonResult(null);
+        try {
+            await api.put('/admin/fortnite/current-season', { season: seasonDraft });
+            setSeasonResult({ ok: true, msg: `Temporada actual: ${seasonDraft}` });
+            loadSeasons();
+        } catch (e: any) {
+            setSeasonResult({ ok: false, msg: e.response?.data?.message || 'Error al guardar la temporada' });
+        }
+        setSavingSeason(false);
+    };
 
     const characters = [...new Set(sprites.map(s => s.character))].sort();
 
@@ -266,6 +288,41 @@ function SpritesTab() {
                         )}
                     </div>
                 )}
+            </div>
+
+            {/* Temporada actual: no cambia sola al importar una temporada nueva, se elige aqui */}
+            <div className="bg-ds-bg rounded-lg p-3 border border-ds-border space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-ds-soft uppercase">Temporada actual</span>
+                    <select
+                        value={seasonDraft}
+                        onChange={e => { setSeasonDraft(e.target.value); setSeasonResult(null); }}
+                        className="ds-input"
+                        disabled={allSeasons.length === 0}
+                    >
+                        {seasonDraft && !allSeasons.includes(seasonDraft) && <option value={seasonDraft}>{seasonDraft}</option>}
+                        {allSeasons.map(s => (
+                            <option key={s} value={s}>{s === currentSeason ? `${s} (actual)` : s}</option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={handleSaveSeason}
+                        disabled={savingSeason || !seasonDraft || seasonDraft === currentSeason}
+                        className="ds-btn ds-btn--primary ds-btn--sm"
+                    >
+                        {savingSeason ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        Guardar
+                    </button>
+                    {seasonResult && (
+                        <span className={`flex items-center gap-1.5 text-xs font-semibold ${seasonResult.ok ? 'text-ds-ok ' : 'text-ds-danger '}`}>
+                            {seasonResult.ok ? <Check className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                            {seasonResult.msg}
+                        </span>
+                    )}
+                </div>
+                <p className="text-xs text-ds-soft">
+                    Es la que usan por defecto !spirits, Mi colección y las páginas públicas. Al importar una temporada nueva no cambia sola: elígela aquí.
+                </p>
             </div>
 
             {/* Probar aviso de Twitch a mano — simula que el stream de ese usuario recien arranco */}

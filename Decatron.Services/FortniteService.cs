@@ -9,7 +9,10 @@ namespace Decatron.Services
     public interface IFortniteService
     {
         // Temporada
-        string CurrentSeason { get; }
+        /// <summary>Temporada actual: la elegida en /admin/fortnite (fortnite_settings) o, si no hay, Fortnite:CurrentSeason de appsettings.json</summary>
+        Task<string> GetCurrentSeasonAsync();
+        /// <summary>Cambia la temporada actual. Debe existir en el catálogo; devuelve false si no existe</summary>
+        Task<bool> SetCurrentSeasonAsync(string season);
         Task<List<string>> GetAvailableSeasonsAsync();
 
         // Catálogo público
@@ -60,13 +63,43 @@ namespace Decatron.Services
         private readonly DecatronDbContext _context;
         private readonly ILogger<FortniteService> _logger;
 
-        public string CurrentSeason { get; }
+        private readonly IConfiguration _configuration;
 
         public FortniteService(DecatronDbContext context, ILogger<FortniteService> logger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
-            CurrentSeason = configuration["Fortnite:CurrentSeason"] ?? "Unknown";
+            _configuration = configuration;
+        }
+
+        public async Task<string> GetCurrentSeasonAsync()
+        {
+            var fromDb = await _context.FortniteSettings.AsNoTracking()
+                .Where(s => s.Id == 1)
+                .Select(s => s.CurrentSeason)
+                .FirstOrDefaultAsync();
+            if (!string.IsNullOrWhiteSpace(fromDb)) return fromDb;
+            return _configuration["Fortnite:CurrentSeason"] ?? "Unknown";
+        }
+
+        public async Task<bool> SetCurrentSeasonAsync(string season)
+        {
+            season = (season ?? "").Trim();
+            if (season.Length == 0 || season.Length > 100) return false;
+            var exists = await _context.FortniteSprites.AnyAsync(s => s.Season == season);
+            if (!exists) return false;
+
+            var row = await _context.FortniteSettings.FirstOrDefaultAsync(s => s.Id == 1);
+            if (row == null)
+            {
+                row = new Decatron.Core.Models.Fortnite.FortniteSettings { Id = 1 };
+                _context.FortniteSettings.Add(row);
+            }
+            row.CurrentSeason = season;
+            row.UpdatedAt = DateTimeOffset.UtcNow;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Temporada actual de Fortnite Spirits cambiada a {Season}", season);
+            return true;
         }
 
         public async Task<List<string>> GetAvailableSeasonsAsync()

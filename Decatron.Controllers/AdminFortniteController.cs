@@ -138,6 +138,25 @@ namespace Decatron.Controllers
             return Ok(new { success = true, message = $"Barrido de Discord disparado (si no llego nada, no habia sprites nuevos pendientes para {username})" });
         }
 
+        public class CurrentSeasonRequest { public string Season { get; set; } = ""; }
+
+        /// <summary>Cambia la temporada actual (la que usan por defecto !spirits, /me/spirits, /sprites y este panel). Debe existir en el catalogo</summary>
+        [HttpPut("current-season")]
+        public async Task<IActionResult> SetCurrentSeason([FromBody] CurrentSeasonRequest req)
+        {
+            try
+            {
+                if (!await _fortniteService.SetCurrentSeasonAsync(req?.Season ?? ""))
+                    return BadRequest(new { success = false, message = "Esa temporada no existe en el catalogo" });
+                return Ok(new { success = true, currentSeason = await _fortniteService.GetCurrentSeasonAsync() });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cambiando la temporada actual");
+                return StatusCode(500, new { success = false, message = "Error guardando la temporada" });
+            }
+        }
+
         /// <summary>Lista todos los spirits con filtros opcionales</summary>
         [HttpGet("sprites")]
         public async Task<IActionResult> GetAll(

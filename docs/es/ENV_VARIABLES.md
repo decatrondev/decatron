@@ -335,7 +335,7 @@ La sección `LiveTranslation` de `appsettings.json` contiene los límites y los 
 | `EpicSettings` | `ClientId`, `ClientSecret` | | Aplicación OAuth de Epic Games |
 | `EpicSettings` | `RedirectUri` | `https://decatron.net/api/auth/epic/callback` | Callback de OAuth de Epic (configura tu propio dominio) |
 | `EpicSettings` | `Scopes` | `basic_profile friends_list country presence` | Scopes de Epic |
-| `Fortnite` | `CurrentSeason` | `Unknown` | Etiqueta de la temporada que usan los módulos de Fortnite |
+| `Fortnite` | `CurrentSeason` | `Unknown` | Temporada de respaldo, solo si no se eligió una en `/admin/fortnite` |
 
 Una llave de Riot ausente se trata como no configurada para ese juego.
 

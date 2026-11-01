@@ -10,7 +10,7 @@ namespace Decatron.Default.Commands
 {
     /// <summary>
     /// !spirits — Tracker de Fortnite Spirits
-    /// Por defecto todo es por la temporada actual (IFortniteService.CurrentSeason);
+    /// Por defecto todo es por la temporada actual (IFortniteService.GetCurrentSeasonAsync);
     /// "all" muestra el historico de todas las temporadas, y el nombre de una
     /// temporada puntual (ej "runners") filtra solo esa.
     /// Subcomandos:
@@ -116,8 +116,9 @@ namespace Decatron.Default.Commands
                 user ??= tok.ToLower();
             }
 
-            var seasonLabel = allTime ? "todas las temporadas" : (season ?? fortnite.CurrentSeason);
-            return (user, allTime ? null : (season ?? fortnite.CurrentSeason), seasonLabel);
+            season ??= allTime ? null : await fortnite.GetCurrentSeasonAsync();
+            var seasonLabel = allTime ? "todas las temporadas" : season!;
+            return (user, allTime ? null : season, seasonLabel);
         }
 
         private static async Task<(string? season, string seasonLabel)> ResolveSeason(IFortniteService fortnite, IEnumerable<string> tokens)

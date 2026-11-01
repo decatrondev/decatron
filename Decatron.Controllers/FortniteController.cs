@@ -54,7 +54,7 @@ namespace Decatron.Controllers
             try
             {
                 var seasons = await _fortniteService.GetAvailableSeasonsAsync();
-                return Ok(new { success = true, currentSeason = _fortniteService.CurrentSeason, seasons });
+                return Ok(new { success = true, currentSeason = await _fortniteService.GetCurrentSeasonAsync(), seasons });
             }
             catch (Exception ex)
             {

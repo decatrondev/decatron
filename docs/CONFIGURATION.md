@@ -70,7 +70,7 @@ This file contains non-sensitive settings that are safe to share. These are the 
 | `LiveTranslation` | `SttModel`, `GeminiFallbackModel`, `SttCreditsPerSecond`, `MaxConcurrentChannels`, `MaxLanguagesPerChannel`, `LinkCodeMinutes`, `SmartSegmentation`, ..., `ClientTuning` | Live translation pipeline limits and client timing (hot-reloaded) |
 | `WheelOfLuck` | `Enabled` | Master switch of the Wheel module |
 | `ClipCommand` | `Enabled`, `MinFreeDiskGb`, `ConfirmTimeoutSeconds`, `ConfirmNoticeSeconds`, `ConfirmPollSeconds` | `!clip` master switch; free disk space (GB) under which the optional clip download pauses (10 by default, 0 turns the check off); how long (60 s), after how long it says it is still waiting (10 s) and how often (3 s) the bot checks whether Twitch finished a clip (hot-reloaded) |
-| `Fortnite` | `CurrentSeason` | Season used by the Fortnite modules |
+| `Fortnite` | `CurrentSeason` | Fallback for the current Fortnite season; the real value is chosen in `/admin/fortnite` (`fortnite_settings` table) |
 | `DecatronApi` | `BaseUrl`, `Enabled` | Optional link to the invoicing API |
 | `TtsCredits` | `TransitionEndsAt` | End date of the TTS credits transition |
 | `RiotApi` | (comments only) | Riot keys belong in the secrets file |

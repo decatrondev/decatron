@@ -70,7 +70,7 @@ Este archivo contiene ajustes no sensibles que se pueden compartir. Estas son la
 | `LiveTranslation` | `SttModel`, `GeminiFallbackModel`, `SttCreditsPerSecond`, `MaxConcurrentChannels`, `MaxLanguagesPerChannel`, `LinkCodeMinutes`, `SmartSegmentation`, ..., `ClientTuning` | Límites del pipeline de traducción en vivo y tiempos del cliente (se recarga en caliente) |
 | `WheelOfLuck` | `Enabled` | Interruptor general del módulo de la Rueda |
 | `ClipCommand` | `Enabled`, `MinFreeDiskGb`, `ConfirmTimeoutSeconds`, `ConfirmNoticeSeconds`, `ConfirmPollSeconds` | Interruptor general de `!clip`; espacio libre en disco (GB) por debajo del cual se pausa la descarga opcional de clips (10 por defecto, 0 desactiva la comprobación); cuánto espera el bot a que Twitch termine un clip (60 s), a los cuántos segundos avisa que sigue esperando (10 s) y cada cuánto lo consulta (3 s) (se recarga en caliente) |
-| `Fortnite` | `CurrentSeason` | Temporada que usan los módulos de Fortnite |
+| `Fortnite` | `CurrentSeason` | Respaldo de la temporada actual de Fortnite; el valor real se elige en `/admin/fortnite` (tabla `fortnite_settings`) |
 | `DecatronApi` | `BaseUrl`, `Enabled` | Enlace opcional con la API de facturación |
 | `TtsCredits` | `TransitionEndsAt` | Fecha de fin de la transición de créditos de TTS |
 | `RiotApi` | (solo comentarios) | Las llaves de Riot van en el archivo de secretos |

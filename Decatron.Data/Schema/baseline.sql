@@ -21,7 +21,7 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-10-31
+-- Snapshot date: 2026-11-01
 --
 --
 --
@@ -2823,6 +2823,19 @@ CREATE SEQUENCE public.follower_history_id_seq
 --
 
 ALTER SEQUENCE public.follower_history_id_seq OWNED BY public.follower_history.id;
+
+
+--
+-- Name: fortnite_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fortnite_settings (
+    id integer DEFAULT 1 NOT NULL,
+    current_season text,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT fortnite_settings_season_len CHECK (((current_season IS NULL) OR ((char_length(current_season) >= 1) AND (char_length(current_season) <= 100)))),
+    CONSTRAINT fortnite_settings_single_row CHECK ((id = 1))
+);
 
 
 --
@@ -13639,6 +13652,14 @@ ALTER TABLE ONLY public.follow_alert_history
 
 ALTER TABLE ONLY public.follower_history
     ADD CONSTRAINT follower_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fortnite_settings fortnite_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fortnite_settings
+    ADD CONSTRAINT fortnite_settings_pkey PRIMARY KEY (id);
 
 
 --

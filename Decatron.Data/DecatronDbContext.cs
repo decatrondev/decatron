@@ -360,6 +360,7 @@ namespace Decatron.Data
         public DbSet<FortniteSprite> FortniteSprites { get; set; }
         public DbSet<UserFortniteSprite> UserFortniteSprites { get; set; }
         public DbSet<UserSpiritNotificationPref> UserSpiritNotificationPrefs { get; set; }
+        public DbSet<Decatron.Core.Models.Fortnite.FortniteSettings> FortniteSettings { get; set; }
 
         // Rueda de la Suerte
         public DbSet<Wheel> Wheels { get; set; }
