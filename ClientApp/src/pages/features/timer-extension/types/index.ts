@@ -338,6 +338,8 @@ export interface HappyHourConfig {
 }
 
 export interface AdvancedConfig {
+    /** Tarjeta de Decatron sobre el overlay: por defecto sí. Solo se puede apagar si el plan lo permite. */
+    decatronCard?: boolean;
     // Plantillas
     templates: {
         speedrun: Template;

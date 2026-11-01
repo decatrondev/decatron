@@ -106,6 +106,7 @@ La extensión del timer muestra una cuenta regresiva visual (estilo subathon) qu
 | Vidas extra | Sistema de resurrección con mensajes personalizados cuando el timer llega a cero |
 | TTS | Texto a voz para los anuncios de eventos |
 | Medios | Sonidos, imágenes, videos y GIF personalizados para las alertas |
+| Tarjeta de Decatron | Cada cierto tiempo una tarjeta corta con el logo de Decatron y un mensaje tapa el overlay del timer (mismo catálogo y ritmo que Song Request y Game Overlays). El plan gratis la muestra siempre; desde Supporter se puede ocultar (`advancedConfig.decatronCard`; `GET /api/timer/promo-card` le dice al panel si el plan lo permite) |
 
 ### Eventos que suman tiempo
 

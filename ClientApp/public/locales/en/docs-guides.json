@@ -512,7 +512,7 @@
               "History: previous sessions, with the total added per event type, the session logs and the option to restore.",
               "Media: your gallery of audio, video and images for the alerts.",
               "Widgets: loose text elements for the overlay: live statistics, uptime and a Happy Hour indicator.",
-              "Overlay: the link and the OBS connection data."
+              "Overlay: the link and connection data for OBS, and the Decatron card switch."
             ]
           }
         ]
@@ -682,6 +682,24 @@
             "items": [
               "Raffles: create raffles with a name and winners. You can enter by bits, by subscription (choosing the tiers), by gifting subs (with a minimum) or by a new follow, or import the participants of a session. You can exclude moderators, VIPs and the streamer, and re-draw a place.",
               "Widgets: live statistics (subs and bits today, totals, amount raised, events), timer uptime and a Happy Hour indicator. The Happy Hour indicator only appears while one is active; use \"Simulate Happy Hour\" to position it."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tarjeta",
+        "title": "Decatron card",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every so often a card with the Decatron logo and a message appears for a few seconds over the timer overlay. It is the same one you see in Song Request and the Game Overlays: Decatron sets the messages and how often it appears, not you."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "On the free plan the card always shows.",
+              "From the Supporter plan you can hide it with the «Show the Decatron card» switch, in the timer's Overlay tab. Remember to save the configuration to apply the change.",
+              "It only shows while the timer is visible in the overlay: it covers the timer canvas for a few seconds and then goes away."
             ]
           }
         ]

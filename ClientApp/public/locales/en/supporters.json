@@ -194,5 +194,6 @@
   "tableDiscretion": "At our discretion",
   "tGroupPromo": "Promotions",
   "rPromoOwnCards": "Own cards",
-  "bPromoCards": "{{n}} own cards on the Promotions overlay"
+  "bPromoCards": "{{n}} own cards on the Promotions overlay",
+  "tGroupTimer": "Timer"
 }

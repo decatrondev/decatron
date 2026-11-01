@@ -2717,5 +2717,14 @@
     "cpName": "Channel points",
     "cpText": "Pick rewards from your channel and how much time each redemption adds. It only adds time while the timer is running or paused.",
     "hhText": "Multiplies the time added (x2, x3…). It turns on by schedule, when the timer has run for X time, or while it has X hours or less left."
+  },
+  "timerPromoCard": {
+    "title": "Decatron card",
+    "description": "Every so often it appears for a few seconds over the timer overlay with the Decatron logo and a message.",
+    "show": "Show the Decatron card",
+    "locked": "Your current plan always shows it. From the Supporter plan you can hide it.",
+    "seePlans": "See plans",
+    "saveNote": "Remember to save the configuration to apply the change.",
+    "loadFailed": "We couldn't read your plan, so it can't be changed for now. This isn't a timer error: reload the page."
   }
 }

@@ -7,6 +7,8 @@ import ProgressBarHorizontal from '../components/timer/ProgressBarHorizontal';
 import ProgressBarVertical from '../components/timer/ProgressBarVertical';
 import ProgressBarCircular from '../components/timer/ProgressBarCircular';
 import EventAlertPreview from '../components/timer/EventAlertPreview';
+import { DecatronPromoCard } from './features/song-request-extension/components/SongRequestPromo';
+import type { PromoCatalog } from './features/game-overlays/types';
 
 import { DEFAULT_ALERTS_CONFIG } from '../types/timer-alerts';
 import type {
@@ -162,6 +164,9 @@ export default function TimerOverlay() {
     const [initialTimeOffset, setInitialTimeOffset] = useState(0);
 
     // Estado Configuración (Defaults básicos)
+    // Tarjeta de Decatron: null si el plan del canal la ocultó (mismo criterio que Song Request)
+    const [promos, setPromos] = useState<PromoCatalog | null>(null);
+    const [promoLang, setPromoLang] = useState<'es' | 'en'>('es');
     const [displayConfig, setDisplayConfig] = useState<DisplayConfig>({} as any);
     const [progressBarConfig, setProgressBarConfig] = useState<ProgressBarConfig>({} as any);
     const [styleConfig, setStyleConfig] = useState<StyleConfig>({} as any);
@@ -259,6 +264,8 @@ export default function TimerOverlay() {
                     setAlertsConfig(data.config.alertsConfig || DEFAULT_ALERTS_CONFIG);
                     setCanvasWidth(data.config.canvasWidth || 1000);
                     setCanvasHeight(data.config.canvasHeight || 300);
+                    setPromos(data.promos ?? null);
+                    setPromoLang(data.lang === 'en' ? 'en' : 'es');
                     if (data.config.advancedConfig?.initialTimeOffset) {
                         setInitialTimeOffset(data.config.advancedConfig.initialTimeOffset);
                     }
@@ -1215,6 +1222,9 @@ export default function TimerOverlay() {
                     </div>
                 )}
             </div>
+            {promos && (
+                <DecatronPromoCard rect={{ x: 0, y: 0, width: canvasWidth, height: canvasHeight }} radius={20} catalog={promos} lang={promoLang} active={isVisible && !isExiting} zIndex={40} />
+            )}
         </div>
         </>
     );

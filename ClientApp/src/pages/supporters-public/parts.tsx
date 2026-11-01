@@ -234,6 +234,8 @@ export function PlanComparison() {
             { key: 'songPlaylists', label: t('rSongPlaylists'), fmt: num }, { key: 'songItems', label: t('rSongItems'), fmt: num },
             { key: 'songHistoryDays', label: t('rSongHistory'), fmt: days }, { key: 'songTemplates', label: t('rSongTemplates'), fmt: num },
             { key: 'songHidePromo', label: t('rHidePromo'), fmt: flag } ] },
+        { title: t('tGroupTimer'), rows: [
+            { key: 'timerHidePromo', label: t('rHidePromo'), fmt: flag } ] },
         { title: t('tGroupWheel'), rows: [
             { key: 'wheels', label: t('rWheels'), fmt: num }, { key: 'wheelSegments', label: t('rWheelSegments'), fmt: num },
             { key: 'wheelHistoryDays', label: t('rWheelHistory'), fmt: days } ] },

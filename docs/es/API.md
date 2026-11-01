@@ -1264,6 +1264,7 @@ Los endpoints de abajo son el resto de las rutas del backend, generados a partir
 | `PUT` | `/api/timer/happyhour/{id}` | JWT |
 | `POST` | `/api/timer/overlay/{channel}/complete` | JWT |
 | `GET` | `/api/timer/overlay/{channel}/stats` | JWT |
+| `GET` | `/api/timer/promo-card` | JWT |
 | `GET` | `/api/timer/schedules` | JWT |
 | `POST` | `/api/timer/schedules` | JWT |
 | `DELETE` | `/api/timer/schedules/{id}` | JWT |

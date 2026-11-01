@@ -31,15 +31,25 @@ function usePromoCycle(catalog: PromoCatalog | null, active: boolean): PromoItem
     return promo;
 }
 
+/** Dónde se dibuja la tarjeta, en píxeles del lienzo del overlay. */
+export interface PromoRect { x: number; y: number; width: number; height: number }
+
 /** Va encima del overlay, en el lugar del panel. active: el overlay se está viendo (hay canción o no se oculta sin ella). */
 export default function SongRequestPromo({ layout, catalog, lang, active }: { layout: OverlayLayout; catalog: PromoCatalog | null; lang: 'es' | 'en'; active: boolean }) {
+    return <DecatronPromoCard rect={layout.elements.panel} radius={layout.theme.panelRadius} catalog={catalog} lang={lang} active={active} />;
+}
+
+/**
+ * La tarjeta de Decatron en un rectángulo cualquiera del lienzo. La usan Song Request (en el lugar del panel) y el Timer (sobre
+ * todo el lienzo): mismo catálogo, mismo ritmo y mismo diseño.
+ */
+export function DecatronPromoCard({ rect: panel, radius, catalog, lang, active, zIndex }: { rect: PromoRect; radius: number; catalog: PromoCatalog | null; lang: 'es' | 'en'; active: boolean; zIndex?: number }) {
     const promo = usePromoCycle(catalog, active);
     const [shown, setShown] = useState<PromoItem | null>(null);
     const visible = promo !== false;
     // Se queda con el último anuncio mientras se desvanece
     useEffect(() => { if (promo !== false) setShown(promo); }, [promo]);
 
-    const { panel } = layout.elements;
     const msgs = PROMO_MESSAGES[lang];
     const title = shown?.title ?? msgs.title;
     const line = shown?.line ?? msgs.lines[Math.floor(Date.now() / 60000) % msgs.lines.length];
@@ -55,7 +65,7 @@ export default function SongRequestPromo({ layout, catalog, lang, active }: { la
 
     const base: CSSProperties = {
         position: 'absolute', left: panel.x, top: panel.y, width: panel.width, height: panel.height, boxSizing: 'border-box',
-        background: '#0f1115', borderRadius: layout.theme.panelRadius, overflow: 'hidden',
+        background: '#0f1115', borderRadius: radius, overflow: 'hidden', zIndex,
         fontFamily: 'Inter, system-ui, sans-serif', display: 'flex',
         opacity: visible ? 1 : 0, transition: 'opacity 600ms ease', pointerEvents: 'none',
     };

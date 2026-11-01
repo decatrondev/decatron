@@ -173,6 +173,7 @@ namespace Decatron.Controllers
                 Add("songHistoryDays",   t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).HistoryDays));
                 Add("songTemplates",     t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).MaxTemplates));
                 Add("songHidePromo",     t => Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).CanHidePromo ? 1 : 0);
+                Add("timerHidePromo",    t => Decatron.Services.TimerTierLimits.CanHidePromo(t) ? 1 : 0);
                 Add("gamesAccounts",     t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).MaxAccountsPerGame));
                 Add("gamesInstances",    t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).MaxInstances));
                 Add("gamesRecent",       t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).MaxRecentMatches));

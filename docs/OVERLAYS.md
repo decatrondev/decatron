@@ -106,6 +106,7 @@ The Timer Extension displays a visual countdown (subathon style) that viewers ex
 | Extra lives | Resurrection system with custom messages when the timer reaches zero |
 | TTS | Text-to-speech for event announcements |
 | Media | Custom sounds, images, videos and GIFs for alerts |
+| Decatron card | Every so often a short card with the Decatron logo and a message covers the timer overlay (same catalog and rhythm as Song Request and Game Overlays). The free plan always shows it; from the Supporter plan it can be hidden (`advancedConfig.decatronCard`, `GET /api/timer/promo-card` tells the panel if the plan allows it) |
 
 ### Events that add time
 

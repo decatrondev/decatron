@@ -28,6 +28,7 @@ namespace Decatron.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly Decatron.Core.Interfaces.ICredentialProvider _credentials;
+        private readonly Decatron.Services.GameData.GameOverlayPromoService _promos;
 
         public TimerExtensionController(
             DecatronDbContext dbContext,
@@ -36,8 +37,10 @@ namespace Decatron.Controllers
             Decatron.Services.TimerEventService timerEventService,
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            Decatron.Core.Interfaces.ICredentialProvider credentials)
+            Decatron.Core.Interfaces.ICredentialProvider credentials,
+            Decatron.Services.GameData.GameOverlayPromoService promos)
         {
+            _promos = promos;
             _credentials = credentials;
             _dbContext = dbContext;
             _logger = logger;
@@ -877,6 +880,22 @@ namespace Decatron.Controllers
         // OVERLAY ENDPOINTS
         // ========================================================================
 
+        /// <summary>Si el plan del canal puede ocultar la tarjeta de Decatron en el overlay del timer (el panel apaga el interruptor si no).</summary>
+        [HttpGet("promo-card")]
+        public async Task<IActionResult> GetPromoCardLimits()
+        {
+            try
+            {
+                var tier = await TierResolver.GetEffectiveTierAsync(_dbContext, GetChannelOwnerId());
+                return Ok(new { success = true, canHide = Decatron.Services.TimerTierLimits.CanHidePromo(tier) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo leer el limite de la tarjeta de Decatron del timer");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
         [HttpGet("config/overlay/{channel}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetOverlayConfiguration(string channel)
@@ -1010,7 +1029,20 @@ namespace Decatron.Controllers
                     };
                 }
 
-                return Ok(new { success = true, config = configData, state = stateData, happyHourLive });
+                // La tarjeta de Decatron: el streamer la apaga solo si su plan lo permite (mismo criterio que Song Request)
+                object? promos = null; string lang = "es";
+                try
+                {
+                    var ownerId = channelUserId ?? config.UserId;
+                    var tier = await TierResolver.GetEffectiveTierAsync(_dbContext, ownerId);
+                    var hidden = !Decatron.Services.TimerTierLimits.ShowCard(tier, config.AdvancedConfig);
+                    var preferred = await _dbContext.Users.AsNoTracking().Where(u => u.Id == ownerId).Select(u => u.PreferredLanguage).FirstOrDefaultAsync();
+                    lang = preferred != null && preferred.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "en" : "es";
+                    if (!hidden) promos = await _promos.GetCatalogAsync(lang, "timer");
+                }
+                catch (Exception ex) { _logger.LogWarning(ex, "No se pudo armar la tarjeta de Decatron del timer"); }
+
+                return Ok(new { success = true, config = configData, state = stateData, happyHourLive, promos, lang });
             }
             catch (Exception ex)
             {

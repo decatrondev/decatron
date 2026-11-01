@@ -2717,5 +2717,14 @@
     "cpName": "Puntos de canal",
     "cpText": "Elige recompensas de tu canal y cuánto tiempo suma cada canje. Solo suma con el timer corriendo o en pausa.",
     "hhText": "Multiplica el tiempo añadido (x2, x3…). Se activa por horario, cuando el timer lleva X tiempo corriendo, o mientras le queden X horas o menos."
+  },
+  "timerPromoCard": {
+    "title": "Tarjeta de Decatron",
+    "description": "Cada cierto tiempo aparece unos segundos sobre el overlay del timer con el logo de Decatron y un mensaje.",
+    "show": "Mostrar la tarjeta de Decatron",
+    "locked": "Tu plan actual la muestra siempre. Desde el plan Supporter puedes ocultarla.",
+    "seePlans": "Ver planes",
+    "saveNote": "Recuerda guardar la configuración para aplicar el cambio.",
+    "loadFailed": "No pudimos leer tu plan, así que por ahora no se puede cambiar. No es un error del timer: recarga la página."
   }
 }

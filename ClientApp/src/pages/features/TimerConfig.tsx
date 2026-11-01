@@ -44,6 +44,7 @@ import {
     GuideTab,
     WidgetsTab
 } from './timer-extension/components/tabs';
+import { DecatronCardSetting } from './timer-extension/components/tabs/DecatronCardSetting';
 
 // Types
 import type { TabType } from './timer-extension/types';
@@ -473,6 +474,11 @@ const TimerConfig = () => {
                             )}
 
                             {ui.activeTab === 'overlay' && (
+                                <>
+                                <DecatronCardSetting
+                                    value={timerConfig.advancedConfig.decatronCard}
+                                    onChange={(v) => timerConfig.updateAdvancedConfig({ decatronCard: v })}
+                                />
                                 <OverlayTab
                                     progressBarConfig={timerConfig.progressBarConfig}
                                     alertsConfig={timerConfig.alertsConfig}
@@ -492,6 +498,7 @@ const TimerConfig = () => {
                                     onCanvasHeightChange={timerConfig.setCanvasHeight}
                                     onSave={handleSave}
                                 />
+                                </>
                             )}
                         </div>
                     </div>

@@ -512,7 +512,7 @@
               "Historial: sesiones anteriores, con el total agregado por tipo de evento, los registros de la sesión y la opción de restaurar.",
               "Media: tu galería de audio, video e imágenes para las alertas.",
               "Widgets: elementos de texto sueltos para el overlay: estadísticas en vivo, uptime e indicador de Happy Hour.",
-              "Overlay: el link y los datos de conexión con OBS."
+              "Overlay: el link y los datos de conexión con OBS, y el interruptor de la tarjeta de Decatron."
             ]
           }
         ]
@@ -682,6 +682,24 @@
             "items": [
               "Sorteos: crea sorteos con nombre y ganadores. Se puede entrar por bits, por suscripción (eligiendo los tiers), por regalar subs (con un mínimo) o por un follow nuevo, o importar a los participantes de una sesión. Puedes excluir moderadores, VIPs y al streamer, y volver a sortear un puesto.",
               "Widgets: estadísticas en vivo (subs y bits de hoy, totales, recaudado, eventos), uptime del timer e indicador de Happy Hour. El indicador de Happy Hour solo aparece mientras hay uno activo; usa «Simular Happy Hour» para acomodarlo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tarjeta",
+        "title": "Tarjeta de Decatron",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada cierto tiempo aparece unos segundos sobre el overlay del timer una tarjeta con el logo de Decatron y un mensaje. Es la misma que se ve en Song Request y en los Game Overlays: los mensajes y cada cuánto sale los define Decatron, no tú."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "En el plan gratis la tarjeta sale siempre.",
+              "Desde el plan Supporter puedes ocultarla con el interruptor «Mostrar la tarjeta de Decatron», en la pestaña Overlay del timer. Recuerda guardar la configuración para aplicar el cambio.",
+              "Solo se ve mientras el timer está a la vista en el overlay: cubre el lienzo del timer unos segundos y se va."
             ]
           }
         ]
