@@ -12,10 +12,11 @@ interface Promo {
     createdAt?: string; updatedAt?: string;
 }
 
-/** Dónde puede salir un anuncio: los juegos de Game Overlays y los overlays de Song Request (misma clave que manda el backend). */
+/** Dónde puede salir un anuncio: los juegos de Game Overlays, los overlays de Song Request y el del Timer (misma clave que manda el backend). */
 const TARGETS: { id: string; name: string }[] = [
     ...GAME_IDS.map(g => ({ id: g as string, name: GAME_NAMES[g] })),
     { id: 'songrequest', name: 'Song Request' },
+    { id: 'timer', name: 'Timer' },
 ];
 const targetNames = (games: string) => games.split(',').map(g => TARGETS.find(x => x.id === g.trim())?.name ?? g).join(', ');
 
@@ -28,7 +29,7 @@ const input = 'w-full px-3 py-2 rounded-lg bg-ds-bg border border-ds-border text
 const label = 'block text-[11px] font-semibold uppercase tracking-wide text-ds-soft mb-1';
 
 /**
- * Admin → Anuncios de Game Overlays: el catálogo que tapa la tarjeta de la cuenta cada
+ * Admin → Anuncios de Decatron en overlays (Game Overlays, Song Request y Timer): el catálogo que tapa la tarjeta de la cuenta cada
  * cierto tiempo. Lo maneja el dueño de la plataforma, no el streamer (él solo puede
  * apagarlo desde Supporter). Plan: .dev/plans/LIVE_MATCH_OVERLAY_PLAN.md §2.3.
  */
@@ -95,7 +96,7 @@ export default function GameOverlayPromosAdmin() {
                 <Megaphone className="w-6 h-6 text-ds-accent-text" />
                 <div>
                     <h1 className="text-2xl font-black text-ds-text">Anuncios de Decatron en overlays</h1>
-                    <p className={muted}>Tapan unos segundos la tarjeta de rango (Game Overlays) y el panel de música (Song Request). El streamer no los edita: solo los apaga si es Supporter o más.</p>
+                    <p className={muted}>Tapan unos segundos la tarjeta de rango (Game Overlays) y el panel de música (Song Request), y salen sobre el overlay del Timer. El streamer no los edita: solo los apaga si es Supporter o más.</p>
                 </div>
                 <button onClick={load} className="ds-btn ds-btn--ghost ds-icon-btn ml-auto" title="Recargar"><RefreshCw className="w-4 h-4" /></button>
             </div>
@@ -157,7 +158,7 @@ export default function GameOverlayPromosAdmin() {
                                 <div><label className={label}>Orden</label><input type="number" className={input} value={editing.sortOrder} onChange={e => setEditing({ ...editing, sortOrder: Number(e.target.value) })} /></div>
                             </div>
                             <div>
-                                <label className={label}>Dónde sale (nada marcado = en todos lados: juegos y Song Request)</label>
+                                <label className={label}>Dónde sale (nada marcado = en todos lados: juegos, Song Request y Timer)</label>
                                 <div className="flex flex-wrap gap-2">
                                     {TARGETS.map(({ id: g, name }) => {
                                         const set = new Set((editing.games ?? '').split(',').map(x => x.trim()).filter(Boolean));

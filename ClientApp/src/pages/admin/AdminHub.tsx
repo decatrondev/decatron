@@ -55,7 +55,7 @@ const GROUPS: AdminGroup[] = [
             { id: 'tcg', name: 'TCG · Upgrades en curso', description: 'Cartas en gradeo y las que esperan pago de upgrade', icon: <Sparkles className={ic} />, route: '/admin/tcg', ready: true },
             { id: 'tcg-art-queue', name: 'TCG · Cola de arte', description: 'Cartas que llegaron a nivel 3/6/9 y esperan la ilustración nueva', icon: <Palette className={ic} />, route: '/admin/tcg-art-queue', ready: true },
             { id: 'fortnite', name: 'Fortnite Spirit Tracker', description: 'Catálogo de sprites de Fortnite y estadísticas de colección', icon: <Gamepad2 className={ic} />, route: '/admin/fortnite', ready: true },
-            { id: 'game-overlay-promos', name: 'Anuncios en overlays', description: 'Anuncios de Decatron en Game Overlays y Song Request: mensajes, imagen, peso y frecuencia', icon: <Megaphone className={ic} />, route: '/admin/game-overlay-promos', ready: true },
+            { id: 'game-overlay-promos', name: 'Anuncios en overlays', description: 'Anuncios de Decatron en Game Overlays, Song Request y Timer: mensajes, imagen, peso y frecuencia', icon: <Megaphone className={ic} />, route: '/admin/game-overlay-promos', ready: true },
         ],
     },
     {
