@@ -64,5 +64,54 @@ namespace Decatron.Services.Platforms.Kick
                 return new KickSubscriptionResult(false, 0, ex.Message);
             }
         }
+
+        public async Task<KickEnsureResult> EnsureSubscriptionsAsync(string kickId, string accessToken, IReadOnlyCollection<string> eventNames, int version = 1)
+        {
+            var wanted = eventNames.Distinct().ToList();
+            if (string.IsNullOrEmpty(accessToken) || !long.TryParse(kickId, out var broadcasterId))
+                return new KickEnsureResult(false, Array.Empty<string>(), Array.Empty<string>(), wanted, "kickId o accessToken invalido");
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                var existing = await client.GetAsync("https://api.kick.com/public/v1/events/subscriptions");
+                if (!existing.IsSuccessStatusCode)
+                    return new KickEnsureResult(false, Array.Empty<string>(), Array.Empty<string>(), wanted, $"listado: {(int)existing.StatusCode}");
+
+                var current = await existing.Content.ReadAsStringAsync();
+                var active = wanted.Where(e => current.Contains(e)).ToList();
+                var toCreate = wanted.Except(active).ToList();
+                if (toCreate.Count == 0)
+                    return new KickEnsureResult(true, active, Array.Empty<string>(), Array.Empty<string>(), null);
+
+                var payload = new
+                {
+                    method = "webhook",
+                    broadcaster_user_id = broadcasterId,
+                    events = toCreate.Select(e => new { name = e, version }).ToArray()
+                };
+                var response = await client.PostAsync(
+                    "https://api.kick.com/public/v1/events/subscriptions",
+                    new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
+                var body = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("[Kick EventSub] {KickId}: suscripto a {Events}", kickId, string.Join(", ", toCreate));
+                    return new KickEnsureResult(true, active, toCreate, Array.Empty<string>(), null);
+                }
+
+                _logger.LogWarning("[Kick EventSub] {KickId}: no se pudo suscribir a {Events}: {Status} {Body}", kickId, string.Join(", ", toCreate), response.StatusCode, body);
+                return new KickEnsureResult(false, active, Array.Empty<string>(), toCreate, $"creacion: {(int)response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Kick EventSub] Excepcion asegurando suscripciones de {KickId}", kickId);
+                return new KickEnsureResult(false, Array.Empty<string>(), Array.Empty<string>(), wanted, ex.Message);
+            }
+        }
     }
 }

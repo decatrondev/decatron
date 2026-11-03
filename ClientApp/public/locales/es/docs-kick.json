@@ -133,6 +133,24 @@
             "x": "El bot lee los mensajes de tu chat de Kick y envía sus respuestas a través de la API de Kick con la autorización que diste al conectar. Si la autorización caduca o se revoca en Kick, el bot deja de poder escribir hasta que vuelvas a iniciar sesión con Kick."
           }
         ]
+      },
+      {
+        "id": "eventos",
+        "title": "Eventos de tu canal de Kick",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron se mantiene suscrito a los eventos de tu canal de Kick: follows, subs nuevas y renovadas, subs regaladas, Kicks regalados y cuándo empieza o termina tu directo. Lo revisa al iniciar el bot y cada 6 horas, y también cuando inicias sesión con Kick; no tienes que hacer nada."
+          },
+          {
+            "t": "p",
+            "x": "Por ahora el bot solo recibe estos eventos: todavía no activan alertas ni suman tiempo al Timer."
+          },
+          {
+            "t": "p",
+            "x": "Si Kick desactiva alguna suscripción y el bot no logra recuperarla, aparece un aviso en Ajustes → Cuenta, bajo la fila de Kick, con un botón «Reintentar». Si todo está bien, no se muestra nada. Si sigue fallando, vuelve a iniciar sesión con Kick."
+          }
+        ]
       }
     ]
   },

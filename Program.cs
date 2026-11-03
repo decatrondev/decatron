@@ -416,6 +416,9 @@ try
     builder.Services.AddScoped<IUserTokenRefreshService, UserTokenRefreshService>();
     builder.Services.AddScoped<IKickTokenRefreshService, KickTokenRefreshService>();
     builder.Services.AddScoped<IKickEventSubService, Decatron.Services.Platforms.Kick.KickEventSubService>();
+    builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickEventSubscriptionStatus>();
+    builder.Services.AddSingleton<Decatron.Services.Platforms.PlatformEventDeduper>();
+    builder.Services.AddHostedService<Decatron.Services.Platforms.Kick.KickEventSubscriptionService>();
     builder.Services.AddScoped<IKickApiService, Decatron.Services.Platforms.Kick.KickApiService>();
     builder.Services.AddScoped<Decatron.Services.Platforms.Kick.KickCategoryService>();
     builder.Services.AddSingleton<Decatron.Services.Platforms.ChannelSyncService>();

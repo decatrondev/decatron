@@ -188,5 +188,13 @@
     "rowTitle": "Aplicar en las dos plataformas",
     "rowDescription": "Cuando se cambia el título o la categoría con !title, !game, !g o un micro comando en un chat, se cambia también en el otro canal. La categoría se busca por nombre. Si falla en una plataforma, el bot lo avisa cuando el cambio salió de Kick y lo anota en el registro cuando salió de Twitch.",
     "failed": "No se pudo guardar el cambio."
+  },
+  "kickEvents": {
+    "title": "Algunos eventos de Kick no están activos",
+    "body": "Las alertas de follows, subs y Kicks pueden no llegar. No es un error tuyo: Kick a veces desactiva las suscripciones. Puedes volver a pedirlas.",
+    "retry": "Reintentar",
+    "retrying": "Reintentando...",
+    "stillFailing": "Kick no las activó todavía. Vuelve a intentarlo en unos minutos; si sigue igual, vuelve a iniciar sesión con Kick.",
+    "wait": "Espera unos segundos antes de volver a intentarlo."
   }
 }

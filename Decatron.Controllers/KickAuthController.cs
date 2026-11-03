@@ -48,6 +48,8 @@ namespace Decatron.Controllers
         private readonly IMemoryCache _memoryCache;
         private readonly KickOAuthClient _kickOAuthClient;
         private readonly IKickEventSubService _kickEventSubService;
+        private readonly Decatron.Services.Accounts.AccountChannelResolver _accounts;
+        private readonly Decatron.Services.Platforms.Kick.KickEventSubscriptionStatus _eventStatus;
         private readonly ILogger<KickAuthController> _logger;
 
         public KickAuthController(
@@ -59,8 +61,12 @@ namespace Decatron.Controllers
             IMemoryCache memoryCache,
             KickOAuthClient kickOAuthClient,
             IKickEventSubService kickEventSubService,
+            Decatron.Services.Accounts.AccountChannelResolver accounts,
+            Decatron.Services.Platforms.Kick.KickEventSubscriptionStatus eventStatus,
             ILogger<KickAuthController> logger)
         {
+            _accounts = accounts;
+            _eventStatus = eventStatus;
             _db = db;
             _kickSettings = kickSettings.Value;
             _jwtSettings = jwtSettings.Value;
@@ -334,6 +340,7 @@ namespace Decatron.Controllers
                 {
                     _ = _kickEventSubService.SubscribeAsync(kickId, tokenData.AccessToken, "chat.message.sent");
                     _ = _kickEventSubService.SubscribeAsync(kickId, tokenData.AccessToken, "channel.reward.redemption.updated");
+                    _ = _kickEventSubService.EnsureSubscriptionsAsync(kickId, tokenData.AccessToken, Decatron.Core.Helpers.KickEventTranslator.AlertEvents);
                 }
 
                 if (isNewUser && !linkToUserId.HasValue)
@@ -416,6 +423,68 @@ namespace Decatron.Controllers
 
             var result = await _kickEventSubService.SubscribeAsync(user.KickId, user.KickAccessToken, "channel.reward.redemption.updated");
             return Ok(new { result.Success, result.StatusCode, result.Body });
+        }
+
+        /// <summary>
+        /// Estado de los eventos de Kick (follows, subs, regalos, Kicks, directo) del canal de Kick de la cuenta.
+        /// "ok" y "unknown" no muestran nada en la interfaz; "problem" muestra el aviso con «Reintentar».
+        /// </summary>
+        [Authorize]
+        [HttpGet("events-status")]
+        public async Task<IActionResult> EventsStatus()
+        {
+            var kickId = await OwnKickIdAsync();
+            if (kickId == null) return Ok(new { linked = false, state = "unknown", missing = 0 });
+            return Ok(StatusBody(kickId));
+        }
+
+        /// <summary>Pide a Kick que complete las suscripciones que falten (máximo una vez cada 30 s por canal).</summary>
+        [Authorize]
+        [HttpPost("events-retry")]
+        public async Task<IActionResult> EventsRetry()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!long.TryParse(userIdClaim, out var sessionUserId)) return Unauthorized();
+
+            var account = await _accounts.ResolveByUserIdAsync(sessionUserId);
+            var member = account?.Members.FirstOrDefault(m => !string.IsNullOrEmpty(m.KickId));
+            if (member == null) return Ok(new { linked = false, state = "unknown", missing = 0 });
+
+            var throttleKey = "kick-events-retry:" + member.KickId;
+            if (_memoryCache.TryGetValue(throttleKey, out _))
+                return StatusCode(429, new { error = "wait" });
+            _memoryCache.Set(throttleKey, true, TimeSpan.FromSeconds(30));
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == member.UserId);
+            if (user?.KickId == null)
+                return Ok(new { linked = false, state = "unknown", missing = 0 });
+
+            var wanted = Decatron.Services.Platforms.Kick.KickEventSubscriptionService.WantedEvents;
+            var token = await Decatron.Services.Platforms.Kick.KickChannelTokens.GetValidAsync(HttpContext.RequestServices, user, _logger);
+            if (string.IsNullOrEmpty(token))
+            {
+                _eventStatus.Set(user.KickId, new Decatron.Services.Platforms.Kick.KickEventSubscriptionState(DateTime.UtcNow, false, wanted, "sin token valido"));
+                return Ok(StatusBody(user.KickId));
+            }
+
+            var result = await _kickEventSubService.EnsureSubscriptionsAsync(user.KickId, token, wanted);
+            _eventStatus.Set(user.KickId, new Decatron.Services.Platforms.Kick.KickEventSubscriptionState(DateTime.UtcNow, result.Success, result.Missing, result.Error));
+            return Ok(StatusBody(user.KickId));
+        }
+
+        private async Task<string?> OwnKickIdAsync()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!long.TryParse(userIdClaim, out var sessionUserId)) return null;
+            var account = await _accounts.ResolveByUserIdAsync(sessionUserId);
+            return account?.Members.FirstOrDefault(m => !string.IsNullOrEmpty(m.KickId))?.KickId;
+        }
+
+        private object StatusBody(string kickId)
+        {
+            var st = _eventStatus.Get(kickId);
+            var state = st == null ? "unknown" : st.Ok ? "ok" : "problem";
+            return new { linked = true, state, missing = st?.Missing.Count ?? 0 };
         }
 
         private async Task AssignFreeTier(long userId)

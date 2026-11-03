@@ -43,6 +43,7 @@ namespace Decatron.Controllers
         private readonly ISpeakChatService _speakChat;
         private readonly Services.Accounts.AccountChannelResolver _accounts;
         private readonly IBotListService _botList;
+        private readonly Services.Platforms.PlatformEventDeduper _deduper;
 
         public KickWebhookController(
             DecatronDbContext db,
@@ -55,8 +56,10 @@ namespace Decatron.Controllers
             Services.Tenancy.TenantShadow tenantShadow,
             ISpeakChatService speakChat,
             Services.Accounts.AccountChannelResolver accounts,
-            IBotListService botList)
+            IBotListService botList,
+            Services.Platforms.PlatformEventDeduper deduper)
         {
+            _deduper = deduper;
             _speakChat = speakChat;
             _accounts = accounts;
             _botList = botList;
@@ -108,6 +111,30 @@ namespace Decatron.Controllers
                 _tenantShadow.Observe("Kick." + eventType.ToString(), kickBroadcaster);
             }
             catch { /* la sombra nunca rompe el webhook */ }
+
+            // Eventos de alertas (follows, subs, regalos, Kicks, estado del directo). Fase 1: se traducen al formato común,
+            // se descartan los repetidos y se registran. Los consumidores (alertas, timer) se conectan en las fases siguientes.
+            if (KickEventTranslator.IsAlertEvent(eventType.ToString()))
+            {
+                try
+                {
+                    var evt = KickEventTranslator.Translate(eventType.ToString(), payload, Request.Headers["Kick-Event-Message-Id"].ToString());
+                    if (evt == null)
+                    {
+                        _logger.LogWarning("[Kick Webhook] {Type} sin los datos minimos, ignorado", eventType.ToString());
+                    }
+                    else if (_deduper.TryMarkNew(evt.Platform, evt.Id))
+                    {
+                        _logger.LogInformation("[Kick Evento] {Type} canal={Channel} usuario={User} anonimo={Anon} cantidad={Amount} meses={Months} envivo={Live}",
+                            evt.Type, evt.BroadcasterId, evt.UserName, evt.IsAnonymous, evt.Amount, evt.Months, evt.IsLive);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[Kick Webhook] Error procesando {Type}", eventType.ToString());
+                }
+                return Ok();
+            }
 
             if (eventType == "chat.message.sent")
             {

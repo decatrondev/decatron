@@ -133,6 +133,24 @@
             "x": "The bot reads the messages of your Kick chat and sends its replies through the Kick API with the authorization you gave when connecting. If the authorization expires or is revoked on Kick, the bot can no longer write until you sign in with Kick again."
           }
         ]
+      },
+      {
+        "id": "eventos",
+        "title": "Events of your Kick channel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron keeps itself subscribed to the events of your Kick channel: follows, new and renewed subs, gifted subs, gifted Kicks and when your stream starts or ends. It checks when the bot starts and every 6 hours, and also when you sign in with Kick; you do not have to do anything."
+          },
+          {
+            "t": "p",
+            "x": "For now the bot only receives these events: they do not trigger alerts or add time to the Timer yet."
+          },
+          {
+            "t": "p",
+            "x": "If Kick turns a subscription off and the bot cannot recover it, a notice appears in Settings → Account, under the Kick row, with a “Retry” button. If everything is fine, nothing is shown. If it keeps failing, sign in with Kick again."
+          }
+        ]
       }
     ]
   },

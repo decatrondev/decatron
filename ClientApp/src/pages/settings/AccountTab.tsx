@@ -6,6 +6,7 @@ import { LanguageSelector } from '../../components/LanguageSelector';
 import { SettingsGroup, SettingsRow, ReadOnlyNotice, Linked, PlatformIcon, TierBadge, linkButton, unlinkButton } from './parts';
 import type { SettingsCtx } from './types';
 import TitleGameSyncGroup from './TitleGameSyncGroup';
+import KickEventsNotice from './KickEventsNotice';
 
 /** Pestaña «Mi cuenta»: plataformas vinculadas, plan e idioma. */
 export default function AccountTab({ s }: { s: SettingsCtx }) {
@@ -164,6 +165,7 @@ export default function AccountTab({ s }: { s: SettingsCtx }) {
                                 )}
                             </SettingsRow>
                         )}
+                        {kickLinked && <KickEventsNotice />}
                         {authProvider === 'both' && (
                             <div className="px-5 4xl:px-7 py-3 bg-ds-ok/10 text-sm 4xl:text-base text-ds-ok font-medium flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4" /> Cuentas vinculadas: acceso completo

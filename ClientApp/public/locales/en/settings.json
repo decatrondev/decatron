@@ -188,5 +188,13 @@
     "rowTitle": "Apply on both platforms",
     "rowDescription": "When the title or category is changed with !title, !game, !g or a micro command in one chat, it is changed on the other channel too. The category is looked up by name. If it fails on one platform, the bot says so when the change came from Kick and logs it when it came from Twitch.",
     "failed": "The change could not be saved."
+  },
+  "kickEvents": {
+    "title": "Some Kick events are not active",
+    "body": "Alerts for follows, subs and Kicks may not arrive. It is not your mistake: Kick sometimes turns subscriptions off. You can ask for them again.",
+    "retry": "Retry",
+    "retrying": "Retrying...",
+    "stillFailing": "Kick has not turned them on yet. Try again in a few minutes; if it keeps failing, sign in with Kick again.",
+    "wait": "Wait a few seconds before trying again."
   }
 }
