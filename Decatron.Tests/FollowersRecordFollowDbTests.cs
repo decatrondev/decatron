@@ -14,7 +14,15 @@ public class FollowersRecordFollowDbTests
 {
     static FollowersRecordFollowDbTests() => AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-    private static string? Conn => Environment.GetEnvironmentVariable("DECATRON_APP_CONN");
+    // Cadena propia (zona UTC, como en producción) para no compartir pool de conexiones con pruebas que cambian la zona de la sesión
+    private static string? Conn
+    {
+        get
+        {
+            var raw = Environment.GetEnvironmentVariable("DECATRON_APP_CONN");
+            return string.IsNullOrWhiteSpace(raw) ? null : raw.TrimEnd(';') + ";Timezone=UTC;Application Name=followers-tests";
+        }
+    }
     private const string Broadcaster = "test-rec-b1";
 
     private static FollowersService Service() => new(

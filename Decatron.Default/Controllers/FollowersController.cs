@@ -19,6 +19,7 @@ namespace Decatron.Default.Controllers
         private readonly DecatronDbContext _context;
         private readonly FollowersService _followersService;
         private readonly FollowersSyncService _followersSyncService;
+        private readonly Decatron.Services.Accounts.AccountChannelResolver _accounts;
         private readonly TwitchApiService _twitchApiService;
         private readonly IPermissionService _permissionService;
         private readonly ILogger<FollowersController> _logger;
@@ -27,6 +28,7 @@ namespace Decatron.Default.Controllers
             DecatronDbContext context,
             FollowersService followersService,
             FollowersSyncService followersSyncService,
+            Decatron.Services.Accounts.AccountChannelResolver accounts,
             TwitchApiService twitchApiService,
             IPermissionService permissionService,
             ILogger<FollowersController> logger)
@@ -34,6 +36,7 @@ namespace Decatron.Default.Controllers
             _context = context;
             _followersService = followersService;
             _followersSyncService = followersSyncService;
+            _accounts = accounts;
             _twitchApiService = twitchApiService;
             _permissionService = permissionService;
             _logger = logger;
@@ -93,6 +96,28 @@ namespace Decatron.Default.Controllers
             }
         }
 
+        /// <summary>Un canal de la cuenta donde se buscan seguidores: plataforma + id del canal en esa plataforma.</summary>
+        private record FollowerTarget(string Platform, string BroadcasterId);
+
+        /// <summary>
+        /// Canales de la cuenta del dueño (Twitch y/o Kick) según el filtro: «twitch», «kick» o «all».
+        /// Sin filtro, el canal de Twitch si la cuenta lo tiene y si no el de Kick (el comportamiento de siempre para quien tiene Twitch).
+        /// </summary>
+        private async Task<(List<FollowerTarget> Targets, bool HasTwitch, bool HasKick)> ResolveTargetsAsync(long channelOwnerId, string? platform)
+        {
+            var account = await _accounts.ResolveByUserIdAsync(channelOwnerId);
+            var twitchId = account?.TwitchId;
+            var kickId = account?.KickId;
+
+            var wanted = platform?.Trim().ToLowerInvariant();
+            var targets = new List<FollowerTarget>();
+            if (wanted is "all" or "twitch" || (wanted != "kick" && !string.IsNullOrEmpty(twitchId)))
+                if (!string.IsNullOrEmpty(twitchId)) targets.Add(new(FollowerPlatforms.Twitch, twitchId));
+            if (wanted is "all" or "kick" || (wanted != "twitch" && string.IsNullOrEmpty(twitchId)))
+                if (!string.IsNullOrEmpty(kickId)) targets.Add(new(FollowerPlatforms.Kick, kickId));
+            return (targets, !string.IsNullOrEmpty(twitchId), !string.IsNullOrEmpty(kickId));
+        }
+
         // GET: api/followers
         [HttpGet]
         public async Task<ActionResult> GetFollowers(
@@ -105,7 +130,8 @@ namespace Decatron.Default.Controllers
             [FromQuery] string? orderBy = null,
             [FromQuery] string? orderDirection = "asc",
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20)
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? platform = null)
         {
             try
             {
@@ -130,16 +156,26 @@ namespace Decatron.Default.Controllers
                     return Forbid();
                 }
 
+                // Canales de la cuenta (Twitch y/o Kick) según el filtro de plataforma
+                var (targets, hasTwitch, hasKick) = await ResolveTargetsAsync(channelOwnerId, platform);
+
                 // Obtener todos los followers con filtros
-                var followers = await _followersService.GetFollowersAsync(
-                    broadcasterId,
-                    isFollowing,
-                    searchName,
-                    followDateFrom,
-                    followDateTo,
-                    createDateFrom,
-                    createDateTo
-                );
+                var followers = new List<ChannelFollower>();
+                foreach (var target in targets)
+                {
+                    followers.AddRange(await _followersService.GetFollowersAsync(
+                        target.BroadcasterId,
+                        isFollowing,
+                        searchName,
+                        followDateFrom,
+                        followDateTo,
+                        createDateFrom,
+                        createDateTo,
+                        target.Platform
+                    ));
+                }
+                followers = followers.OrderByDescending(f => f.FollowedAt).ToList();
+                var broadcasterByPlatform = targets.ToDictionary(t => t.Platform, t => t.BroadcasterId);
 
                 _logger.LogInformation($"📊 Obtenidos {followers.Count} followers de la BD para broadcaster {broadcasterId}");
                 if (followers.Any())
@@ -168,8 +204,17 @@ namespace Decatron.Default.Controllers
                     };
                 }
 
-                // Obtener estadísticas
-                var stats = await _followersService.GetFollowerStatsAsync(broadcasterId);
+                // Obtener estadísticas (suma de las plataformas elegidas)
+                var stats = new FollowerStats();
+                foreach (var target in targets)
+                {
+                    var st = await _followersService.GetFollowerStatsAsync(target.BroadcasterId, target.Platform);
+                    stats.TotalFollowers += st.TotalFollowers;
+                    stats.ActiveFollowers += st.ActiveFollowers;
+                    stats.UnfollowedCount += st.UnfollowedCount;
+                    stats.BlockedCount += st.BlockedCount;
+                    stats.ReturnedCount += st.ReturnedCount;
+                }
 
                 // Paginación
                 var totalCount = followers.Count;
@@ -183,11 +228,12 @@ namespace Decatron.Default.Controllers
                 var followersWithHistory = new List<object>();
                 foreach (var follower in pagedFollowers)
                 {
-                    var history = await _followersService.GetFollowerHistoryAsync(broadcasterId, follower.UserId);
+                    var history = await _followersService.GetFollowerHistoryAsync(broadcasterByPlatform[follower.Platform], follower.UserId, follower.Platform);
                     followersWithHistory.Add(new
                     {
                         follower.Id,
                         follower.UserId,
+                        follower.Platform,
                         follower.UserName,
                         follower.UserLogin,
                         follower.FollowedAt,
@@ -216,6 +262,7 @@ namespace Decatron.Default.Controllers
                         stats.BlockedCount,
                         stats.ReturnedCount
                     },
+                    availablePlatforms = new { twitch = hasTwitch, kick = hasKick },
                     pagination = new
                     {
                         currentPage = page,
@@ -234,7 +281,7 @@ namespace Decatron.Default.Controllers
 
         // GET: api/followers/{userId}/history
         [HttpGet("{userId}/history")]
-        public async Task<ActionResult> GetFollowerHistory(string userId)
+        public async Task<ActionResult> GetFollowerHistory(string userId, [FromQuery] string? platform = null)
         {
             try
             {
@@ -259,7 +306,10 @@ namespace Decatron.Default.Controllers
                     return Forbid();
                 }
 
-                var history = await _followersService.GetFollowerHistoryAsync(broadcasterId, userId);
+                var (histTargets, _, _) = await ResolveTargetsAsync(channelOwnerId, platform);
+                var histTarget = histTargets.FirstOrDefault();
+                if (histTarget == null) return Ok(new { success = true, history = Array.Empty<object>() });
+                var history = await _followersService.GetFollowerHistoryAsync(histTarget.BroadcasterId, userId, histTarget.Platform);
 
                 return Ok(new
                 {
@@ -280,7 +330,7 @@ namespace Decatron.Default.Controllers
 
         // POST: api/followers/{userId}/block
         [HttpPost("{userId}/block")]
-        public async Task<ActionResult> BlockFollower(string userId)
+        public async Task<ActionResult> BlockFollower(string userId, [FromQuery] string? platform = null)
         {
             try
             {
@@ -306,7 +356,10 @@ namespace Decatron.Default.Controllers
                 }
 
                 // Actualizar estado de bloqueo
-                await _followersService.UpdateBlockStatusAsync(broadcasterId, userId, true);
+                var (blockTargets, _, _) = await ResolveTargetsAsync(channelOwnerId, platform);
+                var blockTarget = blockTargets.FirstOrDefault();
+                if (blockTarget == null) return BadRequest(new { message = "No se pudo obtener el canal de esa plataforma." });
+                await _followersService.UpdateBlockStatusAsync(blockTarget.BroadcasterId, userId, true, blockTarget.Platform);
 
                 return Ok(new
                 {
@@ -323,7 +376,7 @@ namespace Decatron.Default.Controllers
 
         // POST: api/followers/{userId}/unblock
         [HttpPost("{userId}/unblock")]
-        public async Task<ActionResult> UnblockFollower(string userId)
+        public async Task<ActionResult> UnblockFollower(string userId, [FromQuery] string? platform = null)
         {
             try
             {
@@ -349,7 +402,10 @@ namespace Decatron.Default.Controllers
                 }
 
                 // Actualizar estado de bloqueo
-                await _followersService.UpdateBlockStatusAsync(broadcasterId, userId, false);
+                var (unblockTargets, _, _) = await ResolveTargetsAsync(channelOwnerId, platform);
+                var unblockTarget = unblockTargets.FirstOrDefault();
+                if (unblockTarget == null) return BadRequest(new { message = "No se pudo obtener el canal de esa plataforma." });
+                await _followersService.UpdateBlockStatusAsync(unblockTarget.BroadcasterId, userId, false, unblockTarget.Platform);
 
                 return Ok(new
                 {
@@ -366,7 +422,7 @@ namespace Decatron.Default.Controllers
 
         // GET: api/followers/stats
         [HttpGet("stats")]
-        public async Task<ActionResult> GetStats()
+        public async Task<ActionResult> GetStats([FromQuery] string? platform = null)
         {
             try
             {
@@ -391,7 +447,17 @@ namespace Decatron.Default.Controllers
                     return Forbid();
                 }
 
-                var stats = await _followersService.GetFollowerStatsAsync(broadcasterId);
+                var (statTargets, _, _) = await ResolveTargetsAsync(channelOwnerId, platform);
+                var stats = new FollowerStats();
+                foreach (var target in statTargets)
+                {
+                    var st = await _followersService.GetFollowerStatsAsync(target.BroadcasterId, target.Platform);
+                    stats.TotalFollowers += st.TotalFollowers;
+                    stats.ActiveFollowers += st.ActiveFollowers;
+                    stats.UnfollowedCount += st.UnfollowedCount;
+                    stats.BlockedCount += st.BlockedCount;
+                    stats.ReturnedCount += st.ReturnedCount;
+                }
 
                 return Ok(new
                 {
@@ -424,6 +490,11 @@ namespace Decatron.Default.Controllers
                     return BadRequest(new { message = "No se pudo obtener el ID del usuario." });
                 if (!await _permissionService.CanAccessAsync(currentUserId, channelOwnerId, "commands"))
                     return Forbid();
+
+                var twitchTarget = (await ResolveTargetsAsync(channelOwnerId, "twitch")).Targets.FirstOrDefault(t => t.Platform == FollowerPlatforms.Twitch);
+                if (twitchTarget == null)
+                    return Ok(new { found = false, noTwitch = true });
+                broadcasterId = twitchTarget.BroadcasterId;
 
                 var q = (query ?? "").Trim().TrimStart('@').ToLowerInvariant();
                 if (q.Length < 2 || q.Length > 100)
@@ -529,6 +600,11 @@ namespace Decatron.Default.Controllers
                 {
                     return Forbid();
                 }
+
+                var twitchTarget = (await ResolveTargetsAsync(channelOwnerId, "twitch")).Targets.FirstOrDefault(t => t.Platform == FollowerPlatforms.Twitch);
+                if (twitchTarget == null)
+                    return Ok(new { success = false, message = "Este canal no tiene una cuenta de Twitch vinculada.", warning = new { code = "no_twitch" } });
+                broadcasterId = twitchTarget.BroadcasterId;
 
                 var r = await _followersSyncService.SyncAsync(broadcasterId);
 

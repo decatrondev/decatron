@@ -419,6 +419,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickEventSubscriptionStatus>();
     builder.Services.AddSingleton<Decatron.Services.Platforms.PlatformEventDeduper>();
     builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickAlertDispatcher>();
+    builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickFollowRecorder>(); // Guarda los follows de Kick como seguidores (platform = kick)
     builder.Services.AddHostedService<Decatron.Services.Platforms.Kick.KickEventSubscriptionService>();
     builder.Services.AddScoped<IKickApiService, Decatron.Services.Platforms.Kick.KickApiService>();
     builder.Services.AddScoped<Decatron.Services.Platforms.Kick.KickCategoryService>();

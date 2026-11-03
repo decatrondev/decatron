@@ -45,6 +45,7 @@ namespace Decatron.Controllers
         private readonly IBotListService _botList;
         private readonly Services.Platforms.PlatformEventDeduper _deduper;
         private readonly Services.Platforms.Kick.KickAlertDispatcher _alertDispatcher;
+        private readonly Services.Platforms.Kick.KickFollowRecorder _followRecorder;
 
         public KickWebhookController(
             DecatronDbContext db,
@@ -59,9 +60,11 @@ namespace Decatron.Controllers
             Services.Accounts.AccountChannelResolver accounts,
             IBotListService botList,
             Services.Platforms.PlatformEventDeduper deduper,
-            Services.Platforms.Kick.KickAlertDispatcher alertDispatcher)
+            Services.Platforms.Kick.KickAlertDispatcher alertDispatcher,
+            Services.Platforms.Kick.KickFollowRecorder followRecorder)
         {
             _alertDispatcher = alertDispatcher;
+            _followRecorder = followRecorder;
             _deduper = deduper;
             _speakChat = speakChat;
             _accounts = accounts;
@@ -132,6 +135,8 @@ namespace Decatron.Controllers
                             evt.Type, evt.BroadcasterId, evt.UserName, evt.IsAnonymous, evt.Amount, evt.Months, evt.IsLive);
                         // Event Alerts (sin esperar: la voz y el sonido pueden tardar y Kick reintenta si no respondemos a tiempo)
                         _ = _alertDispatcher.DispatchAsync(evt);
+                        // Seguidores: el follow se guarda con platform = kick (rápido; nunca lanza)
+                        if (evt.Type == PlatformEventType.Follow) await _followRecorder.RecordAsync(evt);
                     }
                 }
                 catch (Exception ex)
