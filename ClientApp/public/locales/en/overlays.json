@@ -1904,7 +1904,19 @@
       "step3Body": "One general design for all, and your own per event if you want. What you see in the editor is what shows in OBS.",
       "goDesign": "Go to Design",
       "step4Title": "Test it",
-      "step4Body": "Save and press “Test in OBS” in the preview: the alert shows in your scene just like a real one."
+      "step4Body": "Save and press “Test in OBS” in the preview: the alert shows in your scene just like a real one.",
+      "linkAll": "All",
+      "linkAllHint": "Twitch and Kick alerts in a single OBS source. This is the one we recommend.",
+      "linkTwitch": "Twitch only",
+      "linkKick": "Kick only",
+      "advancedTitle": "Advanced: one link per platform",
+      "perPlatform": "Only if you want to split alerts by platform (for example, one scene for Twitch and another for Kick). Don't put «All» next to these in the same scene: every alert would show twice.",
+      "linkOtherHint": "This link only shows this channel's alerts. When you link your other channel (Twitch or Kick) in Settings, the «All» link will appear here so you also see the other channel's alerts, and this one will keep working the same.",
+      "warnMixedTitle": "Two alert sources overlap",
+      "warnMixed": "The «All» link and a single-platform link are both connected. If they are visible at the same time, every alert will show twice. Remove one of them in OBS.",
+      "warnRepeatedTitle": "The same source is connected more than once",
+      "warnRepeated": "Two identical sources are open in OBS. That is fine if they are in different scenes; if both are visible, every alert will show twice.",
+      "kickNote": "With Kick, alerts for follows, subs, gifted subs and Kicks work like on Twitch. Kicks use the bits alerts; Kick subs have no tiers and use Tier 1."
     },
     "preview": {
       "title": "Preview",
@@ -2141,6 +2153,15 @@
         "confetti": "🎊 Confetti",
         "fireworks": "🎆 Fireworks"
       }
+    },
+    "kick": {
+      "noEventTitle": "Kick does not have this event yet",
+      "raidsNote": "Kick does not offer raids, so this alert only fires for Twitch raids. Kick may add it later.",
+      "hypeNote": "Kick has no hype train, so this alert only fires for the Twitch hype train. Kick may add it later.",
+      "kicksTitle": "Kick Kicks",
+      "kicksDesc": "Gifted Kicks use the bits alerts. Here you set how many bits each Kick is worth to pick the alert level.",
+      "kicksLabel": "Bits per Kick",
+      "kicksHelp": "Default 1 (a Kick counts as one bit). For example, with 2, a gift of 100 Kicks is treated as 200 bits."
     }
   },
   "chat": {

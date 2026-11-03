@@ -60,7 +60,7 @@ namespace Decatron.Controllers
         {
             try
             {
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await GetConfigOwnerIdAsync();
                 var config = await _eventAlertsService.GetConfig(channelOwnerId);
 
                 if (config == null)
@@ -95,7 +95,7 @@ namespace Decatron.Controllers
                     return BadRequest(new { success = false, message = "Config es requerida" });
                 }
 
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await GetConfigOwnerIdAsync();
                 var channelName = await GetChannelUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(channelName))
@@ -292,7 +292,7 @@ namespace Decatron.Controllers
             Decatron.Core.Services.AudioTurn? audioTurn = null;
             try
             {
-                var channelOwnerId = GetChannelOwnerId();
+                var channelOwnerId = await GetConfigOwnerIdAsync();
                 var channelName = await GetChannelUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(channelName))
@@ -804,11 +804,16 @@ namespace Decatron.Controllers
                 };
 
                 // Enviar via SignalR
+                // Al grupo de siempre y al v2 de la cuenta (el overlay nuevo se une solo al v2). La prueba no lleva plataforma: la
+                // ven todas las fuentes, sean «Todo», «Solo Twitch» o «Solo Kick».
+                var v2Key = await V2KeyAsync(channelName);
                 await _overlayNotificationService.SendToChannel(channelName, "ShowEventAlert", testData);
+                if (v2Key != null)
+                    await _overlayNotificationService.SendToChannel(v2Key, "ShowEventAlert", testData);
 
                 if (audioTurn != null)
                 {
-                    if (!Decatron.Hubs.OverlayHub.HasActiveClients(channelName)) audioTurn.Release();
+                    if (!Decatron.Hubs.OverlayHub.HasActiveClients(channelName) && (v2Key == null || !Decatron.Hubs.OverlayHub.HasActiveClients(v2Key))) audioTurn.Release();
                     else audioTurn.Arm(TimeSpan.FromSeconds(Math.Clamp(((message?.Length ?? 0) / 12.0) + (duration / 1000.0) + 45, 45, 120)));
                 }
 
@@ -831,6 +836,76 @@ namespace Decatron.Controllers
         // ========================================================================
         // OVERLAY ENDPOINT (no auth)
         // ========================================================================
+
+        /// <summary>
+        /// Estado de los overlays de Event Alerts conectados en OBS y de los canales vinculados de la cuenta: <c>mixed</c> =
+        /// «Todo» más una parcial (cada alerta saldría repetida); <c>repeated</c> = la misma variante conectada más de una vez.
+        /// Solo cuenta los overlays nuevos: los que siguen abiertos con el código viejo no se identifican ante el servidor.
+        /// </summary>
+        [HttpGet("status")]
+        public async Task<IActionResult> GetStatus()
+        {
+            try
+            {
+                var account = await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>()
+                    .ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null)
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var counts = Decatron.Hubs.OverlayHub.CountOverlayVariants(Decatron.Services.SoundAlertTriggerService.V2Key(account.OverlayKey), "event_alerts");
+                var warnings = new List<string>();
+                if (counts["all"] > 0 && (counts["twitch"] > 0 || counts["kick"] > 0)) warnings.Add("mixed");
+                if (counts.Values.Any(c => c > 1)) warnings.Add("repeated");
+
+                return Ok(new
+                {
+                    success = true,
+                    overlayKey = account.OverlayKey,
+                    hasTwitch = account.HasTwitch,
+                    hasKick = account.HasKick,
+                    total = counts.Values.Sum(),
+                    all = counts["all"],
+                    twitch = counts["twitch"],
+                    kick = counts["kick"],
+                    warnings
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[EventAlerts] Error obteniendo el estado de los overlays");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        /// <summary>
+        /// A qué grupo se une el overlay de OBS. Devuelve la clave de la cuenta (login de su fila principal) y la variante
+        /// de siempre del enlace (login de Twitch → "twitch"; id de Kick → "kick"); el overlay se une al grupo v2 de la
+        /// cuenta y filtra por plataforma. Un enlace sin <c>source</c> conserva la variante de antes.
+        /// </summary>
+        [HttpGet("resolve/{channel}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResolveChannel(string channel)
+        {
+            try
+            {
+                var resolved = await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>().ResolveAliasAsync(channel);
+                if (resolved == null)
+                    return Ok(new { success = true, found = false });
+
+                return Ok(new
+                {
+                    success = true,
+                    found = true,
+                    overlayKey = resolved.Account.OverlayKey,
+                    variant = Decatron.Services.Accounts.AccountChannelPicker.OriginVariant(resolved.Matched)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[EventAlerts] Error resolviendo el canal del overlay");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
 
         [HttpGet("config/overlay/{channelName}")]
         [AllowAnonymous]
@@ -1041,6 +1116,27 @@ namespace Decatron.Controllers
             };
         }
 
+        /// <summary>
+        /// Dueño de la configuración de alertas: la fila principal de la cuenta (la de Twitch si existe; si no, la de Kick). Así
+        /// quien entra con Kick edita la misma configuración que dispara las alertas de los dos canales. Para quien entra con
+        /// Twitch no cambia nada (su fila ya es la principal).
+        /// </summary>
+        private async Task<long> GetConfigOwnerIdAsync()
+        {
+            var ownerId = GetChannelOwnerId();
+            try
+            {
+                var account = await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>()
+                    .ResolveByUserIdAsync(ownerId);
+                return account?.Principal.UserId ?? ownerId;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[EventAlerts] No se pudo resolver la fila principal de {UserId}; se usa la propia", ownerId);
+                return ownerId;
+            }
+        }
+
         private long GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -1068,6 +1164,21 @@ namespace Decatron.Controllers
             // PRIORIDAD 3: Por defecto, usar el propio canal del usuario
             var userId = GetUserId();
             return userId;
+        }
+
+        /// <summary>Clave del grupo v2 de la cuenta del canal, o null si no se puede resolver.</summary>
+        private async Task<string?> V2KeyAsync(string channelName)
+        {
+            try
+            {
+                var resolved = await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>().ResolveLoginAsync(channelName);
+                return resolved == null ? null : Decatron.Services.SoundAlertTriggerService.V2Key(resolved.Account.OverlayKey);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[EventAlerts] No se pudo resolver el grupo v2 de {Channel}", channelName);
+                return null;
+            }
         }
 
         private async Task<string?> GetChannelUsernameAsync(long channelOwnerId)

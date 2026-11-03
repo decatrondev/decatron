@@ -35,6 +35,9 @@ const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
 };
 
 interface EventAlertData {
+    /** Id único del aviso y plataforma de origen (los trae el servidor; un overlay viejo no los necesita) */
+    id?: string;
+    platform?: string;
     eventType: 'follow' | 'bits' | 'subs' | 'giftSubs' | 'raids' | 'resubs' | 'hypeTrain';
     username: string;
     amount?: number;
@@ -96,6 +99,14 @@ interface EventAlertData {
 export default function EventAlertsOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
+    // ?source=all|twitch|kick. Sin source, el enlace conserva lo de antes: el login de Twitch muestra solo Twitch y el id de Kick solo Kick
+    const sourceParam = (searchParams.get('source') || '').toLowerCase();
+    // A qué grupo se une este overlay y qué plataforma deja pasar (null = todas). Se fijan al resolver el canal
+    const groupRef = useRef(channel);
+    const keyRef = useRef(channel);
+    const variantRef = useRef<string | null>(null);
+    const v2Ref = useRef(false);
+    const seenRef = useRef<Map<string, number>>(new Map());
 
     const [currentAlert, setCurrentAlert] = useState<EventAlertData | null>(null);
     const [isVisible, setIsVisible] = useState(false);
@@ -186,6 +197,49 @@ export default function EventAlertsOverlay() {
         let stopped = false;
         let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
+        /**
+         * Pregunta al servidor a qué grupo unirse. Con respuesta, el overlay va al grupo v2 de la cuenta y filtra por plataforma;
+         * sin ella (servidor caído, canal desconocido) se comporta como siempre: se une al grupo del enlace y muestra todo.
+         * Se vuelve a preguntar en cada conexión, así una fuente de OBS que lleva días abierta se pone al día sola.
+         */
+        const resolveChannel = async () => {
+            v2Ref.current = false;
+            groupRef.current = channel;
+            keyRef.current = channel;
+            variantRef.current = null;
+            try {
+                const res = await fetch(`/api/eventalerts/resolve/${encodeURIComponent(channel)}`);
+                if (!res.ok) return;
+                const json = await res.json();
+                if (!json.success || !json.found || !json.overlayKey) return;
+                const explicit = ['all', 'twitch', 'kick'].includes(sourceParam) ? sourceParam : null;
+                const variant = explicit ?? json.variant ?? 'all';
+                v2Ref.current = true;
+                groupRef.current = `v2:${json.overlayKey}`;
+                keyRef.current = json.overlayKey;
+                variantRef.current = variant === 'all' ? null : variant;
+            } catch { /* se queda con el comportamiento de siempre */ }
+        };
+
+        const joinGroup = async (connection: signalR.HubConnection) => {
+            await connection.invoke('JoinChannel', groupRef.current);
+            // Para que el servidor y el panel sepan qué overlay hay conectado y con qué variante
+            await connection.invoke('RegisterOverlay', groupRef.current, 'event_alerts').catch(() => {});
+            if (v2Ref.current) await connection.invoke('SetOverlayVariant', variantRef.current ?? 'all').catch(() => {});
+        };
+
+        /** Descarta un aviso ya mostrado (mismo id) o de otra plataforma que la de este overlay */
+        const accept = (data: EventAlertData): boolean => {
+            const now = Date.now();
+            if (data.id) {
+                for (const [id, at] of seenRef.current) if (now - at > 10 * 60 * 1000) seenRef.current.delete(id);
+                if (seenRef.current.has(data.id)) return false;
+                seenRef.current.set(data.id, now);
+            }
+            if (v2Ref.current && variantRef.current && data.platform && data.platform !== variantRef.current) return false;
+            return true;
+        };
+
         const setupSignalRConnection = async () => {
             if (stopped) return;
 
@@ -208,6 +262,7 @@ export default function EventAlertsOverlay() {
                     soundVolume: data.soundVolume,
                 });
                 console.log('[EventAlertsOverlay] Queue settings:', data.queueSettings);
+                if (!accept(data)) return;
                 enqueueAlertRef.current(data);
             });
 
@@ -219,8 +274,8 @@ export default function EventAlertsOverlay() {
 
             connection.onreconnected(async () => {
                 try {
-                    await connection.invoke('JoinChannel', channel);
-                    await connection.invoke('RegisterOverlay', channel, 'event_alerts').catch(() => {});
+                    await resolveChannel();
+                    await joinGroup(connection);
                 } catch (err) {
                     console.error('[EventAlertsOverlay] Error re-uniéndose al canal:', err);
                 }
@@ -233,13 +288,13 @@ export default function EventAlertsOverlay() {
             });
 
             try {
+                await resolveChannel();
                 await connection.start();
                 if (stopped) {
                     connection.stop();
                     return;
                 }
-                await connection.invoke('JoinChannel', channel);
-                await connection.invoke('RegisterOverlay', channel, 'event_alerts').catch(() => {});
+                await joinGroup(connection);
                 connectionRef.current = connection;
             } catch (err) {
                 if (!stopped) {
@@ -605,7 +660,7 @@ export default function EventAlertsOverlay() {
         // La alerta no termina antes que el sonido
         await sounds;
         if (data.audioTurnId) {
-            connectionRef.current?.invoke('AudioTurnEnded', channel, data.audioTurnId).catch(() => {});
+            connectionRef.current?.invoke('AudioTurnEnded', keyRef.current, data.audioTurnId).catch(() => {});
         }
     };
 

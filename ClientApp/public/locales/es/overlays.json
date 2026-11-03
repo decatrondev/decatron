@@ -1904,7 +1904,19 @@
       "step3Body": "Un diseño general para todas, y si quieres uno propio por evento. Lo que ves en el editor es lo que sale en OBS.",
       "goDesign": "Ir a Diseño",
       "step4Title": "Prueba",
-      "step4Body": "Guarda y toca «Probar en OBS» en la vista previa: la alerta sale en tu escena igual que una real."
+      "step4Body": "Guarda y toca «Probar en OBS» en la vista previa: la alerta sale en tu escena igual que una real.",
+      "linkAll": "Todo",
+      "linkAllHint": "Las alertas de Twitch y de Kick en una sola fuente de OBS. Es el que recomendamos.",
+      "linkTwitch": "Solo Twitch",
+      "linkKick": "Solo Kick",
+      "advancedTitle": "Avanzado: un enlace por plataforma",
+      "perPlatform": "Solo si quieres separar las alertas por plataforma (por ejemplo, una escena para Twitch y otra para Kick). No pongas «Todo» junto a estos en la misma escena: cada alerta saldría repetida.",
+      "linkOtherHint": "Este enlace muestra solo las alertas de este canal. Cuando vincules tu otro canal (Twitch o Kick) en Ajustes, aparecerá aquí el enlace «Todo» para ver también las alertas del otro, y este seguirá funcionando igual.",
+      "warnMixedTitle": "Dos fuentes de alertas se pisan",
+      "warnMixed": "Tienes conectado el enlace «Todo» y también uno de una sola plataforma. Si están visibles a la vez, cada alerta saldrá repetida. Quita uno de los dos en OBS.",
+      "warnRepeatedTitle": "La misma fuente está conectada más de una vez",
+      "warnRepeated": "Hay dos fuentes iguales abiertas en OBS. Si están en escenas distintas está bien; si se ven a la vez, cada alerta saldrá repetida.",
+      "kickNote": "Con Kick, las alertas de follows, subs, subs regaladas y Kicks funcionan igual que en Twitch. Los Kicks usan las alertas de bits; las subs de Kick no tienen niveles y usan el Nivel 1."
     },
     "preview": {
       "title": "Vista previa",
@@ -2141,6 +2153,15 @@
         "confetti": "🎊 Confeti",
         "fireworks": "🎆 Fuegos artificiales"
       }
+    },
+    "kick": {
+      "noEventTitle": "Kick no tiene este evento todavía",
+      "raidsNote": "Kick no ofrece raids, así que esta alerta solo se dispara con las raids de Twitch. Es posible que Kick lo agregue más adelante.",
+      "hypeNote": "Kick no tiene hype train, así que esta alerta solo se dispara con el hype train de Twitch. Es posible que Kick lo agregue más adelante.",
+      "kicksTitle": "Kicks de Kick",
+      "kicksDesc": "Los Kicks regalados usan las alertas de bits. Aquí defines cuántos bits vale cada Kick para elegir el nivel de la alerta.",
+      "kicksLabel": "Bits por cada Kick",
+      "kicksHelp": "Por defecto 1 (un Kick cuenta como un bit). Por ejemplo, con 2, un regalo de 100 Kicks se trata como 200 bits."
     }
   },
   "chat": {

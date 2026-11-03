@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { GlobalAlertsConfig, AnimationType, AnimationDirection } from '../../types/index';
 import { TtsSection } from '../TtsSection';
 import { EventSection } from '../EventSection';
@@ -15,9 +16,12 @@ interface GlobalTabProps {
   config: GlobalAlertsConfig;
   onConfigChange: (updates: Partial<GlobalAlertsConfig>) => void;
   overlayUrl?: string;
+  /** Hay un canal de Kick vinculado: muestra lo que solo aplica a Kick */
+  showKick?: boolean;
 }
 
-export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, overlayUrl = '' }) => {
+export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, overlayUrl = '', showKick = false }) => {
+  const { t } = useTranslation('overlays');
   const animationTypes: AnimationType[] = ['fade', 'slide', 'zoom', 'bounce', 'rotate', 'none'];
   const animationDirections: AnimationDirection[] = ['top', 'bottom', 'left', 'right', 'center'];
   const [copied, setCopied] = useState(false);
@@ -76,6 +80,29 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
           </button>
         </div>
       </EventSection>
+
+      {showKick && (
+        <EventSection title={t('eventAlertsView.kick.kicksTitle')} description={t('eventAlertsView.kick.kicksDesc')}>
+          <div className="max-w-xs">
+            <label className="text-xs font-bold text-ds-soft block mb-2 3xl:text-sm">
+              {t('eventAlertsView.kick.kicksLabel')}
+            </label>
+            <input
+              type="number"
+              min="0.01"
+              max="1000"
+              step="0.01"
+              value={config.kickBitsPerKick ?? 1}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value);
+                onConfigChange({ kickBitsPerKick: Number.isFinite(v) && v > 0 ? Math.min(v, 1000) : 1 });
+              }}
+              className="ds-input w-full"
+            />
+            <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t('eventAlertsView.kick.kicksHelp')}</p>
+          </div>
+        </EventSection>
+      )}
 
       {/* Configuración por Defecto */}
       <EventSection title="🎬 Configuración por Defecto" description="Estos valores se aplicarán a todas las alertas, a menos que se configuren individualmente">

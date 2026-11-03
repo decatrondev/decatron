@@ -14,6 +14,7 @@ namespace Decatron.Services
 {
     public class EventAlertsService : IEventAlertsService
     {
+        private readonly Decatron.Services.Accounts.AccountChannelResolver? _accounts;
         private readonly DecatronDbContext _context;
         private readonly ILogger<EventAlertsService> _logger;
         private readonly OverlayNotificationService _overlayNotificationService;
@@ -37,8 +38,10 @@ namespace Decatron.Services
             ITtsCreditService creditService,
             IMessageSender messageSender,
             Decatron.Core.Services.ChannelAudioGate audioGate,
-            Decatron.Services.Promo.PromoTriggerService? promoTriggers = null)
+            Decatron.Services.Promo.PromoTriggerService? promoTriggers = null,
+            Decatron.Services.Accounts.AccountChannelResolver? accounts = null)
         {
+            _accounts = accounts;
             _promoTriggers = promoTriggers;
             _audioGate = audioGate;
             _context = context;
@@ -127,18 +130,45 @@ namespace Decatron.Services
             string? subTier = null,
             int? months = null,
             int? level = null,
-            bool hypeTrainCompleted = false)
+            bool hypeTrainCompleted = false,
+            string platform = "twitch",
+            string? eventId = null,
+            string? chatChannel = null,
+            string? configChannel = null)
         {
             Decatron.Core.Services.AudioTurn? audioTurn = null;
             // Disparador de Promociones «tras una raid»: aquí pasan todas las raids reales, tenga o no alertas el canal (el handler de EventSub no se toca).
             if (eventType == "raids") _promoTriggers?.Fire(channelName, Decatron.Services.Promo.PromoTriggers.Raid);
             try
             {
-                var config = await GetConfigByChannel(channelName);
+                // Configuración: la del canal del evento, salvo un evento de Kick en modo «Separada», que usa la de la fila de Kick
+                // (configChannel). Si Kick todavía no tiene la suya se usa la principal, como si fuera una copia. Los cooldowns, el
+                // anti-spam y las variantes se guardan por esa configuración, así Twitch y Kick no se pisan entre sí.
+                var cfgChannel = channelName;
+                var usingOwnKickConfig = false;
+                EventAlertsConfig? config = null;
+                if (platform == "kick" && !string.IsNullOrEmpty(configChannel))
+                {
+                    config = await GetConfigByChannel(configChannel);
+                    if (config != null) { cfgChannel = configChannel; usingOwnKickConfig = true; }
+                }
+                config ??= await GetConfigByChannel(channelName);
                 if (config == null || !config.IsEnabled)
                     return;
 
                 var configData = JsonSerializer.Deserialize<JsonElement>(config.ConfigJson);
+
+                // Kick: con la configuración compartida los Kicks cuentan como bits con el valor que fijó el streamer en General
+                // (por defecto 1 Kick = 1 bit), así eligen el mismo nivel de alerta de bits. Con la configuración propia de Kick
+                // sus niveles ya están en Kicks y no se convierte nada.
+                if (eventType == "bits" && Decatron.Core.Helpers.EventAlertsPlatformMode.ConvertKicksToBits(platform, usingOwnKickConfig))
+                {
+                    double bitsPerKick = 1;
+                    if (configData.TryGetProperty("global", out var kg) && kg.ValueKind == JsonValueKind.Object &&
+                        kg.TryGetProperty("kickBitsPerKick", out var kb) && kb.ValueKind == JsonValueKind.Number)
+                        bitsPerKick = kb.GetDouble();
+                    amount = Decatron.Core.Helpers.KickAlertMapper.KicksToBits(amount, bitsPerKick);
+                }
 
                 // Check global enabled
                 if (configData.TryGetProperty("global", out var globalCfg) &&
@@ -157,7 +187,7 @@ namespace Decatron.Services
 
                 // Check cooldown
                 var cooldownSeconds = eventConfig.TryGetProperty("cooldown", out var cdP) ? cdP.GetInt32() : 0;
-                if (cooldownSeconds > 0 && IsOnCooldown(channelName, eventType, cooldownSeconds))
+                if (cooldownSeconds > 0 && IsOnCooldown(cfgChannel, eventType, cooldownSeconds))
                 {
                     _logger.LogDebug("[EventAlerts] Alert on cooldown: {EventType} in {Channel} (cooldown: {Cooldown}s)",
                         eventType, channelName, cooldownSeconds);
@@ -174,7 +204,7 @@ namespace Decatron.Services
 
                         if (antiSpamEnabled && perUserCooldown > 0)
                         {
-                            if (IsUserOnFollowCooldown(channelName, username, perUserCooldown))
+                            if (IsUserOnFollowCooldown(cfgChannel, username, perUserCooldown))
                             {
                                 _logger.LogDebug("[EventAlerts] Follow anti-spam: {User} in {Channel} (cooldown: {Cooldown}s)",
                                     username, channelName, perUserCooldown);
@@ -224,7 +254,7 @@ namespace Decatron.Services
                 _logger.LogInformation("[EventAlerts] Checking variants for alertId={AlertId}, tierName={TierName}",
                     alertId, selectedName);
 
-                var selectedVariant = SelectVariantIfEnabled(alertConfig, channelName, alertId);
+                var selectedVariant = SelectVariantIfEnabled(alertConfig, cfgChannel, alertId);
                 if (selectedVariant.HasValue)
                 {
                     // Usar la variante en lugar de la configuración base para media, sonido, mensaje, etc.
@@ -292,6 +322,10 @@ namespace Decatron.Services
                     ttsUserMessageVolume = ttsCfg.TryGetProperty("userMessageVolume", out var uvP) ? uvP.GetInt32() : legacyVolume;
                     ttsVolume = legacyVolume; // Legacy
 
+                    // Los créditos de voz son de la cuenta: se cobran a la fila principal aunque la configuración sea la de otra fila
+                    // (la de Kick en modo «Separada»)
+                    var creditUserId = await CreditUserIdAsync(channelName, config.UserId);
+
                     // Una voz a la vez por canal (ver ChannelAudioGate). Si el canal tiene demasiadas voces en
                     // espera, la alerta sale igual pero sin voz: lo visual no se pierde y no se cobra la síntesis.
                     audioTurn = await _audioGate.RequestAsync(channelName, "event_alerts");
@@ -306,7 +340,7 @@ namespace Decatron.Services
                         if (!string.IsNullOrWhiteSpace(templateText))
                         {
                             ttsTemplateUrl = await _creditService.GenerateWithCreditsAsync(
-                                config.UserId, templateText, voice, engine, lang, "event_alerts", channelName,
+                                creditUserId, templateText, voice, engine, lang, "event_alerts", channelName,
                                 provider);
                         }
                     }
@@ -326,7 +360,7 @@ namespace Decatron.Services
                         {
                             _audioGate.Remember(channelName, "event_alerts", truncated);
                             ttsUserMessageUrl = await _creditService.GenerateWithCreditsAsync(
-                                config.UserId, truncated, voice, engine, lang, "event_alerts", channelName,
+                                creditUserId, truncated, voice, engine, lang, "event_alerts", channelName,
                                 provider);
                         }
                     }
@@ -655,6 +689,8 @@ namespace Decatron.Services
 
                 var alertData = new
                 {
+                    id = eventId ?? Guid.NewGuid().ToString("N"),
+                    platform,
                     eventType,
                     username,
                     amount,
@@ -708,15 +744,23 @@ namespace Decatron.Services
                 _logger.LogInformation("[EventAlerts] Sending alert: Type={EventType}, User={Username}, Channel={Channel}, MediaType={MediaType}, MediaUrl={MediaUrl}, SoundUrl={SoundUrl}",
                     eventType, username, channelName, mediaType ?? "(null)", mediaUrl ?? "(null)", soundUrl ?? "(null)");
 
-                await _overlayNotificationService.SendToChannel(channelName, "ShowEventAlert", alertData);
-                _logger.LogInformation("[EventAlerts] Alert sent successfully");
+                // Twitch: al grupo de siempre (idéntico a antes, para los overlays que ya están puestos en OBS) y al grupo v2 de la
+                // cuenta (el overlay nuevo, que filtra por plataforma). Kick: solo al v2, porque nunca tuvo alertas y así
+                // ningún overlay viejo las recibe ni se duplican en quien tiene una escena por plataforma.
+                // Nunca una lista de grupos: una conexión en dos grupos recibiría el aviso dos veces.
+                var v2Key = await V2KeyAsync(channelName);
+                if (platform != "kick")
+                    await _overlayNotificationService.SendToChannel(channelName, "ShowEventAlert", alertData);
+                if (v2Key != null)
+                    await _overlayNotificationService.SendToChannel(v2Key, "ShowEventAlert", alertData);
+                _logger.LogInformation("[EventAlerts] Alert sent successfully (platform={Platform})", platform);
 
                 // El turno dura lo que dure la alerta con voz: el overlay avisa al terminar. Sin overlay
                 // conectado no hay quien avise; si el aviso se pierde, vence por el texto leído más el margen
                 // del sonido/video.
                 if (audioTurn != null)
                 {
-                    if (!Hubs.OverlayHub.HasActiveClients(channelName)) audioTurn.Release();
+                    if (!Hubs.OverlayHub.HasActiveClients(channelName) && (v2Key == null || !Hubs.OverlayHub.HasActiveClients(v2Key))) audioTurn.Release();
                     else
                     {
                         var spoken = (message?.Length ?? 0) + (userMessage?.Length ?? 0);
@@ -725,12 +769,40 @@ namespace Decatron.Services
                 }
 
                 // Enviar mensaje al chat si está configurado
-                await SendChatMessageIfEnabled(alertConfig, channelName, username, amount, tierLabel, months ?? amount, level ?? 1, userMessage);
+                await SendChatMessageIfEnabled(alertConfig, chatChannel ?? channelName, username, amount, tierLabel, months ?? amount, level ?? 1, userMessage);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[EventAlerts] Error triggering alert for {EventType} in {Channel}", eventType, channelName);
                 audioTurn?.Release();
+            }
+        }
+
+        /// <summary>Fila a la que se cobran los créditos de voz: la principal de la cuenta del canal, o la dueña de la configuración si no se resuelve.</summary>
+        private async Task<long> CreditUserIdAsync(string channelName, long configUserId)
+        {
+            long? principal = null;
+            if (_accounts != null)
+            {
+                try { principal = (await _accounts.ResolveLoginAsync(channelName))?.Account.Principal.UserId; }
+                catch (Exception ex) { _logger.LogWarning(ex, "[EventAlerts] No se pudo resolver la fila principal de {Channel} para los créditos", channelName); }
+            }
+            return Decatron.Core.Helpers.EventAlertsPlatformMode.CreditUserId(principal, configUserId);
+        }
+
+        /// <summary>Clave del grupo v2 de la cuenta del canal (el overlay nuevo se une con ella), o null si no se puede resolver.</summary>
+        private async Task<string?> V2KeyAsync(string channelName)
+        {
+            if (_accounts == null) return null;
+            try
+            {
+                var resolved = await _accounts.ResolveLoginAsync(channelName);
+                return resolved == null ? null : Decatron.Services.SoundAlertTriggerService.V2Key(resolved.Account.OverlayKey);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[EventAlerts] No se pudo resolver la cuenta de {Channel} para el grupo v2", channelName);
+                return null;
             }
         }
 

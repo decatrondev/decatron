@@ -132,6 +132,7 @@ export default function Overlays() {
                 'Animaciones y efectos visuales',
             ],
             usage: '/overlay/event-alerts',
+            kickReady: true, // Follows, subs, subs regaladas y Kicks de Kick (.dev/plans/kick-completo/PLAN.md, fase 2)
         },
         {
             id: 'now-playing',

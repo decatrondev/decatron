@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Save, ExternalLink } from 'lucide-react';
 import api from '../../services/api';
 import { Card, CopyButton, inputClass } from '../../components/overlay-editor/ui';
+import { LinkRow, Warning, useOverlayStatus } from '../../components/overlay-editor/OverlayLinks';
 import { useGoogleFonts } from '../../components/music-overlay/utils';
 import { EVENT_TYPES } from '../../components/event-alert-overlay/defaults';
 import { listCases, payloadFor } from '../../components/event-alert-overlay/fromConfig';
@@ -68,7 +69,13 @@ export default function EventAlertsConfig() {
     const [eventTab, setEventTab] = useState<AlertEventType>('follow');
     const [designTarget, setDesignTarget] = useState<DesignTarget>('general');
     const [previewEvent, setPreviewEvent] = useState<AlertEventType>('follow');
-    const [overlayUrl, setOverlayUrl] = useState('');
+    const [legacyUrl, setLegacyUrl] = useState('');
+    const { status, loaded: statusLoaded } = useOverlayStatus('/eventalerts/status');
+    const bothLinked = !!status.hasTwitch && !!status.hasKick;
+    const origin = window.location.origin;
+    const keyUrl = (key: string, source?: 'all' | 'twitch' | 'kick') => `${origin}/overlay/event-alerts?channel=${key}${source ? `&source=${source}` : ''}`;
+    // Con los dos canales vinculados, los enlaces salen de la clave de la cuenta; con uno solo se mantiene el de siempre
+    const overlayUrl = bothLinked && status.overlayKey ? keyUrl(status.overlayKey, 'all') : legacyUrl;
     const [baseline, setBaseline] = useState<string | null>(null);
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -78,8 +85,8 @@ export default function EventAlertsConfig() {
         loadConfiguration();
         api.get('/settings/frontend-info').then(res => {
             const login = res.data?.channel?.login || '';
-            setOverlayUrl(`${res.data?.frontendUrl || window.location.origin}/overlay/event-alerts?channel=${login || 'tu-canal'}`);
-        }).catch(() => setOverlayUrl(`${window.location.origin}/overlay/event-alerts?channel=tu-canal`));
+            setLegacyUrl(`${res.data?.frontendUrl || window.location.origin}/overlay/event-alerts?channel=${login || 'tu-canal'}`);
+        }).catch(() => setLegacyUrl(`${window.location.origin}/overlay/event-alerts?channel=tu-canal`));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -239,13 +246,41 @@ export default function EventAlertsConfig() {
                                     {step(1, t('eventAlertsView.guide.step1Title'), (
                                         <>
                                             <p>{t('eventAlertsView.guide.step1Body')}</p>
-                                            <div className="flex flex-col sm:flex-row gap-2">
-                                                <input readOnly value={overlayUrl} className={`${inputClass} font-mono text-xs 3xl:text-sm`} onFocus={e => e.currentTarget.select()} />
-                                                <div className="flex gap-2">
-                                                    <CopyButton text={overlayUrl} label={t('eventAlertsView.guide.copy')} doneLabel={t('eventAlertsView.guide.copied')} />
+                                            <LinkRow
+                                                url={overlayUrl}
+                                                copyLabel={t('eventAlertsView.guide.copy')}
+                                                copiedLabel={t('eventAlertsView.guide.copied')}
+                                                name={bothLinked ? t('eventAlertsView.guide.linkAll') : undefined}
+                                                hint={bothLinked ? t('eventAlertsView.guide.linkAllHint') : undefined}
+                                                recommended={bothLinked}
+                                                connected={bothLinked ? status.all > 0 : status.total > 0}
+                                                loaded={statusLoaded}
+                                                extra={bothLinked ? undefined : (
                                                     <a href={overlayUrl} target="_blank" rel="noreferrer" className="px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold flex items-center gap-2 bg-ds-raised text-ds-soft hover:bg-ds-raised shrink-0"><ExternalLink className="w-4 h-4" /> {t('eventAlertsView.guide.open')}</a>
+                                                )}
+                                            />
+                                            {bothLinked && status.overlayKey && (
+                                                <div className="pt-3 mt-1 border-t border-ds-border">
+                                                    <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-ds-soft">{t('eventAlertsView.guide.advancedTitle')}</p>
+                                                    <p className="text-xs 3xl:text-sm text-ds-soft mt-1 mb-3">{t('eventAlertsView.guide.perPlatform')}</p>
+                                                    <div className="space-y-3">
+                                                        <LinkRow url={keyUrl(status.overlayKey, 'twitch')} name={t('eventAlertsView.guide.linkTwitch')} connected={status.twitch > 0} loaded={statusLoaded} copyLabel={t('eventAlertsView.guide.copy')} copiedLabel={t('eventAlertsView.guide.copied')} />
+                                                        <LinkRow url={keyUrl(status.overlayKey, 'kick')} name={t('eventAlertsView.guide.linkKick')} connected={status.kick > 0} loaded={statusLoaded} copyLabel={t('eventAlertsView.guide.copy')} copiedLabel={t('eventAlertsView.guide.copied')} />
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
+                                            {status.warnings.includes('mixed') && (
+                                                <Warning title={t('eventAlertsView.guide.warnMixedTitle')} text={t('eventAlertsView.guide.warnMixed')} />
+                                            )}
+                                            {status.warnings.includes('repeated') && !status.warnings.includes('mixed') && (
+                                                <Warning title={t('eventAlertsView.guide.warnRepeatedTitle')} text={t('eventAlertsView.guide.warnRepeated')} />
+                                            )}
+                                            {statusLoaded && !bothLinked && (status.hasTwitch || status.hasKick) && (
+                                                <p className="text-xs 3xl:text-sm text-ds-soft">{t('eventAlertsView.guide.linkOtherHint')}</p>
+                                            )}
+                                            {statusLoaded && status.hasKick && (
+                                                <p className="text-xs 3xl:text-sm text-ds-soft">{t('eventAlertsView.guide.kickNote')}</p>
+                                            )}
                                             <ol className="list-decimal pl-5 space-y-1">
                                                 <li>{t('eventAlertsView.guide.obs1')}</li>
                                                 <li>{t('eventAlertsView.guide.obs2', { width: canvas.width, height: canvas.height })}</li>
@@ -260,7 +295,7 @@ export default function EventAlertsConfig() {
                             </Card>
                         )}
 
-                        {tab === 'general' && <GlobalTab config={cfg.globalConfig} onConfigChange={cfg.updateGlobalConfig} overlayUrl={overlayUrl} />}
+                        {tab === 'general' && <GlobalTab config={cfg.globalConfig} onConfigChange={cfg.updateGlobalConfig} overlayUrl={overlayUrl} showKick={statusLoaded && !!status.hasKick} />}
 
                         {tab === 'events' && (
                             <div className="space-y-6">
@@ -272,6 +307,12 @@ export default function EventAlertsConfig() {
                                         </button>
                                     ))}
                                 </div>
+                                {statusLoaded && status.hasKick && (eventTab === 'raids' || eventTab === 'hypeTrain') && (
+                                    <div className="rounded-lg border border-ds-border bg-ds-raised px-4 py-3">
+                                        <p className="text-sm 3xl:text-base font-bold text-ds-text">{t('eventAlertsView.kick.noEventTitle')}</p>
+                                        <p className="text-sm 3xl:text-base text-ds-soft mt-1">{t(eventTab === 'raids' ? 'eventAlertsView.kick.raidsNote' : 'eventAlertsView.kick.hypeNote')}</p>
+                                    </div>
+                                )}
                                 {eventTab === 'follow' && <FollowTab config={cfg.followConfig} onConfigChange={cfg.updateFollowConfig} />}
                                 {eventTab === 'bits' && <BitsTab config={cfg.bitsConfig} onConfigChange={cfg.updateBitsConfig} />}
                                 {eventTab === 'subs' && <SubsTab config={cfg.subsConfig} onConfigChange={cfg.updateSubsConfig} />}

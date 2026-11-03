@@ -22,6 +22,10 @@ namespace Decatron.Core.Interfaces
             string? subTier = null,
             int? months = null,
             int? level = null,
-            bool hypeTrainCompleted = false);
+            bool hypeTrainCompleted = false,
+            string platform = "twitch",
+            string? eventId = null,
+            string? chatChannel = null,
+            string? configChannel = null);
     }
 }

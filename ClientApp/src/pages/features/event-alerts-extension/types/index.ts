@@ -69,6 +69,8 @@ export interface GlobalAlertsConfig {
   };
   defaultSound: string; // URL
   defaultVolume: number; // 0-100
+  /** Cuántos bits vale un Kick de Kick al elegir el nivel de la alerta de bits (por defecto 1) */
+  kickBitsPerKick?: number;
   cooldownSettings: {
     globalCooldown: number; // Segundos entre cualquier alerta
     perEventCooldown: number; // Segundos entre alertas del mismo evento

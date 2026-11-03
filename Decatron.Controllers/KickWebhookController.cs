@@ -44,6 +44,7 @@ namespace Decatron.Controllers
         private readonly Services.Accounts.AccountChannelResolver _accounts;
         private readonly IBotListService _botList;
         private readonly Services.Platforms.PlatformEventDeduper _deduper;
+        private readonly Services.Platforms.Kick.KickAlertDispatcher _alertDispatcher;
 
         public KickWebhookController(
             DecatronDbContext db,
@@ -57,8 +58,10 @@ namespace Decatron.Controllers
             ISpeakChatService speakChat,
             Services.Accounts.AccountChannelResolver accounts,
             IBotListService botList,
-            Services.Platforms.PlatformEventDeduper deduper)
+            Services.Platforms.PlatformEventDeduper deduper,
+            Services.Platforms.Kick.KickAlertDispatcher alertDispatcher)
         {
+            _alertDispatcher = alertDispatcher;
             _deduper = deduper;
             _speakChat = speakChat;
             _accounts = accounts;
@@ -112,8 +115,8 @@ namespace Decatron.Controllers
             }
             catch { /* la sombra nunca rompe el webhook */ }
 
-            // Eventos de alertas (follows, subs, regalos, Kicks, estado del directo). Fase 1: se traducen al formato común,
-            // se descartan los repetidos y se registran. Los consumidores (alertas, timer) se conectan en las fases siguientes.
+            // Eventos de alertas (follows, subs, regalos, Kicks, estado del directo). Se traducen al formato común, se descartan
+            // los repetidos, se registran y se llevan a Event Alerts. El Timer y los demás consumidores se conectan en las fases siguientes.
             if (KickEventTranslator.IsAlertEvent(eventType.ToString()))
             {
                 try
@@ -127,6 +130,8 @@ namespace Decatron.Controllers
                     {
                         _logger.LogInformation("[Kick Evento] {Type} canal={Channel} usuario={User} anonimo={Anon} cantidad={Amount} meses={Months} envivo={Live}",
                             evt.Type, evt.BroadcasterId, evt.UserName, evt.IsAnonymous, evt.Amount, evt.Months, evt.IsLive);
+                        // Event Alerts (sin esperar: la voz y el sonido pueden tardar y Kick reintenta si no respondemos a tiempo)
+                        _ = _alertDispatcher.DispatchAsync(evt);
                     }
                 }
                 catch (Exception ex)
