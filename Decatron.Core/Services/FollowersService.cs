@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Decatron.Core.Helpers;
 using Decatron.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,8 @@ namespace Decatron.Core.Services
             DateTime? followDateFrom = null,
             DateTime? followDateTo = null,
             DateTime? createDateFrom = null,
-            DateTime? createDateTo = null)
+            DateTime? createDateTo = null,
+            string platform = FollowerPlatforms.Twitch)
         {
             var followers = new List<ChannelFollower>();
 
@@ -44,13 +46,14 @@ namespace Decatron.Core.Services
                 var sql = @"
                     SELECT id, broadcaster_id, broadcaster_name, user_id, user_name, user_login,
                            followed_at, account_created_at, is_following, unfollowed_at,
-                           is_blocked, was_blocked, created_at, updated_at
+                           is_blocked, was_blocked, created_at, updated_at, platform
                     FROM channel_followers
-                    WHERE broadcaster_id = @broadcasterId";
+                    WHERE broadcaster_id = @broadcasterId AND platform = @platform";
 
                 var parameters = new List<NpgsqlParameter>
                 {
-                    new("broadcasterId", broadcasterId)
+                    new("broadcasterId", broadcasterId),
+                    new("platform", FollowerPlatforms.Normalize(platform))
                 };
 
                 if (isFollowing.HasValue)
@@ -114,7 +117,7 @@ namespace Decatron.Core.Services
         /// <summary>
         /// Obtiene el historial de acciones de un seguidor específico
         /// </summary>
-        public async Task<List<FollowerHistory>> GetFollowerHistoryAsync(string broadcasterId, string userId)
+        public async Task<List<FollowerHistory>> GetFollowerHistoryAsync(string broadcasterId, string userId, string platform = FollowerPlatforms.Twitch)
         {
             var history = new List<FollowerHistory>();
 
@@ -124,14 +127,15 @@ namespace Decatron.Core.Services
                 await conn.OpenAsync();
 
                 var sql = @"
-                    SELECT id, broadcaster_id, user_id, action, action_timestamp, created_at
+                    SELECT id, broadcaster_id, user_id, action, action_timestamp, created_at, platform
                     FROM follower_history
-                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId
+                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId AND platform = @platform
                     ORDER BY action_timestamp ASC";
 
                 await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("broadcasterId", broadcasterId);
                 cmd.Parameters.AddWithValue("userId", userId);
+                cmd.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
 
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -143,7 +147,8 @@ namespace Decatron.Core.Services
                         UserId = reader.GetString(2),
                         Action = reader.GetInt32(3),
                         ActionTimestamp = reader.GetDateTime(4),
-                        CreatedAt = reader.GetDateTime(5)
+                        CreatedAt = reader.GetDateTime(5),
+                        Platform = reader.GetString(6)
                     });
                 }
             }
@@ -159,7 +164,7 @@ namespace Decatron.Core.Services
         /// <summary>
         /// Verifica si un usuario es "retornado" (hizo unfollow y volvió)
         /// </summary>
-        public async Task<bool> IsReturnedFollowerAsync(string broadcasterId, string userId)
+        public async Task<bool> IsReturnedFollowerAsync(string broadcasterId, string userId, string platform = FollowerPlatforms.Twitch)
         {
             try
             {
@@ -170,10 +175,11 @@ namespace Decatron.Core.Services
                 var sqlFollower = @"
                     SELECT is_following
                     FROM channel_followers
-                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId";
+                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId AND platform = @platform";
 
                 await using var cmdFollower = new NpgsqlCommand(sqlFollower, conn);
                 cmdFollower.Parameters.AddWithValue("broadcasterId", broadcasterId);
+                cmdFollower.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
                 cmdFollower.Parameters.AddWithValue("userId", userId);
 
                 var result = await cmdFollower.ExecuteScalarAsync();
@@ -188,10 +194,12 @@ namespace Decatron.Core.Services
                     FROM follower_history
                     WHERE broadcaster_id = @broadcasterId
                       AND user_id = @userId
+                      AND platform = @platform
                       AND action = 1";
 
                 await using var cmdHistory = new NpgsqlCommand(sqlHistory, conn);
                 cmdHistory.Parameters.AddWithValue("broadcasterId", broadcasterId);
+                cmdHistory.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
                 cmdHistory.Parameters.AddWithValue("userId", userId);
 
                 var unfollowCount = Convert.ToInt32(await cmdHistory.ExecuteScalarAsync());
@@ -217,10 +225,11 @@ namespace Decatron.Core.Services
                 // Verificar si existe
                 var sqlCheck = @"
                     SELECT id FROM channel_followers
-                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId";
+                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId AND platform = @platform";
 
                 await using var cmdCheck = new NpgsqlCommand(sqlCheck, conn);
                 cmdCheck.Parameters.AddWithValue("broadcasterId", follower.BroadcasterId);
+                cmdCheck.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(follower.Platform));
                 cmdCheck.Parameters.AddWithValue("userId", follower.UserId);
 
                 var existingId = await cmdCheck.ExecuteScalarAsync();
@@ -263,15 +272,16 @@ namespace Decatron.Core.Services
                         INSERT INTO channel_followers (
                             broadcaster_id, broadcaster_name, user_id, user_name, user_login,
                             followed_at, account_created_at, is_following, unfollowed_at,
-                            is_blocked, was_blocked, created_at, updated_at
+                            is_blocked, was_blocked, created_at, updated_at, platform
                         ) VALUES (
                             @broadcasterId, @broadcasterName, @userId, @userName, @userLogin,
                             @followedAt, @accountCreatedAt, @isFollowing, @unfollowedAt,
-                            @isBlocked, @wasBlocked, @createdAt, @updatedAt
+                            @isBlocked, @wasBlocked, @createdAt, @updatedAt, @platform
                         ) RETURNING id";
 
                     await using var cmdInsert = new NpgsqlCommand(sqlInsert, conn);
                     cmdInsert.Parameters.AddWithValue("broadcasterId", follower.BroadcasterId);
+                    cmdInsert.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(follower.Platform));
                     cmdInsert.Parameters.AddWithValue("broadcasterName", follower.BroadcasterName);
                     cmdInsert.Parameters.AddWithValue("userId", follower.UserId);
                     cmdInsert.Parameters.AddWithValue("userName", follower.UserName);
@@ -303,7 +313,8 @@ namespace Decatron.Core.Services
         /// original y no agrega historial; si había dejado de seguir, lo reactiva con la fecha nueva.
         /// </summary>
         public async Task<FollowRecordOutcome> RecordFollowAsync(
-            string broadcasterId, string broadcasterName, string userId, string userName, string userLogin, DateTime followedAt)
+            string broadcasterId, string broadcasterName, string userId, string userName, string userLogin, DateTime followedAt,
+            string platform = FollowerPlatforms.Twitch)
         {
             try
             {
@@ -313,16 +324,16 @@ namespace Decatron.Core.Services
                 const string sql = @"
                     WITH prev AS (
                         SELECT is_following FROM channel_followers
-                        WHERE broadcaster_id = @broadcasterId AND user_id = @userId
+                        WHERE broadcaster_id = @broadcasterId AND user_id = @userId AND platform = @platform
                     ), up AS (
                         INSERT INTO channel_followers (
                             broadcaster_id, broadcaster_name, user_id, user_name, user_login,
-                            followed_at, is_following, is_blocked, was_blocked, created_at, updated_at
+                            followed_at, is_following, is_blocked, was_blocked, created_at, updated_at, platform
                         ) VALUES (
                             @broadcasterId, @broadcasterName, @userId, @userName, @userLogin,
-                            @followedAt, 0, 0, 0, @now, @now
+                            @followedAt, 0, 0, 0, @now, @now, @platform
                         )
-                        ON CONFLICT (tenant_id, broadcaster_id, user_id) DO UPDATE SET
+                        ON CONFLICT (tenant_id, platform, broadcaster_id, user_id) DO UPDATE SET
                             broadcaster_name = EXCLUDED.broadcaster_name,
                             user_name = EXCLUDED.user_name,
                             user_login = EXCLUDED.user_login,
@@ -342,6 +353,7 @@ namespace Decatron.Core.Services
                 cmd.Parameters.AddWithValue("userLogin", userLogin);
                 cmd.Parameters.AddWithValue("followedAt", followedAt);
                 cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
+                cmd.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
 
                 await using var reader = await cmd.ExecuteReaderAsync();
                 await reader.ReadAsync();
@@ -358,7 +370,7 @@ namespace Decatron.Core.Services
         /// <summary>
         /// Agrega una entrada al historial de seguimiento
         /// </summary>
-        public async Task AddHistoryEntryAsync(string broadcasterId, string userId, int action, DateTime? actionTimestamp = null)
+        public async Task AddHistoryEntryAsync(string broadcasterId, string userId, int action, DateTime? actionTimestamp = null, string platform = FollowerPlatforms.Twitch)
         {
             try
             {
@@ -366,8 +378,8 @@ namespace Decatron.Core.Services
                 await conn.OpenAsync();
 
                 var sql = @"
-                    INSERT INTO follower_history (broadcaster_id, user_id, action, action_timestamp, created_at)
-                    VALUES (@broadcasterId, @userId, @action, @actionTimestamp, @createdAt)";
+                    INSERT INTO follower_history (broadcaster_id, user_id, action, action_timestamp, created_at, platform)
+                    VALUES (@broadcasterId, @userId, @action, @actionTimestamp, @createdAt, @platform)";
 
                 await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("broadcasterId", broadcasterId);
@@ -375,6 +387,7 @@ namespace Decatron.Core.Services
                 cmd.Parameters.AddWithValue("action", action);
                 cmd.Parameters.AddWithValue("actionTimestamp", actionTimestamp ?? DateTime.UtcNow);
                 cmd.Parameters.AddWithValue("createdAt", DateTime.UtcNow);
+                cmd.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
 
                 await cmd.ExecuteNonQueryAsync();
             }
@@ -388,7 +401,7 @@ namespace Decatron.Core.Services
         /// <summary>
         /// Actualiza el estado de bloqueo de un seguidor
         /// </summary>
-        public async Task UpdateBlockStatusAsync(string broadcasterId, string userId, bool isBlocked)
+        public async Task UpdateBlockStatusAsync(string broadcasterId, string userId, bool isBlocked, string platform = FollowerPlatforms.Twitch)
         {
             try
             {
@@ -400,18 +413,19 @@ namespace Decatron.Core.Services
                     SET is_blocked = @isBlocked,
                         was_blocked = CASE WHEN @isBlocked = 1 THEN 1 ELSE was_blocked END,
                         updated_at = @updatedAt
-                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId";
+                    WHERE broadcaster_id = @broadcasterId AND user_id = @userId AND platform = @platform";
 
                 await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("broadcasterId", broadcasterId);
                 cmd.Parameters.AddWithValue("userId", userId);
+                cmd.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
                 cmd.Parameters.AddWithValue("isBlocked", isBlocked ? 1 : 0);
                 cmd.Parameters.AddWithValue("updatedAt", DateTime.UtcNow);
 
                 await cmd.ExecuteNonQueryAsync();
 
                 // Agregar al historial
-                await AddHistoryEntryAsync(broadcasterId, userId, isBlocked ? 2 : 3);
+                await AddHistoryEntryAsync(broadcasterId, userId, isBlocked ? 2 : 3, null, platform);
 
                 _logger.LogInformation($"✅ Usuario {userId} {(isBlocked ? "bloqueado" : "desbloqueado")} para broadcaster {broadcasterId}");
             }
@@ -425,7 +439,7 @@ namespace Decatron.Core.Services
         /// <summary>
         /// Obtiene estadísticas de seguidores para un broadcaster
         /// </summary>
-        public async Task<FollowerStats> GetFollowerStatsAsync(string broadcasterId)
+        public async Task<FollowerStats> GetFollowerStatsAsync(string broadcasterId, string platform = FollowerPlatforms.Twitch)
         {
             var stats = new FollowerStats();
 
@@ -441,10 +455,11 @@ namespace Decatron.Core.Services
                         COUNT(CASE WHEN is_following = 1 THEN 1 END) as unfollowed,
                         COUNT(CASE WHEN is_blocked = 1 THEN 1 END) as blocked
                     FROM channel_followers
-                    WHERE broadcaster_id = @broadcasterId";
+                    WHERE broadcaster_id = @broadcasterId AND platform = @platform";
 
                 await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("broadcasterId", broadcasterId);
+                cmd.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
 
                 await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -460,13 +475,15 @@ namespace Decatron.Core.Services
                 var sqlReturned = @"
                     SELECT COUNT(DISTINCT cf.user_id)
                     FROM channel_followers cf
-                    INNER JOIN follower_history fh ON cf.broadcaster_id = fh.broadcaster_id AND cf.user_id = fh.user_id
+                    INNER JOIN follower_history fh ON cf.broadcaster_id = fh.broadcaster_id AND cf.user_id = fh.user_id AND cf.platform = fh.platform
                     WHERE cf.broadcaster_id = @broadcasterId
+                      AND cf.platform = @platform
                       AND cf.is_following = 0
                       AND fh.action = 1";
 
                 await using var cmdReturned = new NpgsqlCommand(sqlReturned, conn);
                 cmdReturned.Parameters.AddWithValue("broadcasterId", broadcasterId);
+                cmdReturned.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
 
                 stats.ReturnedCount = Convert.ToInt32(await cmdReturned.ExecuteScalarAsync());
             }
@@ -496,7 +513,8 @@ namespace Decatron.Core.Services
                 IsBlocked = reader.GetInt32(10),
                 WasBlocked = reader.GetInt32(11),
                 CreatedAt = reader.GetDateTime(12),
-                UpdatedAt = reader.GetDateTime(13)
+                UpdatedAt = reader.GetDateTime(13),
+                Platform = reader.GetString(14)
             };
         }
     }

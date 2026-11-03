@@ -45,6 +45,14 @@ namespace Decatron.Core.Models
         public DateTime ActionTimestamp { get; set; } = DateTime.UtcNow;
 
         /// <summary>
+        /// Plataforma: 'twitch' o 'kick'
+        /// </summary>
+        [Required]
+        [Column("platform")]
+        [MaxLength(10)]
+        public string Platform { get; set; } = "twitch";
+
+        /// <summary>
         /// Fecha de creación del registro (auditoría)
         /// </summary>
         [Required]

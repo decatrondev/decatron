@@ -72,7 +72,7 @@ namespace Decatron.Services
             {
                 var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                 // Canales activos con Twitch que ya tienen seguidores guardados
-                var withRows = await db.ChannelFollowers.Select(f => f.BroadcasterId).Distinct().ToListAsync(ct);
+                var withRows = await db.ChannelFollowers.Where(f => f.Platform == Decatron.Core.Helpers.FollowerPlatforms.Twitch).Select(f => f.BroadcasterId).Distinct().ToListAsync(ct);
                 channels = await db.Users
                     .Where(u => u.IsActive && u.TwitchId != null && withRows.Contains(u.TwitchId))
                     .Select(u => u.TwitchId!)

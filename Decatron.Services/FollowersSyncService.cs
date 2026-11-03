@@ -57,7 +57,7 @@ namespace Decatron.Services
             Func<int, bool>? stopIfTotal = null;
             if (maxNewFollowers.HasValue)
             {
-                var savedActive = await _context.ChannelFollowers.CountAsync(f => f.BroadcasterId == broadcasterId && f.IsFollowing == 0);
+                var savedActive = await _context.ChannelFollowers.CountAsync(f => f.BroadcasterId == broadcasterId && f.Platform == FollowerPlatforms.Twitch && f.IsFollowing == 0);
                 stopIfTotal = total => total - savedActive > maxNewFollowers.Value;
             }
 
@@ -82,7 +82,7 @@ namespace Decatron.Services
             var broadcasterName = user?.DisplayName ?? "Unknown";
 
             var dbFollowers = await _context.ChannelFollowers
-                .Where(f => f.BroadcasterId == broadcasterId)
+                .Where(f => f.BroadcasterId == broadcasterId && f.Platform == FollowerPlatforms.Twitch)
                 .ToListAsync();
 
             var plan = FollowersSyncPlanner.Plan(

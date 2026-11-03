@@ -21,9 +21,11 @@
 -- Row-level security is enabled but not forced: the owner role (decatron_user) is not filtered by it.
 -- A non-superuser application role is what makes the policies effective; see docs/PLATFORM.md.
 --
--- Snapshot date: 2026-11-01
+-- Snapshot date: 2026-11-03
 --
 --
+--
+-- PostgreSQL database dump
 --
 -- PostgreSQL database dump
 --
@@ -949,7 +951,8 @@ CREATE TABLE public.channel_followers (
     was_blocked integer DEFAULT 0 NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    platform character varying(10) DEFAULT 'twitch'::character varying NOT NULL
 );
 
 
@@ -2802,7 +2805,8 @@ CREATE TABLE public.follower_history (
     action integer NOT NULL,
     action_timestamp timestamp without time zone DEFAULT now() NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    platform character varying(10) DEFAULT 'twitch'::character varying NOT NULL
 );
 
 
@@ -15854,17 +15858,17 @@ CREATE INDEX idx_channel_followers_broadcaster ON public.channel_followers USING
 
 
 --
--- Name: idx_channel_followers_broadcaster_user_t; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_channel_followers_broadcaster_user_t ON public.channel_followers USING btree (tenant_id, broadcaster_id, user_id);
-
-
---
 -- Name: idx_channel_followers_date; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_channel_followers_date ON public.channel_followers USING btree (followed_at);
+
+
+--
+-- Name: idx_channel_followers_platform_broadcaster_user_t; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_channel_followers_platform_broadcaster_user_t ON public.channel_followers USING btree (tenant_id, platform, broadcaster_id, user_id);
 
 
 --
@@ -16390,6 +16394,13 @@ CREATE INDEX idx_follower_history_broadcaster ON public.follower_history USING b
 --
 
 CREATE INDEX idx_follower_history_broadcaster_user ON public.follower_history USING btree (broadcaster_id, user_id);
+
+
+--
+-- Name: idx_follower_history_platform_broadcaster_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_follower_history_platform_broadcaster_user ON public.follower_history USING btree (platform, broadcaster_id, user_id);
 
 
 --

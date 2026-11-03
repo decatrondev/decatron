@@ -95,6 +95,14 @@ namespace Decatron.Core.Models
         public int WasBlocked { get; set; } = 0;
 
         /// <summary>
+        /// Plataforma del seguidor: 'twitch' o 'kick' (los ids de una y otra no tienen relación)
+        /// </summary>
+        [Required]
+        [Column("platform")]
+        [MaxLength(10)]
+        public string Platform { get; set; } = "twitch";
+
+        /// <summary>
         /// Fecha de creación del registro (auditoría)
         /// </summary>
         [Required]

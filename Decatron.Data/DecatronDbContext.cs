@@ -1374,11 +1374,12 @@ namespace Decatron.Data
                 entity.Property(e => e.UnfollowedAt).HasColumnName("unfollowed_at");
                 entity.Property(e => e.IsBlocked).IsRequired().HasDefaultValue(0).HasColumnName("is_blocked");
                 entity.Property(e => e.WasBlocked).IsRequired().HasDefaultValue(0).HasColumnName("was_blocked");
+                entity.Property(e => e.Platform).IsRequired().HasMaxLength(10).HasDefaultValue("twitch").HasColumnName("platform");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnName("updated_at");
 
-                // Índice único para evitar duplicados
-                entity.HasIndex(e => new { e.BroadcasterId, e.UserId })
+                // Índice único para evitar duplicados (un id de Kick y uno de Twitch no tienen relación)
+                entity.HasIndex(e => new { e.Platform, e.BroadcasterId, e.UserId })
                     .IsUnique()
                     .HasDatabaseName("idx_channel_followers_broadcaster_user");
 
@@ -1400,6 +1401,7 @@ namespace Decatron.Data
                 entity.Property(e => e.UserId).IsRequired().HasMaxLength(50).HasColumnName("user_id");
                 entity.Property(e => e.Action).IsRequired().HasColumnName("action");
                 entity.Property(e => e.ActionTimestamp).IsRequired().HasColumnName("action_timestamp");
+                entity.Property(e => e.Platform).IsRequired().HasMaxLength(10).HasDefaultValue("twitch").HasColumnName("platform");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
 
                 // Índices para búsquedas

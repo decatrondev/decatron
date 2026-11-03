@@ -65,6 +65,30 @@ public class FollowersRecordFollowDbTests
         finally { Clean(); }
     }
 
+    [Fact(DisplayName = "Follow en vivo: el mismo id en Twitch y en Kick son dos seguidores distintos, sin chocar")]
+    public async Task SameIdOnTwitchAndKick_AreSeparateRows()
+    {
+        if (string.IsNullOrWhiteSpace(Conn)) return;
+        Clean();
+        try
+        {
+            var svc = Service();
+            var when = new DateTime(2026, 11, 3, 12, 0, 0, DateTimeKind.Utc);
+            Assert.Equal(FollowRecordOutcome.Created, await svc.RecordFollowAsync(Broadcaster, "Canal", "u-same", "Ana", "ana", when));
+            Assert.Equal(FollowRecordOutcome.Created, await svc.RecordFollowAsync(Broadcaster, "Canal", "u-same", "Ana", "ana", when, "kick"));
+            Assert.Equal(2, Scalar<int>($"select count(*) from channel_followers where broadcaster_id='{Broadcaster}' and user_id='u-same'"));
+            Assert.Equal(FollowRecordOutcome.AlreadyFollowing, await svc.RecordFollowAsync(Broadcaster, "Canal", "u-same", "Ana", "ana", when, "kick"));
+
+            // Lo de Kick no aparece en lo de Twitch, y al revés
+            var twitch = await svc.GetFollowersAsync(Broadcaster);
+            var kick = await svc.GetFollowersAsync(Broadcaster, platform: "kick");
+            Assert.Single(twitch);
+            Assert.Single(kick);
+            Assert.Equal("kick", kick[0].Platform);
+        }
+        finally { Clean(); }
+    }
+
     [Fact(DisplayName = "Follow en vivo: si ya seguía (evento repetido) conserva la fecha original")]
     public async Task Duplicate_KeepsOriginalDate()
     {

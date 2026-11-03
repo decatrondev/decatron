@@ -438,7 +438,7 @@ namespace Decatron.Default.Controllers
                 if (userId == null)
                 {
                     userId = await _context.ChannelFollowers
-                        .Where(f => f.BroadcasterId == broadcasterId && (f.UserLogin.ToLower() == q || f.UserName.ToLower() == q))
+                        .Where(f => f.BroadcasterId == broadcasterId && f.Platform == FollowerPlatforms.Twitch && (f.UserLogin.ToLower() == q || f.UserName.ToLower() == q))
                         .Select(f => f.UserId).FirstOrDefaultAsync();
                     if (userId != null) resolvedBy = "database";
                 }
@@ -459,7 +459,7 @@ namespace Decatron.Default.Controllers
 
                 // 2. Lo que Decatron tiene guardado de esa persona en este canal
                 var row = await _context.ChannelFollowers
-                    .Where(f => f.BroadcasterId == broadcasterId && f.UserId == userId)
+                    .Where(f => f.BroadcasterId == broadcasterId && f.Platform == FollowerPlatforms.Twitch && f.UserId == userId)
                     .Select(f => new { f.UserName, f.UserLogin, f.FollowedAt, f.IsFollowing, f.UnfollowedAt })
                     .FirstOrDefaultAsync();
 
