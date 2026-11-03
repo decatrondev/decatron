@@ -50,7 +50,7 @@ namespace Decatron.Services
         /// Si se indica (sincronización automática), no se baja la lista cuando Twitch tiene más de este número de seguidores
         /// que los guardados: las importaciones grandes se hacen a mano con el botón, no sin que nadie mire.
         /// </param>
-        public async Task<FollowersSyncResult> SyncAsync(string broadcasterId, int? maxNewFollowers = null)
+        public async Task<FollowersSyncResult> SyncAsync(string broadcasterId, int? maxNewFollowers = null, string source = "manual")
         {
             _logger.LogInformation($"🔄 Iniciando sincronización de followers para broadcaster {broadcasterId}");
 
@@ -67,12 +67,14 @@ namespace Decatron.Services
             if (fetch.Failure == "skipped_large")
             {
                 _logger.LogInformation($"👥 [FOLLOWERS] Canal {broadcasterId}: Twitch tiene {fetch.Total} seguidores y faltan demasiados por importar; se omite en automático (usar el botón Sincronizar)");
+                await _followersService.RecordSyncStatusAsync(FollowerPlatforms.Twitch, broadcasterId, source, "skipped_large", null, false, 0, 0, 0, 0);
                 return new FollowersSyncResult(false, "skipped_large", 0, 0, 0, 0, 0, SyncUnfollowSkipReason.None, 0, 0, fetch.Total, null);
             }
 
             if (!twitchFollowers.Any() && !fetch.Complete)
             {
                 _logger.LogWarning($"⚠️ No se pudo obtener la lista de followers de Twitch para {broadcasterId} ({fetch.Failure})");
+                await _followersService.RecordSyncStatusAsync(FollowerPlatforms.Twitch, broadcasterId, source, "fetch_failed", fetch.Failure, false, 0, 0, 0, 0);
                 return new FollowersSyncResult(false, fetch.Failure ?? "unknown", 0, 0, 0, 0, 0, SyncUnfollowSkipReason.None, 0, 0, fetch.Total, null);
             }
 
@@ -150,6 +152,11 @@ namespace Decatron.Services
                 _logger.LogWarning($"🛡️ [FOLLOWERS] Unfollows omitidos para {broadcasterId}: {plan.UnfollowSkipped} (faltarían {plan.MissingCount})");
 
             _logger.LogInformation($"✅ Sincronización completada: {plan.NewIds.Count} nuevos, {plan.ReturnedIds.Count} retornados, {plan.Renames.Count} renombrados, {plan.UnfollowIds.Count} unfollowed");
+
+            await _followersService.RecordSyncStatusAsync(FollowerPlatforms.Twitch, broadcasterId, source,
+                plan.UnfollowSkipped == SyncUnfollowSkipReason.None ? "ok" : "unfollows_skipped",
+                plan.UnfollowSkipped == SyncUnfollowSkipReason.None ? null : plan.UnfollowSkipped.ToString(),
+                true, plan.NewIds.Count, plan.ReturnedIds.Count, plan.UnfollowIds.Count, plan.Renames.Count);
 
             var stats = await _followersService.GetFollowerStatsAsync(broadcasterId);
             return new FollowersSyncResult(true, null, twitchFollowers.Count, plan.NewIds.Count, plan.ReturnedIds.Count,

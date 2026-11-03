@@ -52,6 +52,7 @@ public static class TenantTables
         "follow_alert_configs",
         "follow_alert_history",
         "follower_history",
+        "follower_sync_status",
         "gacha_achievements",
         "gacha_banners",
         "gacha_command_aliases",

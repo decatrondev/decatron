@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../hooks/usePermissions';
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { useTranslation } from 'react-i18next';
-import { Alert } from '../components/ds';
+import { useTranslation, Trans } from 'react-i18next';
+import { Alert, Badge, Segmented } from '../components/ds';
 
 interface Follower {
     id: number;
@@ -17,8 +17,19 @@ interface Follower {
     unfollowedAt?: string;
     isBlocked: number;
     wasBlocked: number;
+    platform: 'twitch' | 'kick';
     history: HistoryEntry[];
 }
+
+interface SyncStatus {
+    lastAttemptAt: string;
+    lastSuccessAt?: string | null;
+    source: 'manual' | 'auto';
+    result: 'ok' | 'unfollows_skipped' | 'fetch_failed' | 'skipped_large';
+    detail?: string | null;
+}
+
+type PlatformFilter = 'all' | 'twitch' | 'kick';
 
 interface HistoryEntry {
     action: number; // 0=Follow, 1=Unfollow, 2=Block, 3=Unblock
@@ -76,6 +87,10 @@ export default function Followers() {
     const { t, i18n } = useTranslation('followers');
     type SyncWarning = { code: string; missing?: number; received?: number; twitchTotal?: number; detail?: string };
     const [syncWarning, setSyncWarning] = useState<SyncWarning | null>(null);
+    const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
+    const [available, setAvailable] = useState({ twitch: true, kick: false });
+    const [platformCounts, setPlatformCounts] = useState<Record<string, { active: number; total: number }>>({});
+    const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
     type LookupResult = {
         found: boolean; userId?: string; resolvedBy?: string; namesSeen?: string[];
         saved?: { userName: string; userLogin: string; followedAt: string; isFollowing: number; unfollowedAt?: string } | null;
@@ -119,7 +134,7 @@ export default function Followers() {
             loadFollowers();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [permissionsLoading, currentPage, currentFilter, sortColumn, sortDirection, pageSize]);
+    }, [permissionsLoading, currentPage, currentFilter, sortColumn, sortDirection, pageSize, platformFilter]);
 
     // Búsqueda en tiempo real con debounce
     useEffect(() => {
@@ -170,6 +185,7 @@ export default function Followers() {
                 pageSize: pageSize.toString()
             });
 
+            params.append('platform', platformFilter);
             if (currentFilter === 'active') params.append('isFollowing', '0');
             if (currentFilter === 'unfollowed') params.append('isFollowing', '1');
             if (searchName) params.append('searchName', searchName);
@@ -186,19 +202,22 @@ export default function Followers() {
             if (res.data.success) {
                 setFollowers(res.data.followers);
                 setStats(res.data.stats);
+                if (res.data.availablePlatforms) setAvailable(res.data.availablePlatforms);
+                setPlatformCounts(res.data.platformCounts ?? {});
+                setSyncStatus(res.data.syncStatus ?? null);
                 setTotalPages(res.data.pagination.totalPages);
                 setTotalCount(res.data.pagination.totalCount);
             }
         } catch (err) {
             console.error('Error loading followers:', err);
-            showToast('Error al cargar seguidores', 'error');
+            showToast(t('toast.loadError'), 'error');
         } finally {
             setLoading(false);
         }
     };
 
     const handleSyncFollowers = async (isAutoSync = false) => {
-        if (!isAutoSync && !confirm('¿Deseas sincronizar los seguidores con Twitch? Esto puede tardar unos momentos.')) {
+        if (!isAutoSync && !confirm(t('confirm.sync'))) {
             return;
         }
 
@@ -226,7 +245,7 @@ export default function Followers() {
                 await loadFollowers();
             }
         } catch (err) {
-            const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al sincronizar seguidores';
+            const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || t('toast.syncError');
             if (!isAutoSync) {
                 showToast(message, 'error');
             }
@@ -332,27 +351,29 @@ export default function Followers() {
         return pages;
     };
 
-    const handleBlockFollower = async (userId: string, isCurrentlyBlocked: boolean) => {
+    const selKey = (f: Follower) => `${f.platform}:${f.userId}`;
+    const splitKey = (key: string) => { const i = key.indexOf(':'); return { platform: key.slice(0, i), userId: key.slice(i + 1) }; };
+
+    const handleBlockFollower = async (userId: string, isCurrentlyBlocked: boolean, platform: string) => {
         if (!canModerate) {
-            showToast('No tienes permisos para bloquear usuarios', 'error');
+            showToast(t('toast.noBlockPermission'), 'error');
             return;
         }
 
-        const action = isCurrentlyBlocked ? 'desbloquear' : 'bloquear';
-        if (!confirm(`¿Estás seguro de ${action} este usuario?`)) {
+        if (!confirm(t(isCurrentlyBlocked ? 'confirm.unblockOne' : 'confirm.blockOne'))) {
             return;
         }
 
         try {
             const endpoint = isCurrentlyBlocked ? 'unblock' : 'block';
-            const res = await api.post(`/followers/${userId}/${endpoint}`);
+            const res = await api.post(`/followers/${userId}/${endpoint}`, null, { params: { platform } });
 
             if (res.data.success) {
                 showToast(res.data.message, 'success');
                 await loadFollowers();
             }
         } catch (err) {
-            const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || `Error al ${action} usuario`;
+            const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || t(isCurrentlyBlocked ? 'toast.unblockError' : 'toast.blockError');
             showToast(message, 'error');
         }
     };
@@ -375,17 +396,17 @@ export default function Followers() {
         if (selectedFollowers.length === followers.length) {
             setSelectedFollowers([]);
         } else {
-            setSelectedFollowers(followers.map(f => f.userId));
+            setSelectedFollowers(followers.map(selKey));
         }
     };
 
     const handleBulkBlock = async () => {
         if (!canModerate) {
-            showToast('No tienes permisos para bloquear usuarios', 'error');
+            showToast(t('toast.noBlockPermission'), 'error');
             return;
         }
 
-        if (!confirm(`¿Estás seguro de bloquear ${selectedFollowers.length} usuarios seleccionados?`)) {
+        if (!confirm(t('confirm.blockMany', { count: selectedFollowers.length }))) {
             return;
         }
 
@@ -394,9 +415,10 @@ export default function Followers() {
             let successCount = 0;
             let errorCount = 0;
 
-            for (const userId of selectedFollowers) {
+            for (const key of selectedFollowers) {
+                const { platform, userId } = splitKey(key);
                 try {
-                    const res = await api.post(`/followers/${userId}/block`);
+                    const res = await api.post(`/followers/${userId}/block`, null, { params: { platform } });
                     if (res.data.success) {
                         successCount++;
                     }
@@ -406,14 +428,14 @@ export default function Followers() {
             }
 
             showToast(
-                `Bloqueados: ${successCount}, Errores: ${errorCount}`,
+                t('toast.blockedResult', { ok: successCount, errors: errorCount }),
                 errorCount > 0 ? 'error' : 'success'
             );
 
             setSelectedFollowers([]);
             await loadFollowers();
         } catch (err) {
-            showToast('Error al bloquear usuarios', 'error');
+            showToast(t('toast.blockManyError'), 'error');
         } finally {
             setLoading(false);
         }
@@ -425,7 +447,7 @@ export default function Followers() {
             return;
         }
 
-        if (!confirm(`¿Estás seguro de desbloquear ${selectedFollowers.length} usuarios seleccionados?`)) {
+        if (!confirm(t('confirm.unblockMany', { count: selectedFollowers.length }))) {
             return;
         }
 
@@ -434,9 +456,10 @@ export default function Followers() {
             let successCount = 0;
             let errorCount = 0;
 
-            for (const userId of selectedFollowers) {
+            for (const key of selectedFollowers) {
+                const { platform, userId } = splitKey(key);
                 try {
-                    const res = await api.post(`/followers/${userId}/unblock`);
+                    const res = await api.post(`/followers/${userId}/unblock`, null, { params: { platform } });
                     if (res.data.success) {
                         successCount++;
                     }
@@ -446,14 +469,14 @@ export default function Followers() {
             }
 
             showToast(
-                `Desbloqueados: ${successCount}, Errores: ${errorCount}`,
+                t('toast.unblockedResult', { ok: successCount, errors: errorCount }),
                 errorCount > 0 ? 'error' : 'success'
             );
 
             setSelectedFollowers([]);
             await loadFollowers();
         } catch (err) {
-            showToast('Error al desbloquear usuarios', 'error');
+            showToast(t('toast.unblockManyError'), 'error');
         } finally {
             setLoading(false);
         }
@@ -473,6 +496,17 @@ export default function Followers() {
             : <ArrowDown className="w-4 h-4 text-ds-accent-text" />;
     };
 
+    // Tiempo relativo en el idioma de la interfaz («hace 25 minutos» / «25 minutes ago»)
+    const relativeTime = (iso: string) => {
+        const diffSec = Math.round((new Date(iso).getTime() - Date.now()) / 1000);
+        const rtf = new Intl.RelativeTimeFormat(i18n.language === 'en' ? 'en' : 'es', { numeric: 'auto' });
+        const abs = Math.abs(diffSec);
+        if (abs < 60) return rtf.format(0, 'second');
+        if (abs < 3600) return rtf.format(Math.round(diffSec / 60), 'minute');
+        if (abs < 86400) return rtf.format(Math.round(diffSec / 3600), 'hour');
+        return rtf.format(Math.round(diffSec / 86400), 'day');
+    };
+
     const getLastSyncText = () => {
         if (!lastSyncTime) return 'Nunca';
         const now = new Date();
@@ -481,7 +515,7 @@ export default function Followers() {
         if (diff < 60) return 'Hace unos segundos';
         if (diff < 3600) return `Hace ${Math.floor(diff / 60)} minutos`;
         if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} horas`;
-        return lastSyncTime.toLocaleString('es-ES', {
+        return lastSyncTime.toLocaleString(i18n.language === 'en' ? 'en-US' : 'es-ES', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -492,11 +526,11 @@ export default function Followers() {
 
     const getActionLabel = (action: number) => {
         switch (action) {
-            case 0: return 'Follow';
-            case 1: return 'Unfollow';
-            case 2: return 'Bloqueo';
-            case 3: return 'Desbloqueo';
-            default: return 'Desconocido';
+            case 0: return t('action.follow');
+            case 1: return t('action.unfollow');
+            case 2: return t('action.block');
+            case 3: return t('action.unblock');
+            default: return t('action.unknown');
         }
     };
 
@@ -517,7 +551,7 @@ export default function Followers() {
     };
 
     if (permissionsLoading || loading) {
-        return <div className="text-center py-8 text-ds-soft">Cargando seguidores...</div>;
+        return <div className="text-center py-8 text-ds-soft">{t('loading')}</div>;
     }
 
     if (!hasMinimumLevel('commands')) {
@@ -525,9 +559,9 @@ export default function Followers() {
             <div className="flex flex-col items-center justify-center py-16">
                 <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-8 max-w-md text-center">
                     <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
-                    <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso Denegado</h2>
+                    <h2 className="text-2xl font-black text-ds-danger mb-2">{t('denied.title')}</h2>
                     <p className="text-ds-soft mb-6">
-                        No tienes permisos suficientes para acceder a la gestión de seguidores. Se requiere nivel de acceso "Comandos" o superior.
+                        {t('denied.body')}
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
@@ -554,77 +588,87 @@ export default function Followers() {
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-ds-text">Gestión de Seguidores</h1>
+                    <h1 className="text-3xl font-black text-ds-text">{t('header.title')}</h1>
                     <p className="text-ds-soft mt-2">
-                        Administra y analiza tu comunidad de seguidores de Twitch
+                        {t(available.twitch && available.kick ? 'header.subtitleBoth' : available.kick ? 'header.subtitleKick' : 'header.subtitleTwitch')}
                     </p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 sm:shrink-0">
                     <button
                         onClick={() => handleSyncFollowers(false)}
-                        disabled={loading}
-                        className="ds-btn ds-btn--primary ds-btn--lg"
+                        disabled={loading || !available.twitch}
+                        title={available.twitch ? undefined : t('sync.noTwitchTitle')}
+                        className="ds-btn ds-btn--primary ds-btn--lg w-full sm:w-auto justify-center"
                     >
                         <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                        Sincronizar
+                        {available.kick ? t('sync.buttonTwitch') : t('sync.button')}
                     </button>
                 </div>
             </div>
 
-            {/* Auto-Sync Settings */}
-            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-3 cursor-pointer">
+            {/* Estado de la sincronización con Twitch y refuerzo del navegador */}
+            {available.twitch && platformFilter !== 'kick' ? (
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                    <div>
+                        <p className="text-sm font-bold text-ds-text">{t('status.title')}</p>
+                        <p className="text-sm text-ds-soft">
+                            {!syncStatus
+                                ? t('status.never')
+                                : syncStatus.result === 'fetch_failed' || syncStatus.result === 'skipped_large'
+                                    ? t(syncStatus.result === 'fetch_failed' ? 'status.failed' : 'status.skippedLarge', { when: relativeTime(syncStatus.lastAttemptAt) })
+                                    : t('status.line', { when: relativeTime(syncStatus.lastSuccessAt ?? syncStatus.lastAttemptAt), source: t(`status.source.${syncStatus.source}`) })}
+                            {syncStatus?.lastSuccessAt && (syncStatus.result === 'fetch_failed' || syncStatus.result === 'skipped_large') && (
+                                <> {t('status.lastGood', { when: relativeTime(syncStatus.lastSuccessAt) })}</>
+                            )}
+                        </p>
+                    </div>
+                    {syncStatus && (
+                        <Badge tone={syncStatus.result === 'ok' ? 'ok' : syncStatus.result === 'unfollows_skipped' ? 'warn' : syncStatus.result === 'fetch_failed' ? 'danger' : undefined}>
+                            {t(`status.badge.${syncStatus.result}`)}
+                        </Badge>
+                    )}
+                </div>
+
+                <div className="border-t border-ds-border pt-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
+                        <label className="flex items-start gap-3 cursor-pointer">
                             <input
                                 type="checkbox"
                                 checked={autoSyncEnabled}
                                 onChange={(e) => setAutoSyncEnabled(e.target.checked)}
-                                className="w-5 h-5 rounded border-ds-border"
+                                className="w-5 h-5 rounded border-ds-border mt-0.5"
                             />
                             <div>
-                                <span className="text-sm font-bold text-ds-text">
-                                    Sincronización automática
-                                </span>
-                                <p className="text-xs text-ds-soft">
-                                    Última sincronización: {getLastSyncText()}
-                                </p>
+                                <span className="text-sm font-bold text-ds-text">{t('autosync.browserTitle')}</span>
+                                <p className="text-xs text-ds-soft max-w-xl">{t('autosync.body')}</p>
                             </div>
                         </label>
                         {autoSyncEnabled && (
                             <div className="flex items-center gap-2">
-                                <label className="text-sm text-ds-soft">
-                                    Cada:
-                                </label>
+                                <label className="text-sm text-ds-soft">{t('autosync.every')}</label>
                                 <select
                                     value={autoSyncInterval}
                                     onChange={(e) => setAutoSyncInterval(Number(e.target.value))}
                                     className="ds-input"
                                 >
-                                    <option value={5}>5 minutos</option>
-                                    <option value={10}>10 minutos</option>
-                                    <option value={15}>15 minutos</option>
-                                    <option value={30}>30 minutos</option>
-                                    <option value={60}>1 hora</option>
-                                    <option value={1440}>24 horas</option>
+                                    <option value={5}>{t('autosync.minutes', { count: 5 })}</option>
+                                    <option value={10}>{t('autosync.minutes', { count: 10 })}</option>
+                                    <option value={15}>{t('autosync.minutes', { count: 15 })}</option>
+                                    <option value={30}>{t('autosync.minutes', { count: 30 })}</option>
+                                    <option value={60}>{t('autosync.hours', { count: 1 })}</option>
+                                    <option value={1440}>{t('autosync.hours', { count: 24 })}</option>
                                 </select>
                             </div>
                         )}
                     </div>
-                    {autoSyncEnabled && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-ds-ok/10 rounded-lg">
-                            <div className="w-2 h-2 bg-ds-accent rounded-full animate-pulse"></div>
-                            <span className="text-sm font-bold text-ds-ok">
-                                Auto-sync activo
-                            </span>
-                        </div>
-                    )}
                 </div>
             </div>
-
-            <Alert tone="info" title={t('autosync.title')}>{t('autosync.body')}</Alert>
+            ) : !available.twitch ? (
+                <Alert tone="info" title={t('sync.noTwitchTitle')}>{t('sync.noTwitchBody')}</Alert>
+            ) : null}
 
             {/* Avisos de la última sincronización */}
             {syncWarning?.code === 'fetch_failed' && (
@@ -647,7 +691,7 @@ export default function Followers() {
                     <div className="flex items-center gap-3">
                         <Lock className="w-5 h-5 text-ds-accent-text" />
                         <p className="text-ds-accent-text font-semibold">
-                            Modo limitado - Se requiere nivel "Moderación" o superior para bloquear o silenciar usuarios
+                            {t('limited')}
                         </p>
                     </div>
                 </div>
@@ -662,7 +706,7 @@ export default function Followers() {
                         </div>
                         <div>
                             <div className="text-2xl font-black text-ds-text">{stats.totalFollowers}</div>
-                            <div className="text-sm text-ds-soft">Total</div>
+                            <div className="text-sm text-ds-soft">{t('stats.total')}</div>
                         </div>
                     </div>
                 </div>
@@ -674,7 +718,7 @@ export default function Followers() {
                         </div>
                         <div>
                             <div className="text-2xl font-black text-ds-text">{stats.activeFollowers}</div>
-                            <div className="text-sm text-ds-soft">Activos</div>
+                            <div className="text-sm text-ds-soft">{t('common.active')}</div>
                         </div>
                     </div>
                 </div>
@@ -686,7 +730,7 @@ export default function Followers() {
                         </div>
                         <div>
                             <div className="text-2xl font-black text-ds-text">{stats.unfollowedCount}</div>
-                            <div className="text-sm text-ds-soft">Unfollows</div>
+                            <div className="text-sm text-ds-soft">{t('common.unfollows')}</div>
                         </div>
                     </div>
                 </div>
@@ -698,7 +742,7 @@ export default function Followers() {
                         </div>
                         <div>
                             <div className="text-2xl font-black text-ds-text">{stats.returnedCount}</div>
-                            <div className="text-sm text-ds-soft">Retornados</div>
+                            <div className="text-sm text-ds-soft">{t('common.returned')}</div>
                         </div>
                     </div>
                 </div>
@@ -710,58 +754,80 @@ export default function Followers() {
                         </div>
                         <div>
                             <div className="text-2xl font-black text-ds-text">{stats.blockedCount}</div>
-                            <div className="text-sm text-ds-soft">Bloqueados</div>
+                            <div className="text-sm text-ds-soft">{t('common.blocked')}</div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Plataforma (solo si la cuenta tiene Twitch y Kick) */}
+            {available.twitch && available.kick && (
+                <Segmented
+                    items={[
+                        { id: 'all', label: `${t('filter.all')} (${(platformCounts.twitch?.total ?? 0) + (platformCounts.kick?.total ?? 0)})` },
+                        { id: 'twitch', label: `Twitch (${platformCounts.twitch?.total ?? 0})` },
+                        { id: 'kick', label: `Kick (${platformCounts.kick?.total ?? 0})` },
+                    ]}
+                    value={platformFilter}
+                    onChange={(v) => { setCurrentPage(1); setSelectedFollowers([]); setPlatformFilter(v as PlatformFilter); }}
+                />
+            )}
+            {available.kick && platformFilter === 'kick' && (
+                <Alert tone="info" title={t('kick.title')}>{t('kick.body')}</Alert>
+            )}
+            {available.kick && platformFilter === 'all' && available.twitch && (
+                <p className="text-sm text-ds-soft">{t('kick.short')}</p>
+            )}
+            {available.kick && !available.twitch && (
+                <Alert tone="info" title={t('kick.title')}>{t('kick.body')}</Alert>
+            )}
+
             {/* Search and Filters */}
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
                 <div className="flex gap-3">
-                    <div className="flex-1 relative">
+                    <div className="flex-1 relative min-w-0">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-ds-soft" />
                         <input
                             type="text"
                             value={searchName}
                             onChange={(e) => setSearchName(e.target.value)}
-                            placeholder="Buscar por nombre o username (búsqueda automática)..."
+                            placeholder={t('filters.placeholder')}
                             className="ds-input w-full pl-10 pr-4"
                         />
                     </div>
                     <button
                         onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                        className="ds-btn ds-btn--secondary ds-btn--lg"
+                        className="ds-btn ds-btn--secondary ds-btn--lg shrink-0"
                     >
                         <Filter className="w-5 h-5" />
-                        Filtros
+                        {t('filters.button')}
                     </button>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <button
                         onClick={() => setCurrentFilter('all')}
                         className={currentFilter === 'all' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
-                        Todos
+                        {t('filters.all')}
                     </button>
                     <button
                         onClick={() => setCurrentFilter('active')}
                         className={currentFilter === 'active' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
-                        Activos
+                        {t('common.active')}
                     </button>
                     <button
                         onClick={() => setCurrentFilter('unfollowed')}
                         className={currentFilter === 'unfollowed' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
-                        Unfollows
+                        {t('common.unfollows')}
                     </button>
                     <button
                         onClick={() => setCurrentFilter('returned')}
                         className={currentFilter === 'returned' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
-                        Retornados
+                        {t('common.returned')}
                     </button>
                 </div>
 
@@ -771,7 +837,7 @@ export default function Followers() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-bold text-ds-text mb-2">
-                                    Fecha de follow desde:
+                                    {t('filters.followFrom')}
                                 </label>
                                 <input
                                     type="date"
@@ -782,7 +848,7 @@ export default function Followers() {
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-ds-text mb-2">
-                                    Fecha de follow hasta:
+                                    {t('filters.followTo')}
                                 </label>
                                 <input
                                     type="date"
@@ -797,13 +863,13 @@ export default function Followers() {
                                 onClick={handleApplyAdvancedFilters}
                                 className="ds-btn ds-btn--primary ds-btn--lg"
                             >
-                                Aplicar Filtros
+                                {t('filters.apply')}
                             </button>
                             <button
                                 onClick={handleClearFilters}
                                 className="ds-btn ds-btn--secondary ds-btn--lg"
                             >
-                                Limpiar
+                                {t('filters.clear')}
                             </button>
                         </div>
                     </div>
@@ -823,11 +889,11 @@ export default function Followers() {
                                     className="w-5 h-5 rounded border-ds-border"
                                 />
                                 <span className="text-sm font-bold text-ds-accent-text">
-                                    Seleccionar todos
+                                    {t('bulk.selectAll')}
                                 </span>
                             </label>
                             <span className="text-ds-accent-text font-semibold">
-                                {selectedFollowers.length} seleccionados
+                                {t('bulk.selected', { count: selectedFollowers.length })}
                             </span>
                         </div>
                         <div className="flex gap-3">
@@ -837,7 +903,7 @@ export default function Followers() {
                                 className="ds-btn ds-btn--danger"
                             >
                                 <Ban className="w-4 h-4" />
-                                Bloquear seleccionados
+                                {t('bulk.block')}
                             </button>
                             <button
                                 onClick={handleBulkUnblock}
@@ -845,7 +911,7 @@ export default function Followers() {
                                 className="ds-btn ds-btn--primary"
                             >
                                 <CheckCircle className="w-4 h-4" />
-                                Desbloquear seleccionados
+                                {t('bulk.unblock')}
                             </button>
                         </div>
                     </div>
@@ -858,12 +924,12 @@ export default function Followers() {
                     <div className="text-center py-12">
                         <Users className="w-16 h-16 text-ds-soft mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-ds-text mb-2">
-                            No hay seguidores
+                            {t('table.emptyTitle')}
                         </h3>
                         <p className="text-ds-soft">
-                            No se encontraron seguidores con los filtros aplicados
+                            {t('table.emptyBody')}
                         </p>
-                        {searchName.trim().length >= 2 && (
+                        {searchName.trim().length >= 2 && available.twitch && platformFilter !== 'kick' && (
                             <div className="mt-6 max-w-xl mx-auto text-left space-y-3">
                                 <div className="text-center">
                                     <button onClick={handleLookup} disabled={lookupLoading} className="ds-btn ds-btn--secondary">
@@ -917,7 +983,7 @@ export default function Followers() {
                                         onClick={() => handleSort('userName')}
                                     >
                                         <div className="flex items-center gap-2">
-                                            Usuario
+                                            {t('table.user')}
                                             {getSortIcon('userName')}
                                         </div>
                                     </th>
@@ -926,7 +992,7 @@ export default function Followers() {
                                         onClick={() => handleSort('followedAt')}
                                     >
                                         <div className="flex items-center gap-2">
-                                            Seguido desde
+                                            {t('table.followedSince')}
                                             {getSortIcon('followedAt')}
                                         </div>
                                     </th>
@@ -935,12 +1001,12 @@ export default function Followers() {
                                         onClick={() => handleSort('isFollowing')}
                                     >
                                         <div className="flex items-center gap-2">
-                                            Estado
+                                            {t('table.status')}
                                             {getSortIcon('isFollowing')}
                                         </div>
                                     </th>
                                     <th className="px-6 py-4 text-right text-xs font-bold text-ds-soft uppercase tracking-wider">
-                                        Acciones
+                                        {t('table.actions')}
                                     </th>
                                 </tr>
                             </thead>
@@ -951,20 +1017,23 @@ export default function Followers() {
                                             <td className="px-6 py-4">
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedFollowers.includes(follower.userId)}
-                                                    onChange={() => handleSelectFollower(follower.userId)}
+                                                    checked={selectedFollowers.includes(selKey(follower))}
+                                                    onChange={() => handleSelectFollower(selKey(follower))}
                                                     className="w-5 h-5 rounded border-ds-border"
                                                 />
                                             </td>
                                         )}
                                         <td className="px-6 py-4">
                                             <div>
-                                                <div className="font-bold text-ds-text">{follower.userName}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-bold text-ds-text">{follower.userName}</span>
+                                                    {available.twitch && available.kick && <Badge>{t(`platform.${follower.platform}`)}</Badge>}
+                                                </div>
                                                 <div className="text-sm text-ds-soft">@{follower.userLogin}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-ds-soft">
-                                            {follower.followedAt ? new Date(follower.followedAt).toLocaleDateString('es-ES', {
+                                            {follower.followedAt ? new Date(follower.followedAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES', {
                                                 year: 'numeric',
                                                 month: '2-digit',
                                                 day: '2-digit'
@@ -974,21 +1043,21 @@ export default function Followers() {
                                             <div className="flex flex-wrap gap-2">
                                                 {follower.isFollowing === 0 ? (
                                                     <span className="px-3 py-1 bg-ds-ok/10 text-ds-ok rounded-full text-xs font-bold">
-                                                        Activo
+                                                        {t('badge.active')}
                                                     </span>
                                                 ) : (
                                                     <span className="px-3 py-1 bg-ds-danger/10 text-ds-danger rounded-full text-xs font-bold">
-                                                        Unfollowed
+                                                        {t('badge.unfollowed')}
                                                     </span>
                                                 )}
                                                 {isReturnedFollower(follower) && (
                                                     <span className="px-3 py-1 bg-ds-warn/10 text-ds-warn rounded-full text-xs font-bold">
-                                                        Retornado
+                                                        {t('badge.returned')}
                                                     </span>
                                                 )}
                                                 {follower.isBlocked === 1 && (
                                                     <span className="px-3 py-1 bg-ds-bg text-ds-soft rounded-full text-xs font-bold">
-                                                        Bloqueado
+                                                        {t('badge.blocked')}
                                                     </span>
                                                 )}
                                             </div>
@@ -998,19 +1067,19 @@ export default function Followers() {
                                                 <button
                                                     onClick={() => handleViewHistory(follower)}
                                                     className="ds-btn ds-btn--ghost ds-icon-btn"
-                                                    title="Ver historial"
+                                                    title={t('actions.history')}
                                                 >
                                                     <History className="w-4 h-4 text-ds-accent-text" />
                                                 </button>
                                                 {canModerate && (
                                                     <button
-                                                        onClick={() => handleBlockFollower(follower.userId, follower.isBlocked === 1)}
+                                                        onClick={() => handleBlockFollower(follower.userId, follower.isBlocked === 1, follower.platform)}
                                                         className={`p-2 rounded-lg transition-colors ${
                                                             follower.isBlocked === 1
                                                                 ? 'hover:bg-ds-accent/10 '
                                                                 : 'hover:bg-[#fee2e2] '
                                                         }`}
-                                                        title={follower.isBlocked === 1 ? 'Desbloquear' : 'Bloquear'}
+                                                        title={follower.isBlocked === 1 ? t('actions.unblock') : t('actions.block')}
                                                     >
                                                         <Ban className={`w-4 h-4 ${
                                                             follower.isBlocked === 1
@@ -1036,11 +1105,11 @@ export default function Followers() {
                         {/* Item Counter & Page Size Selector */}
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-ds-soft">
-                                Mostrando <span className="font-bold text-ds-text">{getItemRange().start}-{getItemRange().end}</span> de <span className="font-bold text-ds-text">{totalCount}</span> seguidores
+                                <Trans i18nKey="pager.showing" ns="followers" values={{ range: `${getItemRange().start}-${getItemRange().end}`, total: totalCount }} components={{ b: <span className="font-bold text-ds-text" /> }} />
                             </div>
                             <div className="flex items-center gap-2">
                                 <label className="text-sm text-ds-soft">
-                                    Por página:
+                                    {t('pager.perPage')}
                                 </label>
                                 <select
                                     value={pageSize}
@@ -1062,7 +1131,7 @@ export default function Followers() {
                                 onClick={() => setCurrentPage(1)}
                                 disabled={currentPage === 1}
                                 className="ds-btn ds-btn--ghost ds-icon-btn"
-                                title="Primera página"
+                                title={t('pager.first')}
                             >
                                 <ChevronsLeft className="w-4 h-4" />
                             </button>
@@ -1072,7 +1141,7 @@ export default function Followers() {
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
                                 className="ds-btn ds-btn--ghost ds-icon-btn"
-                                title="Página anterior"
+                                title={t('pager.prev')}
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
@@ -1099,7 +1168,7 @@ export default function Followers() {
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
                                 className="ds-btn ds-btn--ghost ds-icon-btn"
-                                title="Página siguiente"
+                                title={t('pager.next')}
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </button>
@@ -1109,7 +1178,7 @@ export default function Followers() {
                                 onClick={() => setCurrentPage(totalPages)}
                                 disabled={currentPage === totalPages}
                                 className="ds-btn ds-btn--ghost ds-icon-btn"
-                                title="Última página"
+                                title={t('pager.last')}
                             >
                                 <ChevronsRight className="w-4 h-4" />
                             </button>
@@ -1124,7 +1193,7 @@ export default function Followers() {
                     <div className="bg-ds-surface rounded-lg p-6 max-w-md w-full mx-4 border border-ds-border">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-black text-ds-text">
-                                Historial de {selectedFollowerName}
+                                {t('history.title', { name: selectedFollowerName })}
                             </h2>
                             <button
                                 onClick={() => setShowHistoryModal(false)}
@@ -1137,7 +1206,7 @@ export default function Followers() {
                         <div className="space-y-3 max-h-96 overflow-y-auto">
                             {selectedFollowerHistory.length === 0 ? (
                                 <p className="text-center text-ds-soft py-4">
-                                    No hay historial disponible
+                                    {t('history.empty')}
                                 </p>
                             ) : (
                                 selectedFollowerHistory.map((entry) => (
@@ -1150,13 +1219,13 @@ export default function Followers() {
                                                 {getActionLabel(entry.action)}
                                             </div>
                                             <div className="text-sm text-ds-soft">
-                                                {entry.actionTimestamp ? new Date(entry.actionTimestamp).toLocaleString('es-ES', {
+                                                {entry.actionTimestamp ? new Date(entry.actionTimestamp).toLocaleString(i18n.language === 'en' ? 'en-US' : 'es-ES', {
                                                     year: 'numeric',
                                                     month: '2-digit',
                                                     day: '2-digit',
                                                     hour: '2-digit',
                                                     minute: '2-digit'
-                                                }) : 'Fecha no disponible'}
+                                                }) : t('history.noDate')}
                                             </div>
                                         </div>
                                     </div>
@@ -1169,7 +1238,7 @@ export default function Followers() {
                                 onClick={() => setShowHistoryModal(false)}
                                 className="ds-btn ds-btn--secondary ds-btn--lg"
                             >
-                                Cerrar
+                                {t('history.close')}
                             </button>
                         </div>
                     </div>

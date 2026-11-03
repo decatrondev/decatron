@@ -2830,6 +2830,46 @@ ALTER SEQUENCE public.follower_history_id_seq OWNED BY public.follower_history.i
 
 
 --
+-- Name: follower_sync_status; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.follower_sync_status (
+    id bigint NOT NULL,
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    platform character varying(10) DEFAULT 'twitch'::character varying NOT NULL,
+    broadcaster_id character varying(50) NOT NULL,
+    last_attempt_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_success_at timestamp with time zone,
+    last_source character varying(10) DEFAULT 'manual'::character varying NOT NULL,
+    last_result character varying(24) DEFAULT 'ok'::character varying NOT NULL,
+    last_detail character varying(40),
+    new_count integer DEFAULT 0 NOT NULL,
+    returned_count integer DEFAULT 0 NOT NULL,
+    unfollowed_count integer DEFAULT 0 NOT NULL,
+    renamed_count integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: follower_sync_status_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.follower_sync_status_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: follower_sync_status_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.follower_sync_status_id_seq OWNED BY public.follower_sync_status.id;
+
+
+--
 -- Name: fortnite_settings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -11675,6 +11715,13 @@ ALTER TABLE ONLY public.follower_history ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: follower_sync_status id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.follower_sync_status ALTER COLUMN id SET DEFAULT nextval('public.follower_sync_status_id_seq'::regclass);
+
+
+--
 -- Name: fortnite_sprites id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -13656,6 +13703,14 @@ ALTER TABLE ONLY public.follow_alert_history
 
 ALTER TABLE ONLY public.follower_history
     ADD CONSTRAINT follower_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: follower_sync_status follower_sync_status_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.follower_sync_status
+    ADD CONSTRAINT follower_sync_status_pkey PRIMARY KEY (id);
 
 
 --
@@ -19372,6 +19427,13 @@ CREATE UNIQUE INDEX ux_design_versions_published ON public.design_versions USING
 
 
 --
+-- Name: ux_follower_sync_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ux_follower_sync_status ON public.follower_sync_status USING btree (tenant_id, platform, broadcaster_id);
+
+
+--
 -- Name: ux_platform_waitlist_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -20589,6 +20651,14 @@ ALTER TABLE ONLY public.user_channel_permissions
 
 ALTER TABLE ONLY public.user_strikes
     ADD CONSTRAINT fk_user_strikes_user_id FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: follower_sync_status follower_sync_status_tenant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.follower_sync_status
+    ADD CONSTRAINT follower_sync_status_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES public.tenants(id);
 
 
 --
@@ -22586,6 +22656,12 @@ ALTER TABLE public.follow_alert_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.follower_history ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: follower_sync_status; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.follower_sync_status ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: gacha_achievements; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -23578,6 +23654,13 @@ CREATE POLICY tenant_isolation ON public.follow_alert_history USING ((tenant_id 
 --
 
 CREATE POLICY tenant_isolation ON public.follower_history USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
+
+
+--
+-- Name: follower_sync_status tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.follower_sync_status USING ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id))) WITH CHECK ((tenant_id = ( SELECT public.app_tenant_id() AS app_tenant_id)));
 
 
 --

@@ -368,6 +368,89 @@ namespace Decatron.Core.Services
         }
 
         /// <summary>
+        /// Anota el resultado del último intento de sincronización de un canal (una fila por canal y plataforma).
+        /// Nunca lanza: es información accesoria y no debe romper la sincronización.
+        /// </summary>
+        public async Task RecordSyncStatusAsync(string platform, string broadcasterId, string source, string result, string? detail,
+            bool readList, int newCount, int returnedCount, int unfollowedCount, int renamedCount)
+        {
+            try
+            {
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
+                await conn.OpenAsync();
+                const string sql = @"
+                    INSERT INTO follower_sync_status (platform, broadcaster_id, last_attempt_at, last_success_at, last_source, last_result,
+                                                      last_detail, new_count, returned_count, unfollowed_count, renamed_count)
+                    VALUES (@platform, @broadcasterId, @now, CASE WHEN @readList THEN @now ELSE NULL END, @source, @result,
+                            @detail, @n, @r, @u, @rn)
+                    ON CONFLICT (tenant_id, platform, broadcaster_id) DO UPDATE SET
+                        last_attempt_at = EXCLUDED.last_attempt_at,
+                        last_success_at = CASE WHEN @readList THEN EXCLUDED.last_attempt_at ELSE follower_sync_status.last_success_at END,
+                        last_source = EXCLUDED.last_source,
+                        last_result = EXCLUDED.last_result,
+                        last_detail = EXCLUDED.last_detail,
+                        new_count = EXCLUDED.new_count,
+                        returned_count = EXCLUDED.returned_count,
+                        unfollowed_count = EXCLUDED.unfollowed_count,
+                        renamed_count = EXCLUDED.renamed_count";
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
+                cmd.Parameters.AddWithValue("broadcasterId", broadcasterId);
+                cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
+                cmd.Parameters.AddWithValue("readList", readList);
+                cmd.Parameters.AddWithValue("source", source);
+                cmd.Parameters.AddWithValue("result", result);
+                cmd.Parameters.AddWithValue("detail", (object?)detail ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("n", newCount);
+                cmd.Parameters.AddWithValue("r", returnedCount);
+                cmd.Parameters.AddWithValue("u", unfollowedCount);
+                cmd.Parameters.AddWithValue("rn", renamedCount);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo anotar el estado de sincronización de {Broadcaster}", broadcasterId);
+            }
+        }
+
+        /// <summary>Estado del último intento de sincronización de un canal, o null si nunca se sincronizó.</summary>
+        public async Task<FollowerSyncStatus?> GetSyncStatusAsync(string platform, string broadcasterId)
+        {
+            try
+            {
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
+                await conn.OpenAsync();
+                const string sql = @"
+                    SELECT last_attempt_at, last_success_at, last_source, last_result, last_detail,
+                           new_count, returned_count, unfollowed_count, renamed_count
+                    FROM follower_sync_status
+                    WHERE platform = @platform AND broadcaster_id = @broadcasterId";
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("platform", FollowerPlatforms.Normalize(platform));
+                cmd.Parameters.AddWithValue("broadcasterId", broadcasterId);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                if (!await reader.ReadAsync()) return null;
+                return new FollowerSyncStatus
+                {
+                    LastAttemptAt = reader.GetDateTime(0),
+                    LastSuccessAt = reader.IsDBNull(1) ? null : reader.GetDateTime(1),
+                    Source = reader.GetString(2),
+                    Result = reader.GetString(3),
+                    Detail = reader.IsDBNull(4) ? null : reader.GetString(4),
+                    NewCount = reader.GetInt32(5),
+                    ReturnedCount = reader.GetInt32(6),
+                    UnfollowedCount = reader.GetInt32(7),
+                    RenamedCount = reader.GetInt32(8)
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo leer el estado de sincronización de {Broadcaster}", broadcasterId);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Agrega una entrada al historial de seguimiento
         /// </summary>
         public async Task AddHistoryEntryAsync(string broadcasterId, string userId, int action, DateTime? actionTimestamp = null, string platform = FollowerPlatforms.Twitch)
@@ -517,6 +600,22 @@ namespace Decatron.Core.Services
                 Platform = reader.GetString(14)
             };
         }
+    }
+
+    /// <summary>Resultado del último intento de sincronización de un canal (manual o automático).</summary>
+    public class FollowerSyncStatus
+    {
+        public DateTime LastAttemptAt { get; set; }
+        public DateTime? LastSuccessAt { get; set; }
+        /// <summary>manual | auto</summary>
+        public string Source { get; set; } = "manual";
+        /// <summary>ok | unfollows_skipped | fetch_failed | skipped_large</summary>
+        public string Result { get; set; } = "ok";
+        public string? Detail { get; set; }
+        public int NewCount { get; set; }
+        public int ReturnedCount { get; set; }
+        public int UnfollowedCount { get; set; }
+        public int RenamedCount { get; set; }
     }
 
     /// <summary>

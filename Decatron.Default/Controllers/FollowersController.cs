@@ -204,17 +204,26 @@ namespace Decatron.Default.Controllers
                     };
                 }
 
-                // Obtener estadísticas (suma de las plataformas elegidas)
+                // Estadísticas por plataforma (para los contadores del filtro) y la suma de las plataformas elegidas
+                var (allTargets, _, _) = await ResolveTargetsAsync(channelOwnerId, "all");
+                var perPlatform = new Dictionary<string, FollowerStats>();
+                foreach (var target in allTargets)
+                    perPlatform[target.Platform] = await _followersService.GetFollowerStatsAsync(target.BroadcasterId, target.Platform);
+
                 var stats = new FollowerStats();
                 foreach (var target in targets)
                 {
-                    var st = await _followersService.GetFollowerStatsAsync(target.BroadcasterId, target.Platform);
+                    var st = perPlatform[target.Platform];
                     stats.TotalFollowers += st.TotalFollowers;
                     stats.ActiveFollowers += st.ActiveFollowers;
                     stats.UnfollowedCount += st.UnfollowedCount;
                     stats.BlockedCount += st.BlockedCount;
                     stats.ReturnedCount += st.ReturnedCount;
                 }
+
+                // Última sincronización con Twitch (Kick no se sincroniza: solo registra los follows en vivo)
+                var twitchForStatus = allTargets.FirstOrDefault(t => t.Platform == FollowerPlatforms.Twitch);
+                var syncStatus = twitchForStatus == null ? null : await _followersService.GetSyncStatusAsync(FollowerPlatforms.Twitch, twitchForStatus.BroadcasterId);
 
                 // Paginación
                 var totalCount = followers.Count;
@@ -263,6 +272,19 @@ namespace Decatron.Default.Controllers
                         stats.ReturnedCount
                     },
                     availablePlatforms = new { twitch = hasTwitch, kick = hasKick },
+                    platformCounts = perPlatform.ToDictionary(kv => kv.Key, kv => new { active = kv.Value.ActiveFollowers, total = kv.Value.TotalFollowers }),
+                    syncStatus = syncStatus == null ? null : new
+                    {
+                        lastAttemptAt = DateTime.SpecifyKind(syncStatus.LastAttemptAt, DateTimeKind.Utc),
+                        lastSuccessAt = syncStatus.LastSuccessAt.HasValue ? DateTime.SpecifyKind(syncStatus.LastSuccessAt.Value, DateTimeKind.Utc) : (DateTime?)null,
+                        source = syncStatus.Source,
+                        result = syncStatus.Result,
+                        detail = syncStatus.Detail,
+                        newFollowers = syncStatus.NewCount,
+                        returned = syncStatus.ReturnedCount,
+                        unfollowed = syncStatus.UnfollowedCount,
+                        renamed = syncStatus.RenamedCount
+                    },
                     pagination = new
                     {
                         currentPage = page,

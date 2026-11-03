@@ -87,7 +87,7 @@ namespace Decatron.Services
                 {
                     using var scope = _scopeFactory.CreateScope();
                     var sync = scope.ServiceProvider.GetRequiredService<FollowersSyncService>();
-                    var r = await sync.SyncAsync(broadcasterId, maxNewFollowers: 500);
+                    var r = await sync.SyncAsync(broadcasterId, maxNewFollowers: 500, source: "auto");
                     if (r.Success) { ok++; changed += r.NewFollowers + r.Returned + r.Unfollowed + r.Renamed; }
                     else failed++;
                 }

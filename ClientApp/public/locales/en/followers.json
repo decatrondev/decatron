@@ -10,7 +10,11 @@
       "EmptyList": "Twitch returned an empty list, but you have saved followers.",
       "CountMismatch": "{{received}} followers arrived and Twitch says you have {{twitchTotal}}.",
       "SuspiciousDrop": "{{missing}} followers were missing at once, too many to be real unfollows. If they really left, they will be marked in the next sync that brings the full list."
-    }
+    },
+    "buttonTwitch": "Sync with Twitch",
+    "noTwitchTitle": "This account has no Twitch linked",
+    "noTwitchBody": "Syncing the follower list only exists for Twitch. On Kick, Decatron records each new follow the moment it happens.",
+    "button": "Sync"
   },
   "note": {
     "unfollowDateTitle": "About the unfollow date",
@@ -36,6 +40,139 @@
   },
   "autosync": {
     "title": "Automatic sync on the server",
-    "body": "Even if you do not have this page open, Decatron compares your followers with Twitch's list every hour to record anyone it did not get to see and to detect who stopped following you. An unfollow date is the time of that check, so it is now at most one hour from the real moment. This browser option remains available as a backup."
+    "body": "The server already checks your followers on its own every hour, even if this page is not open. This browser option remains as a backup if you want to check more often.",
+    "every": "Every:",
+    "browserTitle": "Automatic sync from this browser",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours"
+  },
+  "header": {
+    "subtitleTwitch": "Manage and analyze your Twitch follower community",
+    "subtitleKick": "Manage and analyze your Kick follower community",
+    "subtitleBoth": "Manage and analyze your Twitch and Kick follower community",
+    "title": "Follower management"
+  },
+  "filter": {
+    "all": "All"
+  },
+  "platform": {
+    "twitch": "Twitch",
+    "kick": "Kick"
+  },
+  "status": {
+    "title": "Sync with Twitch",
+    "never": "There is no full read of your follower list yet. Press Sync to start; after that it repeats on its own every hour.",
+    "line": "Last read of your Twitch list: {{when}} ({{source}}). It repeats on its own every hour.",
+    "failed": "The last attempt ({{when}}) could not read the Twitch list. Your data was left as it was.",
+    "skippedLarge": "The last attempt ({{when}}) was skipped because many followers are still to be imported. Press Sync to do it.",
+    "lastGood": "Last good read: {{when}}.",
+    "source": {
+      "auto": "automatic",
+      "manual": "manual"
+    },
+    "badge": {
+      "ok": "Up to date",
+      "unfollows_skipped": "Review",
+      "fetch_failed": "Failed",
+      "skipped_large": "Pending"
+    }
+  },
+  "kick": {
+    "title": "What Decatron records from Kick",
+    "body": "Kick does not provide your follower list or notify when someone unfollows. Decatron saves each new follow since this feature was turned on, but it cannot import people who already followed you or detect unfollows. If the bot is off right when someone follows you, that follow is not recorded.",
+    "short": "Kick follows are recorded the moment they happen. Kick does not allow importing people who already followed you or detecting unfollows; choose Kick above for details."
+  },
+  "filters": {
+    "button": "Filters",
+    "all": "All",
+    "followFrom": "Followed from:",
+    "followTo": "Followed until:",
+    "apply": "Apply filters",
+    "clear": "Clear",
+    "placeholder": "Search by name or username (automatic search)..."
+  },
+  "common": {
+    "active": "Active",
+    "unfollows": "Unfollows",
+    "returned": "Returned",
+    "blocked": "Blocked"
+  },
+  "stats": {
+    "total": "Total"
+  },
+  "bulk": {
+    "selectAll": "Select all",
+    "block": "Block selected",
+    "unblock": "Unblock selected",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected"
+  },
+  "table": {
+    "emptyTitle": "No followers",
+    "emptyBody": "No followers were found with the applied filters",
+    "user": "User",
+    "followedSince": "Followed since",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "badge": {
+    "active": "Active",
+    "unfollowed": "Unfollowed",
+    "returned": "Returned",
+    "blocked": "Blocked"
+  },
+  "pager": {
+    "perPage": "Per page:",
+    "first": "First page",
+    "prev": "Previous page",
+    "next": "Next page",
+    "last": "Last page",
+    "showing": "Showing <b>{{range}}</b> of <b>{{total}}</b> followers"
+  },
+  "history": {
+    "empty": "No history available",
+    "close": "Close",
+    "title": "History of {{name}}",
+    "noDate": "Date not available"
+  },
+  "loading": "Loading followers...",
+  "denied": {
+    "title": "Access denied",
+    "body": "You do not have enough permissions to access follower management. The \"Commands\" access level or higher is required."
+  },
+  "actions": {
+    "history": "View history",
+    "unblock": "Unblock",
+    "block": "Block"
+  },
+  "limited": "Limited mode: the \"Moderation\" level or higher is required to block or silence users",
+  "confirm": {
+    "sync": "Sync followers with Twitch? This may take a few moments.",
+    "unblockOne": "Are you sure you want to unblock this user?",
+    "blockOne": "Are you sure you want to block this user?",
+    "blockMany_one": "Are you sure you want to block {{count}} selected user?",
+    "blockMany_other": "Are you sure you want to block {{count}} selected users?",
+    "unblockMany_one": "Are you sure you want to unblock {{count}} selected user?",
+    "unblockMany_other": "Are you sure you want to unblock {{count}} selected users?"
+  },
+  "toast": {
+    "noBlockPermission": "You do not have permission to block users",
+    "unblockError": "Error unblocking the user",
+    "blockError": "Error blocking the user",
+    "blockedResult": "Blocked: {{ok}}, errors: {{errors}}",
+    "unblockedResult": "Unblocked: {{ok}}, errors: {{errors}}",
+    "blockManyError": "Error blocking users",
+    "unblockManyError": "Error unblocking users",
+    "loadError": "Error loading followers",
+    "syncError": "Error syncing followers"
+  },
+  "action": {
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "block": "Block",
+    "unblock": "Unblock",
+    "unknown": "Unknown"
   }
 }

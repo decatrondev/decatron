@@ -10,7 +10,11 @@
       "EmptyList": "Twitch devolvió una lista vacía, pero tienes seguidores guardados.",
       "CountMismatch": "Llegaron {{received}} seguidores y Twitch dice que tienes {{twitchTotal}}.",
       "SuspiciousDrop": "Faltaban {{missing}} seguidores de golpe, demasiados para ser bajas reales. Si de verdad se fueron, quedarán marcados en la próxima sincronización que traiga la lista completa."
-    }
+    },
+    "buttonTwitch": "Sincronizar con Twitch",
+    "noTwitchTitle": "Esta cuenta no tiene Twitch vinculado",
+    "noTwitchBody": "La sincronización con la lista de seguidores solo existe para Twitch. En Kick, Decatron registra cada follow nuevo en el momento en que ocurre.",
+    "button": "Sincronizar"
   },
   "note": {
     "unfollowDateTitle": "Sobre la fecha de unfollow",
@@ -36,6 +40,139 @@
   },
   "autosync": {
     "title": "Sincronización automática en el servidor",
-    "body": "Aunque no tengas esta página abierta, Decatron compara tus seguidores con la lista de Twitch cada hora para registrar a quien no se alcanzó a ver y detectar quién dejó de seguirte. La fecha de un unfollow es la de esa revisión, así que ahora queda a lo sumo a una hora del momento real. Esta opción del navegador sigue disponible como refuerzo."
+    "body": "El servidor ya revisa tus seguidores solo, cada hora, aunque no tengas esta página abierta. Esta opción del navegador queda como refuerzo si quieres revisar más seguido.",
+    "every": "Cada:",
+    "browserTitle": "Sincronización automática desde este navegador",
+    "minutes_one": "{{count}} minuto",
+    "minutes_other": "{{count}} minutos",
+    "hours_one": "{{count}} hora",
+    "hours_other": "{{count}} horas"
+  },
+  "header": {
+    "subtitleTwitch": "Administra y analiza tu comunidad de seguidores de Twitch",
+    "subtitleKick": "Administra y analiza tu comunidad de seguidores de Kick",
+    "subtitleBoth": "Administra y analiza tu comunidad de seguidores de Twitch y Kick",
+    "title": "Gestión de Seguidores"
+  },
+  "filter": {
+    "all": "Todos"
+  },
+  "platform": {
+    "twitch": "Twitch",
+    "kick": "Kick"
+  },
+  "status": {
+    "title": "Sincronización con Twitch",
+    "never": "Todavía no hay una lectura completa de tu lista de seguidores. Pulsa Sincronizar para empezar; después se repite sola cada hora.",
+    "line": "Última lectura de tu lista de Twitch: {{when}} ({{source}}). Se repite sola cada hora.",
+    "failed": "El último intento ({{when}}) no pudo leer la lista de Twitch. Tus datos quedaron como estaban.",
+    "skippedLarge": "El último intento ({{when}}) se omitió porque faltan muchos seguidores por importar. Pulsa Sincronizar para hacerlo.",
+    "lastGood": "Última lectura buena: {{when}}.",
+    "source": {
+      "auto": "automática",
+      "manual": "manual"
+    },
+    "badge": {
+      "ok": "Al día",
+      "unfollows_skipped": "Revisar",
+      "fetch_failed": "Falló",
+      "skipped_large": "Pendiente"
+    }
+  },
+  "kick": {
+    "title": "Qué registra Decatron de Kick",
+    "body": "Kick no entrega la lista de tus seguidores ni avisa cuando alguien deja de seguirte. Decatron guarda cada follow nuevo desde que se activó esta función, pero no puede importar a quienes ya te seguían ni detectar unfollows. Si el bot está apagado justo cuando alguien te sigue, ese follow no se registra.",
+    "short": "Los follows de Kick se registran en el momento en que ocurren. Kick no permite importar a quienes ya te seguían ni detectar unfollows; elige Kick arriba para ver los detalles."
+  },
+  "filters": {
+    "button": "Filtros",
+    "all": "Todos",
+    "followFrom": "Fecha de follow desde:",
+    "followTo": "Fecha de follow hasta:",
+    "apply": "Aplicar Filtros",
+    "clear": "Limpiar",
+    "placeholder": "Buscar por nombre o username (búsqueda automática)..."
+  },
+  "common": {
+    "active": "Activos",
+    "unfollows": "Unfollows",
+    "returned": "Retornados",
+    "blocked": "Bloqueados"
+  },
+  "stats": {
+    "total": "Total"
+  },
+  "bulk": {
+    "selectAll": "Seleccionar todos",
+    "block": "Bloquear seleccionados",
+    "unblock": "Desbloquear seleccionados",
+    "selected_one": "{{count}} seleccionado",
+    "selected_other": "{{count}} seleccionados"
+  },
+  "table": {
+    "emptyTitle": "No hay seguidores",
+    "emptyBody": "No se encontraron seguidores con los filtros aplicados",
+    "user": "Usuario",
+    "followedSince": "Seguido desde",
+    "status": "Estado",
+    "actions": "Acciones"
+  },
+  "badge": {
+    "active": "Activo",
+    "unfollowed": "Unfollowed",
+    "returned": "Retornado",
+    "blocked": "Bloqueado"
+  },
+  "pager": {
+    "perPage": "Por página:",
+    "first": "Primera página",
+    "prev": "Página anterior",
+    "next": "Página siguiente",
+    "last": "Última página",
+    "showing": "Mostrando <b>{{range}}</b> de <b>{{total}}</b> seguidores"
+  },
+  "history": {
+    "empty": "No hay historial disponible",
+    "close": "Cerrar",
+    "title": "Historial de {{name}}",
+    "noDate": "Fecha no disponible"
+  },
+  "loading": "Cargando seguidores...",
+  "denied": {
+    "title": "Acceso Denegado",
+    "body": "No tienes permisos suficientes para acceder a la gestión de seguidores. Se requiere nivel de acceso «Comandos» o superior."
+  },
+  "actions": {
+    "history": "Ver historial",
+    "unblock": "Desbloquear",
+    "block": "Bloquear"
+  },
+  "limited": "Modo limitado: se requiere nivel «Moderación» o superior para bloquear o silenciar usuarios",
+  "confirm": {
+    "sync": "¿Deseas sincronizar los seguidores con Twitch? Esto puede tardar unos momentos.",
+    "unblockOne": "¿Seguro que quieres desbloquear a este usuario?",
+    "blockOne": "¿Seguro que quieres bloquear a este usuario?",
+    "blockMany_one": "¿Seguro que quieres bloquear a {{count}} usuario seleccionado?",
+    "blockMany_other": "¿Seguro que quieres bloquear a {{count}} usuarios seleccionados?",
+    "unblockMany_one": "¿Seguro que quieres desbloquear a {{count}} usuario seleccionado?",
+    "unblockMany_other": "¿Seguro que quieres desbloquear a {{count}} usuarios seleccionados?"
+  },
+  "toast": {
+    "noBlockPermission": "No tienes permisos para bloquear usuarios",
+    "unblockError": "Error al desbloquear al usuario",
+    "blockError": "Error al bloquear al usuario",
+    "blockedResult": "Bloqueados: {{ok}}, errores: {{errors}}",
+    "unblockedResult": "Desbloqueados: {{ok}}, errores: {{errors}}",
+    "blockManyError": "Error al bloquear usuarios",
+    "unblockManyError": "Error al desbloquear usuarios",
+    "loadError": "Error al cargar seguidores",
+    "syncError": "Error al sincronizar seguidores"
+  },
+  "action": {
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "block": "Bloqueo",
+    "unblock": "Desbloqueo",
+    "unknown": "Desconocido"
   }
 }
