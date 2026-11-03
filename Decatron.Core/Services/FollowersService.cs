@@ -297,6 +297,65 @@ namespace Decatron.Core.Services
         }
 
         /// <summary>
+        /// Registra un follow recibido en vivo, en UNA sola operación atómica (sin «buscar y luego insertar»):
+        /// dos eventos casi simultáneos, o un evento junto a una sincronización, nunca pierden el follow por la clave única.
+        /// No toca el bloqueo ni la fecha de creación de la cuenta. Si ya estaba siguiendo (evento repetido) conserva la fecha
+        /// original y no agrega historial; si había dejado de seguir, lo reactiva con la fecha nueva.
+        /// </summary>
+        public async Task<FollowRecordOutcome> RecordFollowAsync(
+            string broadcasterId, string broadcasterName, string userId, string userName, string userLogin, DateTime followedAt)
+        {
+            try
+            {
+                await using var conn = Decatron.Core.Interfaces.TenantNpgsql.Create(_connectionString);
+                await conn.OpenAsync();
+
+                const string sql = @"
+                    WITH prev AS (
+                        SELECT is_following FROM channel_followers
+                        WHERE broadcaster_id = @broadcasterId AND user_id = @userId
+                    ), up AS (
+                        INSERT INTO channel_followers (
+                            broadcaster_id, broadcaster_name, user_id, user_name, user_login,
+                            followed_at, is_following, is_blocked, was_blocked, created_at, updated_at
+                        ) VALUES (
+                            @broadcasterId, @broadcasterName, @userId, @userName, @userLogin,
+                            @followedAt, 0, 0, 0, @now, @now
+                        )
+                        ON CONFLICT (tenant_id, broadcaster_id, user_id) DO UPDATE SET
+                            broadcaster_name = EXCLUDED.broadcaster_name,
+                            user_name = EXCLUDED.user_name,
+                            user_login = EXCLUDED.user_login,
+                            followed_at = CASE WHEN channel_followers.is_following = 1 THEN EXCLUDED.followed_at ELSE channel_followers.followed_at END,
+                            is_following = 0,
+                            unfollowed_at = NULL,
+                            updated_at = EXCLUDED.updated_at
+                        RETURNING id
+                    )
+                    SELECT (SELECT is_following FROM prev), (SELECT count(*) FROM up)";
+
+                await using var cmd = new NpgsqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("broadcasterId", broadcasterId);
+                cmd.Parameters.AddWithValue("broadcasterName", broadcasterName);
+                cmd.Parameters.AddWithValue("userId", userId);
+                cmd.Parameters.AddWithValue("userName", userName);
+                cmd.Parameters.AddWithValue("userLogin", userLogin);
+                cmd.Parameters.AddWithValue("followedAt", followedAt);
+                cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+                await reader.ReadAsync();
+                if (reader.IsDBNull(0)) return FollowRecordOutcome.Created;
+                return reader.GetInt32(0) == 1 ? FollowRecordOutcome.Reactivated : FollowRecordOutcome.AlreadyFollowing;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al registrar follow de {userId} en {broadcasterId}");
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Agrega una entrada al historial de seguimiento
         /// </summary>
         public async Task AddHistoryEntryAsync(string broadcasterId, string userId, int action, DateTime? actionTimestamp = null)
@@ -452,5 +511,16 @@ namespace Decatron.Core.Services
         public int UnfollowedCount { get; set; }
         public int BlockedCount { get; set; }
         public int ReturnedCount { get; set; }
+    }
+
+    /// <summary>Qué pasó al registrar un follow en vivo.</summary>
+    public enum FollowRecordOutcome
+    {
+        /// <summary>Persona nueva en el canal.</summary>
+        Created = 0,
+        /// <summary>Había dejado de seguir y volvió.</summary>
+        Reactivated = 1,
+        /// <summary>Evento repetido: ya figuraba como seguidor.</summary>
+        AlreadyFollowing = 2,
     }
 }

@@ -1,0 +1,41 @@
+{
+  "sync": {
+    "doneToast": "Sincronización completada: {{newFollowers}} nuevos, {{returned}} retornados, {{renamed}} con nombre cambiado, {{unfollowed}} unfollows",
+    "failedTitle": "No se pudo leer la lista de seguidores de Twitch",
+    "failedBody": "No se cambió nada en tus datos. Suele pasar por un error temporal de Twitch o porque el permiso de lectura de seguidores venció. Prueba de nuevo en unos minutos; si sigue igual, vuelve a iniciar sesión con Twitch.",
+    "skippedTitle": "Se omitió la detección de unfollows en esta sincronización",
+    "skippedHint": "No es un error tuyo. Los seguidores nuevos y los cambios de nombre sí se guardaron, pero nadie fue marcado como unfollow para no marcar por error a gente que sigue en tu canal. Se volverá a intentar en la próxima sincronización.",
+    "reason": {
+      "IncompleteList": "Twitch cortó la lista a mitad de la descarga.",
+      "EmptyList": "Twitch devolvió una lista vacía, pero tienes seguidores guardados.",
+      "CountMismatch": "Llegaron {{received}} seguidores y Twitch dice que tienes {{twitchTotal}}.",
+      "SuspiciousDrop": "Faltaban {{missing}} seguidores de golpe, demasiados para ser bajas reales. Si de verdad se fueron, quedarán marcados en la próxima sincronización que traiga la lista completa."
+    }
+  },
+  "note": {
+    "unfollowDateTitle": "Sobre la fecha de unfollow",
+    "unfollowDateBody": "Twitch no avisa cuando alguien deja de seguir. La fecha mostrada es el momento en que Decatron lo detectó al comparar con la lista de Twitch, no necesariamente el día exacto en que dejó de seguir."
+  },
+  "lookup": {
+    "button": "Buscar «{{name}}» en Twitch y en el chat",
+    "searching": "Buscando...",
+    "errorTitle": "No se pudo hacer la búsqueda",
+    "errorBody": "Prueba de nuevo en unos minutos. Tus datos no se tocaron.",
+    "notFoundTitle": "No encontramos a esa persona",
+    "notFoundBody": "No aparece en tus seguidores guardados, en el chat de tu canal ni como cuenta de Twitch con ese nombre. Revisa que esté bien escrito; si cambió de nombre, prueba con el nombre viejo con el que escribía en tu chat.",
+    "followsNow": "Sí te sigue hoy en Twitch (desde {{date}})",
+    "notFollowsNow": "Twitch dice que hoy NO te sigue",
+    "unknown": "No pudimos preguntarle a Twitch",
+    "unknownBody": "Suele pasar por un error temporal de Twitch o porque el permiso de lectura de seguidores venció. Prueba de nuevo más tarde.",
+    "names": "Nombres con los que escribió en tu chat: {{names}}.",
+    "saved": "Está guardado en tus seguidores (follow registrado: {{date}}).",
+    "notSaved": "No hay ningún registro suyo como seguidor de tu canal en Decatron.",
+    "chat": "En tu chat escribió {{count}} mensajes, entre {{first}} y {{last}}. Es solo una referencia: no es la fecha en que te siguió o dejó de seguirte.",
+    "gapExplain": "Lo más probable es que te siguiera y se fuera antes de que Decatron lo viera (Twitch no entrega el historial de quién siguió antes), o que nunca te haya seguido. No se perdió nada de lo que Decatron ya había registrado.",
+    "missingBug": "Te sigue en Twitch pero Decatron no lo tenía. Pulsa Sincronizar para agregarlo."
+  },
+  "autosync": {
+    "title": "Sincronización automática en el servidor",
+    "body": "Aunque no tengas esta página abierta, Decatron compara tus seguidores con la lista de Twitch cada hora para registrar a quien no se alcanzó a ver y detectar quién dejó de seguirte. La fecha de un unfollow es la de esa revisión, así que ahora queda a lo sumo a una hora del momento real. Esta opción del navegador sigue disponible como refuerzo."
+  }
+}

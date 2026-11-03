@@ -1,0 +1,41 @@
+{
+  "sync": {
+    "doneToast": "Sync complete: {{newFollowers}} new, {{returned}} returned, {{renamed}} renamed, {{unfollowed}} unfollows",
+    "failedTitle": "Could not read the follower list from Twitch",
+    "failedBody": "Nothing was changed in your data. This usually happens because of a temporary Twitch error or because the follower read permission expired. Try again in a few minutes; if it keeps happening, sign in with Twitch again.",
+    "skippedTitle": "Unfollow detection was skipped in this sync",
+    "skippedHint": "This is not your fault. New followers and name changes were saved, but nobody was marked as unfollowed so people who still follow your channel are not flagged by mistake. It will be tried again on the next sync.",
+    "reason": {
+      "IncompleteList": "Twitch cut the list short during the download.",
+      "EmptyList": "Twitch returned an empty list, but you have saved followers.",
+      "CountMismatch": "{{received}} followers arrived and Twitch says you have {{twitchTotal}}.",
+      "SuspiciousDrop": "{{missing}} followers were missing at once, too many to be real unfollows. If they really left, they will be marked in the next sync that brings the full list."
+    }
+  },
+  "note": {
+    "unfollowDateTitle": "About the unfollow date",
+    "unfollowDateBody": "Twitch does not notify when someone unfollows. The date shown is when Decatron detected it by comparing against Twitch's list, not necessarily the exact day they stopped following."
+  },
+  "lookup": {
+    "button": "Look up \"{{name}}\" on Twitch and in chat",
+    "searching": "Searching...",
+    "errorTitle": "The search could not be done",
+    "errorBody": "Try again in a few minutes. Your data was not touched.",
+    "notFoundTitle": "We could not find that person",
+    "notFoundBody": "They are not in your saved followers, in your channel's chat, or as a Twitch account with that name. Check the spelling; if they changed their name, try the old name they used in your chat.",
+    "followsNow": "They follow you on Twitch today (since {{date}})",
+    "notFollowsNow": "Twitch says they do NOT follow you today",
+    "unknown": "We could not ask Twitch",
+    "unknownBody": "This usually happens because of a temporary Twitch error or because the follower read permission expired. Try again later.",
+    "names": "Names they used in your chat: {{names}}.",
+    "saved": "They are saved in your followers (follow recorded: {{date}}).",
+    "notSaved": "There is no record of them as a follower of your channel in Decatron.",
+    "chat": "They wrote {{count}} messages in your chat, between {{first}} and {{last}}. This is only a reference: it is not the date they followed or unfollowed you.",
+    "gapExplain": "Most likely they followed you and left before Decatron saw them (Twitch does not provide the history of who followed earlier), or they never followed you. Nothing Decatron had already recorded was lost.",
+    "missingBug": "They follow you on Twitch but Decatron did not have them. Press Sync to add them."
+  },
+  "autosync": {
+    "title": "Automatic sync on the server",
+    "body": "Even if you do not have this page open, Decatron compares your followers with Twitch's list every hour to record anyone it did not get to see and to detect who stopped following you. An unfollow date is the time of that check, so it is now at most one hour from the real moment. This browser option remains available as a backup."
+  }
+}

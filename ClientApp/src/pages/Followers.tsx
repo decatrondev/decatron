@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../hooks/usePermissions';
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useTranslation } from 'react-i18next';
+import { Alert } from '../components/ds';
 
 interface Follower {
     id: number;
@@ -71,6 +73,18 @@ export default function Followers() {
     const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
     const [autoSyncInterval, setAutoSyncInterval] = useState(5);
     const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+    const { t, i18n } = useTranslation('followers');
+    type SyncWarning = { code: string; missing?: number; received?: number; twitchTotal?: number; detail?: string };
+    const [syncWarning, setSyncWarning] = useState<SyncWarning | null>(null);
+    type LookupResult = {
+        found: boolean; userId?: string; resolvedBy?: string; namesSeen?: string[];
+        saved?: { userName: string; userLogin: string; followedAt: string; isFollowing: number; unfollowedAt?: string } | null;
+        twitch?: { follows: boolean | null; followedAt?: string | null; failure?: string | null };
+        chat?: { count: number; first: string; last: string } | null;
+    };
+    const [lookup, setLookup] = useState<LookupResult | null>(null);
+    const [lookupLoading, setLookupLoading] = useState(false);
+    const [lookupError, setLookupError] = useState(false);
     const [configLoaded, setConfigLoaded] = useState(false); // Bandera para saber si ya se cargó la config
 
     const canModerate = hasMinimumLevel('moderation');
@@ -192,13 +206,20 @@ export default function Followers() {
             setLoading(true);
             const res = await api.post('/followers/sync');
 
+            setSyncWarning(res.data.warning ?? null);
+
             if (res.data.success) {
                 const syncStats = res.data.stats;
                 setLastSyncTime(new Date());
 
                 if (!isAutoSync) {
                     showToast(
-                        `Sincronización completada: ${syncStats.newFollowers} nuevos, ${syncStats.returned} retornados, ${syncStats.unfollowed} unfollowed`,
+                        t('sync.doneToast', {
+                            newFollowers: syncStats.newFollowers,
+                            returned: syncStats.returned,
+                            renamed: syncStats.renamed ?? 0,
+                            unfollowed: syncStats.unfollowed,
+                        }),
                         'success'
                     );
                 }
@@ -213,6 +234,22 @@ export default function Followers() {
             setLoading(false);
         }
     };
+
+    const handleLookup = async () => {
+        setLookupLoading(true);
+        setLookupError(false);
+        setLookup(null);
+        try {
+            const res = await api.get('/followers/lookup', { params: { query: searchName } });
+            setLookup(res.data);
+        } catch {
+            setLookupError(true);
+        } finally {
+            setLookupLoading(false);
+        }
+    };
+
+    const fmtDate = (v?: string | null) => (v ? new Date(v).toLocaleString(i18n.language === 'en' ? 'en-US' : 'es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '');
 
     const handleApplyAdvancedFilters = () => {
         setCurrentPage(1);
@@ -587,6 +624,23 @@ export default function Followers() {
                 </div>
             </div>
 
+            <Alert tone="info" title={t('autosync.title')}>{t('autosync.body')}</Alert>
+
+            {/* Avisos de la última sincronización */}
+            {syncWarning?.code === 'fetch_failed' && (
+                <Alert tone="danger" title={t('sync.failedTitle')}>{t('sync.failedBody')}</Alert>
+            )}
+            {syncWarning && syncWarning.code !== 'fetch_failed' && (
+                <Alert tone="warn" title={t('sync.skippedTitle')}>
+                    <p>{t(`sync.reason.${syncWarning.code}`, { missing: syncWarning.missing, received: syncWarning.received, twitchTotal: syncWarning.twitchTotal })}</p>
+                    <p>{t('sync.skippedHint')}</p>
+                </Alert>
+            )}
+
+            {currentFilter === 'unfollowed' && (
+                <Alert tone="info" title={t('note.unfollowDateTitle')}>{t('note.unfollowDateBody')}</Alert>
+            )}
+
             {/* Permission Info */}
             {!canModerate && (
                 <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-4">
@@ -809,6 +863,39 @@ export default function Followers() {
                         <p className="text-ds-soft">
                             No se encontraron seguidores con los filtros aplicados
                         </p>
+                        {searchName.trim().length >= 2 && (
+                            <div className="mt-6 max-w-xl mx-auto text-left space-y-3">
+                                <div className="text-center">
+                                    <button onClick={handleLookup} disabled={lookupLoading} className="ds-btn ds-btn--secondary">
+                                        <Search className="w-4 h-4" />
+                                        {lookupLoading ? t('lookup.searching') : t('lookup.button', { name: searchName.trim() })}
+                                    </button>
+                                </div>
+                                {lookupError && <Alert tone="danger" title={t('lookup.errorTitle')}>{t('lookup.errorBody')}</Alert>}
+                                {lookup && !lookup.found && <Alert tone="info" title={t('lookup.notFoundTitle')}>{t('lookup.notFoundBody')}</Alert>}
+                                {lookup?.found && (
+                                    <Alert
+                                        tone={lookup.twitch?.follows ? 'ok' : lookup.twitch?.follows === false ? 'warn' : 'info'}
+                                        title={
+                                            lookup.twitch?.follows ? t('lookup.followsNow', { date: fmtDate(lookup.twitch.followedAt) })
+                                            : lookup.twitch?.follows === false ? t('lookup.notFollowsNow')
+                                            : t('lookup.unknown')
+                                        }
+                                    >
+                                        <ul className="list-disc pl-5 space-y-1">
+                                            {lookup.twitch?.follows === null && <li>{t('lookup.unknownBody')}</li>}
+                                            {lookup.namesSeen && lookup.namesSeen.length > 1 && <li>{t('lookup.names', { names: lookup.namesSeen.join(', ') })}</li>}
+                                            {lookup.saved
+                                                ? <li>{t('lookup.saved', { date: fmtDate(lookup.saved.followedAt) })}</li>
+                                                : <li>{t('lookup.notSaved')}</li>}
+                                            {lookup.chat && <li>{t('lookup.chat', { count: lookup.chat.count, first: fmtDate(lookup.chat.first), last: fmtDate(lookup.chat.last) })}</li>}
+                                            {lookup.twitch?.follows === false && !lookup.saved && <li>{t('lookup.gapExplain')}</li>}
+                                            {lookup.twitch?.follows === true && !lookup.saved && <li>{t('lookup.missingBug')}</li>}
+                                        </ul>
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">

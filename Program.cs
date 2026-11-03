@@ -532,6 +532,8 @@ try
     builder.Services.AddHostedService<Decatron.Services.Moderation.PanicModeBackgroundService>();
     builder.Services.AddScoped<Decatron.Core.Services.ModerationService>();
     builder.Services.AddScoped<Decatron.Core.Services.FollowersService>();
+    builder.Services.AddScoped<FollowersSyncService>();
+    builder.Services.AddHostedService<FollowersAutoSyncBackgroundService>(); // Sincroniza seguidores con Twitch cada hora (red de seguridad de follows/unfollows perdidos)
     // IA unificada: cache de config/precios, registro de uso y cliente OpenRouter (singletons).
     // Plan: .dev/plans/AI_OPENROUTER_UNIFICACION_PLAN.md
     builder.Services.AddSingleton<Decatron.Services.AI.AiSettingsCache>();

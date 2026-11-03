@@ -18,6 +18,7 @@ namespace Decatron.Default.Controllers
     {
         private readonly DecatronDbContext _context;
         private readonly FollowersService _followersService;
+        private readonly FollowersSyncService _followersSyncService;
         private readonly TwitchApiService _twitchApiService;
         private readonly IPermissionService _permissionService;
         private readonly ILogger<FollowersController> _logger;
@@ -25,12 +26,14 @@ namespace Decatron.Default.Controllers
         public FollowersController(
             DecatronDbContext context,
             FollowersService followersService,
+            FollowersSyncService followersSyncService,
             TwitchApiService twitchApiService,
             IPermissionService permissionService,
             ILogger<FollowersController> logger)
         {
             _context = context;
             _followersService = followersService;
+            _followersSyncService = followersSyncService;
             _twitchApiService = twitchApiService;
             _permissionService = permissionService;
             _logger = logger;
@@ -403,6 +406,103 @@ namespace Decatron.Default.Controllers
             }
         }
 
+        // GET: api/followers/lookup?query=
+        // Ayuda cuando alguien «no aparece»: lo busca por nombre actual, nombre viejo (chat) o id,
+        // pregunta a Twitch en directo si lo sigue hoy y junta lo que Decatron sabe de esa persona.
+        [HttpGet("lookup")]
+        public async Task<ActionResult> LookupFollower([FromQuery] string? query)
+        {
+            try
+            {
+                var channelContext = await GetActiveChannelContext();
+                if (!channelContext.HasValue)
+                    return BadRequest(new { message = "No se pudo obtener el canal activo." });
+                var (channelOwnerId, broadcasterId) = channelContext.Value;
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!long.TryParse(userIdClaim, out var currentUserId))
+                    return BadRequest(new { message = "No se pudo obtener el ID del usuario." });
+                if (!await _permissionService.CanAccessAsync(currentUserId, channelOwnerId, "commands"))
+                    return Forbid();
+
+                var q = (query ?? "").Trim().TrimStart('@').ToLowerInvariant();
+                if (q.Length < 2 || q.Length > 100)
+                    return BadRequest(new { message = "Escribe al menos 2 caracteres." });
+
+                var channelLogin = (await _context.Users.Where(u => u.Id == channelOwnerId).Select(u => u.Login).FirstOrDefaultAsync() ?? "").ToLowerInvariant();
+
+                // 1. Resolver a un id de Twitch: id numérico, fila guardada, chat de este canal (sirve con nombres viejos) o Twitch.
+                string? userId = null;
+                string resolvedBy = "";
+                if (q.All(char.IsDigit)) { userId = q; resolvedBy = "id"; }
+                if (userId == null)
+                {
+                    userId = await _context.ChannelFollowers
+                        .Where(f => f.BroadcasterId == broadcasterId && (f.UserLogin.ToLower() == q || f.UserName.ToLower() == q))
+                        .Select(f => f.UserId).FirstOrDefaultAsync();
+                    if (userId != null) resolvedBy = "database";
+                }
+                if (userId == null && channelLogin != "")
+                {
+                    userId = await _context.ChatMessages
+                        .Where(m => m.Channel == channelLogin && m.Username == q && m.UserId != null && m.UserId != "")
+                        .OrderByDescending(m => m.Timestamp).Select(m => m.UserId).FirstOrDefaultAsync();
+                    if (userId != null) resolvedBy = "chat";
+                }
+                if (userId == null)
+                {
+                    var tw = await _twitchApiService.GetUserByLoginAsync(q);
+                    if (tw != null) { userId = tw.id; resolvedBy = "twitch"; }
+                }
+                if (userId == null)
+                    return Ok(new { found = false });
+
+                // 2. Lo que Decatron tiene guardado de esa persona en este canal
+                var row = await _context.ChannelFollowers
+                    .Where(f => f.BroadcasterId == broadcasterId && f.UserId == userId)
+                    .Select(f => new { f.UserName, f.UserLogin, f.FollowedAt, f.IsFollowing, f.UnfollowedAt })
+                    .FirstOrDefaultAsync();
+
+                // 3. Twitch en directo: ¿lo sigue hoy?
+                var check = await _twitchApiService.CheckUserFollowsChannelAsync(broadcasterId, userId);
+
+                // 4. Evidencia del chat de este canal (solo estimación; no es la fecha del follow)
+                object? chat = null;
+                List<string> namesSeen = new();
+                if (channelLogin != "")
+                {
+                    var msgs = _context.ChatMessages.Where(m => m.Channel == channelLogin && m.UserId == userId);
+                    var count = await msgs.CountAsync();
+                    if (count > 0)
+                    {
+                        chat = new
+                        {
+                            count,
+                            first = await msgs.MinAsync(m => m.Timestamp),
+                            last = await msgs.MaxAsync(m => m.Timestamp)
+                        };
+                        namesSeen = await msgs.Select(m => m.Username).Distinct().Take(10).ToListAsync();
+                    }
+                }
+
+                return Ok(new
+                {
+                    found = true,
+                    userId,
+                    resolvedBy,
+                    namesSeen,
+                    saved = row,
+                    twitch = new { follows = check.Follows, followedAt = check.FollowedAt, failure = check.Failure },
+                    chat
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en lookup de seguidor");
+                return StatusCode(500, new { message = "Error al buscar el seguidor" });
+            }
+        }
+
         // POST: api/followers/sync
         [HttpPost("sync")]
         public async Task<ActionResult> SyncFollowers()
@@ -430,107 +530,26 @@ namespace Decatron.Default.Controllers
                     return Forbid();
                 }
 
-                _logger.LogInformation($"🔄 Iniciando sincronización de followers para broadcaster {broadcasterId}");
+                var r = await _followersSyncService.SyncAsync(broadcasterId);
 
-                // 1. Obtener followers de Twitch API
-                _logger.LogInformation($"📡 Llamando a Twitch API para obtener followers del broadcaster {broadcasterId}");
-                var twitchFollowers = await _twitchApiService.GetChannelFollowersAsync(broadcasterId);
-
-                if (twitchFollowers == null || !twitchFollowers.Any())
+                if (!r.Success)
                 {
-                    _logger.LogWarning($"⚠️ No se obtuvieron followers de Twitch API para broadcaster {broadcasterId}");
                     return Ok(new
                     {
-                        success = true,
-                        message = "No se encontraron followers en Twitch",
-                        stats = new
-                        {
-                            processed = 0,
-                            newFollowers = 0,
-                            returned = 0,
-                            unfollowed = 0
-                        }
+                        success = false,
+                        message = "No se pudo leer la lista de seguidores de Twitch. No se cambió nada.",
+                        warning = new { code = "fetch_failed", detail = r.FetchFailure },
+                        stats = new { processed = 0, newFollowers = 0, returned = 0, unfollowed = 0, renamed = 0 }
                     });
                 }
 
-                _logger.LogInformation($"✅ Obtenidos {twitchFollowers.Count} followers de Twitch API");
-
-                // Obtener el broadcaster name
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.TwitchId == broadcasterId);
-                var broadcasterName = user?.DisplayName ?? "Unknown";
-
-                // 2. Crear un HashSet de user_ids de Twitch para búsqueda rápida
-                var twitchUserIds = new HashSet<string>(twitchFollowers.Select(f => f.user_id));
-
-                int newFollowers = 0;
-                int returnedFollowers = 0;
-                int unfollowedCount = 0;
-
-                // 3. Procesar cada follower de Twitch
-                foreach (var twitchFollower in twitchFollowers)
+                object? warning = r.UnfollowSkipped == Decatron.Core.Helpers.SyncUnfollowSkipReason.None ? null : new
                 {
-                    // Buscar si existe en BD
-                    var existing = await _context.ChannelFollowers
-                        .FirstOrDefaultAsync(f => f.BroadcasterId == broadcasterId && f.UserId == twitchFollower.user_id);
-
-                    if (existing == null)
-                    {
-                        // NUEVO SEGUIDOR
-                        var followedAtParsed = DateTime.Parse(twitchFollower.followed_at);
-                        _logger.LogDebug($"📅 Nuevo follower {twitchFollower.user_name}: followed_at (Twitch)='{twitchFollower.followed_at}' → parsed={followedAtParsed}");
-
-                        var newFollower = new ChannelFollower
-                        {
-                            BroadcasterId = broadcasterId,
-                            BroadcasterName = broadcasterName,
-                            UserId = twitchFollower.user_id,
-                            UserName = twitchFollower.user_name,
-                            UserLogin = twitchFollower.user_login,
-                            FollowedAt = followedAtParsed,
-                            IsFollowing = 0, // activo
-                            CreatedAt = DateTime.UtcNow,
-                            UpdatedAt = DateTime.UtcNow
-                        };
-
-                        await _followersService.UpsertFollowerAsync(newFollower);
-                        await _followersService.AddHistoryEntryAsync(broadcasterId, twitchFollower.user_id, 0, followedAtParsed); // Action 0 = Follow con fecha real
-                        newFollowers++;
-                    }
-                    else if (existing.IsFollowing == 1)
-                    {
-                        // RETORNADO (estaba unfollowed, ahora volvió)
-                        existing.IsFollowing = 0;
-                        existing.UpdatedAt = DateTime.UtcNow;
-                        await _followersService.UpsertFollowerAsync(existing);
-                        await _followersService.AddHistoryEntryAsync(broadcasterId, twitchFollower.user_id, 0); // Action 0 = Follow (usa DateTime.UtcNow porque es re-follow)
-                        returnedFollowers++;
-                    }
-                    // Si IsFollowing == 0, no hacer nada (ya está activo)
-                }
-
-                // 4. Detectar unfollows (están en BD como activos pero NO están en Twitch)
-                var dbActiveFollowers = await _context.ChannelFollowers
-                    .Where(f => f.BroadcasterId == broadcasterId && f.IsFollowing == 0)
-                    .ToListAsync();
-
-                foreach (var dbFollower in dbActiveFollowers)
-                {
-                    if (!twitchUserIds.Contains(dbFollower.UserId))
-                    {
-                        // HIZO UNFOLLOW
-                        dbFollower.IsFollowing = 1;
-                        dbFollower.UnfollowedAt = DateTime.UtcNow;
-                        dbFollower.UpdatedAt = DateTime.UtcNow;
-                        await _followersService.UpsertFollowerAsync(dbFollower);
-                        await _followersService.AddHistoryEntryAsync(broadcasterId, dbFollower.UserId, 1); // Action 1 = Unfollow
-                        unfollowedCount++;
-                    }
-                }
-
-                _logger.LogInformation($"✅ Sincronización completada: {newFollowers} nuevos, {returnedFollowers} retornados, {unfollowedCount} unfollowed");
-
-                // Obtener estadísticas actualizadas
-                var stats = await _followersService.GetFollowerStatsAsync(broadcasterId);
+                    code = r.UnfollowSkipped.ToString(),
+                    missing = r.Missing,
+                    received = r.Received,
+                    twitchTotal = r.TwitchTotal
+                };
 
                 return Ok(new
                 {
@@ -538,12 +557,14 @@ namespace Decatron.Default.Controllers
                     message = "Sincronización completada exitosamente",
                     stats = new
                     {
-                        processed = twitchFollowers.Count,
-                        newFollowers,
-                        returned = returnedFollowers,
-                        unfollowed = unfollowedCount,
-                        current = stats
-                    }
+                        processed = r.Processed,
+                        newFollowers = r.NewFollowers,
+                        returned = r.Returned,
+                        unfollowed = r.Unfollowed,
+                        renamed = r.Renamed,
+                        current = r.Current
+                    },
+                    warning
                 });
             }
             catch (Exception ex)

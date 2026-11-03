@@ -1492,12 +1492,57 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Pregunta a Twitch, en directo, si un usuario concreto sigue hoy el canal (token del streamer).
+        /// Follows = null si no se pudo saber (sin token, error de Twitch).
+        /// </summary>
+        public async Task<TwitchFollowCheck> CheckUserFollowsChannelAsync(string broadcasterId, string userId)
+        {
+            try
+            {
+                var token = await GetUserAccessTokenAsync(broadcasterId);
+                if (string.IsNullOrEmpty(token)) return new TwitchFollowCheck(null, null, "no_token");
+
+                var url = $"{TwitchApiBaseUrl}/channels/followers?broadcaster_id={Uri.EscapeDataString(broadcasterId)}&user_id={Uri.EscapeDataString(userId)}";
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("Client-ID", _credentials.GetTwitchApp().ClientId);
+                request.Headers.Add("Authorization", $"Bearer {token}");
+
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("CheckUserFollowsChannelAsync {Status} para broadcaster {B}", (int)response.StatusCode, broadcasterId);
+                    return new TwitchFollowCheck(null, null, $"http_{(int)response.StatusCode}");
+                }
+
+                var result = JsonSerializer.Deserialize<TwitchFollowersResponse>(
+                    await response.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var hit = result?.data?.FirstOrDefault(f => f.user_id == userId);
+                return hit != null ? new TwitchFollowCheck(true, hit.followed_at, null) : new TwitchFollowCheck(false, null, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en CheckUserFollowsChannelAsync: {B}", broadcasterId);
+                return new TwitchFollowCheck(null, null, "exception");
+            }
+        }
+
+        /// <summary>
         /// Obtiene todos los seguidores de un canal de Twitch con paginación
         /// </summary>
         public async Task<List<TwitchFollowerData>> GetChannelFollowersAsync(string broadcasterId)
+            => (await FetchChannelFollowersAsync(broadcasterId)).Followers;
+
+        /// <summary>
+        /// Igual que GetChannelFollowersAsync pero dice si la lista llegó completa. Una lista cortada a
+        /// mitad (error, token, red) NUNCA debe usarse para detectar unfollows.
+        /// </summary>
+        public async Task<TwitchFollowersFetchResult> FetchChannelFollowersAsync(string broadcasterId, Func<int, bool>? stopIfTotal = null)
         {
             var allFollowers = new List<TwitchFollowerData>();
             string? cursor = null;
+            var complete = false;
+            var reportedTotal = 0;
+            string? failure = null;
 
             try
             {
@@ -1507,7 +1552,7 @@ namespace Decatron.Services
                 if (string.IsNullOrEmpty(token))
                 {
                     _logger.LogError($"No se pudo obtener User Access Token para broadcaster {broadcasterId}");
-                    return allFollowers;
+                    return new TwitchFollowersFetchResult(allFollowers, false, 0, "no_token");
                 }
 
                 _logger.LogInformation($"📡 Obteniendo followers con User Access Token para broadcaster {broadcasterId}");
@@ -1533,7 +1578,9 @@ namespace Decatron.Services
                     {
                         var error = await response.Content.ReadAsStringAsync();
                         _logger.LogWarning($"Error en GetChannelFollowersAsync ({response.StatusCode}): {error}");
-                        break;
+                        failure = $"http_{(int)response.StatusCode}";
+                        cursor = null;
+                        goto fetchDone;
                     }
 
                     var json = await response.Content.ReadAsStringAsync();
@@ -1555,23 +1602,32 @@ namespace Decatron.Services
                         _logger.LogWarning($"⚠️ Página {pageCount}: No hay datos en la respuesta");
                     }
 
+                    if (result != null && result.total > reportedTotal) reportedTotal = result.total;
+                    if (pageCount == 1 && stopIfTotal != null && result != null && stopIfTotal(result.total))
+                    {
+                        failure = "skipped_large";
+                        goto fetchDone;
+                    }
                     cursor = result?.pagination?.Cursor;
                     _logger.LogInformation($"📍 Página {pageCount} - Total en respuesta: {result?.total ?? 0}, Cursor: '{cursor ?? "null"}', ¿Continuar?: {!string.IsNullOrEmpty(cursor)}");
 
                     if (result?.pagination == null)
                     {
                         _logger.LogWarning($"⚠️ Página {pageCount}: pagination es null en la respuesta");
-                        break;
+                        failure = "no_pagination";
+                        goto fetchDone;
                     }
                 } while (!string.IsNullOrEmpty(cursor));
 
-                _logger.LogInformation($"🎯 Total de followers obtenidos: {allFollowers.Count} para broadcaster {broadcasterId}");
-                return allFollowers;
+                fetchDone:
+                complete = failure == null;
+                _logger.LogInformation($"🎯 Total de followers obtenidos: {allFollowers.Count} para broadcaster {broadcasterId} (completa={complete})");
+                return new TwitchFollowersFetchResult(allFollowers, complete, reportedTotal, failure);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error en GetChannelFollowersAsync: {broadcasterId}");
-                return allFollowers;
+                return new TwitchFollowersFetchResult(allFollowers, false, reportedTotal, "exception");
             }
         }
     }
@@ -1695,6 +1751,12 @@ namespace Decatron.Services
         public string user_login { get; set; } = "";
         public string user_name { get; set; } = "";
     }
+
+    /// <summary>Respuesta de Twitch a «¿este usuario sigue el canal hoy?». Follows=null: no se pudo saber.</summary>
+    public record TwitchFollowCheck(bool? Follows, string? FollowedAt, string? Failure);
+
+    /// <summary>Resultado de bajar la lista de seguidores: Complete=false si se cortó a mitad.</summary>
+    public record TwitchFollowersFetchResult(List<TwitchFollowerData> Followers, bool Complete, int Total, string? Failure);
 
     public class TwitchFollowersResponse
     {

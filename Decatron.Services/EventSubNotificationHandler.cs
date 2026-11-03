@@ -670,24 +670,11 @@ namespace Decatron.Services
 
                     var userLogin = datosEvento["user_login"]?.ToString() ?? userName.ToLower();
 
-                    var newFollower = new Decatron.Core.Models.ChannelFollower
+                    var outcome = await _followersService.RecordFollowAsync(broadcasterId, broadcasterName, userId, userName, userLogin, followedAt);
+                    if (outcome != Decatron.Core.Services.FollowRecordOutcome.AlreadyFollowing)
                     {
-                        BroadcasterId = broadcasterId,
-                        BroadcasterName = broadcasterName,
-                        UserId = userId,
-                        UserName = userName,
-                        UserLogin = userLogin,
-                        FollowedAt = followedAt,
-                        IsFollowing = 0,  // 0 = activo
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-
-                    _logger.LogDebug($"[FOLLOWERS] Llamando UpsertFollowerAsync para {userName}");
-                    await _followersService.UpsertFollowerAsync(newFollower);
-
-                    _logger.LogDebug($"[FOLLOWERS] Llamando AddHistoryEntryAsync para {userName}");
-                    await _followersService.AddHistoryEntryAsync(broadcasterId, userId, 0, followedAt); // 0 = Follow con fecha real
+                        await _followersService.AddHistoryEntryAsync(broadcasterId, userId, 0, followedAt); // 0 = Follow con fecha real
+                    }
 
                     _logger.LogInformation($"✅ [FOLLOWERS] {userName} registrado exitosamente en sistema de followers");
                 }
