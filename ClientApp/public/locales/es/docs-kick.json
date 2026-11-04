@@ -186,6 +186,11 @@
                 "`!title` y `!game` (con `!t` y `!g`) cambian el título y la categoría del directo en Kick, y los micro comandos también; `!followage` y `!so` aparecen como «No disponible en Kick»."
               ],
               [
+                "Seguidores (Gestión de Seguidores)",
+                "Sí, con límites",
+                "Cada follow nuevo se guarda en el momento en que ocurre, con su historial, y se ve en la misma lista con la marca Kick. Kick no entrega la lista de seguidores ni avisa cuando alguien deja de seguir: no se importan los anteriores ni se detectan unfollows, y un follow que ocurra con el bot apagado no se registra."
+              ],
+              [
                 "Chat en pantalla",
                 "Sí",
                 "Los mensajes borrados y los usuarios baneados no se quitan solos del overlay."
@@ -239,7 +244,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Kick ofrece una API pública más pequeña que la de Twitch. Decatron solo recibe de Kick dos tipos de eventos —los mensajes del chat y los canjes de recompensas de puntos— y puede enviar mensajes, borrar mensajes y sancionar. Lo que la API no entrega (seguidores y desde cuándo, clips, modos del chat, antigüedad de las cuentas) no se puede ofrecer en Kick. Lo que sí tiene la API pero aún no está construido se marca «Próximamente en Kick»."
+            "x": "Kick ofrece una API pública más pequeña que la de Twitch. Decatron recibe de Kick los mensajes del chat, los canjes de recompensas de puntos y los eventos de follows, subs, subs regaladas, Kicks y estado del directo, y puede enviar mensajes, borrar mensajes y sancionar. Lo que la API no entrega (la lista de seguidores y desde cuándo siguen, quién deja de seguir, clips, modos del chat, antigüedad de las cuentas) no se puede ofrecer en Kick. Lo que sí tiene la API pero aún no está construido se marca «Próximamente en Kick»."
           }
         ]
       }

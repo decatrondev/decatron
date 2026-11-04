@@ -186,6 +186,11 @@
                 "`!title` and `!game` (with `!t` and `!g`) change the stream title and category on Kick, and so do micro commands; `!followage` and `!so` show as “No disponible en Kick”."
               ],
               [
+                "Followers (Follower management)",
+                "Yes, with limits",
+                "Each new follow is saved the moment it happens, with its history, and shows in the same list with the Kick mark. Kick does not provide the follower list or notify when someone unfollows: earlier followers are not imported and unfollows are not detected, and a follow that happens while the bot is off is not recorded."
+              ],
+              [
                 "On-screen chat",
                 "Yes",
                 "Deleted messages and banned users are not removed from the overlay on their own."
@@ -239,7 +244,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Kick offers a smaller public API than Twitch. Decatron only receives two kinds of events from Kick —chat messages and channel point reward redemptions— and can send messages, delete messages and sanction. What the API does not deliver (followers and since when, clips, chat modes, account age) cannot be offered on Kick. What the API does have but is not built yet is marked “Próximamente en Kick”."
+            "x": "Kick offers a smaller public API than Twitch. Decatron receives from Kick chat messages, channel point reward redemptions and the events for follows, subs, gifted subs, Kicks and stream status, and can send messages, delete messages and sanction. What the API does not deliver (the follower list and since when they follow, who unfollows, clips, chat modes, account age) cannot be offered on Kick. What the API does have but is not built yet is marked “Próximamente en Kick”."
           }
         ]
       }
