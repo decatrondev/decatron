@@ -1157,7 +1157,7 @@
   },
   "followers": {
     "title": "Seguidores",
-    "subtitle": "Administra y analiza tu comunidad de seguidores de Twitch",
+    "subtitle": "Administra y analiza tu comunidad de seguidores de Twitch y Kick",
     "cta": {
       "to": "/followers",
       "label": "Ver seguidores"
@@ -1169,7 +1169,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "Una lista de los seguidores de tu canal que Decatron guarda y mantiene al día sincronizándola con Twitch. Además de quién te sigue ahora, registra quién dejó de seguirte y quién volvió."
+            "x": "Una lista de los seguidores de tu canal que Decatron guarda y mantiene al día. Además de quién te sigue ahora, registra quién dejó de seguirte y quién volvió. La pantalla tiene tres pestañas: Guía, Seguidores (la lista) y Sincronización (el estado de la lectura con Twitch)."
           },
           {
             "t": "ul",
@@ -1180,16 +1180,36 @@
               "Retornados: los que dejaron de seguirte y volvieron a hacerlo.",
               "Bloqueados: los que marcaste como bloqueados (ver más abajo)."
             ]
+          },
+          {
+            "t": "p",
+            "x": "Estas cifras están siempre visibles en el panel Resumen, a la derecha (en el móvil, debajo del contenido). Si tu cuenta tiene Twitch y Kick, el Resumen muestra además el reparto de seguidores activos entre las dos plataformas."
           }
         ]
       },
       {
         "id": "sync",
-        "title": "Sincronizar con Twitch",
+        "title": "Sincronización con Twitch",
         "blocks": [
           {
             "t": "p",
-            "x": "El botón Sincronizar actualiza la lista con Twitch y al terminar muestra cuántos seguidores nuevos, retornados y unfollows encontró. También puedes activar la sincronización automática y elegir cada cuánto se repite: 5, 10, 15 o 30 minutos, 1 hora o 24 horas. El panel indica la fecha de la última sincronización."
+            "x": "Cada follow nuevo de Twitch se guarda en el momento en que ocurre. Además, el servidor compara tus seguidores con la lista de Twitch una vez por hora, aunque no tengas la página abierta: así recupera follows que no se alcanzaron a ver, actualiza los nombres que cambiaron y detecta quién dejó de seguirte."
+          },
+          {
+            "t": "p",
+            "x": "La pestaña Sincronización muestra la última lectura (cuándo fue, si fue automática o manual y cuántos seguidores nuevos, que volvieron, que dejaron de seguirte y con nombre cambiado encontró) y una insignia: Al día, Revisar, Falló o Pendiente. El botón Sincronizar con Twitch hace la lectura en el momento. Como refuerzo, también puedes activar la revisión desde el navegador, cada 5, 10, 15 o 30 minutos, 1 hora o 24 horas; solo corre mientras la página está abierta."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "title": "Cuándo no se marca un unfollow",
+            "x": "Si la lista que entrega Twitch llega cortada, vacía, con menos seguidores de los que Twitch dice tener, o faltan demasiados de golpe, esa revisión no marca a nadie como unfollow para no equivocarse. Las altas y los cambios de nombre sí se guardan, y la pantalla te avisa. No es un error tuyo: se vuelve a intentar en la siguiente revisión."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "title": "La fecha de un unfollow",
+            "x": "Twitch no avisa cuando alguien deja de seguirte. Decatron lo detecta al comparar listas, así que la fecha mostrada es la de esa revisión (como mucho una hora después), no necesariamente el día exacto."
           }
         ]
       },
@@ -1201,6 +1221,7 @@
             "t": "ul",
             "items": [
               "Búsqueda: por nombre o nombre de usuario; se busca sola mientras escribes.",
+              "Plataforma: si tu cuenta tiene Twitch y Kick, el control Todos, Twitch o Kick filtra la lista y muestra cuántos seguidores hay en cada una; cada fila lleva la marca de su plataforma.",
               "Filtros rápidos: Todos, Activos, Unfollows o Retornados.",
               "Filtros avanzados: por rango de fecha de follow (desde y hasta).",
               "Historial: cada seguidor tiene un historial de sus movimientos: follow, unfollow, bloqueo y desbloqueo, con fecha y hora."
@@ -1209,6 +1230,42 @@
           {
             "t": "p",
             "x": "La lista se pagina, con botones para ir a la primera, anterior, siguiente y última página."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "title": "Si alguien no aparece",
+            "x": "Escribe su nombre en el buscador. Si no hay resultados, aparece el botón Buscar en Twitch y en el chat: pregunta a Twitch en directo si esa persona te sigue hoy, muestra los nombres con los que escribió en tu chat (así encuentra a quien cambió de nombre) y su primer y último mensaje, que es solo una referencia y no la fecha del follow. Solo funciona con Twitch."
+          }
+        ]
+      },
+      {
+        "id": "kick",
+        "title": "Seguidores de Kick",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tu cuenta tiene Kick vinculado, Decatron guarda cada follow nuevo de Kick en el momento en que ocurre, con su historial, y los muestra en la misma lista con la marca Kick. Los follows anónimos no se guardan."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "title": "Lo que Kick no permite",
+            "x": "Kick no entrega la lista de tus seguidores ni avisa cuando alguien deja de seguirte. Por eso Decatron solo conoce los follows desde que se activó esta función: no puede importar a quienes ya te seguían ni detectar unfollows en Kick, y la sincronización con la lista de la plataforma solo existe para Twitch. Si el bot está apagado justo cuando alguien te sigue, ese follow no se registra."
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Lo que no se puede saber",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Quién te siguió y se fue antes de que Decatron empezara a registrar tu canal: Twitch no entrega el historial de seguidores anteriores.",
+              "El día exacto en que alguien dejó de seguirte.",
+              "En Kick, quién te seguía antes de activar esta función y quién deja de seguirte."
+            ]
           }
         ]
       },

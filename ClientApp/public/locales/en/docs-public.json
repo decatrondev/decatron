@@ -125,7 +125,7 @@
       },
       "followers": {
         "t": "Followers",
-        "d": "Follower list synced with Twitch, with unfollows, returned followers, search and filters."
+        "d": "List of Twitch and Kick followers, with unfollows, returned followers, search and filters; the server compares it with Twitch every hour."
       }
     }
   },

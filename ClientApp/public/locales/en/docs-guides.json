@@ -1157,7 +1157,7 @@
   },
   "followers": {
     "title": "Followers",
-    "subtitle": "Manage and analyze your Twitch follower community",
+    "subtitle": "Manage and analyze your Twitch and Kick follower community",
     "cta": {
       "to": "/followers",
       "label": "View followers"
@@ -1169,7 +1169,7 @@
         "blocks": [
           {
             "t": "p",
-            "x": "A list of your channel's followers that Decatron keeps and updates by syncing with Twitch. Besides who follows you now, it records who stopped following you and who came back."
+            "x": "A list of your channel's followers that Decatron keeps up to date. Besides who follows you now, it records who stopped following you and who came back. The screen has three tabs: Guide, Followers (the list) and Sync (the status of the read from Twitch)."
           },
           {
             "t": "ul",
@@ -1180,6 +1180,10 @@
               "Returned: those who stopped following you and followed again.",
               "Blocked: those you marked as blocked (see below)."
             ]
+          },
+          {
+            "t": "p",
+            "x": "These numbers are always visible in the Summary panel on the right (on mobile, below the content). If your account has Twitch and Kick, the Summary also shows how active followers split between the two platforms."
           }
         ]
       },
@@ -1189,7 +1193,23 @@
         "blocks": [
           {
             "t": "p",
-            "x": "The Sync button updates the list with Twitch and when done shows how many new followers, returned followers and unfollows it found. You can also turn on automatic sync and choose how often it repeats: 5, 10, 15 or 30 minutes, 1 hour or 24 hours. The panel shows the date of the last sync."
+            "x": "Each new Twitch follow is saved the moment it happens. In addition, the server compares your followers with Twitch's list once an hour, even if the page is not open: that way it recovers follows it did not get to see, updates names that changed and detects who stopped following you."
+          },
+          {
+            "t": "p",
+            "x": "The Sync tab shows the last read (when it was, whether it was automatic or manual, and how many new, returned, unfollowed and renamed followers it found) and a badge: Up to date, Review, Failed or Pending. The Sync with Twitch button does the read right away. As a backup you can also turn on checking from the browser, every 5, 10, 15 or 30 minutes, 1 hour or 24 hours; it only runs while the page is open."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "title": "When an unfollow is not marked",
+            "x": "If the list Twitch returns arrives cut short, empty, with fewer followers than Twitch says you have, or too many are missing at once, that check marks nobody as unfollowed to avoid mistakes. New followers and name changes are still saved, and the screen notifies you. It is not your fault: it is tried again on the next check."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "title": "The date of an unfollow",
+            "x": "Twitch does not notify when someone unfollows. Decatron detects it by comparing lists, so the date shown is the date of that check (at most an hour later), not necessarily the exact day."
           }
         ]
       },
@@ -1201,6 +1221,7 @@
             "t": "ul",
             "items": [
               "Search: by name or username; it searches by itself as you type.",
+              "Platform: if your account has Twitch and Kick, the All, Twitch or Kick control filters the list and shows how many followers each has; each row carries its platform mark.",
               "Quick filters: All, Active, Unfollows or Returned.",
               "Advanced filters: by follow date range (from and to).",
               "History: each follower has a history of their movements: follow, unfollow, block and unblock, with date and time."
@@ -1209,6 +1230,42 @@
           {
             "t": "p",
             "x": "The list is paginated, with buttons to go to the first, previous, next and last page."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "title": "If someone does not appear",
+            "x": "Type their name in the search box. If there are no results, the Look up on Twitch and in chat button appears: it asks Twitch live whether that person follows you today, shows the names they used in your chat (so it finds people who changed their name) and their first and last message, which is only a reference and not the follow date. It only works with Twitch."
+          }
+        ]
+      },
+      {
+        "id": "kick",
+        "title": "Kick followers",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If your account has Kick linked, Decatron saves each new Kick follow the moment it happens, with its history, and shows them in the same list with the Kick mark. Anonymous follows are not saved."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "title": "What Kick does not allow",
+            "x": "Kick does not provide your follower list or notify when someone unfollows. That is why Decatron only knows follows since this feature was turned on: it cannot import people who already followed you or detect unfollows on Kick, and syncing with the platform's list only exists for Twitch. If the bot is off right when someone follows you, that follow is not recorded."
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "What cannot be known",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Who followed you and left before Decatron started recording your channel: Twitch does not provide the history of earlier followers.",
+              "The exact day someone stopped following you.",
+              "On Kick, who followed you before this feature was turned on and who unfollows."
+            ]
           }
         ]
       },

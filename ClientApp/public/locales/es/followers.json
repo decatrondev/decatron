@@ -52,7 +52,8 @@
     "subtitleTwitch": "Administra y analiza tu comunidad de seguidores de Twitch",
     "subtitleKick": "Administra y analiza tu comunidad de seguidores de Kick",
     "subtitleBoth": "Administra y analiza tu comunidad de seguidores de Twitch y Kick",
-    "title": "Gestión de Seguidores"
+    "title": "Gestión de Seguidores",
+    "back": "Volver al panel"
   },
   "filter": {
     "all": "Todos"
@@ -174,5 +175,49 @@
     "block": "Bloqueo",
     "unblock": "Desbloqueo",
     "unknown": "Desconocido"
+  },
+  "tabs": {
+    "guide": "Guía",
+    "list": "Seguidores",
+    "sync": "Sincronización"
+  },
+  "summary": {
+    "title": "Resumen",
+    "activeLabel": "seguidores activos",
+    "splitAria": "Reparto de seguidores activos: Twitch {{twitch}}, Kick {{kick}}",
+    "syncLast": "Última lectura de Twitch: {{when}} ({{source}})",
+    "syncFailed": "El último intento ({{when}}) no pudo leer la lista",
+    "syncNever": "Todavía no hay una lectura completa de tu lista"
+  },
+  "syncTab": {
+    "description": "Decatron compara tus seguidores con la lista de Twitch cada hora, aunque no tengas esta página abierta.",
+    "browserEnable": "Revisar también desde este navegador",
+    "last": {
+      "newFollowers": "Seguidores nuevos",
+      "returned": "Volvieron",
+      "unfollowed": "Dejaron de seguirte",
+      "renamed": "Con nombre cambiado"
+    }
+  },
+  "guide": {
+    "title": "Cómo funciona Seguidores",
+    "description": "Qué registra Decatron, cada cuánto se actualiza y lo que no puede saber.",
+    "step1Title": "Cómo se registran los follows",
+    "step1Body": "Cada follow nuevo se guarda en el momento en que ocurre, con el nombre y la fecha reales que entrega Twitch.",
+    "step1BodyBoth": "Cada follow nuevo se guarda en el momento en que ocurre, tanto en Twitch como en Kick. En Twitch la fecha es la que entrega la plataforma; en Kick, la del aviso.",
+    "step2Title": "El servidor revisa tu lista cada hora",
+    "step2Body": "Aunque no tengas esta página abierta, Decatron compara tus seguidores con la lista de Twitch una vez por hora. Así recupera follows que no se alcanzaron a ver, actualiza los nombres que cambiaron y detecta quién dejó de seguirte. También puedes hacerlo a mano con Sincronizar.",
+    "goSync": "Ver el estado de la sincronización",
+    "step3Title": "Cuándo se marca un unfollow",
+    "step3Body": "Twitch no avisa cuando alguien deja de seguirte: Decatron lo detecta al comparar listas, así que la fecha del unfollow es la de esa revisión y no necesariamente el día exacto. Si la lista de Twitch llega incompleta o faltan demasiados seguidores de golpe, esa revisión no marca a nadie para no equivocarse, y lo verás avisado en pantalla.",
+    "step4Title": "Si alguien no aparece",
+    "step4Body": "Búscalo por su nombre en la pestaña Seguidores. Si no hay resultados, usa Buscar en Twitch y en el chat: pregunta a Twitch en directo si te sigue hoy, y también encuentra a quien cambió de nombre si escribió alguna vez en tu chat.",
+    "goList": "Ir a la lista de seguidores",
+    "limitsTitle": "Lo que no se puede saber",
+    "limit1": "Quién te siguió y se fue antes de que Decatron empezara a registrar tu canal: Twitch no entrega el historial de seguidores anteriores.",
+    "limit2": "El día exacto en que alguien dejó de seguirte.",
+    "limitKick1": "En Kick, quién te seguía antes de que se activara esta función, y quién deja de seguirte: Kick no entrega la lista de seguidores ni avisa los unfollows.",
+    "limitKick2": "En Kick, los follows que ocurran mientras el bot está apagado.",
+    "docsLink": "Ver la documentación completa de Seguidores"
   }
 }

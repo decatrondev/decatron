@@ -1,10 +1,15 @@
-import { Lock, Users, CheckCircle, UserMinus, UserPlus, Ban, RefreshCw, Search, Filter, X, History, ArrowUpDown, ArrowUp, ArrowDown, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Lock, Users, CheckCircle, UserMinus, UserPlus, Ban, RefreshCw, ArrowLeft, Search, Filter, X, History, ArrowUpDown, ArrowUp, ArrowDown, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../hooks/usePermissions';
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useTranslation, Trans } from 'react-i18next';
 import { Alert, Badge, Segmented } from '../components/ds';
+import TabIcon from '../components/dashboard/TabIcon';
+import GuideTab from './followers-extension/components/GuideTab';
+import SyncTab from './followers-extension/components/SyncTab';
+import SummaryPanel from './followers-extension/components/SummaryPanel';
+import type { FollowersTab } from './followers-extension/types';
 
 interface Follower {
     id: number;
@@ -49,6 +54,12 @@ interface Toast {
     type: 'success' | 'error';
 }
 
+const TABS: { id: FollowersTab; icon: string }[] = [
+    { id: 'guide', icon: '📚' },
+    { id: 'list', icon: '👥' },
+    { id: 'sync', icon: '🔄' },
+];
+
 export default function Followers() {
     const { hasMinimumLevel, loading: permissionsLoading, channelOwnerId } = usePermissions();
     const navigate = useNavigate();
@@ -91,6 +102,13 @@ export default function Followers() {
     const [available, setAvailable] = useState({ twitch: true, kick: false });
     const [platformCounts, setPlatformCounts] = useState<Record<string, { active: number; total: number }>>({});
     const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+    const [tab, setTab] = useState<FollowersTab>(() => {
+        try {
+            const saved = sessionStorage.getItem('followers-tab') as FollowersTab | null;
+            return saved === 'guide' || saved === 'list' || saved === 'sync' ? saved : 'guide';
+        } catch { return 'guide'; }
+    });
+    useEffect(() => { try { sessionStorage.setItem('followers-tab', tab); } catch { /* sin storage */ } }, [tab]);
     type LookupResult = {
         found: boolean; userId?: string; resolvedBy?: string; namesSeen?: string[];
         saved?: { userName: string; userLogin: string; followedAt: string; isFollowing: number; unfollowedAt?: string } | null;
@@ -587,88 +605,21 @@ export default function Followers() {
                 </div>
             )}
 
-            {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-3xl font-black text-ds-text">{t('header.title')}</h1>
-                    <p className="text-ds-soft mt-2">
-                        {t(available.twitch && available.kick ? 'header.subtitleBoth' : available.kick ? 'header.subtitleKick' : 'header.subtitleTwitch')}
-                    </p>
-                </div>
-                <div className="flex gap-3 sm:shrink-0">
-                    <button
-                        onClick={() => handleSyncFollowers(false)}
-                        disabled={loading || !available.twitch}
-                        title={available.twitch ? undefined : t('sync.noTwitchTitle')}
-                        className="ds-btn ds-btn--primary ds-btn--lg w-full sm:w-auto justify-center"
-                    >
-                        <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                        {available.kick ? t('sync.buttonTwitch') : t('sync.button')}
+            {/* Encabezado */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => navigate('/dashboard')} className="ds-btn ds-btn--secondary ds-icon-btn" aria-label={t('header.back')}>
+                        <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
-                </div>
-            </div>
-
-            {/* Estado de la sincronización con Twitch y refuerzo del navegador */}
-            {available.twitch && platformFilter !== 'kick' ? (
-            <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                     <div>
-                        <p className="text-sm font-bold text-ds-text">{t('status.title')}</p>
-                        <p className="text-sm text-ds-soft">
-                            {!syncStatus
-                                ? t('status.never')
-                                : syncStatus.result === 'fetch_failed' || syncStatus.result === 'skipped_large'
-                                    ? t(syncStatus.result === 'fetch_failed' ? 'status.failed' : 'status.skippedLarge', { when: relativeTime(syncStatus.lastAttemptAt) })
-                                    : t('status.line', { when: relativeTime(syncStatus.lastSuccessAt ?? syncStatus.lastAttemptAt), source: t(`status.source.${syncStatus.source}`) })}
-                            {syncStatus?.lastSuccessAt && (syncStatus.result === 'fetch_failed' || syncStatus.result === 'skipped_large') && (
-                                <> {t('status.lastGood', { when: relativeTime(syncStatus.lastSuccessAt) })}</>
-                            )}
+                        <h1 className="text-3xl 3xl:text-4xl font-black text-ds-text">{t('header.title')}</h1>
+                        <p className="text-sm 3xl:text-base text-ds-soft mt-1">
+                            {t(available.twitch && available.kick ? 'header.subtitleBoth' : available.kick ? 'header.subtitleKick' : 'header.subtitleTwitch')}
                         </p>
                     </div>
-                    {syncStatus && (
-                        <Badge tone={syncStatus.result === 'ok' ? 'ok' : syncStatus.result === 'unfollows_skipped' ? 'warn' : syncStatus.result === 'fetch_failed' ? 'danger' : undefined}>
-                            {t(`status.badge.${syncStatus.result}`)}
-                        </Badge>
-                    )}
-                </div>
-
-                <div className="border-t border-ds-border pt-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-4">
-                        <label className="flex items-start gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={autoSyncEnabled}
-                                onChange={(e) => setAutoSyncEnabled(e.target.checked)}
-                                className="w-5 h-5 rounded border-ds-border mt-0.5"
-                            />
-                            <div>
-                                <span className="text-sm font-bold text-ds-text">{t('autosync.browserTitle')}</span>
-                                <p className="text-xs text-ds-soft max-w-xl">{t('autosync.body')}</p>
-                            </div>
-                        </label>
-                        {autoSyncEnabled && (
-                            <div className="flex items-center gap-2">
-                                <label className="text-sm text-ds-soft">{t('autosync.every')}</label>
-                                <select
-                                    value={autoSyncInterval}
-                                    onChange={(e) => setAutoSyncInterval(Number(e.target.value))}
-                                    className="ds-input"
-                                >
-                                    <option value={5}>{t('autosync.minutes', { count: 5 })}</option>
-                                    <option value={10}>{t('autosync.minutes', { count: 10 })}</option>
-                                    <option value={15}>{t('autosync.minutes', { count: 15 })}</option>
-                                    <option value={30}>{t('autosync.minutes', { count: 30 })}</option>
-                                    <option value={60}>{t('autosync.hours', { count: 1 })}</option>
-                                    <option value={1440}>{t('autosync.hours', { count: 24 })}</option>
-                                </select>
-                            </div>
-                        )}
-                    </div>
                 </div>
             </div>
-            ) : !available.twitch ? (
-                <Alert tone="info" title={t('sync.noTwitchTitle')}>{t('sync.noTwitchBody')}</Alert>
-            ) : null}
+
 
             {/* Avisos de la última sincronización */}
             {syncWarning?.code === 'fetch_failed' && (
@@ -697,69 +648,40 @@ export default function Followers() {
                 </div>
             )}
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-ds-accent/10 flex items-center justify-center">
-                            <Users className="w-6 h-6 text-ds-accent-text" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-black text-ds-text">{stats.totalFollowers}</div>
-                            <div className="text-sm text-ds-soft">{t('stats.total')}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-ds-ok/10 flex items-center justify-center">
-                            <CheckCircle className="w-6 h-6 text-ds-ok" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-black text-ds-text">{stats.activeFollowers}</div>
-                            <div className="text-sm text-ds-soft">{t('common.active')}</div>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2 space-y-6 min-w-0">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
+                        <div className="flex flex-wrap gap-2">
+                            {TABS.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setTab(item.id)}
+                                    className={tab === item.id ? 'ds-btn ds-btn--primary ds-btn--sm whitespace-nowrap' : 'ds-btn ds-btn--secondary ds-btn--sm whitespace-nowrap'}
+                                >
+                                    <TabIcon emoji={item.icon} />{t(`tabs.${item.id}`)}
+                                </button>
+                            ))}
                         </div>
                     </div>
-                </div>
 
-                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-ds-danger/10 flex items-center justify-center">
-                            <UserMinus className="w-6 h-6 text-ds-accent-text" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-black text-ds-text">{stats.unfollowedCount}</div>
-                            <div className="text-sm text-ds-soft">{t('common.unfollows')}</div>
-                        </div>
-                    </div>
-                </div>
+                    {tab === 'guide' && <GuideTab available={available} onNavigate={setTab} />}
 
-                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-ds-warn/10 flex items-center justify-center">
-                            <UserPlus className="w-6 h-6 text-ds-accent-text" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-black text-ds-text">{stats.returnedCount}</div>
-                            <div className="text-sm text-ds-soft">{t('common.returned')}</div>
-                        </div>
-                    </div>
-                </div>
+                    {tab === 'sync' && (
+                        <SyncTab
+                            available={available}
+                            syncStatus={syncStatus}
+                            loading={loading}
+                            relativeTime={relativeTime}
+                            onSync={() => handleSyncFollowers(false)}
+                            autoSyncEnabled={autoSyncEnabled}
+                            setAutoSyncEnabled={setAutoSyncEnabled}
+                            autoSyncInterval={autoSyncInterval}
+                            setAutoSyncInterval={setAutoSyncInterval}
+                        />
+                    )}
 
-                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-ds-surface flex items-center justify-center">
-                            <Ban className="w-6 h-6 text-ds-soft" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-black text-ds-text">{stats.blockedCount}</div>
-                            <div className="text-sm text-ds-soft">{t('common.blocked')}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+                    {tab === 'list' && (
+                        <div className="space-y-6">
             {/* Plataforma (solo si la cuenta tiene Twitch y Kick) */}
             {available.twitch && available.kick && (
                 <Segmented
@@ -991,7 +913,7 @@ export default function Followers() {
                                         className="px-6 py-4 text-left text-xs font-bold text-ds-soft uppercase tracking-wider cursor-pointer hover:bg-ds-raised transition-colors"
                                         onClick={() => handleSort('followedAt')}
                                     >
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 whitespace-nowrap">
                                             {t('table.followedSince')}
                                             {getSortIcon('followedAt')}
                                         </div>
@@ -1186,6 +1108,25 @@ export default function Followers() {
                     </div>
                 </div>
             )}
+
+                        </div>
+                    )}
+                </div>
+
+                <div className="xl:col-span-1 min-w-0">
+                    <div className="xl:sticky xl:top-6">
+                        <SummaryPanel
+                            stats={stats}
+                            counts={platformCounts}
+                            available={available}
+                            syncStatus={syncStatus}
+                            loading={loading}
+                            relativeTime={relativeTime}
+                            onSync={() => handleSyncFollowers(false)}
+                        />
+                    </div>
+                </div>
+            </div>
 
             {/* History Modal */}
             {showHistoryModal && (

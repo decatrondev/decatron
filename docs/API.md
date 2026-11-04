@@ -557,6 +557,7 @@ The endpoints below are the rest of the routes of the backend, generated from th
 | `GET` | `/api/Followers/stats` | JWT |
 | `POST` | `/api/Followers/sync` | JWT |
 | `POST` | `/api/Followers/{userId}/block` | JWT |
+| `GET` | `/api/Followers/lookup` | JWT |
 | `GET` | `/api/Followers/{userId}/history` | JWT |
 | `POST` | `/api/Followers/{userId}/unblock` | JWT |
 

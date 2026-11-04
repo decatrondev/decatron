@@ -52,7 +52,8 @@
     "subtitleTwitch": "Manage and analyze your Twitch follower community",
     "subtitleKick": "Manage and analyze your Kick follower community",
     "subtitleBoth": "Manage and analyze your Twitch and Kick follower community",
-    "title": "Follower management"
+    "title": "Follower management",
+    "back": "Back to the panel"
   },
   "filter": {
     "all": "All"
@@ -174,5 +175,49 @@
     "block": "Block",
     "unblock": "Unblock",
     "unknown": "Unknown"
+  },
+  "tabs": {
+    "guide": "Guide",
+    "list": "Followers",
+    "sync": "Sync"
+  },
+  "summary": {
+    "title": "Summary",
+    "activeLabel": "active followers",
+    "splitAria": "Active followers split: Twitch {{twitch}}, Kick {{kick}}",
+    "syncLast": "Last read from Twitch: {{when}} ({{source}})",
+    "syncFailed": "The last attempt ({{when}}) could not read the list",
+    "syncNever": "There is no full read of your list yet"
+  },
+  "syncTab": {
+    "description": "Decatron compares your followers with Twitch's list every hour, even if this page is not open.",
+    "browserEnable": "Also check from this browser",
+    "last": {
+      "newFollowers": "New followers",
+      "returned": "Came back",
+      "unfollowed": "Unfollowed you",
+      "renamed": "Renamed"
+    }
+  },
+  "guide": {
+    "title": "How Followers works",
+    "description": "What Decatron records, how often it updates and what it cannot know.",
+    "step1Title": "How follows are recorded",
+    "step1Body": "Each new follow is saved the moment it happens, with the real name and date that Twitch provides.",
+    "step1BodyBoth": "Each new follow is saved the moment it happens, on both Twitch and Kick. On Twitch the date is the one the platform provides; on Kick, the date of the notice.",
+    "step2Title": "The server checks your list every hour",
+    "step2Body": "Even if this page is not open, Decatron compares your followers with Twitch's list once an hour. That way it recovers follows it did not get to see, updates names that changed and detects who stopped following you. You can also do it by hand with Sync.",
+    "goSync": "See the sync status",
+    "step3Title": "When an unfollow is marked",
+    "step3Body": "Twitch does not notify when someone unfollows: Decatron detects it by comparing lists, so the unfollow date is the date of that check and not necessarily the exact day. If Twitch's list arrives incomplete or too many followers are missing at once, that check marks nobody to avoid mistakes, and you will see a notice on screen.",
+    "step4Title": "If someone does not appear",
+    "step4Body": "Search for them by name in the Followers tab. If there are no results, use Look up on Twitch and in chat: it asks Twitch live whether they follow you today, and it also finds people who changed their name if they ever wrote in your chat.",
+    "goList": "Go to the followers list",
+    "limitsTitle": "What cannot be known",
+    "limit1": "Who followed you and left before Decatron started recording your channel: Twitch does not provide the history of earlier followers.",
+    "limit2": "The exact day someone stopped following you.",
+    "limitKick1": "On Kick, who followed you before this feature was turned on, and who unfollows: Kick does not provide the follower list or notify unfollows.",
+    "limitKick2": "On Kick, follows that happen while the bot is off.",
+    "docsLink": "See the full Followers documentation"
   }
 }

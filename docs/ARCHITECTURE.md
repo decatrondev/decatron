@@ -820,6 +820,17 @@ erDiagram
         string user_login
         datetime followed_at
         datetime account_created_at
+        string platform
+    }
+
+    follower_sync_status {
+        bigint id PK
+        string platform
+        string broadcaster_id
+        datetime last_attempt_at
+        datetime last_success_at
+        string last_source
+        string last_result
     }
 
     giveaway_configs ||--o{ giveaway_sessions : "config_id"
@@ -877,7 +888,7 @@ Modules 01-21 come from the original codebase audit; later modules are appended 
 | 10 | **Giveaway / Raffle** | Weighted giveaways with anti-cheat, timer integration, raffle system, background monitoring | `GiveawayController`, `GiveawayService`, `GiveawayBackgroundService`, `RaffleController`, `RaffleService` | 14 frontend files (types, hooks, tabs) |
 | 12 | **Shoutout** | Visual shoutout overlay with clip download (yt-dlp), automatic shoutouts, permissions | `ShoutoutController`, `ClipDownloadService` | `ShoutoutConfig.tsx`, `ShoutoutOverlay.tsx` |
 | 13 | **Now Playing** | Spotify and Last.fm integration, background polling every 3 seconds, Spotify slot system (the plan only orders the waiting list), overlay editor | `NowPlayingController`, `SpotifyController`, `NowPlayingService`, `NowPlayingBackgroundService`, `StreamStatusService` | `NowPlayingConfig.tsx`, `now-playing-extension/`, `NowPlayingOverlay.tsx` |
-| 15 | **Followers / Analytics** | Follower sync from Twitch API, unfollow detection, analytics dashboard (6 tabs), watch time tracking, chat activity | `FollowersController`, `FollowersService`, `AnalyticsController`, `WatchTimeTrackingService`, `ChatActivityService` | `Followers.tsx`, `Analytics.tsx` + 6 tabs |
+| 15 | **Followers / Analytics** | Twitch and Kick followers (each follow is saved live, with a `platform` column; Kick has no follower list or unfollow events), hourly server sync against Twitch's list through a pure planner (renames by id, no unfollow detection on an incomplete, empty or suspicious list), last-sync status per channel, unfollow detection, analytics dashboard (6 tabs), watch time tracking, chat activity | `FollowersController`, `FollowersService`, `FollowersSyncService`, `FollowersAutoSyncBackgroundService`, `FollowersSyncPlanner`, `KickFollowRecorder`, `AnalyticsController`, `WatchTimeTrackingService`, `ChatActivityService` | `Followers.tsx` + `followers-extension/` (Guide, Followers, Sync, Summary panel), `Analytics.tsx` + 6 tabs |
 | 16 | **Scripting** | Custom DSL (set/when/send), parser, validator, executor, micro commands, game search/cache | `ScriptsController`, `ScriptingService`, `ScriptParser`, `ScriptExecutor`, `MicroCommandsController`, `GameSearchService`, `GameCacheUpdateService` | `ScriptingEditor.tsx`, `ScriptingList.tsx`, `MicroCommands.tsx`, `CustomCommands.tsx`, `DefaultCommands.tsx` |
 | 17 | **Decatron AI** | AI chat via Google Gemini / OpenRouter with fallback, `!ia` command, per-channel config, admin panel | `DecatronAIController`, `DecatronAIAdminController`, `GeminiService`, `OpenRouterService`, `AIProviderService`, `DecatronAICommand` | `DecatronAIConfig.tsx`, `DecatronAIAdmin.tsx`, `AIDoc.tsx` |
 | 18 | **Settings** | Bot settings, user management, language preferences, TTS generation (AWS Polly), user permissions | `SettingsController`, `SettingsService`, `LanguageController`, `TtsController`, `TtsService` | -- |
