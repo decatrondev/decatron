@@ -70,8 +70,18 @@ export default function EventAlertsConfig() {
     const [designTarget, setDesignTarget] = useState<DesignTarget>('general');
     const [previewEvent, setPreviewEvent] = useState<AlertEventType>('follow');
     const [legacyUrl, setLegacyUrl] = useState('');
-    const { status, loaded: statusLoaded } = useOverlayStatus('/eventalerts/status');
+    const { status, loaded: statusLoaded, refresh: refreshStatus } = useOverlayStatus('/eventalerts/status');
     const bothLinked = !!status.hasTwitch && !!status.hasKick;
+    // Cómo se configuran las alertas: Separada (una configuración por plataforma, por defecto) o Unificada (una sola). Solo cuenta con Twitch y Kick
+    const mode: 'unified' | 'separate' = status.mode === 'unified' ? 'unified' : 'separate';
+    const kickOnly = statusLoaded && !!status.hasKick && !status.hasTwitch;
+    const separate = bothLinked && mode === 'separate';
+    const [platform, setPlatform] = useState<'twitch' | 'kick'>('twitch');
+    const [isCopy, setIsCopy] = useState(false);
+    const [switching, setSwitching] = useState(false);
+    // Se edita la configuración de Kick: cuenta solo de Kick, o Separada con la plataforma Kick elegida
+    const editingKick = kickOnly || (separate && platform === 'kick');
+    const savePlatform: 'twitch' | 'kick' = separate && platform === 'kick' ? 'kick' : 'twitch';
     const origin = window.location.origin;
     const keyUrl = (key: string, source?: 'all' | 'twitch' | 'kick') => `${origin}/overlay/event-alerts?channel=${key}${source ? `&source=${source}` : ''}`;
     // Con los dos canales vinculados, los enlaces salen de la clave de la cuenta; con uno solo se mantiene el de siempre
@@ -133,9 +143,46 @@ export default function EventAlertsConfig() {
     }, [toSave]);
 
     const save = async () => {
-        const ok = await saveConfiguration(toSave);
-        if (ok) setBaseline(snapshot);
+        const ok = await saveConfiguration(toSave, savePlatform);
+        if (ok) { setBaseline(snapshot); if (savePlatform === 'kick') setIsCopy(false); refreshStatus(); }
         setMessage({ ok, text: ok ? t('eventAlertsView.saved') : t('eventAlertsView.saveFailed') });
+    };
+
+    /** Vuelve a cargar la configuración de la plataforma elegida (la de Kick, o la principal como copia si Kick todavía no tiene la suya) */
+    const reload = async (p: 'twitch' | 'kick') => {
+        setBaseline(null);
+        const r = await loadConfiguration(p);
+        setIsCopy(!!r?.isCopy);
+    };
+
+    const switchPlatform = async (p: 'twitch' | 'kick') => {
+        if (p === platform || switching) return;
+        if (dirty && !window.confirm(t('eventAlertsView.mode.switchConfirm'))) return;
+        setPlatform(p);
+        if (p === 'kick') {
+            // Kick no tiene raids ni hype train: si se estaba en uno de ellos (pestaña, diseño o vista previa), se vuelve al principio
+            if (eventTab === 'raids' || eventTab === 'hypeTrain') setEventTab('follow');
+            if (previewEvent === 'raids' || previewEvent === 'hypeTrain') setPreviewEvent('follow');
+            if (designTarget === 'raids' || designTarget.startsWith('hype')) setDesignTarget('general');
+        }
+        await reload(p);
+    };
+
+    const changeMode = async (m: 'unified' | 'separate') => {
+        if (m === mode || switching) return;
+        if (dirty && !window.confirm(t('eventAlertsView.mode.switchConfirm'))) return;
+        setSwitching(true);
+        try {
+            await api.post('/eventalerts/mode', { mode: m });
+            await refreshStatus();
+            // Al volver a Unificada se edita la configuración principal; la de Kick queda guardada sin tocarla
+            if (m === 'unified' && platform === 'kick') { setPlatform('twitch'); await reload('twitch'); }
+            setMessage({ ok: true, text: t('eventAlertsView.mode.changed') });
+        } catch {
+            setMessage({ ok: false, text: t('eventAlertsView.mode.changeFailed') });
+        } finally {
+            setSwitching(false);
+        }
     };
 
     const back = () => {
@@ -144,7 +191,7 @@ export default function EventAlertsConfig() {
     };
 
     const test = async (eventType: string, data?: any) => {
-        try { await api.post('/eventalerts/test', { eventType, ...data }); } catch { setMessage({ ok: false, text: t('eventAlertsView.preview.testFailed') }); }
+        try { await api.post('/eventalerts/test', { eventType, ...data, ...(savePlatform === 'kick' ? { platform: 'kick' } : {}) }); } catch { setMessage({ ok: false, text: t('eventAlertsView.preview.testFailed') }); }
     };
 
     // Avanzado edita el estilo global viejo: también se aplica al diseño general si ya fue editado
@@ -159,6 +206,10 @@ export default function EventAlertsConfig() {
     // La vista previa sigue al evento que se edita
     const onDesignTarget = (target: DesignTarget) => { setDesignTarget(target); setPreviewEvent(targetEvent(target)); };
     const onEventTab = (ev: AlertEventType) => { setEventTab(ev); setPreviewEvent(ev); };
+    // Kick no tiene raids ni hype train: en su configuración no aparecen
+    const eventList = editingKick ? EVENT_TYPES.filter(e => e !== 'raids' && e !== 'hypeTrain') : EVENT_TYPES;
+    const activeEvent: AlertEventType = eventList.includes(eventTab) ? eventTab : 'follow';
+    const eventLabel = (ev: AlertEventType) => editingKick && ev === 'bits' ? t('eventAlertsView.kick.eventKicks') : t(`eventAlertsView.events.${ev}`);
     const hypeKey = designTarget.startsWith('hype-') ? designTarget.slice(5) : '';
     const hypeLevel = hypeKey === 'completed' ? 'completed' as const : hypeKey ? Number(hypeKey) : undefined;
 
@@ -226,6 +277,39 @@ export default function EventAlertsConfig() {
 
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <div className="xl:col-span-2 space-y-6 min-w-0">
+                        {statusLoaded && bothLinked && (
+                            <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-3">
+                                <div>
+                                    <h3 className="text-sm 3xl:text-base font-bold text-ds-text">{t('eventAlertsView.mode.title')}</h3>
+                                    <p className="text-xs 3xl:text-sm text-ds-soft mt-1">{t(mode === 'unified' ? 'eventAlertsView.mode.unifiedHint' : 'eventAlertsView.mode.separateHint')}</p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <button disabled={switching || status.hasConfig === false} onClick={() => changeMode('separate')}
+                                        className={mode === 'separate' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>{t('eventAlertsView.mode.separate')}</button>
+                                    <button disabled={switching || status.hasConfig === false} onClick={() => changeMode('unified')}
+                                        className={mode === 'unified' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>{t('eventAlertsView.mode.unified')}</button>
+                                </div>
+                                {status.hasConfig === false && <p className="text-xs 3xl:text-sm text-ds-warn">{t('eventAlertsView.mode.saveFirst')}</p>}
+                                {separate && (
+                                    <div className="pt-3 border-t border-ds-border space-y-2">
+                                        <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-ds-soft">{t('eventAlertsView.mode.editing')}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button disabled={switching} onClick={() => switchPlatform('twitch')}
+                                                className={platform === 'twitch' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>Twitch</button>
+                                            <button disabled={switching} onClick={() => switchPlatform('kick')}
+                                                className={platform === 'kick' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>Kick</button>
+                                        </div>
+                                        {platform === 'kick' && isCopy && <p className="text-xs 3xl:text-sm text-ds-soft">{t('eventAlertsView.mode.kickCopy')}</p>}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {kickOnly && (
+                            <div className="rounded-lg border border-ds-border bg-ds-raised px-4 py-3">
+                                <p className="text-sm 3xl:text-base text-ds-soft">{t('eventAlertsView.mode.kickOnlyHint')}</p>
+                            </div>
+                        )}
+
                         <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                             <div className="flex flex-wrap gap-2">
                                 {TABS.map(item => (
@@ -279,7 +363,7 @@ export default function EventAlertsConfig() {
                                                 <p className="text-xs 3xl:text-sm text-ds-soft">{t('eventAlertsView.guide.linkOtherHint')}</p>
                                             )}
                                             {statusLoaded && status.hasKick && (
-                                                <p className="text-xs 3xl:text-sm text-ds-soft">{t('eventAlertsView.guide.kickNote')}</p>
+                                                <p className="text-xs 3xl:text-sm text-ds-soft">{t(bothLinked ? (mode === 'unified' ? 'eventAlertsView.guide.kickNote' : 'eventAlertsView.guide.kickNoteSeparate') : 'eventAlertsView.guide.kickNoteOnly')}</p>
                                             )}
                                             <ol className="list-decimal pl-5 space-y-1">
                                                 <li>{t('eventAlertsView.guide.obs1')}</li>
@@ -295,36 +379,43 @@ export default function EventAlertsConfig() {
                             </Card>
                         )}
 
-                        {tab === 'general' && <GlobalTab config={cfg.globalConfig} onConfigChange={cfg.updateGlobalConfig} overlayUrl={overlayUrl} showKick={statusLoaded && !!status.hasKick} />}
+                        {tab === 'general' && <GlobalTab config={cfg.globalConfig} onConfigChange={cfg.updateGlobalConfig} overlayUrl={overlayUrl} showKick={bothLinked && mode === 'unified'} />}
 
                         {tab === 'events' && (
                             <div className="space-y-6">
                                 <div className="flex flex-wrap gap-2">
-                                    {EVENT_TYPES.map(ev => (
+                                    {eventList.map(ev => (
                                         <button key={ev} onClick={() => onEventTab(ev)}
-                                            className={`px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold border transition-colors ${eventTab === ev ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text ' : 'border-ds-border text-ds-soft hover:border-ds-accent'}`}>
-                                            {EVENT_ICONS[ev]} {t(`eventAlertsView.events.${ev}`)}
+                                            className={`px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold border transition-colors ${activeEvent === ev ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text ' : 'border-ds-border text-ds-soft hover:border-ds-accent'}`}>
+                                            {EVENT_ICONS[ev]} {eventLabel(ev)}
                                         </button>
                                     ))}
                                 </div>
-                                {statusLoaded && status.hasKick && (eventTab === 'raids' || eventTab === 'hypeTrain') && (
+                                {bothLinked && mode === 'unified' && (activeEvent === 'raids' || activeEvent === 'hypeTrain') && (
                                     <div className="rounded-lg border border-ds-border bg-ds-raised px-4 py-3">
                                         <p className="text-sm 3xl:text-base font-bold text-ds-text">{t('eventAlertsView.kick.noEventTitle')}</p>
-                                        <p className="text-sm 3xl:text-base text-ds-soft mt-1">{t(eventTab === 'raids' ? 'eventAlertsView.kick.raidsNote' : 'eventAlertsView.kick.hypeNote')}</p>
+                                        <p className="text-sm 3xl:text-base text-ds-soft mt-1">{t(activeEvent === 'raids' ? 'eventAlertsView.kick.raidsNote' : 'eventAlertsView.kick.hypeNote')}</p>
                                     </div>
                                 )}
-                                {eventTab === 'follow' && <FollowTab config={cfg.followConfig} onConfigChange={cfg.updateFollowConfig} />}
-                                {eventTab === 'bits' && <BitsTab config={cfg.bitsConfig} onConfigChange={cfg.updateBitsConfig} />}
-                                {eventTab === 'subs' && <SubsTab config={cfg.subsConfig} onConfigChange={cfg.updateSubsConfig} />}
-                                {eventTab === 'giftSubs' && <GiftSubsTab config={cfg.giftSubsConfig} onConfigChange={cfg.updateGiftSubsConfig} />}
-                                {eventTab === 'raids' && <RaidsTab config={cfg.raidsConfig} onConfigChange={cfg.updateRaidsConfig} />}
-                                {eventTab === 'resubs' && <ResubsTab config={cfg.resubsConfig} onConfigChange={cfg.updateResubsConfig} />}
-                                {eventTab === 'hypeTrain' && <HypeTrainTab config={cfg.hypeTrainConfig} onConfigChange={cfg.updateHypeTrainConfig} />}
+                                {bothLinked && mode === 'unified' && (activeEvent === 'bits' || activeEvent === 'subs') && (
+                                    <div className="rounded-lg border border-ds-border bg-ds-raised px-4 py-3">
+                                        <p className="text-sm 3xl:text-base text-ds-soft">{t(activeEvent === 'bits' ? 'eventAlertsView.kick.bitsUnifiedNote' : 'eventAlertsView.kick.subsUnifiedNote')}</p>
+                                    </div>
+                                )}
+                                {activeEvent === 'follow' && <FollowTab config={cfg.followConfig} onConfigChange={cfg.updateFollowConfig} />}
+                                {activeEvent === 'bits' && <BitsTab config={cfg.bitsConfig} onConfigChange={cfg.updateBitsConfig} kick={editingKick} />}
+                                {activeEvent === 'subs' && <SubsTab config={cfg.subsConfig} onConfigChange={cfg.updateSubsConfig} kick={editingKick} />}
+                                {activeEvent === 'giftSubs' && <GiftSubsTab config={cfg.giftSubsConfig} onConfigChange={cfg.updateGiftSubsConfig} />}
+                                {activeEvent === 'raids' && <RaidsTab config={cfg.raidsConfig} onConfigChange={cfg.updateRaidsConfig} />}
+                                {activeEvent === 'resubs' && <ResubsTab config={cfg.resubsConfig} onConfigChange={cfg.updateResubsConfig} />}
+                                {activeEvent === 'hypeTrain' && <HypeTrainTab config={cfg.hypeTrainConfig} onConfigChange={cfg.updateHypeTrainConfig} />}
                             </div>
                         )}
 
                         {tab === 'design' && (
                             <DesignTab
+                                events={eventList}
+                                kick={editingKick}
                                 design={cfg.design}
                                 onChange={cfg.setDesign}
                                 canvas={canvas}
@@ -343,6 +434,8 @@ export default function EventAlertsConfig() {
 
                     <div className="xl:col-span-1 min-w-0">
                         <EventAlertsPreview
+                            events={eventList}
+                            kick={editingKick}
                             config={toSave}
                             design={toSave.design!}
                             canvas={canvas}

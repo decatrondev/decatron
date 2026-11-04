@@ -228,6 +228,17 @@ Guía, General, Eventos, Diseño, Avanzado, Media y Pruebas. El editor de diseñ
 
 Efectos: `shake`, `glow`, `float`, `pulse`, `confetti`. Animaciones de entrada y salida: `fade`, `slide`, `bounce`, `zoom`.
 
+### Alertas de Kick
+
+Con un canal de Kick vinculado, el mismo overlay muestra follows, subs nuevas, renovaciones, subs regaladas y Kicks regalados de Kick (el webhook los traduce con `KickEventTranslator` y `KickAlertDispatcher` llama a `TriggerAlertAsync`). Con Twitch y Kick vinculados hay dos modos, que se guardan en `global.platformMode` de la configuración principal (sin valor = `separate`):
+
+- **`separate`** (por defecto): cada plataforma tiene su configuración completa. La de Kick vive en la fila del canal de Kick de la tabla `event_alerts_configs`; mientras no exista, un evento de Kick usa la principal como copia (y convierte los Kicks a bits). Cooldowns, anti-spam y variantes se guardan por configuración. Los niveles de la configuración de Kick están en Kicks y no se convierte nada.
+- **`unified`**: una sola configuración, la principal. Los Kicks disparan las alertas de **bits**: `global.kickBitsPerKick` (por defecto 1) convierte los Kicks en bits antes de elegir el nivel. La configuración de Kick no se borra al volver a este modo.
+
+En una cuenta solo de Kick su única configuración ya es la de Kick (en Kicks, sin conversión). Kick no tiene niveles de sub, así que subs y renovaciones usan el Nivel 1 (las renovaciones, la alerta `resubs` con los meses que informa Kick); un regalo anónimo se muestra como «Anónimo» y un follow anónimo no se avisa. Kick no tiene raids ni hype train. Los créditos de voz se cobran siempre a la fila principal de la cuenta.
+
+Cada alerta lleva un `id` único y su `platform`. Las de Twitch van al grupo al que el overlay siempre se unió y al grupo v2 de la cuenta; las de Kick van solo al grupo v2 (`overlay_v2:{claveDeCuenta}`). El overlay de OBS pregunta a `GET /api/eventalerts/resolve/{canal}` a qué grupo unirse, filtra por plataforma con `?source=all|twitch|kick` (un enlace sin `source` sigue mostrando solo su plataforma) y descarta ids repetidos. `GET /api/eventalerts/status` informa las variantes conectadas, el modo y los canales vinculados. `GET/POST /api/eventalerts/config?platform=kick` leen y guardan la configuración de Kick, y `POST /api/eventalerts/mode` (`{"mode":"unified|separate"}`) cambia el modo sin borrar nada. Las alertas de prueba van a los dos grupos y sin plataforma, así que todas las fuentes las muestran.
+
 ### API de alertas de eventos
 
 | Método | Endpoint | Auth | Descripción |

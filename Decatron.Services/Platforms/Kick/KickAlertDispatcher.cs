@@ -24,10 +24,10 @@ namespace Decatron.Services.Platforms.Kick
         }
 
         /// <summary>
-        /// Apagado a propósito (2026-11-03) hasta tener la configuración separada por plataforma: encendido, un canal con el
+        /// Estuvo apagado el 2026-11-03 hasta tener la configuración separada por plataforma (fases A y B); encendido en la fase C. Apagado, un canal con el
         /// enlace «Todo» recibiría alertas de Kick con los valores de Twitch. Plan: .dev/plans/kick-completo/PLAN.md, decisión 15.
         /// </summary>
-        private static readonly bool Enabled = false;
+        private static readonly bool Enabled = true;
 
         public async Task DispatchAsync(PlatformEvent evt)
         {
@@ -50,7 +50,7 @@ namespace Decatron.Services.Platforms.Kick
                 // Modo de configuración de la cuenta (se guarda en la configuración de la fila principal)
                 var principalConfig = await alerts.GetConfigByChannel(resolved.Account.OverlayKey);
                 var mode = EventAlertsPlatformMode.Parse(principalConfig?.ConfigJson);
-                var configChannel = EventAlertsPlatformMode.PreferredConfigChannel(mode, "kick", resolved.Matched.Login, resolved.Account.OverlayKey);
+                var configChannel = EventAlertsPlatformMode.PreferredConfigChannel(mode, "kick", resolved.Matched.Login, resolved.Account.OverlayKey, resolved.Account.HasTwitch);
 
                 await alerts.TriggerAlertAsync(
                     resolved.Account.OverlayKey, call.EventType, call.Username,

@@ -144,7 +144,7 @@
           },
           {
             "t": "p",
-            "x": "For now the bot only receives these events: they do not trigger alerts or add time to the Timer yet."
+            "x": "These events power the Event Alerts (follows, subs, gifted subs and Kicks). They do not add time to the Timer yet."
           },
           {
             "t": "p",
@@ -186,11 +186,6 @@
                 "`!title` and `!game` (with `!t` and `!g`) change the stream title and category on Kick, and so do micro commands; `!followage` and `!so` show as “No disponible en Kick”."
               ],
               [
-                "Followers (Follower management)",
-                "Yes, with limits",
-                "Each new follow is saved the moment it happens, with its history, and shows in the same list with the Kick mark. Kick does not provide the follower list or notify when someone unfollows: earlier followers are not imported and unfollows are not detected, and a follow that happens while the bot is off is not recorded."
-              ],
-              [
                 "On-screen chat",
                 "Yes",
                 "Deleted messages and banned users are not removed from the overlay on their own."
@@ -199,6 +194,16 @@
                 "Sound alerts",
                 "Yes",
                 "They are triggered by Kick channel point rewards."
+              ],
+              [
+                "Event alerts",
+                "Yes, with differences",
+                "Follows, subs, renewals, gifted subs and Kicks. With Twitch and Kick linked, the configuration is separate per platform (default) or unified: in Kick's the tiers are in Kicks and there is a single sub alert; in the unified one Kicks use the bits alerts (by default 1 Kick = 1 bit) and subs use Tier 1. No raids or hype train. The «All» link brings Twitch and Kick together."
+              ],
+              [
+                "Followers (Follower management)",
+                "Yes, with limits",
+                "Each new follow is saved the moment it happens, with its history, and shows in the same list with the Kick mark. Kick does not provide the follower list or notify when someone unfollows: earlier followers are not imported and unfollows are not detected, and a follow that happens while the bot is off is not recorded."
               ],
               [
                 "Song Request",

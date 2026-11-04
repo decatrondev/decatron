@@ -292,9 +292,13 @@ interface Props {
     onTargetChange: (t: DesignTarget) => void;
     /** "Posición por defecto" de General: donde se ubican los diseños prearmados. */
     anchor?: { x: number; y: number };
+    /** Eventos que se pueden elegir (por defecto todos). En la configuración de Kick no están Raids ni Hype Train. */
+    events?: AlertEventType[];
+    /** Se edita la configuración de Kick: el evento de bits se llama Kicks */
+    kick?: boolean;
 }
 
-export default function DesignTab({ design, onChange, canvas, onCanvasChange, samples, target, onTargetChange, anchor }: Props) {
+export default function DesignTab({ design, onChange, canvas, onCanvasChange, samples, target, onTargetChange, anchor, events = EVENT_TYPES, kick = false }: Props) {
     const { t } = useTranslation('overlays');
     const designRef = useRef(design);
     designRef.current = design;
@@ -402,7 +406,7 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                     <label className="flex-1 min-w-0">
                         <span className="block text-xs 3xl:text-sm font-bold uppercase text-ds-soft mb-1">{t('eventAlertsView.design.targetTitle')}</span>
                         <select className={inputClass} value={isHypeLevel ? 'hypeTrain' : target} onChange={e => onTargetChange(e.target.value as DesignTarget)}>
-                            {(['general', ...EVENT_TYPES] as DesignTarget[]).map(tg => <option key={tg} value={tg}>{t(`eventAlertsView.events.${tg}`)}{status(tg)}</option>)}
+                            {(['general', ...events] as DesignTarget[]).map(tg => <option key={tg} value={tg}>{kick && tg === 'bits' ? t('eventAlertsView.kick.eventKicks') : t(`eventAlertsView.events.${tg}`)}{status(tg)}</option>)}
                         </select>
                     </label>
                     {trainTarget && design.events.hypeTrain && (
@@ -426,7 +430,7 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                                     <>
                                         <select className={`${inputClass} !w-auto`} value={copyTo} onChange={e => setCopyTo(e.target.value as AlertEventType)} aria-label={t('eventAlertsView.design.copyTo')}>
                                             <option value="">{t('eventAlertsView.design.copyTo')}</option>
-                                            {EVENT_TYPES.filter(e => e !== target).map(e => <option key={e} value={e}>{t(`eventAlertsView.events.${e}`)}</option>)}
+                                            {events.filter(e => e !== target).map(e => <option key={e} value={e}>{kick && e === 'bits' ? t('eventAlertsView.kick.eventKicks') : t(`eventAlertsView.events.${e}`)}</option>)}
                                         </select>
                                         <button className={btnGray} onClick={doCopy} disabled={!copyTo}><Copy className="w-4 h-4" /> {t('eventAlertsView.design.copy')}</button>
                                     </>

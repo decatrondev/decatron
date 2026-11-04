@@ -20,14 +20,16 @@ import { EventSection } from '../EventSection';
 interface SubsTabProps {
   config: SubsAlertConfig;
   onConfigChange: (updates: Partial<SubsAlertConfig>) => void;
+  /** Se edita la configuración de Kick: Kick no tiene niveles de sub, así que hay una sola alerta (la del Nivel 1) */
+  kick?: boolean;
 }
 
-export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
+export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange, kick = false }) => {
   const [expandedTier, setExpandedTier] = useState<SubTier | null>(null);
 
   const tierInfo: Record<SubTier, { emoji: string; label: string; color: string }> = {
     prime: { emoji: '👑', label: 'Prime', color: 'purple' },
-    tier1: { emoji: '⭐', label: 'Tier 1', color: 'blue' },
+    tier1: { emoji: '⭐', label: kick ? 'Sub de Kick' : 'Tier 1', color: 'blue' },
     tier2: { emoji: '⭐⭐', label: 'Tier 2', color: 'green' },
     tier3: { emoji: '⭐⭐⭐', label: 'Tier 3', color: 'red' },
   };
@@ -54,7 +56,7 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
               ⭐ Alertas de Subscripciones
             </label>
             <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
-              Configura las alertas para nuevas subscripciones (Prime, T1, T2, T3)
+              {kick ? 'Configura la alerta para nuevas subscripciones. Kick no tiene niveles: hay una sola alerta' : 'Configura las alertas para nuevas subscripciones (Prime, T1, T2, T3)'}
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -73,10 +75,10 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
       </div>
 
       {/* Configuración por Tier */}
-      <EventSection title="🎯 Configuración por Tier" description="Personaliza la alerta para cada tipo de subscripción" defaultOpen>
+      <EventSection title="🎯 Configuración por Tier" description={kick ? 'Personaliza la alerta de las subscripciones de Kick' : 'Personaliza la alerta para cada tipo de subscripción'} defaultOpen>
 
         <div className="space-y-3">
-          {(Object.keys(tierInfo) as SubTier[]).map((tier) => {
+          {(Object.keys(tierInfo) as SubTier[]).filter((tier) => !kick || tier === 'tier1').map((tier) => {
             const info = tierInfo[tier];
             const tierConfig = config.subTypes[tier];
 

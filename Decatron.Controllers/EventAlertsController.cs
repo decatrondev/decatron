@@ -56,15 +56,26 @@ namespace Decatron.Controllers
         // ========================================================================
 
         [HttpGet("config")]
-        public async Task<IActionResult> GetConfig()
+        public async Task<IActionResult> GetConfig([FromQuery] string? platform = null)
         {
             try
             {
-                var channelOwnerId = await GetConfigOwnerIdAsync();
-                var config = await _eventAlertsService.GetConfig(channelOwnerId);
+                var target = await ResolveTargetAsync(platform);
+                var principal = await _eventAlertsService.GetConfig(target.PrincipalId);
+                var mode = EventAlertsPlatformMode.Parse(principal?.ConfigJson);
+
+                var config = await _eventAlertsService.GetConfig(target.OwnerId);
+                // La configuración de Kick todavía no existe: se ofrece la principal como punto de partida (no se guarda hasta que el
+                // streamer pulse Guardar)
+                var isCopy = false;
+                if (config == null && target.IsKickConfig)
+                {
+                    config = principal;
+                    isCopy = config != null;
+                }
 
                 if (config == null)
-                    return Ok(new { success = true, config = (object?)null });
+                    return Ok(new { success = true, config = (object?)null, platform = target.IsKickConfig ? "kick" : "twitch", mode = ModeText(mode) });
 
                 return Ok(new
                 {
@@ -73,7 +84,10 @@ namespace Decatron.Controllers
                     {
                         data = JsonSerializer.Deserialize<JsonElement>(config.ConfigJson),
                         isEnabled = config.IsEnabled
-                    }
+                    },
+                    platform = target.IsKickConfig ? "kick" : "twitch",
+                    isCopy,
+                    mode = ModeText(mode)
                 });
             }
             catch (Exception ex)
@@ -83,8 +97,28 @@ namespace Decatron.Controllers
             }
         }
 
+        private static string ModeText(EventAlertsMode mode) => mode == EventAlertsMode.Unified ? EventAlertsPlatformMode.UnifiedValue : EventAlertsPlatformMode.SeparateValue;
+
+        /// <summary>
+        /// Qué fila se lee o se guarda: la principal de la cuenta, o la de Kick cuando se pide <c>platform=kick</c> y la cuenta tiene
+        /// Twitch y Kick. En una cuenta solo de Kick la principal ya es la de Kick.
+        /// </summary>
+        private sealed record ConfigTarget(long OwnerId, long PrincipalId, long? KickRowId, bool IsKickConfig, bool BothLinked);
+
+        private async Task<ConfigTarget> ResolveTargetAsync(string? platform)
+        {
+            var sessionOwner = GetChannelOwnerId();
+            var account = await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>()
+                .ResolveByUserIdAsync(sessionOwner);
+            var principalId = account?.Principal.UserId ?? sessionOwner;
+            var kick = account?.Members.FirstOrDefault(m => !string.IsNullOrEmpty(m.KickId));
+            var both = account != null && account.HasTwitch && account.HasKick && kick != null;
+            var wantKick = both && string.Equals(platform, "kick", StringComparison.OrdinalIgnoreCase);
+            return new ConfigTarget(wantKick ? kick!.UserId : principalId, principalId, kick?.UserId, wantKick, both);
+        }
+
         [HttpPost("config")]
-        public async Task<IActionResult> SaveConfig([FromBody] EventAlertsSaveRequest body)
+        public async Task<IActionResult> SaveConfig([FromBody] EventAlertsSaveRequest body, [FromQuery] string? platform = null)
         {
             _logger.LogInformation("[EventAlerts] POST /config - Inicio");
 
@@ -95,7 +129,8 @@ namespace Decatron.Controllers
                     return BadRequest(new { success = false, message = "Config es requerida" });
                 }
 
-                var channelOwnerId = await GetConfigOwnerIdAsync();
+                var target = await ResolveTargetAsync(platform);
+                var channelOwnerId = target.OwnerId;
                 var channelName = await GetChannelUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(channelName))
@@ -113,14 +148,55 @@ namespace Decatron.Controllers
                     return BadRequest(new { success = false, message = "Configuración inválida", errors = validationErrors });
                 }
 
+                // El modo (Unificada/Separada) vive en la configuración principal y solo lo cambia el interruptor del panel
+                var existingPrincipal = await _eventAlertsService.GetConfig(target.PrincipalId);
+                configJson = EventAlertsPlatformMode.ApplyOnSave(existingPrincipal?.ConfigJson, configJson, savingPrincipal: !target.IsKickConfig);
+
                 await _eventAlertsService.SaveConfig(channelOwnerId, channelName, configJson);
 
-                _logger.LogInformation("[EventAlerts] Config guardada para {Channel}", channelName);
+                _logger.LogInformation("[EventAlerts] Config guardada para {Channel} ({Platform})", channelName, target.IsKickConfig ? "kick" : "principal");
                 return Ok(new { success = true, message = "Configuración guardada" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[EventAlerts] Error al guardar config: {Message}", ex.Message);
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        /// <summary>
+        /// Cambia cómo se configuran las alertas de una cuenta con Twitch y Kick: <c>unified</c> (una sola configuración, la
+        /// principal) o <c>separate</c> (una por plataforma). No borra nada: la configuración de Kick queda guardada al volver a
+        /// «Unificada». Exige que la configuración principal ya exista.
+        /// </summary>
+        [HttpPost("mode")]
+        public async Task<IActionResult> SetMode([FromBody] EventAlertsModeRequest body)
+        {
+            try
+            {
+                var wanted = body?.Mode?.Trim().ToLowerInvariant();
+                if (wanted != EventAlertsPlatformMode.UnifiedValue && wanted != EventAlertsPlatformMode.SeparateValue)
+                    return BadRequest(new { success = false, message = "Modo inválido" });
+
+                var target = await ResolveTargetAsync(null);
+                if (!target.BothLinked)
+                    return BadRequest(new { success = false, message = "Hace falta tener Twitch y Kick vinculados" });
+
+                var principal = await _eventAlertsService.GetConfig(target.PrincipalId);
+                if (principal == null)
+                    return BadRequest(new { success = false, message = "Guarda primero tu configuración de alertas" });
+
+                var updated = EventAlertsPlatformMode.WithMode(principal.ConfigJson, wanted == EventAlertsPlatformMode.UnifiedValue ? EventAlertsMode.Unified : EventAlertsMode.Separate);
+                if (updated == null)
+                    return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
+
+                await _eventAlertsService.SaveConfig(target.PrincipalId, principal.ChannelName, updated);
+                _logger.LogInformation("[EventAlerts] Modo de configuración de {Channel}: {Mode}", principal.ChannelName, wanted);
+                return Ok(new { success = true, mode = wanted });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[EventAlerts] Error cambiando el modo de configuración");
                 return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
         }
@@ -298,8 +374,12 @@ namespace Decatron.Controllers
                 if (string.IsNullOrEmpty(channelName))
                     return BadRequest(new { success = false, message = "No se pudo identificar el canal" });
 
-                // Obtener configuración del usuario
-                var config = await _eventAlertsService.GetConfig(channelOwnerId);
+                // Obtener configuración del usuario. Con platform "kick" (cuenta con Twitch y Kick) se prueba la de Kick, o la
+                // principal si Kick todavía no tiene la suya. La prueba sale siempre al grupo de la cuenta (channelName).
+                var testPlatform = body.TryGetProperty("platform", out var platProp) && platProp.ValueKind == JsonValueKind.String ? platProp.GetString() : null;
+                var testTarget = await ResolveTargetAsync(testPlatform);
+                var config = await _eventAlertsService.GetConfig(testTarget.OwnerId)
+                             ?? await _eventAlertsService.GetConfig(channelOwnerId);
                 if (config == null)
                     return BadRequest(new { success = false, message = "No hay configuración guardada" });
 
@@ -857,9 +937,16 @@ namespace Decatron.Controllers
                 if (counts["all"] > 0 && (counts["twitch"] > 0 || counts["kick"] > 0)) warnings.Add("mixed");
                 if (counts.Values.Any(c => c > 1)) warnings.Add("repeated");
 
+                var principalConfig = await _eventAlertsService.GetConfig(account.Principal.UserId);
+                var kickMember = account.Members.FirstOrDefault(m => !string.IsNullOrEmpty(m.KickId));
+                var hasKickConfig = account.HasTwitch && kickMember != null && await _eventAlertsService.GetConfig(kickMember.UserId) != null;
+
                 return Ok(new
                 {
                     success = true,
+                    mode = ModeText(EventAlertsPlatformMode.Parse(principalConfig?.ConfigJson)),
+                    hasConfig = principalConfig != null,
+                    hasKickConfig,
                     overlayKey = account.OverlayKey,
                     hasTwitch = account.HasTwitch,
                     hasKick = account.HasKick,

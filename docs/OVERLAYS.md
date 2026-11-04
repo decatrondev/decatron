@@ -228,6 +228,17 @@ Guide, General, Events, Design, Advanced, Media and Tests. The design editor pla
 
 Effects: `shake`, `glow`, `float`, `pulse`, `confetti`. Entry/exit animations: `fade`, `slide`, `bounce`, `zoom`.
 
+### Kick alerts
+
+With a linked Kick channel the same overlay shows Kick follows, new subs, renewals, gifted subs and gifted Kicks (the webhook translates them with `KickEventTranslator` and `KickAlertDispatcher` calls `TriggerAlertAsync`). With Twitch and Kick linked there are two modes, stored in `global.platformMode` of the main configuration (no value = `separate`):
+
+- **`separate`** (default): each platform has its own complete configuration. Kick's lives in the Kick channel's row of the `event_alerts_configs` table; until it exists, a Kick event uses the main one as a copy (and converts Kicks to bits). Cooldowns, anti-spam and variants are kept per configuration. The Kick configuration's tiers are in Kicks and nothing is converted.
+- **`unified`**: a single configuration, the main one. Kicks fire the **bits** alerts: `global.kickBitsPerKick` (default 1) converts Kicks to bits before the tier is picked. The Kick configuration is not deleted when you return to this mode.
+
+On a Kick-only account its single configuration already is Kick's (in Kicks, no conversion). Kick has no sub tiers, so subs and renewals use Tier 1 (renewals use the `resubs` alert with the months Kick reports); an anonymous gifter is shown as "Anónimo" and an anonymous follow is not announced. Kick has no raids or hype train. Voice credits are always charged to the account's main row.
+
+Every alert carries a unique `id` and its `platform`. Twitch alerts go to the group the overlay always joined and to the account's v2 group; Kick alerts go only to the v2 group (`overlay_v2:{accountKey}`). The OBS overlay asks `GET /api/eventalerts/resolve/{channel}` which group to join, filters by platform with `?source=all|twitch|kick` (a link without `source` keeps showing only its own platform) and drops repeated ids. `GET /api/eventalerts/status` reports the connected variants, the mode and the linked channels. `GET/POST /api/eventalerts/config?platform=kick` read and save the Kick configuration, and `POST /api/eventalerts/mode` (`{"mode":"unified|separate"}`) changes the mode without deleting anything. Test alerts are sent to both groups with no platform, so every source shows them.
+
 ### Event Alerts API
 
 | Method | Endpoint | Auth | Description |

@@ -313,6 +313,40 @@
         ]
       },
       {
+        "id": "kick",
+        "title": "Alerts with Kick",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "With a linked Kick channel, alerts for follows, subs, renewals, gifted subs and Kicks show in the same OBS overlay. If you have both Twitch and Kick linked, the panel shows “How to configure alerts”:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "**Separate per platform** (the default): Twitch and Kick each have their own configuration (tiers, messages, sounds, voice and design). The “You are editing” selector picks which one you change. While Kick has none of its own it uses the Twitch one as a copy; its own is created when you save changes in the Kick view.",
+              "**Unified**: a single configuration, the Twitch one, for both channels. Kicks use the **Bits** alerts (in General, “Bits per Kick”, default 1, sets how much each Kick is worth) and Kick subs use Tier 1. If you switch to Unified, the Kick configuration you had is not deleted."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "In the Kick configuration (Separate, or if you only have Kick) the Bits tab is called **Kicks** and its tiers are set in Kicks, with no conversion; there is a single sub alert, because Kick has no tiers; and Raids and Hype Train do not appear, because Kick has none. To change the mode you must have saved your alerts configuration first."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "A sub renewal uses the Resubs alert with the months Kick reports.",
+              "An anonymous sub gift shows as “Anónimo”; an anonymous follow is not announced.",
+              "The message that comes with a Kicks gift can be read aloud, like the bits message.",
+              "Premium voice is always charged to your account, whichever configuration you use."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "In “How to use it” you get the **All** link (Twitch and Kick in a single OBS source, recommended) and, under Advanced, “Twitch only” and “Kick only”. Your usual link keeps working the same and shows only its own platform. If you connect «All» next to a single-platform one, the panel warns that every alert would show twice."
+          }
+        ]
+      },
+      {
         "id": "tts",
         "title": "Voice (Text-to-Speech)",
         "blocks": [

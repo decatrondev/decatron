@@ -66,4 +66,87 @@ public class EventAlertsPlatformModeTests
         Assert.Equal(10, EventAlertsPlatformMode.CreditUserId(10, 99));   // config de la fila de Kick (99), cuenta principal 10
         Assert.Equal(99, EventAlertsPlatformMode.CreditUserId(null, 99)); // sin cuenta resuelta: la dueña de la config
     }
+
+    // ── Cuenta solo de Kick ──────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData(EventAlertsMode.Separate)]
+    [InlineData(EventAlertsMode.Unified)]
+    public void CuentaSoloKick_SiempreUsaSuPropiaConfiguracion(EventAlertsMode modo)
+    {
+        Assert.Equal("kick_123", EventAlertsPlatformMode.PreferredConfigChannel(modo, "kick", "kick_123", "kick_123", accountHasTwitch: false));
+    }
+
+    [Fact]
+    public void CuentaSoloKick_PeroEventoDeTwitch_NoCambiaNada()
+    {
+        Assert.Null(EventAlertsPlatformMode.PreferredConfigChannel(EventAlertsMode.Separate, "twitch", "kick_123", "kick_123", accountHasTwitch: false));
+    }
+
+    // ── Cambiar de modo ──────────────────────────────────────────────────────
+
+    [Fact]
+    public void WithMode_FijaElModoSinTocarElResto()
+    {
+        var json = EventAlertsPlatformMode.WithMode("{\"global\":{\"enabled\":true,\"defaultVolume\":40},\"follow\":{\"enabled\":true}}", EventAlertsMode.Unified)!;
+        Assert.Equal(EventAlertsMode.Unified, EventAlertsPlatformMode.Parse(json));
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.GetProperty("follow").GetProperty("enabled").GetBoolean());
+        Assert.Equal(40, doc.RootElement.GetProperty("global").GetProperty("defaultVolume").GetInt32());
+        Assert.True(doc.RootElement.GetProperty("global").GetProperty("enabled").GetBoolean());
+    }
+
+    [Fact]
+    public void WithMode_CreaGlobalSiNoExisteYVuelveASeparada()
+    {
+        var unificada = EventAlertsPlatformMode.WithMode("{}", EventAlertsMode.Unified)!;
+        Assert.Equal(EventAlertsMode.Unified, EventAlertsPlatformMode.Parse(unificada));
+        var separada = EventAlertsPlatformMode.WithMode(unificada, EventAlertsMode.Separate)!;
+        Assert.Equal(EventAlertsMode.Separate, EventAlertsPlatformMode.Parse(separada));
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("no es json")]
+    public void WithMode_ConJsonInvalido_DaNull(string json)
+    {
+        Assert.Null(EventAlertsPlatformMode.WithMode(json, EventAlertsMode.Unified));
+    }
+
+    // ── Guardar desde el panel ───────────────────────────────────────────────
+
+    [Fact]
+    public void AlGuardarLaPrincipal_SeConservaElModoQueYaHabia_AunqueElPanelTraigaOtro()
+    {
+        var existente = "{\"global\":{\"platformMode\":\"unified\"}}";
+        var entrante = "{\"global\":{\"platformMode\":\"separate\",\"defaultVolume\":10},\"follow\":{}}";
+        var guardado = EventAlertsPlatformMode.ApplyOnSave(existente, entrante, savingPrincipal: true);
+        Assert.Equal(EventAlertsMode.Unified, EventAlertsPlatformMode.Parse(guardado));
+        Assert.Contains("\"defaultVolume\":10", guardado);
+    }
+
+    [Fact]
+    public void AlGuardarLaPrincipal_SinModoGuardado_NoSeInventaUno()
+    {
+        var guardado = EventAlertsPlatformMode.ApplyOnSave("{\"global\":{}}", "{\"global\":{\"platformMode\":\"unified\"}}", savingPrincipal: true);
+        Assert.DoesNotContain("platformMode", guardado);
+        Assert.Equal(EventAlertsMode.Separate, EventAlertsPlatformMode.Parse(guardado));
+    }
+
+    [Fact]
+    public void AlGuardarLaDeKick_SeQuitaElModo()
+    {
+        var guardado = EventAlertsPlatformMode.ApplyOnSave("{\"global\":{\"platformMode\":\"unified\"}}", "{\"global\":{\"platformMode\":\"unified\",\"defaultVolume\":10}}", savingPrincipal: false);
+        Assert.DoesNotContain("platformMode", guardado);
+        Assert.Contains("\"defaultVolume\":10", guardado);
+    }
+
+    [Theory]
+    [InlineData("no es json")]
+    [InlineData("{}")]
+    [InlineData("[]")]
+    public void ApplyOnSave_NuncaRompe(string entrante)
+    {
+        Assert.Equal(entrante, EventAlertsPlatformMode.ApplyOnSave(null, entrante, true));
+    }
 }

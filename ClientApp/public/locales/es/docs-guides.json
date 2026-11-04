@@ -313,6 +313,40 @@
         ]
       },
       {
+        "id": "kick",
+        "title": "Alertas con Kick",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con un canal de Kick vinculado, las alertas de follows, subs, renovaciones, subs regaladas y Kicks salen en el mismo overlay de OBS. Si tienes Twitch y Kick vinculados, el panel muestra «Cómo configurar las alertas»:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "**Separada por plataforma** (la opción por defecto): Twitch y Kick tienen cada uno su propia configuración (niveles, mensajes, sonidos, voz y diseño). Con el selector «Estás editando» eliges cuál modificas. Mientras Kick no tenga la suya, usa la de Twitch como copia; la suya se crea al guardar cambios en la vista de Kick.",
+              "**Unificada**: una sola configuración, la de Twitch, para los dos canales. Los Kicks usan las alertas de **Bits** (en General, «Bits por cada Kick», por defecto 1, fija cuánto vale cada Kick) y las subs de Kick, el Nivel 1. Si pasas a Unificada, la configuración de Kick que tenías no se borra."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "En la configuración de Kick (Separada, o si solo tienes Kick) la pestaña de Bits se llama **Kicks** y sus niveles se definen en Kicks, sin conversión; hay una sola alerta de sub, porque Kick no tiene niveles; y no aparecen Raids ni Hype Train, porque Kick no los tiene. Cambiar de modo exige haber guardado antes tu configuración de alertas."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Una renovación de sub usa la alerta de Resubs con los meses que informa Kick.",
+              "Un regalo de subs anónimo aparece como «Anónimo»; un follow anónimo no se avisa.",
+              "El mensaje que acompaña a un regalo de Kicks se puede leer con la voz, igual que el de los bits.",
+              "La voz premium se cobra siempre a tu cuenta, uses la configuración que uses."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "En «Cómo usarlo» aparece el enlace **Todo** (Twitch y Kick en una sola fuente de OBS, recomendado) y, en Avanzado, «Solo Twitch» y «Solo Kick». Tu enlace de siempre sigue funcionando igual y muestra solo su plataforma. Si conectas «Todo» junto a uno de una sola plataforma, el panel avisa de que cada alerta saldría repetida."
+          }
+        ]
+      },
+      {
         "id": "tts",
         "title": "Voz (Text-to-Speech)",
         "blocks": [

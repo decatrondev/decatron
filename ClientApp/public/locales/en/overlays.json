@@ -1916,7 +1916,9 @@
       "warnMixed": "The «All» link and a single-platform link are both connected. If they are visible at the same time, every alert will show twice. Remove one of them in OBS.",
       "warnRepeatedTitle": "The same source is connected more than once",
       "warnRepeated": "Two identical sources are open in OBS. That is fine if they are in different scenes; if both are visible, every alert will show twice.",
-      "kickNote": "With Kick, alerts for follows, subs, gifted subs and Kicks work like on Twitch. Kicks use the bits alerts; Kick subs have no tiers and use Tier 1."
+      "kickNote": "With Kick linked and the Unified setup, alerts for follows, subs, gifted subs and Kicks use the same configuration as Twitch. Kicks use the bits alerts and Kick subs use Tier 1.",
+      "kickNoteSeparate": "Twitch and Kick each have their own configuration. Choose which one you edit in “How to configure alerts”, above.",
+      "kickNoteOnly": "Your Kick channel has its own configuration. Alerts for follows, subs, gifted subs and Kicks work with it."
     },
     "preview": {
       "title": "Preview",
@@ -2161,7 +2163,24 @@
       "kicksTitle": "Kick Kicks",
       "kicksDesc": "Gifted Kicks use the bits alerts. Here you set how many bits each Kick is worth to pick the alert level.",
       "kicksLabel": "Bits per Kick",
-      "kicksHelp": "Default 1 (a Kick counts as one bit). For example, with 2, a gift of 100 Kicks is treated as 200 bits."
+      "kicksHelp": "Default 1 (a Kick counts as one bit). For example, with 2, a gift of 100 Kicks is treated as 200 bits.",
+      "eventKicks": "Kicks",
+      "bitsUnifiedNote": "Kick's Kicks use this alert, with the value you set in General (“Bits per Kick”).",
+      "subsUnifiedNote": "Kick has no sub tiers: its subs use the Tier 1 alert."
+    },
+    "mode": {
+      "title": "How to configure alerts",
+      "separate": "Separate per platform",
+      "unified": "Unified",
+      "separateHint": "Twitch and Kick each have their own configuration: tiers, messages, sounds and design. Kick is set up in Kicks, with no conversion.",
+      "unifiedHint": "One configuration for both channels. Kicks use the bits alerts and Kick subs use Tier 1. Any Kick configuration you have saved is not deleted.",
+      "editing": "You are editing",
+      "kickCopy": "Kick still uses the Twitch configuration as a copy. When you save changes here its own is created.",
+      "kickOnlyHint": "Your Kick channel has its own configuration: the Kicks alert tiers are set in Kicks. Kick has no raids or hype train.",
+      "saveFirst": "Save your alerts configuration first to be able to change the mode.",
+      "switchConfirm": "You have unsaved changes. If you continue they are lost. Continue?",
+      "changed": "Mode changed",
+      "changeFailed": "Could not change the mode"
     }
   },
   "chat": {

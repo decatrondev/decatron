@@ -20,13 +20,16 @@ interface Props {
     onEventTypeChange: (e: AlertEventType) => void;
     /** Nivel del hype train que se está editando en el Diseño ('completed' = el fin), si hay. */
     hypeLevel?: number | 'completed';
+    /** Eventos que se pueden elegir (por defecto todos) y si se edita la configuración de Kick (bits = Kicks) */
+    events?: AlertEventType[];
+    kick?: boolean;
 }
 
 /** Tiempo en pantalla al reproducir en la vista previa (la alerta real usa su duración). */
 const HOLD_MS = 2500;
 
 /** Vista previa fija: la alerta de un evento y nivel, con el mismo renderer y los mismos datos que OBS. */
-export default function EventAlertsPreview({ config, design, canvas, dirty, eventType, onEventTypeChange, hypeLevel }: Props) {
+export default function EventAlertsPreview({ config, design, canvas, dirty, eventType, onEventTypeChange, hypeLevel, events = EVENT_TYPES, kick = false }: Props) {
     const { t } = useTranslation('overlays');
     const cases = useMemo(() => listCases(config, eventType), [config, eventType]);
     const [caseKey, setCaseKey] = useState<string>('');
@@ -108,7 +111,7 @@ export default function EventAlertsPreview({ config, design, canvas, dirty, even
             <h3 className="text-base 3xl:text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('eventAlertsView.preview.title')}</h3>
             <div className="grid grid-cols-2 gap-2">
                 <select className={selectClass} value={eventType} onChange={e => onEventTypeChange(e.target.value as AlertEventType)} aria-label={t('eventAlertsView.preview.event')}>
-                    {EVENT_TYPES.map(ev => <option key={ev} value={ev}>{t(`eventAlertsView.events.${ev}`)}</option>)}
+                    {events.map(ev => <option key={ev} value={ev}>{kick && ev === 'bits' ? t('eventAlertsView.kick.eventKicks') : t(`eventAlertsView.events.${ev}`)}</option>)}
                 </select>
                 <select className={selectClass} value={current?.key ?? ''} onChange={e => setCaseKey(e.target.value)} disabled={cases.length < 2} aria-label={t('eventAlertsView.preview.level')}>
                     {cases.map(c => (

@@ -13,27 +13,30 @@ export const useEventAlertsPersistence = (options?: UseEventAlertsPersistenceOpt
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<SaveMessageType>(null);
 
-  const loadConfiguration = async () => {
+  /** `platform` "kick" carga la configuración de Kick (o la principal como copia si todavía no existe); sin él, la principal. */
+  const loadConfiguration = async (platform?: 'twitch' | 'kick'): Promise<{ isCopy: boolean } | null> => {
     try {
       setLoading(true);
-      const res = await api.get('/eventalerts/config');
+      const res = await api.get('/eventalerts/config', platform === 'kick' ? { params: { platform } } : undefined);
       if (res.data.success && res.data.config?.data) {
         options?.onConfigLoaded?.(res.data.config.data);
       }
+      return { isCopy: !!res.data.isCopy };
     } catch (error) {
       console.error('[EventAlerts] Error loading configuration:', error);
       setSaveMessage({ type: 'error', text: 'Error al cargar la configuración' });
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
   /** Devuelve true si se guardó. */
-  const saveConfiguration = async (config: EventAlertsConfig): Promise<boolean> => {
+  const saveConfiguration = async (config: EventAlertsConfig, platform?: 'twitch' | 'kick'): Promise<boolean> => {
     try {
       setSaving(true);
       setSaveMessage(null);
-      await api.post('/eventalerts/config', { config });
+      await api.post('/eventalerts/config', { config }, platform === 'kick' ? { params: { platform } } : undefined);
       setSaveMessage({ type: 'success', text: 'Configuración guardada correctamente' });
       setTimeout(() => setSaveMessage(null), 3000);
       return true;

@@ -1916,7 +1916,9 @@
       "warnMixed": "Tienes conectado el enlace «Todo» y también uno de una sola plataforma. Si están visibles a la vez, cada alerta saldrá repetida. Quita uno de los dos en OBS.",
       "warnRepeatedTitle": "La misma fuente está conectada más de una vez",
       "warnRepeated": "Hay dos fuentes iguales abiertas en OBS. Si están en escenas distintas está bien; si se ven a la vez, cada alerta saldrá repetida.",
-      "kickNote": "Con Kick, las alertas de follows, subs, subs regaladas y Kicks funcionan igual que en Twitch. Los Kicks usan las alertas de bits; las subs de Kick no tienen niveles y usan el Nivel 1."
+      "kickNote": "Con Kick vinculado y la configuración Unificada, las alertas de follows, subs, subs regaladas y Kicks salen con la misma configuración que Twitch. Los Kicks usan las alertas de bits y las subs de Kick, el Nivel 1.",
+      "kickNoteSeparate": "Twitch y Kick tienen cada uno su configuración. Elige cuál editas en «Cómo configurar las alertas», arriba.",
+      "kickNoteOnly": "Tu canal de Kick tiene su propia configuración. Las alertas de follows, subs, subs regaladas y Kicks funcionan con ella."
     },
     "preview": {
       "title": "Vista previa",
@@ -2161,7 +2163,24 @@
       "kicksTitle": "Kicks de Kick",
       "kicksDesc": "Los Kicks regalados usan las alertas de bits. Aquí defines cuántos bits vale cada Kick para elegir el nivel de la alerta.",
       "kicksLabel": "Bits por cada Kick",
-      "kicksHelp": "Por defecto 1 (un Kick cuenta como un bit). Por ejemplo, con 2, un regalo de 100 Kicks se trata como 200 bits."
+      "kicksHelp": "Por defecto 1 (un Kick cuenta como un bit). Por ejemplo, con 2, un regalo de 100 Kicks se trata como 200 bits.",
+      "eventKicks": "Kicks",
+      "bitsUnifiedNote": "Los Kicks de Kick usan esta alerta, con el valor que fijaste en General («Bits por cada Kick»).",
+      "subsUnifiedNote": "Kick no tiene niveles de sub: sus subs usan la alerta del Nivel 1."
+    },
+    "mode": {
+      "title": "Cómo configurar las alertas",
+      "separate": "Separada por plataforma",
+      "unified": "Unificada",
+      "separateHint": "Twitch y Kick tienen cada uno su propia configuración: niveles, mensajes, sonidos y diseño. Kick se configura en Kicks, sin conversión.",
+      "unifiedHint": "Una sola configuración para los dos canales. Los Kicks usan las alertas de bits y las subs de Kick, el Nivel 1. La configuración de Kick que tengas guardada no se borra.",
+      "editing": "Estás editando",
+      "kickCopy": "Kick todavía usa la configuración de Twitch como copia. Cuando guardes cambios aquí se crea la suya.",
+      "kickOnlyHint": "Tu canal de Kick tiene su propia configuración: los niveles de las alertas de Kicks se definen en Kicks. Kick no tiene raids ni hype train.",
+      "saveFirst": "Guarda primero tu configuración de alertas para poder cambiar el modo.",
+      "switchConfirm": "Tienes cambios sin guardar. Si sigues se pierden. ¿Continuar?",
+      "changed": "Modo cambiado",
+      "changeFailed": "No se pudo cambiar el modo"
     }
   },
   "chat": {

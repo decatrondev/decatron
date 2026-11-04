@@ -144,7 +144,7 @@
           },
           {
             "t": "p",
-            "x": "Por ahora el bot solo recibe estos eventos: todavía no activan alertas ni suman tiempo al Timer."
+            "x": "Con estos eventos funcionan las alertas de Event Alerts (follows, subs, subs regaladas y Kicks). Todavía no suman tiempo al Timer."
           },
           {
             "t": "p",
@@ -186,11 +186,6 @@
                 "`!title` y `!game` (con `!t` y `!g`) cambian el título y la categoría del directo en Kick, y los micro comandos también; `!followage` y `!so` aparecen como «No disponible en Kick»."
               ],
               [
-                "Seguidores (Gestión de Seguidores)",
-                "Sí, con límites",
-                "Cada follow nuevo se guarda en el momento en que ocurre, con su historial, y se ve en la misma lista con la marca Kick. Kick no entrega la lista de seguidores ni avisa cuando alguien deja de seguir: no se importan los anteriores ni se detectan unfollows, y un follow que ocurra con el bot apagado no se registra."
-              ],
-              [
                 "Chat en pantalla",
                 "Sí",
                 "Los mensajes borrados y los usuarios baneados no se quitan solos del overlay."
@@ -199,6 +194,16 @@
                 "Alertas de sonido",
                 "Sí",
                 "Se activan con las recompensas de puntos de Kick."
+              ],
+              [
+                "Alertas de eventos (Event Alerts)",
+                "Sí, con diferencias",
+                "Follows, subs, renovaciones, subs regaladas y Kicks. Con Twitch y Kick vinculados, la configuración es separada por plataforma (por defecto) o unificada: en la de Kick los niveles son en Kicks y hay una sola alerta de sub; en la unificada los Kicks usan las alertas de bits (por defecto 1 Kick = 1 bit) y las subs, el Nivel 1. Sin raids ni hype train. El enlace «Todo» reúne Twitch y Kick."
+              ],
+              [
+                "Seguidores (Gestión de Seguidores)",
+                "Sí, con límites",
+                "Cada follow nuevo se guarda en el momento en que ocurre, con su historial, y se ve en la misma lista con la marca Kick. Kick no entrega la lista de seguidores ni avisa cuando alguien deja de seguir: no se importan los anteriores ni se detectan unfollows, y un follow que ocurra con el bot apagado no se registra."
               ],
               [
                 "Song Request",

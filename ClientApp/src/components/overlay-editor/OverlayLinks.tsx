@@ -19,6 +19,10 @@ export interface OverlayStatus {
     overlayKey?: string;
     hasTwitch?: boolean;
     hasKick?: boolean;
+    /** Solo Event Alerts: modo de configuración de la cuenta y si ya existen las configuraciones */
+    mode?: 'unified' | 'separate';
+    hasConfig?: boolean;
+    hasKickConfig?: boolean;
 }
 
 const EMPTY: OverlayStatus = { total: 0, all: 0, twitch: 0, kick: 0, warnings: [] };
@@ -36,6 +40,7 @@ export function useOverlayStatus(endpoint: string, intervalMs = 5000) {
                     total: res.data.total ?? 0, all: res.data.all ?? 0, twitch: res.data.twitch ?? 0, kick: res.data.kick ?? 0,
                     warnings: res.data.warnings ?? [],
                     overlayKey: res.data.overlayKey, hasTwitch: res.data.hasTwitch, hasKick: res.data.hasKick,
+                    mode: res.data.mode, hasConfig: res.data.hasConfig, hasKickConfig: res.data.hasKickConfig,
                 });
                 setLoaded(true);
             }

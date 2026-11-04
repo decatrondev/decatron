@@ -10,4 +10,10 @@ namespace Decatron.Controllers.Dtos
     {
         public object Config { get; set; } = new();
     }
+
+    public class EventAlertsModeRequest
+    {
+        /// <summary>"unified" o "separate"</summary>
+        public string? Mode { get; set; }
+    }
 }

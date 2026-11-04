@@ -21,9 +21,19 @@ import { EventSection } from '../EventSection';
 interface BitsTabProps {
   config: BitsAlertConfig;
   onConfigChange: (updates: Partial<BitsAlertConfig>) => void;
+  /** Se edita la configuración de Kick: la misma alerta pero en Kicks (los niveles son cantidades de Kicks) */
+  kick?: boolean;
 }
 
-export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
+/** Misma plantilla con «bits» dicho en Kicks (solo para la configuración de Kick) */
+const kickify = <T extends Record<string, string>>(templates: T): T =>
+  Object.fromEntries(Object.entries(templates).map(([k, v]) => [k, v.replace(/bits/g, 'Kicks')])) as T;
+
+export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange, kick = false }) => {
+  const unit = kick ? 'Kicks' : 'bits';
+  const MSG_BITS = kick ? kickify(MESSAGE_TEMPLATES.bits) : MESSAGE_TEMPLATES.bits;
+  const TTS_BITS = kick ? kickify(TTS_TEMPLATES.bits) : TTS_TEMPLATES.bits;
+  const CHAT_BITS = kick ? kickify(CHAT_TEMPLATES.bits) : CHAT_TEMPLATES.bits;
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
   // La alerta base arranca plegada (el interruptor queda en el encabezado)
   const [baseOpen, setBaseOpen] = useState(false);
@@ -42,7 +52,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
         min: tierIndex === 0 ? 1 : tierIndex === 1 ? 101 : 501,
         max: tierIndex === 0 ? 100 : tierIndex === 1 ? 500 : 9999,
       },
-      message: MESSAGE_TEMPLATES.bits[tierKey as keyof typeof MESSAGE_TEMPLATES.bits] || MESSAGE_TEMPLATES.bits.base,
+      message: MSG_BITS[tierKey as keyof typeof MSG_BITS] || MSG_BITS.base,
       duration: tierIndex === 0 ? 5 : tierIndex === 1 ? 7 : 10,
       media: { enabled: false, mode: 'simple' as const },
       animation: {
@@ -60,7 +70,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
         engine: 'standard' as const,
         languageCode: 'es-US',
         templateVolume: 80,
-        template: TTS_TEMPLATES.bits[tierKey as keyof typeof TTS_TEMPLATES.bits] || TTS_TEMPLATES.bits.base,
+        template: TTS_BITS[tierKey as keyof typeof TTS_BITS] || TTS_BITS.base,
         readUserMessage: true,
         userMessageVolume: 80,
         maxChars: 150,
@@ -96,10 +106,10 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <label className="text-sm font-bold text-ds-text flex items-center gap-2 3xl:text-base">
-              💎 Alertas de Bits
+              {kick ? '💎 Alertas de Kicks' : '💎 Alertas de Bits'}
             </label>
             <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
-              Configura las alertas que aparecen cuando alguien dona bits
+              {kick ? 'Configura las alertas que aparecen cuando alguien regala Kicks' : 'Configura las alertas que aparecen cuando alguien dona bits'}
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -125,7 +135,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
               🔔 Alerta BASE (suena SIEMPRE)
             </label>
             <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
-              Esta alerta se reproduce para cualquier cantidad de bits. Los tiers pueden sobrescribirla.
+              Esta alerta se reproduce para cualquier cantidad de {unit}. Los tiers pueden sobrescribirla.
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -159,7 +169,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
               </label>
               {!config.baseAlert.message && (
                 <button
-                  onClick={() => onConfigChange({ baseAlert: { ...config.baseAlert, message: MESSAGE_TEMPLATES.bits.base } })}
+                  onClick={() => onConfigChange({ baseAlert: { ...config.baseAlert, message: MSG_BITS.base } })}
                   className="text-xs px-2 py-1 bg-ds-accent/10 text-ds-accent-text rounded-lg hover:bg-ds-accent/10 font-bold 3xl:text-sm"
                 >
                   ✨ Usar predefinido
@@ -177,16 +187,16 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                   },
                 })
               }
-              placeholder={MESSAGE_TEMPLATES.bits.base}
+              placeholder={MSG_BITS.base}
               className="ds-input w-full font-mono"
             />
             {!config.baseAlert.message && (
               <button
-                onClick={() => onConfigChange({ baseAlert: { ...config.baseAlert, message: MESSAGE_TEMPLATES.bits.base } })}
+                onClick={() => onConfigChange({ baseAlert: { ...config.baseAlert, message: MSG_BITS.base } })}
                 className="mt-2 w-full p-2 bg-ds-accent/10 rounded-lg border border-ds-accent text-left group hover:border-ds-accent transition-all"
               >
                 <p className="text-xs text-ds-soft 3xl:text-sm">💡 <span className="font-bold text-ds-accent-text">Sugerido:</span></p>
-                <p className="text-sm text-ds-accent-text font-mono mt-1 3xl:text-base">"{MESSAGE_TEMPLATES.bits.base}"</p>
+                <p className="text-sm text-ds-accent-text font-mono mt-1 3xl:text-base">"{MSG_BITS.base}"</p>
               </button>
             )}
           </div>
@@ -246,7 +256,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                 onConfigChange({ baseAlert: { ...config.baseAlert, media } })
               }
               alertContext={{
-                message: config.baseAlert.message || `¡{username} donó {amount} bits!`,
+                message: config.baseAlert.message || (kick ? `¡{username} regaló {amount} Kicks!` : `¡{username} donó {amount} bits!`),
                 duration: config.baseAlert.duration,
                 emoji: '💎',
               }}
@@ -270,7 +280,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
               onChange={(updates) => onConfigChange({ baseAlert: { ...config.baseAlert, tts: { ...config.baseAlert.tts, ...updates } } })}
               messageVariables={EVENT_VARIABLES.bits}
               hasUserMessage={true}
-              suggestedTemplate={TTS_TEMPLATES.bits.base}
+              suggestedTemplate={TTS_BITS.base}
               eventType="bits"
             />
           </div>
@@ -284,7 +294,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
               config={config.baseAlert.chatMessage}
               onChange={(chatMessage) => onConfigChange({ baseAlert: { ...config.baseAlert, chatMessage } })}
               messageVariables={EVENT_VARIABLES.bits}
-              suggestedTemplate={CHAT_TEMPLATES.bits.base}
+              suggestedTemplate={CHAT_BITS.base}
             />
           </div>
 
@@ -309,7 +319,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
               🎯 Tiers Específicos
             </label>
             <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
-              Define alertas diferentes según la cantidad de bits donados
+              {kick ? 'Define alertas diferentes según la cantidad de Kicks regalados' : 'Define alertas diferentes según la cantidad de bits donados'}
             </p>
           </div>
           <button
@@ -349,11 +359,11 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                       </div>
                       <div className="text-xs text-ds-soft 3xl:text-sm">
                         {tier.condition.type === 'range' &&
-                          `${tier.condition.min} - ${tier.condition.max} bits`}
+                          `${tier.condition.min} - ${tier.condition.max} ${unit}`}
                         {tier.condition.type === 'minimum' &&
-                          `${tier.condition.min}+ bits`}
+                          `${tier.condition.min}+ ${unit}`}
                         {tier.condition.type === 'exact' &&
-                          `Exactamente ${tier.condition.exact} bits`}
+                          `Exactamente ${tier.condition.exact} ${unit}`}
                       </div>
                     </div>
                   </div>
@@ -519,7 +529,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                           <button
                             onClick={() => {
                               const tierKey = index === 0 ? 'tier1' : index === 1 ? 'tier2' : 'tier3';
-                              updateTier(tier.id, { message: MESSAGE_TEMPLATES.bits[tierKey as keyof typeof MESSAGE_TEMPLATES.bits] });
+                              updateTier(tier.id, { message: MSG_BITS[tierKey as keyof typeof MSG_BITS] });
                             }}
                             className="text-xs px-2 py-1 bg-ds-accent/10 text-ds-accent-text rounded-lg hover:bg-ds-accent/10 font-bold 3xl:text-sm"
                           >
@@ -531,7 +541,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                         type="text"
                         value={tier.message}
                         onChange={(e) => updateTier(tier.id, { message: e.target.value })}
-                        placeholder={index === 0 ? MESSAGE_TEMPLATES.bits.tier1 : index === 1 ? MESSAGE_TEMPLATES.bits.tier2 : MESSAGE_TEMPLATES.bits.tier3}
+                        placeholder={index === 0 ? MSG_BITS.tier1 : index === 1 ? MSG_BITS.tier2 : MSG_BITS.tier3}
                         className="ds-input w-full font-mono"
                       />
                     </div>
@@ -579,7 +589,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                         config={tier.media as AlertMediaConfig}
                         onChange={(media) => updateTier(tier.id, { media })}
                         alertContext={{
-                          message: tier.message || `¡{username} donó {amount} bits!`,
+                          message: tier.message || (kick ? `¡{username} regaló {amount} Kicks!` : `¡{username} donó {amount} bits!`),
                           duration: tier.duration,
                           emoji: index === 0 ? '💎' : index === 1 ? '💜' : '🔥',
                         }}
@@ -602,7 +612,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                         onChange={(updates) => updateTier(tier.id, { tts: { ...tier.tts, ...updates } })}
                         messageVariables={EVENT_VARIABLES.bits}
                         hasUserMessage={true}
-                        suggestedTemplate={index === 0 ? TTS_TEMPLATES.bits.tier1 : index === 1 ? TTS_TEMPLATES.bits.tier2 : TTS_TEMPLATES.bits.tier3}
+                        suggestedTemplate={index === 0 ? TTS_BITS.tier1 : index === 1 ? TTS_BITS.tier2 : TTS_BITS.tier3}
                         eventType="bits"
                       />
                     </div>
@@ -616,7 +626,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                         config={tier.chatMessage}
                         onChange={(chatMessage) => updateTier(tier.id, { chatMessage })}
                         messageVariables={EVENT_VARIABLES.bits}
-                        suggestedTemplate={index === 0 ? CHAT_TEMPLATES.bits.tier1 : index === 1 ? CHAT_TEMPLATES.bits.tier2 : CHAT_TEMPLATES.bits.tier3}
+                        suggestedTemplate={index === 0 ? CHAT_BITS.tier1 : index === 1 ? CHAT_BITS.tier2 : CHAT_BITS.tier3}
                       />
                     </div>
 
