@@ -142,8 +142,17 @@ export function SpotifySlotsTab() {
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="w-2 h-2 rounded-full bg-ds-accent" />
                                                     <span className="text-xs text-ds-ok font-medium">Activo</span>
-                                                    {req.spotifyConnected && (
+                                                    {req.spotifyConnected && req.spotifyStatus === 'reauth' && (
+                                                        <span className="text-xs text-ds-danger ml-1">(tiene que reconectar)</span>
+                                                    )}
+                                                    {req.spotifyConnected && req.spotifyStatus === 'forbidden' && (
+                                                        <span className="text-xs text-ds-danger ml-1">(Spotify la rechaza: revisar el correo en el panel de Spotify)</span>
+                                                    )}
+                                                    {req.spotifyConnected && req.spotifyStatus === 'ok' && (
                                                         <span className="text-xs text-ds-soft ml-1">(conectado)</span>
+                                                    )}
+                                                    {!req.spotifyConnected && (
+                                                        <span className="text-xs text-ds-soft ml-1">(sin conectar todavía)</span>
                                                     )}
                                                 </div>
                                             ) : (

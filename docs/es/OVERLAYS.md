@@ -300,15 +300,34 @@ Muestra la canción que se está reproduciendo, en un widget personalizable.
 | Proveedor | Conexión | Requisitos |
 |-----------|----------|------------|
 | **Last.fm** | Ingresa tu usuario de Last.fm | Cualquier reproductor que haga scrobbling a Last.fm |
-| **Spotify** | Conexión OAuth2 | Un cupo libre de Spotify (ver abajo) |
+| **Spotify** | Conexión OAuth2 | Un cupo asignado de Spotify (ver abajo) |
 
 ### Cupos de Spotify
 
-El acceso a Spotify está limitado a 5 cupos para usuarios no premium (`MaxSpotifyUsers`), asignados por el administrador. Now Playing tiene las mismas funciones para todos los planes: el plan solo afecta el orden de la lista de espera de cupos de Spotify.
+La app de Spotify está en modo desarrollo, que admite 5 usuarios (`MaxSpotifyUsers`) y exige que la cuenta dueña tenga Premium. Los cupos los asigna el administrador, que además agrega el correo en el panel de desarrolladores de Spotify. Now Playing tiene las mismas funciones para todos los planes: el plan solo afecta el orden de la lista de espera de cupos de Spotify.
+
+El cupo se pide con el correo de la cuenta, sin necesidad de conectar antes. Spotify no siempre entrega el correo, así que al pedir el cupo se escribe a mano.
+
+### Autorización de Spotify
+
+Spotify vence cada autorización a los 6 meses desde que se dio; renovar el token no la alarga. `spotify_authorized_at` guarda la fecha (`NULL` en conexiones anteriores a este cambio) y el panel avisa 14 días antes. **Reconectar Spotify** renueva la autorización y conserva el cupo; **Desconectar Spotify** libera el cupo.
+
+`spotify_status` guarda el estado de la conexión:
+
+| Valor | Significado | Qué hace la consulta |
+|-------|-------------|----------------------|
+| `ok` | Todo en orden | Sigue cada 3 segundos |
+| `reauth` | Spotify respondió `invalid_grant` | Se detiene hasta que la persona reconecte |
+| `forbidden` | Spotify respondió 403 | Reintenta con espera creciente, de 1 a 5 minutos, y vuelve a `ok` cuando Spotify responde bien |
 
 ### Consulta periódica
 
-`NowPlayingBackgroundService` revisa cada canal activo cada 3 segundos, compara la canción con la anterior y, cuando cambia, envía una actualización por SignalR.
+`NowPlayingBackgroundService` revisa cada canal activo cada 3 segundos, compara la canción con la anterior y, cuando cambia, envía una actualización por SignalR. Con Spotify, un canal cuenta como activo solo si tiene abierto el overlay de Now Playing (se identifica con `RegisterOverlay` como `now_playing`); con Last.fm, si tiene cualquier overlay abierto.
+
+Las esperas solo aplican cuando Spotify responde con un error (`SpotifyPollGuard`):
+
+- **429:** detiene todos los canales durante el `Retry-After` completo, sin tope, porque el límite es de la app. Sin `Retry-After`, la espera empieza en 30 segundos y crece hasta 1 hora.
+- **Otros fallos temporales (5xx, red):** solo detienen a ese canal, de 15 segundos a 5 minutos.
 
 ### Pestañas de configuración
 

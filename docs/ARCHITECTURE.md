@@ -688,6 +688,8 @@ erDiagram
         string lastfm_username
         text spotify_access_token
         text spotify_refresh_token
+        timestamptz spotify_authorized_at
+        string spotify_status
     }
 
     giveaway_configs {

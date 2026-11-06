@@ -10,11 +10,14 @@ export type NowPlayingTabId = 'guide' | 'connection' | 'theme' | 'elements' | 't
 interface TabProps { cfg: NowPlayingConfigState }
 
 const btnBase = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2';
+/** Se avisa con estos días de anticipación que la autorización de Spotify va a vencer. */
+const SPOTIFY_EXPIRY_WARNING_DAYS = 14;
+
 const btnGray = `${btnBase} bg-ds-raised text-ds-soft hover:bg-ds-raised `;
 
 /** ¿Hay de dónde sacar la canción? */
 export function isConnected(s: NowPlayingConfigState['settings']): boolean {
-    return s.provider === 'lastfm' ? !!s.lastfmUsername : s.spotifyConnected && s.spotifySlotAssigned;
+    return s.provider === 'lastfm' ? !!s.lastfmUsername : s.spotifyConnected && s.spotifySlotAssigned && s.spotifyStatus !== 'reauth';
 }
 
 // ── Guía ───────────────────────────────────────────────────────────────────
@@ -76,7 +79,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Now
 // ── Conexión ───────────────────────────────────────────────────────────────
 
 export function ConnectionTab({ cfg }: TabProps) {
-    const { t } = useTranslation('overlays');
+    const { t, i18n } = useTranslation('overlays');
     const s = cfg.settings;
     const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
     const [busy, setBusy] = useState<string | null>(null);
@@ -127,7 +130,7 @@ export function ConnectionTab({ cfg }: TabProps) {
     });
     const spotifyDisconnect = () => run('spotifyOff', async () => {
         const res = await api.post('/spotify/disconnect', {});
-        if (res.data?.success) { cfg.update({ spotifyConnected: false, spotifySlotRequested: false, spotifySlotAssigned: false }, false); setMsg({ ok: true, text: t('nowPlaying.connection.spotifyDisconnected') }); }
+        if (res.data?.success) { cfg.update({ spotifyConnected: false, spotifyStatus: 'ok', spotifyAuthExpiresAt: null, spotifySlotRequested: false, spotifySlotAssigned: false }, false); setMsg({ ok: true, text: t('nowPlaying.connection.spotifyDisconnected') }); }
     });
     const requestCupo = () => run('cupo', async () => {
         const res = await api.post('/nowplaying/request-spotify-cupo', { spotifyEmail: email.trim() });
@@ -148,8 +151,15 @@ export function ConnectionTab({ cfg }: TabProps) {
         </button>
     );
 
-    const spotifyStatus = !s.spotifyConnected ? 'off' : s.spotifySlotAssigned ? 'ready' : s.spotifySlotRequested ? 'pending' : 'noCupo';
-    const dot = { off: 'bg-ds-faint', ready: 'bg-ds-accent', pending: 'bg-ds-warn', noCupo: 'bg-ds-accent' }[spotifyStatus];
+    const spotifyStatus = s.spotifySlotAssigned
+        ? (!s.spotifyConnected ? 'cupoReady' : s.spotifyStatus === 'reauth' ? 'reauth' : s.spotifyStatus === 'forbidden' ? 'forbidden' : 'ready')
+        : s.spotifySlotRequested ? 'pending' : s.spotifyConnected ? 'noCupo' : 'off';
+    const dot = { off: 'bg-ds-faint', ready: 'bg-ds-accent', pending: 'bg-ds-warn', noCupo: 'bg-ds-accent', cupoReady: 'bg-ds-warn', reauth: 'bg-ds-danger', forbidden: 'bg-ds-danger' }[spotifyStatus];
+    const canRequestCupo = spotifyStatus === 'off' || spotifyStatus === 'noCupo';
+    const authExpiry = s.spotifyAuthExpiresAt ? new Date(s.spotifyAuthExpiresAt) : null;
+    const authExpiryLabel = authExpiry?.toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' }) ?? '';
+    const authExpiring = spotifyStatus === 'ready' && !!authExpiry && authExpiry.getTime() - Date.now() < SPOTIFY_EXPIRY_WARNING_DAYS * 86400000;
+    const reconnectFirst = spotifyStatus === 'reauth' || spotifyStatus === 'forbidden' || authExpiring;
 
     return (
         <div className="space-y-6">
@@ -201,13 +211,20 @@ export function ConnectionTab({ cfg }: TabProps) {
                             <span className={`w-2.5 h-2.5 rounded-full ${dot}`} /> {t(`nowPlaying.connection.spotifyStatus.${spotifyStatus}`)}
                         </p>
 
-                        {!s.spotifyConnected && (
-                            <button className={`${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-ds-text`} onClick={spotifyConnect} disabled={!!busy}>
-                                {busy === 'spotify' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />} {t('nowPlaying.connection.spotifyConnect')}
-                            </button>
+                        {spotifyStatus === 'reauth' && (
+                            <div className="p-4 rounded-lg border border-ds-danger/40 bg-ds-danger/10 text-sm 3xl:text-base text-ds-danger">{t('nowPlaying.connection.spotifyReauth')}</div>
+                        )}
+                        {spotifyStatus === 'forbidden' && (
+                            <div className="p-4 rounded-lg border border-ds-danger/40 bg-ds-danger/10 text-sm 3xl:text-base text-ds-danger">{t('nowPlaying.connection.spotifyForbidden')}</div>
+                        )}
+                        {authExpiring && (
+                            <div className="p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-sm 3xl:text-base text-ds-warn">{t('nowPlaying.connection.spotifyExpiring', { date: authExpiryLabel })}</div>
+                        )}
+                        {spotifyStatus === 'cupoReady' && (
+                            <div className="p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-sm 3xl:text-base text-ds-warn">{t('nowPlaying.connection.spotifyCupoReady')}</div>
                         )}
 
-                        {spotifyStatus === 'noCupo' && (
+                        {canRequestCupo && (
                             <div className="p-4 rounded-lg border border-ds-border bg-ds-bg space-y-3">
                                 <p className="text-sm 3xl:text-base font-bold text-ds-text">{t('nowPlaying.connection.cupoTitle')}</p>
                                 <p className="text-xs 3xl:text-sm text-ds-soft">{t('nowPlaying.connection.cupoHint')}</p>
@@ -239,10 +256,33 @@ export function ConnectionTab({ cfg }: TabProps) {
                             </div>
                         )}
 
+                        {!s.spotifyConnected && !s.spotifySlotAssigned && (
+                            <p className="text-xs 3xl:text-sm text-ds-soft">{t('nowPlaying.connection.spotifyConnectHint')}</p>
+                        )}
+
+                        <div className="flex flex-wrap gap-2">
+                            {!s.spotifyConnected && (
+                                <button className={s.spotifySlotAssigned ? `${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-ds-text` : btnGray} onClick={spotifyConnect} disabled={!!busy}>
+                                    {busy === 'spotify' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />} {t('nowPlaying.connection.spotifyConnect')}
+                                </button>
+                            )}
+                            {s.spotifyConnected && (
+                                <button className={reconnectFirst ? `${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-ds-text` : btnGray} onClick={spotifyConnect} disabled={!!busy}>
+                                    {busy === 'spotify' ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} {t('nowPlaying.connection.spotifyReconnect')}
+                                </button>
+                            )}
+                            {s.spotifyConnected && (
+                                <button className={`${btnBase} border border-ds-danger/40 text-ds-danger hover:bg-ds-danger/10 `} onClick={spotifyDisconnect} disabled={!!busy}>
+                                    {busy === 'spotifyOff' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlink className="w-4 h-4" />} {t('nowPlaying.connection.spotifyDisconnect')}
+                                </button>
+                            )}
+                        </div>
+
                         {s.spotifyConnected && (
-                            <button className={`${btnBase} border border-ds-danger/40 text-ds-danger hover:bg-ds-danger/10 `} onClick={spotifyDisconnect} disabled={!!busy}>
-                                {busy === 'spotifyOff' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlink className="w-4 h-4" />} {t('nowPlaying.connection.spotifyDisconnect')}
-                            </button>
+                            <p className="text-xs 3xl:text-sm text-ds-soft">
+                                {s.spotifySlotAssigned ? t('nowPlaying.connection.spotifyDisconnectHint') : t('nowPlaying.connection.spotifyDisconnectHintQueue')}
+                                {authExpiry && !authExpiring && spotifyStatus === 'ready' ? ` ${t('nowPlaying.connection.spotifyAuthUntil', { date: authExpiryLabel })}` : ''}
+                            </p>
                         )}
                     </div>
                 </Card>

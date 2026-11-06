@@ -60,6 +60,8 @@ export interface SpotifySlotRequest {
     slotAssigned: boolean;
     slotAssignedAt: string | null;
     spotifyConnected: boolean;
+    /** ok | reauth (tiene que reconectar) | forbidden (Spotify rechaza la cuenta) */
+    spotifyStatus: string;
     requestedAt: string;
     /** Puesto en la lista de espera (null si ya tiene cupo). */
     position: number | null;

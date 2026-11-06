@@ -413,7 +413,7 @@
           {
             "t": "ul",
             "items": [
-              "Spotify: conexión directa con Spotify, con el progreso exacto de la canción. Por un límite de Spotify hay pocos cupos y los asigna el equipo de Decatron: en Conexión escribes el correo de tu cuenta de Spotify y pides el cupo. Si están ocupados, quedas en una lista de espera (primero por plan de supporter y después por fecha de pedido).",
+              "Spotify: conexión directa con Spotify, con el progreso exacto de la canción. Por un límite de Spotify hay pocos cupos y los asigna el equipo de Decatron: en Conexión escribes el correo de tu cuenta de Spotify y pides el cupo, sin necesidad de conectar antes. Si están ocupados, quedas en una lista de espera (primero por plan de supporter y después por fecha de pedido). Spotify vence la autorización cada 6 meses: la pantalla avisa 14 días antes y, con Reconectar Spotify, la renuevas sin perder el cupo. Desconectar sí libera el cupo.",
               "Last.fm: escribes tu usuario de Last.fm y se detecta lo que estás scrobbleando, con portada incluida. Funciona con cualquier reproductor que haga scrobbling y no tiene límite de cupos."
             ]
           },

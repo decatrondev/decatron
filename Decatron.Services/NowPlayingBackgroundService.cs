@@ -1,5 +1,7 @@
+using Decatron.Core.Helpers;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -29,13 +31,26 @@ namespace Decatron.Services
         private readonly ConcurrentDictionary<string, DateTime> _lastPollTime = new();
         // Cache: channelName -> consecutive empty poll count
         private readonly ConcurrentDictionary<string, int> _emptyPollCount = new();
+        // Cuándo se puede volver a llamar a Spotify (429, 403 y fallos temporales)
+        private readonly SpotifyPollGuard _spotifyGuard = new();
+        private readonly IMemoryCache _cache;
+
+        private static readonly TimeSpan LiveTrackTtl = TimeSpan.FromSeconds(15);
+        private static readonly TimeSpan TransientBase = TimeSpan.FromSeconds(15);
+        private static readonly TimeSpan TransientMax = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan ForbiddenBase = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan ForbiddenMax = TimeSpan.FromMinutes(5);
+        // Fecha de autorización vista en cada canal: si cambia, la persona reconectó
+        private readonly ConcurrentDictionary<string, DateTime?> _authorizedSeen = new();
 
         public NowPlayingBackgroundService(
             IServiceProvider serviceProvider,
             ILogger<NowPlayingBackgroundService> logger,
             IConfiguration configuration,
-            Decatron.Services.Tenancy.TenantTaskRunner tenants)
+            Decatron.Services.Tenancy.TenantTaskRunner tenants,
+            IMemoryCache cache)
         {
+            _cache = cache;
             _tenants = tenants;
             _serviceProvider = serviceProvider;
             _logger = logger;
@@ -90,10 +105,28 @@ namespace Decatron.Services
                 if (stoppingToken.IsCancellationRequested) break;
                 using var tenantScope = tenantShadow?.EnterUser("Bg.NowPlaying", config.UserId);
 
-                // Only poll if someone is actually viewing the overlay
-                if (!Hubs.OverlayHub.HasActiveClients(config.ChannelName))
+                var isSpotify = config.Provider == "spotify";
+
+                // Spotify solo se consulta con el overlay de Now Playing abierto, no con cualquier overlay del canal
+                var hasViewers = isSpotify
+                    ? Hubs.OverlayHub.CountOverlays(config.ChannelName, "now_playing") > 0
+                    : Hubs.OverlayHub.HasActiveClients(config.ChannelName);
+                if (!hasViewers)
                 {
                     continue; // No overlay viewers — skip to save API calls
+                }
+
+                // Reconectó: una espera por el token viejo ya no aplica
+                if (isSpotify && _authorizedSeen.TryGetValue(config.ChannelName, out var seen) && seen != config.SpotifyAuthorizedAt)
+                {
+                    _spotifyGuard.ForgetChannel(config.ChannelName);
+                }
+                _authorizedSeen[config.ChannelName] = config.SpotifyAuthorizedAt;
+
+                // Autorización vencida: no se insiste hasta reconectar. En pausa: se espera lo que corresponde.
+                if (isSpotify && (config.SpotifyStatus == SpotifyConnectionStatus.ReauthRequired || !_spotifyGuard.CanCall(config.ChannelName, DateTime.UtcNow)))
+                {
+                    continue;
                 }
 
                 // Cada 3 s para todos (antes dependía del tier y en la práctica quedaba en 10-15 s)
@@ -119,6 +152,11 @@ namespace Decatron.Services
                 catch (Exception ex)
                 {
                     _logger.LogDebug(ex, "Error polling now playing for channel {Channel}", config.ChannelName);
+                    if (isSpotify)
+                    {
+                        var wait = _spotifyGuard.RecordFailure(config.ChannelName, DateTime.UtcNow, TransientBase, TransientMax);
+                        _logger.LogWarning("Spotify: fallo al consultar {Channel} ({Error}). Espera {Seconds}s", config.ChannelName, ex.GetType().Name, wait.TotalSeconds);
+                    }
                 }
             }
         }
@@ -239,14 +277,8 @@ namespace Decatron.Services
             // Refresh token if expired
             if (config.SpotifyTokenExpiresAt.HasValue && config.SpotifyTokenExpiresAt.Value <= DateTime.UtcNow)
             {
-                accessToken = await nowPlayingService.RefreshSpotifyToken(
-                    config.UserId, config.SpotifyRefreshToken!, _httpClient, _configuration);
-
-                if (accessToken == null)
-                {
-                    _logger.LogDebug("Failed to refresh Spotify token for channel {Channel}", config.ChannelName);
-                    return;
-                }
+                accessToken = await RefreshToken(config, overlayService, nowPlayingService);
+                if (accessToken == null) return;
             }
 
             if (string.IsNullOrEmpty(accessToken)) return;
@@ -261,14 +293,12 @@ namespace Decatron.Services
             if (response.StatusCode == System.Net.HttpStatusCode.NoContent ||
                 response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
+                await MarkHealthy(config, nowPlayingService);
                 var emptyCount = _emptyPollCount.AddOrUpdate(config.ChannelName, 1, (_, c) => c + 1);
                 // Send stop after 2 consecutive empty polls
                 if (emptyCount >= 2 && _lastTrackCache.TryRemove(config.ChannelName, out _))
                 {
-                    await overlayService.SendToChannel(config.ChannelName, "NowPlayingStopped", new
-                    {
-                        timestamp = DateTime.UtcNow
-                    });
+                    await SendStopped(config.ChannelName, overlayService);
                 }
                 return;
             }
@@ -278,8 +308,7 @@ namespace Decatron.Services
             // 401 = token expired, try refresh
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                accessToken = await nowPlayingService.RefreshSpotifyToken(
-                    config.UserId, config.SpotifyRefreshToken!, _httpClient, _configuration);
+                accessToken = await RefreshToken(config, overlayService, nowPlayingService);
                 if (accessToken == null) return;
 
                 // Retry with new token
@@ -291,44 +320,47 @@ namespace Decatron.Services
             // 403 = user not registered in Spotify dashboard or app blocked
             if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                _logger.LogWarning("⚠️ Spotify 403 Forbidden para canal {Channel}. Usuario no registrado en Spotify Dashboard.", config.ChannelName);
+                var body = await response.Content.ReadAsStringAsync();
+                var wait = _spotifyGuard.RecordFailure(config.ChannelName, DateTime.UtcNow, ForbiddenBase, ForbiddenMax);
+                _logger.LogWarning("Spotify 403 para {Channel}: {Body}. Espera {Seconds}s", config.ChannelName, Shorten(body), wait.TotalSeconds);
+                await nowPlayingService.SetSpotifyStatus(config.UserId, SpotifyConnectionStatus.Forbidden);
                 return;
             }
 
             if (response.StatusCode == (System.Net.HttpStatusCode)429)
             {
-                // Skip this channel for now — the per-channel throttle will prevent immediate retry
-                // Cap backoff at 60 seconds to avoid blocking the entire service
-                var retryAfter = Math.Min(response.Headers.RetryAfter?.Delta?.TotalSeconds ?? 30, 60);
-                _logger.LogWarning("Spotify 429 for {Channel}. Backing off {Seconds}s", config.ChannelName, retryAfter);
-                _lastPollTime[config.ChannelName] = DateTime.UtcNow.AddSeconds(retryAfter);
+                // El límite es de la app: se detienen todos los canales y se espera lo que pida Spotify, sin tope
+                var body = await response.Content.ReadAsStringAsync();
+                var retryAfter = SpotifyTokenResponse.ParseRetryAfter(response.Headers.RetryAfter, DateTimeOffset.UtcNow);
+                var wait = _spotifyGuard.PauseApp(retryAfter, DateTime.UtcNow);
+                _logger.LogWarning("Spotify 429 en {Channel}: {Body}. Todo Spotify en pausa {Seconds}s", config.ChannelName, Shorten(body), wait.TotalSeconds);
                 return;
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("⚠️ Spotify API error {StatusCode} para canal {Channel}", response.StatusCode, config.ChannelName);
+                var wait = _spotifyGuard.RecordFailure(config.ChannelName, DateTime.UtcNow, TransientBase, TransientMax);
+                _logger.LogWarning("Spotify API error {StatusCode} para {Channel}. Espera {Seconds}s", response.StatusCode, config.ChannelName, wait.TotalSeconds);
                 return;
             }
+
+            await MarkHealthy(config, nowPlayingService);
 
             var json = await response.Content.ReadAsStringAsync();
             if (string.IsNullOrWhiteSpace(json)) return;
 
-            var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
             // Check if actually playing
-            var isPlaying = root.TryGetProperty("is_playing", out var ip) && ip.GetBoolean();
+            var isPlaying = root.TryGetProperty("is_playing", out var ip) && ip.ValueKind == JsonValueKind.True;
 
             if (!isPlaying)
             {
                 var emptyCount = _emptyPollCount.AddOrUpdate(config.ChannelName, 1, (_, c) => c + 1);
                 if (emptyCount >= 2 && _lastTrackCache.TryRemove(config.ChannelName, out _))
                 {
-                    await overlayService.SendToChannel(config.ChannelName, "NowPlayingStopped", new
-                    {
-                        timestamp = DateTime.UtcNow
-                    });
+                    await SendStopped(config.ChannelName, overlayService);
                 }
                 return;
             }
@@ -338,11 +370,12 @@ namespace Decatron.Services
                 ? cpt.GetString() : "track";
             if (currentlyPlayingType != "track") return;
 
-            if (!root.TryGetProperty("item", out var item)) return;
+            // Spotify manda item y progress_ms en null en anuncios y sesiones privadas
+            if (!root.TryGetProperty("item", out var item) || item.ValueKind != JsonValueKind.Object) return;
 
             var songName = item.GetProperty("name").GetString() ?? "";
             var durationMs = item.TryGetProperty("duration_ms", out var dur) ? dur.GetInt32() : 0;
-            var progressMs = root.TryGetProperty("progress_ms", out var prog) ? prog.GetInt32() : 0;
+            var progressMs = root.TryGetProperty("progress_ms", out var prog) && prog.ValueKind == JsonValueKind.Number ? prog.GetInt32() : 0;
 
             // Artist
             var artist = "";
@@ -357,7 +390,7 @@ namespace Decatron.Services
             if (item.TryGetProperty("album", out var albumEl))
             {
                 album = albumEl.TryGetProperty("name", out var an) ? an.GetString() ?? "" : "";
-                if (albumEl.TryGetProperty("images", out var images) && images.GetArrayLength() > 0)
+                if (albumEl.TryGetProperty("images", out var images) && images.ValueKind == JsonValueKind.Array && images.GetArrayLength() > 0)
                 {
                     albumArtUrl = images[0].TryGetProperty("url", out var imgUrl)
                         ? imgUrl.GetString() ?? ""
@@ -376,7 +409,7 @@ namespace Decatron.Services
                 _logger.LogDebug("🎵 Spotify now playing for {Channel}: {Song} - {Artist}", config.ChannelName, songName, artist);
             }
 
-            await overlayService.SendToChannel(config.ChannelName, "NowPlayingUpdate", new
+            var update = new
             {
                 song = songName,
                 artist,
@@ -388,8 +421,61 @@ namespace Decatron.Services
                 provider = "spotify",
                 isNewTrack,
                 timestamp = DateTime.UtcNow
-            });
+            };
+            _cache.Set(NowPlayingService.LiveTrackCacheKey(config.ChannelName), (object)update, LiveTrackTtl);
+            await overlayService.SendToChannel(config.ChannelName, "NowPlayingUpdate", update);
         }
+
+        /// <summary>Renueva el token y aplica lo que corresponda si falla. Devuelve null si no hay token nuevo.</summary>
+        private async Task<string?> RefreshToken(
+            Decatron.Core.Models.NowPlayingConfig config,
+            OverlayNotificationService overlayService,
+            NowPlayingService nowPlayingService)
+        {
+            var result = await nowPlayingService.RefreshSpotifyToken(
+                config.UserId, config.SpotifyRefreshToken!, _httpClient, _configuration);
+
+            switch (result.Outcome)
+            {
+                case SpotifyRefreshOutcome.Ok:
+                    return result.AccessToken;
+
+                case SpotifyRefreshOutcome.ReauthRequired:
+                    // Una sola línea por cuenta: a partir de acá el canal no se consulta hasta que reconecte
+                    _logger.LogWarning("Spotify pide autorizar de nuevo a {Channel} ({Error}). Sin más intentos hasta que reconecte", config.ChannelName, result.Error);
+                    if (_lastTrackCache.TryRemove(config.ChannelName, out _))
+                        await SendStopped(config.ChannelName, overlayService);
+                    break;
+
+                case SpotifyRefreshOutcome.RateLimited:
+                    var pause = _spotifyGuard.PauseApp(result.RetryAfter, DateTime.UtcNow);
+                    _logger.LogWarning("Spotify 429 al renovar el token de {Channel}. Todo Spotify en pausa {Seconds}s", config.ChannelName, pause.TotalSeconds);
+                    break;
+
+                default:
+                    var wait = _spotifyGuard.RecordFailure(config.ChannelName, DateTime.UtcNow, TransientBase, TransientMax);
+                    _logger.LogWarning("Spotify: no se pudo renovar el token de {Channel} ({Error}). Espera {Seconds}s", config.ChannelName, result.Error, wait.TotalSeconds);
+                    break;
+            }
+            return null;
+        }
+
+        /// <summary>Spotify respondió bien: se olvidan los fallos y, si estaba rechazada, la cuenta vuelve a «ok».</summary>
+        private async Task MarkHealthy(Decatron.Core.Models.NowPlayingConfig config, NowPlayingService nowPlayingService)
+        {
+            _spotifyGuard.RecordSuccess(config.ChannelName);
+            if (config.SpotifyStatus != SpotifyConnectionStatus.Ok)
+                await nowPlayingService.SetSpotifyStatus(config.UserId, SpotifyConnectionStatus.Ok);
+        }
+
+        private Task SendStopped(string channelName, OverlayNotificationService overlayService)
+        {
+            _cache.Remove(NowPlayingService.LiveTrackCacheKey(channelName));
+            return overlayService.SendToChannel(channelName, "NowPlayingStopped", new { timestamp = DateTime.UtcNow });
+        }
+
+        /// <summary>El cuerpo de un error de Spotify, recortado para el log (nunca lleva tokens).</summary>
+        private static string Shorten(string body) => body.Length <= 200 ? body : body[..200];
 
         public override void Dispose()
         {

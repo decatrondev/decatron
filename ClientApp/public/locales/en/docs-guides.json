@@ -413,7 +413,7 @@
           {
             "t": "ul",
             "items": [
-              "Spotify: a direct connection with Spotify, with the exact progress of the song. Because of a Spotify limit there are few slots and the Decatron team assigns them: in Connection you type the email of your Spotify account and request the slot. If they are full, you join a waiting list (first by supporter plan, then by request date).",
+              "Spotify: a direct connection with Spotify, with the exact progress of the song. Because of a Spotify limit there are few slots and the Decatron team assigns them: in Connection you type the email of your Spotify account and request the slot, with no need to connect first. If they are full, you join a waiting list (first by supporter plan, then by request date). Spotify expires the authorization every 6 months: the screen warns you 14 days before and Reconnect Spotify renews it without losing the slot. Disconnecting does free the slot.",
               "Last.fm: you type your Last.fm username and what you are scrobbling is detected, cover included. It works with any player that scrobbles and has no slot limit."
             ]
           },

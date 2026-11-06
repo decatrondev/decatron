@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Decatron.Services;
 using Decatron.Attributes;
+using Decatron.Core.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -146,7 +147,8 @@ namespace Decatron.Controllers
                 var expiresIn = tokenData.GetProperty("expires_in").GetInt32();
                 var expiresAt = DateTime.UtcNow.AddSeconds(expiresIn - 60); // 60s buffer
 
-                // Try to fetch email from Spotify /v1/me (may fail with 403 if not in dashboard)
+                // Spotify no siempre lo entrega: en ese caso la persona lo escribe al pedir el cupo.
+                // Si viene, se aprovecha; nunca borra uno guardado.
                 string? spotifyEmail = null;
                 try
                 {
@@ -209,7 +211,13 @@ namespace Decatron.Controllers
             var config = await _nowPlayingService.GetConfig(channelOwnerId);
             var isConnected = config?.SpotifyRefreshToken != null;
 
-            return Ok(new { success = true, connected = isConnected });
+            return Ok(new
+            {
+                success = true,
+                connected = isConnected,
+                status = config?.SpotifyStatus ?? SpotifyConnectionStatus.Ok,
+                authorizationExpiresAt = isConnected ? SpotifyConnectionStatus.AuthorizationExpiresAt(config!.SpotifyAuthorizedAt) : null,
+            });
         }
 
         private long GetUserId()

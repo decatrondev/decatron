@@ -41,6 +41,15 @@ namespace Decatron.Core.Models
         [Column("spotify_token_expires_at")]
         public DateTime? SpotifyTokenExpiresAt { get; set; }
 
+        /// <summary>Cuándo autorizó la cuenta. Spotify vence la autorización a los 6 meses; null = conexión anterior, fecha desconocida.</summary>
+        [Column("spotify_authorized_at")]
+        public DateTime? SpotifyAuthorizedAt { get; set; }
+
+        /// <summary>Ver SpotifyConnectionStatus: ok, reauth o forbidden.</summary>
+        [Column("spotify_status")]
+        [MaxLength(20)]
+        public string SpotifyStatus { get; set; } = "ok";
+
         [Column("spotify_is_premium")]
         public bool SpotifyIsPremium { get; set; } = false;
 

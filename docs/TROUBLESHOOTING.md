@@ -355,7 +355,7 @@ If the refresh fails, the user must log in again from the dashboard.
 grep -i "spotify" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | grep -i "error\|fail\|401"
 ```
 
-If the refresh fails, reconnect Spotify from the Now Playing page.
+If the refresh fails, press **Reconnect Spotify** on the Now Playing page: it keeps the slot.
 
 **4. Server clock out of sync**
 
@@ -480,15 +480,19 @@ sudo -u postgres psql -d decatron_prod -c "SELECT user_id, paypal_email, paypal_
 
 - The Now Playing overlay does not show the song
 - Error when connecting Spotify
-- "Spotify token refresh failed" in the logs
+- "Spotify pide autorizar de nuevo" or "Spotify 403" in the logs
 
 ### Causes and solutions
 
-**1. Spotify slot not assigned or token expired**
+**1. Spotify slot not assigned or authorization expired**
 
 ```bash
-sudo -u postgres psql -d decatron_prod -c "SELECT user_id, provider, spotify_slot_assigned, spotify_token_expires_at FROM now_playing_configs WHERE provider = 'spotify';"
+sudo -u postgres psql -d decatron_prod -c "SELECT user_id, provider, spotify_slot_assigned, spotify_status, spotify_authorized_at FROM now_playing_configs WHERE provider = 'spotify';"
 ```
+
+- `spotify_status = reauth`: the authorization expired (Spotify expires it after 6 months) or was revoked. The person presses **Reconnect Spotify** in the Connection tab and keeps the slot. Spotify is not called for that account in the meantime.
+- `spotify_status = forbidden`: Spotify rejects the account. Check that the email is in the Spotify developer dashboard and that the app owner account has active Premium. The log includes Spotify's response.
+- `Spotify 429` in the log: Spotify rate limited the app. Every channel waits for the time it asked for; nothing needs to be done.
 
 **2. Wrong Spotify credentials**
 
@@ -499,7 +503,7 @@ Check in `appsettings.Secrets.json`:
 
 **3. Spotify slots exhausted**
 
-Spotify is limited to 5 slots for non-premium users; the rest wait in a list.
+The Spotify app in development mode allows 5 users; the rest wait in a list.
 
 ```bash
 sudo -u postgres psql -d decatron_prod -c "SELECT user_id, spotify_slot_requested, spotify_slot_assigned FROM now_playing_configs WHERE spotify_slot_requested = true;"

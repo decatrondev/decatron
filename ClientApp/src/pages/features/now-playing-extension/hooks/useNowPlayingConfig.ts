@@ -12,6 +12,10 @@ export interface NowPlayingSettings {
     lastfmUsername: string | null;
     pollingInterval: number;
     spotifyConnected: boolean;
+    /** ok | reauth (hay que reconectar) | forbidden (Spotify rechaza la cuenta) */
+    spotifyStatus: string;
+    /** Hasta cuándo vale la autorización de Spotify; null si la conexión es anterior y no se sabe. */
+    spotifyAuthExpiresAt: string | null;
     spotifySlotRequested: boolean;
     spotifySlotAssigned: boolean;
     /** En la lista de espera de cupos: puesto (1 = el siguiente) y cuántos esperan. */
@@ -30,7 +34,7 @@ export function useNowPlayingConfig() {
     const [cupos, setCupos] = useState<CupoInfo>({ total: 5, used: 0, available: 5 });
     const [settings, setSettings] = useState<NowPlayingSettings>({
         isEnabled: false, provider: 'lastfm', lastfmUsername: null, pollingInterval: 5,
-        spotifyConnected: false, spotifySlotRequested: false, spotifySlotAssigned: false,
+        spotifyConnected: false, spotifyStatus: 'ok', spotifyAuthExpiresAt: null, spotifySlotRequested: false, spotifySlotAssigned: false,
         spotifyQueuePosition: null, spotifyQueueTotal: null,
     });
     const [layout, setLayout] = useState<OverlayLayout>(() => normalizeNowPlayingLayout({}));
@@ -56,6 +60,8 @@ export function useNowPlayingConfig() {
                 lastfmUsername: d?.lastfmUsername ?? null,
                 pollingInterval: d?.pollingInterval ?? 5,
                 spotifyConnected: !!spotify.data?.connected,
+                spotifyStatus: spotify.data?.status ?? 'ok',
+                spotifyAuthExpiresAt: spotify.data?.authorizationExpiresAt ?? null,
                 spotifySlotRequested: !!d?.spotifySlotRequested,
                 spotifySlotAssigned: !!d?.spotifySlotAssigned,
                 spotifyQueuePosition: d?.spotifyQueuePosition ?? null,

@@ -355,7 +355,7 @@ Si la renovación falla, el usuario debe volver a iniciar sesión desde el panel
 grep -i "spotify" /var/www/html/decatron/Decatron/decatron/logs/decatron-$(date +%Y%m%d).txt | grep -i "error\|fail\|401"
 ```
 
-Si la renovación falla, vuelve a conectar Spotify desde la página de Now Playing.
+Si la renovación falla, pulsa **Reconectar Spotify** en la página de Now Playing: conserva el cupo.
 
 **4. Reloj del servidor desincronizado**
 
@@ -480,15 +480,19 @@ sudo -u postgres psql -d decatron_prod -c "SELECT user_id, paypal_email, paypal_
 
 - El overlay de Now Playing no muestra la canción
 - Error al conectar Spotify
-- "Spotify token refresh failed" en los registros
+- "Spotify pide autorizar de nuevo" o "Spotify 403" en los registros
 
 ### Causas y soluciones
 
-**1. Cupo de Spotify sin asignar o token vencido**
+**1. Cupo de Spotify sin asignar o autorización vencida**
 
 ```bash
-sudo -u postgres psql -d decatron_prod -c "SELECT user_id, provider, spotify_slot_assigned, spotify_token_expires_at FROM now_playing_configs WHERE provider = 'spotify';"
+sudo -u postgres psql -d decatron_prod -c "SELECT user_id, provider, spotify_slot_assigned, spotify_status, spotify_authorized_at FROM now_playing_configs WHERE provider = 'spotify';"
 ```
+
+- `spotify_status = reauth`: la autorización venció (Spotify la vence a los 6 meses) o la revocaron. La persona pulsa **Reconectar Spotify** en la pestaña Conexión y conserva el cupo. Mientras tanto no se llama a Spotify por esa cuenta.
+- `spotify_status = forbidden`: Spotify rechaza la cuenta. Revisa que el correo esté en el panel de desarrolladores de Spotify y que la cuenta dueña de la app tenga Premium activo. El registro incluye la respuesta de Spotify.
+- `Spotify 429` en el registro: Spotify limitó la app. Todos los canales esperan el tiempo que pidió; no hace falta tocar nada.
 
 **2. Credenciales de Spotify incorrectas**
 
@@ -499,7 +503,7 @@ Revisa en `appsettings.Secrets.json`:
 
 **3. Cupos de Spotify agotados**
 
-Spotify está limitado a 5 cupos para usuarios no premium; el resto espera en una lista.
+La app de Spotify en modo desarrollo admite 5 usuarios; el resto espera en una lista.
 
 ```bash
 sudo -u postgres psql -d decatron_prod -c "SELECT user_id, spotify_slot_requested, spotify_slot_assigned FROM now_playing_configs WHERE spotify_slot_requested = true;"

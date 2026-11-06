@@ -127,13 +127,15 @@ export default function NowPlayingOverlay() {
             // Mensajes de otros overlays del mismo canal
             for (const ev of ['TimerTick', 'TimerStateUpdate', 'TimerEventAlert', 'ShowEventAlert']) connection.on(ev, () => {});
             connection.onreconnected(async () => {
-                try { await connection!.invoke('JoinChannel', channel); fetchCurrent(); } catch (err) { console.error('[NowPlayingOverlay] Error al volver a unirse:', err); }
+                try { await connection!.invoke('JoinChannel', channel); await connection!.invoke('RegisterOverlay', channel, 'now_playing'); fetchCurrent(); } catch (err) { console.error('[NowPlayingOverlay] Error al volver a unirse:', err); }
             });
             connection.onclose(() => { if (!stopped) retry = setTimeout(connect, 5000); });
             try {
                 await connection.start();
                 if (stopped) { connection.stop(); return; }
                 await connection.invoke('JoinChannel', channel);
+                // Spotify solo se consulta si este overlay está abierto
+                await connection.invoke('RegisterOverlay', channel, 'now_playing');
             } catch (err) {
                 if (!stopped) { console.error('[NowPlayingOverlay] Error conectando:', err); retry = setTimeout(connect, 5000); }
             }

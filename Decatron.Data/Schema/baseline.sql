@@ -5082,7 +5082,9 @@ CREATE TABLE public.now_playing_configs (
     spotify_slot_requested boolean DEFAULT false NOT NULL,
     spotify_is_premium boolean DEFAULT false NOT NULL,
     spotify_slot_requested_at timestamp with time zone,
-    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL
+    tenant_id bigint DEFAULT public.app_tenant_id() NOT NULL,
+    spotify_authorized_at timestamp with time zone,
+    spotify_status character varying(20) DEFAULT 'ok'::character varying NOT NULL
 );
 
 

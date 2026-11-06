@@ -2,6 +2,7 @@ using Decatron.Core.Helpers;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -22,6 +23,7 @@ namespace Decatron.Services
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly IConfiguration _configuration;
         private readonly string _lastfmApiKey;
+        private readonly IMemoryCache _cache;
 
         private const int MaxSpotifyUsers = 5; // Limit for non-premium users in Spotify dashboard
 
@@ -54,12 +56,17 @@ namespace Decatron.Services
 
         public static NowPlayingTierLimits GetLimitsForTier(string tier) => AllAllowed;
 
+        /// <summary>Lo último que dijo Spotify de este canal: la tarea de fondo lo deja acá y lo lee la vista previa.</summary>
+        public static string LiveTrackCacheKey(string channelName) => $"nowplaying:spotify:{channelName.ToLowerInvariant()}";
+
         public NowPlayingService(
             DecatronDbContext context,
             ILogger<NowPlayingService> logger,
             OverlayNotificationService overlayNotificationService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IMemoryCache cache)
         {
+            _cache = cache;
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
@@ -175,10 +182,8 @@ namespace Decatron.Services
             var existing = await GetConfig(userId);
             if (existing == null) return false;
 
+            // Solo Last.fm: la conexión y el cupo de Spotify se manejan aparte (DisconnectSpotify)
             existing.LastfmUsername = null;
-            existing.SpotifyAccessToken = null;
-            existing.SpotifyRefreshToken = null;
-            existing.SpotifyTokenExpiresAt = null;
             existing.IsEnabled = false;
             existing.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
@@ -200,6 +205,8 @@ namespace Decatron.Services
                 existing.SpotifyAccessToken = accessToken;
                 existing.SpotifyRefreshToken = refreshToken;
                 existing.SpotifyTokenExpiresAt = expiresAt;
+                existing.SpotifyAuthorizedAt = DateTime.UtcNow;
+                existing.SpotifyStatus = SpotifyConnectionStatus.Ok;
                 if (!string.IsNullOrEmpty(spotifyEmail))
                     existing.SpotifySlotEmail = spotifyEmail;
                 existing.UpdatedAt = DateTime.UtcNow;
@@ -219,6 +226,8 @@ namespace Decatron.Services
                     SpotifyAccessToken = accessToken,
                     SpotifyRefreshToken = refreshToken,
                     SpotifyTokenExpiresAt = expiresAt,
+                    SpotifyAuthorizedAt = DateTime.UtcNow,
+                    SpotifyStatus = SpotifyConnectionStatus.Ok,
                     SpotifySlotEmail = spotifyEmail,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -239,6 +248,8 @@ namespace Decatron.Services
             existing.SpotifyAccessToken = null;
             existing.SpotifyRefreshToken = null;
             existing.SpotifyTokenExpiresAt = null;
+            existing.SpotifyAuthorizedAt = null;
+            existing.SpotifyStatus = SpotifyConnectionStatus.Ok;
             existing.SpotifySlotRequested = false;
             existing.SpotifySlotRequestedAt = null;
             existing.SpotifySlotAssigned = false;
@@ -254,7 +265,11 @@ namespace Decatron.Services
             return true;
         }
 
-        public async Task<string?> RefreshSpotifyToken(long userId, string refreshToken, HttpClient httpClient, IConfiguration configuration)
+        /// <summary>
+        /// Renueva el token de acceso. Si Spotify responde invalid_grant (la autorización venció a los 6 meses o la
+        /// revocaron), deja la cuenta en «reauth»: no se vuelve a intentar hasta que la persona reconecte.
+        /// </summary>
+        public async Task<SpotifyRefreshResult> RefreshSpotifyToken(long userId, string refreshToken, HttpClient httpClient, IConfiguration configuration)
         {
             try
             {
@@ -276,12 +291,16 @@ namespace Decatron.Services
                 var response = await httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Spotify token refresh failed for userId={UserId}: {Status}", userId, response.StatusCode);
-                    return null;
+                    var failureBody = await response.Content.ReadAsStringAsync();
+                    var failure = SpotifyTokenResponse.ClassifyFailure(
+                        response.StatusCode, failureBody, SpotifyTokenResponse.ParseRetryAfter(response.Headers.RetryAfter, DateTimeOffset.UtcNow));
+                    if (failure.Outcome == SpotifyRefreshOutcome.ReauthRequired)
+                        await SetSpotifyStatus(userId, SpotifyConnectionStatus.ReauthRequired);
+                    return failure;
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var doc = JsonDocument.Parse(json);
+                using var doc = JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
                 var newAccessToken = root.GetProperty("access_token").GetString()!;
@@ -301,13 +320,22 @@ namespace Decatron.Services
                     await _context.SaveChangesAsync();
                 }
 
-                return newAccessToken;
+                return new SpotifyRefreshResult(SpotifyRefreshOutcome.Ok, newAccessToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error refreshing Spotify token for userId={UserId}", userId);
-                return null;
+                return new SpotifyRefreshResult(SpotifyRefreshOutcome.Failed, Error: ex.GetType().Name);
             }
+        }
+
+        /// <summary>Guarda el estado de la conexión solo si cambió.</summary>
+        public async Task SetSpotifyStatus(long userId, string status)
+        {
+            var existing = await GetConfig(userId);
+            if (existing == null || existing.SpotifyStatus == status) return;
+            existing.SpotifyStatus = status;
+            await _context.SaveChangesAsync();
         }
 
         // ========================================================================
@@ -340,6 +368,12 @@ namespace Decatron.Services
             if (config.Provider == "lastfm" && !string.IsNullOrEmpty(config.LastfmUsername))
             {
                 return await GetLastfmNowPlaying(config.LastfmUsername, httpClient);
+            }
+
+            // Spotify no se consulta acá: se usa lo último que obtuvo la tarea de fondo, sin gastar otra llamada
+            if (config.Provider == "spotify" && _cache.TryGetValue(LiveTrackCacheKey(config.ChannelName), out object? live))
+            {
+                return live;
             }
 
             return null;
@@ -482,14 +516,26 @@ namespace Decatron.Services
             };
         }
 
-        public async Task<(bool success, string message)> RequestSpotifySlot(long userId, string? spotifyEmail = null)
+        /// <summary>
+        /// Pedir el cupo no exige tener Spotify conectado: Spotify no deja usar la cuenta hasta que su correo esté
+        /// autorizado en el panel, así que el orden natural es pedir, recibir el cupo y recién conectar.
+        /// </summary>
+        public async Task<(bool success, string message)> RequestSpotifySlot(long userId, string channelName, string? spotifyEmail = null)
         {
             var config = await GetConfig(userId);
             if (config == null)
-                return (false, "Primero debes crear tu configuración de Now Playing");
-
-            if (string.IsNullOrEmpty(config.SpotifyRefreshToken))
-                return (false, "Primero debes conectar tu cuenta de Spotify");
+            {
+                config = new NowPlayingConfig
+                {
+                    UserId = userId,
+                    ChannelName = channelName,
+                    Provider = "spotify",
+                    PollingInterval = PollingIntervalSeconds,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.NowPlayingConfigs.Add(config);
+            }
 
             if (config.SpotifySlotAssigned)
                 return (false, "Ya tienes un cupo asignado");
@@ -553,6 +599,8 @@ namespace Decatron.Services
             config.SpotifyAccessToken = null;
             config.SpotifyRefreshToken = null;
             config.SpotifyTokenExpiresAt = null;
+            config.SpotifyAuthorizedAt = null;
+            config.SpotifyStatus = SpotifyConnectionStatus.Ok;
             if (config.Provider == "spotify")
                 config.Provider = "lastfm";
             config.UpdatedAt = DateTime.UtcNow;
@@ -621,6 +669,7 @@ namespace Decatron.Services
                 slotAssigned = c.SpotifySlotAssigned,
                 slotAssignedAt = c.SpotifySlotAssignedAt,
                 spotifyConnected = c.SpotifyRefreshToken != null,
+                spotifyStatus = c.SpotifyStatus,
                 requestedAt = c.SpotifySlotRequestedAt ?? c.UpdatedAt,
                 position,
             };

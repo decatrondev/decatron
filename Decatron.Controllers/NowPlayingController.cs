@@ -57,7 +57,7 @@ namespace Decatron.Controllers
 
                 if (config == null)
                 {
-                    return Ok(new { success = true, config = (object?)null });
+                    return Ok(new { success = true, config = (object?)null, cupos = await _nowPlayingService.GetSpotifySlotsInfo() });
                 }
 
                 // Get tier limits
@@ -292,10 +292,11 @@ namespace Decatron.Controllers
             try
             {
                 var channelOwnerId = GetChannelOwnerId();
-                if (channelOwnerId == 0)
+                var channelName = await GetChannelNameFromOwner(channelOwnerId);
+                if (channelOwnerId == 0 || string.IsNullOrEmpty(channelName))
                     return Unauthorized(new { success = false, message = "No autenticado" });
 
-                var (success, message) = await _nowPlayingService.RequestSpotifySlot(channelOwnerId, request?.SpotifyEmail);
+                var (success, message) = await _nowPlayingService.RequestSpotifySlot(channelOwnerId, channelName, request?.SpotifyEmail);
 
                 if (!success)
                     return BadRequest(new { success = false, message });

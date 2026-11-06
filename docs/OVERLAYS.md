@@ -300,15 +300,34 @@ Shows the song that is currently playing, in a customizable widget.
 | Provider | Connection | Requirements |
 |----------|------------|--------------|
 | **Last.fm** | Enter your Last.fm username | Any player that scrobbles to Last.fm |
-| **Spotify** | OAuth2 connection | A free Spotify slot (see below) |
+| **Spotify** | OAuth2 connection | An assigned Spotify slot (see below) |
 
 ### Spotify slots
 
-Spotify access is limited to 5 slots for non-premium users (`MaxSpotifyUsers`), assigned by the administrator. Now Playing has the same features for every plan: the plan only affects the order of the waiting list for Spotify slots.
+The Spotify app is in development mode, which allows 5 users (`MaxSpotifyUsers`) and requires the owner account to have Premium. Slots are assigned by the administrator, who also adds the email in the Spotify developer dashboard. Now Playing has the same features for every plan: the plan only affects the order of the waiting list for Spotify slots.
+
+A slot is requested with the account email, with no need to connect first. Spotify does not always give the email, so it is typed by hand when requesting the slot.
+
+### Spotify authorization
+
+Spotify expires each authorization 6 months after it was granted; refreshing the token does not extend it. `spotify_authorized_at` stores the date (`NULL` for connections made before this change) and the panel warns 14 days before. **Reconnect Spotify** renews the authorization and keeps the slot; **Disconnect Spotify** frees the slot.
+
+`spotify_status` stores the connection state:
+
+| Value | Meaning | What polling does |
+|-------|---------|-------------------|
+| `ok` | All good | Continues every 3 seconds |
+| `reauth` | Spotify answered `invalid_grant` | Stops until the person reconnects |
+| `forbidden` | Spotify answered 403 | Retries with a growing wait, from 1 to 5 minutes, and returns to `ok` when Spotify answers correctly |
 
 ### Polling
 
-`NowPlayingBackgroundService` checks every active channel every 3 seconds, compares the track with the previous one and, when it changes, sends an update through SignalR.
+`NowPlayingBackgroundService` checks every active channel every 3 seconds, compares the track with the previous one and, when it changes, sends an update through SignalR. With Spotify, a channel counts as active only if the Now Playing overlay is open (it identifies itself through `RegisterOverlay` as `now_playing`); with Last.fm, if any overlay is open.
+
+Waits only apply when Spotify answers with an error (`SpotifyPollGuard`):
+
+- **429:** stops every channel for the full `Retry-After`, with no cap, because the limit belongs to the app. Without `Retry-After`, the wait starts at 30 seconds and grows up to 1 hour.
+- **Other temporary failures (5xx, network):** only stop that channel, from 15 seconds to 5 minutes.
 
 ### Configuration tabs
 
