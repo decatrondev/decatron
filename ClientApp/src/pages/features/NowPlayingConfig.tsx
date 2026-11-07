@@ -10,6 +10,7 @@ import { useLayoutFonts } from '../../components/music-overlay/utils';
 import { useNowPlayingConfig } from './now-playing-extension/hooks/useNowPlayingConfig';
 import { NP_ELEMENT_IDS } from './now-playing-extension/convertLegacy';
 import { nowPlayingPresets } from './now-playing-extension/presets';
+import { toggleNowPlayingElement } from './now-playing-extension/placement';
 import { GuideTab, ConnectionTab, type NowPlayingTabId } from './now-playing-extension/components/SetupTabs';
 import NowPlayingPreview from './now-playing-extension/components/NowPlayingPreview';
 
@@ -51,6 +52,20 @@ export default function NowPlayingConfig() {
 
     const labels: OverlayLabels = useMemo(() => ({ requestedBy: '', next: '', fallback: '', idle: t('nowPlaying.idle') }), [t]);
 
+    const extras: Design.DesignExtras = useMemo(() => ({
+        toggle: toggleNowPlayingElement,
+        hints: {
+            artist: t('nowPlaying.elementHints.artist'),
+            source: t('nowPlaying.elementHints.source'),
+        },
+        timeFormats: [
+            { value: 'split', label: t('nowPlaying.timeFormats.split') },
+            { value: 'spaced', label: t('nowPlaying.timeFormats.spaced') },
+        ],
+        songChanges: ['crossfade'],
+        freezeHint: t('nowPlaying.freezeHint'),
+    }), [t]);
+
     const save = async () => {
         const ok = await cfg.save();
         setMessage({ ok, text: ok ? t('nowPlaying.saved') : t('nowPlaying.saveFailed') });
@@ -74,7 +89,7 @@ export default function NowPlayingConfig() {
         );
     }
 
-    const design: Design.DesignProps = { layout: cfg.layout, onChange: cfg.updateLayout, elementIds: NP_ELEMENT_IDS };
+    const design: Design.DesignProps = { layout: cfg.layout, onChange: cfg.updateLayout, elementIds: NP_ELEMENT_IDS, extras };
     const sampleTrack = SAMPLE_TRACKS[0];
 
     return (

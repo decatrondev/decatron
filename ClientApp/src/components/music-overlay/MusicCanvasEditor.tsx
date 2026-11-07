@@ -20,10 +20,12 @@ interface Props {
     elementIds: ElementId[];
     labels: OverlayLabels;
     sample: CanvasSample;
+    /** Cómo se prende y apaga un elemento, si este overlay necesita ubicarlo. */
+    toggle?: typeof toggleElement;
 }
 
 /** Editor visual de un overlay de música sobre el editor compartido de overlays. */
-export default function MusicCanvasEditor({ layout, onChange, elementIds, labels, sample }: Props) {
+export default function MusicCanvasEditor({ layout, onChange, elementIds, labels, sample, toggle = toggleElement }: Props) {
     const { t } = useTranslation('overlays');
     const [coverHidden, setCoverHidden] = useState(false);
     // El arrastre manda muchos cambios seguidos: siempre se parte del último layout
@@ -37,10 +39,10 @@ export default function MusicCanvasEditor({ layout, onChange, elementIds, labels
     }, [onChange]);
 
     const onToggle = useCallback((id: string, enabled: boolean) => {
-        const r = toggleElement(layoutRef.current, id as ElementId, enabled);
+        const r = toggle(layoutRef.current, id as ElementId, enabled);
         onChange(r.layout);
         setCoverHidden(r.coverHidden);
-    }, [onChange]);
+    }, [onChange, toggle]);
 
     return (
         <SharedCanvasEditor

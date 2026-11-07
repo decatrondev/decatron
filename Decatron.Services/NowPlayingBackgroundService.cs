@@ -144,7 +144,7 @@ namespace Decatron.Services
                     {
                         await PollSpotifyChannel(config, overlayService, nowPlayingService);
                     }
-                    else if (config.Provider == "lastfm" && config.LastfmUsername != null)
+                    else if (config.Provider == "lastfm" && !string.IsNullOrWhiteSpace(config.LastfmUsername))
                     {
                         await PollChannel(config.ChannelName, config.LastfmUsername, overlayService);
                     }
@@ -218,8 +218,8 @@ namespace Decatron.Services
                     : "";
             }
 
-            // Create a cache key to detect changes
-            var trackKey = $"{songName}|{artist}|{album}";
+            // Create a cache key to detect changes (con el proveedor: al cambiar de fuente la misma canción se vuelve a avisar)
+            var trackKey = $"lastfm|{NowPlayingService.TrackIdentity(songName, artist, album)}";
 
             // Check if track changed
             var isNewTrack = !_lastTrackCache.TryGetValue(channelName, out var lastTrack) || lastTrack != trackKey;
@@ -228,6 +228,9 @@ namespace Decatron.Services
             {
                 _lastTrackCache[channelName] = trackKey;
                 _logger.LogDebug("🎵 Now playing for {Channel}: {Song} - {Artist}", channelName, songName, artist);
+                // Last.fm no da la posición: se cuenta desde acá, para que recargar el overlay no vuelva a 0:00
+                var startedAt = DateTime.UtcNow;
+                _cache.Set(NowPlayingService.LastfmStartCacheKey(channelName), new NowPlayingService.LastfmTrackStart(NowPlayingService.TrackIdentity(songName, artist, album), startedAt), NowPlayingService.LastfmStartTtl);
 
                 // Try to get duration
                 int? durationMs = null;
@@ -262,7 +265,7 @@ namespace Decatron.Services
                     isPlaying = true,
                     provider = "lastfm",
                     isNewTrack = true,
-                    timestamp = DateTime.UtcNow
+                    timestamp = startedAt
                 });
             }
         }
@@ -352,26 +355,24 @@ namespace Decatron.Services
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            // Check if actually playing
+            // En pausa Spotify sigue dando la canción: el overlay decide si se queda quieto o se oculta
             var isPlaying = root.TryGetProperty("is_playing", out var ip) && ip.ValueKind == JsonValueKind.True;
 
-            if (!isPlaying)
+            // Must be a track (not podcast/ad). Spotify manda item y progress_ms en null en anuncios y sesiones privadas
+            var currentlyPlayingType = root.TryGetProperty("currently_playing_type", out var cpt)
+                ? cpt.GetString() : "track";
+            if (currentlyPlayingType != "track" || !root.TryGetProperty("item", out var item) || item.ValueKind != JsonValueKind.Object)
             {
-                var emptyCount = _emptyPollCount.AddOrUpdate(config.ChannelName, 1, (_, c) => c + 1);
-                if (emptyCount >= 2 && _lastTrackCache.TryRemove(config.ChannelName, out _))
+                if (!isPlaying)
                 {
-                    await SendStopped(config.ChannelName, overlayService);
+                    var emptyCount = _emptyPollCount.AddOrUpdate(config.ChannelName, 1, (_, c) => c + 1);
+                    if (emptyCount >= 2 && _lastTrackCache.TryRemove(config.ChannelName, out _))
+                    {
+                        await SendStopped(config.ChannelName, overlayService);
+                    }
                 }
                 return;
             }
-
-            // Must be a track (not podcast/ad)
-            var currentlyPlayingType = root.TryGetProperty("currently_playing_type", out var cpt)
-                ? cpt.GetString() : "track";
-            if (currentlyPlayingType != "track") return;
-
-            // Spotify manda item y progress_ms en null en anuncios y sesiones privadas
-            if (!root.TryGetProperty("item", out var item) || item.ValueKind != JsonValueKind.Object) return;
 
             var songName = item.GetProperty("name").GetString() ?? "";
             var durationMs = item.TryGetProperty("duration_ms", out var dur) ? dur.GetInt32() : 0;
@@ -398,7 +399,7 @@ namespace Decatron.Services
                 }
             }
 
-            var trackKey = $"{songName}|{artist}|{album}";
+            var trackKey = $"spotify|{NowPlayingService.TrackIdentity(songName, artist, album)}";
             var isNewTrack = !_lastTrackCache.TryGetValue(config.ChannelName, out var lastTrack) || lastTrack != trackKey;
 
             // Always send update for Spotify (includes progressMs for accurate progress bar)
@@ -417,7 +418,7 @@ namespace Decatron.Services
                 albumArtUrl,
                 durationMs,
                 progressMs,
-                isPlaying = true,
+                isPlaying,
                 provider = "spotify",
                 isNewTrack,
                 timestamp = DateTime.UtcNow

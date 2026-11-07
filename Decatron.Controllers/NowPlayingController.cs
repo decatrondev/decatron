@@ -364,6 +364,9 @@ namespace Decatron.Controllers
         // TESTING
         // ========================================================================
 
+        /// <summary>Portada de la tarjeta de prueba: va dentro del aviso, así no depende de ningún servidor de imágenes.</summary>
+        private const string TestCoverArt = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'%3E%3Cdefs%3E%3ClinearGradient id='g' x2='1' y2='1'%3E%3Cstop stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%231e293b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='300' height='300' fill='url(%23g)'/%3E%3Cpath fill='%23fff' d='M200 60v125a35 35 0 1 1-20-32V100l-70 16v90a35 35 0 1 1-20-32V90z'/%3E%3C/svg%3E";
+
         [HttpPost("test")]
         [RequirePermission("overlays")]
         public async Task<IActionResult> SendTestTrack()
@@ -375,15 +378,19 @@ namespace Decatron.Controllers
                 if (string.IsNullOrEmpty(channelName))
                     return Unauthorized(new { success = false, message = "No autenticado" });
 
+                var config = await _nowPlayingService.GetConfig(channelOwnerId);
+
+                // El overlay reemplaza estos textos por los de su idioma y la quita sola a los pocos segundos
                 await _overlayNotificationService.SendToChannel(channelName, "NowPlayingUpdate", new
                 {
-                    song = "Blinding Lights",
-                    artist = "The Weeknd",
-                    album = "After Hours",
-                    albumArtUrl = "https://lastfm.freetls.fastly.net/i/u/300x300/3b3c24e5a5e7e4b8a2e7e4b8a2e7e4b8.png",
+                    song = "Canción de prueba",
+                    artist = "Artista de prueba",
+                    album = "Álbum de prueba",
+                    albumArtUrl = TestCoverArt,
                     durationMs = 200000,
+                    progressMs = 35000,
                     isPlaying = true,
-                    provider = "lastfm",
+                    provider = config?.Provider ?? "lastfm",
                     isNewTrack = true,
                     isTest = true,
                     timestamp = DateTime.UtcNow

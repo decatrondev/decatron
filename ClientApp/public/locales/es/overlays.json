@@ -1238,7 +1238,7 @@
       "panel": "La tarjeta detrás de todo. Su color y forma se editan en Tema.",
       "video": "El video de YouTube a la vista, en vez de solo la portada.",
       "cover": "La miniatura de la canción.",
-      "equalizer": "Barras que se mueven con la música.",
+      "equalizer": "Barras animadas mientras suena la canción.",
       "title": "El nombre de la canción.",
       "artist": "El artista o el canal que la subió.",
       "album": "El disco de la canción (Spotify y Last.fm lo informan).",
@@ -1315,7 +1315,8 @@
         "slide-up": "Subir",
         "slide-left": "Desde la derecha",
         "zoom": "Zoom",
-        "flip": "Girar"
+        "flip": "Girar",
+        "crossfade": "Fundido cruzado"
       },
       "duration": "Duración",
       "marqueeSpeed": "Velocidad del desplazamiento",
@@ -1482,7 +1483,8 @@
       "pollingFixed": "La canción se consulta cada 3 segundos.",
       "cupoJoinQueue": "Entrar a la lista de espera",
       "cupoPosition": "Puesto {{position}} de {{total}} en la lista de espera.",
-      "cupoMeanwhile": "Mientras tanto puedes usar Last.fm, que no tiene límite."
+      "cupoMeanwhile": "Mientras tanto puedes usar Last.fm, que no tiene límite.",
+      "lastfmNote": "Last.fm no informa la posición ni las pausas: el tiempo se cuenta desde que Decatron detecta la canción. Si una canción no trae duración, se ve solo el tiempo transcurrido, sin barra."
     },
     "preview": {
       "title": "Vista previa",
@@ -1498,11 +1500,25 @@
       "testing": "Enviando...",
       "testSent": "Canción de prueba enviada al overlay.",
       "testFailed": "No se pudo enviar la prueba.",
-      "testHint": "Manda una canción de prueba a tu overlay en OBS, con lo que tienes guardado.",
+      "testHint": "Muestra una canción de prueba en tu overlay de OBS durante unos segundos, con lo que tienes guardado. Después vuelve lo que esté sonando.",
       "testUnsaved": "Tienes cambios sin guardar: la prueba en OBS usa lo último que guardaste.",
       "size": "Lienzo de {{width}}×{{height}} px: usa ese tamaño en la fuente de OBS.",
       "fit": "Ajustar al widget",
       "full": "Pantalla completa"
+    },
+    "elementHints": {
+      "artist": "El artista de la canción.",
+      "source": "De dónde sale la canción: Spotify o Last.fm."
+    },
+    "timeFormats": {
+      "split": "1:23 a la izquierda y 3:33 a la derecha",
+      "spaced": "1:23 / 3:33, más separado"
+    },
+    "freezeHint": "Con Spotify, al pausar la tarjeta se queda visible con la barra y el ecualizador quietos. Si lo apagas, se trata como si no sonara nada. Last.fm no informa las pausas.",
+    "testTrack": {
+      "title": "Canción de prueba",
+      "artist": "Artista de prueba",
+      "album": "Álbum de prueba"
     }
   },
   "shoutout": {

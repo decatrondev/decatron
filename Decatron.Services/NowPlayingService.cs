@@ -58,6 +58,11 @@ namespace Decatron.Services
 
         /// <summary>Lo último que dijo Spotify de este canal: la tarea de fondo lo deja acá y lo lee la vista previa.</summary>
         public static string LiveTrackCacheKey(string channelName) => $"nowplaying:spotify:{channelName.ToLowerInvariant()}";
+        public static string LastfmStartCacheKey(string channelName) => $"nowplaying:lastfm-start:{channelName.ToLowerInvariant()}";
+        public static string TrackIdentity(string song, string artist, string album) => $"{song}|{artist}|{album}";
+        /// <summary>Cuándo notó la tarea de fondo que empezó esta canción de Last.fm.</summary>
+        public sealed record LastfmTrackStart(string Track, DateTime StartedAt);
+        public static readonly TimeSpan LastfmStartTtl = TimeSpan.FromHours(1);
 
         public NowPlayingService(
             DecatronDbContext context,
@@ -107,7 +112,7 @@ namespace Decatron.Services
                 existing.ChannelName = channelName;
                 existing.IsEnabled = GetBoolProperty(configData, "isEnabled", existing.IsEnabled);
                 existing.Provider = requestedProvider;
-                existing.LastfmUsername = GetStringProperty(configData, "lastfmUsername", existing.LastfmUsername);
+                existing.LastfmUsername = NullIfBlank(GetStringProperty(configData, "lastfmUsername", existing.LastfmUsername));
                 existing.PollingInterval = PollingIntervalSeconds;
 
                 if (configData.TryGetProperty("configJson", out var configJson))
@@ -131,7 +136,7 @@ namespace Decatron.Services
                     ChannelName = channelName,
                     IsEnabled = GetBoolProperty(configData, "isEnabled", false),
                     Provider = GetStringProperty(configData, "provider", "lastfm"),
-                    LastfmUsername = GetStringProperty(configData, "lastfmUsername", null),
+                    LastfmUsername = NullIfBlank(GetStringProperty(configData, "lastfmUsername", null)),
                     PollingInterval = PollingIntervalSeconds,
                     ConfigJson = configData.TryGetProperty("configJson", out var cj) ? cj.GetRawText() : "{}",
                     CreatedAt = DateTime.UtcNow,
@@ -347,11 +352,18 @@ namespace Decatron.Services
             var config = await GetConfigByChannel(channelName);
             if (config == null) return null;
 
+            // OBS no tiene sesión: los textos del overlay salen en el idioma que eligió el streamer
+            var language = await _context.Users
+                .Where(u => u.Id == config.UserId)
+                .Select(u => u.PreferredLanguage)
+                .FirstOrDefaultAsync();
+
             return new
             {
                 isEnabled = config.IsEnabled,
                 provider = config.Provider,
                 pollingInterval = config.PollingInterval,
+                language,
                 config = JsonSerializer.Deserialize<JsonElement>(config.ConfigJson)
             };
         }
@@ -365,9 +377,9 @@ namespace Decatron.Services
             var config = await GetConfigByChannel(channelName);
             if (config == null || !config.IsEnabled) return null;
 
-            if (config.Provider == "lastfm" && !string.IsNullOrEmpty(config.LastfmUsername))
+            if (config.Provider == "lastfm" && !string.IsNullOrWhiteSpace(config.LastfmUsername))
             {
-                return await GetLastfmNowPlaying(config.LastfmUsername, httpClient);
+                return await GetLastfmNowPlaying(config.LastfmUsername, httpClient, config.ChannelName);
             }
 
             // Spotify no se consulta acá: se usa lo último que obtuvo la tarea de fondo, sin gastar otra llamada
@@ -379,7 +391,7 @@ namespace Decatron.Services
             return null;
         }
 
-        public async Task<object?> GetLastfmNowPlaying(string username, HttpClient httpClient)
+        public async Task<object?> GetLastfmNowPlaying(string username, HttpClient httpClient, string? channelName = null)
         {
             try
             {
@@ -464,6 +476,17 @@ namespace Decatron.Services
                     _logger.LogDebug(ex, "Could not fetch track duration from Last.fm");
                 }
 
+                // Si la tarea de fondo ya venía siguiendo esta canción se sabe cuándo empezó; una marca
+                // más vieja que la canción es de otra vez que sonó y no sirve
+                DateTime? timestamp = null;
+                if (channelName != null
+                    && _cache.TryGetValue(LastfmStartCacheKey(channelName), out LastfmTrackStart? start)
+                    && start != null && start.Track == TrackIdentity(songName, artist, album)
+                    && (durationMs == null || DateTime.UtcNow - start.StartedAt < TimeSpan.FromMilliseconds(durationMs.Value)))
+                {
+                    timestamp = start.StartedAt;
+                }
+
                 return new
                 {
                     song = songName,
@@ -472,7 +495,8 @@ namespace Decatron.Services
                     albumArtUrl,
                     durationMs,
                     isPlaying = true,
-                    provider = "lastfm"
+                    provider = "lastfm",
+                    timestamp
                 };
             }
             catch (Exception ex)
@@ -706,6 +730,8 @@ namespace Decatron.Services
         // ========================================================================
         // HELPERS
         // ========================================================================
+
+        private static string? NullIfBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
         private static string GetStringProperty(JsonElement root, string name, string? defaultValue)
         {

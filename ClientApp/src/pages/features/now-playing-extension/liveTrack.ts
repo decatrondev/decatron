@@ -6,11 +6,13 @@ export interface NowPlayingTrackData {
     artist: string;
     album?: string;
     albumArtUrl?: string;
-    durationMs: number;
+    durationMs: number | null;
     progressMs?: number | null;
     isPlaying: boolean;
     provider: string;
     isNewTrack?: boolean;
+    /** Tarjeta de «Probar en OBS»: dura unos segundos y no reemplaza lo que suena. */
+    isTest?: boolean;
     timestamp?: string;
 }
 

@@ -20,6 +20,19 @@ export interface DesignProps {
     elementIds: ElementId[];
     /** Encima de cada pestaña (Song Request: qué overlay se edita). */
     header?: ReactNode;
+    /** Opciones de cada overlay; sin ellas, lo de siempre (Song Request). */
+    extras?: DesignExtras;
+}
+
+export interface DesignExtras {
+    /** Cómo se prende y apaga un elemento, si este overlay necesita ubicarlo. */
+    toggle?: (layout: OverlayLayout, id: ElementId, enabled: boolean) => { layout: OverlayLayout; coverHidden: boolean };
+    /** Reemplaza la descripción de un elemento. */
+    hints?: Partial<Record<ElementId, string>>;
+    /** Formatos de tiempo y animaciones que este overlay ofrece además de los comunes. */
+    timeFormats?: { value: string; label: string }[];
+    songChanges?: SongChangeAnimation[];
+    freezeHint?: string;
 }
 
 export interface LayoutPreset { id: string; build: () => OverlayLayout }
@@ -159,7 +172,7 @@ export function ElementsTab(props: DesignProps & { labels?: OverlayLabels }) {
     const [coverHidden, setCoverHidden] = useState(false);
     const ids = props.elementIds;
     const toggle = (id: ElementId, enabled: boolean) => {
-        const r = toggleElement(layout, id, enabled);
+        const r = (props.extras?.toggle ?? toggleElement)(layout, id, enabled);
         set(r.layout);
         setCoverHidden(r.coverHidden);
     };
@@ -195,6 +208,7 @@ export function ElementsTab(props: DesignProps & { labels?: OverlayLabels }) {
                             { value: 'elapsed_total', label: '1:23 / 3:33' },
                             { value: 'elapsed', label: '1:23' },
                             { value: 'remaining', label: '-2:10' },
+                            ...(props.extras?.timeFormats ?? []),
                         ]} />
                     </Field>
                 );
@@ -226,7 +240,7 @@ export function ElementsTab(props: DesignProps & { labels?: OverlayLabels }) {
                         const options = extra(id);
                         return (
                             <div key={id} className="py-3 space-y-3">
-                                <Toggle checked={e[id].enabled} onChange={v => toggle(id, v)} label={t(`musicOverlay.elements.${id}`)} hint={t(`musicOverlay.elementHints.${id}`)} />
+                                <Toggle checked={e[id].enabled} onChange={v => toggle(id, v)} label={t(`musicOverlay.elements.${id}`)} hint={props.extras?.hints?.[id] ?? t(`musicOverlay.elementHints.${id}`)} />
                                 {e[id].enabled && options && <div className="pl-14">{options}</div>}
                             </div>
                         );
@@ -310,7 +324,7 @@ export function AnimationsTab(props: DesignProps) {
     const { layout, set } = useLayout(props);
     const a = layout.animations;
     const setAnim = (patch: Partial<typeof a>) => set({ ...layout, animations: { ...a, ...patch } });
-    const names: SongChangeAnimation[] = ['none', 'fade', 'slide-up', 'slide-left', 'zoom', 'flip'];
+    const names: SongChangeAnimation[] = ['none', 'fade', 'slide-up', 'slide-left', 'zoom', 'flip', ...(props.extras?.songChanges ?? [])];
 
     return (
         <div className="space-y-6">
@@ -331,7 +345,7 @@ export function AnimationsTab(props: DesignProps) {
                     <Field label={t('musicOverlay.animations.duration')}><Slider value={a.durationMs} min={150} max={2000} step={50} onChange={v => setAnim({ durationMs: v })} suffix="ms" /></Field>
                     <Field label={t('musicOverlay.animations.marqueeSpeed')} hint={t('musicOverlay.animations.marqueeSpeedHint')}><Slider value={a.marqueeSpeed} min={10} max={150} onChange={v => setAnim({ marqueeSpeed: v })} /></Field>
                     <Toggle checked={a.hideWhenIdle} onChange={v => setAnim({ hideWhenIdle: v })} label={t('musicOverlay.animations.hideWhenIdle')} hint={t('musicOverlay.animations.hideWhenIdleHint')} />
-                    <Toggle checked={a.freezeWhenPaused} onChange={v => setAnim({ freezeWhenPaused: v })} label={t('musicOverlay.animations.freezeWhenPaused')} />
+                    <Toggle checked={a.freezeWhenPaused} onChange={v => setAnim({ freezeWhenPaused: v })} label={t('musicOverlay.animations.freezeWhenPaused')} hint={props.extras?.freezeHint} />
                 </div>
                 <p className="text-xs 3xl:text-sm text-ds-soft mt-4">{t('musicOverlay.animations.previewHint')}</p>
             </Card>
@@ -410,7 +424,7 @@ export function EditorTab(props: DesignProps & { labels: OverlayLabels; sample: 
                     })}
                 </div>
             </Card>
-            <MusicCanvasEditor layout={layout} onChange={set} elementIds={props.elementIds} labels={props.labels} sample={props.sample} />
+            <MusicCanvasEditor layout={layout} onChange={set} elementIds={props.elementIds} labels={props.labels} sample={props.sample} toggle={props.extras?.toggle} />
         </div>
     );
 }

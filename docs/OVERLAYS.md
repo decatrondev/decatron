@@ -329,6 +329,14 @@ Waits only apply when Spotify answers with an error (`SpotifyPollGuard`):
 - **429:** stops every channel for the full `Retry-After`, with no cap, because the limit belongs to the app. Without `Retry-After`, the wait starts at 30 seconds and grows up to 1 hour.
 - **Other temporary failures (5xx, network):** only stop that channel, from 15 seconds to 5 minutes.
 
+### Behavior in OBS
+
+- **Pause:** Spotify keeps reporting the song while paused, so the update carries `isPlaying: false`. With `freezeWhenPaused` on, the card stays visible and still; turned off, it counts as nothing playing. Last.fm does not report pauses.
+- **Nothing playing:** with `hideWhenIdle` off, the overlay shows the same message as the preview.
+- **Test in OBS:** `POST /api/nowplaying/test` sends a card marked `isTest`. It stays about 12 seconds, real updates wait, and then the current song comes back.
+- **Last.fm:** time is counted from when the server detects the song, and `GET /api/nowplaying/now` returns that moment so reloading the overlay does not restart it. Without a duration, only the elapsed time shows, with no bar. Without a username, Last.fm is not queried.
+- **Elements that were off:** they are stored at default coordinates, so `placement.ts` brings them into the card when turned on, and repairs saved layouts that have one left at those coordinates outside the card.
+
 ### Configuration tabs
 
 Guide, Connection, Theme, Elements, Typography, Animations and Editor.

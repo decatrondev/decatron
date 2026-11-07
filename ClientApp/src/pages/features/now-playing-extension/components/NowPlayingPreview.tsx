@@ -53,7 +53,7 @@ export default function NowPlayingPreview({ layout, labels, channel, dirty }: Pr
             try {
                 const res = await api.get(`/nowplaying/now/${channel}`);
                 const d = res.data?.data;
-                if (!stop) setLive(d?.isPlaying && d?.song ? trackFromApi(d) : null);
+                if (!stop) setLive(d?.song ? trackFromApi(d) : null);
             } catch { if (!stop) setLive(null); }
         };
         load();
@@ -62,7 +62,12 @@ export default function NowPlayingPreview({ layout, labels, channel, dirty }: Pr
     }, [source, channel]);
 
     const isLive = source === 'live';
-    const current = isLive ? live?.track ?? null : idle ? null : sample;
+    const a = layout.animations;
+    // Igual que en OBS: en pausa se queda quieto o, sin «Congelar en pausa», se trata como si no sonara nada
+    const paused = isLive ? !!live && !live.progress.playing : !idle && !playing;
+    const stoppedByPause = paused && !a.freezeWhenPaused;
+    const shown = isLive ? live?.track ?? null : idle ? null : sample;
+    const current = stoppedByPause && !a.hideWhenIdle ? null : shown;
     const progress: PlaybackProgress | null = isLive
         ? live?.progress ?? null
         : current ? { itemId: current.id, position, duration: current.durationSeconds ?? 0, playing } : null;
@@ -96,7 +101,7 @@ export default function NowPlayingPreview({ layout, labels, channel, dirty }: Pr
             <div className="rounded-xl overflow-hidden border border-[#e2e8f0] dark:border-[#374151]" style={{ background: CHECKER_BG }}>
                 <ScaledCanvas width={bb.width} height={bb.height} maxScale={1.5}>
                     <div style={{ position: 'absolute', left: -bb.x, top: -bb.y }}>
-                        <MusicOverlayRenderer layout={layout} current={current} queue={[]} progress={progress} paused={!isLive && !playing} labels={labels} />
+                        <MusicOverlayRenderer layout={layout} current={current} queue={[]} progress={progress} paused={paused} labels={labels} hidden={stoppedByPause && a.hideWhenIdle} elapsedWithoutDuration />
                     </div>
                 </ScaledCanvas>
             </div>

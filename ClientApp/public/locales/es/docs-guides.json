@@ -469,6 +469,22 @@
         ]
       },
       {
+        "id": "comportamiento",
+        "title": "Cómo se comporta",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Si prendes un elemento que estaba apagado, aparece dentro de tu tarjeta sin que tengas que buscarlo. Si no hay espacio, se acomoda: una fila nueva agranda la tarjeta y el icono o el ecualizador se ponen al final de una fila.",
+              "Pausa (solo Spotify): con «Congelar en pausa» activado, la tarjeta se queda visible con la barra y el ecualizador quietos. Apagado, se trata como si no sonara nada.",
+              "Sin canción: con «Ocultar cuando no suena nada» apagado, el overlay de OBS muestra «No está sonando nada», igual que la vista previa.",
+              "«Probar en OBS» muestra una canción de prueba unos 12 segundos y después vuelve lo que esté sonando.",
+              "Last.fm no informa la posición ni las pausas: el tiempo se cuenta desde que Decatron detecta la canción. Si una canción no trae duración, se ve solo el tiempo transcurrido, sin barra."
+            ]
+          }
+        ]
+      },
+      {
         "id": "tips",
         "title": "Consejos",
         "blocks": [

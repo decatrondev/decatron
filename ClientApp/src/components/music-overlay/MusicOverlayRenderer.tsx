@@ -31,6 +31,8 @@ interface Props {
     alwaysVisible?: boolean;
     /** Ocultar (con la animación de salida) sin sacar la canción: se sigue viendo mientras sale. */
     hidden?: boolean;
+    /** Si la fuente puede no dar la duración (Last.fm): se muestra lo transcurrido y la barra se oculta. */
+    elapsedWithoutDuration?: boolean;
 }
 
 const SHADOWS: Record<TextStyle['shadow'], string> = {
@@ -61,12 +63,14 @@ export const box = (e: ElementConfig): CSSProperties => ({
 
 /** Posición que avanza sola entre avisos del reproductor (llegan ~1 por segundo). */
 function useLivePosition(progress: PlaybackProgress | null, running: boolean) {
-    const [now, setNow] = useState(() => performance.now());
+    const [, setNow] = useState(0);
     const base = useRef({ at: performance.now(), position: progress?.position ?? 0 });
-
-    useEffect(() => {
+    const seen = useRef(progress);
+    // Al dibujar y no después: al pausar no hay otro cuadro y quedaría la posición anterior
+    if (seen.current !== progress) {
+        seen.current = progress;
         base.current = { at: performance.now(), position: progress?.position ?? 0 };
-    }, [progress]);
+    }
 
     useEffect(() => {
         if (!running) return;
@@ -77,43 +81,46 @@ function useLivePosition(progress: PlaybackProgress | null, running: boolean) {
     }, [running]);
 
     if (!progress) return 0;
-    const elapsed = running ? (now - base.current.at) / 1000 : 0;
+    const elapsed = running ? (performance.now() - base.current.at) / 1000 : 0;
     return Math.min(progress.duration || Infinity, base.current.position + elapsed);
 }
 
 function MarqueeText({ text, style, enabled, speed, loop, gap = 40 }: { text: string; style: CSSProperties; enabled: boolean; speed: number; loop?: boolean; gap?: number }) {
     const outer = useRef<HTMLDivElement>(null);
-    const inner = useRef<HTMLSpanElement>(null);
-    const [overflow, setOverflow] = useState(0);
+    // Siempre se mide una sola copia del texto: en bucle van dos seguidas y parecería que nunca entra
+    const single = useRef<HTMLSpanElement>(null);
+    const [size, setSize] = useState({ overflow: 0, width: 0 });
 
     useLayoutEffect(() => {
-        if (!enabled || !outer.current || !inner.current) { setOverflow(0); return; }
-        const diff = inner.current.scrollWidth - outer.current.clientWidth;
-        setOverflow(diff > 2 ? diff : 0);
-    }, [text, enabled, style.fontSize, style.fontFamily, style.fontWeight]);
+        const box = outer.current, one = single.current;
+        if (!enabled || !box || !one) { setSize({ overflow: 0, width: 0 }); return; }
+        const measure = () => {
+            const diff = one.offsetWidth - box.clientWidth;
+            setSize({ overflow: diff > 2 ? diff : 0, width: one.offsetWidth });
+        };
+        measure();
+        // La fuente llega después de dibujar y el Editor cambia el ancho de la caja
+        let alive = true;
+        document.fonts?.ready.then(() => { if (alive) measure(); });
+        const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+        resize?.observe(box);
+        return () => { alive = false; resize?.disconnect(); };
+    }, [text, enabled, style.fontSize, style.fontFamily, style.fontWeight, style.letterSpacing, style.textTransform]);
 
+    const { overflow, width } = size;
+    const looping = !!loop && overflow > 0;
     const seconds = Math.max(4, (overflow + 80) / Math.max(10, speed)) * 2;
-    if (loop && overflow > 0) {
-        // Bucle continuo: el texto dos veces seguidas y se corre la mitad, sin salto
-        // Recorre medio ancho (un texto + el espacio) a `speed` px/s
-        const width = (inner.current?.scrollWidth ?? 0) + gap;
-        return (
-            <div ref={outer} style={{ ...style, overflow: 'hidden', whiteSpace: 'nowrap', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
-                <span ref={inner} style={{ display: 'inline-block', animation: `moMarqueeLoop ${Math.max(4, width / 2 / Math.max(10, speed))}s linear infinite` }}>
-                    {text}<span style={{ paddingLeft: gap }}>{text}</span>
-                </span>
-            </div>
-        );
-    }
+    // Bucle continuo: el texto dos veces seguidas y se corre la mitad, sin salto; recorre un texto + el espacio a `speed` px/s
+    const animated: CSSProperties = looping
+        ? { display: 'inline-block', animation: `moMarqueeLoop ${Math.max(4, (width + gap) / Math.max(10, speed))}s linear infinite` }
+        : overflow > 0
+            ? { display: 'inline-block', animation: `srMarquee ${seconds}s ease-in-out infinite`, ['--sr-shift' as any]: `-${overflow}px` }
+            : { display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' };
     return (
-        <div ref={outer} style={{ ...style, overflow: 'hidden', whiteSpace: 'nowrap', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: style.textAlign === 'center' ? 'center' : style.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
-            <span
-                ref={inner}
-                style={overflow > 0
-                    ? { display: 'inline-block', animation: `srMarquee ${seconds}s ease-in-out infinite`, ['--sr-shift' as any]: `-${overflow}px` }
-                    : { display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}
-            >
-                {text}
+        <div ref={outer} style={{ ...style, overflow: 'hidden', whiteSpace: 'nowrap', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: looping || style.textAlign === 'left' ? 'flex-start' : style.textAlign === 'center' ? 'center' : style.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
+            <span style={animated}>
+                <span ref={single} style={enabled ? { display: 'inline-block' } : undefined}>{text}</span>
+                {looping && <span style={{ paddingLeft: gap }}>{text}</span>}
             </span>
         </div>
     );
@@ -154,7 +161,7 @@ function useShowHide(visible: boolean, enter: ShowHideAnimation, exit: ShowHideA
 /** Con el video apagado el reproductor igual tiene que existir para sonar: invisible, pero con tamaño. */
 const HIDDEN_PLAYER: CSSProperties = { position: 'absolute', left: 0, top: 0, width: 200, height: 200, opacity: 0, pointerEvents: 'none' };
 
-export default function MusicOverlayRenderer({ layout, current, queue, progress, paused, labels, videoSlot, alwaysVisible, hidden }: Props) {
+export default function MusicOverlayRenderer({ layout, current, queue, progress, paused, labels, videoSlot, alwaysVisible, hidden, elapsedWithoutDuration }: Props) {
     const { elements: els, theme, animations } = layout;
     const visible = alwaysVisible || (!hidden && (!!current || !animations.hideWhenIdle));
     const running = !!current && !paused && (progress?.playing ?? false);
@@ -169,11 +176,11 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
     const timeText = useMemo(() => {
         const fmt = els.time.options.format;
         if (!current) return '';
-        if (fmt === 'remaining') return duration ? `-${formatDuration(Math.max(0, duration - position))}` : '';
+        if (fmt === 'remaining') return duration ? `-${formatDuration(Math.max(0, duration - position))}` : elapsedWithoutDuration ? formatDuration(position) || '0:00' : '';
         if (fmt === 'elapsed') return formatDuration(position) || '0:00';
         if (fmt === 'split' || fmt === 'spaced') return '';
         return duration ? `${formatDuration(position) || '0:00'} / ${formatDuration(duration)}` : formatDuration(position) || '0:00';
-    }, [els.time.options.format, current, duration, position]);
+    }, [els.time.options.format, current, duration, position, elapsedWithoutDuration]);
 
     const textEl = (id: 'title' | 'artist' | 'album' | 'requester' | 'time' | 'next', value: string) => {
         const e = els[id];
@@ -249,13 +256,13 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
                     {current && current.album && textEl('album', current.album)}
                     {current && (current.isFallback || current.requestedBy) && textEl('requester', current.isFallback ? labels.fallback : requesterLabel.replace('{{user}}', current.requestedBy ?? ''))}
                     {current && !['split', 'spaced'].includes(els.time.options.format) && textEl('time', timeText)}
-                    {current && els.time.enabled && ['split', 'spaced'].includes(els.time.options.format) && duration > 0 && (
+                    {current && els.time.enabled && ['split', 'spaced'].includes(els.time.options.format) && (duration > 0 || elapsedWithoutDuration) && (
                         // Como el Now Playing viejo: split = transcurrido a la izquierda y total a la derecha;
                         // spaced = "1:23 / 3:33" con 8 px entre las partes
                         <div key="time" style={{ ...box(els.time), ...textCss(els.time.text), display: 'flex', alignItems: 'center', justifyContent: els.time.options.format === 'split' ? 'space-between' : 'flex-start', gap: els.time.options.format === 'spaced' ? 8 : undefined, whiteSpace: 'nowrap' }}>
                             <span>{formatDuration(position) || '0:00'}</span>
-                            {els.time.options.format === 'spaced' && <span>/</span>}
-                            <span>{formatDuration(duration)}</span>
+                            {duration > 0 && els.time.options.format === 'spaced' && <span>/</span>}
+                            {duration > 0 && <span>{formatDuration(duration)}</span>}
                         </div>
                     )}
                     {next && textEl('next', `${nextLabel} ${next.title}`)}
@@ -271,7 +278,7 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
                         );
                     })()}
 
-                    {els.progress.enabled && current && (
+                    {els.progress.enabled && current && (duration > 0 || !elapsedWithoutDuration) && (
                         <div style={{ ...box(els.progress), background: els.progress.options.track, borderRadius: els.progress.options.radius ?? 4, overflow: 'hidden' }}>
                             <div style={{ width: `${fraction * 100}%`, height: '100%', background: els.progress.options.fill || theme.accent, borderRadius: els.progress.options.radius ?? 4 }} />
                         </div>

@@ -1,5 +1,6 @@
 import type { ElementConfig, ElementId, OverlayLayout, ShowHideAnimation, TextShadow } from '../../../components/music-overlay/types';
 import { cardLayout, normalizeLayout, text } from '../../../components/music-overlay/defaults';
+import { repairStrayElements } from './placement';
 
 // Now Playing (.dev/plans/NOW_PLAYING_REDESIGN_PLAN.md, fase 1): convierte el config_json viejo
 // (modo tarjeta con auto-layout o modo libre) al formato del motor compartido, con cada elemento
@@ -49,7 +50,7 @@ export function isLegacyConfig(raw: any): boolean {
 
 /** El config_json guardado, en cualquier formato, listo para el motor. */
 export function normalizeNowPlayingLayout(raw: any): OverlayLayout {
-    if (!isLegacyConfig(raw)) return onlyNowPlaying(normalizeLayout(raw));
+    if (!isLegacyConfig(raw)) return repairStrayElements(onlyNowPlaying(normalizeLayout(raw)));
     return convertLegacyNowPlaying(raw ?? {});
 }
 

@@ -202,6 +202,7 @@ export function ConnectionTab({ cfg }: TabProps) {
                                 </button>
                             )}
                         </div>
+                        <p className="text-xs 3xl:text-sm text-ds-soft">{t('nowPlaying.connection.lastfmNote')}</p>
                     </div>
                 </Card>
             ) : (

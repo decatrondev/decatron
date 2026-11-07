@@ -1238,7 +1238,7 @@
       "panel": "The card behind everything. Its color and shape are edited in Theme.",
       "video": "The YouTube video on screen instead of just the cover.",
       "cover": "The song thumbnail.",
-      "equalizer": "Bars that move with the music.",
+      "equalizer": "Animated bars while the song plays.",
       "title": "The song name.",
       "artist": "The artist or the channel that uploaded it.",
       "album": "The song's album (Spotify and Last.fm report it).",
@@ -1315,7 +1315,8 @@
         "slide-up": "Slide up",
         "slide-left": "From the right",
         "zoom": "Zoom",
-        "flip": "Flip"
+        "flip": "Flip",
+        "crossfade": "Crossfade"
       },
       "duration": "Duration",
       "marqueeSpeed": "Scroll speed",
@@ -1482,7 +1483,8 @@
       "pollingFixed": "The song is checked every 3 seconds.",
       "cupoJoinQueue": "Join the waiting list",
       "cupoPosition": "Position {{position}} of {{total}} on the waiting list.",
-      "cupoMeanwhile": "Meanwhile you can use Last.fm, which has no limit."
+      "cupoMeanwhile": "Meanwhile you can use Last.fm, which has no limit.",
+      "lastfmNote": "Last.fm does not report the position or pauses: time is counted from when Decatron detects the song. If a song has no duration, only the elapsed time shows, with no bar."
     },
     "preview": {
       "title": "Preview",
@@ -1498,11 +1500,25 @@
       "testing": "Sending...",
       "testSent": "Test song sent to the overlay.",
       "testFailed": "Couldn't send the test.",
-      "testHint": "Sends a test song to your OBS overlay, using what you have saved.",
+      "testHint": "Shows a test song on your OBS overlay for a few seconds, using what you have saved. Then whatever is playing comes back.",
       "testUnsaved": "You have unsaved changes: the OBS test uses what you last saved.",
       "size": "{{width}}×{{height}} px canvas: use that size in the OBS source.",
       "fit": "Fit to widget",
       "full": "Full screen"
+    },
+    "elementHints": {
+      "artist": "The artist of the song.",
+      "source": "Where the song comes from: Spotify or Last.fm."
+    },
+    "timeFormats": {
+      "split": "1:23 on the left and 3:33 on the right",
+      "spaced": "1:23 / 3:33, with more space"
+    },
+    "freezeHint": "With Spotify, pausing keeps the card visible with the bar and equalizer still. Turned off, a pause counts as nothing playing. Last.fm does not report pauses.",
+    "testTrack": {
+      "title": "Test song",
+      "artist": "Test artist",
+      "album": "Test album"
     }
   },
   "shoutout": {

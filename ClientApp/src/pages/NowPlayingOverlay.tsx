@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import * as signalR from '@microsoft/signalr';
 import MusicOverlayRenderer, { type OverlayLabels } from '../components/music-overlay/MusicOverlayRenderer';
 import { useLayoutFonts } from '../components/music-overlay/utils';
@@ -10,11 +11,16 @@ import { trackFromApi, type NowPlayingTrackData } from './features/now-playing-e
 // Overlay de Now Playing para OBS (/overlay/now-playing?channel=X). Dibuja con el motor compartido
 // (el mismo de la vista previa y el editor). Las configs viejas se convierten al leer y se ven igual.
 
-const LABELS: OverlayLabels = { requestedBy: '', next: '', fallback: '', idle: '' };
 /** Sin avisos del servidor en este tiempo, se oculta (como antes). */
 const STALE_MS = 30000;
+/** Cuánto se ve la tarjeta de «Probar en OBS» antes de volver a lo que suena. */
+const TEST_MS = 12000;
 
 export default function NowPlayingOverlay() {
+    const { t: panelT, i18n } = useTranslation('overlays');
+    // OBS no tiene sesión ni idioma guardado: se usa el que eligió el streamer
+    const [language, setLanguage] = useState<string | null>(null);
+    const t = useMemo(() => (language ? i18n.getFixedT(language, 'overlays') : panelT), [language, i18n, panelT]);
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
 
@@ -24,15 +30,22 @@ export default function NowPlayingOverlay() {
     const [progress, setProgress] = useState<PlaybackProgress | null>(null);
     const [hidden, setHidden] = useState(true);
     const [fading, setFading] = useState(false);
+    const [paused, setPaused] = useState(false);
     const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight });
     useLayoutFonts([layout]);
+    const labels: OverlayLabels = useMemo(() => ({ requestedBy: '', next: '', fallback: '', idle: t('nowPlaying.idle') }), [t]);
 
+    const tRef = useRef(t);
+    tRef.current = t;
     const layoutRef = useRef(layout);
     layoutRef.current = layout;
     const currentRef = useRef<MusicTrack | null>(null);
     const hiddenRef = useRef(true);
     const lastUpdateRef = useRef(0);
     const swapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const testTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    /** Lo que suena de verdad: mientras dura una prueba se guarda acá y se vuelve a esto al terminar. */
+    const realRef = useRef<NowPlayingTrackData | null>(null);
 
     useEffect(() => {
         const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
@@ -48,22 +61,27 @@ export default function NowPlayingOverlay() {
             const data = (await res.json())?.config;
             if (!data) return;
             setEnabled(data.isEnabled ?? true);
+            if (data.language) {
+                await i18n.reloadResources([data.language], ['overlays']);
+                setLanguage(data.language);
+            }
             setLayout(normalizeNowPlayingLayout(data.config ?? {}));
         } catch (err) {
             console.error('[NowPlayingOverlay] Error cargando la config:', err);
         }
-    }, [channel]);
+    }, [channel, i18n]);
 
     const stop = useCallback(() => {
         hiddenRef.current = true;
         setHidden(true);
+        setPaused(false);
         // Siempre visible: queda el mensaje de "nada sonando" en vez de la última canción
         if (!layoutRef.current.animations.hideWhenIdle) { currentRef.current = null; setCurrent(null); }
     }, []);
 
-    const handleUpdate = useCallback((data: NowPlayingTrackData) => {
-        lastUpdateRef.current = Date.now();
-        if (!data?.isPlaying || !data.song) { stop(); return; }
+    const showTrack = useCallback((data: NowPlayingTrackData) => {
+        // En pausa: quieta si está activo «Congelar en pausa»; si no, como si no sonara nada
+        if (!data.isPlaying && !layoutRef.current.animations.freezeWhenPaused) { stop(); return; }
         const { track, progress: p } = trackFromApi(data);
         const prev = currentRef.current;
         const isNew = !prev || prev.id !== track.id;
@@ -71,6 +89,7 @@ export default function NowPlayingOverlay() {
             currentRef.current = track;
             setCurrent(track);
             setProgress(p);
+            setPaused(!data.isPlaying);
             hiddenRef.current = false;
             setHidden(false);
         };
@@ -85,25 +104,49 @@ export default function NowPlayingOverlay() {
         show();
     }, [stop]);
 
+    const handleStopped = useCallback(() => {
+        realRef.current = null;
+        if (!testTimer.current) stop();
+    }, [stop]);
+
+    const handleUpdate = useCallback((data: NowPlayingTrackData) => {
+        if (data?.isTest) {
+            // La prueba se ve sus segundos, aunque suene algo, y después vuelve lo que corresponde
+            if (testTimer.current) clearTimeout(testTimer.current);
+            testTimer.current = setTimeout(() => {
+                testTimer.current = null;
+                if (realRef.current) showTrack(realRef.current); else stop();
+            }, TEST_MS);
+            const tr = tRef.current;
+            showTrack({ ...data, song: tr('nowPlaying.testTrack.title'), artist: tr('nowPlaying.testTrack.artist'), album: tr('nowPlaying.testTrack.album') });
+            return;
+        }
+        lastUpdateRef.current = Date.now();
+        if (!data?.song) { handleStopped(); return; }
+        realRef.current = data;
+        if (!testTimer.current) showTrack(data);
+    }, [handleStopped, showTrack, stop]);
+
     const fetchCurrent = useCallback(async () => {
         if (!channel) return;
         try {
             const res = await fetch(`/api/nowplaying/now/${channel}`);
             if (!res.ok) return;
             const data = (await res.json())?.data;
-            if (data?.isPlaying && data.song) handleUpdate(data);
+            // Al reconectar, si ya no suena nada no puede quedar la canción de antes
+            if (data?.song) handleUpdate(data); else if (realRef.current) handleStopped();
         } catch (err) {
             console.error('[NowPlayingOverlay] Error cargando la canción:', err);
         }
-    }, [channel, handleUpdate]);
+    }, [channel, handleStopped, handleUpdate]);
 
     // Sin avisos en 30 s: se oculta. Solo con Spotify, que avisa en cada consulta; Last.fm avisa solo
     // cuando cambia la canción (antes el overlay se ocultaba a los 30 s de cada canción con Last.fm)
     useEffect(() => {
         if (hidden || current?.source !== 'spotify') return;
-        const id = setInterval(() => { if (Date.now() - lastUpdateRef.current > STALE_MS) stop(); }, 5000);
+        const id = setInterval(() => { if (Date.now() - lastUpdateRef.current > STALE_MS) handleStopped(); }, 5000);
         return () => clearInterval(id);
-    }, [hidden, current, stop]);
+    }, [hidden, current, handleStopped]);
 
     useEffect(() => {
         if (!channel) return;
@@ -122,7 +165,7 @@ export default function NowPlayingOverlay() {
                 .configureLogging(signalR.LogLevel.None)
                 .build();
             connection.on('NowPlayingUpdate', handleUpdate);
-            connection.on('NowPlayingStopped', stop);
+            connection.on('NowPlayingStopped', handleStopped);
             connection.on('NowPlayingConfigChanged', fetchConfig);
             // Mensajes de otros overlays del mismo canal
             for (const ev of ['TimerTick', 'TimerStateUpdate', 'TimerEventAlert', 'ShowEventAlert']) connection.on(ev, () => {});
@@ -146,9 +189,10 @@ export default function NowPlayingOverlay() {
             stopped = true;
             if (retry) clearTimeout(retry);
             if (swapTimer.current) clearTimeout(swapTimer.current);
+            if (testTimer.current) { clearTimeout(testTimer.current); testTimer.current = null; }
             connection?.stop();
         };
-    }, [channel, fetchConfig, fetchCurrent, handleUpdate, stop]);
+    }, [channel, fetchConfig, fetchCurrent, handleUpdate, handleStopped]);
 
     // La fuente de OBS de otro tamaño que el lienzo: como antes, el widget se ubica en proporción a la
     // fuente pero conserva su tamaño en píxeles (se corre todo lo que se corre su esquina, sin escalar).
@@ -170,7 +214,7 @@ export default function NowPlayingOverlay() {
                 position: 'absolute', left: 0, top: 0, transform: `translate(${shift.x}px, ${shift.y}px)`,
                 opacity: fading ? 0 : 1, transition: fading ? `opacity ${layout.animations.durationMs}ms ease` : 'none',
             }}>
-                <MusicOverlayRenderer layout={layout} current={current} queue={[]} progress={progress} paused={false} labels={LABELS} hidden={hidden && layout.animations.hideWhenIdle} />
+                <MusicOverlayRenderer layout={layout} current={current} queue={[]} progress={progress} paused={paused} labels={labels} hidden={hidden && layout.animations.hideWhenIdle} elapsedWithoutDuration />
             </div>
         </div>
     );

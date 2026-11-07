@@ -329,6 +329,14 @@ Las esperas solo aplican cuando Spotify responde con un error (`SpotifyPollGuard
 - **429:** detiene todos los canales durante el `Retry-After` completo, sin tope, porque el límite es de la app. Sin `Retry-After`, la espera empieza en 30 segundos y crece hasta 1 hora.
 - **Otros fallos temporales (5xx, red):** solo detienen a ese canal, de 15 segundos a 5 minutos.
 
+### Comportamiento en OBS
+
+- **Pausa:** Spotify sigue informando la canción en pausa, así que el aviso lleva `isPlaying: false`. Con `freezeWhenPaused` activado, la tarjeta se queda visible y quieta; apagado, se trata como si no sonara nada. Last.fm no informa las pausas.
+- **Sin canción:** con `hideWhenIdle` apagado, el overlay muestra el mismo mensaje que la vista previa.
+- **Probar en OBS:** `POST /api/nowplaying/test` manda una tarjeta marcada con `isTest`. Dura unos 12 segundos, los avisos reales esperan y después vuelve la canción actual.
+- **Last.fm:** el tiempo se cuenta desde que el servidor detecta la canción, y `GET /api/nowplaying/now` devuelve ese momento para que recargar el overlay no lo reinicie. Sin duración, se ve solo el tiempo transcurrido, sin barra. Sin usuario, no se consulta Last.fm.
+- **Elementos apagados:** se guardan con coordenadas por defecto, así que `placement.ts` los trae a la tarjeta al prenderlos y repara los diseños guardados que tengan uno olvidado en esas coordenadas, fuera de la tarjeta.
+
 ### Pestañas de configuración
 
 Guía, Conexión, Tema, Elementos, Tipografía, Animaciones y Editor.
