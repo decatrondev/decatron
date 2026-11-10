@@ -1,3 +1,4 @@
+import { loginUrlFor } from '../utils/loginReturn';
 import { Navigate, useSearchParams, useLocation } from 'react-router-dom';
 
 function parseAuthProvider(token: string | null): string {
@@ -28,7 +29,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const hasExchangeCode = searchParams.has('code');
 
   if (!token && !hasExchangeCode) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={loginUrlFor(location.pathname + location.search + location.hash)} replace />;
   }
 
   // Discord-only users: redirect to /me if accessing streamer routes

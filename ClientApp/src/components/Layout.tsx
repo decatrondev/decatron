@@ -1,9 +1,10 @@
-﻿import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins, Tv2 } from 'lucide-react';
+import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins, Tv2 } from 'lucide-react';
 import decatronLockup from '../assets/decatron-lockup.png';
 import { BrandMark } from '../brand/BrandMark';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { currentLoginReturn } from '../utils/loginReturn';
 import ThemeToggle from './ThemeToggle';
 import ChannelSwitcher from './ChannelSwitcher';
 import { usePermissions } from '../hooks/usePermissions';
@@ -211,7 +212,7 @@ export default function Layout() {
                                 </p>
                             </div>
                             <button
-                                onClick={() => window.location.href = '/api/auth/login'}
+                                onClick={() => window.location.href = `/api/auth/login?redirect=${encodeURIComponent(currentLoginReturn())}`}
                                 className="ds-btn ds-btn--primary"
                             >
                                 {t('layout:tokenExpiration.renewButton')}

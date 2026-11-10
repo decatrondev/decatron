@@ -1,8 +1,9 @@
 import { Shield, Loader2, Languages, Layers, Music, Users, Terminal } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
+import { localLoginReturn } from '../utils/loginReturn';
 import { notifyTokenChanged } from '../utils/tokenEvents';
 import decatronMascot from '../assets/decatron-mascot.png';
 
@@ -19,14 +20,16 @@ export default function Login() {
     const navigate = useNavigate();
     const error = searchParams.get('error');
     const exchangeCode = searchParams.get('code');
-    const redirect = searchParams.get('redirect');
+    const redirect = localLoginReturn(searchParams.get('redirect'));
+    const exchangeStarted = useRef<string | null>(null);
     const provider = searchParams.get('provider');
     const [exchangeError, setExchangeError] = useState<string | null>(null);
     const [loggingIn, setLoggingIn] = useState(false);
     const [exchanging, setExchanging] = useState(false);
 
     useEffect(() => {
-        if (exchangeCode) {
+        if (exchangeCode && exchangeStarted.current !== exchangeCode) {
+            exchangeStarted.current = exchangeCode;
             setExchanging(true);
             const exchangeUrl = provider === 'discord' ? '/auth/discord/exchange' : '/auth/exchange';
             api.post(exchangeUrl, { code: exchangeCode })
@@ -34,11 +37,7 @@ export default function Login() {
                     localStorage.setItem('token', response.data.token);
                     notifyTokenChanged(response.data.token);
 
-                    if (redirect) {
-                        navigate('/' + redirect);
-                    } else {
-                        navigate('/dashboard');
-                    }
+                    navigate(redirect ?? '/dashboard', { replace: true });
                 })
                 .catch(() => {
                     setExchangeError(t('authFailed'));
@@ -59,12 +58,12 @@ export default function Login() {
 
     const handleDiscordLogin = () => {
         setLoggingIn(true);
-        window.location.href = '/api/auth/discord/login';
+        window.location.href = `/api/auth/discord/login${redirect ? '?redirect=' + encodeURIComponent(redirect) : ''}`;
     };
 
     const handleKickLogin = () => {
         setLoggingIn(true);
-        window.location.href = '/api/auth/kick/login';
+        window.location.href = `/api/auth/kick/login${redirect ? '?redirect=' + encodeURIComponent(redirect) : ''}`;
     };
 
     const features = [

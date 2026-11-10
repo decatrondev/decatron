@@ -1,4 +1,5 @@
-﻿using Decatron.Core.Interfaces;
+using Decatron.Core.Helpers;
+using Decatron.Core.Interfaces;
 using Decatron.Core.Models;
 using Decatron.Core.Settings;
 using Decatron.Data;
@@ -98,7 +99,9 @@ namespace Decatron.Controllers
                         return Redirect($"{Front}/login?error={Uri.EscapeDataString("Invalid or expired link")}");
                 }
                 // mod=1: además de los permisos de siempre, los de moderar el chat (Multi-view).
-                var loginUrl = _authService.GetLoginUrl(redirect, withModeration: mod is "1" or "true", tenantId: tenantId, bot: isBot);
+                var loginReturn = !isBot && (tenantId ?? 1) == 1
+                    ? LoginReturn.Create($"https://{Request.Host.Value}", redirect) : null;
+                var loginUrl = _authService.GetLoginUrl(loginReturn?.Encode() ?? redirect, withModeration: mod is "1" or "true", tenantId: tenantId, bot: isBot);
                 _logger.LogInformation("Redirecting to Twitch login (redirect: {Redirect})", redirect ?? "none");
                 return Redirect(loginUrl);
             }
@@ -184,6 +187,13 @@ namespace Decatron.Controllers
             [FromQuery] string? error = null,
             [FromQuery] string? state = null)
         {
+            LoginReturn? loginReturn = null;
+            if (!string.IsNullOrEmpty(state))
+            {
+                var (validReturn, signedReturn, signedTenant) = AuthService.ValidateOAuthStateWithTenant(state, _jwtSettings.SecretKey);
+                if (validReturn && (signedTenant ?? 1) == 1) loginReturn = LoginReturn.Decode(signedReturn);
+            }
+            var returnQuery = loginReturn?.Query ?? "";
             try
             {
                 _logger.LogInformation("Auth callback received - Error: {Error}", error);
@@ -201,13 +211,13 @@ namespace Decatron.Controllers
                 if (!string.IsNullOrEmpty(error))
                 {
                     _logger.LogWarning($"Authentication error: {error}");
-                    return Redirect($"{Front}/login?error={Uri.EscapeDataString(error)}");
+                    return Redirect($"{loginReturn?.Origin ?? Front}/login?error={Uri.EscapeDataString(error)}{returnQuery}");
                 }
 
                 if (string.IsNullOrEmpty(code))
                 {
                     _logger.LogWarning("Authorization code not received");
-                    return Redirect($"{Front}/login?error=Authorization+code+not+received");
+                    return Redirect($"{loginReturn?.Origin ?? Front}/login?error=Authorization+code+not+received{returnQuery}");
                 }
 
                 // Exchange code for token
@@ -393,13 +403,13 @@ namespace Decatron.Controllers
                     && await _membership.BelongsElsewhereAsync(twitchUser.Id, TenantAmbient.Current ?? 1))
                 {
                     _logger.LogWarning("Login rechazado: {Login} pertenece a otro tenant (entro por el {Tenant})", twitchUser.Login, TenantAmbient.Current ?? 1);
-                    return Redirect($"{Front}/login?error={Uri.EscapeDataString("account_other_tenant")}");
+                    return Redirect($"{loginReturn?.Origin ?? Front}/login?error={Uri.EscapeDataString("account_other_tenant")}{returnQuery}");
                 }
                 var channelQuota = await _membership.ChannelQuotaAsync(twitchUser.Id, TenantAmbient.Current ?? 1);
                 if (!channelQuota.IsAllowed)
                 {
                     _logger.LogWarning("Login rechazado: {Login} no cabe en el plan del tenant {Tenant} ({Used}/{Limit} canales, {Reason})", twitchUser.Login, TenantAmbient.Current ?? 1, channelQuota.Used, channelQuota.Limit, channelQuota.Reason);
-                    return Redirect($"{Front}/login?error={Uri.EscapeDataString("channel_quota_reached")}");
+                    return Redirect($"{loginReturn?.Origin ?? Front}/login?error={Uri.EscapeDataString("channel_quota_reached")}{returnQuery}");
                 }
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 _logger.LogInformation("Authenticating user: {Login}", twitchUser.Login);
@@ -551,11 +561,11 @@ namespace Decatron.Controllers
                     if (!isValid)
                     {
                         _logger.LogWarning("Invalid or expired OAuth state parameter");
-                        return Redirect($"{Front}/login?error={Uri.EscapeDataString("Invalid or expired login session. Please try again.")}");
+                        return Redirect($"{loginReturn?.Origin ?? Front}/login?error={Uri.EscapeDataString("Invalid or expired login session. Please try again.")}{returnQuery}");
                     }
                     if (!string.IsNullOrEmpty(redirect) && !redirect.StartsWith("link-twitch:"))
                     {
-                        redirectPath = $"/{redirect}";
+                        redirectPath = loginReturn?.Path ?? LoginReturn.LocalPath(redirect) ?? "/dashboard";
                         _logger.LogInformation("Custom redirect detected: {RedirectPath}", redirectPath);
                     }
                 }
@@ -567,15 +577,15 @@ namespace Decatron.Controllers
                 _memoryCache.Set($"auth_exchange:{exchangeCode}", jwt, TimeSpan.FromSeconds(60));
 
                 // Always redirect to /login for code exchange, with redirect param to navigate after
-                var redirectParam = redirectPath != "/dashboard" ? $"&redirect={Uri.EscapeDataString(redirectPath.TrimStart('/'))}" : "";
+                var redirectParam = redirectPath != "/dashboard" ? $"&redirect={Uri.EscapeDataString(redirectPath)}" : "";
                 _logger.LogInformation("Redirecting to login with exchange code, then to {RedirectPath}", redirectPath);
-                return Redirect($"{Front}/login?code={exchangeCode}{redirectParam}");
+                return Redirect($"{loginReturn?.Origin ?? Front}/login?code={exchangeCode}{redirectParam}");
             }
             catch (Exception ex)
             {
                 var fullError = ex.InnerException?.Message ?? ex.Message;
                 _logger.LogError(ex, "Error during authentication callback: {Error}", fullError);
-                return Redirect($"{Front}/login?error={Uri.EscapeDataString(fullError)}");
+                return Redirect($"{loginReturn?.Origin ?? Front}/login?error={Uri.EscapeDataString(fullError)}{returnQuery}");
             }
         }
 

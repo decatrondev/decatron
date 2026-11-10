@@ -51,10 +51,13 @@ public class DiscordAuthController : ControllerBase
     /// GET /api/auth/discord/login — Redirects to Discord OAuth (for new login)
     /// </summary>
     [HttpGet("login")]
-    public IActionResult Login()
+    public IActionResult Login([FromQuery] string? redirect = null)
     {
         var state = Guid.NewGuid().ToString("N");
         _memoryCache.Set($"discord_auth_state:{state}", "login", TimeSpan.FromMinutes(10));
+        var loginReturn = Decatron.Core.Helpers.LoginReturn.Create($"https://{Request.Host.Value}", redirect);
+        if (loginReturn is not null)
+            _memoryCache.Set($"discord_auth_return:{state}", loginReturn, TimeSpan.FromMinutes(10));
 
         var url = $"https://discord.com/api/oauth2/authorize" +
                   $"?client_id={_discordSettings.AppId}" +
@@ -133,19 +136,21 @@ public class DiscordAuthController : ControllerBase
         [FromQuery] string? error = null,
         [FromQuery] string? state = null)
     {
-        var frontendUrl = _discordSettings.FrontendUrl;
+        _memoryCache.TryGetValue($"discord_auth_return:{state}", out Decatron.Core.Helpers.LoginReturn? loginReturn);
+        var frontendUrl = loginReturn?.Origin ?? _discordSettings.FrontendUrl;
+        var returnQuery = loginReturn?.Query ?? "";
 
         try
         {
             if (!string.IsNullOrEmpty(error))
             {
                 _logger.LogWarning("Discord auth error: {Error}", error);
-                return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString(error)}");
+                return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString(error)}{returnQuery}");
             }
 
             if (string.IsNullOrEmpty(code))
             {
-                return Redirect($"{frontendUrl}/login?error=Authorization+code+not+received");
+                return Redirect($"{frontendUrl}/login?error=Authorization+code+not+received{returnQuery}");
             }
 
             // Validate state and determine mode (login vs link)
@@ -153,9 +158,10 @@ public class DiscordAuthController : ControllerBase
             if (string.IsNullOrEmpty(state) || !_memoryCache.TryGetValue(stateKey, out string? stateValue) || stateValue == null)
             {
                 _logger.LogWarning("Invalid or expired Discord OAuth state");
-                return Redirect($"{frontendUrl}/login?error=Invalid+or+expired+login+session");
+                return Redirect($"{frontendUrl}/login?error=Invalid+or+expired+login+session{returnQuery}");
             }
             _memoryCache.Remove(stateKey);
+            _memoryCache.Remove($"discord_auth_return:{state}");
 
             var isLinkMode = stateValue.StartsWith("link:");
             long? linkUserId = isLinkMode ? long.Parse(stateValue.Split(':')[1]) : null;
@@ -175,7 +181,7 @@ public class DiscordAuthController : ControllerBase
             {
                 var errorBody = await tokenResponse.Content.ReadAsStringAsync();
                 _logger.LogError("Discord token exchange failed: {Status} {Body}", tokenResponse.StatusCode, errorBody);
-                return Redirect($"{frontendUrl}/login?error=Discord+authentication+failed");
+                return Redirect($"{frontendUrl}/login?error=Discord+authentication+failed{returnQuery}");
             }
 
             var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
@@ -191,7 +197,7 @@ public class DiscordAuthController : ControllerBase
             if (!userResponse.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to fetch Discord user info");
-                return Redirect($"{frontendUrl}/login?error=Failed+to+fetch+Discord+user+info");
+                return Redirect($"{frontendUrl}/login?error=Failed+to+fetch+Discord+user+info{returnQuery}");
             }
 
             var userJson = await userResponse.Content.ReadAsStringAsync();
@@ -336,13 +342,13 @@ public class DiscordAuthController : ControllerBase
                 var exchangeCode = Guid.NewGuid().ToString("N");
                 _memoryCache.Set($"auth_exchange:{exchangeCode}", jwt, TimeSpan.FromSeconds(60));
 
-                return Redirect($"{frontendUrl}/login?code={exchangeCode}&provider=discord");
+                return Redirect($"{frontendUrl}/login?code={exchangeCode}&provider=discord{returnQuery}");
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during Discord authentication callback");
-            return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString("Discord authentication error")}");
+            return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString("Discord authentication error")}{returnQuery}");
         }
     }
 

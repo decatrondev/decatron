@@ -79,12 +79,12 @@ namespace Decatron.Controllers
         }
 
         [HttpGet("login")]
-        public IActionResult Login()
+        public IActionResult Login([FromQuery] string? redirect = null)
         {
             if (string.IsNullOrEmpty(_kickSettings.ClientId))
                 return BadRequest("Kick no esta configurado (falta ClientId)");
 
-            return Redirect(BuildAuthorizeUrl());
+            return Redirect(BuildAuthorizeUrl(LoginReturn.Create($"https://{Request.Host.Value}", redirect)));
         }
 
         /// <summary>
@@ -118,11 +118,13 @@ namespace Decatron.Controllers
             return Ok(new { url = BuildAuthorizeUrl() });
         }
 
-        private string BuildAuthorizeUrl()
+        private string BuildAuthorizeUrl(LoginReturn? loginReturn = null)
         {
             var codeVerifier = GenerateCodeVerifier();
             var codeChallenge = GenerateCodeChallenge(codeVerifier);
             var state = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            if (loginReturn is not null)
+                _memoryCache.Set($"kick_auth_return:{state}", loginReturn, TimeSpan.FromMinutes(5));
 
             // Domain con punto inicial: el /login (o /link-start) se pide desde
             // decatron.net (o twitch.decatron.net), pero Kick redirige el callback
@@ -158,25 +160,28 @@ namespace Decatron.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> Callback([FromQuery] string? code, [FromQuery] string? state, [FromQuery] string? error)
         {
+            _memoryCache.TryGetValue($"kick_auth_return:{state}", out LoginReturn? loginReturn);
+            var frontendUrl = loginReturn?.Origin ?? _twitchSettings.FrontendUrl;
+            var returnQuery = loginReturn?.Query ?? "";
             if (!string.IsNullOrEmpty(error))
             {
                 _logger.LogWarning("[Kick OAuth] Error de Kick: {Error}", error);
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString(error)}&provider=kick");
+                return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString(error)}&provider=kick{returnQuery}");
             }
 
             if (string.IsNullOrEmpty(code))
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error=no_code&provider=kick");
+                return Redirect($"{frontendUrl}/login?error=no_code&provider=kick{returnQuery}");
 
             if (!Request.Cookies.TryGetValue("kick_oauth_state", out var savedState) || state != savedState)
             {
                 _logger.LogWarning("[Kick OAuth] State invalido o cookie ausente");
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error=invalid_state&provider=kick");
+                return Redirect($"{frontendUrl}/login?error=invalid_state&provider=kick{returnQuery}");
             }
 
             if (!Request.Cookies.TryGetValue("kick_pkce_verifier", out var codeVerifier) || string.IsNullOrEmpty(codeVerifier))
             {
                 _logger.LogWarning("[Kick OAuth] Falta el verifier de PKCE (cookie expirada?)");
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error=session_expired&provider=kick");
+                return Redirect($"{frontendUrl}/login?error=session_expired&provider=kick{returnQuery}");
             }
 
             // Delete necesita el mismo Domain/Path con el que se creo la cookie, si
@@ -184,6 +189,7 @@ namespace Decatron.Controllers
             // — queda viva hasta que expira sola y contamina el intento siguiente.
             // Bug real encontrado el 6 ago 2026 con un Vincular Kick que quedaba
             // "pegado" en intentos de login posteriores.
+            _memoryCache.Remove($"kick_auth_return:{state}");
             var deleteCookieOptions = new CookieOptions { Domain = ".decatron.net", Path = "/" };
             Response.Cookies.Delete("kick_pkce_verifier", deleteCookieOptions);
             Response.Cookies.Delete("kick_oauth_state", deleteCookieOptions);
@@ -211,7 +217,7 @@ namespace Decatron.Controllers
                 catch (KickTokenException ex)
                 {
                     _logger.LogError(ex, "[Kick OAuth] Intercambio de token fallo");
-                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error=token_exchange_failed&provider=kick");
+                    return Redirect($"{frontendUrl}/login?error=token_exchange_failed&provider=kick{returnQuery}");
                 }
 
                 var userRequest = new HttpRequestMessage(HttpMethod.Get, KickApiUrl);
@@ -222,12 +228,12 @@ namespace Decatron.Controllers
                 if (!userResponse.IsSuccessStatusCode)
                 {
                     _logger.LogError("[Kick OAuth] No se pudo obtener el perfil: {Content}", userContent);
-                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error=user_info_failed&provider=kick");
+                    return Redirect($"{frontendUrl}/login?error=user_info_failed&provider=kick{returnQuery}");
                 }
 
                 var kickUser = JsonSerializer.Deserialize<KickUserResponse>(userContent)?.Data?.FirstOrDefault();
                 if (kickUser == null || kickUser.UserId == 0)
-                    return Redirect($"{_twitchSettings.FrontendUrl}/login?error=invalid_user_data&provider=kick");
+                    return Redirect($"{frontendUrl}/login?error=invalid_user_data&provider=kick{returnQuery}");
 
                 var kickId = kickUser.UserId.ToString();
                 var user = await _db.Users.FirstOrDefaultAsync(u => u.KickId == kickId);
@@ -359,12 +365,12 @@ namespace Decatron.Controllers
                 var exchangeCode = Guid.NewGuid().ToString("N");
                 _memoryCache.Set($"auth_exchange:{exchangeCode}", jwt, TimeSpan.FromSeconds(60));
 
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?code={exchangeCode}&provider=kick");
+                return Redirect($"{frontendUrl}/login?code={exchangeCode}&provider=kick{returnQuery}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Kick OAuth] Excepcion en el callback");
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error=server_exception&provider=kick");
+                return Redirect($"{frontendUrl}/login?error=server_exception&provider=kick{returnQuery}");
             }
         }
 

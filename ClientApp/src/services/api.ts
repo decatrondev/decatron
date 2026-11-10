@@ -1,4 +1,5 @@
-﻿import axios from 'axios';
+import axios from 'axios';
+import { currentLoginReturn, loginUrlFor } from '../utils/loginReturn';
 import { isTokenExpired, isValidJwtStructure } from '../utils/jwt';
 import { notifyTokenRemoved } from '../utils/tokenEvents';
 
@@ -17,12 +18,14 @@ const api = axios.create({
 const staysOnPage = () => window.location.pathname === '/multi' || window.location.pathname.startsWith('/multi/');
 const toLogin = () => {
     if (staysOnPage()) return;
-    if (window.location.pathname !== '/login') window.location.href = '/login';
+    if (window.location.pathname !== '/login') window.location.href = loginUrlFor(currentLoginReturn());
 };
 
 // Interceptor para agregar token JWT Y verificar expiración
 api.interceptors.request.use(
     (config) => {
+        // Exchange is anonymous: an old expired token must not block the new session.
+        if (/^\/auth\/(?:discord\/)?exchange(?:\?|$)/.test(config.url ?? '')) return config;
         const token = localStorage.getItem('token');
 
         if (token) {
@@ -70,7 +73,7 @@ api.interceptors.response.use(
 
         // 3. Solo redirigimos si el error es 401 Y NO estamos autenticando Y NO hay code en URL
         //    Y la request NO es al endpoint de exchange (que es AllowAnonymous)
-        const isExchangeRequest = error.config?.url?.includes('/auth/exchange');
+        const isExchangeRequest = /^\/auth\/(?:discord\/)?exchange(?:\?|$)/.test(error.config?.url ?? '');
         if (error.response?.status === 401 && !isAuthenticating && !codeInUrl && !isExchangeRequest) {
             // Token inválido o expirado
             localStorage.removeItem('token');
