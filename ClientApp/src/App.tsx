@@ -82,6 +82,9 @@ import SongRequestOverlay from './pages/SongRequestOverlay';
 import SongRequestConfig from './pages/features/SongRequestConfig';
 import TranslatePublic from './pages/TranslatePublic';
 import TournamentPublicPage from './pages/TournamentPublicPage';
+import TournamentCallPage from './pages/tournament-call/TournamentCallPage';
+import TournamentCallGuide from './pages/tournament-call/TournamentCallGuide';
+import TournamentCallAdmin from './pages/admin/TournamentCallAdmin';
 import MyTournamentPage from './pages/tournament-public/MyTournamentPage';
 import TournamentOverlayPage from './pages/TournamentOverlayPage';
 import TournamentEmbedRankingPage from './pages/TournamentEmbedRankingPage';
@@ -290,6 +293,8 @@ function App() {
                 <Route path="/emotes/:channelName" element={<SafeRoute name="Channel Emotes"><ChannelEmotesPublic /></SafeRoute>} />
                 <Route path="/sr/:channelName" element={<SafeRoute name="Song Request Queue"><SongRequestPublicPage /></SafeRoute>} />
                 <Route path="/sr/:channelName/p/:code" element={<SafeRoute name="Song Request Playlist"><SongRequestPlaylistPage /></SafeRoute>} />
+                <Route path="/convocatorias/fortnite-streamers" element={<SafeRoute name="Tournament Call"><TournamentCallPage /></SafeRoute>} />
+                <Route path="/docs/convocatorias" element={<SafeRoute name="Tournament Call Guide"><TournamentCallGuide /></SafeRoute>} />
                 <Route path="/torneos/:channelName/:editionSlug" element={<SafeRoute name="Tournament Public"><TournamentPublicPage /></SafeRoute>} />
                 <Route path="/torneos/:channelName/:editionSlug/mi-panel" element={<SafeRoute name="My Tournament"><MyTournamentPage /></SafeRoute>} />
                 <Route path="/overlay/torneo/:token" element={<SafeRoute name="Tournament Overlay"><TournamentOverlayPage /></SafeRoute>} />
@@ -401,6 +406,7 @@ function App() {
                     <Route path="admin/email" element={<SafeRoute name="Email"><EmailManagement /></SafeRoute>} />
                     <Route path="admin/dev-docs" element={<SafeRoute name="Dev Docs"><DevDocs /></SafeRoute>} />
                     <Route path="admin/tts-lab" element={<SafeRoute name="TTS Lab"><TtsLab /></SafeRoute>} />
+                    <Route path="admin/convocatorias" element={<SafeRoute name="Tournament Call Admin"><TournamentCallAdmin /></SafeRoute>} />
                     <Route path="admin/estilo" element={<SafeRoute name="Design Guide"><DesignGuide /></SafeRoute>} />
                     <Route path="admin/finance" element={<SafeRoute name="Finanzas"><Finance /></SafeRoute>} />
                     <Route path="admin/clip-command" element={<SafeRoute name="Clip Admin"><ClipCommandAdmin /></SafeRoute>} />

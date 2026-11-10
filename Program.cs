@@ -664,6 +664,8 @@ try
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayPromoService>();
     builder.Services.AddScoped<Decatron.Services.Promo.PromoCatalogService>(); // Overlay de Promociones: catálogo global administrado desde /admin/promo
     builder.Services.AddScoped<Decatron.Services.Brand.BrandService>(); // Logos de la marca editables desde /admin/brand
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentCallApplicationService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentCallContributionService>();
     builder.Services.AddScoped<Decatron.Services.Design.DesignService>(); // Editor de valores de diseño de /admin/estilo
     // Song Request (.dev/plans/SONG_REQUEST_PLAN.md): un servicio nuevo = registrar su ITrackResolver y/o ITrackSource
     builder.Services.AddSingleton<Decatron.Services.SongRequest.YtDlpRunner>();

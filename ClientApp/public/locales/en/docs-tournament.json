@@ -1013,7 +1013,8 @@
               "Logo and cover: tap to pick a file, drag them or paste with Ctrl+V.",
               "Two colors, “Principal” (primary) and “Secundario” (secondary), and a light or dark background.",
               "The “Vista previa” (preview) shows how it will look. If a color is barely distinguishable from the background, it warns you and lightens it automatically on bars and buttons.",
-              "Finish with “Guardar colores y fondo”."
+              "Finish with “Guardar colores y fondo”.",
+              "“Fechas y descripción” (dates and description): the tournament start and end (in your local time; the start drives the countdown on the public page) and a short description of up to 300 characters shown when the link is shared on Discord, X or WhatsApp. If left empty, one is generated from the game, the channel and the date. They have their own “Guardar” (save) button."
             ]
           }
         ]

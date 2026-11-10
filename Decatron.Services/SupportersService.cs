@@ -231,6 +231,12 @@ namespace Decatron.Services
 
     public class SupportersService : ISupportersService
     {
+        public const string MonthlyRaisedQuery = @"
+            SELECT COALESCE(SUM(amount), 0)
+            FROM supporter_payments sp
+            WHERE captured_at >= date_trunc('month', NOW())
+              AND NOT is_test
+              AND NOT EXISTS (SELECT 1 FROM tournament_call_contributions c WHERE c.payment_id = sp.id)";
         private readonly DecatronDbContext _db;
         private readonly IConfiguration _config;
         private readonly ILogger<SupportersService> _logger;
@@ -446,10 +452,7 @@ namespace Decatron.Services
                 await conn.OpenAsync();
 
                 // Sum only supporter/donation payments from supporter_payments this month
-                await using var cmd = new NpgsqlCommand(@"
-                    SELECT COALESCE(SUM(amount), 0)
-                    FROM supporter_payments
-                    WHERE captured_at >= date_trunc('month', NOW())", conn);
+                await using var cmd = new NpgsqlCommand(MonthlyRaisedQuery, conn);
 
                 var result = await cmd.ExecuteScalarAsync();
                 return result is DBNull or null ? 0m : Convert.ToDecimal(result);

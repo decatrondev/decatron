@@ -4,6 +4,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { currentLoginReturn, loginUrlFor } from '../utils/loginReturn';
+import { useLocation } from 'react-router-dom';
+import CallDonationPanel from './tournament-call/CallDonationPanel';
 import { useTranslation } from 'react-i18next';
 import { Check, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../services/api';
@@ -565,7 +568,7 @@ function TierCards() {
                                         {/* El ?redirect= lo lee Login.tsx y devuelve acá al terminar:
                                             sin eso, el comprador se pierde en el dashboard. */}
                                         <a
-                                            href="/login?redirect=supporters"
+                                            href={loginUrlFor(currentLoginReturn())}
                                             className="flex-1 py-2.5 rounded-xl bg-[#2f5fc6] text-white text-sm font-black text-center hover:bg-[#274fa5] transition-colors"
                                         >
                                             {t('previewGoToLogin')}
@@ -883,6 +886,12 @@ function TierCards() {
 // ─── Free Donation ────────────────────────────────────────────────────────────
 
 function FreeDonation() {
+    const { search } = useLocation();
+    const target = new URLSearchParams(search).get('call');
+    return target !== null ? <CallDonationPanel target={target} /> : <GeneralFreeDonation />;
+}
+
+function GeneralFreeDonation() {
     const { t } = useTranslation('supporters');
     const PRESETS = [1, 3, 5, 10, 20, 50];
     const [amount, setAmount]       = useState<string>('5');

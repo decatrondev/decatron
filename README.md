@@ -232,6 +232,7 @@ See [docs/OVERLAYS.md](docs/OVERLAYS.md) for sizes, options and the rest of the 
 | [PLATFORM.md](docs/PLATFORM.md) | Multi-tenant platform: tenants, credentials, plans, buyer account, two-step verification |
 | [OVERLAYS.md](docs/OVERLAYS.md) | Overlay setup and OBS integration |
 | [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Design tokens, component library, runtime theme editor |
+| [TOURNAMENT_CALL.md](docs/TOURNAMENT_CALL.md) | Streamer call: bilingual content, real cover images, drafts and publication, applications, direct money contributions and custody of V-Bucks, gift cards and gifts |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common problems and solutions |
 
 Spanish versions are in [docs/es/](docs/es/). The user documentation lives in the app itself, under `/docs` (public) and `/dashboard/docs` (signed in).

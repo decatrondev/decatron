@@ -100,6 +100,8 @@ export default function AppearancePanel({
                         onChanged={apply}
                     />
 
+                    <DetailsCard base={base.replace(/\/appearance$/, '/details')} editionId={edition.id} />
+
                     <section className={card}>
                         <h3 className="font-bold text-[#1e293b] dark:text-[#f8fafc] 4xl:text-lg">Colores</h3>
                         <div className="flex flex-wrap gap-2">
@@ -392,5 +394,111 @@ function Preview({ name, appearance, isFortnite }: { name: string; appearance: A
                 </div>
             </div>
         </div>
+    );
+}
+
+
+// datetime-local trabaja en hora local sin zona; el backend guarda UTC.
+const toLocalInput = (iso: string | null | undefined) => {
+    if (!iso) return '';
+    const d = new Date(iso.endsWith('Z') || /[+-]\d\d:\d\d$/.test(iso) ? iso : iso + 'Z');
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
+
+// Fecha de inicio y de fin (alimentan la cuenta regresiva de la página pública) y la descripción corta
+// que aparece al compartir el enlace del torneo.
+function DetailsCard({ base, editionId }: { base: string; editionId: number }) {
+    const [loaded, setLoaded] = useState(false);
+    const [startsAt, setStartsAt] = useState('');
+    const [endsAt, setEndsAt] = useState('');
+    const [description, setDescription] = useState('');
+    const [saved, setSaved] = useState({ startsAt: '', endsAt: '', description: '' });
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+    const apply = (d: { startsAt?: string | null; endsAt?: string | null; metaDescription?: string | null }) => {
+        const next = { startsAt: toLocalInput(d.startsAt), endsAt: toLocalInput(d.endsAt), description: d.metaDescription || '' };
+        setStartsAt(next.startsAt);
+        setEndsAt(next.endsAt);
+        setDescription(next.description);
+        setSaved(next);
+        setLoaded(true);
+    };
+
+    useEffect(() => {
+        setLoaded(false);
+        setMessage(null);
+        api.get(base).then((res) => apply(res.data.details)).catch(() => apply({}));
+    }, [editionId]);
+
+    const dirty = startsAt !== saved.startsAt || endsAt !== saved.endsAt || description !== saved.description;
+
+    const save = async () => {
+        setSaving(true);
+        setMessage(null);
+        try {
+            const res = await api.put(base, { startsAt: fromLocalInput(startsAt), endsAt: fromLocalInput(endsAt), metaDescription: description });
+            apply(res.data.details);
+            setMessage({ ok: true, text: 'Datos del torneo guardados.' });
+        } catch (err: any) {
+            setMessage({ ok: false, text: err?.response?.data?.message || 'No se pudo guardar' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <section className={card}>
+            <h3 className="font-bold text-[#1e293b] dark:text-[#f8fafc] 4xl:text-lg">Fechas y descripción</h3>
+            {!loaded ? (
+                <Loader2 className="w-5 h-5 animate-spin text-[#2563eb]" />
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className={label}>Inicio del torneo</label>
+                            <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={input} />
+                        </div>
+                        <div>
+                            <label className={label}>Fin del torneo</label>
+                            <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={input} />
+                        </div>
+                    </div>
+                    <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        La fecha de inicio activa la cuenta regresiva de la página pública. Se guarda en tu hora local.
+                    </p>
+                    <div>
+                        <label className={label}>Descripción corta (al compartir el enlace)</label>
+                        <textarea
+                            value={description}
+                            maxLength={300}
+                            rows={3}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className={input}
+                            placeholder="Si la dejas vacía se genera una con el juego, el canal y la fecha."
+                        />
+                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] text-right">{description.length}/300</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            disabled={!dirty || saving}
+                            onClick={save}
+                            className="px-4 py-2 rounded-lg bg-[#2563eb] text-white text-sm font-bold disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {saving && <Loader2 className="w-4 h-4 animate-spin" />} Guardar
+                        </button>
+                        {message && (
+                            <span className={`text-sm flex items-center gap-1 ${message.ok ? 'text-green-600' : 'text-red-600'}`}>
+                                {message.ok ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />} {message.text}
+                            </span>
+                        )}
+                    </div>
+                </>
+            )}
+        </section>
     );
 }

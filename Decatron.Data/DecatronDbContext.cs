@@ -49,6 +49,11 @@ namespace Decatron.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<TournamentCallPage> TournamentCallPages { get; set; }
+        public DbSet<TournamentCallApplication> TournamentCallApplications { get; set; }
+        public DbSet<TournamentCallContribution> TournamentCallContributions { get; set; }
+        public DbSet<TournamentCallContributionEvent> TournamentCallContributionEvents { get; set; }
+        public DbSet<TournamentCallDonationIntent> TournamentCallDonationIntents { get; set; }
         public DbSet<Account> Accounts { get; set; }
         // Game Overlays (ver .dev/plans/GAME_OVERLAYS_PLAN.md). linked_game_accounts
         // reemplaza a user_riot_accounts (migrada conservando ids el 18-09-2026).

@@ -231,6 +231,7 @@ Consulta [docs/es/OVERLAYS.md](docs/es/OVERLAYS.md) para tamaños, opciones y el
 | [COMMANDS.md](docs/es/COMMANDS.md) | Referencia de comandos del bot |
 | [OVERLAYS.md](docs/es/OVERLAYS.md) | Configuración de overlays e integración con OBS |
 | [DESIGN_SYSTEM.md](docs/es/DESIGN_SYSTEM.md) | Tokens de diseño, librería de componentes, editor de tema en vivo |
+| [TOURNAMENT_CALL.md](docs/es/TOURNAMENT_CALL.md) | Convocatoria de streamers: contenido bilingüe, portada real, borrador y publicación, solicitudes, aportes directos de dinero y custodia de paVos, tarjetas y regalos |
 | [TROUBLESHOOTING.md](docs/es/TROUBLESHOOTING.md) | Problemas comunes y soluciones |
 
 Las versiones en inglés están en [docs/](docs/). La documentación de usuario vive en la propia aplicación, en `/docs` (pública) y `/dashboard/docs` (con sesión iniciada).

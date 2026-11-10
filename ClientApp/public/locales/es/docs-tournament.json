@@ -1013,7 +1013,8 @@
               "Logo y portada: tócalos para elegir un archivo, arrástralos o pégalos con Ctrl+V.",
               "Dos colores, «Principal» y «Secundario», y el fondo claro u oscuro.",
               "La «Vista previa» muestra cómo se verá. Si un color casi no se distingue del fondo, te avisa y lo aclara solo en barras y botones.",
-              "Termina con «Guardar colores y fondo»."
+              "Termina con «Guardar colores y fondo».",
+              "«Fechas y descripción»: el inicio y el fin del torneo (en tu hora local; el inicio activa la cuenta regresiva de la página pública) y una descripción corta de hasta 300 caracteres que sale al compartir el enlace en Discord, X o WhatsApp. Si la dejas vacía se genera una con el juego, el canal y la fecha. Se guardan con su propio botón «Guardar»."
             ]
           }
         ]

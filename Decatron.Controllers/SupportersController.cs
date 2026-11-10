@@ -1848,6 +1848,7 @@ namespace Decatron.Controllers
                     ChargedAmount = amountCentavos / 100m, ChargedCurrency = "PEN", Provider = "culqi",
                     CustomerEmail = req.CulqiEmail,
                     CustomerName = $"{req.FirstName} {req.LastName}".Trim(),
+                    IsTest = esTest,
                 });
 
                 _logger.LogInformation(

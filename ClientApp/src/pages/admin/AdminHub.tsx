@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ListChecks, KeyRound, Cpu, MessageSquare, Heart, Star, TrendingUp, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck, Clapperboard, MessagesSquare, Search, ChevronRight, X } from 'lucide-react';
 
 interface AdminItem {
@@ -102,6 +103,7 @@ function Row({ item, first }: { item: AdminItem; first: boolean }) {
 }
 
 export default function AdminHub() {
+    const { t } = useTranslation('tournament-call');
     const [query, setQuery] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -118,11 +120,12 @@ export default function AdminHub() {
 
     const groups = useMemo(() => {
         const q = normalize(query.trim());
-        if (!q) return GROUPS;
-        return GROUPS
+        const all = GROUPS.map(group => group.id === 'comms' ? { ...group, items: [...group.items, { id: 'tournament-call', name: t('adminHubTitle'), description: t('adminHubDescription'), icon: <Megaphone className={ic} />, route: '/admin/convocatorias', ready: true }] } : group);
+        if (!q) return all;
+        return all
             .map(g => ({ ...g, items: g.items.filter(i => normalize(`${i.name} ${i.description} ${g.title}`).includes(q)) }))
             .filter(g => g.items.length > 0);
-    }, [query]);
+    }, [query, t]);
 
     const total = groups.reduce((n, g) => n + g.items.length, 0);
 

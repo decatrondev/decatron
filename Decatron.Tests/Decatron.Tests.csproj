@@ -32,6 +32,8 @@
     <Compile Include="../Decatron.Controllers/AuthController.cs" Link="Controllers/AuthController.cs" />
     <Compile Include="../Decatron.Controllers/KickAuthController.cs" Link="Controllers/KickAuthController.cs" />
     <Compile Include="../Decatron.Discord/DiscordAuthController.cs" Link="Controllers/DiscordAuthController.cs" />
+    <Compile Include="../Decatron.Controllers/TournamentCallDonationsController.cs" Link="Controllers/TournamentCallDonationsController.cs" />
+    <Compile Include="../Decatron.Controllers/TournamentCallContributionsController.cs" Link="Controllers/TournamentCallContributionsController.cs" />
     <ProjectReference Include="../Decatron.Core/Decatron.Core.csproj" />
     <ProjectReference Include="../Decatron.Data/Decatron.Data.csproj" />
     <ProjectReference Include="../Decatron.Business/Decatron.Business.csproj" />

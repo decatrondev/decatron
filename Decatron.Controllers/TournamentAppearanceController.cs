@@ -90,6 +90,51 @@ namespace Decatron.Controllers
             return Ok(new { success = true, appearance = ToDto(edition) });
         }
 
+        private static object DetailsDto(TournamentEdition e) => new { e.StartsAt, e.EndsAt, e.MetaDescription };
+
+        [HttpGet("api/admin/tournament/editions/{editionId}/details")]
+        [Authorize]
+        public async Task<IActionResult> GetDetails(long editionId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: false);
+            if (error != null) return error;
+            return Ok(new { success = true, details = DetailsDto(edition!) });
+        }
+
+        public class DetailsRequest
+        {
+            public DateTime? StartsAt { get; set; }
+            public DateTime? EndsAt { get; set; }
+            public string? MetaDescription { get; set; }
+        }
+
+        /// <summary>
+        /// Fecha de inicio, fecha de fin y descripcion corta (la que sale al compartir el enlace). Endpoint
+        /// aparte de la apariencia: reemplaza los tres valores y no toca colores, logo ni portada.
+        /// </summary>
+        [HttpPut("api/admin/tournament/editions/{editionId}/details")]
+        [Authorize]
+        public async Task<IActionResult> UpdateDetails(long editionId, [FromBody] DetailsRequest request)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var description = string.IsNullOrWhiteSpace(request.MetaDescription) ? null : request.MetaDescription.Trim();
+            if (description != null && description.Length > 300)
+                return BadRequest(new { success = false, message = "La descripción puede tener hasta 300 caracteres" });
+            var startsAt = request.StartsAt?.ToUniversalTime();
+            var endsAt = request.EndsAt?.ToUniversalTime();
+            if (startsAt != null && endsAt != null && endsAt <= startsAt)
+                return BadRequest(new { success = false, message = "La fecha de fin tiene que ser posterior a la de inicio" });
+
+            edition!.StartsAt = startsAt;
+            edition.EndsAt = endsAt;
+            edition.MetaDescription = description;
+            edition.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true, details = DetailsDto(edition) });
+        }
+
         /// <summary>
         /// Sube el logo o la portada. Se vuelve a codificar como WEBP (valida que sea una
         /// imagen, quita metadatos y achica): logo hasta 512 px, portada hasta 2400 px de
