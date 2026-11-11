@@ -1,6 +1,6 @@
 # Página personal (`decatron.net/@nombre`)
 
-Cada canal puede tener su propia página en `decatron.net/@nombre`: un enlace corto con las redes, la foto y el estilo del streamer. Es gratis y no está ligada a ningún otro módulo. Este documento cubre la subfase 5.1 (la base y las cinco plantillas: Escena, Credencial, Canal de TV, Inventario y Póster) y la 5.2 (contenido para mayores de 18, dominios y denuncias).
+Cada canal puede tener su propia página en `decatron.net/@nombre`: un enlace corto con las redes, la foto y el estilo del streamer. Es gratis y no está ligada a ningún otro módulo. Este documento cubre la subfase 5.1 (la base y las cinco plantillas: Escena, Credencial, Canal de TV, Inventario y Póster) la 5.2 (contenido para mayores de 18, dominios y denuncias) y la 5.3 (escena por capas).
 
 > **Todavía no está abierta al público.** Mientras `PersonalPages:PublicOpen` sea `false` (por defecto), una página publicada solo la ven su dueño, quienes tienen `control_total` en ese canal y los dueños del sistema, con un aviso de vista previa. Las protecciones de la subfase 5.2 ya están; abrirla es solo cambiar esa clave.
 
@@ -19,7 +19,7 @@ Migraciones: `Decatron.Data/Migrations/Add_Personal_Pages.sql` y `Add_Personal_P
 
 Todavía no hay `tenant_id`: las páginas existen solo en decatron.net. El soporte para tenants agregará la columna con RLS y el nombre pasará a ser único por tenant.
 
-Contenido (`PersonalPageContent`, común a todas las plantillas): `displayName`, `bio`, `avatarUrl`, `template`, `theme`, `accent`, `font`, `links[]` (`id`, `kind`, `url`, `title`, `visible`, `size`, `adult`), `adult` (toda la página +18). Cambiar de plantilla nunca pierde contenido. `template` es `scene`, `badge`, `channel`, `inventory` o `poster`; `size` (`normal`, `wide`, `big`) lo usan Inventario (casillas 1×1, 2×1, 2×2) y Póster (créditos chicos, medianos o grandes; si ninguna red está en grande, la primera se muestra grande).
+Contenido (`PersonalPageContent`, común a todas las plantillas): `displayName`, `bio`, `avatarUrl`, `template`, `theme`, `accent`, `font`, `links[]` (`id`, `kind`, `url`, `title`, `visible`, `size`, `adult`), `adult` (toda la página +18) y `scene` (5.3: `enabled`, `background` `color`/`pattern`/`media`, `bgColor`, `bgMedia`, `layers[]` con `id`, `kind` `photo`/`name`/`bio`/`sticker`/`text`, `x`, `y`, `width`, `height`, `visible`, `mediaUrl`, `text`, `font`, `color`, `size`, `align`). Cambiar de plantilla nunca pierde contenido. `template` es `scene`, `badge`, `channel`, `inventory` o `poster`; `size` (`normal`, `wide`, `big`) lo usan Inventario (casillas 1×1, 2×1, 2×2) y Póster (créditos chicos, medianos o grandes; si ninguna red está en grande, la primera se muestra grande).
 
 ## Reglas (`Decatron.Core/Helpers/PersonalPageRules.cs`)
 
@@ -39,6 +39,12 @@ Contenido (`PersonalPageContent`, común a todas las plantillas): `displayName`,
 - Denuncias: solo con sesión, nunca la propia página, una abierta por persona y página, hasta `ReportsPerDay` (10) por persona en 24 horas, más un límite por IP (`personal-page-report`, 8 cada 10 minutos). Motivos: `adult_unmarked`, `scam`, `impersonation`, `hate`, `copyright`, `other`.
 - Acciones de admin sobre una denuncia: `dismiss`, `hide` (oculta la página con la nota como motivo y cierra todas sus denuncias abiertas), `force_adult` y `block_domain` (bloquea el dominio del enlace denunciado). Nada se oculta automáticamente.
 - La confirmación de edad del visitante es una declaración, no una verificación: se recuerda en el navegador (`localStorage`).
+
+### Escena por capas (5.3)
+
+- Lienzo de `SceneWidth` × `SceneHeight` (1080 × 1350, 4:5) que se escala como un overlay. El orden de `layers` es el orden de dibujo. Una sola capa `photo`, `name` y `bio`; hasta `SceneStickersMax` (20) stickers y `SceneTextsMax` (10) textos de hasta 120 caracteres (topes técnicos, no de plan).
+- Los archivos (stickers y fondo) tienen que ser de la **Galería de medios** del canal (`timer_media_files`, la misma de Timer y Alertas, con la cuota de almacenamiento por plan): `PersonalPageService.GalleryAsync` arma URL pública → tipo y `SceneErrors` lo exige al guardar y publicar (`layer_media:i`, `scene_bg_media`). Stickers: `image` o `gif`; fondo: además `video`.
+- `SceneView` quita al mostrar las capas ocultas y los archivos borrados de la galería después (el fondo vuelve al patrón); `MissingSceneMedia` alimenta el aviso del panel (`missingMedia` en `GET /api/personal-page`).
 
 ## API
 
@@ -73,6 +79,7 @@ Aceptar una apelación (`transfer`) da el nombre a quien la envió (y le crea la
 - Panel: `/mi-pagina` (`ClientApp/src/pages/personal-page/`), pestañas Guía, Perfil, Redes y enlaces, Apariencia y Nombre, con vista previa de celular y escritorio.
 - Página pública: `/@nombre` (`PersonalPagePublic.tsx`). React Router no admite `@:param`, así que la ruta es `/:atHandle` y el componente exige la `@`.
 - Plantillas: `SceneTemplate.tsx`, `BadgeTemplate.tsx` (QR con el paquete `qrcode`), `ChannelTemplate.tsx`, `InventoryTemplate.tsx` y `PosterTemplate.tsx`, elegidas por `TemplateRenderer.tsx`. Todas mantienen en escritorio la composición de su maqueta, centrada y más grande, con container queries (la vista previa del panel dibuja la de celular). Maquetas: `.dev/plans/pagina-personal/maquetas/` (fuera de git).
+- Escena por capas: `SceneCanvas.tsx` (lienzo con porcentajes y unidades `cqw`, mismo componente en la página y en el editor) y `SceneTab.tsx` (pestaña Escena con `OverlayCanvasEditor` y `MediaSelector` en modo `galleryOnly`).
 - Puerta de edad y aviso de enlace +18: `AgeGate.tsx` (la página +18 no se dibuja hasta confirmar; en una página normal, `TemplateRenderer` tapa el título de los enlaces +18 propios y pide confirmar al tocarlos, para las cinco plantillas). Denunciar: `ReportBar.tsx`, al pie, oculto para el dueño.
 - Admin: `/admin/paginas` (Denuncias, Apelaciones, Páginas, Dominios y Reservados).
 - Textos: `public/locales/{es,en}/personal-page.json`; docs en `docs-personal-page.json`.
@@ -90,4 +97,4 @@ Aceptar una apelación (`transfer`) da el nombre a quien la envió (y le crea la
 
 ## Pruebas
 
-`Decatron.Tests/PersonalPageTests.cs`: reglas puras (nombre, espera de 30 días, redirección, direcciones por red, foto, errores del contenido, color) y pruebas de base contra `decatron_schema` (el primero se lo queda, restricción de único, borrador/publicar/descartar, espera y redirección, recuperar un nombre viejo, reservados, transferencia por apelación, rechazar/retirar, ocultar). Subfase 5.2: dominios y subdominios, normalización de dominios, dominios protegidos, acortadores, bloqueados, +18 forzado, vista pública, y en base: guardar con dominios de admin, reglas y límite diario de denuncias, ocultar desde una denuncia, +18 forzado que se mantiene y bloquear el dominio de un enlace denunciado.
+`Decatron.Tests/PersonalPageTests.cs`: reglas puras (nombre, espera de 30 días, redirección, direcciones por red, foto, errores del contenido, color) y pruebas de base contra `decatron_schema` (el primero se lo queda, restricción de único, borrador/publicar/descartar, espera y redirección, recuperar un nombre viejo, reservados, transferencia por apelación, rechazar/retirar, ocultar). Subfase 5.2: dominios y subdominios, normalización de dominios, dominios protegidos, acortadores, bloqueados, +18 forzado, vista pública, y en base: guardar con dominios de admin, reglas y límite diario de denuncias, ocultar desde una denuncia, +18 forzado que se mantiene y bloquear el dominio de un enlace denunciado. Subfase 5.3: escena válida, capas con errores e índice, archivos solo de la galería, topes, vista pública sin capas ocultas ni archivos borrados, y en base: la galería del canal y archivos de otro canal rechazados.

@@ -30,6 +30,10 @@ export interface PanelData {
     fonts: string[];
     templates: string[];
     domains: DomainPolicy;
+    /** Lienzo y topes técnicos de la escena por capas (5.3) */
+    scene: { width: number; height: number; stickersMax: number; textsMax: number; textMax: number };
+    /** Archivos de la escena que ya no están en la galería */
+    missingMedia: string[];
     limits: { handleMin: number; handleMax: number; displayName: number; bio: number; title: number; links: number; url: number };
 }
 

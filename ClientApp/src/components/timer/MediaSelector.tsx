@@ -22,6 +22,8 @@ interface MediaSelectorProps {
     onSelect: (fileUrl: string, fileName: string) => void;
     allowedTypes?: string[]; // ['image', 'gif', 'video', 'sound']
     currentUrl?: string;
+    /** Solo la galería, sin la pestaña de URL externa (la página personal solo acepta archivos de la galería del canal). */
+    galleryOnly?: boolean;
 }
 
 export default function MediaSelector({
@@ -29,7 +31,8 @@ export default function MediaSelector({
     onClose,
     onSelect,
     allowedTypes,
-    currentUrl
+    currentUrl,
+    galleryOnly = false,
 }: MediaSelectorProps) {
     const [activeTab, setActiveTab] = useState<'gallery' | 'url'>('gallery');
     const [externalUrl, setExternalUrl] = useState(currentUrl || '');
@@ -87,7 +90,7 @@ export default function MediaSelector({
                             Mis Archivos
                         </span>
                     </button>
-                    <button
+                    {!galleryOnly && <button
                         onClick={() => setActiveTab('url')}
                         className={`px-6 py-3 font-semibold border-b-2 transition-colors ${
                             activeTab === 'url'
@@ -99,7 +102,7 @@ export default function MediaSelector({
                             <ExternalLink className="w-4 h-4" />
                             URL Externa
                         </span>
-                    </button>
+                    </button>}
                 </div>
 
                 {/* Content */}

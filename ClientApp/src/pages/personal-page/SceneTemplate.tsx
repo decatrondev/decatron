@@ -1,14 +1,12 @@
 import type { CSSProperties } from 'react';
+import SceneCanvas, { SCENE_PALETTES } from './SceneCanvas';
 import { ADULT_KINDS, FONTS, PLATFORM_INITIALS, PLATFORM_NAMES, hostOf, textOn, type PageLabels, type TemplateProps } from './shared';
 
-// Plantilla «Escena» (subfase 5.1, sin capas todavía: llegan en 5.3). Maqueta: .dev/plans/pagina-personal/maquetas/Main.dc.html.
+// Plantilla «Escena» (subfase 5.1; con la escena por capas encendida, la cabecera es SceneCanvas, subfase 5.3). Maqueta: .dev/plans/pagina-personal/maquetas/Main.dc.html.
 // La misma pieza dibuja la página pública y la vista previa del panel. En escritorio se mantiene la composición de la
 // maqueta, centrada y más grande (container queries: la vista previa de celular del panel se ve como en un celular).
 
-const PALETTES = {
-    dark: { bg: '#1A1D23', panel: '#262A33', line: '#353B47', text: '#E9EBEF', soft: '#B7BECB', faint: '#8A93A3', scene: '#0F1218', stripeA: '#141821', stripeB: '#10131A' },
-    light: { bg: '#EEF0F3', panel: '#FFFFFF', line: '#D3D8E0', text: '#15181D', soft: '#4A5260', faint: '#6A7280', scene: '#DCE0E6', stripeA: '#D5DAE1', stripeB: '#DCE0E6' },
-} as const;
+const PALETTES = SCENE_PALETTES;
 
 export type SceneLabels = PageLabels;
 
@@ -36,7 +34,7 @@ export default function SceneTemplate({ content, channelPhotoUrl, labels, embedd
         <div className={`pp-scene-root${embedded ? ' pp-embedded' : ''}`} style={vars}>
             <style>{CSS}</style>
             <div className="pp-wrap">
-                <header className="pp-scene">
+                {content.scene?.enabled ? <SceneCanvas content={content} photo={photo} initials={initials} /> : <header className="pp-scene">
                     <div className="pp-stripes" aria-hidden="true" />
                     <div className="pp-photo">
                         {photo ? <img src={photo} alt="" referrerPolicy="no-referrer" /> : <span>{initials}</span>}
@@ -45,7 +43,7 @@ export default function SceneTemplate({ content, channelPhotoUrl, labels, embedd
                         <h1 className="pp-name">{name}</h1>
                         {content.bio && <p className="pp-bio">{content.bio}</p>}
                     </div>
-                </header>
+                </header>}
 
                 <main className="pp-body">
                     {networks.length > 0 && (

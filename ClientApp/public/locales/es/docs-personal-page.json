@@ -47,7 +47,8 @@
               "Foto (la del canal o una propia), nombre visible y una bio corta.",
               "Redes de una lista: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans y Fansly. Cada una solo acepta direcciones de esa red.",
               "Enlaces libres con su título. Todos tienen que empezar con https:// y no se aceptan acortadores (bit.ly, tinyurl…), porque esconden adónde lleva el enlace.",
-              "Cinco plantillas a elegir (Escena, Credencial, Canal de TV, Inventario y Póster), en tema claro u oscuro, con el color de acento y la tipografía que elijas. Todas usan el mismo contenido."
+              "Cinco plantillas a elegir (Escena, Credencial, Canal de TV, Inventario y Póster), en tema claro u oscuro, con el color de acento y la tipografía que elijas. Todas usan el mismo contenido.",
+              "Con la plantilla Escena, la parte de arriba puede ser un lienzo por capas: fondo (rayas, color, o imagen, GIF o video de tu galería de medios), foto, nombre, bio, stickers y textos libres."
             ]
           },
           {
@@ -148,6 +149,10 @@
                 "Plantilla (con vista previa de cada una usando tu contenido), tema claro u oscuro, color de acento (a mano o sacado de tu foto) y tipografía."
               ],
               [
+                "Escena",
+                "Solo con la plantilla Escena: la parte de arriba como lienzo por capas, con el editor de tus overlays."
+              ],
+              [
                 "Nombre",
                 "Tu enlace actual, cambiar el nombre, enviar apelaciones y ver su estado."
               ]
@@ -199,6 +204,33 @@
               "En Inventario, cada enlace puede ocupar una casilla de 1×1, 2×1 o 2×2. En Póster, cada red puede ir chica, mediana o grande; si ninguna está en grande, la primera se muestra grande.",
               "El tamaño se elige en Redes y enlaces y solo aparece cuando usas una de esas dos plantillas."
             ]
+          }
+        ]
+      },
+      {
+        "id": "escena",
+        "title": "Escena por capas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con la plantilla Escena elegida aparece la pestaña Escena. Toca «Usar la escena por capas»: arranca con la foto, el nombre y la bio en el mismo lugar que el diseño clásico, y desde ahí mueves y cambias el tamaño de cada cosa como en tus overlays."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Fondo: rayas, un color, o una imagen, GIF o video de tu galería de medios. El video va sin sonido y en bucle; si el visitante pidió reducir el movimiento, se queda quieto.",
+              "Stickers: imágenes o GIF de tu galería, hasta 20.",
+              "Textos libres: hasta 10, de hasta 120 caracteres, con tipografía, tamaño, color y alineación.",
+              "La foto, el nombre y la bio salen de Perfil; en la escena solo eliges dónde van y cómo se ven. Puedes ocultarlos.",
+              "Cada capa se puede ocultar, traer adelante o mandar atrás; los stickers y textos también se duplican o se quitan.",
+              "El lienzo tiene proporción 4:5 y se ve igual, más grande o más chico, en celular y escritorio. Tus redes y enlaces siguen debajo.",
+              "«Volver al diseño clásico» apaga la escena sin borrar tus capas."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los archivos salen de tu galería de medios, la misma de Timer y Alertas, y usan el espacio de almacenamiento de tu plan. Si borras de la galería un archivo que usa la escena, deja de mostrarse y Mi página te avisa para cambiarlo."
           }
         ]
       },

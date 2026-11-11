@@ -47,7 +47,8 @@
               "Photo (your channel's or your own), display name and a short bio.",
               "Socials from a list: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans and Fansly. Each one only accepts addresses from that social.",
               "Custom links with their title. They must all start with https:// and link shorteners (bit.ly, tinyurl…) aren't accepted, because they hide where the link goes.",
-              "Five templates to choose from (Scene, Badge, TV channel, Inventory and Poster), in a light or dark theme, with the accent color and font you choose. All of them use the same content."
+              "Five templates to choose from (Scene, Badge, TV channel, Inventory and Poster), in a light or dark theme, with the accent color and font you choose. All of them use the same content.",
+              "With the Scene template, the top can be a layered canvas: background (stripes, a color, or an image, GIF or video from your media gallery), photo, name, bio, stickers and free texts."
             ]
           },
           {
@@ -148,6 +149,10 @@
                 "Template (with a preview of each one using your content), light or dark theme, accent color (by hand or taken from your photo) and font."
               ],
               [
+                "Scene",
+                "Only with the Scene template: the top of the page as a layered canvas, with the same editor as your overlays."
+              ],
+              [
                 "Name",
                 "Your current link, change the name, send appeals and see their status."
               ]
@@ -199,6 +204,33 @@
               "In Inventory, each link can take a 1×1, 2×1 or 2×2 slot. In Poster, each social can be small, medium or large; if none is large, the first one is shown large.",
               "The size is set in Socials and links and only appears when you use one of those two templates."
             ]
+          }
+        ]
+      },
+      {
+        "id": "escena",
+        "title": "Layered scene",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "With the Scene template selected, the Scene tab appears. Tap «Use the layered scene»: it starts with the photo, name and bio where the classic design has them, and from there you move and resize each item like in your overlays."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Background: stripes, a color, or an image, GIF or video from your media gallery. Video plays muted and on a loop; if the visitor asked for reduced motion, it stays still.",
+              "Stickers: images or GIFs from your gallery, up to 20.",
+              "Free texts: up to 10, up to 120 characters each, with font, size, color and alignment.",
+              "Photo, name and bio come from Profile; in the scene you only choose where they go and how they look. You can hide them.",
+              "Each layer can be hidden, brought forward or sent backward; stickers and texts can also be duplicated or removed.",
+              "The canvas is 4:5 and looks the same, just bigger or smaller, on phone and desktop. Your socials and links stay below.",
+              "«Back to the classic design» turns the scene off without deleting your layers."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Files come from your media gallery, the same one Timer and Alerts use, and count toward your plan's storage. If you delete from the gallery a file the scene uses, it stops showing and My page tells you to change it."
           }
         ]
       },

@@ -25,6 +25,55 @@ export interface PersonalPageContent {
     links: PersonalPageLink[];
     /** Toda la página es +18: el visitante confirma su edad al entrar. */
     adult?: boolean;
+    /** Cabecera de Escena por capas (5.3). Sin esto o apagada, Escena usa el diseño clásico. */
+    scene?: PersonalPageScene | null;
+}
+
+export type LayerKind = 'photo' | 'name' | 'bio' | 'sticker' | 'text';
+
+/** Capa de la escena, en unidades del lienzo (SCENE_W × SCENE_H). El orden de la lista es el orden de dibujo. */
+export interface PersonalPageLayer {
+    id: string;
+    kind: LayerKind | string;
+    x: number; y: number; width: number; height: number;
+    visible: boolean;
+    mediaUrl?: string;
+    text?: string;
+    font?: string;
+    color?: string;
+    /** Tamaño de letra en unidades del lienzo (0 = el de cada tipo) */
+    size?: number;
+    align?: 'left' | 'center' | 'right' | string;
+}
+
+export interface PersonalPageScene {
+    enabled: boolean;
+    background: 'color' | 'pattern' | 'media' | string;
+    bgColor?: string;
+    bgMedia?: string;
+    layers: PersonalPageLayer[];
+}
+
+/** Lienzo de la escena: 4:5, se escala como un overlay (igual que PersonalPageRules.SceneWidth/SceneHeight). */
+export const SCENE_W = 1080;
+export const SCENE_H = 1350;
+/** Tamaño de letra por defecto de cada tipo de capa (unidades del lienzo). */
+export const LAYER_SIZE: Record<string, number> = { name: 150, bio: 44, text: 72 };
+
+/** Capas iniciales: reproducen el diseño clásico (foto arriba, nombre grande y bio abajo) para empezar desde ahí. */
+export function defaultScene(): PersonalPageScene {
+    return {
+        enabled: true, background: 'pattern', bgColor: '', bgMedia: '',
+        layers: [
+            { id: 'photo', kind: 'photo', x: 60, y: 120, width: 320, height: 320, visible: true },
+            { id: 'name', kind: 'name', x: 60, y: 860, width: 960, height: 240, visible: true, size: 150, align: 'left' },
+            { id: 'bio', kind: 'bio', x: 60, y: 1110, width: 960, height: 180, visible: true, size: 44, align: 'left' },
+        ],
+    };
+}
+
+export function isVideoUrl(url: string): boolean {
+    return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url);
 }
 
 /** Listas de dominios que manda el servidor para marcar en el editor lo que va a exigir al guardar. */

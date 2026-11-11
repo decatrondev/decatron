@@ -41,7 +41,8 @@
     "profile": "Profile",
     "links": "Socials and links",
     "appearance": "Appearance",
-    "name": "Name"
+    "name": "Name",
+    "scene": "Scene"
   },
   "preview": {
     "title": "Preview",
@@ -74,7 +75,8 @@
       "adult": "If your page or a link leads to content for people 18 or older, mark it as 18+ (in Profile for the whole page, or on each link). Known adult sites are marked automatically and can't be unmarked. No adult photos or videos are uploaded to Decatron: only links.",
       "permissions": "You and anyone with full control of your channel can edit your page.",
       "templates": "All five templates use the same content: you can switch templates any time without losing anything. Inventory and Poster also use each link's size.",
-      "reports": "Anyone who is signed in can report a page. The Decatron team reviews reports: nothing is hidden automatically, and if your page is hidden you'll see the reason at the top of this panel."
+      "reports": "Anyone who is signed in can report a page. The Decatron team reviews reports: nothing is hidden automatically, and if your page is hidden you'll see the reason at the top of this panel.",
+      "scene": "With the Scene template you get the Scene tab: the top of your page as a layered canvas (background, photo, name, bio, stickers and texts), with images, GIFs and videos from your media gallery."
     },
     "docsPrefix": "More details in the documentation:",
     "docsLink": "Personal page"
@@ -310,7 +312,23 @@
     "domain_invalid": "Enter a valid domain, for example site.com.",
     "domain_kind": "Choose whether the domain is adult or blocked.",
     "domain_protected": "That domain belongs to a listed network or to Decatron: it can't be added.",
-    "domain_exists": "That domain is already on the list."
+    "domain_exists": "That domain is already on the list.",
+    "scene_background": "Choose a background for the scene.",
+    "scene_bg_color": "The background color must use the #RRGGBB format.",
+    "scene_bg_media": "The background must be an image, GIF or video from your gallery.",
+    "scene_layers_count": "The scene has too many layers.",
+    "scene_stickers_count": "The scene can have up to 20 stickers.",
+    "scene_texts_count": "The scene can have up to 10 texts.",
+    "layer_id": "Layer {{n}} is duplicated. Remove it and add it again.",
+    "layer_kind": "Layer {{n}} isn't a valid type.",
+    "layer_repeated": "Layer {{n}} is repeated: there can only be one photo, one name and one bio.",
+    "layer_rect": "Layer {{n}} ended up outside the canvas or with an invalid size.",
+    "layer_media": "The image in layer {{n}} isn't in your gallery. Change it or remove it.",
+    "layer_text": "The text in layer {{n}} must have 1 to 120 characters.",
+    "layer_font": "The font in layer {{n}} isn't on the list.",
+    "layer_color": "The color of layer {{n}} must use the #RRGGBB format.",
+    "layer_size": "The font size of layer {{n}} must be between 8 and 400.",
+    "layer_align": "The alignment of layer {{n}} isn't valid."
   },
   "admin": {
     "back": "Back to admin",
@@ -483,5 +501,65 @@
     "send": "Send report",
     "sent": "Report sent. The Decatron team will review it.",
     "note": "A person on the Decatron team reviews it. The page owner doesn't see who sent it."
+  },
+  "scene": {
+    "title": "Layered scene",
+    "intro": "Turn the top of your page into a canvas like your overlays: move and resize each item, add stickers and texts and pick a background.",
+    "points": {
+      "layers": "Layers: background, photo, name, bio, stickers (images or GIFs) and free texts.",
+      "gallery": "Images, GIFs and videos come from your media gallery, the same one your overlays use, with the same storage from your plan.",
+      "classic": "You can go back to the classic design whenever you want: your layers are kept."
+    },
+    "enable": "Use the layered scene",
+    "enableAgain": "Use my layers again",
+    "onHint": "Your socials and links stay below the scene, as always.",
+    "backToClassic": "Back to the classic design",
+    "background": "Background",
+    "backgrounds": {
+      "pattern": "Stripes",
+      "color": "Color",
+      "media": "Image, GIF or video"
+    },
+    "changeBackground": "Change background",
+    "backgroundHint": "Video plays muted and on a loop. If the visitor asked for reduced motion, it stays still.",
+    "canvasTitle": "Scene canvas",
+    "canvasHint": "Drag each layer and resize it from the corners. It looks the same, just bigger or smaller, on phone and desktop.",
+    "addSticker": "Sticker",
+    "addText": "Text",
+    "newText": "New text",
+    "kinds": {
+      "photo": "Photo",
+      "name": "Name",
+      "bio": "Bio",
+      "sticker": "Sticker",
+      "text": "Text"
+    },
+    "text": "Text",
+    "fromProfile": {
+      "photo": "This is your profile photo. Change it in Profile.",
+      "name": "This is your display name. Change it in Profile.",
+      "bio": "This is your bio. Change it in Profile."
+    },
+    "changeImage": "Change image",
+    "font": "Font",
+    "pageFont": "The page's font",
+    "size": "Font size",
+    "color": "Color",
+    "colorAuto": "Automatic",
+    "align": "Alignment",
+    "aligns": {
+      "left": "Left",
+      "center": "Center",
+      "right": "Right"
+    },
+    "forward": "Forward",
+    "backward": "Backward",
+    "duplicate": "Duplicate",
+    "remove": "Remove",
+    "limits": "Stickers: {{stickers}} of {{stickersMax}} · Texts: {{texts}} of {{textsMax}}",
+    "missing_one": "A file in your scene is no longer in your gallery and isn't shown. Change it or remove it.",
+    "missing_other": "{{count}} files in your scene are no longer in your gallery and aren't shown. Change or remove them.",
+    "missingShort": "no longer in the gallery",
+    "missingLayer": "This image is no longer in your gallery: it isn't shown on your page."
   }
 }

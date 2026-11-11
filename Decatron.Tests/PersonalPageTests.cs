@@ -297,6 +297,72 @@ public class PersonalPageRulesTests
         Assert.Equal(new[] { "adult_unmarked", "scam", "impersonation", "hate", "copyright", "other" }, PersonalPageRules.ReportReasons);
         Assert.Equal(new[] { "dismiss", "hide", "force_adult", "block_domain" }, PersonalPageRules.ReportActions);
     }
+    // ---------- Subfase 5.3: escena por capas ----------
+
+    private static PersonalPageScene Scene(params PersonalPageLayer[] layers) => new(true, "pattern", "", "", layers.ToList());
+    private static readonly Dictionary<string, string> Gallery = new() { ["/timerextensible/kira/fondos/a.png"] = "image", ["/timerextensible/kira/x/b.gif"] = "gif", ["/timerextensible/kira/x/c.webm"] = "video", ["/timerextensible/kira/x/d.mp3"] = "sound" };
+
+    [Fact]
+    public void ValidSceneHasNoErrors()
+    {
+        var s = Scene(new("p", "photo", 60, 80, 300, 300), new("n", "name", 60, 420, 900, 200), new("b", "bio", 60, 640, 900, 120),
+            new("s", "sticker", 700, 60, 300, 300, MediaUrl: "/timerextensible/kira/x/b.gif"), new("t", "text", 60, 900, 600, 120, Text: "gg ez", Font: "chivo", Color: "#FFCC00", Size: 64, Align: "center"))
+            with { Background = "media", BgMedia = "/timerextensible/kira/x/c.webm" };
+        Assert.Empty(PersonalPageRules.SceneErrors(s, Gallery));
+    }
+
+    [Fact]
+    public void SceneRejectsBadLayersWithTheirIndex()
+    {
+        var s = Scene(new("p", "photo", 0, 0, 300, 300), new("p2", "photo", 0, 0, 300, 300), new("x", "laser", 0, 0, 10, 10),
+            new("s", "sticker", 0, 0, 100, 100, MediaUrl: "/timerextensible/kira/x/d.mp3"), new("t", "text", 0, 0, 100, 100, Text: ""),
+            new("f", "text", 5000, 0, 100, 100, Text: "lejos"), new("c", "text", 0, 0, 100, 100, Text: "a", Color: "rojo", Size: 2, Align: "top", Font: "comic"));
+        var e = PersonalPageRules.SceneErrors(s, Gallery);
+        Assert.Contains("layer_repeated:1", e);
+        Assert.Contains("layer_kind:2", e);
+        Assert.Contains("layer_media:3", e);
+        Assert.Contains("layer_text:4", e);
+        Assert.Contains("layer_rect:5", e);
+        Assert.Contains("layer_color:6", e); Assert.Contains("layer_size:6", e); Assert.Contains("layer_align:6", e); Assert.Contains("layer_font:6", e);
+    }
+
+    [Fact]
+    public void SceneMediaMustComeFromTheChannelGallery()
+    {
+        var external = Scene(new PersonalPageLayer("s", "sticker", 0, 0, 100, 100, MediaUrl: "https://otro.example/a.png")) with { Background = "media", BgMedia = "/timerextensible/otro/z.png" };
+        var e = PersonalPageRules.SceneErrors(external, Gallery);
+        Assert.Contains("layer_media:0", e);
+        Assert.Contains("scene_bg_media", e);
+        Assert.Contains("scene_bg_media", PersonalPageRules.SceneErrors(Scene() with { Background = "media", BgMedia = "/timerextensible/kira/x/d.mp3" }, Gallery));
+    }
+
+    [Fact]
+    public void SceneHasTechnicalCaps()
+    {
+        var stickers = Enumerable.Range(0, PersonalPageRules.SceneStickersMax + 1).Select(i => new PersonalPageLayer($"s{i}", "sticker", 0, 0, 50, 50, MediaUrl: "/timerextensible/kira/fondos/a.png")).ToArray();
+        Assert.Contains("scene_stickers_count", PersonalPageRules.SceneErrors(Scene(stickers), Gallery));
+        var texts = Enumerable.Range(0, PersonalPageRules.SceneTextsMax + 1).Select(i => new PersonalPageLayer($"t{i}", "text", 0, 0, 50, 50, Text: "x")).ToArray();
+        Assert.Contains("scene_texts_count", PersonalPageRules.SceneErrors(Scene(texts), Gallery));
+    }
+
+    [Fact]
+    public void SceneViewDropsHiddenLayersAndDeletedFiles()
+    {
+        var s = Scene(new("a", "sticker", 0, 0, 50, 50, MediaUrl: "/timerextensible/kira/fondos/a.png"), new("b", "sticker", 0, 0, 50, 50, MediaUrl: "/timerextensible/kira/borrado.png"),
+            new("c", "text", 0, 0, 50, 50, Visible: false, Text: "oculto"), new("d", "name", 0, 0, 50, 50)) with { Background = "media", BgMedia = "/timerextensible/kira/borrado.webm" };
+        var view = PersonalPageRules.SceneView(s, Gallery)!;
+        Assert.Equal(new[] { "a", "d" }, view.Layers!.Select(l => l.Id));
+        Assert.Equal("pattern", view.Background);
+        Assert.Equal(new[] { "/timerextensible/kira/borrado.webm", "/timerextensible/kira/borrado.png" }, PersonalPageRules.MissingSceneMedia(s, Gallery));
+    }
+
+    [Fact]
+    public void ContentWithoutSceneStillValidAndSceneErrorsJoinContentErrors()
+    {
+        Assert.Empty(PersonalPageRules.Errors(Valid(), forPublish: true));
+        var c = Valid() with { Scene = Scene() with { Background = "neon" } };
+        Assert.Contains("scene_background", PersonalPageRules.Errors(c, forPublish: false, gallery: Gallery));
+    }
 }
 
 internal sealed class PersonalPageDbFactAttribute : FactAttribute
@@ -603,5 +669,26 @@ public class PersonalPageDbTests
         Assert.Equal(new[] { "l2" }, view.Links!.Select(l => l.Id));
         var plain = await service.ReportAsync(page, (await Channel(db)).Id, "other", "", null, Now);
         Assert.Equal("report_no_link", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ResolveReportAsync(plain.Id, "block_domain", "", admin.Id, Now))).Code);
+    });
+
+    // ---------- Subfase 5.3 ----------
+
+    [PersonalPageDbFact]
+    public Task SceneOnlyAcceptsFilesFromTheChannelGallery() => WithDb(async db =>
+    {
+        var a = await Channel(db); var other = await Channel(db); var service = new PersonalPageService(db);
+        db.TimerMediaFiles.Add(new TimerMediaFile { ChannelName = a.Login.ToLower(), UserId = a.Id, FileType = "gif", FilePath = $"/var/www/x/ClientApp/public/timerextensible/{a.Login.ToLower()}/stickers/ok.gif", OriginalFileName = "ok.gif", FileName = "ok.gif", FileSize = 10 });
+        db.TimerMediaFiles.Add(new TimerMediaFile { ChannelName = other.Login.ToLower(), UserId = other.Id, FileType = "gif", FilePath = $"ClientApp/public/timerextensible/{other.Login.ToLower()}/stickers/ajeno.gif", OriginalFileName = "a.gif", FileName = "a.gif", FileSize = 10 });
+        await db.SaveChangesAsync();
+        var gallery = await service.GalleryAsync(a.Id);
+        Assert.Equal("gif", gallery[$"/timerextensible/{a.Login.ToLower()}/stickers/ok.gif"]);
+        var page = await service.CreateAsync(a.Id, Handle(), Initial(), Now);
+        var ajeno = Initial() with { Scene = new(true, "pattern", "", "", new() { new("s", "sticker", 0, 0, 100, 100, MediaUrl: $"/timerextensible/{other.Login.ToLower()}/stickers/ajeno.gif") }) };
+        var error = await Assert.ThrowsAsync<PersonalPageException>(() => service.SaveDraftAsync(page, ajeno, page.Revision, Now));
+        Assert.Contains("layer_media:0", error.Details);
+        var propio = Initial() with { Scene = new(true, "pattern", "", "", new() { new("s", "sticker", 0, 0, 100, 100, MediaUrl: $"/timerextensible/{a.Login.ToLower()}/stickers/ok.gif") }) };
+        await service.SaveDraftAsync(page, propio, page.Revision, Now);
+        await service.PublishAsync(page, page.Revision, Now);
+        Assert.Single(PersonalPageService.Read(page.Published).Scene!.Layers!);
     });
 }

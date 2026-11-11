@@ -7,6 +7,7 @@ import TemplateRenderer from './TemplateRenderer';
 import { usePageFonts } from './shared';
 import { usePersonalPage } from './usePersonalPage';
 import { AppealForm, AppearanceTab, GuideTab, HandleInput, LinksTab, NameTab, ProfileTab, useErrorText, type PanelTab } from './PersonalPageTabs';
+import SceneTab from './SceneTab';
 
 // Panel «Mi página» (subfase 5.1). Mismo patrón que el panel de Song Request: pestañas con la Guía primero a la
 // izquierda y vista previa a la derecha. Plan: .dev/plans/pagina-personal/PLAN.md §9.
@@ -16,6 +17,7 @@ const TABS: { id: PanelTab; icon: string }[] = [
     { id: 'profile', icon: '🙂' },
     { id: 'links', icon: '🔗' },
     { id: 'appearance', icon: '🎨' },
+    { id: 'scene', icon: '🎬' },
     { id: 'name', icon: '@' },
 ];
 
@@ -171,11 +173,12 @@ export default function PersonalPageConfig() {
                     <div className="xl:col-span-2 space-y-6 min-w-0">
                         <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                             <div className="flex flex-wrap gap-2" role="tablist">
-                                {TABS.map(item => (
+                                {TABS.filter(item => item.id !== 'scene' || draft.template === 'scene').map(item => (
                                     <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)}
                                         className={tab === item.id ? 'ds-btn ds-btn--primary ds-btn--sm whitespace-nowrap' : 'ds-btn ds-btn--secondary ds-btn--sm whitespace-nowrap'}>
                                         <TabIcon emoji={item.icon} />{t(`tabs.${item.id}`)}
                                         {item.id === 'links' && fieldErrors.some(e => e.startsWith('link')) && <span className="ml-1 w-2 h-2 rounded-full bg-ds-danger" aria-hidden="true" />}
+                                        {item.id === 'scene' && (fieldErrors.some(e => e.startsWith('layer') || e.startsWith('scene')) || (data.missingMedia ?? []).length > 0) && <span className="ml-1 w-2 h-2 rounded-full bg-ds-danger" aria-hidden="true" />}
                                     </button>
                                 ))}
                             </div>
@@ -185,6 +188,8 @@ export default function PersonalPageConfig() {
                             {tab === 'profile' && <ProfileTab s={s} photoFallback={data.channel?.photoUrl ?? ''} onMessage={notify} />}
                             {tab === 'links' && <LinksTab s={s} errors={fieldErrors} />}
                             {tab === 'appearance' && <AppearanceTab s={s} onMessage={notify} photoFallback={data.channel?.photoUrl ?? ''} />}
+                            {tab === 'scene' && draft.template === 'scene' && <SceneTab s={s} photoFallback={data.channel?.photoUrl ?? ''} errors={fieldErrors} />}
+                            {tab === 'scene' && draft.template !== 'scene' && <GuideTab onNavigate={setTab} />}
                             {tab === 'name' && <NameTab s={s} onMessage={notify} />}
                         </div>
                     </div>

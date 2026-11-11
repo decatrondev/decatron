@@ -23,7 +23,25 @@ public sealed record PersonalPageContent(
     string Accent = "#5B8CFF",
     string Font = "archivo",
     List<PersonalPageLink>? Links = null,
-    bool Adult = false);
+    bool Adult = false,
+    PersonalPageScene? Scene = null);
+
+/// <summary>
+/// Una capa de la escena (subfase 5.3). Kind: photo, name, bio (una de cada una), sticker (imagen o GIF de la galería) o
+/// text (texto libre). Posición y tamaño en unidades del lienzo (<see cref="PersonalPageRules.SceneWidth"/> ×
+/// <see cref="PersonalPageRules.SceneHeight"/>), que se escala como un overlay. El orden de la lista es el orden de dibujo.
+/// </summary>
+public sealed record PersonalPageLayer(
+    string Id = "", string Kind = "", int X = 0, int Y = 0, int Width = 100, int Height = 100, bool Visible = true,
+    string MediaUrl = "", string Text = "", string Font = "", string Color = "", int Size = 0, string Align = "left");
+
+/// <summary>
+/// Cabecera de la plantilla Escena como lienzo por capas (subfase 5.3). Apagada = diseño clásico; las capas se guardan
+/// igual, así que volver al clásico o cambiar de plantilla no las borra. Background: color, pattern o media (imagen,
+/// GIF o video de la galería; el video va sin sonido).
+/// </summary>
+public sealed record PersonalPageScene(
+    bool Enabled = false, string Background = "pattern", string BgColor = "", string BgMedia = "", List<PersonalPageLayer>? Layers = null);
 
 /// <summary>Una red de la lista fija: hosts válidos y si es un sitio para adultos (sus enlaces van siempre como +18).</summary>
 public sealed record PersonalPagePlatform(string Key, string Name, string[] Hosts, bool Adult = false);
@@ -54,6 +72,18 @@ public static class PersonalPageRules
     /// <summary>Denuncias por persona en 24 horas (freno contra abuso; el limitador por IP va aparte).</summary>
     public const int ReportsPerDay = 10;
     public const int DomainNoteMax = 300;
+
+    // ---------- Escena por capas (5.3) ----------
+    /// <summary>Lienzo de la escena: proporción 4:5, se escala igual que un overlay en celular y escritorio.</summary>
+    public const int SceneWidth = 1080;
+    public const int SceneHeight = 1350;
+    /// <summary>Topes técnicos contra abuso, no de plan (decisión 2026-11-11).</summary>
+    public const int SceneStickersMax = 20;
+    public const int SceneTextsMax = 10;
+    public const int LayerTextMax = 120;
+    public static readonly string[] LayerKinds = { "photo", "name", "bio", "sticker", "text" };
+    public static readonly string[] SceneBackgrounds = { "color", "pattern", "media" };
+    public static readonly string[] LayerAligns = { "left", "center", "right" };
 
     public static readonly string[] ReportReasons = { "adult_unmarked", "scam", "impersonation", "hate", "copyright", "other" };
     /// <summary>Lo que admin puede hacer con una denuncia.</summary>
@@ -264,13 +294,103 @@ public static class PersonalPageRules
             Title = Clean(l.Title),
             Size = string.IsNullOrWhiteSpace(l.Size) ? "normal" : l.Size.Trim().ToLowerInvariant(),
         }).ToList(),
+        Scene = c.Scene == null ? null : NormalizeScene(c.Scene),
     };
+
+    private static PersonalPageScene NormalizeScene(PersonalPageScene s) => s with
+    {
+        Background = (s.Background ?? "").Trim().ToLowerInvariant(),
+        BgColor = (s.BgColor ?? "").Trim().ToUpperInvariant(),
+        BgMedia = (s.BgMedia ?? "").Trim(),
+        Layers = (s.Layers ?? new()).Select(l => l with
+        {
+            Id = (l.Id ?? "").Trim(),
+            Kind = (l.Kind ?? "").Trim().ToLowerInvariant(),
+            MediaUrl = (l.MediaUrl ?? "").Trim(),
+            Text = Clean(l.Text),
+            Font = (l.Font ?? "").Trim().ToLowerInvariant(),
+            Color = (l.Color ?? "").Trim().ToUpperInvariant(),
+            Align = string.IsNullOrWhiteSpace(l.Align) ? "left" : l.Align.Trim().ToLowerInvariant(),
+        }).ToList(),
+    };
+
+    /// <summary>
+    /// Errores de la escena (vacío = válida). gallery: URL pública → tipo (image, gif, video) de los archivos de la galería
+    /// del canal; null = no se revisan los archivos (pruebas de forma). Códigos: scene_background, scene_bg_color,
+    /// scene_bg_media, scene_layers_count, layer_id:i, layer_kind:i, layer_repeated:i, layer_rect:i, layer_media:i,
+    /// layer_text:i, layer_font:i, layer_color:i, layer_size:i, layer_align:i, scene_stickers_count, scene_texts_count.
+    /// </summary>
+    public static List<string> SceneErrors(PersonalPageScene s, IReadOnlyDictionary<string, string>? gallery)
+    {
+        var errors = new List<string>();
+        if (!SceneBackgrounds.Contains(s.Background)) errors.Add("scene_background");
+        if (s.BgColor.Length > 0 && !HexColor.IsMatch(s.BgColor)) errors.Add("scene_bg_color");
+        if (s.Background == "media" && !GalleryOk(s.BgMedia, gallery, "image", "gif", "video")) errors.Add("scene_bg_media");
+        var layers = s.Layers ?? new();
+        if (layers.Count > SceneStickersMax + SceneTextsMax + 3) { errors.Add("scene_layers_count"); return errors; }
+        if (layers.Count(l => l.Kind == "sticker") > SceneStickersMax) errors.Add("scene_stickers_count");
+        if (layers.Count(l => l.Kind == "text") > SceneTextsMax) errors.Add("scene_texts_count");
+        var ids = new HashSet<string>();
+        var singles = new HashSet<string>();
+        for (var i = 0; i < layers.Count; i++)
+        {
+            var l = layers[i];
+            if (!LinkId.IsMatch(l.Id) || !ids.Add(l.Id)) { errors.Add($"layer_id:{i}"); continue; }
+            if (!LayerKinds.Contains(l.Kind)) { errors.Add($"layer_kind:{i}"); continue; }
+            if (l.Kind is "photo" or "name" or "bio" && !singles.Add(l.Kind)) errors.Add($"layer_repeated:{i}");
+            // Puede salir en parte del lienzo (se recorta), pero no perderse lejos ni ser enorme
+            if (l.Width < 8 || l.Height < 8 || l.Width > SceneWidth * 2 || l.Height > SceneHeight * 2 ||
+                l.X < -l.Width || l.Y < -l.Height || l.X > SceneWidth || l.Y > SceneHeight)
+                errors.Add($"layer_rect:{i}");
+            if (l.Kind == "sticker" && !GalleryOk(l.MediaUrl, gallery, "image", "gif")) errors.Add($"layer_media:{i}");
+            if (l.Kind == "text" && (l.Text.Length == 0 || l.Text.Length > LayerTextMax)) errors.Add($"layer_text:{i}");
+            if (l.Font.Length > 0 && !Fonts.Contains(l.Font)) errors.Add($"layer_font:{i}");
+            if (l.Color.Length > 0 && !HexColor.IsMatch(l.Color)) errors.Add($"layer_color:{i}");
+            if (l.Size != 0 && (l.Size < 8 || l.Size > 400)) errors.Add($"layer_size:{i}");
+            if (!LayerAligns.Contains(l.Align)) errors.Add($"layer_align:{i}");
+        }
+        return errors;
+    }
+
+    /// <summary>La URL es de un archivo de la galería del canal y de uno de los tipos pedidos (sin galería = solo la forma).</summary>
+    private static bool GalleryOk(string url, IReadOnlyDictionary<string, string>? gallery, params string[] types)
+    {
+        if (string.IsNullOrEmpty(url) || url.Length > UrlMax || !url.StartsWith('/') || url.StartsWith("//") || url.Contains("..")) return false;
+        return gallery == null || (gallery.TryGetValue(url, out var type) && types.Contains(type));
+    }
+
+    /// <summary>
+    /// Escena que ve el visitante: sin capas ocultas y sin archivos que ya no están en la galería (se borraron después);
+    /// si el fondo era un archivo borrado, vuelve al patrón.
+    /// </summary>
+    public static PersonalPageScene? SceneView(PersonalPageScene? s, IReadOnlyDictionary<string, string> gallery)
+    {
+        if (s == null) return null;
+        var bgOk = s.Background != "media" || GalleryOk(s.BgMedia, gallery, "image", "gif", "video");
+        return s with
+        {
+            Background = bgOk ? s.Background : "pattern",
+            BgMedia = bgOk ? s.BgMedia : "",
+            Layers = (s.Layers ?? new()).Where(l => l.Visible && (l.Kind != "sticker" || GalleryOk(l.MediaUrl, gallery, "image", "gif"))).ToList(),
+        };
+    }
+
+    /// <summary>Archivos de la escena que ya no están en la galería (para avisar en el panel).</summary>
+    public static List<string> MissingSceneMedia(PersonalPageScene? s, IReadOnlyDictionary<string, string> gallery)
+    {
+        var missing = new List<string>();
+        if (s == null) return missing;
+        if (s.Background == "media" && s.BgMedia.Length > 0 && !gallery.ContainsKey(s.BgMedia)) missing.Add(s.BgMedia);
+        missing.AddRange((s.Layers ?? new()).Where(l => l.Kind == "sticker" && l.MediaUrl.Length > 0 && !gallery.ContainsKey(l.MediaUrl)).Select(l => l.MediaUrl));
+        return missing.Distinct().ToList();
+    }
+
 
     /// <summary>
     /// Errores del contenido ya normalizado, como códigos estables que el panel traduce (vacío = válido). Un borrador puede
     /// guardarse a medias; para publicar se exige además un nombre visible.
     /// </summary>
-    public static List<string> Errors(PersonalPageContent c, bool forPublish, PersonalPageDomainPolicy? policy = null)
+    public static List<string> Errors(PersonalPageContent c, bool forPublish, PersonalPageDomainPolicy? policy = null, IReadOnlyDictionary<string, string>? gallery = null)
     {
         policy ??= PersonalPageDomainPolicy.Empty;
         var errors = new List<string>();
@@ -305,6 +425,7 @@ public static class PersonalPageRules
             }
             if (SafeUrl(l.Url) && IsBlocked(l.Url, policy)) errors.Add($"link_blocked:{i}");
         }
+        if (c.Scene != null) errors.AddRange(SceneErrors(c.Scene, gallery));
         return errors;
     }
 

@@ -41,7 +41,8 @@
     "profile": "Perfil",
     "links": "Redes y enlaces",
     "appearance": "Apariencia",
-    "name": "Nombre"
+    "name": "Nombre",
+    "scene": "Escena"
   },
   "preview": {
     "title": "Vista previa",
@@ -74,7 +75,8 @@
       "adult": "Si tu página o un enlace lleva a contenido para mayores de 18, márcalo como +18 (en Perfil para toda la página, o en cada enlace). Los sitios para adultos conocidos se marcan solos y no se pueden desmarcar. No se suben fotos ni videos para adultos a Decatron: solo enlaces.",
       "permissions": "Pueden editar tu página tú y quienes tengan control total de tu canal.",
       "templates": "Las cinco plantillas usan el mismo contenido: puedes cambiar de plantilla cuando quieras sin perder nada. Inventario y Póster usan además el tamaño de cada enlace.",
-      "reports": "Cualquier persona con sesión puede denunciar una página. Las denuncias las revisa el equipo de Decatron: nada se oculta automáticamente, y si se oculta tu página verás el motivo arriba de este panel."
+      "reports": "Cualquier persona con sesión puede denunciar una página. Las denuncias las revisa el equipo de Decatron: nada se oculta automáticamente, y si se oculta tu página verás el motivo arriba de este panel.",
+      "scene": "Con la plantilla Escena aparece la pestaña Escena: la parte de arriba de tu página como un lienzo por capas (fondo, foto, nombre, bio, stickers y textos), con imágenes, GIF y videos de tu galería de medios."
     },
     "docsPrefix": "Más detalles en la documentación:",
     "docsLink": "Página personal"
@@ -310,7 +312,23 @@
     "domain_invalid": "Escribe un dominio válido, por ejemplo sitio.com.",
     "domain_kind": "Elige si el dominio es para adultos o está bloqueado.",
     "domain_protected": "Ese dominio es de una red de la lista o de Decatron: no se puede agregar.",
-    "domain_exists": "Ese dominio ya está en la lista."
+    "domain_exists": "Ese dominio ya está en la lista.",
+    "scene_background": "Elige un fondo para la escena.",
+    "scene_bg_color": "El color de fondo tiene que tener el formato #RRGGBB.",
+    "scene_bg_media": "El fondo tiene que ser una imagen, GIF o video de tu galería.",
+    "scene_layers_count": "La escena tiene demasiadas capas.",
+    "scene_stickers_count": "La escena puede tener hasta 20 stickers.",
+    "scene_texts_count": "La escena puede tener hasta 10 textos.",
+    "layer_id": "La capa {{n}} está repetida. Quítala y vuelve a agregarla.",
+    "layer_kind": "La capa {{n}} no es de un tipo válido.",
+    "layer_repeated": "La capa {{n}} está repetida: solo puede haber una foto, un nombre y una bio.",
+    "layer_rect": "La capa {{n}} quedó fuera del lienzo o con un tamaño no válido.",
+    "layer_media": "La imagen de la capa {{n}} no está en tu galería. Cámbiala o quítala.",
+    "layer_text": "El texto de la capa {{n}} tiene que tener de 1 a 120 caracteres.",
+    "layer_font": "La tipografía de la capa {{n}} no está en la lista.",
+    "layer_color": "El color de la capa {{n}} tiene que tener el formato #RRGGBB.",
+    "layer_size": "El tamaño de letra de la capa {{n}} tiene que ir de 8 a 400.",
+    "layer_align": "La alineación de la capa {{n}} no es válida."
   },
   "admin": {
     "back": "Volver al admin",
@@ -483,5 +501,65 @@
     "send": "Enviar denuncia",
     "sent": "Denuncia enviada. La revisará el equipo de Decatron.",
     "note": "La revisa una persona del equipo de Decatron. El dueño de la página no ve quién la envió."
+  },
+  "scene": {
+    "title": "Escena por capas",
+    "intro": "Convierte la parte de arriba de tu página en un lienzo como el de tus overlays: mueve y cambia de tamaño cada cosa, agrega stickers y textos y elige un fondo.",
+    "points": {
+      "layers": "Capas: fondo, foto, nombre, bio, stickers (imágenes o GIF) y textos libres.",
+      "gallery": "Las imágenes, GIF y videos salen de tu galería de medios, la misma de tus overlays y con el mismo espacio de tu plan.",
+      "classic": "Puedes volver al diseño clásico cuando quieras: tus capas se guardan."
+    },
+    "enable": "Usar la escena por capas",
+    "enableAgain": "Volver a usar mis capas",
+    "onHint": "Tus redes y enlaces siguen debajo de la escena, como siempre.",
+    "backToClassic": "Volver al diseño clásico",
+    "background": "Fondo",
+    "backgrounds": {
+      "pattern": "Rayas",
+      "color": "Color",
+      "media": "Imagen, GIF o video"
+    },
+    "changeBackground": "Cambiar fondo",
+    "backgroundHint": "El video va sin sonido y en bucle. Si el visitante pidió reducir el movimiento, se queda quieto.",
+    "canvasTitle": "Lienzo de la escena",
+    "canvasHint": "Arrastra cada capa y cambia su tamaño desde las esquinas. Se ve igual, más grande o más chico, en celular y escritorio.",
+    "addSticker": "Sticker",
+    "addText": "Texto",
+    "newText": "Texto nuevo",
+    "kinds": {
+      "photo": "Foto",
+      "name": "Nombre",
+      "bio": "Bio",
+      "sticker": "Sticker",
+      "text": "Texto"
+    },
+    "text": "Texto",
+    "fromProfile": {
+      "photo": "Es la foto de tu perfil. Se cambia en Perfil.",
+      "name": "Es tu nombre visible. Se cambia en Perfil.",
+      "bio": "Es tu bio. Se cambia en Perfil."
+    },
+    "changeImage": "Cambiar imagen",
+    "font": "Tipografía",
+    "pageFont": "La de la página",
+    "size": "Tamaño de letra",
+    "color": "Color",
+    "colorAuto": "Automático",
+    "align": "Alineación",
+    "aligns": {
+      "left": "Izquierda",
+      "center": "Centro",
+      "right": "Derecha"
+    },
+    "forward": "Adelante",
+    "backward": "Atrás",
+    "duplicate": "Duplicar",
+    "remove": "Quitar",
+    "limits": "Stickers: {{stickers}} de {{stickersMax}} · Textos: {{texts}} de {{textsMax}}",
+    "missing_one": "Un archivo de tu escena ya no está en tu galería y no se muestra. Cámbialo o quítalo.",
+    "missing_other": "{{count}} archivos de tu escena ya no están en tu galería y no se muestran. Cámbialos o quítalos.",
+    "missingShort": "ya no está en la galería",
+    "missingLayer": "Esta imagen ya no está en tu galería: no se muestra en tu página."
   }
 }

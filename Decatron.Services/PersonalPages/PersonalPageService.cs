@@ -75,12 +75,29 @@ public class PersonalPageService(DecatronDbContext db)
             rows.Where(r => r.Kind == "blocked").Select(r => r.Domain).ToHashSet(StringComparer.Ordinal));
     }
 
+    /// <summary>
+    /// Archivos de la Galería de medios del canal (la misma de Timer, Alertas, Metas…): URL pública → tipo (image, gif,
+    /// video, sound). La galería guarda un solo nombre por cuenta: el login de Twitch, o el usuario de Kick si no hay Twitch.
+    /// </summary>
+    public async Task<Dictionary<string, string>> GalleryAsync(long channelUserId)
+    {
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == channelUserId);
+        if (user == null) return new();
+        var linked = user.AccountId != null ? await db.Users.AsNoTracking().Where(u => u.AccountId == user.AccountId).ToListAsync() : new List<User> { user };
+        var name = (linked.FirstOrDefault(u => u.TwitchId != null)?.Login ?? linked.FirstOrDefault(u => u.KickUsername != null)?.KickUsername ?? user.Login ?? "").ToLower();
+        if (name.Length == 0) return new();
+        var files = await db.TimerMediaFiles.AsNoTracking().Where(f => f.ChannelName == name).Select(f => new { f.FilePath, f.FileType }).ToListAsync();
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var f in files) map[MediaPathHelpers.ToPublicPath(f.FilePath)] = f.FileType;
+        return map;
+    }
+
     public async Task SaveDraftAsync(PersonalPage page, PersonalPageContent content, long revision, DateTimeOffset now)
     {
         if (page.Revision != revision) throw new PersonalPageException("stale_revision");
         var policy = await DomainPolicyAsync();
         var normalized = PersonalPageRules.Normalize(content);
-        var errors = PersonalPageRules.Errors(normalized, forPublish: false, policy);
+        var errors = PersonalPageRules.Errors(normalized, forPublish: false, policy, await GalleryAsync(page.ChannelUserId));
         if (errors.Count > 0) throw new PersonalPageException("invalid_content", errors);
         page.Draft = Write(PersonalPageRules.ApplyForced(normalized, policy, page.ForcedAdult));
         Touch(page, now);
@@ -92,7 +109,7 @@ public class PersonalPageService(DecatronDbContext db)
         if (page.Revision != revision) throw new PersonalPageException("stale_revision");
         var policy = await DomainPolicyAsync();
         var draft = PersonalPageRules.Normalize(Read(page.Draft));
-        var errors = PersonalPageRules.Errors(draft, forPublish: true, policy);
+        var errors = PersonalPageRules.Errors(draft, forPublish: true, policy, await GalleryAsync(page.ChannelUserId));
         if (errors.Count > 0) throw new PersonalPageException("incomplete_content", errors);
         draft = PersonalPageRules.ApplyForced(draft, policy, page.ForcedAdult);
         page.Draft = Write(draft);
