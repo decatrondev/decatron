@@ -51,7 +51,8 @@ namespace Decatron.Services
             { "moderation", "moderation" },
             { "user_management", "control_total" },
             { "settings", "control_total" },
-            { "spirits", "control_total" }
+            { "spirits", "control_total" },
+            { "personal_page", "control_total" }
         };
 
         public PermissionService(DecatronDbContext dbContext, ILogger<PermissionService> logger)

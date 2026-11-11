@@ -1,0 +1,361 @@
+{
+  "title": "My page",
+  "subtitle": "Your own space at decatron.net/@yourname: your socials, your photo and your style in one link.",
+  "save": "Save draft",
+  "publish": "Publish",
+  "discard": "Discard changes",
+  "saved": "Draft saved. It is not on your page yet: tap «Publish» when you want to show it.",
+  "publishedOk": "Page published.",
+  "discarded": "Changes discarded: the draft is back to what is published.",
+  "discardConfirm": "Discard unpublished changes? The draft goes back to what is published.",
+  "status": {
+    "unsaved": "Unsaved changes",
+    "unpublishedChanges": "Unpublished changes",
+    "neverPublished": "Not published",
+    "published": "Published and up to date"
+  },
+  "notOpen": {
+    "title": "Not visible to the public yet",
+    "text": "You can prepare and publish your page, but for now only you, people with full control of your channel and the Decatron team can see it. It opens to the public once the protections for 18+ content and the report button are done. This is not an error."
+  },
+  "hiddenNotice": {
+    "title": "Your page is hidden",
+    "noReason": "The Decatron team hid it. Contact us to learn why and how to show it again."
+  },
+  "onboarding": {
+    "title": "Choose your name",
+    "text": "This will be your link: decatron.net/@name. You can change it later, once every 30 days.",
+    "create": "Create my page",
+    "created": "Page created. Start with the Guide.",
+    "takenHelp": "That name already belongs to someone else. Choose another one or, if you think it is yours, send an appeal.",
+    "whatTitle": "What you can do",
+    "what": {
+      "links": "Gather all your socials and links in one place.",
+      "design": "Choose your photo, colors, font and a light or dark theme.",
+      "draft": "Try everything as a draft: nothing shows until you tap «Publish».",
+      "free": "It is free for everyone."
+    }
+  },
+  "tabs": {
+    "guide": "Guide",
+    "profile": "Profile",
+    "links": "Socials and links",
+    "appearance": "Appearance",
+    "name": "Name"
+  },
+  "preview": {
+    "title": "Preview",
+    "phone": "Phone",
+    "desktop": "Desktop",
+    "hint": "Shows the draft as it is on screen, even unsaved.",
+    "linkTitle": "Your link",
+    "copy": "Copy",
+    "copied": "Copied",
+    "open": "Open",
+    "notPublishedYet": "You have not published your page yet: the link shows a notice until you do."
+  },
+  "guide": {
+    "title": "How to get your page ready",
+    "intro": "Your page is a short link with your socials and your style. Everything you change stays as a draft until you publish it.",
+    "steps": {
+      "profile": "upload your photo (or use your channel's), write your display name and a short bio.",
+      "links": "add your socials from the list and any links you want, sort them and hide the ones you do not want to show yet.",
+      "appearance": "choose one of the five templates (Scene, Badge, TV channel, Inventory or Poster), a light or dark theme, the accent color and the font.",
+      "name": "check your @name. You can change it once every 30 days.",
+      "publish": "tap «Publish» so your page shows the changes. «Discard changes» takes the draft back to what is published."
+    },
+    "publishTitle": "Publish",
+    "notesTitle": "Keep in mind",
+    "notes": {
+      "draft": "The preview on the right shows the draft; your public link shows only what is published.",
+      "handle": "When you change your name, the old one leads to your new page for 30 days. After that it is free for someone else.",
+      "appeal": "If someone else already has your name, you can send an appeal from the Name tab. The Decatron team reviews it.",
+      "links": "Links must start with https://. Each social only accepts addresses from that social (for example, Instagram only accepts instagram.com).",
+      "adult": "You can add links to 18+ sites (such as OnlyFans or Fansly). No adult photos or videos are uploaded to Decatron: links only.",
+      "permissions": "You and anyone with full control of your channel can edit your page.",
+      "templates": "All five templates use the same content: you can switch templates any time without losing anything. Inventory and Poster also use each link's size."
+    },
+    "docsPrefix": "More details in the documentation:",
+    "docsLink": "Personal page"
+  },
+  "profile": {
+    "photoTitle": "Photo",
+    "photoHint": "If you do not upload one, your channel photo is used.",
+    "noPhoto": "No photo",
+    "upload": "Upload photo",
+    "useChannelPhoto": "Use my channel photo",
+    "uploadRules": "PNG, JPG, WEBP or GIF up to 10 MB. Saved at 512 px without hidden image data.",
+    "uploaded": "Photo uploaded to the draft.",
+    "uploadedWithAccent": "Photo uploaded to the draft. Its color was also taken for the accent: you can change it in Appearance.",
+    "textTitle": "Name and bio",
+    "displayName": "Display name",
+    "bio": "Bio",
+    "bioPlaceholder": "Say in a few words what you do and when you stream."
+  },
+  "links": {
+    "addTitle": "Add",
+    "addHint": "Pick a social from the list or add a free link with its title.",
+    "network": "Social",
+    "adultTag": "18+",
+    "addNetwork": "Add social",
+    "addCustom": "Add link",
+    "count": "{{count}} of {{max}} links",
+    "empty": "You have not added any links yet.",
+    "customLabel": "Link",
+    "hiddenTag": "Hidden",
+    "up": "Move up",
+    "down": "Move down",
+    "hide": "Hide",
+    "show": "Show",
+    "remove": "Remove",
+    "title": "Title",
+    "titleOptional": "Title (optional)",
+    "titlePlaceholder": "For example: My streaming gear",
+    "url": "Address",
+    "size": {
+      "inventory": {
+        "label": "Slot size",
+        "hint": "Only shows in the Inventory template.",
+        "normal": "1×1",
+        "wide": "2×1",
+        "big": "2×2"
+      },
+      "poster": {
+        "label": "Size on the poster",
+        "hint": "If no social is large, the first one is shown large.",
+        "normal": "Small",
+        "wide": "Medium",
+        "big": "Large"
+      }
+    }
+  },
+  "appearance": {
+    "templateTitle": "Template",
+    "templateHint": "Choose how your page looks. Each preview uses your own content; switching templates erases nothing and suggests that template's font (you can change it below).",
+    "themeTitle": "Theme",
+    "theme": {
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "accentTitle": "Accent color",
+    "accentHint": "Used for your photo border, the scene circle and details.",
+    "accentHex": "Color in #RRGGBB format",
+    "accentFromPhoto": "Take it from my photo",
+    "accentFromPhotoDone": "Color taken from your photo.",
+    "fontTitle": "Font",
+    "fontHint": "Used on your whole page. Archivo and Saira look wider in the name.",
+    "fonts": {
+      "archivo": "Wide and solid, the Scene template's font",
+      "instrument-sans": "Clean and modern",
+      "chivo": "Full of character, great in italics",
+      "saira": "Variable width, a gaming feel",
+      "big-shoulders": "Tall and condensed, poster style",
+      "source-sans-3": "Simple and very readable",
+      "atkinson": "Designed to be easy to read",
+      "literata": "Serif, for a more editorial tone"
+    },
+    "inUse": "In use"
+  },
+  "templates": {
+    "scene": {
+      "name": "Scene",
+      "description": "Your photo and your name in large type over a scene, with your socials below."
+    },
+    "badge": {
+      "name": "Badge",
+      "description": "A backstage pass with your photo, your @name and a QR code to your page; flip it to see your socials."
+    },
+    "channel": {
+      "name": "TV channel",
+      "description": "Your page as a channel: the channel ident on top and your socials as a numbered channel guide."
+    },
+    "inventory": {
+      "name": "Inventory",
+      "description": "Your socials as game inventory slots of different sizes. Tap one to open its card."
+    },
+    "poster": {
+      "name": "Poster",
+      "description": "Your name in huge letters, like a tour poster, and your socials as large, medium or small credits."
+    }
+  },
+  "name": {
+    "handleLabel": "Your page name",
+    "available": "Available",
+    "rules": "3 to 25 characters: lowercase letters, numbers, hyphen and underscore (not at the start or end).",
+    "currentTitle": "Your current link",
+    "needsNewTitle": "Choose a new name",
+    "needsNew": "Your previous name was given to someone else after an appeal. For now your page uses a temporary name: choose a new one whenever you like, without waiting 30 days.",
+    "goChange": "Choose name",
+    "changeTitle": "Change name",
+    "changeHint": "You can change it once every 30 days. The previous name leads to your new page for 30 days.",
+    "change": "Change name",
+    "changed": "Name changed.",
+    "cooldown": "You can change it again from {{date}}."
+  },
+  "appeal": {
+    "title": "Claim a name",
+    "hint": "If a name that belongs to you is already taken, tell us why. The Decatron team reviews it and may assign it to you.",
+    "handle": "Name you are claiming",
+    "message": "Why it belongs to you",
+    "messageHint": "at least 10 characters",
+    "send": "Send appeal",
+    "sent": "Appeal sent. You will see the answer in the Name tab.",
+    "claimThis": "Claim this name",
+    "mineTitle": "My appeals",
+    "withdraw": "Withdraw",
+    "status": {
+      "pending": "Under review",
+      "rejected": "Rejected",
+      "transferred": "Accepted",
+      "withdrawn": "Withdrawn"
+    }
+  },
+  "public": {
+    "madeWith": "Made with Decatron",
+    "adultBadge": "18+",
+    "opensIn": "Opens {{host}}",
+    "noLinks": "No links yet.",
+    "goToPanel": "Go to My page",
+    "goHome": "Go to Decatron",
+    "previewBanner": "Preview: your page is not visible to the public yet.",
+    "hiddenBanner": "Your page is hidden by the Decatron team: only you can see it.",
+    "states": {
+      "not_found": {
+        "title": "This page does not exist",
+        "text": "Check that the name is spelled correctly."
+      },
+      "not_open": {
+        "title": "Not available yet",
+        "text": "Decatron personal pages are opening soon."
+      },
+      "hidden": {
+        "title": "Page not available",
+        "text": "This page is not available right now."
+      },
+      "not_published": {
+        "title": "You have not published your page yet",
+        "text": "What you prepared is a draft. Publish it from My page to show it here."
+      },
+      "failed": {
+        "title": "The page could not be loaded",
+        "text": "Try again in a few minutes."
+      }
+    },
+    "flip": "Flip the badge",
+    "flipBack": "See the front",
+    "whereToFind": "Where to find me",
+    "nowWatching": "Now watching",
+    "guide": "Channel guide",
+    "open": "Open",
+    "findMeAt": "Find me on",
+    "qrAlt": "QR code that opens this page"
+  },
+  "errors": {
+    "failed": "Could not complete. Try again.",
+    "loadFailed": "Your page could not be loaded. Try again in a few minutes.",
+    "forbidden": "Only the channel owner or someone with full control can edit this page.",
+    "not_available": "The personal page is not available on this platform yet.",
+    "length": "The name must be 3 to 25 characters long.",
+    "chars": "Use only lowercase letters, numbers, hyphen and underscore.",
+    "edge": "The name cannot start or end with a hyphen or underscore.",
+    "reserved": "That name is reserved.",
+    "taken": "That name already belongs to someone else.",
+    "redirecting": "That name was released recently and still leads to another page. It becomes free 30 days after the change.",
+    "already_exists": "This channel already has a page.",
+    "stale_revision": "The page changed in another tab or someone else edited it. Reload to see the latest version.",
+    "invalid_content": "Some fields need checking before saving.",
+    "incomplete_content": "Something is missing before you can publish.",
+    "nothing_published": "Nothing is published yet to go back to.",
+    "same_handle": "That is already your name.",
+    "cooldown": "It has not been 30 days since the last name change.",
+    "appeal_message": "Explain the reason in 10 to 1000 characters.",
+    "not_taken": "Nobody has that name: you can choose it directly.",
+    "own_handle": "That name is already yours.",
+    "appeal_pending": "You already have an appeal under review for that name.",
+    "appeal_closed": "That appeal is already closed.",
+    "not_found": "Not found.",
+    "already_reserved": "That name is already reserved.",
+    "no_page": "This channel does not have a page yet.",
+    "channel_not_found": "The channel was not found.",
+    "file_empty": "The file is empty.",
+    "file_too_big": "The image is larger than 10 MB.",
+    "file_not_image": "The file is not a valid image (use PNG, JPG, WEBP or GIF).",
+    "photo_unreadable": "Your photo could not be read to take its color. Pick the color by hand.",
+    "display_name_length": "The display name is too long.",
+    "display_name_required": "Write your display name in Profile.",
+    "bio_length": "The bio is too long.",
+    "avatar": "The photo is not valid. Upload it again.",
+    "template": "That template does not exist.",
+    "theme": "Choose a light or dark theme.",
+    "accent": "The color must use the #RRGGBB format.",
+    "font": "That font is not on the list.",
+    "links_count": "There are too many links.",
+    "link_id": "Link {{n}} is duplicated. Remove it and add it again.",
+    "link_title": "Link {{n}} needs a title of up to 60 characters.",
+    "link_kind": "The social of link {{n}} is not on the list.",
+    "link_url": "The address of link {{n}} is not valid: it must start with https:// and, if it is a social, belong to that social.",
+    "link_size": "The size of link {{n}} is not valid."
+  },
+  "admin": {
+    "back": "Back to admin",
+    "title": "Personal pages",
+    "subtitle": "decatron.net/@name: name appeals, pages and reserved names.",
+    "tabs": {
+      "appeals": "Appeals",
+      "pages": "Pages",
+      "reserved": "Reserved names"
+    },
+    "appeals": {
+      "title": "Appeals",
+      "hint": "Accepting gives the name to the person who appealed; the current owner gets a temporary name and picks another without waiting 30 days.",
+      "filter": "Status",
+      "statuses": {
+        "pending": "Under review",
+        "transferred": "Accepted",
+        "rejected": "Rejected",
+        "withdrawn": "Withdrawn",
+        "all": "All"
+      },
+      "empty": "No appeals with that status.",
+      "who": "Requested by: {{requester}} · Current owner: {{owner}} · {{date}}",
+      "note": "Note",
+      "noteLabel": "Note for the person who appealed (optional)",
+      "transfer": "Assign name",
+      "transferConfirm": "Assign @{{handle}} to {{requester}}? The current owner will have to choose another name.",
+      "transferred": "Name assigned.",
+      "reject": "Reject",
+      "rejected": "Appeal rejected."
+    },
+    "pages": {
+      "title": "Pages",
+      "hint": "Hiding a page removes it from the public; its owner sees the reason in their panel.",
+      "search": "Search by name or channel",
+      "empty": "No pages.",
+      "handle": "Name",
+      "channel": "Channel",
+      "state": "Status",
+      "updated": "Updated",
+      "hidden": "Hidden",
+      "published": "Published",
+      "draftOnly": "Draft only",
+      "show": "Show",
+      "shown": "Page visible again.",
+      "hide": "Hide",
+      "hideReason": "Reason (the owner will see it):",
+      "hiddenOk": "Page hidden."
+    },
+    "reserved": {
+      "title": "Reserved names",
+      "hint": "Nobody can take these names. Useful for brands or people who do not use Decatron yet.",
+      "handle": "Name",
+      "note": "Internal note",
+      "add": "Reserve",
+      "added": "Name reserved.",
+      "empty": "No names reserved by the team.",
+      "remove": "Release",
+      "removed": "Name released.",
+      "builtInTitle": "Fixed reserved names",
+      "builtInHint": "Site routes and system words. They live in the code and cannot be released from here."
+    }
+  }
+}

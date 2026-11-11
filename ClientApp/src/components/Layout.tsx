@@ -1,4 +1,4 @@
-import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins, Tv2 } from 'lucide-react';
+import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins, Tv2, AtSign } from 'lucide-react';
 import decatronLockup from '../assets/decatron-lockup.png';
 import { BrandMark } from '../brand/BrandMark';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
@@ -119,6 +119,14 @@ export default function Layout() {
                     <hr className="my-2 border-ds-border" />
                     <NavLink to="/dashboard" icon={<Home />} label={t('layout:navigation.dashboard')} active={location.pathname === '/dashboard'} />
                     <NavLink to="/settings" icon={<Settings />} label={t('layout:navigation.settings')} active={location.pathname === '/settings'} />
+
+                    {/* Mi página (decatron.net/@nombre): grupo propio; solo decatron.net por ahora y solo quien puede editarla (dueño o control total) */}
+                    {!isTenantHost() && !isDiscordOnly && hasMinimumLevel('control_total') && (
+                        <>
+                            <hr className="my-2 border-ds-border" />
+                            <NavLink to="/mi-pagina" icon={<AtSign />} label={t('layout:navigation.personalPage')} active={location.pathname === '/mi-pagina'} />
+                        </>
+                    )}
 
                     {/* ========== PANEL STREAMER ========== */}
                     {(hasTwitchAccess || !isDiscordOnly) && (

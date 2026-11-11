@@ -1,0 +1,274 @@
+{
+  "overview": {
+    "title": "Página personal",
+    "subtitle": "Un enlace corto, decatron.net/@nombre, con tus redes, tu foto y tu estilo",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada canal puede tener su propia página en decatron.net/@nombre: una sola dirección para compartir todas tus redes y enlaces, con tu foto, tus colores y tu tipografía."
+          },
+          {
+            "t": "p",
+            "x": "Es gratis. No está ligada a ningún otro módulo: la crea quien quiera tenerla."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Por ahora las páginas se pueden preparar y publicar, pero solo las ven su dueño, quienes tienen control total del canal y el equipo de Decatron. Se abren al público cuando terminen las protecciones para contenido de mayores de 18 y el botón para denunciar."
+          }
+        ]
+      },
+      {
+        "id": "nombre",
+        "title": "El nombre",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "De 3 a 25 caracteres: minúsculas, números, guion y guion bajo, sin empezar ni terminar con guion o guion bajo.",
+              "El primero que registra un nombre se lo queda. Si crees que un nombre te corresponde, puedes enviar una apelación y el equipo de Decatron la revisa.",
+              "Se puede cambiar una vez cada 30 días. El nombre anterior lleva a la página nueva durante 30 días y después queda libre.",
+              "Algunos nombres están reservados (rutas del sitio y palabras del sistema)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "contenido",
+        "title": "Qué lleva",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Foto (la del canal o una propia), nombre visible y una bio corta.",
+              "Redes de una lista: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans y Fansly. Cada una solo acepta direcciones de esa red.",
+              "Enlaces libres con su título. Todos tienen que empezar con https://.",
+              "Cinco plantillas a elegir (Escena, Credencial, Canal de TV, Inventario y Póster), en tema claro u oscuro, con el color de acento y la tipografía que elijas. Todas usan el mismo contenido."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Se permiten enlaces a sitios para mayores de 18, pero nunca se suben a Decatron fotos o videos para adultos: solo enlaces."
+          }
+        ]
+      },
+      {
+        "id": "empezar",
+        "title": "Cómo empezar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Inicia sesión, entra a Mi página en el menú del panel, elige tu nombre y sigue la Guía. Nada se muestra hasta que tocas Publicar."
+          },
+          {
+            "t": "link",
+            "to": "personal-page-guide"
+          }
+        ]
+      }
+    ]
+  },
+  "guide": {
+    "title": "Mi página",
+    "subtitle": "Crear, diseñar y publicar tu página decatron.net/@nombre",
+    "cta": {
+      "to": "/mi-pagina",
+      "label": "Abrir Mi página"
+    },
+    "sections": [
+      {
+        "id": "crear",
+        "title": "Crear la página",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Entra a Mi página en el menú del panel.",
+              "Escribe el nombre que quieres. Debajo del campo verás si está disponible.",
+              "Toca Crear mi página. Se crea con el nombre de tu canal, su foto y un color de acento sacado de esa foto."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Si el nombre ya es de otra persona, puedes elegir otro o tocar Reclamar este nombre y explicar por qué te corresponde (de 10 a 1000 caracteres)."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Las pestañas",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Pestaña",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Guía",
+                "Los pasos para dejar la página lista y los avisos importantes."
+              ],
+              [
+                "Perfil",
+                "Foto (subir una o usar la del canal), nombre visible (hasta 50 caracteres) y bio (hasta 300)."
+              ],
+              [
+                "Redes y enlaces",
+                "Agregar redes de la lista o enlaces libres, ordenarlos, ocultarlos o quitarlos."
+              ],
+              [
+                "Apariencia",
+                "Plantilla (con vista previa de cada una usando tu contenido), tema claro u oscuro, color de acento (a mano o sacado de tu foto) y tipografía."
+              ],
+              [
+                "Nombre",
+                "Tu enlace actual, cambiar el nombre, enviar apelaciones y ver su estado."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "A la derecha, la vista previa muestra el borrador en celular o escritorio, incluso antes de guardar."
+          }
+        ]
+      },
+      {
+        "id": "plantillas",
+        "title": "Las plantillas",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Plantilla",
+              "Cómo se ve"
+            ],
+            "rows": [
+              [
+                "Escena",
+                "Tu foto y tu nombre en grande sobre una escena, con las redes como casillas y los enlaces debajo."
+              ],
+              [
+                "Credencial",
+                "Un pase de backstage colgado de una cinta del color de acento, con foto, @nombre y un código QR que abre tu página. Al tocar «Girar la credencial» aparecen tus redes; los enlaces para mayores de 18 van con un sello."
+              ],
+              [
+                "Canal de TV",
+                "La identificación de tu canal arriba y tus redes como una guía de canales numerada."
+              ],
+              [
+                "Inventario",
+                "Tus redes como casillas de inventario de juego. Al tocar una casilla se abre su ficha con el botón Abrir."
+              ],
+              [
+                "Póster",
+                "Tu nombre llena el ancho como en un cartel de gira y tus redes van como créditos."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Cambiar de plantilla no borra nada: todas usan el mismo contenido. Al elegir una se propone su tipografía, y puedes cambiarla.",
+              "En Inventario, cada enlace puede ocupar una casilla de 1×1, 2×1 o 2×2. En Póster, cada red puede ir chica, mediana o grande; si ninguna está en grande, la primera se muestra grande.",
+              "El tamaño se elige en Redes y enlaces y solo aparece cuando usas una de esas dos plantillas."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "borrador",
+        "title": "Borrador y publicación",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Guardar borrador guarda tus cambios sin mostrarlos.",
+              "Publicar muestra en tu enlace lo que tienes en el borrador. Para publicar hace falta un nombre visible.",
+              "Descartar cambios vuelve el borrador a lo que está publicado."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Si editas la página en dos pestañas o la edita otra persona a la vez, al guardar verás un aviso para recargar. Así nadie pisa los cambios del otro sin darse cuenta."
+          }
+        ]
+      },
+      {
+        "id": "foto",
+        "title": "Foto y color",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Se aceptan PNG, JPG, WEBP o GIF de hasta 10 MB. La foto se guarda en 512 px, en WEBP y sin datos ocultos de la imagen.",
+              "Al subir una foto se propone un color de acento sacado de ella. Puedes cambiarlo cuando quieras.",
+              "Sacar de mi foto vuelve a calcular el color a partir de la foto actual."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "enlaces",
+        "title": "Redes y enlaces",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Todos los enlaces tienen que empezar con https://.",
+              "Cada red de la lista solo acepta su propio dominio: por ejemplo, Instagram solo acepta instagram.com.",
+              "Los enlaces libres necesitan un título de hasta 60 caracteres.",
+              "Puedes tener hasta 100 enlaces.",
+              "Un enlace oculto se guarda pero no se muestra en la página."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "nombre",
+        "title": "Cambiar el nombre",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Se puede cambiar una vez cada 30 días. La pestaña Nombre muestra desde qué fecha puedes volver a hacerlo.",
+              "El nombre anterior lleva a tu página nueva durante 30 días. En ese tiempo nadie más puede tomarlo y tú puedes recuperarlo.",
+              "Si el equipo de Decatron acepta una apelación por tu nombre, tu página pasa a un nombre provisional y puedes elegir uno nuevo sin esperar 30 días."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "permisos",
+        "title": "Quién puede editarla",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tú y quienes tengan control total de tu canal. Moderadores y editores con menos permisos no ven Mi página."
+          }
+        ]
+      },
+      {
+        "id": "visible",
+        "title": "Cuándo la ve el público",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Por ahora tu página publicada solo la ven tú, quienes tienen control total y el equipo de Decatron (con un aviso de vista previa arriba). Se abre al público cuando terminen las protecciones para mayores de 18 y el botón para denunciar."
+          },
+          {
+            "t": "p",
+            "x": "Si el equipo de Decatron oculta tu página, verás el motivo en Mi página."
+          }
+        ]
+      }
+    ]
+  }
+}

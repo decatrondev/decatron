@@ -1,0 +1,274 @@
+{
+  "overview": {
+    "title": "Personal page",
+    "subtitle": "A short link, decatron.net/@name, with your socials, your photo and your style",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each channel can have its own page at decatron.net/@name: a single address to share all your socials and links, with your photo, your colors and your font."
+          },
+          {
+            "t": "p",
+            "x": "It is free. It is not tied to any other module: anyone who wants one can create it."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "For now pages can be prepared and published, but only their owner, people with full control of the channel and the Decatron team can see them. They open to the public once the protections for 18+ content and the report button are done."
+          }
+        ]
+      },
+      {
+        "id": "nombre",
+        "title": "The name",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "3 to 25 characters: lowercase letters, numbers, hyphen and underscore, not starting or ending with a hyphen or underscore.",
+              "The first person to register a name keeps it. If you think a name belongs to you, you can send an appeal and the Decatron team reviews it.",
+              "It can be changed once every 30 days. The previous name leads to the new page for 30 days and then becomes free.",
+              "Some names are reserved (site routes and system words)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "contenido",
+        "title": "What it includes",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Photo (your channel's or your own), display name and a short bio.",
+              "Socials from a list: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans and Fansly. Each one only accepts addresses from that social.",
+              "Free links with their title. All of them must start with https://.",
+              "Five templates to choose from (Scene, Badge, TV channel, Inventory and Poster), in a light or dark theme, with the accent color and font you choose. All of them use the same content."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Links to 18+ sites are allowed, but adult photos or videos are never uploaded to Decatron: links only."
+          }
+        ]
+      },
+      {
+        "id": "empezar",
+        "title": "Getting started",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Log in, open My page in the panel menu, choose your name and follow the Guide. Nothing shows until you tap Publish."
+          },
+          {
+            "t": "link",
+            "to": "personal-page-guide"
+          }
+        ]
+      }
+    ]
+  },
+  "guide": {
+    "title": "My page",
+    "subtitle": "Create, design and publish your decatron.net/@name page",
+    "cta": {
+      "to": "/mi-pagina",
+      "label": "Open My page"
+    },
+    "sections": [
+      {
+        "id": "crear",
+        "title": "Create the page",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Open My page in the panel menu.",
+              "Type the name you want. Below the field you will see whether it is available.",
+              "Tap Create my page. It is created with your channel name, its photo and an accent color taken from that photo."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "If the name already belongs to someone else, you can choose another one or tap Claim this name and explain why it belongs to you (10 to 1000 characters)."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "The tabs",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tab",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Guide",
+                "The steps to get the page ready and the important notices."
+              ],
+              [
+                "Profile",
+                "Photo (upload one or use your channel's), display name (up to 50 characters) and bio (up to 300)."
+              ],
+              [
+                "Socials and links",
+                "Add socials from the list or free links, sort them, hide them or remove them."
+              ],
+              [
+                "Appearance",
+                "Template (with a preview of each one using your content), light or dark theme, accent color (by hand or taken from your photo) and font."
+              ],
+              [
+                "Name",
+                "Your current link, change the name, send appeals and see their status."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "On the right, the preview shows the draft on a phone or desktop, even before saving."
+          }
+        ]
+      },
+      {
+        "id": "plantillas",
+        "title": "The templates",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Template",
+              "How it looks"
+            ],
+            "rows": [
+              [
+                "Scene",
+                "Your photo and your name in large type over a scene, with socials as tiles and links below."
+              ],
+              [
+                "Badge",
+                "A backstage pass hanging from a strap in your accent color, with photo, @name and a QR code that opens your page. Tap «Flip the badge» to see your socials; 18+ links carry a stamp."
+              ],
+              [
+                "TV channel",
+                "Your channel ident on top and your socials as a numbered channel guide."
+              ],
+              [
+                "Inventory",
+                "Your socials as game inventory slots. Tap a slot to open its card with the Open button."
+              ],
+              [
+                "Poster",
+                "Your name fills the width like a tour poster and your socials appear as credits."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Switching templates erases nothing: all of them use the same content. Choosing one suggests its font, which you can change.",
+              "In Inventory, each link can take a 1×1, 2×1 or 2×2 slot. In Poster, each social can be small, medium or large; if none is large, the first one is shown large.",
+              "The size is set in Socials and links and only appears when you use one of those two templates."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "borrador",
+        "title": "Draft and publishing",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Save draft keeps your changes without showing them.",
+              "Publish shows on your link what you have in the draft. Publishing needs a display name.",
+              "Discard changes takes the draft back to what is published."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If you edit the page in two tabs or someone else edits it at the same time, you will see a notice to reload when saving. That way nobody overwrites the other's changes without noticing."
+          }
+        ]
+      },
+      {
+        "id": "foto",
+        "title": "Photo and color",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "PNG, JPG, WEBP or GIF up to 10 MB are accepted. The photo is saved at 512 px, as WEBP and without hidden image data.",
+              "When you upload a photo, an accent color taken from it is suggested. You can change it any time.",
+              "Take it from my photo recalculates the color from the current photo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "enlaces",
+        "title": "Socials and links",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Every link must start with https://.",
+              "Each social on the list only accepts its own domain: for example, Instagram only accepts instagram.com.",
+              "Free links need a title of up to 60 characters.",
+              "You can have up to 100 links.",
+              "A hidden link is saved but not shown on the page."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "nombre",
+        "title": "Changing the name",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "It can be changed once every 30 days. The Name tab shows from which date you can do it again.",
+              "The previous name leads to your new page for 30 days. During that time nobody else can take it and you can get it back.",
+              "If the Decatron team accepts an appeal for your name, your page moves to a temporary name and you can choose a new one without waiting 30 days."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "permisos",
+        "title": "Who can edit it",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "You and anyone with full control of your channel. Moderators and editors with fewer permissions do not see My page."
+          }
+        ]
+      },
+      {
+        "id": "visible",
+        "title": "When the public sees it",
+        "blocks": [
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "For now your published page can only be seen by you, people with full control and the Decatron team (with a preview notice at the top). It opens to the public once the 18+ protections and the report button are done."
+          },
+          {
+            "t": "p",
+            "x": "If the Decatron team hides your page, you will see the reason in My page."
+          }
+        ]
+      }
+    ]
+  }
+}

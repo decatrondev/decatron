@@ -48,7 +48,8 @@
     },
     "logout": "Logout",
     "credits": "Credits",
-    "multiview": "Multi-view"
+    "multiview": "Multi-view",
+    "personalPage": "My page"
   },
   "comingSoon": "Coming Soon",
   "tokenExpiration": {

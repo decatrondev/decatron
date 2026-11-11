@@ -85,6 +85,9 @@ import TournamentPublicPage from './pages/TournamentPublicPage';
 import TournamentCallPage from './pages/tournament-call/TournamentCallPage';
 import TournamentCallGuide from './pages/tournament-call/TournamentCallGuide';
 import TournamentCallAdmin from './pages/admin/TournamentCallAdmin';
+import PersonalPagesAdmin from './pages/admin/PersonalPagesAdmin';
+import PersonalPageConfig from './pages/personal-page/PersonalPageConfig';
+import PersonalPagePublic from './pages/personal-page/PersonalPagePublic';
 import MyTournamentPage from './pages/tournament-public/MyTournamentPage';
 import TournamentOverlayPage from './pages/TournamentOverlayPage';
 import TournamentEmbedRankingPage from './pages/TournamentEmbedRankingPage';
@@ -215,6 +218,7 @@ import SpritesGallery from './pages/SpritesGallery';
 import Multiview from './pages/Multiview';
 import ExtensionLogin from './pages/ExtensionLogin';
 import { MultiviewDoc } from './pages/docs/MultiviewDoc';
+import { PersonalPageDoc } from './pages/docs/PersonalPageDoc';
 import SpiritCollection from './pages/SpiritCollection';
 import MySpiritCollection from './pages/me/MySpiritCollection';
 import { PermissionsProvider } from './contexts/PermissionsContext';
@@ -297,6 +301,8 @@ function App() {
                 <Route path="/docs/convocatorias" element={<SafeRoute name="Tournament Call Guide"><TournamentCallGuide /></SafeRoute>} />
                 <Route path="/torneos/:channelName/:editionSlug" element={<SafeRoute name="Tournament Public"><TournamentPublicPage /></SafeRoute>} />
                 <Route path="/torneos/:channelName/:editionSlug/mi-panel" element={<SafeRoute name="My Tournament"><MyTournamentPage /></SafeRoute>} />
+                {/* Página personal decatron.net/@nombre: React Router no admite «@:param», así que es «/:atHandle» (las rutas fijas ganan) */}
+                <Route path="/:atHandle" element={<SafeRoute name="Personal Page Public"><PersonalPagePublic /></SafeRoute>} />
                 <Route path="/overlay/torneo/:token" element={<SafeRoute name="Tournament Overlay"><TournamentOverlayPage /></SafeRoute>} />
                 <Route path="/embed/torneo/:channelName/:editionSlug/ranking" element={<SafeRoute name="Tournament Embed"><TournamentEmbedRankingPage /></SafeRoute>} />
 
@@ -339,6 +345,7 @@ function App() {
                     <Route path="song-request" element={<SongRequestDoc page="overview" scope="public" />} />
                     <Route path="wheel" element={<WheelDoc page="overview" scope="public" />} />
                     <Route path="multiview" element={<MultiviewDoc scope="public" />} />
+                    <Route path="personal-page" element={<PersonalPageDoc scope="public" />} />
                     <Route path="tournaments" element={<TournamentDoc page="overview" scope="public" />} />
                     <Route path="moderation" element={<ModerationDoc page="overview" scope="public" />} />
                     <Route path="translation" element={<TranslationDoc page="overview" scope="public" />} />
@@ -407,6 +414,7 @@ function App() {
                     <Route path="admin/dev-docs" element={<SafeRoute name="Dev Docs"><DevDocs /></SafeRoute>} />
                     <Route path="admin/tts-lab" element={<SafeRoute name="TTS Lab"><TtsLab /></SafeRoute>} />
                     <Route path="admin/convocatorias" element={<SafeRoute name="Tournament Call Admin"><TournamentCallAdmin /></SafeRoute>} />
+                    <Route path="admin/paginas" element={<SafeRoute name="Personal Pages Admin"><PersonalPagesAdmin /></SafeRoute>} />
                     <Route path="admin/estilo" element={<SafeRoute name="Design Guide"><DesignGuide /></SafeRoute>} />
                     <Route path="admin/finance" element={<SafeRoute name="Finanzas"><Finance /></SafeRoute>} />
                     <Route path="admin/clip-command" element={<SafeRoute name="Clip Admin"><ClipCommandAdmin /></SafeRoute>} />
@@ -463,6 +471,7 @@ function App() {
 
                     {/* Viewer Profile */}
                     <Route path="me" element={<SafeRoute name="Profile"><MeOverview /></SafeRoute>} />
+                    <Route path="mi-pagina" element={<SafeRoute name="Personal Page"><PersonalPageConfig /></SafeRoute>} />
                     <Route path="me/account" element={<SafeRoute name="Account"><MeAccount /></SafeRoute>} />
                     <Route path="me/coins" element={<SafeRoute name="Coins"><MeCoins /></SafeRoute>} />
                     <Route path="me/tcg" element={<SafeRoute name="TcgHub"><TcgHub /></SafeRoute>} />
@@ -519,6 +528,7 @@ function App() {
                         <Route path="song-request/overlay" element={<SongRequestDoc page="overlay" scope="private" />} />
                         <Route path="song-request/library" element={<SongRequestDoc page="library" scope="private" />} />
                         <Route path="multiview" element={<MultiviewDoc scope="private" />} />
+                        <Route path="personal-page" element={<PersonalPageDoc scope="private" />} />
                         <Route path="wheel/setup" element={<WheelDoc page="setup" scope="private" />} />
                         <Route path="wheel/prizes" element={<WheelDoc page="prizes" scope="private" />} />
                         <Route path="wheel/credits" element={<WheelDoc page="credits" scope="private" />} />

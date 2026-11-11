@@ -1,0 +1,140 @@
+import { useEffect } from 'react';
+
+// Página personal del streamer (decatron.net/@nombre). Plan: .dev/plans/pagina-personal/PLAN.md
+
+export interface PersonalPageLink {
+    id: string;
+    kind: string; // clave de la red de la lista fija, o "custom"
+    url: string;
+    title: string;
+    visible: boolean;
+    /** Inventario: casilla 1×1, 2×1 o 2×2. Póster: chico, mediano o grande. Las demás plantillas lo ignoran. */
+    size?: 'normal' | 'wide' | 'big' | string;
+}
+
+export interface PersonalPageContent {
+    displayName: string;
+    bio: string;
+    avatarUrl: string;
+    template: string;
+    theme: 'dark' | 'light' | string;
+    accent: string;
+    font: string;
+    links: PersonalPageLink[];
+}
+
+export interface PlatformInfo { key: string; name: string; adult: boolean; example: string }
+
+/** Tipografías permitidas: clave → familia de Google Fonts, parámetros y si tiene eje de ancho (para el nombre expandido). */
+export const FONTS: Record<string, { family: string; query: string; wide: boolean }> = {
+    'archivo': { family: 'Archivo', query: 'Archivo:wdth,wght@62..125,400..900', wide: true },
+    'instrument-sans': { family: 'Instrument Sans', query: 'Instrument+Sans:wdth,wght@75..100,400..700', wide: false },
+    'chivo': { family: 'Chivo', query: 'Chivo:ital,wght@0,400..900;1,700..900', wide: false },
+    'saira': { family: 'Saira', query: 'Saira:wdth,wght@50..125,400..800', wide: true },
+    'big-shoulders': { family: 'Big Shoulders Display', query: 'Big+Shoulders+Display:wght@600..900', wide: false },
+    'source-sans-3': { family: 'Source Sans 3', query: 'Source+Sans+3:wght@400..800', wide: false },
+    'atkinson': { family: 'Atkinson Hyperlegible', query: 'Atkinson+Hyperlegible:wght@400;700', wide: false },
+    'literata': { family: 'Literata', query: 'Literata:opsz,wght@7..72,400..800', wide: false },
+};
+
+/** Carga una o varias tipografías de la lista (una sola etiqueta por familia, se reutiliza entre páginas). */
+export function usePageFonts(keys: string[]) {
+    const joined = keys.filter(k => FONTS[k]).sort().join(',');
+    useEffect(() => {
+        for (const key of joined.split(',').filter(Boolean)) {
+            const id = `pp-font-${key}`;
+            if (document.getElementById(id)) continue;
+            const link = document.createElement('link');
+            link.id = id;
+            link.rel = 'stylesheet';
+            link.href = `https://fonts.googleapis.com/css2?family=${FONTS[key].query}&display=swap`;
+            document.head.appendChild(link);
+        }
+    }, [joined]);
+}
+
+/** Texto oscuro o claro sobre el color de acento, el que más contraste dé. */
+export function textOn(hex: string): string {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+    if (!m) return '#0F1218';
+    const n = parseInt(m[1], 16);
+    const lin = (c: number) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4); };
+    const lum = 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
+    return lum > 0.32 ? '#0F1218' : '#FFFFFF';
+}
+
+/** Iniciales para la casilla de una red (sin logos de terceros). */
+export const PLATFORM_INITIALS: Record<string, string> = {
+    twitch: 'Tw', kick: 'K', youtube: 'Yt', tiktok: 'Tk', instagram: 'Ig', x: 'X', discord: 'Dc', facebook: 'Fb',
+    threads: 'Th', bluesky: 'Bs', onlyfans: 'OF', fansly: 'Fy',
+};
+
+export const PLATFORM_NAMES: Record<string, string> = {
+    twitch: 'Twitch', kick: 'Kick', youtube: 'YouTube', tiktok: 'TikTok', instagram: 'Instagram', x: 'X', discord: 'Discord',
+    facebook: 'Facebook', threads: 'Threads', bluesky: 'Bluesky', onlyfans: 'OnlyFans', fansly: 'Fansly',
+};
+
+export function newLinkId(): string {
+    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+}
+
+export function hostOf(url: string): string {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
+
+/** Plantillas (mismo orden que las maquetas) y la tipografía que se propone al elegir cada una. */
+export const TEMPLATES = ['scene', 'badge', 'channel', 'inventory', 'poster'] as const;
+export const TEMPLATE_FONT: Record<string, string> = {
+    scene: 'archivo', badge: 'instrument-sans', channel: 'chivo', inventory: 'saira', poster: 'big-shoulders',
+};
+/** Plantillas que usan el tamaño de cada enlace. */
+export const TEMPLATES_WITH_SIZE = ['inventory', 'poster'];
+
+export const ADULT_KINDS = ['onlyfans', 'fansly'];
+
+/** Textos que dibujan las plantillas (vienen de personal-page.json → public.*). */
+export interface PageLabels {
+    madeWith: string;
+    adult: string;
+    opensIn: (host: string) => string;
+    noLinks: string;
+    flip: string;
+    flipBack: string;
+    whereToFind: string;
+    nowWatching: string;
+    guide: string;
+    open: string;
+    findMeAt: string;
+    qrAlt: string;
+}
+
+export interface TemplateProps {
+    content: PersonalPageContent;
+    /** Foto del canal en Twitch/Kick, si la página no subió una propia */
+    channelPhotoUrl?: string;
+    labels: PageLabels;
+    /** Nombre de la página (para el QR de la Credencial y el pie) */
+    handle?: string;
+    /** Dentro del panel: sin alto de pantalla completa ni letra que crece con la pantalla */
+    embedded?: boolean;
+}
+
+/** Lo que todas las plantillas sacan del contenido: nombre, iniciales, foto, redes y enlaces visibles. */
+export function pageParts(content: PersonalPageContent, channelPhotoUrl?: string) {
+    const name = content.displayName || '';
+    const links = (content.links ?? []).filter(l => l.visible !== false);
+    return {
+        name,
+        initials: name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('') || '·',
+        photo: content.avatarUrl || channelPhotoUrl || '',
+        accent: /^#[0-9a-f]{6}$/i.test(content.accent) ? content.accent : '#5B8CFF',
+        font: FONTS[content.font] ?? FONTS.archivo,
+        links,
+        networks: links.filter(l => l.kind !== 'custom'),
+        custom: links.filter(l => l.kind === 'custom'),
+        labelOf: (l: PersonalPageLink) => l.title || PLATFORM_NAMES[l.kind] || l.kind,
+        isAdult: (l: PersonalPageLink) => ADULT_KINDS.includes(l.kind),
+    };
+}
+
+export const LINK_REL = 'noopener noreferrer nofollow ugc';

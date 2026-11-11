@@ -613,6 +613,14 @@
     "promo": {
       "title": "Promotions",
       "description": "Decatron cards and banners on your stream"
+    },
+    "personal-page-overview": {
+      "title": "Personal page",
+      "description": "Your short link decatron.net/@name with your socials and your style"
+    },
+    "personal-page-guide": {
+      "title": "My page",
+      "description": "How to create, design and publish your decatron.net/@name page"
     }
   },
   "microCommands": {

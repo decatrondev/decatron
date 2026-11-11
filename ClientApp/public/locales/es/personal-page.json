@@ -1,0 +1,361 @@
+{
+  "title": "Mi página",
+  "subtitle": "Tu espacio propio en decatron.net/@tunombre: tus redes, tu foto y tu estilo en un solo enlace.",
+  "save": "Guardar borrador",
+  "publish": "Publicar",
+  "discard": "Descartar cambios",
+  "saved": "Borrador guardado. Todavía no se ve en tu página: toca «Publicar» cuando quieras mostrarlo.",
+  "publishedOk": "Página publicada.",
+  "discarded": "Cambios descartados: el borrador volvió a lo publicado.",
+  "discardConfirm": "¿Descartar los cambios sin publicar? El borrador vuelve a lo que está publicado.",
+  "status": {
+    "unsaved": "Cambios sin guardar",
+    "unpublishedChanges": "Cambios sin publicar",
+    "neverPublished": "Sin publicar",
+    "published": "Publicada y al día"
+  },
+  "notOpen": {
+    "title": "Todavía no es visible para el público",
+    "text": "Puedes preparar y publicar tu página, pero por ahora solo la ven tú, quienes tienen control total de tu canal y el equipo de Decatron. Se abre al público cuando terminen las protecciones de contenido para mayores de 18 y el botón para denunciar. No es un error."
+  },
+  "hiddenNotice": {
+    "title": "Tu página está oculta",
+    "noReason": "El equipo de Decatron la ocultó. Escríbenos para saber por qué y cómo volver a mostrarla."
+  },
+  "onboarding": {
+    "title": "Elige tu nombre",
+    "text": "Este será tu enlace: decatron.net/@nombre. Puedes cambiarlo después, una vez cada 30 días.",
+    "create": "Crear mi página",
+    "created": "Página creada. Empieza por la Guía.",
+    "takenHelp": "Ese nombre ya es de otra persona. Elige otro o, si crees que te corresponde, envía una apelación.",
+    "whatTitle": "Qué puedes hacer",
+    "what": {
+      "links": "Reunir todas tus redes y enlaces en un solo lugar.",
+      "design": "Elegir foto, colores, tipografía y tema claro u oscuro.",
+      "draft": "Probar todo en borrador: nada se ve hasta que tocas «Publicar».",
+      "free": "Es gratis para todos."
+    }
+  },
+  "tabs": {
+    "guide": "Guía",
+    "profile": "Perfil",
+    "links": "Redes y enlaces",
+    "appearance": "Apariencia",
+    "name": "Nombre"
+  },
+  "preview": {
+    "title": "Vista previa",
+    "phone": "Celular",
+    "desktop": "Escritorio",
+    "hint": "Muestra el borrador tal como está en pantalla, incluso sin guardar.",
+    "linkTitle": "Tu enlace",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "open": "Abrir",
+    "notPublishedYet": "Todavía no publicaste tu página: el enlace muestra un aviso hasta que lo hagas."
+  },
+  "guide": {
+    "title": "Cómo dejar lista tu página",
+    "intro": "Tu página es un enlace corto con tus redes y tu estilo. Todo lo que cambias queda en borrador hasta que lo publicas.",
+    "steps": {
+      "profile": "sube tu foto (o usa la de tu canal), escribe tu nombre visible y una bio corta.",
+      "links": "agrega tus redes de la lista y los enlaces que quieras, ordénalos y oculta los que no quieras mostrar todavía.",
+      "appearance": "elige una de las cinco plantillas (Escena, Credencial, Canal de TV, Inventario o Póster), tema claro u oscuro, el color de acento y la tipografía.",
+      "name": "revisa tu @nombre. Puedes cambiarlo una vez cada 30 días.",
+      "publish": "toca «Publicar» para que tu página muestre los cambios. «Descartar cambios» vuelve el borrador a lo publicado."
+    },
+    "publishTitle": "Publicar",
+    "notesTitle": "Para tener en cuenta",
+    "notes": {
+      "draft": "La vista previa de la derecha muestra el borrador; tu enlace público muestra solo lo publicado.",
+      "handle": "Al cambiar tu nombre, el anterior lleva a tu página nueva durante 30 días. Después queda libre para otra persona.",
+      "appeal": "Si tu nombre ya lo tiene otra persona, puedes enviar una apelación desde la pestaña Nombre. La revisa el equipo de Decatron.",
+      "links": "Los enlaces tienen que empezar con https://. Cada red solo acepta direcciones de esa red (por ejemplo, Instagram solo acepta instagram.com).",
+      "adult": "Puedes agregar enlaces a sitios para mayores de 18 (como OnlyFans o Fansly). No se suben fotos ni videos para adultos a Decatron: solo enlaces.",
+      "permissions": "Pueden editar tu página tú y quienes tengan control total de tu canal.",
+      "templates": "Las cinco plantillas usan el mismo contenido: puedes cambiar de plantilla cuando quieras sin perder nada. Inventario y Póster usan además el tamaño de cada enlace."
+    },
+    "docsPrefix": "Más detalles en la documentación:",
+    "docsLink": "Página personal"
+  },
+  "profile": {
+    "photoTitle": "Foto",
+    "photoHint": "Si no subes una, se usa la foto de tu canal.",
+    "noPhoto": "Sin foto",
+    "upload": "Subir foto",
+    "useChannelPhoto": "Usar la foto de mi canal",
+    "uploadRules": "PNG, JPG, WEBP o GIF de hasta 10 MB. Se guarda en 512 px y sin datos ocultos de la imagen.",
+    "uploaded": "Foto subida al borrador.",
+    "uploadedWithAccent": "Foto subida al borrador. También se tomó su color para el acento: puedes cambiarlo en Apariencia.",
+    "textTitle": "Nombre y bio",
+    "displayName": "Nombre visible",
+    "bio": "Bio",
+    "bioPlaceholder": "Cuenta en pocas palabras qué haces y cuándo transmites."
+  },
+  "links": {
+    "addTitle": "Agregar",
+    "addHint": "Elige una red de la lista o agrega un enlace libre con su título.",
+    "network": "Red",
+    "adultTag": "+18",
+    "addNetwork": "Agregar red",
+    "addCustom": "Agregar enlace",
+    "count": "{{count}} de {{max}} enlaces",
+    "empty": "Todavía no agregaste enlaces.",
+    "customLabel": "Enlace",
+    "hiddenTag": "Oculto",
+    "up": "Subir",
+    "down": "Bajar",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "remove": "Quitar",
+    "title": "Título",
+    "titleOptional": "Título (opcional)",
+    "titlePlaceholder": "Por ejemplo: Mi equipo de transmisión",
+    "url": "Dirección",
+    "size": {
+      "inventory": {
+        "label": "Tamaño de la casilla",
+        "hint": "Solo se nota en la plantilla Inventario.",
+        "normal": "1×1",
+        "wide": "2×1",
+        "big": "2×2"
+      },
+      "poster": {
+        "label": "Tamaño en el póster",
+        "hint": "Si ninguna red está en grande, la primera se muestra grande.",
+        "normal": "Chico",
+        "wide": "Mediano",
+        "big": "Grande"
+      }
+    }
+  },
+  "appearance": {
+    "templateTitle": "Plantilla",
+    "templateHint": "Elige cómo se ve tu página. Cada vista previa usa tu propio contenido; cambiar de plantilla no borra nada y propone la tipografía de esa plantilla (puedes cambiarla abajo).",
+    "themeTitle": "Tema",
+    "theme": {
+      "dark": "Oscuro",
+      "light": "Claro"
+    },
+    "accentTitle": "Color de acento",
+    "accentHint": "Se usa en el borde de tu foto, el círculo de la escena y los detalles.",
+    "accentHex": "Color en formato #RRGGBB",
+    "accentFromPhoto": "Sacar de mi foto",
+    "accentFromPhotoDone": "Color tomado de tu foto.",
+    "fontTitle": "Tipografía",
+    "fontHint": "Se usa en toda tu página. Archivo y Saira se ven más anchas en el nombre.",
+    "fonts": {
+      "archivo": "Ancha y firme, la de la plantilla Escena",
+      "instrument-sans": "Limpia y moderna",
+      "chivo": "Con carácter, buena en itálica",
+      "saira": "De ancho variable, aire de juego",
+      "big-shoulders": "Alta y condensada, de cartel",
+      "source-sans-3": "Sencilla y muy legible",
+      "atkinson": "Pensada para leerse con facilidad",
+      "literata": "Con serifa, para un tono más editorial"
+    },
+    "inUse": "En uso"
+  },
+  "templates": {
+    "scene": {
+      "name": "Escena",
+      "description": "Tu foto y tu nombre en grande sobre una escena, con tus redes debajo."
+    },
+    "badge": {
+      "name": "Credencial",
+      "description": "Un pase de backstage con tu foto, tu @nombre y un QR a tu página; al girarlo aparecen tus redes."
+    },
+    "channel": {
+      "name": "Canal de TV",
+      "description": "Tu página como un canal: la identificación arriba y tus redes como una guía de canales numerada."
+    },
+    "inventory": {
+      "name": "Inventario",
+      "description": "Tus redes como casillas de inventario de juego, de distintos tamaños. Al tocar una se abre su ficha."
+    },
+    "poster": {
+      "name": "Póster",
+      "description": "Tu nombre en letras enormes, como un cartel de gira, y tus redes como créditos grandes, medianos o chicos."
+    }
+  },
+  "name": {
+    "handleLabel": "Nombre de tu página",
+    "available": "Disponible",
+    "rules": "De 3 a 25 caracteres: minúsculas, números, guion y guion bajo (no al principio ni al final).",
+    "currentTitle": "Tu enlace actual",
+    "needsNewTitle": "Elige un nombre nuevo",
+    "needsNew": "Tu nombre anterior se asignó a otra persona tras una apelación. Por ahora tu página usa un nombre provisional: elige uno nuevo cuando quieras, sin esperar 30 días.",
+    "goChange": "Elegir nombre",
+    "changeTitle": "Cambiar nombre",
+    "changeHint": "Puedes cambiarlo una vez cada 30 días. El nombre anterior lleva a tu página nueva durante 30 días.",
+    "change": "Cambiar nombre",
+    "changed": "Nombre cambiado.",
+    "cooldown": "Podrás cambiarlo de nuevo a partir del {{date}}."
+  },
+  "appeal": {
+    "title": "Reclamar un nombre",
+    "hint": "Si un nombre que te corresponde ya lo tiene otra persona, cuéntanos por qué. El equipo de Decatron lo revisa y puede asignártelo.",
+    "handle": "Nombre que reclamas",
+    "message": "Por qué te corresponde",
+    "messageHint": "mínimo 10 caracteres",
+    "send": "Enviar apelación",
+    "sent": "Apelación enviada. Verás la respuesta en la pestaña Nombre.",
+    "claimThis": "Reclamar este nombre",
+    "mineTitle": "Mis apelaciones",
+    "withdraw": "Retirar",
+    "status": {
+      "pending": "En revisión",
+      "rejected": "Rechazada",
+      "transferred": "Aceptada",
+      "withdrawn": "Retirada"
+    }
+  },
+  "public": {
+    "madeWith": "Hecho con Decatron",
+    "adultBadge": "+18",
+    "opensIn": "Abre {{host}}",
+    "noLinks": "Todavía no hay enlaces.",
+    "goToPanel": "Ir a Mi página",
+    "goHome": "Ir a Decatron",
+    "previewBanner": "Vista previa: tu página todavía no es visible para el público.",
+    "hiddenBanner": "Tu página está oculta por el equipo de Decatron: solo la ves tú.",
+    "states": {
+      "not_found": {
+        "title": "Esta página no existe",
+        "text": "Revisa que el nombre esté bien escrito."
+      },
+      "not_open": {
+        "title": "Todavía no disponible",
+        "text": "Las páginas personales de Decatron se abren pronto."
+      },
+      "hidden": {
+        "title": "Página no disponible",
+        "text": "Esta página no está disponible en este momento."
+      },
+      "not_published": {
+        "title": "Todavía no publicaste tu página",
+        "text": "Lo que preparaste está en borrador. Publícala desde Mi página para que se vea aquí."
+      },
+      "failed": {
+        "title": "No se pudo cargar la página",
+        "text": "Vuelve a intentarlo en unos minutos."
+      }
+    },
+    "flip": "Girar la credencial",
+    "flipBack": "Ver el frente",
+    "whereToFind": "Dónde encontrarme",
+    "nowWatching": "Estás viendo",
+    "guide": "Guía de canales",
+    "open": "Abrir",
+    "findMeAt": "Encuéntrame en",
+    "qrAlt": "Código QR que abre esta página"
+  },
+  "errors": {
+    "failed": "No se pudo completar. Vuelve a intentarlo.",
+    "loadFailed": "No se pudo cargar tu página. Vuelve a intentarlo en unos minutos.",
+    "forbidden": "Solo el dueño del canal o alguien con control total puede editar esta página.",
+    "not_available": "La página personal todavía no está disponible en esta plataforma.",
+    "length": "El nombre tiene que tener de 3 a 25 caracteres.",
+    "chars": "Usa solo minúsculas, números, guion y guion bajo.",
+    "edge": "El nombre no puede empezar ni terminar con guion o guion bajo.",
+    "reserved": "Ese nombre está reservado.",
+    "taken": "Ese nombre ya es de otra persona.",
+    "redirecting": "Ese nombre se liberó hace poco y todavía lleva a otra página. Queda libre cuando pasen 30 días desde el cambio.",
+    "already_exists": "Este canal ya tiene una página.",
+    "stale_revision": "La página cambió en otra pestaña o la editó otra persona. Recarga para ver lo último.",
+    "invalid_content": "Hay datos que revisar antes de guardar.",
+    "incomplete_content": "Falta completar algo antes de publicar.",
+    "nothing_published": "Todavía no hay nada publicado a lo que volver.",
+    "same_handle": "Ese ya es tu nombre.",
+    "cooldown": "Todavía no pasaron 30 días desde el último cambio de nombre.",
+    "appeal_message": "Cuenta el motivo en 10 a 1000 caracteres.",
+    "not_taken": "Ese nombre no lo tiene nadie: puedes elegirlo directamente.",
+    "own_handle": "Ese nombre ya es tuyo.",
+    "appeal_pending": "Ya tienes una apelación en revisión por ese nombre.",
+    "appeal_closed": "Esa apelación ya se cerró.",
+    "not_found": "No se encontró.",
+    "already_reserved": "Ese nombre ya está reservado.",
+    "no_page": "Este canal todavía no tiene página.",
+    "channel_not_found": "No se encontró el canal.",
+    "file_empty": "El archivo está vacío.",
+    "file_too_big": "La imagen pesa más de 10 MB.",
+    "file_not_image": "El archivo no es una imagen válida (usa PNG, JPG, WEBP o GIF).",
+    "photo_unreadable": "No se pudo leer tu foto para sacar el color. Elige el color a mano.",
+    "display_name_length": "El nombre visible es demasiado largo.",
+    "display_name_required": "Escribe tu nombre visible en Perfil.",
+    "bio_length": "La bio es demasiado larga.",
+    "avatar": "La foto no es válida. Súbela de nuevo.",
+    "template": "Esa plantilla no existe.",
+    "theme": "Elige tema claro u oscuro.",
+    "accent": "El color tiene que tener el formato #RRGGBB.",
+    "font": "Esa tipografía no está en la lista.",
+    "links_count": "Hay demasiados enlaces.",
+    "link_id": "El enlace {{n}} está repetido. Quítalo y vuelve a agregarlo.",
+    "link_title": "El enlace {{n}} necesita un título de hasta 60 caracteres.",
+    "link_kind": "La red del enlace {{n}} no está en la lista.",
+    "link_url": "La dirección del enlace {{n}} no es válida: tiene que empezar con https:// y, si es una red, ser de esa red.",
+    "link_size": "El tamaño del enlace {{n}} no es válido."
+  },
+  "admin": {
+    "back": "Volver al admin",
+    "title": "Páginas personales",
+    "subtitle": "decatron.net/@nombre: apelaciones por nombres, páginas y nombres reservados.",
+    "tabs": {
+      "appeals": "Apelaciones",
+      "pages": "Páginas",
+      "reserved": "Nombres reservados"
+    },
+    "appeals": {
+      "title": "Apelaciones",
+      "hint": "Aceptar asigna el nombre a quien apeló; el dueño actual recibe un nombre provisional y elige otro sin esperar 30 días.",
+      "filter": "Estado",
+      "statuses": {
+        "pending": "En revisión",
+        "transferred": "Aceptadas",
+        "rejected": "Rechazadas",
+        "withdrawn": "Retiradas",
+        "all": "Todas"
+      },
+      "empty": "No hay apelaciones con ese estado.",
+      "who": "Pide: {{requester}} · Dueño actual: {{owner}} · {{date}}",
+      "note": "Nota",
+      "noteLabel": "Nota para quien apeló (opcional)",
+      "transfer": "Asignar nombre",
+      "transferConfirm": "¿Asignar @{{handle}} a {{requester}}? El dueño actual tendrá que elegir otro nombre.",
+      "transferred": "Nombre asignado.",
+      "reject": "Rechazar",
+      "rejected": "Apelación rechazada."
+    },
+    "pages": {
+      "title": "Páginas",
+      "hint": "Ocultar una página la quita del público; su dueño ve el motivo en su panel.",
+      "search": "Buscar por nombre o canal",
+      "empty": "No hay páginas.",
+      "handle": "Nombre",
+      "channel": "Canal",
+      "state": "Estado",
+      "updated": "Actualizada",
+      "hidden": "Oculta",
+      "published": "Publicada",
+      "draftOnly": "Solo borrador",
+      "show": "Mostrar",
+      "shown": "Página visible otra vez.",
+      "hide": "Ocultar",
+      "hideReason": "Motivo (lo verá el dueño):",
+      "hiddenOk": "Página oculta."
+    },
+    "reserved": {
+      "title": "Nombres reservados",
+      "hint": "Nadie puede tomar estos nombres. Sirven para marcas o personas que todavía no usan Decatron.",
+      "handle": "Nombre",
+      "note": "Nota interna",
+      "add": "Reservar",
+      "added": "Nombre reservado.",
+      "empty": "No hay nombres reservados por el equipo.",
+      "remove": "Liberar",
+      "removed": "Nombre liberado.",
+      "builtInTitle": "Reservados fijos",
+      "builtInHint": "Rutas del sitio y palabras del sistema. Están en el código y no se pueden liberar desde aquí."
+    }
+  }
+}

@@ -50,6 +50,10 @@ namespace Decatron.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<TournamentCallPage> TournamentCallPages { get; set; }
+        public DbSet<PersonalPage> PersonalPages { get; set; }
+        public DbSet<PersonalPageHandleHistory> PersonalPageHandleHistory { get; set; }
+        public DbSet<PersonalPageReservedHandle> PersonalPageReservedHandles { get; set; }
+        public DbSet<PersonalPageHandleAppeal> PersonalPageHandleAppeals { get; set; }
         public DbSet<TournamentCallApplication> TournamentCallApplications { get; set; }
         public DbSet<TournamentCallContribution> TournamentCallContributions { get; set; }
         public DbSet<TournamentCallContributionEvent> TournamentCallContributionEvents { get; set; }

@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
     Clock, Bell, Gift, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
-    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Tv2, Bot, UserCircle, Globe, Clapperboard, Megaphone,
+    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair, Languages, Download, Mic, Tv2, Bot, UserCircle, Globe, Clapperboard, Megaphone, AtSign,
 } from 'lucide-react';
 
 // REGISTRO ÚNICO de las páginas de documentación. De aquí salen el menú lateral, las tarjetas de
@@ -95,6 +95,7 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'wheel-overview', scopes: pub, group: 'modules', path: 'wheel', icon: Disc, color: 'blue' },
     { id: 'multiview', scopes: pub, group: 'modules', path: 'multiview', icon: Tv2, color: 'blue' },
+    { id: 'personal-page-overview', scopes: pub, group: 'modules', path: 'personal-page', icon: AtSign, color: 'blue' },
 
     { id: 'tournament-overview', scopes: pub, group: 'modules', path: 'tournaments', icon: Trophy, color: 'blue' },
 
@@ -126,6 +127,7 @@ export const DOC_PAGES: DocPage[] = [
 
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'multiview-guide', scopes: priv, group: 'features', path: 'multiview', icon: Tv2, color: 'blue' },
+    { id: 'personal-page-guide', scopes: priv, group: 'features', path: 'personal-page', icon: AtSign, color: 'blue' },
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
     { id: 'wheel-credits', scopes: priv, group: 'wheel', path: 'wheel/credits', icon: Coins, color: 'blue' },
