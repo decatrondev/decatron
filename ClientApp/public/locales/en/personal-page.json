@@ -16,7 +16,7 @@
   },
   "notOpen": {
     "title": "Not visible to the public yet",
-    "text": "You can prepare and publish your page, but for now only you, people with full control of your channel and the Decatron team can see it. It opens to the public once the protections for 18+ content and the report button are done. This is not an error."
+    "text": "You can prepare and publish your page, but for now only you, people with full control of your channel and the Decatron team can see it. It will open to the public when the Decatron team enables it. This is not an error."
   },
   "hiddenNotice": {
     "title": "Your page is hidden",
@@ -70,10 +70,11 @@
       "draft": "The preview on the right shows the draft; your public link shows only what is published.",
       "handle": "When you change your name, the old one leads to your new page for 30 days. After that it is free for someone else.",
       "appeal": "If someone else already has your name, you can send an appeal from the Name tab. The Decatron team reviews it.",
-      "links": "Links must start with https://. Each social only accepts addresses from that social (for example, Instagram only accepts instagram.com).",
-      "adult": "You can add links to 18+ sites (such as OnlyFans or Fansly). No adult photos or videos are uploaded to Decatron: links only.",
+      "links": "Links must start with https://. Each network only accepts addresses from that network (for example, Instagram only accepts instagram.com). Link shorteners (bit.ly, tinyurl…) aren't accepted because they hide where the link goes.",
+      "adult": "If your page or a link leads to content for people 18 or older, mark it as 18+ (in Profile for the whole page, or on each link). Known adult sites are marked automatically and can't be unmarked. No adult photos or videos are uploaded to Decatron: only links.",
       "permissions": "You and anyone with full control of your channel can edit your page.",
-      "templates": "All five templates use the same content: you can switch templates any time without losing anything. Inventory and Poster also use each link's size."
+      "templates": "All five templates use the same content: you can switch templates any time without losing anything. Inventory and Poster also use each link's size.",
+      "reports": "Anyone who is signed in can report a page. The Decatron team reviews reports: nothing is hidden automatically, and if your page is hidden you'll see the reason at the top of this panel."
     },
     "docsPrefix": "More details in the documentation:",
     "docsLink": "Personal page"
@@ -248,7 +249,8 @@
     "guide": "Channel guide",
     "open": "Open",
     "findMeAt": "Find me on",
-    "qrAlt": "QR code that opens this page"
+    "qrAlt": "QR code that opens this page",
+    "adultCovered": "Link for people 18 or older"
   },
   "errors": {
     "failed": "Could not complete. Try again.",
@@ -294,16 +296,32 @@
     "link_title": "Link {{n}} needs a title of up to 60 characters.",
     "link_kind": "The social of link {{n}} is not on the list.",
     "link_url": "The address of link {{n}} is not valid: it must start with https:// and, if it is a social, belong to that social.",
-    "link_size": "The size of link {{n}} is not valid."
+    "link_size": "The size of link {{n}} is not valid.",
+    "link_shortener": "Link {{n}} uses a link shortener (bit.ly, tinyurl…). Paste the site's real address.",
+    "link_blocked": "Link {{n}} goes to a site blocked for safety. Remove it to save.",
+    "own_page": "You can't report your own page.",
+    "report_reason": "Choose a reason.",
+    "report_detail": "Details can be up to 1000 characters.",
+    "report_pending": "You already reported this page and it's still under review.",
+    "report_limit": "You sent many reports in a row. Try again later.",
+    "report_closed": "That report is already closed.",
+    "report_action": "That action doesn't exist.",
+    "report_no_link": "The report doesn't point to a link: there's no domain to block.",
+    "domain_invalid": "Enter a valid domain, for example site.com.",
+    "domain_kind": "Choose whether the domain is adult or blocked.",
+    "domain_protected": "That domain belongs to a listed network or to Decatron: it can't be added.",
+    "domain_exists": "That domain is already on the list."
   },
   "admin": {
     "back": "Back to admin",
     "title": "Personal pages",
-    "subtitle": "decatron.net/@name: name appeals, pages and reserved names.",
+    "subtitle": "decatron.net/@name: reports, name appeals, pages, domains and reserved names.",
     "tabs": {
       "appeals": "Appeals",
       "pages": "Pages",
-      "reserved": "Reserved names"
+      "reserved": "Reserved names",
+      "reports": "Reports",
+      "domains": "Domains"
     },
     "appeals": {
       "title": "Appeals",
@@ -342,7 +360,15 @@
       "shown": "Page visible again.",
       "hide": "Hide",
       "hideReason": "Reason (the owner will see it):",
-      "hiddenOk": "Page hidden."
+      "hiddenOk": "Page hidden.",
+      "adult": "18+ (by its owner)",
+      "forcedAdult": "18+ forced",
+      "openReports_one": "{{count}} open report",
+      "openReports_other": "{{count}} open reports",
+      "forceAdult": "Force 18+",
+      "unforceAdult": "Remove forced 18+",
+      "forcedOk": "The page is now 18+.",
+      "unforcedOk": "Forced 18+ removed. The owner decides again."
     },
     "reserved": {
       "title": "Reserved names",
@@ -356,6 +382,106 @@
       "removed": "Name released.",
       "builtInTitle": "Fixed reserved names",
       "builtInHint": "Site routes and system words. They live in the code and cannot be released from here."
+    },
+    "reports": {
+      "title": "Reports",
+      "hint": "Nothing is hidden on its own: you decide each report. Hiding closes every open report for that page.",
+      "filter": "Filter reports",
+      "statuses": {
+        "open": "Open",
+        "resolved": "Resolved",
+        "dismissed": "Dismissed",
+        "all": "All"
+      },
+      "resolutions": {
+        "hidden": "page hidden",
+        "forced_adult": "marked 18+",
+        "domain_blocked": "domain blocked"
+      },
+      "empty": "No reports in this list.",
+      "who": "Reported by {{reporter}} · owner: {{owner}} · {{date}}",
+      "link": "Reported link",
+      "noteLabel": "Note",
+      "noteHint": "If you hide the page, this note is the reason the owner will see.",
+      "actions": {
+        "hide": "Hide page",
+        "force_adult": "Mark page 18+",
+        "block_domain": "Block {{host}}",
+        "dismiss": "Dismiss"
+      },
+      "hideConfirm": "Hide @{{handle}}? It stops being public and its open reports are closed.",
+      "blockConfirm": "Block {{host}}? No link to that site can be saved and existing ones stop showing on every page.",
+      "done": {
+        "hide": "Page hidden.",
+        "force_adult": "Page marked as 18+.",
+        "block_domain": "Domain blocked.",
+        "dismiss": "Report dismissed."
+      }
+    },
+    "domains": {
+      "title": "Domains",
+      "hint": "Added to the fixed lists. They apply to every page, including links already saved.",
+      "domain": "Domain (site.com)",
+      "kind": "Type",
+      "kinds": {
+        "adult": "Adult",
+        "blocked": "Blocked"
+      },
+      "kindsHelp": "Adult: links to that site are always marked 18+. Blocked: they can't be saved and existing ones stop showing. Includes subdomains. Adding an existing one changes its type.",
+      "note": "Internal note (optional)",
+      "add": "Add",
+      "added": "Domain saved.",
+      "empty": "You haven't added any domains yet.",
+      "remove": "Remove",
+      "removed": "Domain removed.",
+      "builtInAdultTitle": "Fixed adult sites",
+      "builtInAdultHint": "Always marked 18+, without being on your list.",
+      "shortenersTitle": "Shorteners not accepted",
+      "shortenersHint": "Not accepted in custom links because they hide the real destination."
     }
+  },
+  "adult": {
+    "pageTitle": "Content for people 18 or older",
+    "pageHint": "Turn it on if your whole page is for adults. If only some links are, mark them one by one in Socials and links.",
+    "pageToggle": "My whole page is 18+",
+    "pageEffect": "Visitors will have to confirm they are 18 or older before seeing it. The page won't show up in search engines and, when the link is shared, the preview has no photo or bio.",
+    "pageForced": "The Decatron team marked your page as 18+ after a report. If you think it's a mistake, contact support.",
+    "linkToggle": "This link is 18+",
+    "linkEffect": "It will be covered until the visitor confirms they are 18 or older.",
+    "linkForced": "Marked as 18+ automatically: it's an adult site."
+  },
+  "ageGate": {
+    "pageText": "This page has links for people 18 or older. To enter, confirm that you are 18 or older.",
+    "confirm": "I'm 18 or older, enter",
+    "leave": "Leave",
+    "note": "This is your own statement: Decatron doesn't verify age. It's remembered in this browser.",
+    "linkTitle": "Link for people 18 or older",
+    "linkText": "This link goes to {{host}}, with content for people 18 or older. Are you 18 or older?",
+    "linkConfirm": "I'm 18 or older, open",
+    "cancel": "Cancel"
+  },
+  "report": {
+    "open": "Report this page",
+    "title": "Report @{{handle}}",
+    "needLogin": "To report, sign in with Twitch, Kick or Discord. This keeps out mass fake reports.",
+    "login": "Sign in",
+    "cancel": "Cancel",
+    "close": "Close",
+    "reasonLabel": "What's wrong with this page?",
+    "reasons": {
+      "adult_unmarked": "Adult content not marked as 18+",
+      "scam": "Scam or dangerous link",
+      "impersonation": "Pretends to be someone else",
+      "hate": "Hate or harassment",
+      "copyright": "Uses copyrighted content",
+      "other": "Something else"
+    },
+    "linkLabel": "What are you reporting?",
+    "wholePage": "The whole page",
+    "detailLabel": "Details (optional)",
+    "detailPlaceholder": "Tell us anything that helps review it.",
+    "send": "Send report",
+    "sent": "Report sent. The Decatron team will review it.",
+    "note": "A person on the Decatron team reviews it. The page owner doesn't see who sent it."
   }
 }

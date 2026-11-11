@@ -21,7 +21,7 @@ namespace Decatron.Controllers
     /// Vista previa al compartir decatron.net/@nombre (Discord, X, WhatsApp…). Mismo patrón que TournamentSharePageController:
     /// nginx manda la ruta acá, se devuelve el index.html con las meta tags y el navegador carga la app igual. Mientras las
     /// páginas no estén abiertas al público (PersonalPages:PublicOpen), o si la página no existe, está oculta o sin publicar,
-    /// salen las meta tags generales (no revela nada). Si este backend cae, nginx sirve el index.html estático.
+    /// salen las meta tags generales (no revela nada). Una página +18 sale neutra (sin foto ni bio) y con noindex. Si este backend cae, nginx sirve el index.html estático.
     /// </summary>
     [AllowAnonymous]
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -47,7 +47,7 @@ namespace Decatron.Controllers
             _baseUrl = (configuration["SongRequest:PublicBaseUrl"] ?? "https://decatron.net").TrimEnd('/');
         }
 
-        private sealed record ShareMeta(string Title, string Description, string Url, string? Image);
+        private sealed record ShareMeta(string Title, string Description, string Url, string? Image, bool Adult = false);
 
         [HttpGet("@{handle}")]
         public async Task<IActionResult> Page(string handle, CancellationToken ct)
@@ -73,6 +73,7 @@ namespace Decatron.Controllers
 
             var html = await System.IO.File.ReadAllTextAsync(indexPath, ct);
             if (meta != null) html = Inject(html, meta);
+            if (meta?.Adult == true) Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
             Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
             return Content(html, "text/html; charset=utf-8", Encoding.UTF8);
         }
@@ -83,10 +84,13 @@ namespace Decatron.Controllers
             if (PersonalPageRules.HandleError(handle) is "length" or "chars" or "edge") return null;
             var page = await _db.PersonalPages.AsNoTracking()
                 .Where(p => p.Handle == handle && p.Status == "active" && p.Published != null)
-                .Select(p => new { p.Handle, p.Published, p.ChannelUserId })
+                .Select(p => new { p.Handle, p.Published, p.ChannelUserId, p.ForcedAdult })
                 .FirstOrDefaultAsync(ct);
             if (page == null) return null;
             var content = PersonalPageService.Read(page.Published);
+            // Página +18: vista previa neutra (sin foto, sin bio ni nombre propio) y sin indexar
+            if (content.Adult || page.ForcedAdult)
+                return new ShareMeta($"@{page.Handle}", "Página con enlaces para mayores de 18 años.", $"{_baseUrl}/@{page.Handle}", null, Adult: true);
             var name = string.IsNullOrWhiteSpace(content.DisplayName) ? $"@{page.Handle}" : content.DisplayName;
             var description = string.IsNullOrWhiteSpace(content.Bio) ? $"Redes y enlaces de {name}." : content.Bio;
             var image = content.AvatarUrl;
@@ -112,6 +116,7 @@ namespace Decatron.Controllers
             var sb = new StringBuilder();
             sb.AppendLine($"    <title>{E(meta.Title)}</title>");
             sb.AppendLine($"    <meta name=\"description\" content=\"{E(meta.Description)}\" />");
+            if (meta.Adult) sb.AppendLine("    <meta name=\"robots\" content=\"noindex, nofollow\" />");
             sb.AppendLine("    <meta property=\"og:site_name\" content=\"Decatron\" />");
             sb.AppendLine("    <meta property=\"og:type\" content=\"profile\" />");
             sb.AppendLine($"    <meta property=\"og:title\" content=\"{E(meta.Title)}\" />");

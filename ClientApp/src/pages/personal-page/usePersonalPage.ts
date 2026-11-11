@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import api from '../../services/api';
-import type { PersonalPageContent, PlatformInfo } from './shared';
+import type { DomainPolicy, PersonalPageContent, PlatformInfo } from './shared';
 
 // Estado del panel de la página personal: lo que devuelve el servidor y el borrador que se edita en pantalla.
 
@@ -13,6 +13,8 @@ export interface PanelPage {
     hasUnpublishedChanges: boolean;
     status: 'active' | 'hidden';
     hiddenReason: string;
+    /** Admin marcó la página como +18: el dueño no puede desmarcarla */
+    forcedAdult: boolean;
     needsNewHandle: boolean;
     canChangeHandle: boolean;
     nextHandleChange: string | null;
@@ -27,6 +29,7 @@ export interface PanelData {
     platforms: PlatformInfo[];
     fonts: string[];
     templates: string[];
+    domains: DomainPolicy;
     limits: { handleMin: number; handleMax: number; displayName: number; bio: number; title: number; links: number; url: number };
 }
 

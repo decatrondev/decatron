@@ -16,7 +16,7 @@
   },
   "notOpen": {
     "title": "Todavía no es visible para el público",
-    "text": "Puedes preparar y publicar tu página, pero por ahora solo la ven tú, quienes tienen control total de tu canal y el equipo de Decatron. Se abre al público cuando terminen las protecciones de contenido para mayores de 18 y el botón para denunciar. No es un error."
+    "text": "Puedes preparar y publicar tu página, pero por ahora solo la ven tú, quienes tienen control total de tu canal y el equipo de Decatron. Se abrirá al público cuando el equipo de Decatron lo habilite. No es un error."
   },
   "hiddenNotice": {
     "title": "Tu página está oculta",
@@ -70,10 +70,11 @@
       "draft": "La vista previa de la derecha muestra el borrador; tu enlace público muestra solo lo publicado.",
       "handle": "Al cambiar tu nombre, el anterior lleva a tu página nueva durante 30 días. Después queda libre para otra persona.",
       "appeal": "Si tu nombre ya lo tiene otra persona, puedes enviar una apelación desde la pestaña Nombre. La revisa el equipo de Decatron.",
-      "links": "Los enlaces tienen que empezar con https://. Cada red solo acepta direcciones de esa red (por ejemplo, Instagram solo acepta instagram.com).",
-      "adult": "Puedes agregar enlaces a sitios para mayores de 18 (como OnlyFans o Fansly). No se suben fotos ni videos para adultos a Decatron: solo enlaces.",
+      "links": "Los enlaces tienen que empezar con https://. Cada red solo acepta direcciones de esa red (por ejemplo, Instagram solo acepta instagram.com). No se aceptan acortadores (bit.ly, tinyurl…) porque esconden adónde lleva el enlace.",
+      "adult": "Si tu página o un enlace lleva a contenido para mayores de 18, márcalo como +18 (en Perfil para toda la página, o en cada enlace). Los sitios para adultos conocidos se marcan solos y no se pueden desmarcar. No se suben fotos ni videos para adultos a Decatron: solo enlaces.",
       "permissions": "Pueden editar tu página tú y quienes tengan control total de tu canal.",
-      "templates": "Las cinco plantillas usan el mismo contenido: puedes cambiar de plantilla cuando quieras sin perder nada. Inventario y Póster usan además el tamaño de cada enlace."
+      "templates": "Las cinco plantillas usan el mismo contenido: puedes cambiar de plantilla cuando quieras sin perder nada. Inventario y Póster usan además el tamaño de cada enlace.",
+      "reports": "Cualquier persona con sesión puede denunciar una página. Las denuncias las revisa el equipo de Decatron: nada se oculta automáticamente, y si se oculta tu página verás el motivo arriba de este panel."
     },
     "docsPrefix": "Más detalles en la documentación:",
     "docsLink": "Página personal"
@@ -248,7 +249,8 @@
     "guide": "Guía de canales",
     "open": "Abrir",
     "findMeAt": "Encuéntrame en",
-    "qrAlt": "Código QR que abre esta página"
+    "qrAlt": "Código QR que abre esta página",
+    "adultCovered": "Enlace para mayores de 18"
   },
   "errors": {
     "failed": "No se pudo completar. Vuelve a intentarlo.",
@@ -294,16 +296,32 @@
     "link_title": "El enlace {{n}} necesita un título de hasta 60 caracteres.",
     "link_kind": "La red del enlace {{n}} no está en la lista.",
     "link_url": "La dirección del enlace {{n}} no es válida: tiene que empezar con https:// y, si es una red, ser de esa red.",
-    "link_size": "El tamaño del enlace {{n}} no es válido."
+    "link_size": "El tamaño del enlace {{n}} no es válido.",
+    "link_shortener": "El enlace {{n}} usa un acortador (bit.ly, tinyurl…). Pega la dirección real del sitio.",
+    "link_blocked": "El enlace {{n}} lleva a un sitio bloqueado por seguridad. Quítalo para poder guardar.",
+    "own_page": "No puedes denunciar tu propia página.",
+    "report_reason": "Elige un motivo.",
+    "report_detail": "El detalle puede tener hasta 1000 caracteres.",
+    "report_pending": "Ya enviaste una denuncia de esta página y todavía está en revisión.",
+    "report_limit": "Enviaste muchas denuncias seguidas. Vuelve a intentarlo más tarde.",
+    "report_closed": "Esa denuncia ya se cerró.",
+    "report_action": "Esa acción no existe.",
+    "report_no_link": "La denuncia no señala un enlace: no hay dominio que bloquear.",
+    "domain_invalid": "Escribe un dominio válido, por ejemplo sitio.com.",
+    "domain_kind": "Elige si el dominio es para adultos o está bloqueado.",
+    "domain_protected": "Ese dominio es de una red de la lista o de Decatron: no se puede agregar.",
+    "domain_exists": "Ese dominio ya está en la lista."
   },
   "admin": {
     "back": "Volver al admin",
     "title": "Páginas personales",
-    "subtitle": "decatron.net/@nombre: apelaciones por nombres, páginas y nombres reservados.",
+    "subtitle": "decatron.net/@nombre: denuncias, apelaciones por nombres, páginas, dominios y nombres reservados.",
     "tabs": {
       "appeals": "Apelaciones",
       "pages": "Páginas",
-      "reserved": "Nombres reservados"
+      "reserved": "Nombres reservados",
+      "reports": "Denuncias",
+      "domains": "Dominios"
     },
     "appeals": {
       "title": "Apelaciones",
@@ -342,7 +360,15 @@
       "shown": "Página visible otra vez.",
       "hide": "Ocultar",
       "hideReason": "Motivo (lo verá el dueño):",
-      "hiddenOk": "Página oculta."
+      "hiddenOk": "Página oculta.",
+      "adult": "+18 (por su dueño)",
+      "forcedAdult": "+18 forzado",
+      "openReports_one": "{{count}} denuncia abierta",
+      "openReports_other": "{{count}} denuncias abiertas",
+      "forceAdult": "Forzar +18",
+      "unforceAdult": "Quitar +18 forzado",
+      "forcedOk": "La página queda como +18.",
+      "unforcedOk": "Se quitó el +18 forzado. El dueño decide de nuevo."
     },
     "reserved": {
       "title": "Nombres reservados",
@@ -356,6 +382,106 @@
       "removed": "Nombre liberado.",
       "builtInTitle": "Reservados fijos",
       "builtInHint": "Rutas del sitio y palabras del sistema. Están en el código y no se pueden liberar desde aquí."
+    },
+    "reports": {
+      "title": "Denuncias",
+      "hint": "Nada se oculta solo: cada denuncia la decides tú. Ocultar cierra todas las denuncias abiertas de esa página.",
+      "filter": "Filtrar denuncias",
+      "statuses": {
+        "open": "Abiertas",
+        "resolved": "Resueltas",
+        "dismissed": "Descartadas",
+        "all": "Todas"
+      },
+      "resolutions": {
+        "hidden": "página oculta",
+        "forced_adult": "marcada +18",
+        "domain_blocked": "dominio bloqueado"
+      },
+      "empty": "No hay denuncias en esta lista.",
+      "who": "Denunció {{reporter}} · dueño: {{owner}} · {{date}}",
+      "link": "Enlace denunciado",
+      "noteLabel": "Nota",
+      "noteHint": "Si ocultas la página, esta nota es el motivo que verá el dueño.",
+      "actions": {
+        "hide": "Ocultar página",
+        "force_adult": "Marcar página +18",
+        "block_domain": "Bloquear {{host}}",
+        "dismiss": "Descartar"
+      },
+      "hideConfirm": "¿Ocultar @{{handle}}? Deja de verse para el público y se cierran sus denuncias abiertas.",
+      "blockConfirm": "¿Bloquear {{host}}? Ningún enlace a ese sitio se podrá guardar y los que ya están dejan de mostrarse en todas las páginas.",
+      "done": {
+        "hide": "Página oculta.",
+        "force_adult": "Página marcada como +18.",
+        "block_domain": "Dominio bloqueado.",
+        "dismiss": "Denuncia descartada."
+      }
+    },
+    "domains": {
+      "title": "Dominios",
+      "hint": "Se suman a las listas fijas. Valen para todas las páginas, también para enlaces ya guardados.",
+      "domain": "Dominio (sitio.com)",
+      "kind": "Tipo",
+      "kinds": {
+        "adult": "Para adultos",
+        "blocked": "Bloqueado"
+      },
+      "kindsHelp": "Para adultos: los enlaces a ese sitio se marcan +18 sí o sí. Bloqueado: no se pueden guardar y los que ya están dejan de mostrarse. Incluye subdominios. Agregar uno que ya existe cambia su tipo.",
+      "note": "Nota interna (opcional)",
+      "add": "Agregar",
+      "added": "Dominio guardado.",
+      "empty": "Todavía no agregaste dominios.",
+      "remove": "Quitar",
+      "removed": "Dominio quitado.",
+      "builtInAdultTitle": "Sitios para adultos fijos",
+      "builtInAdultHint": "Siempre se marcan +18, sin estar en tu lista.",
+      "shortenersTitle": "Acortadores no aceptados",
+      "shortenersHint": "No se aceptan en enlaces propios porque esconden el destino real."
     }
+  },
+  "adult": {
+    "pageTitle": "Contenido para mayores de 18",
+    "pageHint": "Márcalo si tu página entera es para adultos. Si solo algunos enlaces lo son, márcalos uno por uno en Redes y enlaces.",
+    "pageToggle": "Toda mi página es +18",
+    "pageEffect": "Quien entre tendrá que confirmar que tiene 18 años o más antes de verla. La página no aparece en buscadores y, al compartir el enlace, la vista previa sale sin foto ni bio.",
+    "pageForced": "El equipo de Decatron marcó tu página como +18 por una denuncia. Si crees que es un error, escribe a soporte.",
+    "linkToggle": "Este enlace es +18",
+    "linkEffect": "Se mostrará tapado hasta que el visitante confirme que tiene 18 años o más.",
+    "linkForced": "Marcado como +18 automáticamente: es un sitio para adultos."
+  },
+  "ageGate": {
+    "pageText": "Esta página tiene enlaces para mayores de 18 años. Para entrar, confirma que tienes 18 años o más.",
+    "confirm": "Tengo 18 o más, entrar",
+    "leave": "Salir",
+    "note": "Es una declaración tuya: Decatron no verifica la edad. Se recuerda en este navegador.",
+    "linkTitle": "Enlace para mayores de 18",
+    "linkText": "Este enlace lleva a {{host}}, con contenido para mayores de 18 años. ¿Tienes 18 años o más?",
+    "linkConfirm": "Tengo 18 o más, abrir",
+    "cancel": "Cancelar"
+  },
+  "report": {
+    "open": "Denunciar esta página",
+    "title": "Denunciar @{{handle}}",
+    "needLogin": "Para denunciar necesitas iniciar sesión con Twitch, Kick o Discord. Así evitamos denuncias falsas en masa.",
+    "login": "Iniciar sesión",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "reasonLabel": "¿Qué pasa con esta página?",
+    "reasons": {
+      "adult_unmarked": "Contenido para adultos sin marcar como +18",
+      "scam": "Estafa o enlace peligroso",
+      "impersonation": "Se hace pasar por otra persona",
+      "hate": "Odio o acoso",
+      "copyright": "Usa contenido con derechos de autor",
+      "other": "Otro motivo"
+    },
+    "linkLabel": "¿Qué denuncias?",
+    "wholePage": "La página entera",
+    "detailLabel": "Detalle (opcional)",
+    "detailPlaceholder": "Cuéntanos lo que ayude a revisarlo.",
+    "send": "Enviar denuncia",
+    "sent": "Denuncia enviada. La revisará el equipo de Decatron.",
+    "note": "La revisa una persona del equipo de Decatron. El dueño de la página no ve quién la envió."
   }
 }

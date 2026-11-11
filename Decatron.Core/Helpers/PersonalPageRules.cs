@@ -7,7 +7,8 @@ namespace Decatron.Core.Helpers;
 
 /// <summary>Un enlace de la página: una red de la lista fija (Kind = clave de la red) o un enlace libre (Kind = "custom", con título).</summary>
 /// <summary>Size: tamaño del enlace en las plantillas que lo usan (Inventario: casilla 1×1, 2×1 o 2×2; Póster: chico, mediano o grande). Las demás lo ignoran.</summary>
-public sealed record PersonalPageLink(string Id = "", string Kind = "", string Url = "", string Title = "", bool Visible = true, string Size = "normal");
+/// <summary>Adult: el enlace lleva a contenido para mayores de 18 (lo marca el dueño o se fuerza por la red o el dominio, subfase 5.2).</summary>
+public sealed record PersonalPageLink(string Id = "", string Kind = "", string Url = "", string Title = "", bool Visible = true, string Size = "normal", bool Adult = false);
 
 /// <summary>
 /// Contenido de la página personal (borrador o publicado). Es común a todas las plantillas: la plantilla solo decide
@@ -21,10 +22,20 @@ public sealed record PersonalPageContent(
     string Theme = "dark",
     string Accent = "#5B8CFF",
     string Font = "archivo",
-    List<PersonalPageLink>? Links = null);
+    List<PersonalPageLink>? Links = null,
+    bool Adult = false);
 
-/// <summary>Una red de la lista fija: hosts válidos y si es un sitio para adultos (lo usa la subfase 5.2).</summary>
+/// <summary>Una red de la lista fija: hosts válidos y si es un sitio para adultos (sus enlaces van siempre como +18).</summary>
 public sealed record PersonalPagePlatform(string Key, string Name, string[] Hosts, bool Adult = false);
+
+/// <summary>
+/// Dominios que maneja admin (subfase 5.2): «adult» obliga a marcar +18 los enlaces que van ahí; «blocked» (estafas o enlaces
+/// peligrosos) no se puede guardar y deja de mostrarse en la página pública. Se suman a las listas fijas de las reglas.
+/// </summary>
+public sealed record PersonalPageDomainPolicy(IReadOnlySet<string> Adult, IReadOnlySet<string> Blocked)
+{
+    public static readonly PersonalPageDomainPolicy Empty = new(new HashSet<string>(), new HashSet<string>());
+}
 
 /// <summary>Reglas puras de la página personal (sin red, sin base, reloj por parámetro). Plan: .dev/plans/pagina-personal/PLAN.md §9.</summary>
 public static class PersonalPageRules
@@ -39,6 +50,34 @@ public static class PersonalPageRules
     public const int LinksMax = 100;
     public static readonly TimeSpan HandleCooldown = TimeSpan.FromDays(30);
     public static readonly TimeSpan RedirectWindow = TimeSpan.FromDays(30);
+    public const int ReportDetailMax = 1000;
+    /// <summary>Denuncias por persona en 24 horas (freno contra abuso; el limitador por IP va aparte).</summary>
+    public const int ReportsPerDay = 10;
+    public const int DomainNoteMax = 300;
+
+    public static readonly string[] ReportReasons = { "adult_unmarked", "scam", "impersonation", "hate", "copyright", "other" };
+    /// <summary>Lo que admin puede hacer con una denuncia.</summary>
+    public static readonly string[] ReportActions = { "dismiss", "hide", "force_adult", "block_domain" };
+    public static readonly string[] DomainKinds = { "adult", "blocked" };
+
+    /// <summary>
+    /// Acortadores de enlaces: no se aceptan en enlaces propios porque esconden el destino real y se saltarían las listas
+    /// de +18 y de estafas (decisión 2026-11-10).
+    /// </summary>
+    public static readonly HashSet<string> Shorteners = new(StringComparer.Ordinal)
+    {
+        "bit.ly", "bitly.com", "tinyurl.com", "t.co", "goo.gl", "ow.ly", "is.gd", "v.gd", "buff.ly", "cutt.ly", "rebrand.ly", "shorturl.at",
+        "tiny.cc", "s.id", "rb.gy", "t.ly", "bl.ink", "shorte.st", "adf.ly", "ouo.io", "lnkd.in", "trib.al", "soo.gd", "clck.ru", "qr.ae",
+        "short.io", "tiny.one", "u.to", "x.gd", "y2u.be", "1url.com", "chilp.it", "shrtco.de",
+    };
+
+    /// <summary>Sitios para adultos conocidos: sus enlaces van siempre como +18 aunque el dueño no los marque. Admin suma más.</summary>
+    public static readonly HashSet<string> BuiltInAdultDomains = new(StringComparer.Ordinal)
+    {
+        "onlyfans.com", "fansly.com", "fanvue.com", "fancentro.com", "loyalfans.com", "justfor.fans", "manyvids.com", "clips4sale.com",
+        "admireme.vip", "pornhub.com", "xvideos.com", "xnxx.com", "xhamster.com", "redtube.com", "youporn.com", "chaturbate.com",
+        "stripchat.com", "bongacams.com", "cam4.com", "camsoda.com", "myfreecams.com", "livejasmin.com", "fapello.com", "fansone.co",
+    };
 
     /// <summary>Escena, Credencial, Canal de TV, Inventario y Póster (maquetas en .dev/plans/pagina-personal/maquetas/).</summary>
     public static readonly string[] Templates = { "scene", "badge", "channel", "inventory", "poster" };
@@ -141,6 +180,64 @@ public static class PersonalPageRules
     /// <summary>Hosts de fotos de perfil de los que el servidor puede leer la imagen (para sacar el color).</summary>
     public static bool AllowedPhotoHost(string host) => host == "static-cdn.jtvnw.net" || host == "files.kick.com" || host.EndsWith(".kick.com");
 
+    /// <summary>Host en minúsculas (punycode) de una URL absoluta, o vacío.</summary>
+    public static string HostOf(string? url) =>
+        Uri.TryCreate(url ?? "", UriKind.Absolute, out var uri) ? uri.IdnHost.ToLowerInvariant().TrimEnd('.') : "";
+
+    /// <summary>El host es el dominio o un subdominio suyo (m.pornhub.com cae en pornhub.com; notpornhub.com no).</summary>
+    public static bool DomainMatches(string host, string domain) =>
+        host.Length > 0 && domain.Length > 0 && (host == domain || host.EndsWith("." + domain, StringComparison.Ordinal));
+
+    private static bool InSet(string host, IEnumerable<string> domains) => domains.Any(d => DomainMatches(host, d));
+
+    public static bool IsShortener(string host) => InSet(host, Shorteners);
+
+    public static bool IsBlocked(string url, PersonalPageDomainPolicy policy) => InSet(HostOf(url), policy.Blocked);
+
+    /// <summary>El enlace es +18 sí o sí: red para adultos, sitio conocido o dominio que admin marcó como adulto.</summary>
+    public static bool ForcedAdult(PersonalPageLink link, PersonalPageDomainPolicy policy)
+    {
+        if (Platform(link.Kind)?.Adult == true) return true;
+        var host = HostOf(link.Url);
+        return InSet(host, BuiltInAdultDomains) || InSet(host, policy.Adult);
+    }
+
+    /// <summary>Hosts de las redes de la lista fija que no son para adultos: admin no puede bloquearlos ni marcarlos como adultos enteros.</summary>
+    public static bool IsProtectedHost(string domain) =>
+        domain is "decatron.net" or "decatron.top" || domain.EndsWith(".decatron.net") ||
+        Platforms.Where(p => !p.Adult).SelectMany(p => p.Hosts).Any(h => h == domain || DomainMatches(h, domain));
+
+    /// <summary>
+    /// Dominio que escribe admin, normalizado: acepta «https://www.sitio.com/ruta» y deja «sitio.com». null si no es un dominio válido.
+    /// </summary>
+    public static string? NormalizeDomain(string? input)
+    {
+        var raw = (input ?? "").Trim().ToLowerInvariant();
+        if (raw.Length == 0 || raw.Length > 260) return null;
+        if (!raw.Contains("://")) raw = "https://" + raw;
+        if (!Uri.TryCreate(raw, UriKind.Absolute, out var uri) || !string.IsNullOrEmpty(uri.UserInfo)) return null;
+        var host = uri.IdnHost.ToLowerInvariant().TrimEnd('.');
+        if (host.StartsWith("www.")) host = host[4..];
+        return Regex.IsMatch(host, "^(?=.{3,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$") ? host : null;
+    }
+
+    /// <summary>
+    /// Marca como +18 lo que tiene que serlo (red, dominio o página forzada por admin). Se aplica al guardar y otra vez al
+    /// mostrar, porque admin puede agregar dominios después.
+    /// </summary>
+    public static PersonalPageContent ApplyForced(PersonalPageContent c, PersonalPageDomainPolicy policy, bool pageForced) => c with
+    {
+        Adult = c.Adult || pageForced,
+        Links = (c.Links ?? new()).Select(l => ForcedAdult(l, policy) ? l with { Adult = true } : l).ToList(),
+    };
+
+    /// <summary>Lo que ve el visitante: enlaces visibles, sin los de dominios bloqueados y con el +18 forzado aplicado.</summary>
+    public static PersonalPageContent PublicView(PersonalPageContent c, PersonalPageDomainPolicy policy, bool pageForced)
+    {
+        var forced = ApplyForced(c, policy, pageForced);
+        return forced with { Links = forced.Links!.Where(l => l.Visible && !IsBlocked(l.Url, policy)).ToList() };
+    }
+
     /// <summary>Texto limpio: sin caracteres de control (salvo saltos de línea si se piden), espacios recortados.</summary>
     public static string Clean(string? text, bool multiline = false)
     {
@@ -173,8 +270,9 @@ public static class PersonalPageRules
     /// Errores del contenido ya normalizado, como códigos estables que el panel traduce (vacío = válido). Un borrador puede
     /// guardarse a medias; para publicar se exige además un nombre visible.
     /// </summary>
-    public static List<string> Errors(PersonalPageContent c, bool forPublish)
+    public static List<string> Errors(PersonalPageContent c, bool forPublish, PersonalPageDomainPolicy? policy = null)
     {
+        policy ??= PersonalPageDomainPolicy.Empty;
         var errors = new List<string>();
         if (c.DisplayName.Length > DisplayNameMax) errors.Add("display_name_length");
         if (forPublish && c.DisplayName.Length == 0) errors.Add("display_name_required");
@@ -196,6 +294,7 @@ public static class PersonalPageRules
             {
                 if (l.Title.Length == 0 || l.Title.Length > TitleMax) errors.Add($"link_title:{i}");
                 if (!SafeUrl(l.Url)) errors.Add($"link_url:{i}");
+                else if (IsShortener(HostOf(l.Url))) errors.Add($"link_shortener:{i}");
             }
             else
             {
@@ -204,6 +303,7 @@ public static class PersonalPageRules
                 if (l.Title.Length > TitleMax) errors.Add($"link_title:{i}");
                 if (!SafeUrl(l.Url, platform)) errors.Add($"link_url:{i}");
             }
+            if (SafeUrl(l.Url) && IsBlocked(l.Url, policy)) errors.Add($"link_blocked:{i}");
         }
         return errors;
     }

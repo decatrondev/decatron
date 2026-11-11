@@ -24,6 +24,8 @@ public class PersonalPage
     [Column("hidden_reason")] public string HiddenReason { get; set; } = "";
     /// <summary>El dueño perdió el nombre por una apelación y tiene que elegir otro (puede hacerlo sin esperar 30 días).</summary>
     [Column("needs_new_handle")] public bool NeedsNewHandle { get; set; }
+    /// <summary>Admin marcó la página entera como +18 (por una denuncia): el dueño no puede desmarcarla.</summary>
+    [Column("forced_adult")] public bool ForcedAdult { get; set; }
     [Column("revision"), ConcurrencyCheck] public long Revision { get; set; } = 1;
     [Column("created_at")] public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     [Column("updated_at")] public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -61,6 +63,40 @@ public class PersonalPageHandleAppeal
     [Column("message")] public string Message { get; set; } = "";
     /// <summary>pending | rejected | transferred | withdrawn</summary>
     [Column("status")] public string Status { get; set; } = "pending";
+    [Column("review_note")] public string ReviewNote { get; set; } = "";
+    [Column("reviewed_by")] public long? ReviewedBy { get; set; }
+    [Column("reviewed_at")] public DateTimeOffset? ReviewedAt { get; set; }
+    [Column("created_at")] public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+/// <summary>Dominio de la lista de admin: adult (fuerza +18) o blocked (no se puede enlazar). Subfase 5.2.</summary>
+[Table("personal_page_domains")]
+public class PersonalPageDomain
+{
+    [Key, Column("domain")] public string Domain { get; set; } = "";
+    [Column("kind")] public string Kind { get; set; } = "blocked";
+    [Column("note")] public string Note { get; set; } = "";
+    [Column("created_by")] public long? CreatedBy { get; set; }
+    [Column("created_at")] public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+/// <summary>Denuncia de una página (o de un enlace suyo) hecha por alguien con sesión, y lo que decidió admin. Subfase 5.2.</summary>
+[Table("personal_page_reports")]
+public class PersonalPageReport
+{
+    [Key, Column("id")] public long Id { get; set; }
+    [Column("page_id")] public long PageId { get; set; }
+    [Column("reporter_user_id")] public long ReporterUserId { get; set; }
+    /// <summary>adult_unmarked | scam | impersonation | hate | copyright | other</summary>
+    [Column("reason")] public string Reason { get; set; } = "other";
+    [Column("detail")] public string Detail { get; set; } = "";
+    /// <summary>Enlace denunciado (id y URL tal como estaban al denunciar), vacío si es la página entera.</summary>
+    [Column("link_id")] public string LinkId { get; set; } = "";
+    [Column("link_url")] public string LinkUrl { get; set; } = "";
+    /// <summary>open | resolved | dismissed</summary>
+    [Column("status")] public string Status { get; set; } = "open";
+    /// <summary>hidden | forced_adult | domain_blocked (vacío si sigue abierta o se descartó)</summary>
+    [Column("resolution")] public string Resolution { get; set; } = "";
     [Column("review_note")] public string ReviewNote { get; set; } = "";
     [Column("reviewed_by")] public long? ReviewedBy { get; set; }
     [Column("reviewed_at")] public DateTimeOffset? ReviewedAt { get; set; }

@@ -18,7 +18,7 @@
           {
             "t": "note",
             "kind": "info",
-            "x": "Por ahora las páginas se pueden preparar y publicar, pero solo las ven su dueño, quienes tienen control total del canal y el equipo de Decatron. Se abren al público cuando terminen las protecciones para contenido de mayores de 18 y el botón para denunciar."
+            "x": "Por ahora las páginas se pueden preparar y publicar, pero solo las ven su dueño, quienes tienen control total del canal y el equipo de Decatron. Se abrirán al público cuando el equipo de Decatron lo habilite."
           }
         ]
       },
@@ -46,7 +46,7 @@
             "items": [
               "Foto (la del canal o una propia), nombre visible y una bio corta.",
               "Redes de una lista: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans y Fansly. Cada una solo acepta direcciones de esa red.",
-              "Enlaces libres con su título. Todos tienen que empezar con https://.",
+              "Enlaces libres con su título. Todos tienen que empezar con https:// y no se aceptan acortadores (bit.ly, tinyurl…), porque esconden adónde lleva el enlace.",
               "Cinco plantillas a elegir (Escena, Credencial, Canal de TV, Inventario y Póster), en tema claro u oscuro, con el color de acento y la tipografía que elijas. Todas usan el mismo contenido."
             ]
           },
@@ -54,6 +54,27 @@
             "t": "note",
             "kind": "warning",
             "x": "Se permiten enlaces a sitios para mayores de 18, pero nunca se suben a Decatron fotos o videos para adultos: solo enlaces."
+          }
+        ]
+      },
+      {
+        "id": "seguridad",
+        "title": "Mayores de 18 y denuncias",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "El dueño marca como +18 su página entera o cada enlace. Los sitios para adultos conocidos (OnlyFans, Fansly y otros) se marcan solos y no se pueden desmarcar.",
+              "Quien visita una página +18 tiene que confirmar que tiene 18 años o más antes de verla. En una página normal, los enlaces +18 se muestran tapados y piden esa confirmación antes de abrirse. Se recuerda en ese navegador.",
+              "Una página +18 no aparece en buscadores y, al compartir su enlace, la vista previa sale sin foto ni bio.",
+              "En los enlaces propios siempre se ve el dominio real al que llevan.",
+              "Cualquier persona con sesión puede tocar «Denunciar esta página» al pie de la página. Una persona del equipo de Decatron revisa cada denuncia; nada se oculta automáticamente."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "La confirmación de edad es una declaración del visitante: Decatron no verifica la edad de nadie."
           }
         ]
       },
@@ -116,11 +137,11 @@
               ],
               [
                 "Perfil",
-                "Foto (subir una o usar la del canal), nombre visible (hasta 50 caracteres) y bio (hasta 300)."
+                "Foto (subir una o usar la del canal), nombre visible (hasta 50 caracteres), bio (hasta 300) y si toda la página es +18."
               ],
               [
                 "Redes y enlaces",
-                "Agregar redes de la lista o enlaces libres, ordenarlos, ocultarlos o quitarlos."
+                "Agregar redes de la lista o enlaces libres, ordenarlos, ocultarlos, quitarlos y marcar cuáles son +18."
               ],
               [
                 "Apariencia",
@@ -225,7 +246,48 @@
               "Cada red de la lista solo acepta su propio dominio: por ejemplo, Instagram solo acepta instagram.com.",
               "Los enlaces libres necesitan un título de hasta 60 caracteres.",
               "Puedes tener hasta 100 enlaces.",
-              "Un enlace oculto se guarda pero no se muestra en la página."
+              "Un enlace oculto se guarda pero no se muestra en la página.",
+              "No se aceptan acortadores de enlaces (bit.ly, tinyurl…) en los enlaces libres: pega la dirección real del sitio.",
+              "Si un enlace lleva a un sitio bloqueado por seguridad, el editor lo marca en rojo y no deja guardar hasta quitarlo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mayores-18",
+        "title": "Contenido para mayores de 18",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Toda la página: en Perfil, marca «Toda mi página es +18». Quien entre tendrá que confirmar que tiene 18 años o más antes de ver nada.",
+              "Un enlace: en Redes y enlaces, marca «Este enlace es +18». Se muestra tapado hasta que el visitante confirma su edad; si es un enlace libre, su título no se ve hasta entonces.",
+              "OnlyFans, Fansly y otros sitios para adultos conocidos se marcan como +18 solos y no se pueden desmarcar.",
+              "Una página +18 no aparece en buscadores y, al compartirla, la vista previa sale sin foto ni bio.",
+              "Si el equipo de Decatron marca tu página como +18 por una denuncia, el interruptor queda fijo y verás el aviso en Perfil."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "La confirmación de edad es una declaración del visitante, no una verificación. Nunca se suben a Decatron fotos o videos para adultos: solo enlaces."
+          }
+        ]
+      },
+      {
+        "id": "denuncias",
+        "title": "Denuncias",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Al pie de cada página hay un botón «Denunciar esta página». Para usarlo hay que iniciar sesión con Twitch, Kick o Discord. Se elige un motivo (contenido para adultos sin marcar, estafa o enlace peligroso, suplantación, odio o acoso, derechos de autor u otro), y opcionalmente el enlace concreto y un detalle."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Una persona del equipo de Decatron revisa cada denuncia. Nada se oculta automáticamente.",
+              "Puede descartarla, ocultar la página (verás el motivo arriba de Mi página), marcarla como +18 o bloquear el sitio del enlace denunciado.",
+              "Tu página no muestra el botón a ti mismo, y el dueño de una página no ve quién la denunció."
             ]
           }
         ]
@@ -261,7 +323,7 @@
           {
             "t": "note",
             "kind": "warning",
-            "x": "Por ahora tu página publicada solo la ven tú, quienes tienen control total y el equipo de Decatron (con un aviso de vista previa arriba). Se abre al público cuando terminen las protecciones para mayores de 18 y el botón para denunciar."
+            "x": "Por ahora tu página publicada solo la ven tú, quienes tienen control total y el equipo de Decatron (con un aviso de vista previa arriba). Se abrirá al público cuando el equipo de Decatron lo habilite."
           },
           {
             "t": "p",

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowDown, ArrowUp, Eye, EyeOff, Trash2, Upload, Plus } from 'lucide-react';
 import api from '../../services/api';
 import { Card, Field, ScaledCanvas, inputClass } from '../../components/overlay-editor/ui';
-import { FONTS, PLATFORM_NAMES, TEMPLATES, TEMPLATES_WITH_SIZE, TEMPLATE_FONT, newLinkId, usePageFonts, type PersonalPageLink } from './shared';
+import { FONTS, PLATFORM_NAMES, TEMPLATES, TEMPLATES_WITH_SIZE, TEMPLATE_FONT, linkChecks, newLinkId, usePageFonts, type PersonalPageLink } from './shared';
 import TemplateRenderer from './TemplateRenderer';
 import { errorOf, type PersonalPageState } from './usePersonalPage';
 
@@ -39,7 +39,7 @@ export function GuideTab({ onNavigate }: { onNavigate: (tab: PanelTab) => void }
             </Card>
             <Card title={t('guide.notesTitle')}>
                 <ul className="space-y-2 list-disc pl-5 text-sm 3xl:text-base text-ds-soft">
-                    {['draft', 'templates', 'handle', 'appeal', 'links', 'adult', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
+                    {['draft', 'templates', 'handle', 'appeal', 'links', 'adult', 'reports', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
                 </ul>
             </Card>
             <p className="text-sm 3xl:text-base text-ds-soft">
@@ -58,6 +58,7 @@ export function ProfileTab({ s, photoFallback, onMessage }: { s: PersonalPageSta
     const limits = s.data!.limits;
     const file = useRef<HTMLInputElement>(null);
     const photo = draft.avatarUrl || photoFallback;
+    const forced = s.page?.forcedAdult === true;
 
     const upload = async (f: File | undefined) => {
         if (!f) return;
@@ -93,6 +94,16 @@ export function ProfileTab({ s, photoFallback, onMessage }: { s: PersonalPageSta
                     </Field>
                 </div>
             </Card>
+            <Card title={t('adult.pageTitle')} description={t('adult.pageHint')}>
+                <label className={`flex items-start gap-3 ${forced ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <input type="checkbox" className="mt-1 w-5 h-5 accent-ds-accent" checked={forced || draft.adult === true} disabled={forced}
+                        onChange={e => s.edit({ adult: e.target.checked })} />
+                    <span className="text-sm 3xl:text-base text-ds-text">
+                        <span className="font-bold">{t('adult.pageToggle')}</span>
+                        <span className="block text-ds-soft mt-1">{forced ? t('adult.pageForced') : t('adult.pageEffect')}</span>
+                    </span>
+                </label>
+            </Card>
         </div>
     );
 }
@@ -103,7 +114,7 @@ export function LinksTab({ s, errors }: { s: PersonalPageState; errors: string[]
     const { t } = useTranslation('personal-page');
     const errorText = useErrorText();
     const draft = s.draft!;
-    const { platforms, limits } = s.data!;
+    const { platforms, limits, domains } = s.data!;
     const links = draft.links ?? [];
     const [newKind, setNewKind] = useState(platforms[0]?.key ?? 'twitch');
 
@@ -140,12 +151,16 @@ export function LinksTab({ s, errors }: { s: PersonalPageState; errors: string[]
             {links.map((l, i) => {
                 const platform = platforms.find(p => p.key === l.kind);
                 const errs = errorsFor(i);
+                const checks = linkChecks(l, domains);
+                // Lo que ya se ve mientras se escribe no se repite con el error del servidor
+                const live = [checks.shortener && 'link_shortener', checks.blocked && 'link_blocked'].filter(Boolean) as string[];
+                const serverErrs = errs.filter(e => !live.includes(e.split(':')[0]));
                 return (
-                    <div key={l.id} className={`bg-ds-surface rounded-lg border p-4 3xl:p-5 space-y-3 ${errs.length ? 'border-ds-danger/60' : 'border-ds-border'}`}>
+                    <div key={l.id} className={`bg-ds-surface rounded-lg border p-4 3xl:p-5 space-y-3 ${errs.length || live.length ? 'border-ds-danger/60' : 'border-ds-border'}`}>
                         <div className="flex items-center justify-between gap-2">
                             <p className="font-bold text-ds-text text-sm 3xl:text-base min-w-0 truncate">
                                 {l.kind === 'custom' ? t('links.customLabel') : PLATFORM_NAMES[l.kind] ?? l.kind}
-                                {platform?.adult && <span className="ml-2 text-xs font-bold text-ds-warn">{t('links.adultTag')}</span>}
+                                {(checks.forcedAdult || l.adult) && <span className="ml-2 text-xs font-bold text-ds-warn">{t('links.adultTag')}</span>}
                                 {!l.visible && <span className="ml-2 text-xs font-semibold text-ds-soft">{t('links.hiddenTag')}</span>}
                             </p>
                             <div className="flex items-center gap-1 shrink-0">
@@ -173,7 +188,15 @@ export function LinksTab({ s, errors }: { s: PersonalPageState; errors: string[]
                                 </div>
                             </Field>
                         )}
-                        {errs.map(e => <p key={e} className="text-xs 3xl:text-sm text-ds-danger">{errorText(e)}</p>)}
+                        <label className={`flex items-start gap-2 text-sm 3xl:text-base ${checks.forcedAdult ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                            <input type="checkbox" className="mt-0.5 w-4 h-4 accent-ds-accent" checked={checks.forcedAdult || l.adult === true} disabled={checks.forcedAdult}
+                                onChange={e => update(i, { adult: e.target.checked })} />
+                            <span className="text-ds-text">{t('adult.linkToggle')}
+                                <span className="block text-xs 3xl:text-sm text-ds-soft">{checks.forcedAdult ? t('adult.linkForced') : t('adult.linkEffect')}</span>
+                            </span>
+                        </label>
+                        {live.map(code => <p key={code} className="text-xs 3xl:text-sm text-ds-danger">{errorText(`${code}:${i}`)}</p>)}
+                        {serverErrs.map(e => <p key={e} className="text-xs 3xl:text-sm text-ds-danger">{errorText(e)}</p>)}
                     </div>
                 );
             })}

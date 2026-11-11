@@ -47,7 +47,7 @@ const GROUPS: AdminGroup[] = [
             { id: 'global-emotes', name: 'Emotes globales', description: 'El set de emotes de Decatron que se ve en todos los canales, y quién puede manejarlo', icon: <ImageIcon className={ic} />, route: '/admin/global-emotes', ready: true },
             { id: 'platform-waitlist', name: 'Lista de espera (decatron.top)', description: 'Quién se anotó en la landing de la plataforma: confirmados, pendientes, exportar y borrar', icon: <ListChecks className={ic} />, route: '/admin/platform-waitlist', ready: true },
             { id: 'platform-tenants', name: 'Tenants de la plataforma', description: 'Cargar la app de Twitch de cada comprador (secretos solo de escritura, validados contra Twitch)', icon: <KeyRound className={ic} />, route: '/admin/platform-tenants', ready: true },
-            { id: 'personal-pages', name: 'Páginas personales', description: 'decatron.net/@nombre: apelaciones por nombres, ocultar páginas y nombres reservados', icon: <Users className={ic} />, route: '/admin/paginas', ready: true },
+            { id: 'personal-pages', name: 'Páginas personales', description: 'decatron.net/@nombre: denuncias, apelaciones, ocultar páginas, dominios y nombres reservados', icon: <Users className={ic} />, route: '/admin/paginas', ready: true },
             { id: 'clip-command', name: 'Comando !clip', description: 'Disco, uso por canal y tope mensual de descargas', icon: <Clapperboard className={ic} />, route: '/admin/clip-command', ready: true },
             { id: 'ranking', name: 'Ranking global', description: 'Configura el leaderboard global de la plataforma', icon: <TrendingUp className={ic} />, route: '/admin/ranking', ready: false },
         ],

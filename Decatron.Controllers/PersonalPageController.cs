@@ -16,6 +16,7 @@ using Decatron.Services.PersonalPages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -27,7 +28,7 @@ using SixLabors.ImageSharp.Processing;
 namespace Decatron.Controllers;
 
 /// <summary>
-/// Página personal del streamer (decatron.net/@handle), subfase 5.1: panel del streamer, página pública y administración.
+/// Página personal del streamer (decatron.net/@handle), subfases 5.1 y 5.2: panel del streamer, página pública (+18 y denuncias) y administración.
 /// Edita el dueño del canal o quien tenga control total (sección de permisos "personal_page"). Solo decatron.net por ahora:
 /// en un tenant de la plataforma responde not_available. Plan: .dev/plans/pagina-personal/PLAN.md §9.
 /// </summary>
@@ -64,6 +65,7 @@ public class PersonalPageController(
         var channel = await ChannelAsync(channelId);
         var page = await pages.ForChannelAsync(channelId);
         var now = DateTimeOffset.UtcNow;
+        var policy = await pages.DomainPolicyAsync();
         Response.Headers.CacheControl = "no-store";
         return Ok(new
         {
@@ -74,6 +76,13 @@ public class PersonalPageController(
             platforms = PersonalPageRules.Platforms.Select(p => new { key = p.Key, name = p.Name, adult = p.Adult, example = $"https://{p.Hosts[0]}/" }),
             fonts = PersonalPageRules.Fonts,
             templates = PersonalPageRules.Templates,
+            // Para marcar en el editor, mientras se escribe, lo que el servidor va a exigir (+18 forzado, bloqueados, acortadores)
+            domains = new
+            {
+                adult = PersonalPageRules.BuiltInAdultDomains.Concat(policy.Adult).Distinct().OrderBy(d => d),
+                blocked = policy.Blocked.OrderBy(d => d),
+                shorteners = PersonalPageRules.Shorteners.OrderBy(d => d),
+            },
             limits = new
             {
                 handleMin = PersonalPageRules.HandleMin, handleMax = PersonalPageRules.HandleMax, displayName = PersonalPageRules.DisplayNameMax,
@@ -270,15 +279,45 @@ public class PersonalPageController(
         if (page.Published == null) return NotFound(new { code = canManage ? "not_published" : "not_found" });
 
         var channel = await ChannelAsync(page.ChannelUserId);
-        var content = PersonalPageService.Read(page.Published);
+        var content = PersonalPageRules.PublicView(PersonalPageService.Read(page.Published), await pages.DomainPolicyAsync(), page.ForcedAdult);
+        // Página +18: que los buscadores no la indexen (la app además pone la meta robots)
+        if (content.Adult) Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
         return Ok(new
         {
             handle = page.Handle,
-            content = PublicContent(content),
+            content,
+            adult = content.Adult,
             channelPhotoUrl = ChannelPhoto(channel),
             preview = !PublicOpen,
             hidden = page.Status == "hidden",
             canManage,
+            isOwner = UserId() == page.ChannelUserId,
+            reportReasons = PersonalPageRules.ReportReasons,
+        });
+    }
+
+    public record ReportRequest(string Reason, string? Detail, string? LinkId);
+
+    /// <summary>
+    /// Denunciar una página (o un enlace suyo). Con sesión obligatoria (decisión 2026-11-10) y límite por IP además del
+    /// diario por persona. Solo páginas que quien denuncia puede ver.
+    /// </summary>
+    [Authorize, EnableRateLimiting("personal-page-report"), HttpPost("api/public/personal-pages/{handle}/report"), RequestSizeLimit(16 * 1024)]
+    public async Task<IActionResult> Report(string handle, ReportRequest request)
+    {
+        if (tenant.TenantId != 1) return NotFound(new { code = "not_found" });
+        var userId = UserId();
+        if (userId == 0) return Unauthorized();
+        var page = (await pages.ResolveAsync(PersonalPageRules.NormalizeHandle(handle), DateTimeOffset.UtcNow)).Page;
+        if (page == null || page.Published == null) return NotFound(new { code = "not_found" });
+        var canManage = await CanManageAsync(page.ChannelUserId);
+        if ((!PublicOpen && !canManage) || (page.Status == "hidden" && !canManage)) return NotFound(new { code = "not_found" });
+        var tracked = await db.PersonalPages.FirstAsync(p => p.Id == page.Id);
+        return await Run(async () =>
+        {
+            var report = await pages.ReportAsync(tracked, userId, (request.Reason ?? "").Trim().ToLowerInvariant(), request.Detail ?? "", request.LinkId, DateTimeOffset.UtcNow);
+            logger.LogInformation("personal_page.report {ReportId} page {PageId} reason {Reason}", report.Id, page.Id, report.Reason);
+            return Ok(new { ok = true });
         });
     }
 
@@ -298,6 +337,9 @@ public class PersonalPageController(
     public record HideRequest(bool Hidden, string? Reason);
     public record ReservedRequest(string Handle, string? Note);
     public record ReviewRequest(string? Note);
+    public record ForcedAdultRequest(bool Forced);
+    public record DomainRequest(string Domain, string Kind, string? Note);
+    public record ResolveRequest(string Action, string? Note);
 
     [Authorize, RequireSystemOwner, HttpGet("api/admin/personal-pages")]
     public async Task<IActionResult> AdminList([FromQuery] string? q)
@@ -307,12 +349,17 @@ public class PersonalPageController(
             .Join(db.Users.AsNoTracking(), p => p.ChannelUserId, u => u.Id, (p, u) => new { p, u.Login, u.DisplayName });
         if (term.Length > 0) query = query.Where(x => x.p.Handle.Contains(term) || x.Login.ToLower().Contains(term));
         var rows = await query.OrderByDescending(x => x.p.UpdatedAt).Take(200).ToListAsync();
+        var ids = rows.Select(r => r.p.Id).ToList();
+        var openReports = await db.PersonalPageReports.AsNoTracking().Where(r => ids.Contains(r.PageId) && r.Status == "open")
+            .GroupBy(r => r.PageId).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Key, g => g.Count);
         return Ok(new
         {
             pages = rows.Select(x => new
             {
                 x.p.Id, x.p.Handle, channel = x.Login, x.DisplayName, x.p.Status, x.p.HiddenReason, published = x.p.Published != null,
-                x.p.PublishedAt, x.p.UpdatedAt, x.p.NeedsNewHandle,
+                x.p.PublishedAt, x.p.UpdatedAt, x.p.NeedsNewHandle, x.p.ForcedAdult,
+                adult = x.p.ForcedAdult || (x.p.Published != null && PersonalPageService.Read(x.p.Published).Adult),
+                openReports = openReports.GetValueOrDefault(x.p.Id),
             }),
         });
     }
@@ -320,6 +367,56 @@ public class PersonalPageController(
     [Authorize, RequireSystemOwner, HttpPost("api/admin/personal-pages/{id:long}/visibility")]
     public Task<IActionResult> AdminVisibility(long id, HideRequest request) =>
         Run(async () => { await pages.SetHiddenAsync(id, request.Hidden, request.Reason ?? "", DateTimeOffset.UtcNow); return Ok(new { ok = true }); });
+
+    [Authorize, RequireSystemOwner, HttpPost("api/admin/personal-pages/{id:long}/forced-adult")]
+    public Task<IActionResult> AdminForcedAdult(long id, ForcedAdultRequest request) =>
+        Run(async () => { await pages.SetForcedAdultAsync(id, request.Forced, DateTimeOffset.UtcNow); return Ok(new { ok = true }); });
+
+    [Authorize, RequireSystemOwner, HttpGet("api/admin/personal-pages/reports")]
+    public async Task<IActionResult> AdminReports([FromQuery] string? status)
+    {
+        var st = string.IsNullOrWhiteSpace(status) ? "open" : status.Trim().ToLowerInvariant();
+        var rows = await db.PersonalPageReports.AsNoTracking()
+            .Where(r => st == "all" || r.Status == st)
+            .OrderBy(r => r.CreatedAt).Take(200)
+            .Join(db.PersonalPages.AsNoTracking(), r => r.PageId, p => p.Id, (r, p) => new { r, p.Handle, p.Status, p.ForcedAdult, p.ChannelUserId })
+            .Join(db.Users.AsNoTracking(), x => x.r.ReporterUserId, u => u.Id, (x, u) => new { x, reporter = u.Login })
+            .ToListAsync();
+        var ownerIds = rows.Select(r => r.x.ChannelUserId).Distinct().ToList();
+        var owners = await db.Users.AsNoTracking().Where(u => ownerIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Login);
+        return Ok(new
+        {
+            reports = rows.Select(r => new
+            {
+                r.x.r.Id, r.x.r.Reason, r.x.r.Detail, r.x.r.LinkUrl, r.x.r.Status, r.x.r.Resolution, r.x.r.ReviewNote, r.x.r.CreatedAt, r.x.r.ReviewedAt,
+                r.x.r.PageId, handle = r.x.Handle, pageStatus = r.x.Status, forcedAdult = r.x.ForcedAdult, r.reporter,
+                owner = owners.GetValueOrDefault(r.x.ChannelUserId),
+                linkHost = PersonalPageRules.HostOf(r.x.r.LinkUrl),
+                canBlockDomain = r.x.r.LinkUrl.Length > 0 && PersonalPageRules.NormalizeDomain(PersonalPageRules.HostOf(r.x.r.LinkUrl)) is { } d && !PersonalPageRules.IsProtectedHost(d),
+            }),
+        });
+    }
+
+    [Authorize, RequireSystemOwner, HttpPost("api/admin/personal-pages/reports/{id:long}/resolve")]
+    public Task<IActionResult> AdminResolveReport(long id, ResolveRequest request) =>
+        Run(async () => { await pages.ResolveReportAsync(id, (request.Action ?? "").Trim().ToLowerInvariant(), request.Note ?? "", UserId(), DateTimeOffset.UtcNow); return Ok(new { ok = true }); });
+
+    [Authorize, RequireSystemOwner, HttpGet("api/admin/personal-pages/domains")]
+    public async Task<IActionResult> AdminDomains() =>
+        Ok(new
+        {
+            domains = await db.PersonalPageDomains.AsNoTracking().OrderBy(d => d.Kind).ThenBy(d => d.Domain).Select(d => new { d.Domain, d.Kind, d.Note, d.CreatedAt }).ToListAsync(),
+            builtInAdult = PersonalPageRules.BuiltInAdultDomains.OrderBy(d => d),
+            shorteners = PersonalPageRules.Shorteners.OrderBy(d => d),
+        });
+
+    [Authorize, RequireSystemOwner, HttpPost("api/admin/personal-pages/domains")]
+    public Task<IActionResult> AdminAddDomain(DomainRequest request) =>
+        Run(async () => { await pages.AddDomainAsync(request.Domain ?? "", (request.Kind ?? "").Trim().ToLowerInvariant(), request.Note ?? "", UserId(), DateTimeOffset.UtcNow); return Ok(new { ok = true }); });
+
+    [Authorize, RequireSystemOwner, HttpDelete("api/admin/personal-pages/domains/{domain}")]
+    public Task<IActionResult> AdminRemoveDomain(string domain) =>
+        Run(async () => { await pages.RemoveDomainAsync(domain); return Ok(new { ok = true }); });
 
     [Authorize, RequireSystemOwner, HttpGet("api/admin/personal-pages/reserved")]
     public async Task<IActionResult> AdminReserved() =>
@@ -441,15 +538,12 @@ public class PersonalPageController(
         hasUnpublishedChanges = PersonalPageService.HasUnpublishedChanges(page),
         status = page.Status,
         hiddenReason = page.HiddenReason,
+        forcedAdult = page.ForcedAdult,
         needsNewHandle = page.NeedsNewHandle,
         canChangeHandle = page.NeedsNewHandle || PersonalPageRules.CanChangeHandle(page.HandleChangedAt, now),
         nextHandleChange = page.NeedsNewHandle ? null : PersonalPageRules.NextHandleChange(page.HandleChangedAt, now),
         revision = page.Revision,
     };
-
-    /// <summary>Lo publicado sin enlaces ocultos.</summary>
-    private static PersonalPageContent PublicContent(PersonalPageContent c) =>
-        c with { Links = (c.Links ?? new()).Where(l => l.Visible).ToList() };
 
     private bool TryOwnAsset(PersonalPage page, string? url, out string path)
     {

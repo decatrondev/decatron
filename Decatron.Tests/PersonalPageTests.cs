@@ -205,6 +205,98 @@ public class PersonalPageRulesTests
         Assert.Equal("scene", c.Template);
         Assert.Equal("#5B8CFF", PersonalPageRules.Initial("Kira", "rojo").Accent);
     }
+    // ---------- Subfase 5.2: +18, dominios, acortadores y denuncias ----------
+
+    private static PersonalPageDomainPolicy Policy(string[]? adult = null, string[]? blocked = null) =>
+        new((adult ?? Array.Empty<string>()).ToHashSet(), (blocked ?? Array.Empty<string>()).ToHashSet());
+
+    [Theory]
+    [InlineData("pornhub.com", "pornhub.com", true)]
+    [InlineData("m.pornhub.com", "pornhub.com", true)]
+    [InlineData("notpornhub.com", "pornhub.com", false)]
+    [InlineData("pornhub.com.evil.net", "pornhub.com", false)]
+    [InlineData("", "pornhub.com", false)]
+    public void DomainMatchesOnlyTheDomainAndItsSubdomains(string host, string domain, bool ok) => Assert.Equal(ok, PersonalPageRules.DomainMatches(host, domain));
+
+    [Theory]
+    [InlineData("https://www.Sitio.com/ruta?x=1", "sitio.com")]
+    [InlineData("sitio.com", "sitio.com")]
+    [InlineData("  SUB.sitio.co.uk ", "sub.sitio.co.uk")]
+    [InlineData("https://usuario:clave@sitio.com", null)]
+    [InlineData("no es un dominio", null)]
+    [InlineData("localhost", null)]
+    [InlineData("", null)]
+    public void AdminDomainsAreNormalized(string input, string? expected) => Assert.Equal(expected, PersonalPageRules.NormalizeDomain(input));
+
+    [Theory]
+    [InlineData("instagram.com", true)]
+    [InlineData("youtu.be", true)]
+    [InlineData("decatron.net", true)]
+    [InlineData("onlyfans.com", false)]
+    [InlineData("sitio-raro.xyz", false)]
+    public void PlatformHostsCannotBeBlocked(string domain, bool isProtected) => Assert.Equal(isProtected, PersonalPageRules.IsProtectedHost(domain));
+
+    [Fact]
+    public void ShortenersAreRejectedInCustomLinks()
+    {
+        var c = Valid() with { Links = new() { new("a", "custom", "https://bit.ly/abc", "Mi tienda"), new("b", "custom", "https://mi-tienda.com", "Tienda") } };
+        var errors = PersonalPageRules.Errors(c, forPublish: false);
+        Assert.Contains("link_shortener:0", errors);
+        Assert.DoesNotContain("link_shortener:1", errors);
+    }
+
+    [Fact]
+    public void BlockedDomainsCannotBeSavedButOthersCan()
+    {
+        var c = Valid() with { Links = new() { new("a", "custom", "https://login.estafa.example/x", "Premio"), new("b", "custom", "https://bueno.example", "Bueno") } };
+        var errors = PersonalPageRules.Errors(c, forPublish: false, Policy(blocked: new[] { "estafa.example" }));
+        Assert.Contains("link_blocked:0", errors);
+        Assert.DoesNotContain("link_blocked:1", errors);
+        Assert.Empty(PersonalPageRules.Errors(c, forPublish: false));
+    }
+
+    [Fact]
+    public void AdultIsForcedByPlatformKnownSiteOrAdminDomain()
+    {
+        var policy = Policy(adult: new[] { "nuevo-adulto.example" });
+        Assert.True(PersonalPageRules.ForcedAdult(new("a", "onlyfans", "https://onlyfans.com/kira"), policy));
+        Assert.True(PersonalPageRules.ForcedAdult(new("b", "custom", "https://es.pornhub.com/model/x", "Canal"), policy));
+        Assert.True(PersonalPageRules.ForcedAdult(new("c", "custom", "https://nuevo-adulto.example/kira", "Otro"), policy));
+        Assert.False(PersonalPageRules.ForcedAdult(new("d", "instagram", "https://instagram.com/kira"), policy));
+    }
+
+    [Fact]
+    public void ApplyForcedMarksLinksAndKeepsOwnerMarks()
+    {
+        var c = Valid() with { Links = new() { new("a", "onlyfans", "https://onlyfans.com/kira"), new("b", "custom", "https://mi.example", "Mío", Adult: true), new("c", "twitch", "https://twitch.tv/kira") } };
+        var forced = PersonalPageRules.ApplyForced(c, PersonalPageDomainPolicy.Empty, pageForced: false);
+        Assert.Equal(new[] { true, true, false }, forced.Links!.Select(l => l.Adult));
+        Assert.False(forced.Adult);
+        Assert.True(PersonalPageRules.ApplyForced(c, PersonalPageDomainPolicy.Empty, pageForced: true).Adult);
+        Assert.True(PersonalPageRules.ApplyForced(c with { Adult = true }, PersonalPageDomainPolicy.Empty, pageForced: false).Adult);
+    }
+
+    [Fact]
+    public void PublicViewDropsHiddenAndLaterBlockedLinks()
+    {
+        var c = Valid() with { Links = new()
+        {
+            new("a", "twitch", "https://twitch.tv/kira"),
+            new("b", "custom", "https://ahora-estafa.example", "Antes bueno"),
+            new("c", "youtube", "https://youtube.com/@kira", Visible: false),
+            new("d", "custom", "https://adulto-nuevo.example", "Otro"),
+        } };
+        var view = PersonalPageRules.PublicView(c, Policy(adult: new[] { "adulto-nuevo.example" }, blocked: new[] { "ahora-estafa.example" }), pageForced: false);
+        Assert.Equal(new[] { "a", "d" }, view.Links!.Select(l => l.Id));
+        Assert.True(view.Links!.Single(l => l.Id == "d").Adult);
+    }
+
+    [Fact]
+    public void ReportReasonsAndActionsAreTheAgreedOnes()
+    {
+        Assert.Equal(new[] { "adult_unmarked", "scam", "impersonation", "hate", "copyright", "other" }, PersonalPageRules.ReportReasons);
+        Assert.Equal(new[] { "dismiss", "hide", "force_adult", "block_domain" }, PersonalPageRules.ReportActions);
+    }
 }
 
 internal sealed class PersonalPageDbFactAttribute : FactAttribute
@@ -398,5 +490,118 @@ public class PersonalPageDbTests
         await service.SetHiddenAsync(page.Id, false, "", Now);
         await db.Entry(page).ReloadAsync();
         Assert.Equal("active", page.Status); Assert.Equal("", page.HiddenReason);
+    });
+
+    // ---------- Subfase 5.2 ----------
+
+    private static string Domain() => "pp" + Guid.NewGuid().ToString("N")[..10] + ".example";
+
+    private static async Task<PersonalPage> Published(DecatronDbContext db, PersonalPageService service, long channelId, PersonalPageContent? content = null)
+    {
+        var page = await service.CreateAsync(channelId, Handle(), Initial(), Now);
+        if (content != null) await service.SaveDraftAsync(page, content, page.Revision, Now);
+        await service.PublishAsync(page, page.Revision, Now);
+        return page;
+    }
+
+    [PersonalPageDbFact]
+    public Task SavingMarksForcedAdultLinksAndRejectsBlockedDomains() => WithDb(async db =>
+    {
+        var a = await Channel(db); var service = new PersonalPageService(db); var admin = await Channel(db);
+        var blocked = Domain(); var adult = Domain();
+        await service.AddDomainAsync($"https://www.{blocked}/x", "blocked", "estafa", admin.Id, Now);
+        await service.AddDomainAsync(adult, "adult", "", admin.Id, Now);
+        var page = await service.CreateAsync(a.Id, Handle(), Initial(), Now);
+        var bad = PersonalPageService.Read(page.Draft) with { Links = new() { new("x", "custom", $"https://{blocked}/premio", "Premio") } };
+        var error = await Assert.ThrowsAsync<PersonalPageException>(() => service.SaveDraftAsync(page, bad, page.Revision, Now));
+        Assert.Contains("link_blocked:0", error.Details);
+        var ok = PersonalPageService.Read(page.Draft) with { Links = new() { new("y", "custom", $"https://{adult}/kira", "Otro"), new("z", "onlyfans", "https://onlyfans.com/kira") } };
+        await service.SaveDraftAsync(page, ok, page.Revision, Now);
+        Assert.All(PersonalPageService.Read(page.Draft).Links!, l => Assert.True(l.Adult));
+    });
+
+    [PersonalPageDbFact]
+    public Task PlatformDomainsAndDecatronCannotBeAdded() => WithDb(async db =>
+    {
+        var admin = await Channel(db); var service = new PersonalPageService(db);
+        Assert.Equal("domain_protected", (await Assert.ThrowsAsync<PersonalPageException>(() => service.AddDomainAsync("instagram.com", "blocked", "", admin.Id, Now))).Code);
+        Assert.Equal("domain_protected", (await Assert.ThrowsAsync<PersonalPageException>(() => service.AddDomainAsync("decatron.net", "adult", "", admin.Id, Now))).Code);
+        Assert.Equal("domain_invalid", (await Assert.ThrowsAsync<PersonalPageException>(() => service.AddDomainAsync("nada", "blocked", "", admin.Id, Now))).Code);
+        Assert.Equal("domain_kind", (await Assert.ThrowsAsync<PersonalPageException>(() => service.AddDomainAsync(Domain(), "raro", "", admin.Id, Now))).Code);
+        var d = Domain();
+        await service.AddDomainAsync(d, "adult", "", admin.Id, Now);
+        await service.AddDomainAsync(d, "blocked", "", admin.Id, Now);
+        Assert.Equal("blocked", (await db.PersonalPageDomains.SingleAsync(x => x.Domain == d)).Kind);
+        await service.RemoveDomainAsync(d);
+        Assert.False(await db.PersonalPageDomains.AnyAsync(x => x.Domain == d));
+    });
+
+    [PersonalPageDbFact]
+    public Task ReportRules() => WithDb(async db =>
+    {
+        var owner = await Channel(db); var viewer = await Channel(db); var service = new PersonalPageService(db);
+        var page = await Published(db, service, owner.Id, Initial() with { Links = new() { new("l1", "custom", "https://algo.example/x", "Algo") } });
+        Assert.Equal("own_page", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ReportAsync(page, owner.Id, "scam", "", null, Now))).Code);
+        Assert.Equal("report_reason", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ReportAsync(page, viewer.Id, "aburrido", "", null, Now))).Code);
+        Assert.Equal("report_detail", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ReportAsync(page, viewer.Id, "scam", new string('x', 1001), null, Now))).Code);
+        var report = await service.ReportAsync(page, viewer.Id, "scam", "Pide la clave", "l1", Now);
+        Assert.Equal("https://algo.example/x", report.LinkUrl);
+        Assert.Equal("report_pending", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ReportAsync(page, viewer.Id, "other", "", null, Now))).Code);
+        var unknownLink = await service.ReportAsync(await Published(db, service, (await Channel(db)).Id), viewer.Id, "other", "", "no-existe", Now);
+        Assert.Equal("", unknownLink.LinkId);
+    });
+
+    [PersonalPageDbFact]
+    public Task ReportsHaveADailyLimitPerPerson() => WithDb(async db =>
+    {
+        var viewer = await Channel(db); var service = new PersonalPageService(db);
+        for (var i = 0; i < PersonalPageRules.ReportsPerDay; i++)
+            await service.ReportAsync(await Published(db, service, (await Channel(db)).Id), viewer.Id, "other", "", null, Now);
+        var extra = await Published(db, service, (await Channel(db)).Id);
+        Assert.Equal("report_limit", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ReportAsync(extra, viewer.Id, "other", "", null, Now))).Code);
+        Assert.NotNull(await service.ReportAsync(extra, viewer.Id, "other", "", null, Now.AddDays(1).AddMinutes(1)));
+    });
+
+    [PersonalPageDbFact]
+    public Task HidingFromAReportClosesAllOpenReportsOfThatPage() => WithDb(async db =>
+    {
+        var owner = await Channel(db); var admin = await Channel(db); var service = new PersonalPageService(db);
+        var page = await Published(db, service, owner.Id);
+        var r1 = await service.ReportAsync(page, (await Channel(db)).Id, "hate", "", null, Now);
+        var r2 = await service.ReportAsync(page, (await Channel(db)).Id, "other", "", null, Now);
+        await service.ResolveReportAsync(r1.Id, "hide", "Discurso de odio", admin.Id, Now);
+        var reloaded = await db.PersonalPages.AsNoTracking().SingleAsync(p => p.Id == page.Id);
+        Assert.Equal("hidden", reloaded.Status);
+        Assert.Equal("Discurso de odio", reloaded.HiddenReason);
+        Assert.All(await db.PersonalPageReports.AsNoTracking().Where(r => r.PageId == page.Id).ToListAsync(), r => { Assert.Equal("resolved", r.Status); Assert.Equal("hidden", r.Resolution); });
+        Assert.Equal("report_closed", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ResolveReportAsync(r2.Id, "dismiss", "", admin.Id, Now))).Code);
+    });
+
+    [PersonalPageDbFact]
+    public Task ForcedAdultStaysEvenIfTheOwnerUnmarksIt() => WithDb(async db =>
+    {
+        var owner = await Channel(db); var admin = await Channel(db); var service = new PersonalPageService(db);
+        var page = await Published(db, service, owner.Id);
+        var report = await service.ReportAsync(page, (await Channel(db)).Id, "adult_unmarked", "", null, Now);
+        await service.ResolveReportAsync(report.Id, "force_adult", "", admin.Id, Now);
+        var tracked = await db.PersonalPages.SingleAsync(p => p.Id == page.Id);
+        Assert.True(tracked.ForcedAdult);
+        await service.SaveDraftAsync(tracked, PersonalPageService.Read(tracked.Draft) with { Adult = false }, tracked.Revision, Now);
+        await service.PublishAsync(tracked, tracked.Revision, Now);
+        Assert.True(PersonalPageService.Read(tracked.Published).Adult);
+    });
+
+    [PersonalPageDbFact]
+    public Task BlockingTheDomainOfAReportedLinkHidesItPublicly() => WithDb(async db =>
+    {
+        var owner = await Channel(db); var admin = await Channel(db); var service = new PersonalPageService(db); var d = Domain();
+        var page = await Published(db, service, owner.Id, Initial() with { Links = new() { new("l1", "custom", $"https://{d}/premio", "Premio"), new("l2", "twitch", "https://twitch.tv/kira") } });
+        var report = await service.ReportAsync(page, (await Channel(db)).Id, "scam", "", "l1", Now);
+        await service.ResolveReportAsync(report.Id, "block_domain", "", admin.Id, Now);
+        Assert.Equal("blocked", (await db.PersonalPageDomains.SingleAsync(x => x.Domain == d)).Kind);
+        var view = PersonalPageRules.PublicView(PersonalPageService.Read(page.Published), await service.DomainPolicyAsync(), page.ForcedAdult);
+        Assert.Equal(new[] { "l2" }, view.Links!.Select(l => l.Id));
+        var plain = await service.ReportAsync(page, (await Channel(db)).Id, "other", "", null, Now);
+        Assert.Equal("report_no_link", (await Assert.ThrowsAsync<PersonalPageException>(() => service.ResolveReportAsync(plain.Id, "block_domain", "", admin.Id, Now))).Code);
     });
 }

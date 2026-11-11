@@ -10,6 +10,8 @@ export interface PersonalPageLink {
     visible: boolean;
     /** Inventario: casilla 1×1, 2×1 o 2×2. Póster: chico, mediano o grande. Las demás plantillas lo ignoran. */
     size?: 'normal' | 'wide' | 'big' | string;
+    /** Lleva a contenido para mayores de 18 (lo marca el dueño o lo fuerza la red o el dominio). */
+    adult?: boolean;
 }
 
 export interface PersonalPageContent {
@@ -21,6 +23,32 @@ export interface PersonalPageContent {
     accent: string;
     font: string;
     links: PersonalPageLink[];
+    /** Toda la página es +18: el visitante confirma su edad al entrar. */
+    adult?: boolean;
+}
+
+/** Listas de dominios que manda el servidor para marcar en el editor lo que va a exigir al guardar. */
+export interface DomainPolicy { adult: string[]; blocked: string[]; shorteners: string[] }
+
+/** El host es el dominio o un subdominio suyo (igual que PersonalPageRules.DomainMatches). */
+export function domainMatches(host: string, domain: string): boolean {
+    return !!host && !!domain && (host === domain || host.endsWith(`.${domain}`));
+}
+
+/** Host completo en minúsculas (sin quitar www), o vacío. */
+export function fullHostOf(url: string): string {
+    try { return new URL(url).hostname.toLowerCase().replace(/\.$/, ''); } catch { return ''; }
+}
+
+/** Qué va a decir el servidor de un enlace: +18 forzado, dominio bloqueado o acortador (solo enlaces propios). */
+export function linkChecks(link: PersonalPageLink, policy: DomainPolicy | undefined) {
+    const host = fullHostOf(link.url);
+    const inList = (list?: string[]) => !!host && (list ?? []).some(d => domainMatches(host, d));
+    return {
+        forcedAdult: ADULT_KINDS.includes(link.kind) || inList(policy?.adult),
+        blocked: inList(policy?.blocked),
+        shortener: link.kind === 'custom' && inList(policy?.shorteners),
+    };
 }
 
 export interface PlatformInfo { key: string; name: string; adult: boolean; example: string }
@@ -106,6 +134,8 @@ export interface PageLabels {
     open: string;
     findMeAt: string;
     qrAlt: string;
+    /** Título que reemplaza al de un enlace +18 propio hasta que el visitante confirma su edad */
+    adultCovered: string;
 }
 
 export interface TemplateProps {
@@ -133,7 +163,7 @@ export function pageParts(content: PersonalPageContent, channelPhotoUrl?: string
         networks: links.filter(l => l.kind !== 'custom'),
         custom: links.filter(l => l.kind === 'custom'),
         labelOf: (l: PersonalPageLink) => l.title || PLATFORM_NAMES[l.kind] || l.kind,
-        isAdult: (l: PersonalPageLink) => ADULT_KINDS.includes(l.kind),
+        isAdult: (l: PersonalPageLink) => l.adult === true || ADULT_KINDS.includes(l.kind),
     };
 }
 

@@ -283,6 +283,25 @@ try
 
         // Lista de espera de la plataforma (decatron.top, PLATAFORMA_PLAN.md Fase L): endpoint anónimo que
         // además envía un correo, así que se limita por IP igual que la inscripción de torneos.
+        // Denuncias de la página personal (decatron.net/@nombre, subfase 5.2): además del tope diario por persona, un freno
+        // por IP contra scripts que denuncian en masa.
+        options.AddPolicy("personal-page-report", context =>
+        {
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(10),
+                    PermitLimit = 8,
+                    QueueLimit = 0,
+                });
+        });
+
         options.AddPolicy("platform-waitlist", context =>
         {
             var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();

@@ -66,13 +66,23 @@ public class PersonalPageService(DecatronDbContext db)
         return page;
     }
 
+    /// <summary>Dominios de admin (adultos y bloqueados) como política para las reglas.</summary>
+    public async Task<PersonalPageDomainPolicy> DomainPolicyAsync()
+    {
+        var rows = await db.PersonalPageDomains.AsNoTracking().Select(d => new { d.Domain, d.Kind }).ToListAsync();
+        return new PersonalPageDomainPolicy(
+            rows.Where(r => r.Kind == "adult").Select(r => r.Domain).ToHashSet(StringComparer.Ordinal),
+            rows.Where(r => r.Kind == "blocked").Select(r => r.Domain).ToHashSet(StringComparer.Ordinal));
+    }
+
     public async Task SaveDraftAsync(PersonalPage page, PersonalPageContent content, long revision, DateTimeOffset now)
     {
         if (page.Revision != revision) throw new PersonalPageException("stale_revision");
+        var policy = await DomainPolicyAsync();
         var normalized = PersonalPageRules.Normalize(content);
-        var errors = PersonalPageRules.Errors(normalized, forPublish: false);
+        var errors = PersonalPageRules.Errors(normalized, forPublish: false, policy);
         if (errors.Count > 0) throw new PersonalPageException("invalid_content", errors);
-        page.Draft = Write(normalized);
+        page.Draft = Write(PersonalPageRules.ApplyForced(normalized, policy, page.ForcedAdult));
         Touch(page, now);
         await db.SaveChangesAsync();
     }
@@ -80,9 +90,12 @@ public class PersonalPageService(DecatronDbContext db)
     public async Task PublishAsync(PersonalPage page, long revision, DateTimeOffset now)
     {
         if (page.Revision != revision) throw new PersonalPageException("stale_revision");
+        var policy = await DomainPolicyAsync();
         var draft = PersonalPageRules.Normalize(Read(page.Draft));
-        var errors = PersonalPageRules.Errors(draft, forPublish: true);
+        var errors = PersonalPageRules.Errors(draft, forPublish: true, policy);
         if (errors.Count > 0) throw new PersonalPageException("incomplete_content", errors);
+        draft = PersonalPageRules.ApplyForced(draft, policy, page.ForcedAdult);
+        page.Draft = Write(draft);
         page.Published = Write(draft);
         page.PublishedAt = now;
         Touch(page, now);
@@ -269,6 +282,119 @@ public class PersonalPageService(DecatronDbContext db)
         db.PersonalPageReservedHandles.Remove(row);
         await db.SaveChangesAsync();
     }
+
+    public async Task SetForcedAdultAsync(long pageId, bool forced, DateTimeOffset now)
+    {
+        var page = await db.PersonalPages.FirstOrDefaultAsync(p => p.Id == pageId) ?? throw new PersonalPageException("not_found");
+        page.ForcedAdult = forced;
+        Touch(page, now);
+        await db.SaveChangesAsync();
+    }
+
+    // ---------- Dominios (admin) ----------
+
+    public async Task AddDomainAsync(string input, string kind, string note, long adminUserId, DateTimeOffset now)
+    {
+        var domain = PersonalPageRules.NormalizeDomain(input) ?? throw new PersonalPageException("domain_invalid");
+        if (!PersonalPageRules.DomainKinds.Contains(kind)) throw new PersonalPageException("domain_kind");
+        if (PersonalPageRules.IsProtectedHost(domain)) throw new PersonalPageException("domain_protected");
+        var clean = PersonalPageRules.Clean(note);
+        var row = await db.PersonalPageDomains.FirstOrDefaultAsync(d => d.Domain == domain);
+        if (row == null)
+            db.PersonalPageDomains.Add(new PersonalPageDomain { Domain = domain, Kind = kind, Note = Cut(clean, PersonalPageRules.DomainNoteMax), CreatedBy = adminUserId, CreatedAt = now });
+        else
+        {
+            // Volver a agregarlo cambia el tipo (de adulto a bloqueado o al revés)
+            row.Kind = kind;
+            if (clean.Length > 0) row.Note = Cut(clean, PersonalPageRules.DomainNoteMax);
+        }
+        await SaveUniqueAsync("domain_exists");
+    }
+
+    public async Task RemoveDomainAsync(string input)
+    {
+        var domain = PersonalPageRules.NormalizeDomain(input) ?? throw new PersonalPageException("not_found");
+        var row = await db.PersonalPageDomains.FirstOrDefaultAsync(d => d.Domain == domain) ?? throw new PersonalPageException("not_found");
+        db.PersonalPageDomains.Remove(row);
+        await db.SaveChangesAsync();
+    }
+
+    // ---------- Denuncias ----------
+
+    /// <summary>
+    /// Denuncia de una página publicada (o de un enlace suyo). Solo con sesión; no la propia; una abierta por persona y página
+    /// y hasta <see cref="PersonalPageRules.ReportsPerDay"/> por día. El enlace se guarda como estaba al denunciar.
+    /// </summary>
+    public async Task<PersonalPageReport> ReportAsync(PersonalPage page, long reporterUserId, string reason, string detail, string? linkId, DateTimeOffset now)
+    {
+        if (page.ChannelUserId == reporterUserId) throw new PersonalPageException("own_page");
+        if (!PersonalPageRules.ReportReasons.Contains(reason)) throw new PersonalPageException("report_reason");
+        var clean = PersonalPageRules.Clean(detail, multiline: true);
+        if (clean.Length > PersonalPageRules.ReportDetailMax) throw new PersonalPageException("report_detail");
+        if (await db.PersonalPageReports.AnyAsync(r => r.PageId == page.Id && r.ReporterUserId == reporterUserId && r.Status == "open"))
+            throw new PersonalPageException("report_pending");
+        var since = now - TimeSpan.FromDays(1);
+        if (await db.PersonalPageReports.CountAsync(r => r.ReporterUserId == reporterUserId && r.CreatedAt > since) >= PersonalPageRules.ReportsPerDay)
+            throw new PersonalPageException("report_limit");
+
+        var link = string.IsNullOrEmpty(linkId) ? null : (Read(page.Published).Links ?? new()).FirstOrDefault(l => l.Id == linkId);
+        var report = new PersonalPageReport
+        {
+            PageId = page.Id, ReporterUserId = reporterUserId, Reason = reason, Detail = clean,
+            LinkId = link?.Id ?? "", LinkUrl = Cut(link?.Url ?? "", PersonalPageRules.UrlMax), CreatedAt = now,
+        };
+        db.PersonalPageReports.Add(report);
+        await SaveUniqueAsync("report_pending");
+        return report;
+    }
+
+    /// <summary>
+    /// Decide una denuncia abierta. dismiss: se descarta. hide: oculta la página (motivo = la nota) y cierra todas sus denuncias
+    /// abiertas. force_adult: la página queda +18 sin que el dueño pueda desmarcarla. block_domain: bloquea el dominio del enlace
+    /// denunciado (nunca el de una red de la lista ni decatron.net).
+    /// </summary>
+    public async Task ResolveReportAsync(long reportId, string action, string note, long adminUserId, DateTimeOffset now)
+    {
+        // La acción y el cierre de la denuncia van juntos (dentro de una transacción ya abierta, como en las pruebas, se usa esa)
+        await using var tx = db.Database.CurrentTransaction == null ? await db.Database.BeginTransactionAsync() : null;
+        var report = await db.PersonalPageReports.FirstOrDefaultAsync(r => r.Id == reportId) ?? throw new PersonalPageException("not_found");
+        if (report.Status != "open") throw new PersonalPageException("report_closed");
+        if (!PersonalPageRules.ReportActions.Contains(action)) throw new PersonalPageException("report_action");
+        var cleanNote = Cut(PersonalPageRules.Clean(note, multiline: true), 1000);
+        var closeAll = false;
+        switch (action)
+        {
+            case "dismiss":
+                report.Status = "dismissed";
+                break;
+            case "hide":
+                await SetHiddenAsync(report.PageId, true, cleanNote, now);
+                report.Status = "resolved"; report.Resolution = "hidden";
+                closeAll = true;
+                break;
+            case "force_adult":
+                await SetForcedAdultAsync(report.PageId, true, now);
+                report.Status = "resolved"; report.Resolution = "forced_adult";
+                break;
+            case "block_domain":
+                var domain = PersonalPageRules.NormalizeDomain(PersonalPageRules.HostOf(report.LinkUrl)) ?? throw new PersonalPageException("report_no_link");
+                await AddDomainAsync(domain, "blocked", cleanNote.Length > 0 ? cleanNote : $"Denuncia #{report.Id}", adminUserId, now);
+                report.Status = "resolved"; report.Resolution = "domain_blocked";
+                break;
+        }
+        report.ReviewNote = cleanNote;
+        report.ReviewedBy = adminUserId;
+        report.ReviewedAt = now;
+        if (closeAll)
+            foreach (var other in await db.PersonalPageReports.Where(r => r.PageId == report.PageId && r.Status == "open" && r.Id != report.Id).ToListAsync())
+            {
+                other.Status = "resolved"; other.Resolution = "hidden"; other.ReviewNote = cleanNote; other.ReviewedBy = adminUserId; other.ReviewedAt = now;
+            }
+        await db.SaveChangesAsync();
+        if (tx != null) await tx.CommitAsync();
+    }
+
+    private static string Cut(string value, int max) => value.Length > max ? value[..max] : value;
 
     private static void Touch(PersonalPage page, DateTimeOffset now)
     {

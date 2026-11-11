@@ -18,7 +18,7 @@
           {
             "t": "note",
             "kind": "info",
-            "x": "For now pages can be prepared and published, but only their owner, people with full control of the channel and the Decatron team can see them. They open to the public once the protections for 18+ content and the report button are done."
+            "x": "For now pages can be prepared and published, but only their owner, people with full control of the channel and the Decatron team can see them. They will open to the public when the Decatron team enables it."
           }
         ]
       },
@@ -46,7 +46,7 @@
             "items": [
               "Photo (your channel's or your own), display name and a short bio.",
               "Socials from a list: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans and Fansly. Each one only accepts addresses from that social.",
-              "Free links with their title. All of them must start with https://.",
+              "Custom links with their title. They must all start with https:// and link shorteners (bit.ly, tinyurl…) aren't accepted, because they hide where the link goes.",
               "Five templates to choose from (Scene, Badge, TV channel, Inventory and Poster), in a light or dark theme, with the accent color and font you choose. All of them use the same content."
             ]
           },
@@ -54,6 +54,27 @@
             "t": "note",
             "kind": "warning",
             "x": "Links to 18+ sites are allowed, but adult photos or videos are never uploaded to Decatron: links only."
+          }
+        ]
+      },
+      {
+        "id": "seguridad",
+        "title": "18+ content and reports",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "The owner marks their whole page or each link as 18+. Known adult sites (OnlyFans, Fansly and others) are marked automatically and can't be unmarked.",
+              "Visitors to an 18+ page must confirm they are 18 or older before seeing it. On a regular page, 18+ links are covered and ask for that confirmation before opening. It's remembered in that browser.",
+              "An 18+ page doesn't show up in search engines and, when its link is shared, the preview has no photo or bio.",
+              "Custom links always show the real domain they go to.",
+              "Anyone who is signed in can tap «Report this page» at the bottom of the page. A person on the Decatron team reviews every report; nothing is hidden automatically."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "The age confirmation is the visitor's own statement: Decatron doesn't verify anyone's age."
           }
         ]
       },
@@ -116,11 +137,11 @@
               ],
               [
                 "Profile",
-                "Photo (upload one or use your channel's), display name (up to 50 characters) and bio (up to 300)."
+                "Photo (upload one or use the channel's), display name (up to 50 characters), bio (up to 300) and whether the whole page is 18+."
               ],
               [
                 "Socials and links",
-                "Add socials from the list or free links, sort them, hide them or remove them."
+                "Add networks from the list or custom links, reorder, hide or remove them, and mark which ones are 18+."
               ],
               [
                 "Appearance",
@@ -225,7 +246,48 @@
               "Each social on the list only accepts its own domain: for example, Instagram only accepts instagram.com.",
               "Free links need a title of up to 60 characters.",
               "You can have up to 100 links.",
-              "A hidden link is saved but not shown on the page."
+              "A hidden link is saved but not shown on the page.",
+              "Link shorteners (bit.ly, tinyurl…) aren't accepted in custom links: paste the site's real address.",
+              "If a link goes to a site blocked for safety, the editor marks it in red and won't save until you remove it."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mayores-18",
+        "title": "Content for people 18 or older",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Whole page: in Profile, turn on «My whole page is 18+». Visitors will have to confirm they are 18 or older before seeing anything.",
+              "One link: in Socials and links, check «This link is 18+». It's covered until the visitor confirms their age; for a custom link, its title stays hidden until then.",
+              "OnlyFans, Fansly and other known adult sites are marked 18+ automatically and can't be unmarked.",
+              "An 18+ page doesn't show up in search engines and, when shared, the preview has no photo or bio.",
+              "If the Decatron team marks your page as 18+ after a report, the switch stays on and you'll see a notice in Profile."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "The age confirmation is the visitor's own statement, not a verification. Adult photos or videos are never uploaded to Decatron: only links."
+          }
+        ]
+      },
+      {
+        "id": "denuncias",
+        "title": "Reports",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "At the bottom of every page there's a «Report this page» button. Using it requires signing in with Twitch, Kick or Discord. The visitor picks a reason (unmarked adult content, scam or dangerous link, impersonation, hate or harassment, copyright or something else), and optionally the specific link and details."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "A person on the Decatron team reviews every report. Nothing is hidden automatically.",
+              "They can dismiss it, hide the page (you'll see the reason at the top of My page), mark it as 18+ or block the site of the reported link.",
+              "Your page doesn't show the button to you, and a page owner doesn't see who reported it."
             ]
           }
         ]
@@ -261,7 +323,7 @@
           {
             "t": "note",
             "kind": "warning",
-            "x": "For now your published page can only be seen by you, people with full control and the Decatron team (with a preview notice at the top). It opens to the public once the 18+ protections and the report button are done."
+            "x": "For now your published page can only be seen by you, people with full control and the Decatron team (with a preview notice at the top). It will open to the public when the Decatron team enables it."
           },
           {
             "t": "p",

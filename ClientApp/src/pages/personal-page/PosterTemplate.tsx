@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
-import { LINK_REL, pageParts, textOn, type TemplateProps } from './shared';
+import { LINK_REL, hostOf, pageParts, textOn, type TemplateProps } from './shared';
 
 // Plantilla «Póster de gira»: el nombre es la obra (cada palabra se mide y llena el ancho de la columna) y las redes van como los créditos
 // de un cartel: grandes, medianas o chicas según el tamaño del enlace. Si ninguna está marcada como grande, la primera red va
@@ -82,11 +82,13 @@ export default function PosterTemplate({ content, channelPhotoUrl, labels, embed
                     {small.length > 0 && (
                         <p className="po-line po-smallrow">{small.map(l => <a key={l.id} href={l.url} target="_blank" rel={LINK_REL}>{parts.labelOf(l)}</a>)}</p>
                     )}
-                    {parts.custom.map(l => <a key={l.id} href={l.url} target="_blank" rel={LINK_REL} className="po-custom">{parts.labelOf(l)}</a>)}
+                    {parts.custom.filter(l => !parts.isAdult(l)).map(l => (
+                        <a key={l.id} href={l.url} target="_blank" rel={LINK_REL} className="po-custom"><span className="po-custom-label">{parts.labelOf(l)}</span><span className="po-host">{hostOf(l.url)}</span></a>
+                    ))}
                 </div>
 
                 {adult.map(l => (
-                    <a key={l.id} href={l.url} target="_blank" rel={LINK_REL} className="po-adult"><span className="po-adult-badge">{labels.adult}</span>{parts.labelOf(l)}</a>
+                    <a key={l.id} href={l.url} target="_blank" rel={LINK_REL} className="po-adult"><span className="po-adult-badge">{labels.adult}</span>{parts.labelOf(l)}{l.kind === 'custom' && <span className="po-host">{hostOf(l.url)}</span>}</a>
                 ))}
                 <a className="po-made" href="https://decatron.net" target="_blank" rel="noopener noreferrer">{labels.madeWith}</a>
             </div>
@@ -113,7 +115,10 @@ const CSS = `
 .po-line{margin:.1em 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:.3em 1em}
 .po-wide{font-size:1.85em;font-weight:800;text-transform:uppercase;font-stretch:var(--po-stretch)}
 .po-smallrow{font-size:1em;font-weight:700}
-.po-custom{margin-top:.45em;font-size:.9em;text-decoration:underline!important;text-underline-offset:.2em;overflow-wrap:anywhere}
+.po-custom{margin-top:.45em;font-size:.9em;overflow-wrap:anywhere}
+.po-custom-label{text-decoration:underline;text-underline-offset:.2em}
+.po-host{display:block;margin-top:.1em;font-size:.78em;font-weight:500;color:var(--po-soft);text-decoration:none}
+.po-adult .po-host{display:inline;margin:0 0 0 .5em}
 .po-small{margin:0;color:var(--po-soft)}
 .po-adult{margin-top:1em;min-height:3em;display:flex;align-items:center;justify-content:center;gap:.6em;border:2px solid var(--po-ink);color:var(--po-ink);
   text-decoration:none;font-weight:700;font-size:.9em;padding:.4em .8em}

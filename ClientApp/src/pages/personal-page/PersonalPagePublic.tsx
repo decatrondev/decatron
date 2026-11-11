@@ -3,18 +3,24 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import TemplateRenderer from './TemplateRenderer';
+import { AgeGatePage, useAgeOk } from './AgeGate';
+import ReportBar from './ReportBar';
 import { usePageFonts, type PersonalPageContent } from './shared';
 
-// Página pública decatron.net/@nombre (subfase 5.1). React Router no admite «@:param» dentro de un segmento,
+// Página pública decatron.net/@nombre (subfases 5.1 y 5.2: puerta +18 y «Denunciar»). React Router no admite «@:param» dentro de un segmento,
 // así que la ruta es «/:atHandle» (las rutas fijas tienen prioridad) y acá se exige que empiece con @.
 
 interface PublicResponse {
     handle: string;
     content: PersonalPageContent;
+    /** Toda la página es +18 (la marcó el dueño o admin) */
+    adult: boolean;
     channelPhotoUrl: string;
     preview: boolean;
     hidden: boolean;
     canManage: boolean;
+    isOwner: boolean;
+    reportReasons: string[];
 }
 
 type State =
@@ -29,6 +35,7 @@ export default function PersonalPagePublic() {
     const isHandle = atHandle.startsWith('@');
     const handle = isHandle ? atHandle.slice(1).toLowerCase() : '';
     const [state, setState] = useState<State>({ kind: 'loading' });
+    const [ageOk, confirmAge] = useAgeOk();
 
     useEffect(() => {
         if (!isHandle) { setState({ kind: 'error', code: 'not_found' }); return; }
@@ -51,9 +58,18 @@ export default function PersonalPagePublic() {
     const content = state.kind === 'ok' ? state.data.content : null;
     usePageFonts(content ? [content.font] : []);
 
+    const adultPage = state.kind === 'ok' && state.data.adult;
     useEffect(() => {
-        if (content) document.title = `${content.displayName || handle} (@${handle})`;
-    }, [content, handle]);
+        if (!content) return;
+        // Página +18: título neutro y fuera de los buscadores (el servidor también manda X-Robots-Tag)
+        document.title = adultPage ? `@${handle}` : `${content.displayName || handle} (@${handle})`;
+        if (!adultPage) return;
+        const meta = document.createElement('meta');
+        meta.name = 'robots';
+        meta.content = 'noindex, nofollow';
+        document.head.appendChild(meta);
+        return () => { meta.remove(); };
+    }, [content, handle, adultPage]);
 
 
     if (state.kind === 'loading') {
@@ -79,6 +95,8 @@ export default function PersonalPagePublic() {
     }
 
     const { data } = state;
+    // Quien la administra la ve sin la puerta (es su propia página o la revisa admin)
+    if (data.adult && !ageOk && !data.canManage) return <AgeGatePage content={data.content} handle={data.handle} onConfirm={confirmAge} />;
     return (
         <>
             {(data.preview || data.hidden) && data.canManage && (
@@ -87,7 +105,9 @@ export default function PersonalPagePublic() {
                     <Link to="/mi-pagina" className="underline font-semibold">{t('public.goToPanel')}</Link>
                 </div>
             )}
-            <TemplateRenderer content={data.content} channelPhotoUrl={data.channelPhotoUrl} handle={data.handle} />
+            <TemplateRenderer content={data.content} channelPhotoUrl={data.channelPhotoUrl} handle={data.handle}
+                ageOk={ageOk || data.adult || data.canManage} onAgeConfirm={confirmAge} />
+            {!data.isOwner && <ReportBar handle={data.handle} content={data.content} reasons={data.reportReasons ?? []} />}
         </>
     );
 }

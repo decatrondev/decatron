@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { FONTS, PLATFORM_INITIALS, PLATFORM_NAMES, hostOf, textOn, type PageLabels, type TemplateProps } from './shared';
+import { ADULT_KINDS, FONTS, PLATFORM_INITIALS, PLATFORM_NAMES, hostOf, textOn, type PageLabels, type TemplateProps } from './shared';
 
 // Plantilla «Escena» (subfase 5.1, sin capas todavía: llegan en 5.3). Maqueta: .dev/plans/pagina-personal/maquetas/Main.dc.html.
 // La misma pieza dibuja la página pública y la vista previa del panel. En escritorio se mantiene la composición de la
@@ -55,7 +55,7 @@ export default function SceneTemplate({ content, channelPhotoUrl, labels, embedd
                                     <a href={l.url} target="_blank" rel="noopener noreferrer nofollow ugc" className="pp-network" aria-label={l.title || PLATFORM_NAMES[l.kind] || l.kind}>
                                         <span className="pp-tile">{PLATFORM_INITIALS[l.kind] ?? '•'}</span>
                                         <span className="pp-tile-name">{l.title || PLATFORM_NAMES[l.kind] || l.kind}</span>
-                                        {(l.kind === 'onlyfans' || l.kind === 'fansly') && <span className="pp-adult">{labels.adult}</span>}
+                                        {(l.adult || ADULT_KINDS.includes(l.kind)) && <span className="pp-adult">{labels.adult}</span>}
                                     </a>
                                 </li>
                             ))}
@@ -68,7 +68,7 @@ export default function SceneTemplate({ content, channelPhotoUrl, labels, embedd
                                 <li key={l.id}>
                                     <a href={l.url} target="_blank" rel="noopener noreferrer nofollow ugc" className="pp-link">
                                         <span className="pp-link-text">
-                                            <span className="pp-link-title">{l.title}</span>
+                                            <span className="pp-link-title">{l.adult && <span className="pp-link-adult">{labels.adult}</span>}{l.title}</span>
                                             <span className="pp-link-host">{labels.opensIn(hostOf(l.url))}</span>
                                         </span>
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" /></svg>
@@ -111,6 +111,7 @@ const CSS = `
   font-weight:800;font-size:1.15em;font-stretch:var(--pp-name-stretch)}
 .pp-network:hover .pp-tile{border-color:var(--pp-accent)}
 .pp-tile-name{font-size:.75em;color:var(--pp-soft);text-align:center;overflow-wrap:anywhere}
+.pp-link-adult{display:inline-block;margin-right:.45em;font-size:.72em;font-weight:800;padding:.08em .4em;border-radius:.35em;vertical-align:.12em;background:var(--pp-accent);color:var(--pp-on-accent)}
 .pp-adult{position:absolute;top:0;right:.2em;font-size:.65em;font-weight:800;padding:.1em .4em;border-radius:.4em;background:var(--pp-accent);color:var(--pp-on-accent)}
 .pp-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.6em}
 .pp-link{display:flex;align-items:center;gap:.8em;min-height:3.4em;padding:.75em .9em;border:1px solid var(--pp-line);border-radius:.65em;text-decoration:none;color:var(--pp-text);background:transparent}
