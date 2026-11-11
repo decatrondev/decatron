@@ -50,7 +50,8 @@
               "Cinco plantillas a elegir (Escena, Credencial, Canal de TV, Inventario y Póster), en tema claro u oscuro, con el color de acento y la tipografía que elijas. Todas usan el mismo contenido.",
               "Con la plantilla Escena, la parte de arriba puede ser un lienzo por capas: fondo (rayas, color, o imagen, GIF o video de tu galería de medios), foto, nombre, bio, stickers y textos libres.",
               "Videos de YouTube, Twitch, Kick o TikTok insertados en la página, fotos y sonidos de tu galería de medios.",
-              "«En vivo ahora» cuando estás en directo en Twitch o Kick, enlaces a tus páginas del bot (pedir canciones, propinas, Sprites) y estadísticas de visitas y clics solo para ti."
+              "«En vivo ahora» cuando estás en directo en Twitch o Kick, enlaces a tus páginas del bot (pedir canciones, propinas, Sprites) y estadísticas de visitas y clics solo para ti.",
+              "Efectos opcionales, todos apagados al empezar: partículas de fondo, brillo en redes y enlaces, estela del cursor y una transición de entrada. Respetan «reducir movimiento» y el visitante puede pausarlos."
             ]
           },
           {
@@ -152,7 +153,7 @@
               ],
               [
                 "Apariencia",
-                "Plantilla (con vista previa de cada una usando tu contenido), tema claro u oscuro, color de acento (a mano o sacado de tu foto) y tipografía."
+                "Plantilla (con vista previa de cada una usando tu contenido), tema claro u oscuro, color de acento (a mano o sacado de tu foto) y tipografía. También la tarjeta Efectos."
               ],
               [
                 "Escena",
@@ -335,6 +336,31 @@
             "t": "note",
             "kind": "info",
             "x": "Las estadísticas no guardan datos personales: ni IP, ni navegador, ni quién visitó. Solo cuántas visitas y clics hubo cada día."
+          }
+        ]
+      },
+      {
+        "id": "efectos",
+        "title": "Efectos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Apariencia, la tarjeta Efectos agrega movimiento a tu página. Todo viene apagado: nada se mueve hasta que lo eliges. Funcionan igual en las cinco plantillas."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Partículas de fondo: destellos, nieve, confeti o burbujas, en cantidad poca, media o mucha, con tu color de acento o en blanco (en tema claro el blanco se dibuja gris para que se note). Van detrás de tu contenido y nunca tapan los botones. En celular salen menos.",
+              "Brillo en redes y enlaces: un reflejo cruza cada red o enlace cuando el visitante pasa el puntero o lo toca.",
+              "Estela del cursor: puntos o destellos que siguen al mouse. En celular no aparece y el cursor normal no cambia.",
+              "Transición de entrada: cómo aparece la página al abrirla (o al tocar «Entrar»): ninguna, aparecer, subir o en cascada (las redes y enlaces van apareciendo uno tras otro). «Ver de nuevo» la repite en la vista previa.",
+              "En la vista previa, el botón «Reducir movimiento» te muestra la página como la ve alguien que tiene esa opción activada."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Si el visitante tiene activado «reducir movimiento» en su equipo, no ve partículas, estela ni brillo, y la página aparece sin animación. Cuando hay partículas o estela, la página muestra además un botón «Pausar efectos» (junto al de silenciar, si hay sonido) y su navegador recuerda lo que eligió."
           }
         ]
       },

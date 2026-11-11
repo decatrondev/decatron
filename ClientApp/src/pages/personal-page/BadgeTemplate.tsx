@@ -12,7 +12,7 @@ const PALETTES = {
     light: { bg: '#D9DCE1', card: '#FFFFFF', ink: '#16181D', soft: '#4A4F59', line: '#D3D6DC', photo: '#2A2E36', clip: '#6A707B', btnText: '#16181D', btnLine: '#8A8F99', faint: '#4A4F59' },
 } as const;
 
-export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle, embedded, live }: TemplateProps) {
+export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle, embedded, live, backdrop }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const parts = pageParts(content, channelPhotoUrl);
     const [back, setBack] = useState(false);
@@ -37,6 +37,7 @@ export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle
     return (
         <div className={`bd-root${embedded ? ' bd-embedded' : ''}`} style={vars}>
             <style>{CSS}</style>
+            {backdrop}
             <div className="bd-wrap">
                 <div className="bd-strap" aria-hidden="true"><span /><span /></div>
                 <div className="bd-clip" aria-hidden="true" />

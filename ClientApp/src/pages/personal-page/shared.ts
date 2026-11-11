@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 // Página personal del streamer (decatron.net/@nombre). Plan: .dev/plans/pagina-personal/PLAN.md
 
@@ -33,6 +33,17 @@ export interface PersonalPageContent {
     sound?: PersonalPageSound | null;
     /** Enlaces del bot que el streamer agregó (5.5); solo salen si el módulo está activo */
     botLinks?: PersonalPageBotLinks | null;
+    /** Efectos (5.10), lista cerrada y todo apagado por defecto */
+    effects?: PersonalPageEffects | null;
+}
+
+export interface PersonalPageEffects {
+    particles: 'none' | 'sparkles' | 'snow' | 'confetti' | 'bubbles' | string;
+    density: 'low' | 'medium' | 'high' | string;
+    color: 'accent' | 'white' | string;
+    shine: boolean;
+    cursor: 'none' | 'dots' | 'sparkles' | string;
+    entrance: 'none' | 'fade' | 'rise' | 'cascade' | string;
 }
 
 export interface PersonalPageBotLinks { songRequest: boolean; tips: boolean; sprites: boolean }
@@ -301,6 +312,8 @@ export interface TemplateProps {
     embedded?: boolean;
     /** Plataformas donde está en directo ahora (5.5) */
     live?: LiveInfo[];
+    /** Efectos que van dentro de la raíz de la plantilla (5.10): partículas y estela. Lo pone TemplateRenderer. */
+    backdrop?: ReactNode;
 }
 
 /** Lo que todas las plantillas sacan del contenido: nombre, iniciales, foto, redes y enlaces visibles. */

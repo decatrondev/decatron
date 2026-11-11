@@ -12,7 +12,7 @@ const PALETTES = {
     light: { bg: '#EEF1F4', ident: '#FFFFFF', line: '#D5DAE1', text: '#14181E', soft: '#3C4450', faint: '#5A6370', num: '#7A8492', scan: 'rgba(0,0,0,0.035)' },
 } as const;
 
-export default function ChannelTemplate({ content, channelPhotoUrl, labels, handle, embedded, live }: TemplateProps) {
+export default function ChannelTemplate({ content, channelPhotoUrl, labels, handle, embedded, live, backdrop }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const parts = pageParts(content, channelPhotoUrl);
     const nameScale = Math.min(1, 10 / Math.max(parts.name.length, 1));
@@ -25,6 +25,7 @@ export default function ChannelTemplate({ content, channelPhotoUrl, labels, hand
     return (
         <div className={`ch-root${embedded ? ' ch-embedded' : ''}`} style={vars}>
             <style>{CSS}</style>
+            {backdrop}
             <div className="ch-wrap">
                 <header className="ch-ident">
                     <div className="ch-scan" aria-hidden="true" />

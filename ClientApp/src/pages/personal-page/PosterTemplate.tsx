@@ -43,7 +43,7 @@ function useFitWords(deps: unknown[]) {
     return ref;
 }
 
-export default function PosterTemplate({ content, channelPhotoUrl, labels, embedded, live }: TemplateProps) {
+export default function PosterTemplate({ content, channelPhotoUrl, labels, embedded, live, backdrop }: TemplateProps) {
     const p = content.theme === 'dark' ? PALETTES.dark : PALETTES.light;
     const parts = pageParts(content, channelPhotoUrl);
     const words = parts.name.trim().toUpperCase().split(/\s+/).filter(Boolean).slice(0, 4);
@@ -64,6 +64,7 @@ export default function PosterTemplate({ content, channelPhotoUrl, labels, embed
     return (
         <div className={`po-root${embedded ? ' po-embedded' : ''}`} style={vars}>
             <style>{CSS}</style>
+            {backdrop}
             <div className="po-wrap">
                 <h1 className="po-name" aria-label={parts.name} ref={nameRef}>
                     {words.map((w, i) => <span key={i} aria-hidden="true">{w}</span>)}

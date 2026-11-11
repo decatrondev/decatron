@@ -4,6 +4,7 @@ import { ExternalLink, Save, Send, Undo2 } from 'lucide-react';
 import TabIcon from '../../components/dashboard/TabIcon';
 import { Card, CopyButton, ScaledCanvas } from '../../components/overlay-editor/ui';
 import TemplateRenderer from './TemplateRenderer';
+import { effectsOf, hasAnyEffect } from './PageEffects';
 import { usePageFonts, withBotLinks } from './shared';
 import { usePersonalPage } from './usePersonalPage';
 import { AppealForm, AppearanceTab, GuideTab, HandleInput, LinksTab, NameTab, ProfileTab, useErrorText, type PanelTab } from './PersonalPageTabs';
@@ -35,6 +36,8 @@ export default function PersonalPageConfig() {
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
     const [fieldErrors, setFieldErrors] = useState<string[]>([]);
     const [device, setDevice] = useState<'phone' | 'desktop'>('phone');
+    // Vista previa como la ve alguien con «reducir movimiento» (5.10)
+    const [simulateReduced, setSimulateReduced] = useState(false);
     // Alta: nombre elegido y su estado (undefined = sin comprobar, null = libre, texto = código del problema)
     const [newHandle, setNewHandle] = useState('');
     const [newStatus, setNewStatus] = useState<string | null | undefined>(undefined);
@@ -208,7 +211,11 @@ export default function PersonalPageConfig() {
                             <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-3">
                                 <div className="flex items-center justify-between gap-2 flex-wrap">
                                     <h2 className="font-bold text-ds-text text-base 3xl:text-lg">{t('preview.title')}</h2>
-                                    <div className="flex gap-1">
+                                    <div className="flex gap-1 flex-wrap">
+                                        {hasAnyEffect(effectsOf(previewContent)) && (
+                                            <button type="button" aria-pressed={simulateReduced} onClick={() => setSimulateReduced(v => !v)} title={t('preview.reducedHint')}
+                                                className={simulateReduced ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>{t('preview.reduced')}</button>
+                                        )}
                                         {(['phone', 'desktop'] as const).map(d => (
                                             <button key={d} type="button" onClick={() => setDevice(d)} className={device === d ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>{t(`preview.${d}`)}</button>
                                         ))}
@@ -217,13 +224,13 @@ export default function PersonalPageConfig() {
                                 <p className="text-xs 3xl:text-sm text-ds-soft">{t('preview.hint')}</p>
                                 {device === 'phone' ? (
                                     <div className="mx-auto w-full max-w-[390px] h-[720px] 3xl:h-[860px] overflow-y-auto rounded-2xl border border-ds-border">
-                                        <TemplateRenderer content={previewContent} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded />
+                                        <TemplateRenderer content={previewContent} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded reducedMotion={simulateReduced || undefined} />
                                     </div>
                                 ) : (
                                     <div className="rounded-lg border border-ds-border overflow-hidden">
                                         <ScaledCanvas width={1280} height={800}>
                                             <div style={{ width: 1280, height: 800, overflow: 'hidden' }}>
-                                                <TemplateRenderer content={previewContent} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded />
+                                                <TemplateRenderer content={previewContent} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded reducedMotion={simulateReduced || undefined} />
                                             </div>
                                         </ScaledCanvas>
                                     </div>

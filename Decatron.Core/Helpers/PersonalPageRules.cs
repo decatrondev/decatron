@@ -28,7 +28,17 @@ public sealed record PersonalPageContent(
     List<PersonalPageVideo>? Videos = null,
     List<PersonalPagePhoto>? Photos = null,
     PersonalPageSound? Sound = null,
-    PersonalPageBotLinks? BotLinks = null);
+    PersonalPageBotLinks? BotLinks = null,
+    PersonalPageEffects? Effects = null);
+
+/// <summary>
+/// Efectos de la página (5.10), lista cerrada y todo apagado por defecto: partículas de fondo (estilo, cantidad y color),
+/// brillo en redes y enlaces, estela del cursor y transición de entrada. Con «reducir movimiento» del visitante no se
+/// dibujan partículas, estela ni brillo, y la transición queda en un aparecer muy corto (eso lo resuelve la página).
+/// </summary>
+public sealed record PersonalPageEffects(
+    string Particles = "none", string Density = "medium", string Color = "accent", bool Shine = false,
+    string Cursor = "none", string Entrance = "none");
 
 /// <summary>
 /// Enlaces del bot que el streamer agregó a su página (5.5). Solo se muestran si el módulo está activo en el canal:
@@ -260,6 +270,11 @@ public static class PersonalPageRules
     public static readonly string[] Templates = { "scene", "badge", "channel", "inventory", "poster" };
     public static readonly string[] LinkSizes = { "normal", "wide", "big" };
     public static readonly string[] Themes = { "dark", "light" };
+    public static readonly string[] EffectParticles = { "none", "sparkles", "snow", "confetti", "bubbles" };
+    public static readonly string[] EffectDensities = { "low", "medium", "high" };
+    public static readonly string[] EffectColors = { "accent", "white" };
+    public static readonly string[] EffectCursors = { "none", "dots", "sparkles" };
+    public static readonly string[] EffectEntrances = { "none", "fade", "rise", "cascade" };
     public static readonly string[] Fonts = { "archivo", "instrument-sans", "chivo", "saira", "big-shoulders", "source-sans-3", "atkinson", "literata" };
 
     public static readonly IReadOnlyList<PersonalPagePlatform> Platforms = new[]
@@ -445,7 +460,30 @@ public static class PersonalPageRules
         Videos = (c.Videos ?? new()).Select(v => v with { Id = (v.Id ?? "").Trim(), Url = (v.Url ?? "").Trim(), Title = Clean(v.Title) }).ToList(),
         Photos = (c.Photos ?? new()).Select(p => p with { Id = (p.Id ?? "").Trim(), MediaUrl = (p.MediaUrl ?? "").Trim(), Caption = Clean(p.Caption) }).ToList(),
         Sound = c.Sound == null ? null : c.Sound with { EntryUrl = (c.Sound.EntryUrl ?? "").Trim(), ClickUrl = (c.Sound.ClickUrl ?? "").Trim() },
+        Effects = c.Effects == null ? null : c.Effects with
+        {
+            Particles = Key(c.Effects.Particles, "none"),
+            Density = Key(c.Effects.Density, "medium"),
+            Color = Key(c.Effects.Color, "accent"),
+            Cursor = Key(c.Effects.Cursor, "none"),
+            Entrance = Key(c.Effects.Entrance, "none"),
+        },
     };
+
+    private static string Key(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value.Trim().ToLowerInvariant();
+
+    /// <summary>Errores de los efectos (5.10): solo valores de la lista cerrada.</summary>
+    public static List<string> EffectErrors(PersonalPageEffects? e)
+    {
+        var errors = new List<string>();
+        if (e == null) return errors;
+        if (!EffectParticles.Contains(e.Particles)) errors.Add("effects_particles");
+        if (!EffectDensities.Contains(e.Density)) errors.Add("effects_density");
+        if (!EffectColors.Contains(e.Color)) errors.Add("effects_color");
+        if (!EffectCursors.Contains(e.Cursor)) errors.Add("effects_cursor");
+        if (!EffectEntrances.Contains(e.Entrance)) errors.Add("effects_entrance");
+        return errors;
+    }
 
     private static PersonalPageScene NormalizeScene(PersonalPageScene s) => s with
     {
@@ -587,6 +625,7 @@ public static class PersonalPageRules
         }
         if (c.Scene != null) errors.AddRange(SceneErrors(c.Scene, gallery));
         errors.AddRange(MediaErrors(c, gallery));
+        errors.AddRange(EffectErrors(c.Effects));
         return errors;
     }
 

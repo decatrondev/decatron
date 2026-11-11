@@ -6,6 +6,7 @@ import TemplateRenderer from './TemplateRenderer';
 import { EntryGate, useAgeOk } from './AgeGate';
 import { MuteButton, usePageSound } from './PageSound';
 import ReportBar from './ReportBar';
+import { PauseEffectsButton, effectsOf, hasPausableEffects, useReducedMotion, usePausedEffects } from './PageEffects';
 import { hasSound, usePageFonts, withBotLinks, type BotLinkInfo, type LiveInfo, type PersonalPageContent } from './shared';
 
 // Página pública decatron.net/@nombre (subfases 5.1 y 5.2: puerta +18 y «Denunciar»). React Router no admite «@:param» dentro de un segmento,
@@ -86,6 +87,8 @@ export default function PersonalPagePublic() {
         sendHit(handle, { type: 'visit' });
     }, [countable, handle]);
     const sound = usePageSound(content?.sound);
+    const [fxPaused, toggleFx] = usePausedEffects();
+    const reduced = useReducedMotion();
     usePageFonts(content ? [content.font] : []);
 
     const adultPage = state.kind === 'ok' && state.data.adult;
@@ -141,9 +144,10 @@ export default function PersonalPagePublic() {
                 </div>
             )}
             <TemplateRenderer content={withBotLinks(data.content, data.botLinks ?? [], key => t(`botLinks.${key}`))} channelPhotoUrl={data.channelPhotoUrl} handle={data.handle}
-                live={data.live} ageOk={ageOk || data.adult || data.canManage} onAgeConfirm={confirmAge}
+                live={data.live} ageOk={ageOk || data.adult || data.canManage} onAgeConfirm={confirmAge} effectsPaused={fxPaused}
                 onLinkClick={target => { sound.playClick(); if (countable && target) sendHit(data.handle, { type: 'click', target }); }} />
             {withSound && <MuteButton content={data.content} muted={sound.muted} onToggle={sound.toggleMute} />}
+            {!reduced && hasPausableEffects(effectsOf(data.content)) && <PauseEffectsButton content={data.content} paused={fxPaused} onToggle={toggleFx} besideMute={withSound} />}
             {!data.isOwner && <ReportBar handle={data.handle} content={data.content} reasons={data.reportReasons ?? []} />}
         </>
     );

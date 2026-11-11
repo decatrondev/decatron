@@ -12,7 +12,7 @@ const PALETTES = SCENE_PALETTES;
 
 export type SceneLabels = PageLabels;
 
-export default function SceneTemplate({ content, channelPhotoUrl, labels, embedded, live }: TemplateProps) {
+export default function SceneTemplate({ content, channelPhotoUrl, labels, embedded, live, backdrop }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const font = FONTS[content.font] ?? FONTS.archivo;
     const accent = /^#[0-9a-f]{6}$/i.test(content.accent) ? content.accent : '#5B8CFF';
@@ -35,6 +35,7 @@ export default function SceneTemplate({ content, channelPhotoUrl, labels, embedd
     return (
         <div className={`pp-scene-root${embedded ? ' pp-embedded' : ''}`} style={vars}>
             <style>{CSS}</style>
+            {backdrop}
             <div className="pp-wrap">
                 {content.scene?.enabled ? <SceneCanvas content={content} photo={photo} initials={initials} /> : <header className="pp-scene">
                     <div className="pp-stripes" aria-hidden="true" />

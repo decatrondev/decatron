@@ -55,7 +55,9 @@
     "copy": "Copy",
     "copied": "Copied",
     "open": "Open",
-    "notPublishedYet": "You have not published your page yet: the link shows a notice until you do."
+    "notPublishedYet": "You have not published your page yet: the link shows a notice until you do.",
+    "reduced": "Reduce motion",
+    "reducedHint": "Shows the preview the way someone with \"reduce motion\" turned on sees it"
   },
   "guide": {
     "title": "How to get your page ready",
@@ -63,7 +65,7 @@
     "steps": {
       "profile": "upload your photo (or use your channel's), write your display name and a short bio.",
       "links": "add your socials from the list and any links you want, sort them and hide the ones you do not want to show yet.",
-      "appearance": "choose one of the five templates (Scene, Badge, TV channel, Inventory or Poster), a light or dark theme, the accent color and the font.",
+      "appearance": "choose one of the five templates (Scene, Badge, TV channel, Inventory or Poster), a light or dark theme, the accent color, the font and, if you like, effects.",
       "name": "check your @name. You can change it once every 30 days.",
       "publish": "tap «Publish» so your page shows the changes. «Discard changes» takes the draft back to what is published.",
       "media": "add videos from YouTube, Twitch, Kick or TikTok, plus photos and sounds from your gallery (optional)."
@@ -82,7 +84,8 @@
       "scene": "With the Scene template you get the Scene tab: the top of your page as a layered canvas (background, photo, name, bio, stickers and texts), with images, GIFs and videos from your media gallery.",
       "media": "Videos only load when the visitor taps «Play». If your page has sound, visitors see «Enter» first, because browsers don't play audio without a tap.",
       "live": "When you're live on Twitch or Kick, your page shows «Live now» with a button to watch. In Socials and links you can add your bot pages (song requests, tips and your Sprites collection) if those modules are active.",
-      "stats": "In Stats you see how many visits your page got per day and how many clicks each social, link and video received. Who visited and personal data aren't stored, and your own visits don't count."
+      "stats": "In Stats you see how many visits your page got per day and how many clicks each social, link and video received. Who visited and personal data aren't stored, and your own visits don't count.",
+      "effects": "In Appearance, the Effects card adds background particles, shine on socials and links, a cursor trail and an entrance transition. Everything starts off. Visitors with \"reduce motion\" turned on do not see them, and any visitor can pause them."
     },
     "docsPrefix": "More details in the documentation:",
     "docsLink": "Personal page"
@@ -355,7 +358,12 @@
     "photo_caption": "The description of photo {{n}} can be up to 80 characters.",
     "sound_entry": "The entry sound must be a sound from your gallery.",
     "sound_click": "Choose a sound from your gallery for the buttons, or turn it off.",
-    "sound_volume": "Volume must be between 0 and 100."
+    "sound_volume": "Volume must be between 0 and 100.",
+    "effects_particles": "Pick a particle style from the list.",
+    "effects_density": "Pick a particle amount from the list.",
+    "effects_color": "Pick a particle color from the list.",
+    "effects_cursor": "Pick a cursor trail from the list.",
+    "effects_entrance": "Pick an entrance transition from the list."
   },
   "admin": {
     "back": "Back to admin",
@@ -665,5 +673,49 @@
     "target": "Destination",
     "clicksCol": "Clicks",
     "removed": "(no longer on your page)"
+  },
+  "effects": {
+    "title": "Effects",
+    "hint": "Moving details for your page. Everything starts off: pick only what you want.",
+    "particles": "Background particles",
+    "particle": {
+      "none": "None",
+      "sparkles": "Sparkles",
+      "snow": "Snow",
+      "confetti": "Confetti",
+      "bubbles": "Bubbles"
+    },
+    "density": "Amount",
+    "densities": {
+      "low": "Few",
+      "medium": "Some",
+      "high": "Many"
+    },
+    "color": "Color",
+    "colors": {
+      "accent": "Your accent color",
+      "white": "White"
+    },
+    "whiteOnLight": "With the light theme, white is drawn gray so it stays visible.",
+    "shine": "Shine on socials and links",
+    "shineHint": "A glint sweeps across each social or link when a visitor hovers or taps it.",
+    "cursor": "Cursor trail",
+    "cursors": {
+      "none": "None",
+      "dots": "Dots",
+      "sparkles": "Sparkles"
+    },
+    "cursorHint": "Only shows with a mouse; it does not appear on phones. The normal cursor stays the same.",
+    "entrance": "Entrance transition",
+    "entrances": {
+      "none": "None",
+      "fade": "Fade in",
+      "rise": "Rise",
+      "cascade": "Cascade"
+    },
+    "replay": "Play again",
+    "reducedNote": "Visitors with \"reduce motion\" turned on in their device see no particles, trail or shine, and the page appears without animation. Visitors can also pause effects with a button.",
+    "pause": "Pause effects",
+    "resume": "Resume effects"
   }
 }

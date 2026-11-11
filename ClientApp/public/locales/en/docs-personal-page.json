@@ -50,7 +50,8 @@
               "Five templates to choose from (Scene, Badge, TV channel, Inventory and Poster), in a light or dark theme, with the accent color and font you choose. All of them use the same content.",
               "With the Scene template, the top can be a layered canvas: background (stripes, a color, or an image, GIF or video from your media gallery), photo, name, bio, stickers and free texts.",
               "YouTube, Twitch, Kick or TikTok videos embedded on the page, plus photos and sounds from your media gallery.",
-              "«Live now» when you're streaming on Twitch or Kick, links to your bot pages (song requests, tips, Sprites) and visit and click stats only for you."
+              "«Live now» when you're streaming on Twitch or Kick, links to your bot pages (song requests, tips, Sprites) and visit and click stats only for you.",
+              "Optional effects, all off to begin with: background particles, shine on socials and links, a cursor trail and an entrance transition. They respect \"reduce motion\" and visitors can pause them."
             ]
           },
           {
@@ -152,7 +153,7 @@
               ],
               [
                 "Appearance",
-                "Template (with a preview of each one using your content), light or dark theme, accent color (by hand or taken from your photo) and font."
+                "Template (with a preview of each one using your content), light or dark theme, accent color (by hand or taken from your photo) and font. Also the Effects card."
               ],
               [
                 "Scene",
@@ -335,6 +336,31 @@
             "t": "note",
             "kind": "info",
             "x": "Stats store no personal data: no IP, no browser, no record of who visited. Only how many visits and clicks there were each day."
+          }
+        ]
+      },
+      {
+        "id": "efectos",
+        "title": "Effects",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Appearance, the Effects card adds motion to your page. Everything starts off: nothing moves until you choose it. They work the same in all five templates."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Background particles: sparkles, snow, confetti or bubbles, in a few, some or many, in your accent color or white (with the light theme, white is drawn gray so it stays visible). They sit behind your content and never cover the buttons. Phones show fewer.",
+              "Shine on socials and links: a glint sweeps across each social or link when a visitor hovers or taps it.",
+              "Cursor trail: dots or sparkles that follow the mouse. It does not appear on phones and the normal cursor stays the same.",
+              "Entrance transition: how the page appears when it opens (or after tapping \"Enter\"): none, fade in, rise or cascade (socials and links appear one after another). \"Play again\" repeats it in the preview.",
+              "In the preview, the \"Reduce motion\" button shows the page the way someone with that option turned on sees it."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "If a visitor has \"reduce motion\" turned on in their device, they see no particles, trail or shine, and the page appears without animation. When there are particles or a trail, the page also shows a \"Pause effects\" button (next to the mute button, if there is sound) and their browser remembers the choice."
           }
         ]
       },

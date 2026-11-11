@@ -55,7 +55,9 @@
     "copy": "Copiar",
     "copied": "Copiado",
     "open": "Abrir",
-    "notPublishedYet": "Todavía no publicaste tu página: el enlace muestra un aviso hasta que lo hagas."
+    "notPublishedYet": "Todavía no publicaste tu página: el enlace muestra un aviso hasta que lo hagas.",
+    "reduced": "Reducir movimiento",
+    "reducedHint": "Muestra la vista previa como la ve alguien con «reducir movimiento» activado"
   },
   "guide": {
     "title": "Cómo dejar lista tu página",
@@ -63,7 +65,7 @@
     "steps": {
       "profile": "sube tu foto (o usa la de tu canal), escribe tu nombre visible y una bio corta.",
       "links": "agrega tus redes de la lista y los enlaces que quieras, ordénalos y oculta los que no quieras mostrar todavía.",
-      "appearance": "elige una de las cinco plantillas (Escena, Credencial, Canal de TV, Inventario o Póster), tema claro u oscuro, el color de acento y la tipografía.",
+      "appearance": "elige una de las cinco plantillas (Escena, Credencial, Canal de TV, Inventario o Póster), tema claro u oscuro, el color de acento, la tipografía y, si quieres, efectos.",
       "name": "revisa tu @nombre. Puedes cambiarlo una vez cada 30 días.",
       "publish": "toca «Publicar» para que tu página muestre los cambios. «Descartar cambios» vuelve el borrador a lo publicado.",
       "media": "agrega videos de YouTube, Twitch, Kick o TikTok, fotos y sonidos de tu galería (opcional)."
@@ -82,7 +84,8 @@
       "scene": "Con la plantilla Escena aparece la pestaña Escena: la parte de arriba de tu página como un lienzo por capas (fondo, foto, nombre, bio, stickers y textos), con imágenes, GIF y videos de tu galería de medios.",
       "media": "Los videos se cargan recién cuando el visitante toca «Reproducir». Si tu página tiene sonido, quien entre verá primero «Entrar», porque los navegadores no reproducen audio sin un toque.",
       "live": "Cuando estás en directo en Twitch o Kick, tu página muestra «En vivo ahora» con un botón para verte. En Redes y enlaces puedes agregar tus páginas del bot (pedir canciones, propinas y tu colección de Sprites) si tienes esos módulos activos.",
-      "stats": "En Estadísticas ves cuántas visitas tuvo tu página por día y cuántos clics recibió cada red, enlace y video. No se guarda quién visitó ni datos personales, y tus propias visitas no cuentan."
+      "stats": "En Estadísticas ves cuántas visitas tuvo tu página por día y cuántos clics recibió cada red, enlace y video. No se guarda quién visitó ni datos personales, y tus propias visitas no cuentan.",
+      "effects": "En Apariencia, la tarjeta Efectos agrega partículas de fondo, brillo en redes y enlaces, estela del cursor y una transición de entrada. Todo viene apagado. Quien tenga «reducir movimiento» activado no los ve, y cualquier visitante puede pausarlos."
     },
     "docsPrefix": "Más detalles en la documentación:",
     "docsLink": "Página personal"
@@ -355,7 +358,12 @@
     "photo_caption": "La descripción de la foto {{n}} puede tener hasta 80 caracteres.",
     "sound_entry": "El sonido de entrada tiene que ser un sonido de tu galería.",
     "sound_click": "Elige un sonido de tu galería para los botones, o apágalo.",
-    "sound_volume": "El volumen tiene que ir de 0 a 100."
+    "sound_volume": "El volumen tiene que ir de 0 a 100.",
+    "effects_particles": "Elige un estilo de partículas de la lista.",
+    "effects_density": "Elige una cantidad de partículas de la lista.",
+    "effects_color": "Elige un color de partículas de la lista.",
+    "effects_cursor": "Elige una estela del cursor de la lista.",
+    "effects_entrance": "Elige una transición de entrada de la lista."
   },
   "admin": {
     "back": "Volver al admin",
@@ -665,5 +673,49 @@
     "target": "Destino",
     "clicksCol": "Clics",
     "removed": "(ya no está en tu página)"
+  },
+  "effects": {
+    "title": "Efectos",
+    "hint": "Detalles en movimiento para tu página. Todo viene apagado: elige solo lo que quieras.",
+    "particles": "Partículas de fondo",
+    "particle": {
+      "none": "Ninguna",
+      "sparkles": "Destellos",
+      "snow": "Nieve",
+      "confetti": "Confeti",
+      "bubbles": "Burbujas"
+    },
+    "density": "Cantidad",
+    "densities": {
+      "low": "Poca",
+      "medium": "Media",
+      "high": "Mucha"
+    },
+    "color": "Color",
+    "colors": {
+      "accent": "Tu color de acento",
+      "white": "Blanco"
+    },
+    "whiteOnLight": "Con el tema claro, el blanco se dibuja gris para que se note.",
+    "shine": "Brillo en redes y enlaces",
+    "shineHint": "Un reflejo cruza cada red o enlace cuando el visitante pasa el puntero o lo toca.",
+    "cursor": "Estela del cursor",
+    "cursors": {
+      "none": "Ninguna",
+      "dots": "Puntos",
+      "sparkles": "Destellos"
+    },
+    "cursorHint": "Solo se ve con mouse; en celular no aparece. El cursor normal no cambia.",
+    "entrance": "Transición de entrada",
+    "entrances": {
+      "none": "Ninguna",
+      "fade": "Aparecer",
+      "rise": "Subir",
+      "cascade": "En cascada"
+    },
+    "replay": "Ver de nuevo",
+    "reducedNote": "Quien tenga activado «reducir movimiento» en su equipo no ve partículas, estela ni brillo, y la página aparece sin animación. Los visitantes también pueden pausar los efectos con un botón.",
+    "pause": "Pausar efectos",
+    "resume": "Reanudar efectos"
   }
 }

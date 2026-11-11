@@ -13,7 +13,7 @@ const PALETTES = {
 
 const SPAN: Record<string, [number, number]> = { normal: [1, 1], wide: [2, 1], big: [2, 2] };
 
-export default function InventoryTemplate({ content, channelPhotoUrl, labels, embedded, live }: TemplateProps) {
+export default function InventoryTemplate({ content, channelPhotoUrl, labels, embedded, live, backdrop }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const parts = pageParts(content, channelPhotoUrl);
     const [selected, setSelected] = useState<string | null>(null);
@@ -27,6 +27,7 @@ export default function InventoryTemplate({ content, channelPhotoUrl, labels, em
     return (
         <div className={`in-root${embedded ? ' in-embedded' : ''}`} style={vars}>
             <style>{CSS}</style>
+            {backdrop}
             <div className="in-wrap">
                 <header className="in-head">
                     <div className="in-photo">{parts.photo ? <img src={parts.photo} alt="" referrerPolicy="no-referrer" /> : <span>{parts.initials}</span>}</div>

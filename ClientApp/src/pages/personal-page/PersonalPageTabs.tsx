@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { Card, Field, ScaledCanvas, inputClass } from '../../components/overlay-editor/ui';
 import { FONTS, PLATFORM_NAMES, TEMPLATES, TEMPLATES_WITH_SIZE, TEMPLATE_FONT, linkChecks, newLinkId, usePageFonts, type PersonalPageLink } from './shared';
 import TemplateRenderer from './TemplateRenderer';
+import { EFFECT_COLORS, EFFECT_CURSORS, EFFECT_DENSITIES, EFFECT_ENTRANCES, EFFECT_PARTICLES, REPLAY_EVENT, effectsOf } from './PageEffects';
 import { errorOf, type PersonalPageState } from './usePersonalPage';
 
 export type PanelTab = 'guide' | 'profile' | 'links' | 'media' | 'appearance' | 'scene' | 'name' | 'stats';
@@ -39,7 +40,7 @@ export function GuideTab({ onNavigate }: { onNavigate: (tab: PanelTab) => void }
             </Card>
             <Card title={t('guide.notesTitle')}>
                 <ul className="space-y-2 list-disc pl-5 text-sm 3xl:text-base text-ds-soft">
-                    {['draft', 'templates', 'scene', 'media', 'live', 'stats', 'handle', 'appeal', 'links', 'adult', 'reports', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
+                    {['draft', 'templates', 'scene', 'media', 'live', 'stats', 'effects', 'handle', 'appeal', 'links', 'adult', 'reports', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
                 </ul>
             </Card>
             <p className="text-sm 3xl:text-base text-ds-soft">
@@ -266,7 +267,7 @@ export function AppearanceTab({ s, onMessage, photoFallback }: { s: PersonalPage
                                 <div className="rounded-md overflow-hidden border border-ds-border pointer-events-none" aria-hidden="true">
                                     <ScaledCanvas width={390} height={520}>
                                         <div style={{ width: 390, height: 520, overflow: 'hidden' }}>
-                                            <TemplateRenderer content={{ ...draft, template: key, font: active ? draft.font : (TEMPLATE_FONT[key] ?? draft.font) }} channelPhotoUrl={photoFallback} handle={s.page?.handle} embedded />
+                                            <TemplateRenderer content={{ ...draft, template: key, font: active ? draft.font : (TEMPLATE_FONT[key] ?? draft.font) }} channelPhotoUrl={photoFallback} handle={s.page?.handle} embedded noEffects />
                                         </div>
                                     </ScaledCanvas>
                                 </div>
@@ -304,7 +305,64 @@ export function AppearanceTab({ s, onMessage, photoFallback }: { s: PersonalPage
                     ))}
                 </div>
             </Card>
+            <EffectsCard s={s} />
         </div>
+    );
+}
+
+// ---------------- Efectos (5.10) ----------------
+
+function Choice<T extends string>({ label, options, value, onChange, labelOf }: { label: string; options: readonly T[]; value: string; onChange: (v: T) => void; labelOf: (v: T) => string }) {
+    return (
+        <div role="group" aria-label={label}>
+            <p className="text-sm 3xl:text-base font-bold text-ds-text mb-2">{label}</p>
+            <div className="flex flex-wrap gap-2">
+                {options.map(o => (
+                    <button key={o} type="button" aria-pressed={value === o} onClick={() => onChange(o)}
+                        className={value === o ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>{labelOf(o)}</button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function EffectsCard({ s }: { s: PersonalPageState }) {
+    const { t } = useTranslation('personal-page');
+    const fx = effectsOf(s.draft!);
+    const set = (patch: Partial<typeof fx>) => s.edit({ effects: { ...fx, ...patch } });
+    return (
+        <Card title={t('effects.title')} description={t('effects.hint')}>
+            <div className="space-y-5">
+                <Choice label={t('effects.particles')} options={EFFECT_PARTICLES} value={fx.particles} onChange={particles => set({ particles })} labelOf={k => t(`effects.particle.${k}`)} />
+                {fx.particles !== 'none' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pl-4 border-l-2 border-ds-border">
+                        <Choice label={t('effects.density')} options={EFFECT_DENSITIES} value={fx.density} onChange={density => set({ density })} labelOf={k => t(`effects.densities.${k}`)} />
+                        <div>
+                            <Choice label={t('effects.color')} options={EFFECT_COLORS} value={fx.color} onChange={color => set({ color })} labelOf={k => t(`effects.colors.${k}`)} />
+                            {fx.color === 'white' && s.draft!.theme === 'light' && <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t('effects.whiteOnLight')}</p>}
+                        </div>
+                    </div>
+                )}
+                <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" className="mt-1 w-5 h-5 accent-ds-accent" checked={fx.shine} onChange={e => set({ shine: e.target.checked })} />
+                    <span className="text-sm 3xl:text-base text-ds-text">
+                        <span className="font-bold">{t('effects.shine')}</span>
+                        <span className="block text-ds-soft mt-1">{t('effects.shineHint')}</span>
+                    </span>
+                </label>
+                <div>
+                    <Choice label={t('effects.cursor')} options={EFFECT_CURSORS} value={fx.cursor} onChange={cursor => set({ cursor })} labelOf={k => t(`effects.cursors.${k}`)} />
+                    {fx.cursor !== 'none' && <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t('effects.cursorHint')}</p>}
+                </div>
+                <div>
+                    <Choice label={t('effects.entrance')} options={EFFECT_ENTRANCES} value={fx.entrance} onChange={entrance => { set({ entrance }); setTimeout(() => window.dispatchEvent(new Event(REPLAY_EVENT)), 0); }} labelOf={k => t(`effects.entrances.${k}`)} />
+                    {fx.entrance !== 'none' && (
+                        <button type="button" className="ds-btn ds-btn--secondary ds-btn--sm mt-3" onClick={() => window.dispatchEvent(new Event(REPLAY_EVENT))}>{t('effects.replay')}</button>
+                    )}
+                </div>
+                <p className="text-xs 3xl:text-sm text-ds-soft">{t('effects.reducedNote')}</p>
+            </div>
+        </Card>
     );
 }
 

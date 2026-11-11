@@ -438,6 +438,41 @@ public class PersonalPageRulesTests
     }
 
     [Fact]
+    public void EffectsAreOffByDefaultAndOnlyFromTheClosedList()
+    {
+        var off = new PersonalPageEffects();
+        Assert.Equal("none", off.Particles);
+        Assert.False(off.Shine);
+        Assert.Equal("none", off.Cursor);
+        Assert.Equal("none", off.Entrance);
+        Assert.Empty(PersonalPageRules.Errors(Valid(), forPublish: true));
+        Assert.Empty(PersonalPageRules.Errors(Valid() with { Effects = off }, forPublish: true));
+
+        var all = new PersonalPageEffects("confetti", "high", "white", true, "sparkles", "cascade");
+        Assert.Empty(PersonalPageRules.EffectErrors(all));
+
+        var bad = new PersonalPageEffects("fireworks", "max", "rainbow", false, "custom", "spin");
+        Assert.Equal(new[] { "effects_particles", "effects_density", "effects_color", "effects_cursor", "effects_entrance" }, PersonalPageRules.EffectErrors(bad));
+        Assert.Contains("effects_particles", PersonalPageRules.Errors(Valid() with { Effects = bad }, forPublish: false));
+    }
+
+    [Fact]
+    public void EffectsAreNormalizedToLowercaseWithDefaults()
+    {
+        var c = PersonalPageRules.Normalize(Valid() with { Effects = new(" Snow ", "", "WHITE", true, null!, " Rise ") });
+        Assert.Equal(new PersonalPageEffects("snow", "medium", "white", true, "none", "rise"), c.Effects);
+        Assert.Empty(PersonalPageRules.EffectErrors(c.Effects));
+        Assert.Null(PersonalPageRules.Normalize(Valid()).Effects);
+    }
+
+    [Fact]
+    public void EffectsSurviveThePublicView()
+    {
+        var c = Valid() with { Effects = new("bubbles", "low", "accent", true, "dots", "fade") };
+        Assert.Equal(c.Effects, PersonalPageRules.PublicView(c, PersonalPageDomainPolicy.Empty, false).Effects);
+    }
+
+    [Fact]
     public void MediaViewDropsHiddenVideosAndDeletedFiles()
     {
         var c = Valid() with

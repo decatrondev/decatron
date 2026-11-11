@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import SceneTemplate from './SceneTemplate';
 import BadgeTemplate from './BadgeTemplate';
@@ -6,6 +6,7 @@ import ChannelTemplate from './ChannelTemplate';
 import InventoryTemplate from './InventoryTemplate';
 import PosterTemplate from './PosterTemplate';
 import { AdultLinkDialog } from './AgeGate';
+import { CursorTrail, FX_CSS, FX_SURFACES, ParticleLayer, REPLAY_EVENT, effectsOf, useReducedMotion } from './PageEffects';
 import { ADULT_KINDS, hostOf, type PageLabels, type PersonalPageContent, type TemplateProps } from './shared';
 
 // Dibuja la página con la plantilla elegida. El contenido es el mismo para todas: cambiar de plantilla no pierde nada.
@@ -51,9 +52,15 @@ type Props = Omit<TemplateProps, 'labels'> & {
     onAgeConfirm?: () => void;
     /** Al tocar una red, un enlace o un video: el destino para las estadísticas (5.5) y el sonido de los botones (5.4) */
     onLinkClick?: (target?: string) => void;
+    /** Sin efectos (miniaturas del selector de plantillas) */
+    noEffects?: boolean;
+    /** El visitante pausó partículas y estela (5.10) */
+    effectsPaused?: boolean;
+    /** Fuerza «reducir movimiento» (la vista previa del panel lo simula); sin esto manda el sistema del visitante */
+    reducedMotion?: boolean;
 };
 
-export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkClick, ...props }: Props) {
+export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkClick, noEffects, effectsPaused = false, reducedMotion, ...props }: Props) {
     const fallback = usePageLabels();
     const labels = props.labels ?? fallback;
     const Component = BY_KEY[props.content.template as keyof typeof BY_KEY] ?? SceneTemplate;
@@ -85,6 +92,36 @@ export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkCli
         setPending(href);
     }, [ageOk, adultUrls, onLinkClick, targetOf]);
 
+    // Efectos (5.10): con «reducir movimiento» no hay partículas, estela ni brillo y la entrada es un aparecer muy corto
+    const fx = effectsOf(props.content);
+    const reduced = useReducedMotion(reducedMotion);
+    const particles = !noEffects && !reduced && fx.particles !== 'none';
+    const trail = !noEffects && !reduced && fx.cursor !== 'none';
+    const entrance = noEffects || fx.entrance === 'none' ? '' : reduced ? 'short' : fx.entrance;
+    const [replay, setReplay] = useState(0);
+    useEffect(() => {
+        if (!props.embedded) return;
+        const on = () => setReplay(r => r + 1);
+        window.addEventListener(REPLAY_EVENT, on);
+        return () => window.removeEventListener(REPLAY_EVENT, on);
+    }, [props.embedded]);
+    // En cascada: cada red o enlace aparece un poco después del anterior (hasta 14 pasos)
+    const host = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (entrance !== 'cascade' || !host.current) return;
+        host.current.querySelectorAll<HTMLElement>(FX_SURFACES.join(',')).forEach((el, i) => el.style.setProperty('--ppfx-i', String(Math.min(i, 14))));
+    }, [entrance, replay, content]);
+    const accent = /^#[0-9a-f]{6}$/i.test(props.content.accent) ? props.content.accent : '#5B8CFF';
+    const backdrop = particles || trail ? <>
+        {particles && <ParticleLayer fx={fx} accent={accent} theme={props.content.theme} embedded={props.embedded} paused={effectsPaused} />}
+        {trail && <CursorTrail fx={fx} accent={accent} theme={props.content.theme} embedded={props.embedded} paused={effectsPaused} />}
+    </> : undefined;
+    const fxClass = [
+        particles || trail ? 'ppfx-bg' : '',
+        !noEffects && !reduced && fx.shine ? 'ppfx-shine' : '',
+        entrance ? `ppfx-in-${entrance}` : '',
+    ].filter(Boolean).join(' ');
+
     const confirm = () => {
         const url = pending;
         setPending(null);
@@ -93,8 +130,9 @@ export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkCli
     };
 
     return (
-        <div style={{ display: 'contents' }} onClickCapture={onClickCapture}>
-            <Component {...props} content={content} labels={labels} />
+        <div key={replay} ref={host} className={fxClass || undefined} style={{ display: 'contents', ['--ppfx-shine' as string]: `color-mix(in srgb, ${accent} 40%, transparent)` }} onClickCapture={onClickCapture}>
+            {fxClass && <style>{FX_CSS}</style>}
+            <Component {...props} content={content} labels={labels} backdrop={backdrop} />
             {pending && <AdultLinkDialog content={props.content} host={hostOf(pending)} onConfirm={confirm} onCancel={() => setPending(null)} />}
         </div>
     );
