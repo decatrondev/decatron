@@ -363,6 +363,96 @@ public class PersonalPageRulesTests
         var c = Valid() with { Scene = Scene() with { Background = "neon" } };
         Assert.Contains("scene_background", PersonalPageRules.Errors(c, forPublish: false, gallery: Gallery));
     }
+    // ---------- Subfase 5.4: videos, fotos y sonidos ----------
+
+    [Theory]
+    [InlineData("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "youtube", "dQw4w9WgXcQ")]
+    [InlineData("https://youtu.be/dQw4w9WgXcQ", "youtube", "dQw4w9WgXcQ")]
+    [InlineData("https://youtube.com/shorts/dQw4w9WgXcQ", "youtube-short", "dQw4w9WgXcQ")]
+    [InlineData("https://www.twitch.tv/videos/123456789", "twitch-video", "123456789")]
+    [InlineData("https://www.twitch.tv/kira/clip/FunnyClipSlug-abc", "twitch-clip", "FunnyClipSlug-abc")]
+    [InlineData("https://clips.twitch.tv/FunnyClipSlug", "twitch-clip", "FunnyClipSlug")]
+    [InlineData("https://twitch.tv/KiraVolta", "twitch-channel", "kiravolta")]
+    [InlineData("https://kick.com/kira-volta", "kick", "kira-volta")]
+    [InlineData("https://www.tiktok.com/@kira/video/7234567890123456789", "tiktok", "7234567890123456789")]
+    public void VideoLinksAreRecognized(string url, string kind, string id)
+    {
+        var v = PersonalPageRules.ParseVideo(url);
+        Assert.NotNull(v);
+        Assert.Equal(kind, v!.Kind);
+        Assert.Equal(id, v.Ref);
+    }
+
+    [Theory]
+    [InlineData("http://www.youtube.com/watch?v=dQw4w9WgXcQ")]
+    [InlineData("https://www.youtube.com/watch?v=corto")]
+    [InlineData("https://www.youtube.com/@kira")]
+    [InlineData("https://twitch.tv/directory")]
+    [InlineData("https://kick.com/categories")]
+    [InlineData("https://vimeo.com/123")]
+    [InlineData("https://youtube.com.evil.example/watch?v=dQw4w9WgXcQ")]
+    [InlineData("javascript:alert(1)")]
+    public void OtherLinksAreNotVideos(string url) => Assert.Null(PersonalPageRules.ParseVideo(url));
+
+    [Fact]
+    public void MediaErrorsWithIndex()
+    {
+        var c = Valid() with
+        {
+            Videos = new() { new("v1", "https://youtu.be/dQw4w9WgXcQ"), new("v2", "https://vimeo.com/1"), new("v1", "https://youtu.be/dQw4w9WgXcQ") },
+            Photos = new() { new("p1", "/timerextensible/kira/fondos/a.png"), new("p2", "/timerextensible/kira/x/d.mp3"), new("p3", "/timerextensible/kira/x/b.gif", new string('x', 81)) },
+            Sound = new("/timerextensible/kira/fondos/a.png", "", ClickEnabled: true, Volume: 150),
+        };
+        var e = PersonalPageRules.MediaErrors(c, Gallery);
+        Assert.DoesNotContain(e, x => x.EndsWith(":0") && x.StartsWith("video"));
+        Assert.Contains("video_url:1", e);
+        Assert.Contains("video_id:2", e);
+        Assert.Contains("photo_media:1", e);
+        Assert.Contains("photo_caption:2", e);
+        Assert.Contains("sound_entry", e);
+        Assert.Contains("sound_click", e);
+        Assert.Contains("sound_volume", e);
+    }
+
+    [Fact]
+    public void MediaHasTechnicalCaps()
+    {
+        var c = Valid() with
+        {
+            Videos = Enumerable.Range(0, PersonalPageRules.VideosMax + 1).Select(i => new PersonalPageVideo($"v{i}", "https://youtu.be/dQw4w9WgXcQ")).ToList(),
+            Photos = Enumerable.Range(0, PersonalPageRules.PhotosMax + 1).Select(i => new PersonalPagePhoto($"p{i}", "/timerextensible/kira/fondos/a.png")).ToList(),
+        };
+        var e = PersonalPageRules.MediaErrors(c, Gallery);
+        Assert.Contains("videos_count", e);
+        Assert.Contains("photos_count", e);
+    }
+
+    [Fact]
+    public void SoundNeedsAFileAndVolume()
+    {
+        Assert.False(PersonalPageRules.HasSound(Valid()));
+        Assert.True(PersonalPageRules.HasSound(Valid() with { Sound = new("/timerextensible/kira/x/d.mp3") }));
+        Assert.False(PersonalPageRules.HasSound(Valid() with { Sound = new("/timerextensible/kira/x/d.mp3", Volume: 0) }));
+        Assert.False(PersonalPageRules.HasSound(Valid() with { Sound = new("", "/timerextensible/kira/x/d.mp3", ClickEnabled: false) }));
+        Assert.Empty(PersonalPageRules.MediaErrors(Valid() with { Sound = new("/timerextensible/kira/x/d.mp3", "/timerextensible/kira/x/d.mp3", true, 40) }, Gallery));
+    }
+
+    [Fact]
+    public void MediaViewDropsHiddenVideosAndDeletedFiles()
+    {
+        var c = Valid() with
+        {
+            Videos = new() { new("v1", "https://youtu.be/dQw4w9WgXcQ"), new("v2", "https://youtu.be/dQw4w9WgXcQ", Visible: false) },
+            Photos = new() { new("p1", "/timerextensible/kira/fondos/a.png"), new("p2", "/timerextensible/kira/borrada.png") },
+            Sound = new("/timerextensible/kira/borrado.mp3", "/timerextensible/kira/x/d.mp3", true),
+        };
+        var view = PersonalPageRules.MediaView(c, Gallery);
+        Assert.Equal(new[] { "v1" }, view.Videos!.Select(v => v.Id));
+        Assert.Equal(new[] { "p1" }, view.Photos!.Select(p => p.Id));
+        Assert.Equal("", view.Sound!.EntryUrl);
+        Assert.Equal("/timerextensible/kira/x/d.mp3", view.Sound.ClickUrl);
+        Assert.Equal(new[] { "/timerextensible/kira/borrada.png", "/timerextensible/kira/borrado.mp3" }, PersonalPageRules.MissingMedia(c, Gallery));
+    }
 }
 
 internal sealed class PersonalPageDbFactAttribute : FactAttribute

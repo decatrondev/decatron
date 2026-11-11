@@ -8,6 +8,7 @@ import { usePageFonts } from './shared';
 import { usePersonalPage } from './usePersonalPage';
 import { AppealForm, AppearanceTab, GuideTab, HandleInput, LinksTab, NameTab, ProfileTab, useErrorText, type PanelTab } from './PersonalPageTabs';
 import SceneTab from './SceneTab';
+import MediaTab from './MediaTab';
 
 // Panel «Mi página» (subfase 5.1). Mismo patrón que el panel de Song Request: pestañas con la Guía primero a la
 // izquierda y vista previa a la derecha. Plan: .dev/plans/pagina-personal/PLAN.md §9.
@@ -16,6 +17,7 @@ const TABS: { id: PanelTab; icon: string }[] = [
     { id: 'guide', icon: '📚' },
     { id: 'profile', icon: '🙂' },
     { id: 'links', icon: '🔗' },
+    { id: 'media', icon: '🎞️' },
     { id: 'appearance', icon: '🎨' },
     { id: 'scene', icon: '🎬' },
     { id: 'name', icon: '@' },
@@ -178,6 +180,7 @@ export default function PersonalPageConfig() {
                                         className={tab === item.id ? 'ds-btn ds-btn--primary ds-btn--sm whitespace-nowrap' : 'ds-btn ds-btn--secondary ds-btn--sm whitespace-nowrap'}>
                                         <TabIcon emoji={item.icon} />{t(`tabs.${item.id}`)}
                                         {item.id === 'links' && fieldErrors.some(e => e.startsWith('link')) && <span className="ml-1 w-2 h-2 rounded-full bg-ds-danger" aria-hidden="true" />}
+                                        {item.id === 'media' && fieldErrors.some(e => /^(video|photo|sound)/.test(e)) && <span className="ml-1 w-2 h-2 rounded-full bg-ds-danger" aria-hidden="true" />}
                                         {item.id === 'scene' && (fieldErrors.some(e => e.startsWith('layer') || e.startsWith('scene')) || (data.missingMedia ?? []).length > 0) && <span className="ml-1 w-2 h-2 rounded-full bg-ds-danger" aria-hidden="true" />}
                                     </button>
                                 ))}
@@ -187,6 +190,7 @@ export default function PersonalPageConfig() {
                             {tab === 'guide' && <GuideTab onNavigate={setTab} />}
                             {tab === 'profile' && <ProfileTab s={s} photoFallback={data.channel?.photoUrl ?? ''} onMessage={notify} />}
                             {tab === 'links' && <LinksTab s={s} errors={fieldErrors} />}
+                            {tab === 'media' && <MediaTab s={s} errors={fieldErrors} />}
                             {tab === 'appearance' && <AppearanceTab s={s} onMessage={notify} photoFallback={data.channel?.photoUrl ?? ''} />}
                             {tab === 'scene' && draft.template === 'scene' && <SceneTab s={s} photoFallback={data.channel?.photoUrl ?? ''} errors={fieldErrors} />}
                             {tab === 'scene' && draft.template !== 'scene' && <GuideTab onNavigate={setTab} />}

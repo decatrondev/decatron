@@ -3,9 +3,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import TemplateRenderer from './TemplateRenderer';
-import { AgeGatePage, useAgeOk } from './AgeGate';
+import { EntryGate, useAgeOk } from './AgeGate';
+import { MuteButton, usePageSound } from './PageSound';
 import ReportBar from './ReportBar';
-import { usePageFonts, type PersonalPageContent } from './shared';
+import { hasSound, usePageFonts, type PersonalPageContent } from './shared';
 
 // Página pública decatron.net/@nombre (subfases 5.1 y 5.2: puerta +18 y «Denunciar»). React Router no admite «@:param» dentro de un segmento,
 // así que la ruta es «/:atHandle» (las rutas fijas tienen prioridad) y acá se exige que empiece con @.
@@ -36,6 +37,8 @@ export default function PersonalPagePublic() {
     const handle = isHandle ? atHandle.slice(1).toLowerCase() : '';
     const [state, setState] = useState<State>({ kind: 'loading' });
     const [ageOk, confirmAge] = useAgeOk();
+    // La puerta por sonido se pasa en cada visita (el navegador exige un toque para reproducir audio)
+    const [entered, setEntered] = useState(false);
 
     useEffect(() => {
         if (!isHandle) { setState({ kind: 'error', code: 'not_found' }); return; }
@@ -56,6 +59,7 @@ export default function PersonalPagePublic() {
     }, [handle, isHandle, navigate]);
 
     const content = state.kind === 'ok' ? state.data.content : null;
+    const sound = usePageSound(content?.sound);
     usePageFonts(content ? [content.font] : []);
 
     const adultPage = state.kind === 'ok' && state.data.adult;
@@ -96,7 +100,12 @@ export default function PersonalPagePublic() {
 
     const { data } = state;
     // Quien la administra la ve sin la puerta (es su propia página o la revisa admin)
-    if (data.adult && !ageOk && !data.canManage) return <AgeGatePage content={data.content} handle={data.handle} onConfirm={confirmAge} />;
+    const withSound = hasSound(data.content);
+    const adultGate = data.adult && !ageOk && !data.canManage;
+    if ((adultGate || withSound) && !entered) {
+        return <EntryGate content={data.content} handle={data.handle} adult={adultGate} sound={withSound}
+            onEnter={on => { if (adultGate) confirmAge(); sound.start(on); setEntered(true); }} />;
+    }
     return (
         <>
             {(data.preview || data.hidden) && data.canManage && (
@@ -106,7 +115,8 @@ export default function PersonalPagePublic() {
                 </div>
             )}
             <TemplateRenderer content={data.content} channelPhotoUrl={data.channelPhotoUrl} handle={data.handle}
-                ageOk={ageOk || data.adult || data.canManage} onAgeConfirm={confirmAge} />
+                ageOk={ageOk || data.adult || data.canManage} onAgeConfirm={confirmAge} onLinkClick={sound.playClick} />
+            {withSound && <MuteButton content={data.content} muted={sound.muted} onToggle={sound.toggleMute} />}
             {!data.isOwner && <ReportBar handle={data.handle} content={data.content} reasons={data.reportReasons ?? []} />}
         </>
     );

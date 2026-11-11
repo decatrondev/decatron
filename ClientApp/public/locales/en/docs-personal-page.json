@@ -48,7 +48,8 @@
               "Socials from a list: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans and Fansly. Each one only accepts addresses from that social.",
               "Custom links with their title. They must all start with https:// and link shorteners (bit.ly, tinyurl…) aren't accepted, because they hide where the link goes.",
               "Five templates to choose from (Scene, Badge, TV channel, Inventory and Poster), in a light or dark theme, with the accent color and font you choose. All of them use the same content.",
-              "With the Scene template, the top can be a layered canvas: background (stripes, a color, or an image, GIF or video from your media gallery), photo, name, bio, stickers and free texts."
+              "With the Scene template, the top can be a layered canvas: background (stripes, a color, or an image, GIF or video from your media gallery), photo, name, bio, stickers and free texts.",
+              "YouTube, Twitch, Kick or TikTok videos embedded on the page, plus photos and sounds from your media gallery."
             ]
           },
           {
@@ -143,6 +144,10 @@
               [
                 "Socials and links",
                 "Add networks from the list or custom links, reorder, hide or remove them, and mark which ones are 18+."
+              ],
+              [
+                "Media",
+                "Embedded videos (YouTube, Twitch, Kick or TikTok), photos and sounds from your gallery."
               ],
               [
                 "Appearance",
@@ -282,6 +287,28 @@
               "Link shorteners (bit.ly, tinyurl…) aren't accepted in custom links: paste the site's real address.",
               "If a link goes to a site blocked for safety, the editor marks it in red and won't save until you remove it."
             ]
+          }
+        ]
+      },
+      {
+        "id": "multimedia",
+        "title": "Videos, photos and sounds",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Videos: paste the link to a video or channel from YouTube (Shorts too), Twitch (channel, video or clip), Kick (channel) or TikTok (video). Nothing is uploaded: the official player is shown. Up to 10.",
+              "The player only loads when the visitor taps «Play»: the page loads fast and those platforms receive nothing from the visitor until they choose to watch.",
+              "Photos: images or GIFs from your media gallery, with an optional description. They open full size when tapped. Up to 12.",
+              "Entry sound: plays once when the visitor taps «Enter». Button sound (off by default): plays when tapping your socials and links. One volume for both.",
+              "With a sound chosen, your page shows «Enter» first, because browsers don't play audio without a tap. Visitors can enter without sound and always have a mute button.",
+              "Videos and photos show below your socials and links in all five templates, in each template's style."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Photos and sounds count toward your plan's storage in the media gallery. If you delete from the gallery a file your page uses, it stops showing and My page tells you."
           }
         ]
       },

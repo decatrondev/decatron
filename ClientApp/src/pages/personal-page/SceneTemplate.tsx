@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import SceneCanvas, { SCENE_PALETTES } from './SceneCanvas';
+import MediaBlocks from './MediaBlocks';
 import { ADULT_KINDS, FONTS, PLATFORM_INITIALS, PLATFORM_NAMES, hostOf, textOn, type PageLabels, type TemplateProps } from './shared';
 
 // Plantilla «Escena» (subfase 5.1; con la escena por capas encendida, la cabecera es SceneCanvas, subfase 5.3). Maqueta: .dev/plans/pagina-personal/maquetas/Main.dc.html.
@@ -78,6 +79,8 @@ export default function SceneTemplate({ content, channelPhotoUrl, labels, embedd
 
                     {links.length === 0 && <p className="pp-empty">{labels.noLinks}</p>}
 
+                    <MediaBlocks content={content} labels={labels} embedded={embedded} />
+
                     <footer className="pp-footer">
                         <a href="https://decatron.net" target="_blank" rel="noopener noreferrer">{labels.madeWith}</a>
                     </footer>
@@ -92,6 +95,7 @@ const CSS = `
   font-size:clamp(16px,calc(9px + .45vw),30px);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
 .pp-scene-root.pp-embedded{font-size:16px;min-height:0}
 .pp-scene-root *{box-sizing:border-box}
+.pp-scene-root{--mb-text:var(--pp-text);--mb-soft:var(--pp-soft);--mb-panel:var(--pp-panel);--mb-line:var(--pp-line);--mb-accent:var(--pp-accent);--mb-on-accent:var(--pp-on-accent);--mb-radius:.9em}
 .pp-wrap{display:flex;flex-direction:column;min-height:inherit}
 .pp-scene{position:relative;overflow:hidden;background:var(--pp-scene);min-height:21em;padding:1.25em;display:flex;flex-direction:column;justify-content:flex-end;gap:1em}
 .pp-stripes{position:absolute;inset:0;background:repeating-linear-gradient(115deg,var(--pp-stripe-a) 0 .9em,var(--pp-stripe-b) .9em 1.8em)}

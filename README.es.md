@@ -232,7 +232,7 @@ Consulta [docs/es/OVERLAYS.md](docs/es/OVERLAYS.md) para tamaños, opciones y el
 | [OVERLAYS.md](docs/es/OVERLAYS.md) | Configuración de overlays e integración con OBS |
 | [DESIGN_SYSTEM.md](docs/es/DESIGN_SYSTEM.md) | Tokens de diseño, librería de componentes, editor de tema en vivo |
 | [TOURNAMENT_CALL.md](docs/es/TOURNAMENT_CALL.md) | Convocatoria de streamers: contenido bilingüe, portada real, borrador y publicación, solicitudes, aportes directos de dinero y custodia de paVos, tarjetas y regalos |
-| [PERSONAL_PAGE.md](docs/es/PERSONAL_PAGE.md) | Página personal decatron.net/@nombre: modelo de datos, reglas del nombre (30 días, redirección, apelaciones), API, las cinco plantillas, escena por capas, contenido +18, dominios, denuncias y configuración |
+| [PERSONAL_PAGE.md](docs/es/PERSONAL_PAGE.md) | Página personal decatron.net/@nombre: modelo de datos, reglas del nombre (30 días, redirección, apelaciones), API, las cinco plantillas, escena por capas, videos, fotos y sonidos, contenido +18, dominios, denuncias y configuración |
 | [TROUBLESHOOTING.md](docs/es/TROUBLESHOOTING.md) | Problemas comunes y soluciones |
 
 Las versiones en inglés están en [docs/](docs/). La documentación de usuario vive en la propia aplicación, en `/docs` (pública) y `/dashboard/docs` (con sesión iniciada).

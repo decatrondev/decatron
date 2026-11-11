@@ -233,7 +233,7 @@ See [docs/OVERLAYS.md](docs/OVERLAYS.md) for sizes, options and the rest of the 
 | [OVERLAYS.md](docs/OVERLAYS.md) | Overlay setup and OBS integration |
 | [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Design tokens, component library, runtime theme editor |
 | [TOURNAMENT_CALL.md](docs/TOURNAMENT_CALL.md) | Streamer call: bilingual content, real cover images, drafts and publication, applications, direct money contributions and custody of V-Bucks, gift cards and gifts |
-| [PERSONAL_PAGE.md](docs/PERSONAL_PAGE.md) | Personal page decatron.net/@name: data model, name rules (30 days, redirects, appeals), API, the five templates, layered scene, 18+ content, domains, reports and configuration |
+| [PERSONAL_PAGE.md](docs/PERSONAL_PAGE.md) | Personal page decatron.net/@name: data model, name rules (30 days, redirects, appeals), API, the five templates, layered scene, videos, photos and sounds, 18+ content, domains, reports and configuration |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common problems and solutions |
 
 Spanish versions are in [docs/es/](docs/es/). The user documentation lives in the app itself, under `/docs` (public) and `/dashboard/docs` (signed in).

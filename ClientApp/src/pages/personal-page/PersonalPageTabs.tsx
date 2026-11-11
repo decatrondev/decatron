@@ -8,7 +8,7 @@ import { FONTS, PLATFORM_NAMES, TEMPLATES, TEMPLATES_WITH_SIZE, TEMPLATE_FONT, l
 import TemplateRenderer from './TemplateRenderer';
 import { errorOf, type PersonalPageState } from './usePersonalPage';
 
-export type PanelTab = 'guide' | 'profile' | 'links' | 'appearance' | 'scene' | 'name';
+export type PanelTab = 'guide' | 'profile' | 'links' | 'media' | 'appearance' | 'scene' | 'name';
 
 /** Texto de un código de error del servidor (con el índice del enlace si lo trae, «link_url:2»). */
 export function useErrorText() {
@@ -23,7 +23,7 @@ export function useErrorText() {
 
 export function GuideTab({ onNavigate }: { onNavigate: (tab: PanelTab) => void }) {
     const { t } = useTranslation('personal-page');
-    const steps: PanelTab[] = ['profile', 'links', 'appearance', 'name'];
+    const steps: PanelTab[] = ['profile', 'links', 'media', 'appearance', 'name'];
     return (
         <div className="space-y-6">
             <Card title={t('guide.title')} description={t('guide.intro')}>
@@ -39,7 +39,7 @@ export function GuideTab({ onNavigate }: { onNavigate: (tab: PanelTab) => void }
             </Card>
             <Card title={t('guide.notesTitle')}>
                 <ul className="space-y-2 list-disc pl-5 text-sm 3xl:text-base text-ds-soft">
-                    {['draft', 'templates', 'scene', 'handle', 'appeal', 'links', 'adult', 'reports', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
+                    {['draft', 'templates', 'scene', 'media', 'handle', 'appeal', 'links', 'adult', 'reports', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
                 </ul>
             </Card>
             <p className="text-sm 3xl:text-base text-ds-soft">

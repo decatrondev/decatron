@@ -48,7 +48,8 @@
               "Redes de una lista: Twitch, Kick, YouTube, TikTok, Instagram, X, Discord, Facebook, Threads, Bluesky, OnlyFans y Fansly. Cada una solo acepta direcciones de esa red.",
               "Enlaces libres con su título. Todos tienen que empezar con https:// y no se aceptan acortadores (bit.ly, tinyurl…), porque esconden adónde lleva el enlace.",
               "Cinco plantillas a elegir (Escena, Credencial, Canal de TV, Inventario y Póster), en tema claro u oscuro, con el color de acento y la tipografía que elijas. Todas usan el mismo contenido.",
-              "Con la plantilla Escena, la parte de arriba puede ser un lienzo por capas: fondo (rayas, color, o imagen, GIF o video de tu galería de medios), foto, nombre, bio, stickers y textos libres."
+              "Con la plantilla Escena, la parte de arriba puede ser un lienzo por capas: fondo (rayas, color, o imagen, GIF o video de tu galería de medios), foto, nombre, bio, stickers y textos libres.",
+              "Videos de YouTube, Twitch, Kick o TikTok insertados en la página, fotos y sonidos de tu galería de medios."
             ]
           },
           {
@@ -143,6 +144,10 @@
               [
                 "Redes y enlaces",
                 "Agregar redes de la lista o enlaces libres, ordenarlos, ocultarlos, quitarlos y marcar cuáles son +18."
+              ],
+              [
+                "Multimedia",
+                "Videos insertados (YouTube, Twitch, Kick o TikTok), fotos y sonidos de tu galería."
               ],
               [
                 "Apariencia",
@@ -282,6 +287,28 @@
               "No se aceptan acortadores de enlaces (bit.ly, tinyurl…) en los enlaces libres: pega la dirección real del sitio.",
               "Si un enlace lleva a un sitio bloqueado por seguridad, el editor lo marca en rojo y no deja guardar hasta quitarlo."
             ]
+          }
+        ]
+      },
+      {
+        "id": "multimedia",
+        "title": "Videos, fotos y sonidos",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Videos: pega el enlace de un video o canal de YouTube (también Shorts), Twitch (canal, video o clip), Kick (canal) o TikTok (video). No se sube nada: se muestra el reproductor oficial. Hasta 10.",
+              "El reproductor se carga recién cuando el visitante toca «Reproducir»: la página carga rápido y esas plataformas no reciben nada del visitante hasta que decide ver.",
+              "Fotos: imágenes o GIF de tu galería de medios, con una descripción opcional. Se ven en grande al tocarlas. Hasta 12.",
+              "Sonido de entrada: suena una vez cuando el visitante toca «Entrar». Sonido de los botones (apagado por defecto): suena al tocar tus redes y enlaces. Un solo volumen para los dos.",
+              "Con un sonido elegido, tu página muestra primero «Entrar», porque los navegadores no reproducen audio sin un toque. El visitante puede entrar sin sonido y siempre tiene un botón para silenciar.",
+              "Videos y fotos aparecen debajo de tus redes y enlaces en las cinco plantillas, con el estilo de cada una."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Fotos y sonidos usan el espacio de almacenamiento de tu plan en la galería de medios. Si borras de la galería un archivo que usa tu página, deja de mostrarse y Mi página te avisa."
           }
         ]
       },

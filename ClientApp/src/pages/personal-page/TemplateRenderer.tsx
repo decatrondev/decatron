@@ -29,6 +29,13 @@ export function usePageLabels(): PageLabels {
         findMeAt: t('public.findMeAt'),
         qrAlt: t('public.qrAlt'),
         adultCovered: t('public.adultCovered'),
+        play: t('public.play'),
+        videoOf: (platform: string) => t('public.videoOf', { platform }),
+        loadsFrom: (platform: string) => t('public.loadsFrom', { platform }),
+        photos: t('public.photos'),
+        close: t('public.close'),
+        previous: t('public.previous'),
+        next: t('public.next'),
     }), [t]);
 }
 
@@ -39,9 +46,11 @@ type Props = Omit<TemplateProps, 'labels'> & {
     /** El visitante ya confirmó que tiene 18 o más (en el panel siempre: el dueño ve todo). Sin confirmar, se le pregunta. */
     ageOk?: boolean;
     onAgeConfirm?: () => void;
+    /** Al tocar una red o un enlace (para el sonido de los botones, 5.4) */
+    onLinkClick?: () => void;
 };
 
-export default function TemplateRenderer({ ageOk = true, onAgeConfirm, ...props }: Props) {
+export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkClick, ...props }: Props) {
     const fallback = usePageLabels();
     const labels = props.labels ?? fallback;
     const Component = BY_KEY[props.content.template as keyof typeof BY_KEY] ?? SceneTemplate;
@@ -55,14 +64,14 @@ export default function TemplateRenderer({ ageOk = true, onAgeConfirm, ...props 
     }, [ageOk, props.content, labels.adultCovered]);
 
     const onClickCapture = useCallback((e: MouseEvent<HTMLDivElement>) => {
-        if (ageOk) return;
         const anchor = (e.target as HTMLElement).closest('a');
         const href = anchor?.getAttribute('href');
-        if (!href || !adultUrls.has(href)) return;
+        if (!href) return;
+        if (ageOk || !adultUrls.has(href)) { onLinkClick?.(); return; }
         e.preventDefault();
         e.stopPropagation();
         setPending(href);
-    }, [ageOk, adultUrls]);
+    }, [ageOk, adultUrls, onLinkClick]);
 
     const confirm = () => {
         const url = pending;

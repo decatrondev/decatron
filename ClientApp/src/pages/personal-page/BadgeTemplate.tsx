@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import QRCode from 'qrcode';
 import { LINK_REL, hostOf, pageParts, textOn, type TemplateProps } from './shared';
+import MediaBlocks from './MediaBlocks';
 
 // Plantilla «Credencial»: un pase de backstage colgado de una cinta del color de acento. Al frente, foto, nombre, @nombre
 // y un QR que abre la página; al girarla, las redes y enlaces. Maqueta: .dev/plans/pagina-personal/maquetas/Credencial.dc.html
@@ -81,6 +82,7 @@ export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle
                     )}
                 </article>
                 <button type="button" className="bd-flip" onClick={() => setBack(b => !b)} aria-pressed={back}>{back ? labels.flipBack : labels.flip}</button>
+                <MediaBlocks content={content} labels={labels} embedded={embedded} />
                 <a className="bd-made" href="https://decatron.net" target="_blank" rel="noopener noreferrer">{labels.madeWith}</a>
             </div>
         </div>
@@ -88,6 +90,7 @@ export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle
 }
 
 const CSS = `
+.bd-root{--mb-text:var(--bd-ink);--mb-soft:var(--bd-soft);--mb-heading:var(--bd-faint);--mb-panel:var(--bd-card);--mb-line:var(--bd-line);--mb-accent:var(--bd-accent);--mb-on-accent:var(--bd-on-accent);--mb-radius:.6em}
 .bd-root{container-type:inline-size;container-name:bd;background:var(--bd-bg);color:var(--bd-ink);font-family:var(--bd-font);
   font-size:clamp(16px,calc(9px + .45vw),30px);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow:hidden}
 .bd-root.bd-embedded{font-size:16px;min-height:0}
@@ -126,6 +129,7 @@ const CSS = `
 .bd-flip{margin-top:1.9em;min-height:3em;min-width:12.5em;border:1px solid var(--bd-btn-line);border-radius:1.5em;background:transparent;color:var(--bd-btn);
   font-family:inherit;font-size:.95em;font-weight:600;cursor:pointer}
 .bd-flip:hover{border-color:var(--bd-accent)}
+.bd-wrap>.mb-root{margin-top:1.6em}
 .bd-made{margin-top:.9em;font-size:.75em;color:var(--bd-faint);text-decoration:none}
 .bd-root a:focus-visible,.bd-root button:focus-visible{outline:2px solid var(--bd-accent);outline-offset:3px}
 @container bd (min-width: 700px){ .bd-wrap{max-width:30em} .bd-photo{height:14em} }

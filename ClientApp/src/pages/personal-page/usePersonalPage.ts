@@ -32,7 +32,9 @@ export interface PanelData {
     domains: DomainPolicy;
     /** Lienzo y topes técnicos de la escena por capas (5.3) */
     scene: { width: number; height: number; stickersMax: number; textsMax: number; textMax: number };
-    /** Archivos de la escena que ya no están en la galería */
+    /** Topes técnicos de videos y fotos (5.4) */
+    media: { videosMax: number; photosMax: number; captionMax: number };
+    /** Archivos de la escena, fotos y sonidos que ya no están en la galería */
     missingMedia: string[];
     limits: { handleMin: number; handleMax: number; displayName: number; bio: number; title: number; links: number; url: number };
 }

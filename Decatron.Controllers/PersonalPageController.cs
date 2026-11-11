@@ -71,7 +71,7 @@ public class PersonalPageController(
         {
             page = page == null ? null : PanelDto(page, now),
             // Archivos de la escena que ya no están en la galería (se borraron): el panel avisa cuáles cambiar
-            missingMedia = page == null ? new List<string>() : PersonalPageRules.MissingSceneMedia(PersonalPageService.Read(page.Draft).Scene, await pages.GalleryAsync(channelId)),
+            missingMedia = page == null ? new List<string>() : PersonalPageRules.MissingMedia(PersonalPageService.Read(page.Draft), await pages.GalleryAsync(channelId)),
             suggestedHandle = page == null ? PersonalPageRules.SuggestHandle(channel?.Login) : null,
             channel = channel == null ? null : new { login = channel.Login, displayName = ChannelName(channel), photoUrl = ChannelPhoto(channel) },
             publicOpen = PublicOpen,
@@ -82,6 +82,7 @@ public class PersonalPageController(
                 width = PersonalPageRules.SceneWidth, height = PersonalPageRules.SceneHeight,
                 stickersMax = PersonalPageRules.SceneStickersMax, textsMax = PersonalPageRules.SceneTextsMax, textMax = PersonalPageRules.LayerTextMax,
             },
+            media = new { videosMax = PersonalPageRules.VideosMax, photosMax = PersonalPageRules.PhotosMax, captionMax = PersonalPageRules.CaptionMax },
             templates = PersonalPageRules.Templates,
             // Para marcar en el editor, mientras se escribe, lo que el servidor va a exigir (+18 forzado, bloqueados, acortadores)
             domains = new
@@ -287,7 +288,9 @@ public class PersonalPageController(
 
         var channel = await ChannelAsync(page.ChannelUserId);
         var content = PersonalPageRules.PublicView(PersonalPageService.Read(page.Published), await pages.DomainPolicyAsync(), page.ForcedAdult);
-        if (content.Scene != null) content = content with { Scene = PersonalPageRules.SceneView(content.Scene, await pages.GalleryAsync(page.ChannelUserId)) };
+        var gallery = await pages.GalleryAsync(page.ChannelUserId);
+        content = PersonalPageRules.MediaView(content, gallery);
+        if (content.Scene != null) content = content with { Scene = PersonalPageRules.SceneView(content.Scene, gallery) };
         // Página +18: que los buscadores no la indexen (la app además pone la meta robots)
         if (content.Adult) Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
         return Ok(new

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { LINK_REL, hostOf, pageParts, textOn, type TemplateProps } from './shared';
+import MediaBlocks from './MediaBlocks';
 
 // Plantilla «Póster de gira»: el nombre es la obra (cada palabra se mide y llena el ancho de la columna) y las redes van como los créditos
 // de un cartel: grandes, medianas o chicas según el tamaño del enlace. Si ninguna está marcada como grande, la primera red va
@@ -90,6 +91,7 @@ export default function PosterTemplate({ content, channelPhotoUrl, labels, embed
                 {adult.map(l => (
                     <a key={l.id} href={l.url} target="_blank" rel={LINK_REL} className="po-adult"><span className="po-adult-badge">{labels.adult}</span>{parts.labelOf(l)}{l.kind === 'custom' && <span className="po-host">{hostOf(l.url)}</span>}</a>
                 ))}
+                <div className="po-media"><MediaBlocks content={content} labels={labels} embedded={embedded} /></div>
                 <a className="po-made" href="https://decatron.net" target="_blank" rel="noopener noreferrer">{labels.madeWith}</a>
             </div>
         </div>
@@ -101,6 +103,8 @@ const CSS = `
   font-size:clamp(16px,calc(9px + .45vw),30px);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
 .po-root.po-embedded{font-size:16px;min-height:0}
 .po-root *{box-sizing:border-box}
+.po-root{--mb-text:var(--po-block-text);--mb-soft:var(--po-block-text);--mb-heading:var(--po-soft);--mb-panel:var(--po-block);--mb-line:var(--po-block);--mb-accent:var(--po-accent);--mb-on-accent:var(--po-on-accent);--mb-radius:0}
+.po-media{margin-top:1.4em}
 .po-wrap{container-type:inline-size;display:flex;flex-direction:column;padding:1.1em 1em 1.5em;min-height:inherit}
 .po-name{margin:0;min-width:0;width:100%;overflow:hidden;font-weight:900;font-stretch:var(--po-stretch);line-height:.82;letter-spacing:-.01em;text-transform:uppercase}
 .po-name span{display:block;white-space:nowrap;width:max-content;max-width:none}

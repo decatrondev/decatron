@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { useTranslation } from 'react-i18next';
 import { FONTS, textOn, type PersonalPageContent } from './shared';
 
-// Confirmación de edad de la página personal (subfase 5.2). Es una declaración del visitante, no una verificación: así lo
+// Puerta «Entrar» y confirmación de edad de la página personal (subfases 5.2 y 5.4). Es una declaración del visitante, no una verificación: así lo
 // dicen el texto y la documentación. Se recuerda en ese navegador para todas las páginas. En 5.4 esta misma puerta
 // también desbloqueará el sonido («Entrar» común a todas las plantillas).
 
@@ -35,8 +35,12 @@ export function gateVars(content: PersonalPageContent): CSSProperties {
     } as CSSProperties;
 }
 
-/** Pantalla completa antes de una página +18: no se dibuja nada de la página hasta confirmar. */
-export function AgeGatePage({ content, handle, onConfirm }: { content: PersonalPageContent; handle: string; onConfirm: () => void }) {
+/**
+ * Puerta «Entrar» común a todas las plantillas (5.2 y 5.4): aparece si la página es +18 (confirmar la edad) o tiene sonido
+ * (los navegadores no reproducen audio sin un toque). En una página +18 con sonido es una sola puerta para las dos cosas.
+ * onEnter(true) = con sonido; onEnter(false) = sin sonido.
+ */
+export function EntryGate({ content, handle, adult, sound, onEnter }: { content: PersonalPageContent; handle: string; adult: boolean; sound: boolean; onEnter: (withSound: boolean) => void }) {
     const { t } = useTranslation('personal-page');
     const enter = useRef<HTMLButtonElement>(null);
     useEffect(() => { enter.current?.focus(); }, []);
@@ -45,13 +49,18 @@ export function AgeGatePage({ content, handle, onConfirm }: { content: PersonalP
             <style>{CSS}</style>
             <main className="ag-box" aria-labelledby="ag-title">
                 <p className="ag-handle">decatron.net/@{handle}</p>
-                <h1 id="ag-title" className="ag-mark">18+</h1>
-                <p className="ag-text">{t('ageGate.pageText')}</p>
+                {adult
+                    ? <h1 id="ag-title" className="ag-mark">18+</h1>
+                    : <h1 id="ag-title" className="ag-name">{content.displayName || `@${handle}`}</h1>}
+                <p className="ag-text">{adult ? t('ageGate.pageText') : t('ageGate.soundText')}</p>
+                {adult && sound && <p className="ag-text ag-sound-note">{t('ageGate.alsoSound')}</p>}
                 <div className="ag-actions">
-                    <button ref={enter} type="button" className="ag-yes" onClick={onConfirm}>{t('ageGate.confirm')}</button>
-                    <a className="ag-no" href="/">{t('ageGate.leave')}</a>
+                    <button ref={enter} type="button" className="ag-yes" onClick={() => onEnter(sound)}>{adult ? t('ageGate.confirm') : t('ageGate.enter')}</button>
+                    {adult ? <a className="ag-no" href="/">{t('ageGate.leave')}</a>
+                        : <button type="button" className="ag-no" onClick={() => onEnter(false)}>{t('ageGate.enterMuted')}</button>}
                 </div>
-                <p className="ag-note">{t('ageGate.note')}</p>
+                {adult && sound && <button type="button" className="ag-link" onClick={() => onEnter(false)}>{t('ageGate.confirmMuted')}</button>}
+                {adult && <p className="ag-note">{t('ageGate.note')}</p>}
             </main>
         </div>
     );
@@ -92,6 +101,10 @@ const CSS = `
 .ag-handle{margin:0;font-size:.85em;color:var(--ag-soft);overflow-wrap:anywhere}
 .ag-mark{margin:.1em 0 0;font-size:6.5em;line-height:.9;font-weight:900;font-stretch:var(--ag-stretch);letter-spacing:-.02em;color:var(--ag-accent)}
 .ag-text{margin:.9em 0 0;font-size:1.05em;line-height:1.45}
+.ag-name{margin:.15em 0 0;font-size:3.2em;line-height:.95;font-weight:900;font-stretch:var(--ag-stretch);letter-spacing:-.01em;overflow-wrap:anywhere}
+.ag-sound-note{margin-top:.4em;color:var(--ag-soft);font-size:.95em}
+.ag-link{margin-top:.9em;background:none;border:0;padding:.3em 0;color:var(--ag-soft);font:inherit;font-size:.9em;text-decoration:underline;text-underline-offset:.2em;cursor:pointer}
+.ag-link:focus-visible{outline:2px solid var(--ag-accent);outline-offset:3px}
 .ag-actions{margin-top:1.4em;display:flex;flex-wrap:wrap;gap:.6em;width:100%}
 .ag-yes{min-height:3em;padding:0 1.3em;border:0;border-radius:.6em;background:var(--ag-accent);color:var(--ag-on-accent);font:inherit;font-weight:800;cursor:pointer}
 .ag-no{min-height:3em;padding:0 1.1em;display:inline-flex;align-items:center;border:2px solid var(--ag-line);border-radius:.6em;background:transparent;color:var(--ag-text);

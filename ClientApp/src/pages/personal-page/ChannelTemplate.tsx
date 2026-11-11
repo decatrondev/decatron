@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { LINK_REL, hostOf, pageParts, textOn, type TemplateProps } from './shared';
+import MediaBlocks from './MediaBlocks';
 
 // Plantilla «Canal de TV»: la página es el canal del streamer. Arriba la identificación del canal (con líneas de pantalla) y
 // debajo la guía de canales: cada red o enlace es un canal numerado. Maqueta: .dev/plans/pagina-personal/maquetas/Canal.dc.html
@@ -50,6 +51,7 @@ export default function ChannelTemplate({ content, channelPhotoUrl, labels, hand
                             </li>
                         ))}
                     </ol>
+                    <MediaBlocks content={content} labels={labels} embedded={embedded} />
                     <a className="ch-made" href="https://decatron.net" target="_blank" rel="noopener noreferrer">{labels.madeWith}</a>
                 </main>
             </div>
@@ -58,6 +60,7 @@ export default function ChannelTemplate({ content, channelPhotoUrl, labels, hand
 }
 
 const CSS = `
+.ch-root{--mb-text:var(--ch-text);--mb-soft:var(--ch-soft);--mb-panel:var(--ch-ident);--mb-line:var(--ch-line);--mb-accent:var(--ch-accent);--mb-on-accent:var(--ch-on-accent);--mb-radius:.5em}
 .ch-root{container-type:inline-size;container-name:ch;background:var(--ch-bg);color:var(--ch-text);font-family:var(--ch-font);
   font-size:clamp(16px,calc(9px + .45vw),30px);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
 .ch-root.ch-embedded{font-size:16px;min-height:0}
@@ -83,6 +86,7 @@ const CSS = `
 .ch-row-host{display:block;font-size:.8em;color:var(--ch-faint)}
 .ch-adult{font-size:.75em;font-weight:800;padding:.15em .45em;border-radius:.35em;background:var(--ch-accent);color:var(--ch-on-accent)}
 .ch-empty{margin:0;color:var(--ch-faint)}
+.ch-body>.mb-root{margin-top:1.2em}
 .ch-made{margin-top:auto;padding-top:1.2em;text-align:center;font-size:.75em;color:var(--ch-faint);text-decoration:none}
 .ch-root a:focus-visible{outline:2px solid var(--ch-accent);outline-offset:3px}
 @container ch (min-width: 700px){ .ch-wrap{max-width:38em;margin:0 auto;padding:2em 1em} .ch-ident{min-height:22em;padding:2em} .ch-name{font-size:calc(4.8em * var(--ch-name-scale))} }

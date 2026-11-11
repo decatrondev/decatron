@@ -42,7 +42,8 @@
     "links": "Redes y enlaces",
     "appearance": "Apariencia",
     "name": "Nombre",
-    "scene": "Escena"
+    "scene": "Escena",
+    "media": "Multimedia"
   },
   "preview": {
     "title": "Vista previa",
@@ -63,7 +64,8 @@
       "links": "agrega tus redes de la lista y los enlaces que quieras, ordénalos y oculta los que no quieras mostrar todavía.",
       "appearance": "elige una de las cinco plantillas (Escena, Credencial, Canal de TV, Inventario o Póster), tema claro u oscuro, el color de acento y la tipografía.",
       "name": "revisa tu @nombre. Puedes cambiarlo una vez cada 30 días.",
-      "publish": "toca «Publicar» para que tu página muestre los cambios. «Descartar cambios» vuelve el borrador a lo publicado."
+      "publish": "toca «Publicar» para que tu página muestre los cambios. «Descartar cambios» vuelve el borrador a lo publicado.",
+      "media": "agrega videos de YouTube, Twitch, Kick o TikTok, fotos y sonidos de tu galería (opcional)."
     },
     "publishTitle": "Publicar",
     "notesTitle": "Para tener en cuenta",
@@ -76,7 +78,8 @@
       "permissions": "Pueden editar tu página tú y quienes tengan control total de tu canal.",
       "templates": "Las cinco plantillas usan el mismo contenido: puedes cambiar de plantilla cuando quieras sin perder nada. Inventario y Póster usan además el tamaño de cada enlace.",
       "reports": "Cualquier persona con sesión puede denunciar una página. Las denuncias las revisa el equipo de Decatron: nada se oculta automáticamente, y si se oculta tu página verás el motivo arriba de este panel.",
-      "scene": "Con la plantilla Escena aparece la pestaña Escena: la parte de arriba de tu página como un lienzo por capas (fondo, foto, nombre, bio, stickers y textos), con imágenes, GIF y videos de tu galería de medios."
+      "scene": "Con la plantilla Escena aparece la pestaña Escena: la parte de arriba de tu página como un lienzo por capas (fondo, foto, nombre, bio, stickers y textos), con imágenes, GIF y videos de tu galería de medios.",
+      "media": "Los videos se cargan recién cuando el visitante toca «Reproducir». Si tu página tiene sonido, quien entre verá primero «Entrar», porque los navegadores no reproducen audio sin un toque."
     },
     "docsPrefix": "Más detalles en la documentación:",
     "docsLink": "Página personal"
@@ -252,7 +255,14 @@
     "open": "Abrir",
     "findMeAt": "Encuéntrame en",
     "qrAlt": "Código QR que abre esta página",
-    "adultCovered": "Enlace para mayores de 18"
+    "adultCovered": "Enlace para mayores de 18",
+    "play": "Reproducir",
+    "videoOf": "Video de {{platform}}",
+    "loadsFrom": "Se carga desde {{platform}} al tocar",
+    "photos": "Fotos",
+    "close": "Cerrar",
+    "previous": "Anterior",
+    "next": "Siguiente"
   },
   "errors": {
     "failed": "No se pudo completar. Vuelve a intentarlo.",
@@ -328,7 +338,18 @@
     "layer_font": "La tipografía de la capa {{n}} no está en la lista.",
     "layer_color": "El color de la capa {{n}} tiene que tener el formato #RRGGBB.",
     "layer_size": "El tamaño de letra de la capa {{n}} tiene que ir de 8 a 400.",
-    "layer_align": "La alineación de la capa {{n}} no es válida."
+    "layer_align": "La alineación de la capa {{n}} no es válida.",
+    "videos_count": "Puedes tener hasta 10 videos.",
+    "photos_count": "Puedes tener hasta 12 fotos.",
+    "video_id": "El video {{n}} está repetido. Quítalo y vuelve a agregarlo.",
+    "video_url": "El enlace del video {{n}} no se puede insertar: usa YouTube, Twitch, Kick o TikTok.",
+    "video_title": "El título del video {{n}} puede tener hasta 60 caracteres.",
+    "photo_id": "La foto {{n}} está repetida. Quítala y vuelve a agregarla.",
+    "photo_media": "La foto {{n}} no está en tu galería. Cámbiala o quítala.",
+    "photo_caption": "La descripción de la foto {{n}} puede tener hasta 80 caracteres.",
+    "sound_entry": "El sonido de entrada tiene que ser un sonido de tu galería.",
+    "sound_click": "Elige un sonido de tu galería para los botones, o apágalo.",
+    "sound_volume": "El volumen tiene que ir de 0 a 100."
   },
   "admin": {
     "back": "Volver al admin",
@@ -476,7 +497,12 @@
     "linkTitle": "Enlace para mayores de 18",
     "linkText": "Este enlace lleva a {{host}}, con contenido para mayores de 18 años. ¿Tienes 18 años o más?",
     "linkConfirm": "Tengo 18 o más, abrir",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "soundText": "Esta página tiene sonido. Toca «Entrar» para escucharla.",
+    "alsoSound": "También tiene sonido.",
+    "enter": "Entrar",
+    "enterMuted": "Entrar sin sonido",
+    "confirmMuted": "Tengo 18 o más, entrar sin sonido"
   },
   "report": {
     "open": "Denunciar esta página",
@@ -561,5 +587,42 @@
     "missing_other": "{{count}} archivos de tu escena ya no están en tu galería y no se muestran. Cámbialos o quítalos.",
     "missingShort": "ya no está en la galería",
     "missingLayer": "Esta imagen ya no está en tu galería: no se muestra en tu página."
+  },
+  "sound": {
+    "mute": "Silenciar",
+    "unmute": "Activar el sonido"
+  },
+  "media": {
+    "videosTitle": "Videos",
+    "videosHint": "Pega el enlace de un video o canal: se muestra el reproductor en tu página y no se sube nada.",
+    "videoUrl": "Enlace del video",
+    "videoTitleOptional": "Título (opcional)",
+    "addVideo": "Agregar video",
+    "recognized": "Reconocido: {{platform}}",
+    "notRecognized": "No es un enlace de video que se pueda insertar",
+    "platforms": "YouTube (también Shorts), Twitch (canal, video o clip), Kick (canal) o TikTok (video).",
+    "videosCount": "{{count}} de {{max}} videos",
+    "photosTitle": "Fotos",
+    "photosHint": "Imágenes o GIF de tu galería de medios. Se ven en grande al tocarlas.",
+    "addPhoto": "Agregar foto",
+    "photosCount": "{{count}} de {{max}} fotos",
+    "captionOptional": "Descripción (opcional)",
+    "soundsTitle": "Sonidos",
+    "soundsHint": "Sonidos de tu galería de medios. Quien visite tu página siempre puede silenciarlos.",
+    "entrySound": "Sonido de entrada",
+    "entrySoundHint": "Suena una vez cuando el visitante toca «Entrar».",
+    "clickSound": "Sonido de los botones",
+    "clickSoundHint": "Suena al tocar tus redes y enlaces. Viene apagado.",
+    "clickOn": "Encendido",
+    "noSound": "Sin sonido",
+    "chooseSound": "Elegir sonido",
+    "changeSound": "Cambiar",
+    "removeSound": "Quitar",
+    "listen": "Escuchar",
+    "volume": "Volumen: {{value}} %",
+    "gateNote": "Con un sonido elegido, tu página muestra primero «Entrar» (los navegadores no reproducen audio sin un toque). Con el volumen en 0 no hay sonido ni puerta.",
+    "missing_one": "Un archivo de tus fotos o sonidos ya no está en tu galería y no se muestra. Cámbialo o quítalo.",
+    "missing_other": "{{count}} archivos de tus fotos o sonidos ya no están en tu galería y no se muestran. Cámbialos o quítalos.",
+    "missingShort": "ya no está en la galería"
   }
 }

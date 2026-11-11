@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import { LINK_REL, PLATFORM_INITIALS, hostOf, pageParts, textOn, type TemplateProps } from './shared';
+import MediaBlocks from './MediaBlocks';
 
 // Plantilla «Inventario»: cada red o enlace es una casilla de inventario de juego, de 1×1, 2×1 o 2×2 (el tamaño del enlace).
 // Al tocar una casilla se abre su ficha con el botón para ir. Maqueta: .dev/plans/pagina-personal/maquetas/Inventario.dc.html
@@ -59,6 +60,7 @@ export default function InventoryTemplate({ content, channelPhotoUrl, labels, em
                         )}
                     </>
                 )}
+                <MediaBlocks content={content} labels={labels} embedded={embedded} />
                 <a className="in-made" href="https://decatron.net" target="_blank" rel="noopener noreferrer">{labels.madeWith}</a>
             </div>
         </div>
@@ -70,6 +72,7 @@ const CSS = `
   font-size:clamp(16px,calc(9px + .45vw),30px);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
 .in-root.in-embedded{font-size:16px;min-height:0}
 .in-root *{box-sizing:border-box}
+.in-root{--mb-text:var(--in-text);--mb-soft:var(--in-soft);--mb-panel:var(--in-cell);--mb-line:var(--in-line);--mb-accent:var(--in-accent);--mb-on-accent:var(--in-on-accent);--mb-radius:.65em}
 .in-wrap{display:flex;flex-direction:column;gap:1em;padding:1.25em 1em 1.5em;min-height:inherit}
 .in-head{display:flex;align-items:center;gap:.9em}
 .in-photo{width:4.25em;height:4.25em;border-radius:.75em;border:2px solid var(--in-accent);background:var(--in-cell);overflow:hidden;flex-shrink:0;

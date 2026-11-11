@@ -24,7 +24,22 @@ public sealed record PersonalPageContent(
     string Font = "archivo",
     List<PersonalPageLink>? Links = null,
     bool Adult = false,
-    PersonalPageScene? Scene = null);
+    PersonalPageScene? Scene = null,
+    List<PersonalPageVideo>? Videos = null,
+    List<PersonalPagePhoto>? Photos = null,
+    PersonalPageSound? Sound = null);
+
+/// <summary>Video insertado (5.4): enlace de YouTube, Twitch, Kick o TikTok. Se guarda el enlace; el reproductor sale de <see cref="PersonalPageRules.ParseVideo"/>.</summary>
+public sealed record PersonalPageVideo(string Id = "", string Url = "", string Title = "", bool Visible = true);
+
+/// <summary>Foto del bloque de fotos (5.4): imagen o GIF de la Galería de medios del canal.</summary>
+public sealed record PersonalPagePhoto(string Id = "", string MediaUrl = "", string Caption = "");
+
+/// <summary>Sonidos de la página (5.4), de la galería: al entrar (tras la puerta «Entrar») y, opcional, al tocar redes y enlaces.</summary>
+public sealed record PersonalPageSound(string EntryUrl = "", string ClickUrl = "", bool ClickEnabled = false, int Volume = 70);
+
+/// <summary>Video reconocido: Kind = youtube, youtube-short, twitch-channel, twitch-video, twitch-clip, kick o tiktok; Ref = identificador o canal.</summary>
+public sealed record PersonalPageVideoRef(string Kind, string Ref);
 
 /// <summary>
 /// Una capa de la escena (subfase 5.3). Kind: photo, name, bio (una de cada una), sticker (imagen o GIF de la galería) o
@@ -84,6 +99,111 @@ public static class PersonalPageRules
     public static readonly string[] LayerKinds = { "photo", "name", "bio", "sticker", "text" };
     public static readonly string[] SceneBackgrounds = { "color", "pattern", "media" };
     public static readonly string[] LayerAligns = { "left", "center", "right" };
+
+    // ---------- Multimedia y sonidos (5.4) ----------
+    /// <summary>Topes técnicos contra abuso, no de plan (decisión 2026-11-11). Los archivos usan la cuota de la galería.</summary>
+    public const int VideosMax = 10;
+    public const int PhotosMax = 12;
+    public const int CaptionMax = 80;
+
+    private static readonly Regex YouTubeId = new("^[A-Za-z0-9_-]{11}$", RegexOptions.Compiled);
+    private static readonly Regex TwitchLogin = new("^[A-Za-z0-9_]{3,25}$", RegexOptions.Compiled);
+    private static readonly Regex KickSlug = new("^[A-Za-z0-9_-]{2,30}$", RegexOptions.Compiled);
+    private static readonly Regex ClipSlug = new("^[A-Za-z0-9_-]{4,100}$", RegexOptions.Compiled);
+    private static readonly Regex Digits = new("^[0-9]{1,25}$", RegexOptions.Compiled);
+    private static readonly HashSet<string> TwitchPaths = new(StringComparer.OrdinalIgnoreCase) { "videos", "directory", "settings", "downloads", "p", "search", "subscriptions", "inventory", "wallet", "drops", "jobs", "turbo", "friends", "messages" };
+    private static readonly HashSet<string> KickPaths = new(StringComparer.OrdinalIgnoreCase) { "categories", "category", "browse", "following", "search", "dashboard", "settings", "video", "clips", "terms-of-service", "privacy-policy" };
+
+    /// <summary>
+    /// Reconoce un enlace de video (solo https y de esas plataformas) y devuelve qué insertar; null si no es uno válido.
+    /// Nunca se inserta la URL tal cual: el reproductor se arma con el identificador.
+    /// </summary>
+    public static PersonalPageVideoRef? ParseVideo(string? url)
+    {
+        if (!SafeUrl(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri)) return null;
+        var host = uri.IdnHost.ToLowerInvariant();
+        var parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string? Query(string key) => System.Web.HttpUtility.ParseQueryString(uri.Query).Get(key);
+        switch (host)
+        {
+            case "youtube.com" or "www.youtube.com" or "m.youtube.com":
+                if (parts.Length == 1 && parts[0] == "watch" && Query("v") is { } v && YouTubeId.IsMatch(v)) return new("youtube", v);
+                if (parts.Length == 2 && parts[0] == "shorts" && YouTubeId.IsMatch(parts[1])) return new("youtube-short", parts[1]);
+                if (parts.Length == 2 && (parts[0] == "embed" || parts[0] == "live") && YouTubeId.IsMatch(parts[1])) return new("youtube", parts[1]);
+                return null;
+            case "youtu.be":
+                return parts.Length == 1 && YouTubeId.IsMatch(parts[0]) ? new("youtube", parts[0]) : null;
+            case "twitch.tv" or "www.twitch.tv" or "m.twitch.tv":
+                if (parts.Length == 2 && parts[0] == "videos" && Digits.IsMatch(parts[1])) return new("twitch-video", parts[1]);
+                if (parts.Length == 3 && parts[1] == "clip" && ClipSlug.IsMatch(parts[2])) return new("twitch-clip", parts[2]);
+                if (parts.Length == 1 && TwitchLogin.IsMatch(parts[0]) && !TwitchPaths.Contains(parts[0])) return new("twitch-channel", parts[0].ToLowerInvariant());
+                return null;
+            case "clips.twitch.tv":
+                return parts.Length == 1 && ClipSlug.IsMatch(parts[0]) ? new("twitch-clip", parts[0]) : null;
+            case "kick.com" or "www.kick.com":
+                return parts.Length == 1 && KickSlug.IsMatch(parts[0]) && !KickPaths.Contains(parts[0]) ? new("kick", parts[0].ToLowerInvariant()) : null;
+            case "tiktok.com" or "www.tiktok.com" or "m.tiktok.com":
+                return parts.Length == 3 && parts[0].StartsWith('@') && parts[1] == "video" && Digits.IsMatch(parts[2]) ? new("tiktok", parts[2]) : null;
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>Errores de videos, fotos y sonidos (vacío = válidos). gallery null = no se revisan los archivos.</summary>
+    public static List<string> MediaErrors(PersonalPageContent c, IReadOnlyDictionary<string, string>? gallery)
+    {
+        var errors = new List<string>();
+        var videos = c.Videos ?? new();
+        if (videos.Count > VideosMax) errors.Add("videos_count");
+        var ids = new HashSet<string>();
+        for (var i = 0; i < videos.Count && i < VideosMax; i++)
+        {
+            var v = videos[i];
+            if (!LinkId.IsMatch(v.Id) || !ids.Add(v.Id)) { errors.Add($"video_id:{i}"); continue; }
+            if (ParseVideo(v.Url) == null) errors.Add($"video_url:{i}");
+            if (v.Title.Length > TitleMax) errors.Add($"video_title:{i}");
+        }
+        var photos = c.Photos ?? new();
+        if (photos.Count > PhotosMax) errors.Add("photos_count");
+        ids.Clear();
+        for (var i = 0; i < photos.Count && i < PhotosMax; i++)
+        {
+            var p = photos[i];
+            if (!LinkId.IsMatch(p.Id) || !ids.Add(p.Id)) { errors.Add($"photo_id:{i}"); continue; }
+            if (!GalleryOk(p.MediaUrl, gallery, "image", "gif")) errors.Add($"photo_media:{i}");
+            if (p.Caption.Length > CaptionMax) errors.Add($"photo_caption:{i}");
+        }
+        if (c.Sound is { } sound)
+        {
+            if (sound.EntryUrl.Length > 0 && !GalleryOk(sound.EntryUrl, gallery, "sound")) errors.Add("sound_entry");
+            if (sound.ClickUrl.Length > 0 && !GalleryOk(sound.ClickUrl, gallery, "sound")) errors.Add("sound_click");
+            if (sound.ClickEnabled && sound.ClickUrl.Length == 0) errors.Add("sound_click");
+            if (sound.Volume < 0 || sound.Volume > 100) errors.Add("sound_volume");
+        }
+        return errors;
+    }
+
+    /// <summary>La página tiene sonido de verdad (y por eso necesita la puerta «Entrar»).</summary>
+    public static bool HasSound(PersonalPageContent c) =>
+        c.Sound is { } s && s.Volume > 0 && (s.EntryUrl.Length > 0 || (s.ClickEnabled && s.ClickUrl.Length > 0));
+
+    /// <summary>Lo que ve el visitante de videos, fotos y sonidos: sin videos ocultos ni archivos borrados de la galería.</summary>
+    public static PersonalPageContent MediaView(PersonalPageContent c, IReadOnlyDictionary<string, string> gallery)
+    {
+        var sound = c.Sound;
+        if (sound != null)
+            sound = sound with
+            {
+                EntryUrl = GalleryOk(sound.EntryUrl, gallery, "sound") ? sound.EntryUrl : "",
+                ClickUrl = GalleryOk(sound.ClickUrl, gallery, "sound") ? sound.ClickUrl : "",
+            };
+        return c with
+        {
+            Videos = (c.Videos ?? new()).Where(v => v.Visible && ParseVideo(v.Url) != null).ToList(),
+            Photos = (c.Photos ?? new()).Where(p => GalleryOk(p.MediaUrl, gallery, "image", "gif")).ToList(),
+            Sound = sound,
+        };
+    }
 
     public static readonly string[] ReportReasons = { "adult_unmarked", "scam", "impersonation", "hate", "copyright", "other" };
     /// <summary>Lo que admin puede hacer con una denuncia.</summary>
@@ -295,6 +415,9 @@ public static class PersonalPageRules
             Size = string.IsNullOrWhiteSpace(l.Size) ? "normal" : l.Size.Trim().ToLowerInvariant(),
         }).ToList(),
         Scene = c.Scene == null ? null : NormalizeScene(c.Scene),
+        Videos = (c.Videos ?? new()).Select(v => v with { Id = (v.Id ?? "").Trim(), Url = (v.Url ?? "").Trim(), Title = Clean(v.Title) }).ToList(),
+        Photos = (c.Photos ?? new()).Select(p => p with { Id = (p.Id ?? "").Trim(), MediaUrl = (p.MediaUrl ?? "").Trim(), Caption = Clean(p.Caption) }).ToList(),
+        Sound = c.Sound == null ? null : c.Sound with { EntryUrl = (c.Sound.EntryUrl ?? "").Trim(), ClickUrl = (c.Sound.ClickUrl ?? "").Trim() },
     };
 
     private static PersonalPageScene NormalizeScene(PersonalPageScene s) => s with
@@ -375,6 +498,16 @@ public static class PersonalPageRules
         };
     }
 
+    /// <summary>Archivos de la escena, las fotos y los sonidos que ya no están en la galería (para avisar en el panel).</summary>
+    public static List<string> MissingMedia(PersonalPageContent c, IReadOnlyDictionary<string, string> gallery)
+    {
+        var missing = MissingSceneMedia(c.Scene, gallery);
+        missing.AddRange((c.Photos ?? new()).Where(p => p.MediaUrl.Length > 0 && !gallery.ContainsKey(p.MediaUrl)).Select(p => p.MediaUrl));
+        if (c.Sound is { } s)
+            missing.AddRange(new[] { s.EntryUrl, s.ClickUrl }.Where(u => u.Length > 0 && !gallery.ContainsKey(u)));
+        return missing.Distinct().ToList();
+    }
+
     /// <summary>Archivos de la escena que ya no están en la galería (para avisar en el panel).</summary>
     public static List<string> MissingSceneMedia(PersonalPageScene? s, IReadOnlyDictionary<string, string> gallery)
     {
@@ -426,6 +559,7 @@ public static class PersonalPageRules
             if (SafeUrl(l.Url) && IsBlocked(l.Url, policy)) errors.Add($"link_blocked:{i}");
         }
         if (c.Scene != null) errors.AddRange(SceneErrors(c.Scene, gallery));
+        errors.AddRange(MediaErrors(c, gallery));
         return errors;
     }
 
