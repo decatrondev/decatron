@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import api from '../../services/api';
-import type { DomainPolicy, PersonalPageContent, PlatformInfo } from './shared';
+import type { BotLinkInfo, DomainPolicy, PersonalPageContent, PlatformInfo } from './shared';
 
 // Estado del panel de la página personal: lo que devuelve el servidor y el borrador que se edita en pantalla.
 
@@ -32,6 +32,8 @@ export interface PanelData {
     domains: DomainPolicy;
     /** Lienzo y topes técnicos de la escena por capas (5.3) */
     scene: { width: number; height: number; stickersMax: number; textsMax: number; textMax: number };
+    /** Enlaces del bot que este canal puede agregar (solo módulos activos, 5.5) */
+    botAvailable: BotLinkInfo[];
     /** Topes técnicos de videos y fotos (5.4) */
     media: { videosMax: number; photosMax: number; captionMax: number };
     /** Archivos de la escena, fotos y sonidos que ya no están en la galería */

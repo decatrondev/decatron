@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { LINK_REL, hostOf, pageParts, textOn, type TemplateProps } from './shared';
 import MediaBlocks from './MediaBlocks';
+import LiveStrip from './LiveStrip';
 
 // Plantilla «Póster de gira»: el nombre es la obra (cada palabra se mide y llena el ancho de la columna) y las redes van como los créditos
 // de un cartel: grandes, medianas o chicas según el tamaño del enlace. Si ninguna está marcada como grande, la primera red va
@@ -42,7 +43,7 @@ function useFitWords(deps: unknown[]) {
     return ref;
 }
 
-export default function PosterTemplate({ content, channelPhotoUrl, labels, embedded }: TemplateProps) {
+export default function PosterTemplate({ content, channelPhotoUrl, labels, embedded, live }: TemplateProps) {
     const p = content.theme === 'dark' ? PALETTES.dark : PALETTES.light;
     const parts = pageParts(content, channelPhotoUrl);
     const words = parts.name.trim().toUpperCase().split(/\s+/).filter(Boolean).slice(0, 4);
@@ -73,6 +74,7 @@ export default function PosterTemplate({ content, channelPhotoUrl, labels, embed
                 )}
                 {content.bio && <p className="po-bio">{content.bio}</p>}
 
+                {live && live.length > 0 && <div className="po-live"><LiveStrip live={live} labels={labels} /></div>}
                 <div className="po-credits">
                     {parts.links.length === 0 && <p className="po-small">{labels.noLinks}</p>}
                     {networks.length > 0 && <p className="po-kicker">{labels.findMeAt}</p>}
@@ -105,6 +107,7 @@ const CSS = `
 .po-root *{box-sizing:border-box}
 .po-root{--mb-text:var(--po-block-text);--mb-soft:var(--po-block-text);--mb-heading:var(--po-soft);--mb-panel:var(--po-block);--mb-line:var(--po-block);--mb-accent:var(--po-accent);--mb-on-accent:var(--po-on-accent);--mb-radius:0}
 .po-media{margin-top:1.4em}
+.po-live{margin-top:1.2em}
 .po-wrap{container-type:inline-size;display:flex;flex-direction:column;padding:1.1em 1em 1.5em;min-height:inherit}
 .po-name{margin:0;min-width:0;width:100%;overflow:hidden;font-weight:900;font-stretch:var(--po-stretch);line-height:.82;letter-spacing:-.01em;text-transform:uppercase}
 .po-name span{display:block;white-space:nowrap;width:max-content;max-width:none}

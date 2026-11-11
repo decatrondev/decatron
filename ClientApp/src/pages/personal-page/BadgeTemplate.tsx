@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import QRCode from 'qrcode';
 import { LINK_REL, hostOf, pageParts, textOn, type TemplateProps } from './shared';
 import MediaBlocks from './MediaBlocks';
+import LiveStrip from './LiveStrip';
 
 // Plantilla «Credencial»: un pase de backstage colgado de una cinta del color de acento. Al frente, foto, nombre, @nombre
 // y un QR que abre la página; al girarla, las redes y enlaces. Maqueta: .dev/plans/pagina-personal/maquetas/Credencial.dc.html
@@ -11,7 +12,7 @@ const PALETTES = {
     light: { bg: '#D9DCE1', card: '#FFFFFF', ink: '#16181D', soft: '#4A4F59', line: '#D3D6DC', photo: '#2A2E36', clip: '#6A707B', btnText: '#16181D', btnLine: '#8A8F99', faint: '#4A4F59' },
 } as const;
 
-export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle, embedded }: TemplateProps) {
+export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle, embedded, live }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const parts = pageParts(content, channelPhotoUrl);
     const [back, setBack] = useState(false);
@@ -81,6 +82,7 @@ export default function BadgeTemplate({ content, channelPhotoUrl, labels, handle
                         </div>
                     )}
                 </article>
+                {live && live.length > 0 && <div className="bd-live"><LiveStrip live={live} labels={labels} /></div>}
                 <button type="button" className="bd-flip" onClick={() => setBack(b => !b)} aria-pressed={back}>{back ? labels.flipBack : labels.flip}</button>
                 <MediaBlocks content={content} labels={labels} embedded={embedded} />
                 <a className="bd-made" href="https://decatron.net" target="_blank" rel="noopener noreferrer">{labels.madeWith}</a>
@@ -130,6 +132,7 @@ const CSS = `
   font-family:inherit;font-size:.95em;font-weight:600;cursor:pointer}
 .bd-flip:hover{border-color:var(--bd-accent)}
 .bd-wrap>.mb-root{margin-top:1.6em}
+.bd-live{width:100%;margin-top:1.4em}
 .bd-made{margin-top:.9em;font-size:.75em;color:var(--bd-faint);text-decoration:none}
 .bd-root a:focus-visible,.bd-root button:focus-visible{outline:2px solid var(--bd-accent);outline-offset:3px}
 @container bd (min-width: 700px){ .bd-wrap{max-width:30em} .bd-photo{height:14em} }

@@ -49,7 +49,8 @@
               "Custom links with their title. They must all start with https:// and link shorteners (bit.ly, tinyurl…) aren't accepted, because they hide where the link goes.",
               "Five templates to choose from (Scene, Badge, TV channel, Inventory and Poster), in a light or dark theme, with the accent color and font you choose. All of them use the same content.",
               "With the Scene template, the top can be a layered canvas: background (stripes, a color, or an image, GIF or video from your media gallery), photo, name, bio, stickers and free texts.",
-              "YouTube, Twitch, Kick or TikTok videos embedded on the page, plus photos and sounds from your media gallery."
+              "YouTube, Twitch, Kick or TikTok videos embedded on the page, plus photos and sounds from your media gallery.",
+              "«Live now» when you're streaming on Twitch or Kick, links to your bot pages (song requests, tips, Sprites) and visit and click stats only for you."
             ]
           },
           {
@@ -160,6 +161,10 @@
               [
                 "Name",
                 "Your current link, change the name, send appeals and see their status."
+              ],
+              [
+                "Stats",
+                "Visits per day and clicks on each social, link and video (last 7 or 30 days)."
               ]
             ]
           },
@@ -309,6 +314,27 @@
             "t": "note",
             "kind": "info",
             "x": "Photos and sounds count toward your plan's storage in the media gallery. If you delete from the gallery a file your page uses, it stops showing and My page tells you."
+          }
+        ]
+      },
+      {
+        "id": "envivo-estadisticas",
+        "title": "Live, bot links and stats",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Live now: when you're streaming on Twitch or Kick, your page shows a strip with «Watch live» above your socials. In TV channel the «ON AIR» light also turns on. If it can't be checked, nothing is shown.",
+              "Bot links: in Socials and links, the «Bot links» card offers «Request songs», «Tips» and «My Sprites collection» only if that module is active. Nothing shows until you tap «Add to my page», and if you turn the module off it stops showing.",
+              "Stats: visits per day and clicks on each social, link, video and bot link, for the last 7 or 30 days, as a chart or a table. You and people with full control of your channel can see them.",
+              "A visit counts once every 30 minutes per browser, and your visits or those of whoever manages the page don't count.",
+              "12 months of counts are kept."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Stats store no personal data: no IP, no browser, no record of who visited. Only how many visits and clicks there were each day."
           }
         ]
       },

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { LINK_REL, hostOf, pageParts, textOn, type TemplateProps } from './shared';
 import MediaBlocks from './MediaBlocks';
+import LiveStrip from './LiveStrip';
 
 // Plantilla «Canal de TV»: la página es el canal del streamer. Arriba la identificación del canal (con líneas de pantalla) y
 // debajo la guía de canales: cada red o enlace es un canal numerado. Maqueta: .dev/plans/pagina-personal/maquetas/Canal.dc.html
@@ -11,7 +12,7 @@ const PALETTES = {
     light: { bg: '#EEF1F4', ident: '#FFFFFF', line: '#D5DAE1', text: '#14181E', soft: '#3C4450', faint: '#5A6370', num: '#7A8492', scan: 'rgba(0,0,0,0.035)' },
 } as const;
 
-export default function ChannelTemplate({ content, channelPhotoUrl, labels, handle, embedded }: TemplateProps) {
+export default function ChannelTemplate({ content, channelPhotoUrl, labels, handle, embedded, live }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const parts = pageParts(content, channelPhotoUrl);
     const nameScale = Math.min(1, 10 / Math.max(parts.name.length, 1));
@@ -29,12 +30,14 @@ export default function ChannelTemplate({ content, channelPhotoUrl, labels, hand
                     <div className="ch-scan" aria-hidden="true" />
                     {parts.photo && <img className="ch-photo" src={parts.photo} alt="" referrerPolicy="no-referrer" />}
                     {handle && <span className="ch-handle">@{handle}</span>}
+                    {live && live.length > 0 && <span className="ch-onair"><span className="ch-onair-dot" aria-hidden="true" />{labels.onAir}</span>}
                     <p className="ch-watching">{labels.nowWatching}</p>
                     <h1 className="ch-name">{parts.name}</h1>
                     {content.bio && <p className="ch-bio">{content.bio}</p>}
                 </header>
 
                 <main className="ch-body">
+                    <div className="ch-live"><LiveStrip live={live} labels={labels} /></div>
                     <h2 className="ch-guide-title">{labels.guide}</h2>
                     {parts.links.length === 0 && <p className="ch-empty">{labels.noLinks}</p>}
                     <ol className="ch-guide">
@@ -87,6 +90,11 @@ const CSS = `
 .ch-adult{font-size:.75em;font-weight:800;padding:.15em .45em;border-radius:.35em;background:var(--ch-accent);color:var(--ch-on-accent)}
 .ch-empty{margin:0;color:var(--ch-faint)}
 .ch-body>.mb-root{margin-top:1.2em}
+.ch-live:not(:empty){margin-bottom:1em}
+.ch-onair{position:relative;align-self:flex-start;display:inline-flex;align-items:center;gap:.45em;padding:.25em .65em;border-radius:.35em;background:#E5484D;color:#fff;font-size:.78em;font-weight:900;letter-spacing:.02em;margin-bottom:.5em}
+.ch-onair-dot{width:.55em;height:.55em;border-radius:50%;background:#fff;animation:ch-blink 1.4s steps(2,start) infinite}
+@keyframes ch-blink{to{visibility:hidden}}
+@media (prefers-reduced-motion: reduce){.ch-onair-dot{animation:none}}
 .ch-made{margin-top:auto;padding-top:1.2em;text-align:center;font-size:.75em;color:var(--ch-faint);text-decoration:none}
 .ch-root a:focus-visible{outline:2px solid var(--ch-accent);outline-offset:3px}
 @container ch (min-width: 700px){ .ch-wrap{max-width:38em;margin:0 auto;padding:2em 1em} .ch-ident{min-height:22em;padding:2em} .ch-name{font-size:calc(4.8em * var(--ch-name-scale))} }

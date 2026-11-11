@@ -27,7 +27,14 @@ public sealed record PersonalPageContent(
     PersonalPageScene? Scene = null,
     List<PersonalPageVideo>? Videos = null,
     List<PersonalPagePhoto>? Photos = null,
-    PersonalPageSound? Sound = null);
+    PersonalPageSound? Sound = null,
+    PersonalPageBotLinks? BotLinks = null);
+
+/// <summary>
+/// Enlaces del bot que el streamer agregó a su página (5.5). Solo se muestran si el módulo está activo en el canal:
+/// pedir canciones (/sr), propinas (/tip) y la colección de Sprites (/sprites). Apagados por defecto.
+/// </summary>
+public sealed record PersonalPageBotLinks(bool SongRequest = false, bool Tips = false, bool Sprites = false);
 
 /// <summary>Video insertado (5.4): enlace de YouTube, Twitch, Kick o TikTok. Se guarda el enlace; el reproductor sale de <see cref="PersonalPageRules.ParseVideo"/>.</summary>
 public sealed record PersonalPageVideo(string Id = "", string Url = "", string Title = "", bool Visible = true);
@@ -105,6 +112,26 @@ public static class PersonalPageRules
     public const int VideosMax = 10;
     public const int PhotosMax = 12;
     public const int CaptionMax = 80;
+
+    // ---------- Estadísticas (5.5) ----------
+    /// <summary>Días de contadores que se guardan (decisión 2026-11-11: 12 meses).</summary>
+    public const int StatsRetentionDays = 366;
+    public static readonly int[] StatsRanges = { 7, 30 };
+    /// <summary>Una visita por navegador cada 30 minutos (la marca la guarda el navegador del visitante; el servidor solo frena por IP sin guardarla).</summary>
+    public static readonly TimeSpan VisitWindow = TimeSpan.FromMinutes(30);
+    public static readonly string[] BotLinkKeys = { "sr", "tip", "sprites" };
+
+    /// <summary>
+    /// Qué se puede contar como clic de una página publicada: el id de una red o enlace visible, «video:{id}» de un video
+    /// visible o «bot:{sr|tip|sprites}». Así nadie llena los contadores con nombres inventados.
+    /// </summary>
+    public static bool ValidClickTarget(PersonalPageContent published, string? target)
+    {
+        if (string.IsNullOrEmpty(target) || target.Length > 60) return false;
+        if (target.StartsWith("video:")) return (published.Videos ?? new()).Any(v => v.Visible && "video:" + v.Id == target);
+        if (target.StartsWith("bot:")) return BotLinkKeys.Contains(target[4..]);
+        return (published.Links ?? new()).Any(l => l.Visible && l.Id == target);
+    }
 
     private static readonly Regex YouTubeId = new("^[A-Za-z0-9_-]{11}$", RegexOptions.Compiled);
     private static readonly Regex TwitchLogin = new("^[A-Za-z0-9_]{3,25}$", RegexOptions.Compiled);

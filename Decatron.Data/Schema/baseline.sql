@@ -5211,6 +5211,31 @@ CREATE TABLE public.oauth_refresh_tokens (
 
 
 --
+-- Name: personal_page_click_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.personal_page_click_stats (
+    page_id bigint NOT NULL,
+    day date NOT NULL,
+    target character varying(60) NOT NULL,
+    clicks integer DEFAULT 0 NOT NULL,
+    CONSTRAINT personal_page_click_stats_clicks_check CHECK ((clicks >= 0))
+);
+
+
+--
+-- Name: personal_page_daily_stats; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.personal_page_daily_stats (
+    page_id bigint NOT NULL,
+    day date NOT NULL,
+    visits integer DEFAULT 0 NOT NULL,
+    CONSTRAINT personal_page_daily_stats_visits_check CHECK ((visits >= 0))
+);
+
+
+--
 -- Name: personal_page_domains; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -14608,6 +14633,22 @@ ALTER TABLE ONLY public.oauth_refresh_tokens
 
 
 --
+-- Name: personal_page_click_stats personal_page_click_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.personal_page_click_stats
+    ADD CONSTRAINT personal_page_click_stats_pkey PRIMARY KEY (page_id, day, target);
+
+
+--
+-- Name: personal_page_daily_stats personal_page_daily_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.personal_page_daily_stats
+    ADD CONSTRAINT personal_page_daily_stats_pkey PRIMARY KEY (page_id, day);
+
+
+--
 -- Name: personal_page_domains personal_page_domains_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21641,6 +21682,22 @@ ALTER TABLE ONLY public.oauth_authorization_codes
 
 ALTER TABLE ONLY public.oauth_refresh_tokens
     ADD CONSTRAINT oauth_refresh_tokens_access_token_id_fkey_t FOREIGN KEY (tenant_id, access_token_id) REFERENCES public.oauth_access_tokens(tenant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: personal_page_click_stats personal_page_click_stats_page_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.personal_page_click_stats
+    ADD CONSTRAINT personal_page_click_stats_page_id_fkey FOREIGN KEY (page_id) REFERENCES public.personal_pages(id) ON DELETE CASCADE;
+
+
+--
+-- Name: personal_page_daily_stats personal_page_daily_stats_page_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.personal_page_daily_stats
+    ADD CONSTRAINT personal_page_daily_stats_page_id_fkey FOREIGN KEY (page_id) REFERENCES public.personal_pages(id) ON DELETE CASCADE;
 
 
 --

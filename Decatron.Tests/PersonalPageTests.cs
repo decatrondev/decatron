@@ -453,6 +453,35 @@ public class PersonalPageRulesTests
         Assert.Equal("/timerextensible/kira/x/d.mp3", view.Sound.ClickUrl);
         Assert.Equal(new[] { "/timerextensible/kira/borrada.png", "/timerextensible/kira/borrado.mp3" }, PersonalPageRules.MissingMedia(c, Gallery));
     }
+    // ---------- Subfase 5.5: enlaces del bot y estadísticas ----------
+
+    [Fact]
+    public void OnlyRealTargetsCountAsClicks()
+    {
+        var c = Valid() with
+        {
+            Links = new() { new("a", "twitch", "https://twitch.tv/kira"), new("b", "custom", "https://x.example", "X", Visible: false) },
+            Videos = new() { new("v1", "https://youtu.be/dQw4w9WgXcQ"), new("v2", "https://youtu.be/dQw4w9WgXcQ", Visible: false) },
+        };
+        Assert.True(PersonalPageRules.ValidClickTarget(c, "a"));
+        Assert.False(PersonalPageRules.ValidClickTarget(c, "b"));
+        Assert.True(PersonalPageRules.ValidClickTarget(c, "video:v1"));
+        Assert.False(PersonalPageRules.ValidClickTarget(c, "video:v2"));
+        Assert.True(PersonalPageRules.ValidClickTarget(c, "bot:sr"));
+        Assert.False(PersonalPageRules.ValidClickTarget(c, "bot:casino"));
+        Assert.False(PersonalPageRules.ValidClickTarget(c, "inventado"));
+        Assert.False(PersonalPageRules.ValidClickTarget(c, ""));
+    }
+
+    [Fact]
+    public void ChosenBotLinksNeedTheModuleAndTheOwnerChoice()
+    {
+        var available = new List<PersonalPageService.BotLink> { new("sr", "/sr/kira"), new("sprites", "/sprites/kira") };
+        Assert.Empty(PersonalPageService.ChosenBotLinks(null, available));
+        Assert.Empty(PersonalPageService.ChosenBotLinks(new PersonalPageBotLinks(), available));
+        var chosen = PersonalPageService.ChosenBotLinks(new PersonalPageBotLinks(SongRequest: true, Tips: true, Sprites: false), available);
+        Assert.Equal(new[] { "sr" }, chosen.Select(b => b.Key));
+    }
 }
 
 internal sealed class PersonalPageDbFactAttribute : FactAttribute
@@ -780,5 +809,45 @@ public class PersonalPageDbTests
         await service.SaveDraftAsync(page, propio, page.Revision, Now);
         await service.PublishAsync(page, page.Revision, Now);
         Assert.Single(PersonalPageService.Read(page.Published).Scene!.Layers!);
+    });
+
+    // ---------- Subfase 5.5 ----------
+
+    [PersonalPageDbFact]
+    public Task VisitsAndClicksAreCountedPerDayAndOldOnesAreDropped() => WithDb(async db =>
+    {
+        var a = await Channel(db); var service = new PersonalPageService(db);
+        var page = await service.CreateAsync(a.Id, Handle(), Initial(), Now);
+        var today = new DateOnly(2026, 11, 11);
+        await service.RecordVisitAsync(page.Id, today);
+        await service.RecordVisitAsync(page.Id, today);
+        await service.RecordVisitAsync(page.Id, today.AddDays(-2));
+        await service.RecordClickAsync(page.Id, today, "a");
+        await service.RecordClickAsync(page.Id, today, "a");
+        await service.RecordClickAsync(page.Id, today.AddDays(-1), "bot:sr");
+        db.PersonalPageDailyStats.Add(new PersonalPageDailyStat { PageId = page.Id, Day = today.AddDays(-400), Visits = 9 });
+        await db.SaveChangesAsync();
+
+        var week = await service.StatsAsync(page.Id, 7, today);
+        Assert.Equal(7, week.Days.Count);
+        Assert.Equal(today, week.Days[^1].Day);
+        Assert.Equal(2, week.Days[^1].Visits);
+        Assert.Equal(0, week.Days[^2].Visits);
+        Assert.Equal(3, week.TotalVisits);
+        Assert.Equal(new[] { ("a", 2), ("bot:sr", 1) }, week.Clicks.Select(c => (c.Target, c.Clicks)));
+        Assert.False(await db.PersonalPageDailyStats.AnyAsync(x => x.PageId == page.Id && x.Day < today.AddDays(-366)));
+    });
+
+    [PersonalPageDbFact]
+    public Task BotLinksOnlyForActiveModules() => WithDb(async db =>
+    {
+        var a = await Channel(db); var service = new PersonalPageService(db);
+        Assert.Empty(await service.AvailableBotLinksAsync(a.Id));
+        db.SongRequestConfigs.Add(new Decatron.Core.Models.SongRequest.SongRequestConfig { UserId = a.Id, ChannelName = a.Login, Enabled = true });
+        db.TipsConfigs.Add(new TipsConfig { UserId = a.Id, ChannelName = a.Login, IsEnabled = false });
+        await db.SaveChangesAsync();
+        var links = await service.AvailableBotLinksAsync(a.Id);
+        Assert.Equal(new[] { "sr" }, links.Select(l => l.Key));
+        Assert.Equal($"/sr/{a.Login.ToLowerInvariant()}", links[0].Path);
     });
 }

@@ -43,7 +43,8 @@
     "appearance": "Appearance",
     "name": "Name",
     "scene": "Scene",
-    "media": "Media"
+    "media": "Media",
+    "stats": "Stats"
   },
   "preview": {
     "title": "Preview",
@@ -79,7 +80,9 @@
       "templates": "All five templates use the same content: you can switch templates any time without losing anything. Inventory and Poster also use each link's size.",
       "reports": "Anyone who is signed in can report a page. The Decatron team reviews reports: nothing is hidden automatically, and if your page is hidden you'll see the reason at the top of this panel.",
       "scene": "With the Scene template you get the Scene tab: the top of your page as a layered canvas (background, photo, name, bio, stickers and texts), with images, GIFs and videos from your media gallery.",
-      "media": "Videos only load when the visitor taps «Play». If your page has sound, visitors see «Enter» first, because browsers don't play audio without a tap."
+      "media": "Videos only load when the visitor taps «Play». If your page has sound, visitors see «Enter» first, because browsers don't play audio without a tap.",
+      "live": "When you're live on Twitch or Kick, your page shows «Live now» with a button to watch. In Socials and links you can add your bot pages (song requests, tips and your Sprites collection) if those modules are active.",
+      "stats": "In Stats you see how many visits your page got per day and how many clicks each social, link and video received. Who visited and personal data aren't stored, and your own visits don't count."
     },
     "docsPrefix": "More details in the documentation:",
     "docsLink": "Personal page"
@@ -262,7 +265,10 @@
     "photos": "Photos",
     "close": "Close",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "liveOn": "Live on {{platform}} now",
+    "watchLive": "Watch live",
+    "onAir": "ON AIR"
   },
   "errors": {
     "failed": "Could not complete. Try again.",
@@ -624,5 +630,40 @@
     "missing_one": "A file in your photos or sounds is no longer in your gallery and isn't shown. Change it or remove it.",
     "missing_other": "{{count}} files in your photos or sounds are no longer in your gallery and aren't shown. Change or remove them.",
     "missingShort": "no longer in the gallery"
+  },
+  "botLinks": {
+    "title": "Bot links",
+    "hint": "Your Decatron pages you can show on your page. Only modules you have active appear, and nothing shows until you add it.",
+    "none": "You don't have any active modules with a public page (Song Request, tips or a Sprites collection with at least one marked).",
+    "sr": "Request songs",
+    "tip": "Tips",
+    "sprites": "My Sprites collection",
+    "add": "Add to my page",
+    "remove": "Remove from my page"
+  },
+  "stats": {
+    "notOpen": "Visits and clicks are counted once your page is open to the public. Until then everything shows zero.",
+    "range": "Period",
+    "lastDays_one": "Last day",
+    "lastDays_other": "Last {{count}} days",
+    "privacy": "Daily counts only: who visited isn't stored. Your own visits don't count.",
+    "visits_one": "visits in the last day",
+    "visits_other": "visits in the last {{count}} days",
+    "clicksTotal_one": "clicks in the last day",
+    "clicksTotal_other": "clicks in the last {{count}} days",
+    "visitsTitle": "Visits per day",
+    "showTable": "Show as table",
+    "showChart": "Show chart",
+    "day": "Day",
+    "visitsCol": "Visits",
+    "visitsCount_one": "{{count}} visit",
+    "visitsCount_other": "{{count}} visits",
+    "noVisits": "No visits in this period yet.",
+    "clicksTitle": "Clicks per social, link and video",
+    "clicksHint": "How many times each one was tapped in the selected period.",
+    "noClicks": "No clicks in this period yet.",
+    "target": "Destination",
+    "clicksCol": "Clicks",
+    "removed": "(no longer on your page)"
   }
 }

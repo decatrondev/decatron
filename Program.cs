@@ -302,6 +302,24 @@ try
                 });
         });
 
+        // Visitas y clics de la página personal (subfase 5.5): anónimo y sin guardar la IP; esto solo frena scripts.
+        options.AddPolicy("personal-page-hit", context =>
+        {
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 60,
+                    QueueLimit = 0,
+                });
+        });
+
         options.AddPolicy("platform-waitlist", context =>
         {
             var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();

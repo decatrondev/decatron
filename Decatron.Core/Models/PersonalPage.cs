@@ -102,3 +102,22 @@ public class PersonalPageReport
     [Column("reviewed_at")] public DateTimeOffset? ReviewedAt { get; set; }
     [Column("created_at")] public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
+
+/// <summary>Visitas de una página por día (5.5). Sin datos personales: solo el número.</summary>
+[Table("personal_page_daily_stats")]
+public class PersonalPageDailyStat
+{
+    [Column("page_id")] public long PageId { get; set; }
+    [Column("day")] public DateOnly Day { get; set; }
+    [Column("visits")] public int Visits { get; set; }
+}
+
+/// <summary>Clics por día y por destino (id de enlace, «video:{id}» o «bot:{clave}») (5.5).</summary>
+[Table("personal_page_click_stats")]
+public class PersonalPageClickStat
+{
+    [Column("page_id")] public long PageId { get; set; }
+    [Column("day")] public DateOnly Day { get; set; }
+    [Column("target")] public string Target { get; set; } = "";
+    [Column("clicks")] public int Clicks { get; set; }
+}

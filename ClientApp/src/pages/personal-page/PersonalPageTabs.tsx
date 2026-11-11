@@ -8,7 +8,7 @@ import { FONTS, PLATFORM_NAMES, TEMPLATES, TEMPLATES_WITH_SIZE, TEMPLATE_FONT, l
 import TemplateRenderer from './TemplateRenderer';
 import { errorOf, type PersonalPageState } from './usePersonalPage';
 
-export type PanelTab = 'guide' | 'profile' | 'links' | 'media' | 'appearance' | 'scene' | 'name';
+export type PanelTab = 'guide' | 'profile' | 'links' | 'media' | 'appearance' | 'scene' | 'name' | 'stats';
 
 /** Texto de un código de error del servidor (con el índice del enlace si lo trae, «link_url:2»). */
 export function useErrorText() {
@@ -39,7 +39,7 @@ export function GuideTab({ onNavigate }: { onNavigate: (tab: PanelTab) => void }
             </Card>
             <Card title={t('guide.notesTitle')}>
                 <ul className="space-y-2 list-disc pl-5 text-sm 3xl:text-base text-ds-soft">
-                    {['draft', 'templates', 'scene', 'media', 'handle', 'appeal', 'links', 'adult', 'reports', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
+                    {['draft', 'templates', 'scene', 'media', 'live', 'stats', 'handle', 'appeal', 'links', 'adult', 'reports', 'permissions'].map(k => <li key={k}>{t(`guide.notes.${k}`)}</li>)}
                 </ul>
             </Card>
             <p className="text-sm 3xl:text-base text-ds-soft">
@@ -114,7 +114,9 @@ export function LinksTab({ s, errors }: { s: PersonalPageState; errors: string[]
     const { t } = useTranslation('personal-page');
     const errorText = useErrorText();
     const draft = s.draft!;
-    const { platforms, limits, domains } = s.data!;
+    const { platforms, limits, domains, botAvailable } = s.data!;
+    const bot = draft.botLinks ?? { songRequest: false, tips: false, sprites: false };
+    const BOT_FLAG = { sr: 'songRequest', tip: 'tips', sprites: 'sprites' } as const;
     const links = draft.links ?? [];
     const [newKind, setNewKind] = useState(platforms[0]?.key ?? 'twitch');
 
@@ -144,6 +146,28 @@ export function LinksTab({ s, errors }: { s: PersonalPageState; errors: string[]
                     <button type="button" className="ds-btn ds-btn--secondary shrink-0" disabled={links.length >= limits.links} onClick={() => add('custom')}><Plus className="w-4 h-4" />{t('links.addCustom')}</button>
                 </div>
                 <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t('links.count', { count: links.length, max: limits.links })}</p>
+            </Card>
+
+            <Card title={t('botLinks.title')} description={t('botLinks.hint')}>
+                {(botAvailable ?? []).length === 0 ? <p className="text-sm 3xl:text-base text-ds-soft">{t('botLinks.none')}</p> : (
+                    <ul className="space-y-2">
+                        {(botAvailable ?? []).map(b => {
+                            const flag = BOT_FLAG[b.key as keyof typeof BOT_FLAG];
+                            if (!flag) return null;
+                            const on = bot[flag];
+                            return (
+                                <li key={b.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-ds-border px-3 py-2">
+                                    <span className="min-w-0">
+                                        <span className="block font-semibold text-ds-text">{t(`botLinks.${b.key}`)}</span>
+                                        <span className="block text-xs 3xl:text-sm text-ds-soft break-all">{b.url.replace(/^https?:\/\//, '')}</span>
+                                    </span>
+                                    <button type="button" className={on ? 'ds-btn ds-btn--secondary ds-btn--sm shrink-0' : 'ds-btn ds-btn--primary ds-btn--sm shrink-0'}
+                                        onClick={() => s.edit({ botLinks: { ...bot, [flag]: !on } })}>{on ? t('botLinks.remove') : t('botLinks.add')}</button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
             </Card>
 
             {links.length === 0 && <p className="text-sm 3xl:text-base text-ds-soft">{t('links.empty')}</p>}

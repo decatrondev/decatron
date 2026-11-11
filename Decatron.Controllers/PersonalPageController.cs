@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
@@ -40,6 +41,9 @@ public class PersonalPageController(
     ITenantContext tenant,
     IConfiguration config,
     IHttpClientFactory httpFactory,
+    IStreamStatusService streamStatus,
+    Decatron.Services.Multiview.MultiviewStatusService multiview,
+    IMemoryCache cache,
     ILogger<PersonalPageController> logger) : ControllerBase
 {
     private const long MaxAvatarBytes = 10 * 1024 * 1024;
@@ -48,6 +52,7 @@ public class PersonalPageController(
     private string AssetsPath => config["PersonalPages:PublicAssetsPath"] ?? "/var/www/html/decatron/personal-page-assets";
     /// <summary>Apagado hasta terminar la subfase 5.2 (+18, validación de destino y denuncias): mientras tanto solo la ven quienes la administran.</summary>
     private bool PublicOpen => config.GetValue<bool>("PersonalPages:PublicOpen");
+    private string BaseUrl => (config["SongRequest:PublicBaseUrl"] ?? "https://decatron.net").TrimEnd('/');
 
     // ---------------- Panel del streamer ----------------
 
@@ -83,6 +88,8 @@ public class PersonalPageController(
                 stickersMax = PersonalPageRules.SceneStickersMax, textsMax = PersonalPageRules.SceneTextsMax, textMax = PersonalPageRules.LayerTextMax,
             },
             media = new { videosMax = PersonalPageRules.VideosMax, photosMax = PersonalPageRules.PhotosMax, captionMax = PersonalPageRules.CaptionMax },
+            // Enlaces del bot que este canal puede agregar (solo los módulos activos)
+            botAvailable = (await pages.AvailableBotLinksAsync(channelId)).Select(b => new { key = b.Key, url = BaseUrl + b.Path }),
             templates = PersonalPageRules.Templates,
             // Para marcar en el editor, mientras se escribe, lo que el servidor va a exigir (+18 forzado, bloqueados, acortadores)
             domains = new
@@ -293,10 +300,13 @@ public class PersonalPageController(
         if (content.Scene != null) content = content with { Scene = PersonalPageRules.SceneView(content.Scene, gallery) };
         // Página +18: que los buscadores no la indexen (la app además pone la meta robots)
         if (content.Adult) Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+        var botLinks = PersonalPageService.ChosenBotLinks(content.BotLinks, await pages.AvailableBotLinksAsync(page.ChannelUserId));
         return Ok(new
         {
             handle = page.Handle,
             content,
+            botLinks = botLinks.Select(b => new { key = b.Key, url = BaseUrl + b.Path }),
+            live = await LiveAsync(channel),
             adult = content.Adult,
             channelPhotoUrl = ChannelPhoto(channel),
             preview = !PublicOpen,
@@ -329,6 +339,59 @@ public class PersonalPageController(
             var report = await pages.ReportAsync(tracked, userId, (request.Reason ?? "").Trim().ToLowerInvariant(), request.Detail ?? "", request.LinkId, DateTimeOffset.UtcNow);
             logger.LogInformation("personal_page.report {ReportId} page {PageId} reason {Reason}", report.Id, page.Id, report.Reason);
             return Ok(new { ok = true });
+        });
+    }
+
+    public record HitRequest(string Type, string? Target);
+
+    /// <summary>
+    /// Cuenta una visita o un clic (5.5). Sin datos personales: la IP solo se usa en memoria para no contar dos veces la
+    /// misma visita en 30 minutos y nunca se guarda. No cuenta a quien administra la página. Siempre responde 204: un fallo
+    /// acá no puede afectar a la página.
+    /// </summary>
+    [AllowAnonymous, EnableRateLimiting("personal-page-hit"), HttpPost("api/public/personal-pages/{handle}/hit"), RequestSizeLimit(4 * 1024)]
+    public async Task<IActionResult> Hit(string handle, HitRequest request)
+    {
+        try
+        {
+            if (tenant.TenantId != 1 || !PublicOpen) return NoContent();
+            var page = (await pages.ResolveAsync(PersonalPageRules.NormalizeHandle(handle), DateTimeOffset.UtcNow)).Page;
+            if (page == null || page.Published == null || page.Status != "active") return NoContent();
+            if (await CanManageAsync(page.ChannelUserId)) return NoContent();
+            var day = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (request.Type == "visit")
+            {
+                var key = $"pp-visit:{page.Id}:{ClientIp()}";
+                if (cache.TryGetValue(key, out _)) return NoContent();
+                cache.Set(key, true, PersonalPageRules.VisitWindow);
+                await pages.RecordVisitAsync(page.Id, day);
+            }
+            else if (request.Type == "click" && PersonalPageRules.ValidClickTarget(PersonalPageService.Read(page.Published), request.Target))
+                await pages.RecordClickAsync(page.Id, day, request.Target!);
+        }
+        catch (Exception ex)
+        {
+            logger.LogInformation("personal_page.hit_failed {Message}", ex.Message);
+        }
+        return NoContent();
+    }
+
+    /// <summary>Estadísticas de la propia página (dueño o control total): visitas por día y clics por destino.</summary>
+    [Authorize, HttpGet("api/personal-page/stats")]
+    public async Task<IActionResult> MyStats([FromQuery] int days = 30)
+    {
+        var (page, denied) = await OwnPageAsync();
+        if (denied != null) return denied;
+        if (!PersonalPageRules.StatsRanges.Contains(days)) days = 30;
+        var stats = await pages.StatsAsync(page!.Id, days, DateOnly.FromDateTime(DateTime.UtcNow));
+        Response.Headers.CacheControl = "no-store";
+        return Ok(new
+        {
+            days = stats.Days.Select(d => new { day = d.Day.ToString("yyyy-MM-dd"), visits = d.Visits }),
+            totalVisits = stats.TotalVisits,
+            clicks = stats.Clicks.Select(c => new { target = c.Target, clicks = c.Clicks }),
+            totalClicks = stats.TotalClicks,
+            publicOpen = PublicOpen,
         });
     }
 
@@ -483,6 +546,44 @@ public class PersonalPageController(
         });
 
     // ---------------- Ayudas ----------------
+
+    private string ClientIp()
+    {
+        var forwarded = Request.Headers["X-Forwarded-For"].ToString();
+        return string.IsNullOrWhiteSpace(forwarded) ? HttpContext.Connection.RemoteIpAddress?.ToString() ?? "anon" : forwarded.Split(',')[0].Trim();
+    }
+
+    /// <summary>
+    /// Dónde está en directo ahora (5.5): Twitch por el estado que ya conoce el bot (EventSub) y Kick por la consulta pública
+    /// con caché del Multi-view, con tope de 1,5 s. Cualquier fallo = no se muestra; nunca rompe la página.
+    /// </summary>
+    private async Task<List<object>> LiveAsync(User? channel)
+    {
+        var live = new List<object>();
+        if (channel == null) return live;
+        try
+        {
+            // Twitch y Kick pueden estar en filas vinculadas de la misma cuenta
+            var linked = channel.AccountId != null
+                ? await db.Users.AsNoTracking().Where(u => u.AccountId == channel.AccountId).ToListAsync()
+                : new List<User> { channel };
+            var twitch = linked.FirstOrDefault(u => !string.IsNullOrEmpty(u.TwitchId) && !string.IsNullOrWhiteSpace(u.Login) && !u.Login.StartsWith("kick_"));
+            if (twitch != null && streamStatus.IsLive(twitch.TwitchId!))
+                live.Add(new { platform = "twitch", url = $"https://www.twitch.tv/{twitch.Login.ToLowerInvariant()}" });
+            var slug = linked.Select(u => u.KickUsername).FirstOrDefault(k => !string.IsNullOrWhiteSpace(k));
+            if (!string.IsNullOrWhiteSpace(slug) && Decatron.Services.Multiview.MultiviewStatusService.IsValidSlug(slug))
+            {
+                var lookup = multiview.GetKickAsync(slug);
+                if (await Task.WhenAny(lookup, Task.Delay(1500)) == lookup && (await lookup)?.Live == true)
+                    live.Add(new { platform = "kick", url = $"https://kick.com/{slug.ToLowerInvariant()}" });
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogInformation("personal_page.live_failed {Message}", ex.Message);
+        }
+        return live;
+    }
 
     private long UserId() => long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
 

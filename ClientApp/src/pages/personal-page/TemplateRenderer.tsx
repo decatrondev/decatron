@@ -36,6 +36,9 @@ export function usePageLabels(): PageLabels {
         close: t('public.close'),
         previous: t('public.previous'),
         next: t('public.next'),
+        liveOn: (platform: string) => t('public.liveOn', { platform }),
+        watchLive: t('public.watchLive'),
+        onAir: t('public.onAir'),
     }), [t]);
 }
 
@@ -46,8 +49,8 @@ type Props = Omit<TemplateProps, 'labels'> & {
     /** El visitante ya confirmó que tiene 18 o más (en el panel siempre: el dueño ve todo). Sin confirmar, se le pregunta. */
     ageOk?: boolean;
     onAgeConfirm?: () => void;
-    /** Al tocar una red o un enlace (para el sonido de los botones, 5.4) */
-    onLinkClick?: () => void;
+    /** Al tocar una red, un enlace o un video: el destino para las estadísticas (5.5) y el sonido de los botones (5.4) */
+    onLinkClick?: (target?: string) => void;
 };
 
 export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkClick, ...props }: Props) {
@@ -56,6 +59,12 @@ export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkCli
     const Component = BY_KEY[props.content.template as keyof typeof BY_KEY] ?? SceneTemplate;
     const [pending, setPending] = useState<string | null>(null);
 
+    // Destino para las estadísticas: el id del enlace, o «bot:clave» para los enlaces del bot
+    const targetOf = useCallback((href: string) => {
+        const link = (props.content.links ?? []).find(l => l.url === href);
+        if (!link) return undefined;
+        return link.id.startsWith('bot-') ? `bot:${link.id.slice(4)}` : link.id;
+    }, [props.content.links]);
     const adultUrls = useMemo(() => new Set((props.content.links ?? []).filter(isAdultLink).map(l => l.url)), [props.content.links]);
     // Sin confirmar: el título propio de un enlace +18 no se muestra (las redes conservan su nombre, que no es contenido)
     const content: PersonalPageContent = useMemo(() => ageOk ? props.content : {
@@ -64,20 +73,23 @@ export default function TemplateRenderer({ ageOk = true, onAgeConfirm, onLinkCli
     }, [ageOk, props.content, labels.adultCovered]);
 
     const onClickCapture = useCallback((e: MouseEvent<HTMLDivElement>) => {
+        // Videos (y otros botones con destino propio): se cuentan sin abrir nada
+        const tagged = (e.target as HTMLElement).closest<HTMLElement>('[data-pp-target]');
+        if (tagged) { onLinkClick?.(tagged.dataset.ppTarget); return; }
         const anchor = (e.target as HTMLElement).closest('a');
         const href = anchor?.getAttribute('href');
         if (!href) return;
-        if (ageOk || !adultUrls.has(href)) { onLinkClick?.(); return; }
+        if (ageOk || !adultUrls.has(href)) { onLinkClick?.(targetOf(href)); return; }
         e.preventDefault();
         e.stopPropagation();
         setPending(href);
-    }, [ageOk, adultUrls, onLinkClick]);
+    }, [ageOk, adultUrls, onLinkClick, targetOf]);
 
     const confirm = () => {
         const url = pending;
         setPending(null);
         onAgeConfirm?.();
-        if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        if (url) { onLinkClick?.(targetOf(url)); window.open(url, '_blank', 'noopener,noreferrer'); }
     };
 
     return (

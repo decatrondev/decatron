@@ -31,6 +31,27 @@ export interface PersonalPageContent {
     videos?: PersonalPageVideo[];
     photos?: PersonalPagePhoto[];
     sound?: PersonalPageSound | null;
+    /** Enlaces del bot que el streamer agregó (5.5); solo salen si el módulo está activo */
+    botLinks?: PersonalPageBotLinks | null;
+}
+
+export interface PersonalPageBotLinks { songRequest: boolean; tips: boolean; sprites: boolean }
+/** Enlace del bot ya resuelto por el servidor (clave y dirección completa) */
+export interface BotLinkInfo { key: 'sr' | 'tip' | 'sprites' | string; url: string }
+/** Dónde está en directo ahora */
+export interface LiveInfo { platform: 'twitch' | 'kick' | string; url: string }
+
+const BOT_FLAG: Record<string, keyof PersonalPageBotLinks> = { sr: 'songRequest', tip: 'tips', sprites: 'sprites' };
+export const botLinkId = (key: string) => `bot-${key}`;
+
+/**
+ * Suma los enlaces del bot a los enlaces de la página como enlaces propios, así las cinco plantillas los dibujan sin
+ * cambios. En el panel se pasa lo disponible y se filtra por lo elegido; en la página pública ya vienen filtrados.
+ */
+export function withBotLinks(content: PersonalPageContent, links: BotLinkInfo[], titleOf: (key: string) => string, filterByChoice = false): PersonalPageContent {
+    const chosen = filterByChoice ? links.filter(b => content.botLinks?.[BOT_FLAG[b.key]]) : links;
+    if (chosen.length === 0) return content;
+    return { ...content, links: [...(content.links ?? []), ...chosen.map(b => ({ id: botLinkId(b.key), kind: 'custom', url: b.url, title: titleOf(b.key), visible: true }))] };
 }
 
 export interface PersonalPageVideo { id: string; url: string; title: string; visible: boolean }
@@ -263,6 +284,10 @@ export interface PageLabels {
     close: string;
     previous: string;
     next: string;
+    /** En vivo (5.5) */
+    liveOn: (platform: string) => string;
+    watchLive: string;
+    onAir: string;
 }
 
 export interface TemplateProps {
@@ -274,6 +299,8 @@ export interface TemplateProps {
     handle?: string;
     /** Dentro del panel: sin alto de pantalla completa ni letra que crece con la pantalla */
     embedded?: boolean;
+    /** Plataformas donde está en directo ahora (5.5) */
+    live?: LiveInfo[];
 }
 
 /** Lo que todas las plantillas sacan del contenido: nombre, iniciales, foto, redes y enlaces visibles. */

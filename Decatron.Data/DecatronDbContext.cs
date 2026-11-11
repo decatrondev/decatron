@@ -56,6 +56,8 @@ namespace Decatron.Data
         public DbSet<PersonalPageHandleAppeal> PersonalPageHandleAppeals { get; set; }
         public DbSet<PersonalPageDomain> PersonalPageDomains { get; set; }
         public DbSet<PersonalPageReport> PersonalPageReports { get; set; }
+        public DbSet<PersonalPageDailyStat> PersonalPageDailyStats { get; set; }
+        public DbSet<PersonalPageClickStat> PersonalPageClickStats { get; set; }
         public DbSet<TournamentCallApplication> TournamentCallApplications { get; set; }
         public DbSet<TournamentCallContribution> TournamentCallContributions { get; set; }
         public DbSet<TournamentCallContributionEvent> TournamentCallContributionEvents { get; set; }
@@ -386,6 +388,8 @@ namespace Decatron.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Core.Models.Promo.PromoPieceDaily>().HasKey(x => new { x.PieceId, x.Day });
+            modelBuilder.Entity<PersonalPageDailyStat>().HasKey(x => new { x.PageId, x.Day });
+            modelBuilder.Entity<PersonalPageClickStat>().HasKey(x => new { x.PageId, x.Day, x.Target });
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Core.Models.Tts.FishUserVoice>().HasKey(v => new { v.UserId, v.ReferenceId });
 

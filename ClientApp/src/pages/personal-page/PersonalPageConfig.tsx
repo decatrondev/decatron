@@ -4,11 +4,12 @@ import { ExternalLink, Save, Send, Undo2 } from 'lucide-react';
 import TabIcon from '../../components/dashboard/TabIcon';
 import { Card, CopyButton, ScaledCanvas } from '../../components/overlay-editor/ui';
 import TemplateRenderer from './TemplateRenderer';
-import { usePageFonts } from './shared';
+import { usePageFonts, withBotLinks } from './shared';
 import { usePersonalPage } from './usePersonalPage';
 import { AppealForm, AppearanceTab, GuideTab, HandleInput, LinksTab, NameTab, ProfileTab, useErrorText, type PanelTab } from './PersonalPageTabs';
 import SceneTab from './SceneTab';
 import MediaTab from './MediaTab';
+import StatsTab from './StatsTab';
 
 // Panel «Mi página» (subfase 5.1). Mismo patrón que el panel de Song Request: pestañas con la Guía primero a la
 // izquierda y vista previa a la derecha. Plan: .dev/plans/pagina-personal/PLAN.md §9.
@@ -21,6 +22,7 @@ const TABS: { id: PanelTab; icon: string }[] = [
     { id: 'appearance', icon: '🎨' },
     { id: 'scene', icon: '🎬' },
     { id: 'name', icon: '@' },
+    { id: 'stats', icon: '📊' },
 ];
 
 export default function PersonalPageConfig() {
@@ -69,6 +71,8 @@ export default function PersonalPageConfig() {
 
     const { data, page, draft } = s;
     const publicUrl = page ? `${window.location.origin}/@${page.handle}` : '';
+    // La vista previa muestra los enlaces del bot que el streamer agregó, como en la página
+    const previewContent = draft ? withBotLinks(draft, data.botAvailable ?? [], key => t(`botLinks.${key}`), true) : null;
 
     const save = async () => {
         const res = await s.saveDraft();
@@ -195,6 +199,7 @@ export default function PersonalPageConfig() {
                             {tab === 'scene' && draft.template === 'scene' && <SceneTab s={s} photoFallback={data.channel?.photoUrl ?? ''} errors={fieldErrors} />}
                             {tab === 'scene' && draft.template !== 'scene' && <GuideTab onNavigate={setTab} />}
                             {tab === 'name' && <NameTab s={s} onMessage={notify} />}
+                            {tab === 'stats' && <StatsTab s={s} />}
                         </div>
                     </div>
 
@@ -212,13 +217,13 @@ export default function PersonalPageConfig() {
                                 <p className="text-xs 3xl:text-sm text-ds-soft">{t('preview.hint')}</p>
                                 {device === 'phone' ? (
                                     <div className="mx-auto w-full max-w-[390px] h-[720px] 3xl:h-[860px] overflow-y-auto rounded-2xl border border-ds-border">
-                                        <TemplateRenderer content={draft} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded />
+                                        <TemplateRenderer content={previewContent} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded />
                                     </div>
                                 ) : (
                                     <div className="rounded-lg border border-ds-border overflow-hidden">
                                         <ScaledCanvas width={1280} height={800}>
                                             <div style={{ width: 1280, height: 800, overflow: 'hidden' }}>
-                                                <TemplateRenderer content={draft} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded />
+                                                <TemplateRenderer content={previewContent} channelPhotoUrl={data.channel?.photoUrl} handle={page.handle} embedded />
                                             </div>
                                         </ScaledCanvas>
                                     </div>

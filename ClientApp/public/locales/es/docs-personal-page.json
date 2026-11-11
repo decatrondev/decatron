@@ -49,7 +49,8 @@
               "Enlaces libres con su título. Todos tienen que empezar con https:// y no se aceptan acortadores (bit.ly, tinyurl…), porque esconden adónde lleva el enlace.",
               "Cinco plantillas a elegir (Escena, Credencial, Canal de TV, Inventario y Póster), en tema claro u oscuro, con el color de acento y la tipografía que elijas. Todas usan el mismo contenido.",
               "Con la plantilla Escena, la parte de arriba puede ser un lienzo por capas: fondo (rayas, color, o imagen, GIF o video de tu galería de medios), foto, nombre, bio, stickers y textos libres.",
-              "Videos de YouTube, Twitch, Kick o TikTok insertados en la página, fotos y sonidos de tu galería de medios."
+              "Videos de YouTube, Twitch, Kick o TikTok insertados en la página, fotos y sonidos de tu galería de medios.",
+              "«En vivo ahora» cuando estás en directo en Twitch o Kick, enlaces a tus páginas del bot (pedir canciones, propinas, Sprites) y estadísticas de visitas y clics solo para ti."
             ]
           },
           {
@@ -160,6 +161,10 @@
               [
                 "Nombre",
                 "Tu enlace actual, cambiar el nombre, enviar apelaciones y ver su estado."
+              ],
+              [
+                "Estadísticas",
+                "Visitas por día y clics en cada red, enlace y video (últimos 7 o 30 días)."
               ]
             ]
           },
@@ -309,6 +314,27 @@
             "t": "note",
             "kind": "info",
             "x": "Fotos y sonidos usan el espacio de almacenamiento de tu plan en la galería de medios. Si borras de la galería un archivo que usa tu página, deja de mostrarse y Mi página te avisa."
+          }
+        ]
+      },
+      {
+        "id": "envivo-estadisticas",
+        "title": "En vivo, enlaces del bot y estadísticas",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "En vivo ahora: cuando estás en directo en Twitch o Kick, tu página muestra una franja con «Ver directo» arriba de tus redes. En Canal de TV además se enciende la luz «AL AIRE». Si no se puede saber, no se muestra nada.",
+              "Enlaces del bot: en Redes y enlaces, la tarjeta «Enlaces del bot» ofrece «Pedir canciones», «Propinas» y «Mi colección de Sprites» solo si tienes ese módulo activo. Nada aparece hasta que tocas «Agregar a mi página», y si apagas el módulo deja de mostrarse.",
+              "Estadísticas: visitas por día y clics en cada red, enlace, video y enlace del bot, de los últimos 7 o 30 días, con gráfico o tabla. Las ven tú y quienes tienen control total de tu canal.",
+              "Una visita cuenta una vez cada 30 minutos por navegador, y tus visitas o las de quien administra la página no cuentan.",
+              "Se guardan 12 meses de contadores."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Las estadísticas no guardan datos personales: ni IP, ni navegador, ni quién visitó. Solo cuántas visitas y clics hubo cada día."
           }
         ]
       },

@@ -19,7 +19,7 @@ function VideoCard({ video, labels, embedded }: { video: PersonalPageVideo; labe
                     <iframe src={embedUrl(ref, window.location.hostname)} title={title} allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                         allowFullScreen referrerPolicy="strict-origin-when-cross-origin" loading="lazy" />
                 ) : (
-                    <button type="button" className="mb-poster" onClick={() => !embedded && setPlaying(true)} aria-label={`${labels.play}: ${title}`}>
+                    <button type="button" className="mb-poster" data-pp-target={`video:${video.id}`} onClick={() => !embedded && setPlaying(true)} aria-label={`${labels.play}: ${title}`}>
                         <span className="mb-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span>
                         <span className="mb-poster-text">
                             <span className="mb-poster-title">{title}</span>

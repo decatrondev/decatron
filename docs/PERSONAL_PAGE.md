@@ -1,12 +1,12 @@
 # Personal page (`decatron.net/@name`)
 
-Each channel can have its own page at `decatron.net/@name`: a short link with the streamer's socials, photo and style. It is free and not tied to any other module. This document covers sub-phase 5.1 (the base and the five templates: Scene, Badge, TV channel, Inventory, Poster) 5.2 (18+ content, domains and reports) 5.3 (layered scene) and 5.4 (videos, photos and sounds).
+Each channel can have its own page at `decatron.net/@name`: a short link with the streamer's socials, photo and style. It is free and not tied to any other module. This document covers sub-phase 5.1 (the base and the five templates: Scene, Badge, TV channel, Inventory, Poster) 5.2 (18+ content, domains and reports) 5.3 (layered scene) 5.4 (videos, photos and sounds) and 5.5 (live, bot links and stats).
 
 > **Not open to the public yet.** While `PersonalPages:PublicOpen` is `false` (the default), a published page is only visible to its owner, people with `control_total` on that channel and system owners, with a preview banner. The sub-phase 5.2 protections are in place; opening it only takes changing that key.
 
 ## Data model
 
-Migrations: `Decatron.Data/Migrations/Add_Personal_Pages.sql` and `Add_Personal_Pages_Safety.sql` (5.2), both idempotent.
+Migrations: `Decatron.Data/Migrations/Add_Personal_Pages.sql`, `Add_Personal_Pages_Safety.sql` (5.2) and `Add_Personal_Page_Stats.sql` (5.5), idempotent.
 
 | Table | Purpose |
 |---|---|
@@ -15,11 +15,13 @@ Migrations: `Decatron.Data/Migrations/Add_Personal_Pages.sql` and `Add_Personal_
 | `personal_page_reserved_handles` | Names reserved by admins (added to the built-in list in `PersonalPageRules.BuiltInReserved`) |
 | `personal_page_handle_appeals` | Appeals for a taken name: requester, message, status (`pending`, `rejected`, `transferred`, `withdrawn`), review |
 | `personal_page_domains` | Admin domains: `adult` (forces 18+) or `blocked` (can't be linked). Added to the fixed lists |
+| `personal_page_daily_stats` | Visits per page and day (5.5). Just the number: no IP, browser or who visited |
+| `personal_page_click_stats` | Clicks per page, day and target (link id, `video:{id}` or `bot:{sr|tip|sprites}`) (5.5) |
 | `personal_page_reports` | Reports: page, reporter, reason, details, link (id and URL at report time), status (`open`, `resolved`, `dismissed`) and resolution (`hidden`, `forced_adult`, `domain_blocked`). One open report per person and page |
 
 There is no `tenant_id` yet: pages exist only on decatron.net. Tenant support will add the column with RLS and make the handle unique per tenant.
 
-Content (`PersonalPageContent`, shared by every template): `displayName`, `bio`, `avatarUrl`, `template`, `theme`, `accent`, `font`, `links[]` (`id`, `kind`, `url`, `title`, `visible`, `size`, `adult`), `adult` (whole page 18+) and `scene` (5.3: `enabled`, `background` `color`/`pattern`/`media`, `bgColor`, `bgMedia`, `layers[]` with `id`, `kind` `photo`/`name`/`bio`/`sticker`/`text`, `x`, `y`, `width`, `height`, `visible`, `mediaUrl`, `text`, `font`, `color`, `size`, `align`), `videos[]` (`id`, `url`, `title`, `visible`), `photos[]` (`id`, `mediaUrl`, `caption`) and `sound` (`entryUrl`, `clickUrl`, `clickEnabled`, `volume`) from 5.4. Switching templates never loses content. `template` is one of `scene`, `badge`, `channel`, `inventory`, `poster`; `size` (`normal`, `wide`, `big`) is used by Inventory (1×1, 2×1, 2×2 slots) and Poster (small, medium, large credits; if none is large, the first social is shown large).
+Content (`PersonalPageContent`, shared by every template): `displayName`, `bio`, `avatarUrl`, `template`, `theme`, `accent`, `font`, `links[]` (`id`, `kind`, `url`, `title`, `visible`, `size`, `adult`), `adult` (whole page 18+) and `scene` (5.3: `enabled`, `background` `color`/`pattern`/`media`, `bgColor`, `bgMedia`, `layers[]` with `id`, `kind` `photo`/`name`/`bio`/`sticker`/`text`, `x`, `y`, `width`, `height`, `visible`, `mediaUrl`, `text`, `font`, `color`, `size`, `align`), `videos[]` (`id`, `url`, `title`, `visible`), `photos[]` (`id`, `mediaUrl`, `caption`) and `sound` (`entryUrl`, `clickUrl`, `clickEnabled`, `volume`) from 5.4, and `botLinks` (`songRequest`, `tips`, `sprites`) from 5.5. Switching templates never loses content. `template` is one of `scene`, `badge`, `channel`, `inventory`, `poster`; `size` (`normal`, `wide`, `big`) is used by Inventory (1×1, 2×1, 2×2 slots) and Poster (small, medium, large credits; if none is large, the first social is shown large).
 
 ## Rules (`Decatron.Core/Helpers/PersonalPageRules.cs`)
 
@@ -51,6 +53,12 @@ Content (`PersonalPageContent`, shared by every template): `displayName`, `bio`,
 - `ParseVideo` recognizes YouTube (`youtube`, `youtube-short`), Twitch (`twitch-channel`, `twitch-video`, `twitch-clip`), Kick (`kick`) and TikTok (`tiktok`), `https` only, and returns the identifier. The URL is never embedded as is: the front builds the official player from the identifier (YouTube via `youtube-nocookie.com`; Twitch with `parent`). The player loads when «Play» is tapped.
 - Up to `VideosMax` (10) videos and `PhotosMax` (12) photos, captions up to 80 characters (technical caps). Photos (`image`/`gif`) and sounds (`sound`) must come from the channel's gallery, like the scene.
 - `HasSound`: an entry sound, or button sound turned on, with volume above 0. With sound, the page shows the «Enter» gate (the same as the 18+ one; an 18+ page gets a single gate). `MediaView` drops hidden videos and files deleted from the gallery on display; `MissingMedia` adds photos and sounds to the panel notice.
+
+### Live, bot links and stats (5.5)
+
+- Live: Twitch via `IStreamStatusService.IsLive` (what the bot already knows from EventSub) and Kick via `MultiviewStatusService.GetKickAsync` (cached public lookup, 1.5 s cap); linked rows of the same account are checked too. It goes in `live` in the public response; on failure the list is empty.
+- Bot links: `AvailableBotLinksAsync` (Song Request on → `/sr/{channel}`, tips on → `/tip/{channel}`, at least one Sprite → `/sprites/{login}`) and `ChosenBotLinks` (only what the owner picked). They go in `botLinks` and the front adds them as custom links so all five templates draw them.
+- Stats: `POST /api/public/personal-pages/{handle}/hit` `{ type: visit|click, target? }`, anonymous, always 204, rate limited per IP (`personal-page-hit`, 60 per minute). Doesn't count whoever manages the page, only counts while pages are public, one visit every 30 minutes per IP in memory (never stored) and per browser mark, and only real targets (`ValidClickTarget`). Counts with `INSERT … ON CONFLICT` (no races). `GET /api/personal-page/stats?days=7|30` (owner or full control) returns the daily series with zeros and clicks per target, and deletes anything older than 12 months.
 
 ## API
 
@@ -85,6 +93,7 @@ Accepting an appeal (`transfer`) gives the name to the requester (creating their
 - Panel: `/mi-pagina` (`ClientApp/src/pages/personal-page/`), tabs Guide, Profile, Socials and links, Appearance, Name, with a phone/desktop preview.
 - Public page: `/@name` (`PersonalPagePublic.tsx`). React Router does not support `@:param`, so the route is `/:atHandle` and the component requires the `@`.
 - Templates: `SceneTemplate.tsx`, `BadgeTemplate.tsx` (QR with the `qrcode` package), `ChannelTemplate.tsx`, `InventoryTemplate.tsx`, `PosterTemplate.tsx`, chosen by `TemplateRenderer.tsx`. All keep the mockup composition on desktop, centered and larger, using container queries (the panel preview renders the phone layout). Mockups: `.dev/plans/pagina-personal/maquetas/` (not in git).
+- Live and stats: `LiveStrip.tsx` (strip in all five templates; «ON AIR» light in TV channel), `StatsTab.tsx` (Stats tab with a single-series chart and table view) and the «Bot links» card in Socials and links.
 - Media: `MediaBlocks.tsx` (videos and photos in all five templates, with each template's colors via `--mb-*` variables), `MediaTab.tsx` (Media tab), `PageSound.tsx` (sounds and mute button) and `EntryGate` in `AgeGate.tsx`.
 - Layered scene: `SceneCanvas.tsx` (canvas with percentages and `cqw` units, same component on the page and in the editor) and `SceneTab.tsx` (Scene tab with `OverlayCanvasEditor` and `MediaSelector` in `galleryOnly` mode).
 - Age gate and 18+ link notice: `AgeGate.tsx` (an 18+ page isn't drawn until confirmed; on a regular page, `TemplateRenderer` covers the title of custom 18+ links and asks for confirmation when tapped, for all five templates). Reporting: `ReportBar.tsx`, at the bottom, hidden for the owner.
@@ -104,4 +113,4 @@ Accepting an appeal (`transfer`) gives the name to the requester (creating their
 
 ## Tests
 
-`Decatron.Tests/PersonalPageTests.cs`: pure rules (name, cooldown, redirect, URLs per platform, avatar, content errors, accent) and database tests against `decatron_schema` (first come, unique constraint, draft/publish/discard, cooldown and redirect, reclaiming an old name, reserved names, appeal transfer, reject/withdraw, hiding). Sub-phase 5.2: domains and subdomains, domain normalization, protected domains, shorteners, blocked domains, forced 18+, public view, and in the database: saving with admin domains, report rules and daily limit, hiding from a report, forced 18+ that sticks, and blocking the domain of a reported link. Sub-phase 5.3: valid scene, layer errors with index, gallery-only files, caps, public view without hidden layers or deleted files, and in the database: the channel gallery and another channel's files rejected. Sub-phase 5.4: video links recognized and rejected, video, photo and sound errors, caps, when there's sound, and public view without hidden videos or deleted files.
+`Decatron.Tests/PersonalPageTests.cs`: pure rules (name, cooldown, redirect, URLs per platform, avatar, content errors, accent) and database tests against `decatron_schema` (first come, unique constraint, draft/publish/discard, cooldown and redirect, reclaiming an old name, reserved names, appeal transfer, reject/withdraw, hiding). Sub-phase 5.2: domains and subdomains, domain normalization, protected domains, shorteners, blocked domains, forced 18+, public view, and in the database: saving with admin domains, report rules and daily limit, hiding from a report, forced 18+ that sticks, and blocking the domain of a reported link. Sub-phase 5.3: valid scene, layer errors with index, gallery-only files, caps, public view without hidden layers or deleted files, and in the database: the channel gallery and another channel's files rejected. Sub-phase 5.4: video links recognized and rejected, video, photo and sound errors, caps, when there's sound, and public view without hidden videos or deleted files. Sub-phase 5.5: valid click targets, chosen bot links, and in the database: daily counts with zeros, clicks per target, deletion past 12 months and bot links only for active modules.

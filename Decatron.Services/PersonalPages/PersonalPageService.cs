@@ -411,6 +411,68 @@ public class PersonalPageService(DecatronDbContext db)
         if (tx != null) await tx.CommitAsync();
     }
 
+    // ---------- Enlaces del bot (5.5) ----------
+
+    /// <summary>Un enlace del bot disponible: clave (sr, tip, sprites) y ruta pública en decatron.net.</summary>
+    public sealed record BotLink(string Key, string Path);
+
+    /// <summary>
+    /// Páginas del bot que el canal tiene activas: pedir canciones (Song Request encendido), propinas (encendidas) y la
+    /// colección de Sprites (al menos uno marcado). La ruta es la misma que usa cada módulo.
+    /// </summary>
+    public async Task<List<BotLink>> AvailableBotLinksAsync(long channelUserId)
+    {
+        var list = new List<BotLink>();
+        var sr = await db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == channelUserId && c.Enabled).Select(c => c.ChannelName).FirstOrDefaultAsync();
+        if (!string.IsNullOrWhiteSpace(sr)) list.Add(new("sr", $"/sr/{Uri.EscapeDataString(sr.ToLowerInvariant())}"));
+        var tip = await db.TipsConfigs.AsNoTracking().Where(c => c.UserId == channelUserId && c.IsEnabled).Select(c => c.ChannelName).FirstOrDefaultAsync();
+        if (!string.IsNullOrWhiteSpace(tip)) list.Add(new("tip", $"/tip/{Uri.EscapeDataString(tip.ToLowerInvariant())}"));
+        if (await db.UserFortniteSprites.AsNoTracking().AnyAsync(x => x.UserId == channelUserId))
+        {
+            var login = await db.Users.AsNoTracking().Where(u => u.Id == channelUserId).Select(u => u.Login).FirstOrDefaultAsync();
+            if (!string.IsNullOrWhiteSpace(login)) list.Add(new("sprites", $"/sprites/{Uri.EscapeDataString(login.ToLowerInvariant())}"));
+        }
+        return list;
+    }
+
+    /// <summary>Los enlaces del bot que el streamer agregó y que siguen activos (los apagados o sin módulo no salen).</summary>
+    public static List<BotLink> ChosenBotLinks(PersonalPageBotLinks? chosen, List<BotLink> available) =>
+        chosen == null ? new() : available.Where(b => b.Key switch { "sr" => chosen.SongRequest, "tip" => chosen.Tips, "sprites" => chosen.Sprites, _ => false }).ToList();
+
+    // ---------- Estadísticas (5.5) ----------
+
+    /// <summary>Suma una visita al día (una sola sentencia, sin carrera entre dos visitas a la vez).</summary>
+    public Task RecordVisitAsync(long pageId, DateOnly day) =>
+        db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO personal_page_daily_stats (page_id, day, visits) VALUES ({pageId}, {day}, 1)
+            ON CONFLICT (page_id, day) DO UPDATE SET visits = personal_page_daily_stats.visits + 1");
+
+    public Task RecordClickAsync(long pageId, DateOnly day, string target) =>
+        db.Database.ExecuteSqlInterpolatedAsync($@"INSERT INTO personal_page_click_stats (page_id, day, target, clicks) VALUES ({pageId}, {day}, {target}, 1)
+            ON CONFLICT (page_id, day, target) DO UPDATE SET clicks = personal_page_click_stats.clicks + 1");
+
+    public sealed record StatsDay(DateOnly Day, int Visits);
+    public sealed record StatsTarget(string Target, int Clicks);
+    public sealed record Stats(List<StatsDay> Days, int TotalVisits, List<StatsTarget> Clicks, int TotalClicks);
+
+    /// <summary>
+    /// Visitas por día (los días sin visitas van en 0) y clics por destino de los últimos <paramref name="days"/> días hasta
+    /// <paramref name="today"/>. De paso borra los contadores de más de 12 meses de esa página.
+    /// </summary>
+    public async Task<Stats> StatsAsync(long pageId, int days, DateOnly today)
+    {
+        var cutoff = today.AddDays(-PersonalPageRules.StatsRetentionDays);
+        await db.PersonalPageDailyStats.Where(x => x.PageId == pageId && x.Day < cutoff).ExecuteDeleteAsync();
+        await db.PersonalPageClickStats.Where(x => x.PageId == pageId && x.Day < cutoff).ExecuteDeleteAsync();
+        var from = today.AddDays(-(days - 1));
+        var visits = await db.PersonalPageDailyStats.AsNoTracking().Where(x => x.PageId == pageId && x.Day >= from && x.Day <= today)
+            .ToDictionaryAsync(x => x.Day, x => x.Visits);
+        var series = Enumerable.Range(0, days).Select(i => from.AddDays(i)).Select(d => new StatsDay(d, visits.GetValueOrDefault(d))).ToList();
+        var grouped = await db.PersonalPageClickStats.AsNoTracking().Where(x => x.PageId == pageId && x.Day >= from && x.Day <= today)
+            .GroupBy(x => x.Target).Select(g => new { g.Key, Clicks = g.Sum(x => x.Clicks) }).ToListAsync();
+        var clicks = grouped.Select(g => new StatsTarget(g.Key, g.Clicks)).OrderByDescending(x => x.Clicks).ThenBy(x => x.Target, StringComparer.Ordinal).ToList();
+        return new Stats(series, series.Sum(x => x.Visits), clicks, clicks.Sum(x => x.Clicks));
+    }
+
     private static string Cut(string value, int max) => value.Length > max ? value[..max] : value;
 
     private static void Touch(PersonalPage page, DateTimeOffset now)

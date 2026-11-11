@@ -43,7 +43,8 @@
     "appearance": "Apariencia",
     "name": "Nombre",
     "scene": "Escena",
-    "media": "Multimedia"
+    "media": "Multimedia",
+    "stats": "Estadísticas"
   },
   "preview": {
     "title": "Vista previa",
@@ -79,7 +80,9 @@
       "templates": "Las cinco plantillas usan el mismo contenido: puedes cambiar de plantilla cuando quieras sin perder nada. Inventario y Póster usan además el tamaño de cada enlace.",
       "reports": "Cualquier persona con sesión puede denunciar una página. Las denuncias las revisa el equipo de Decatron: nada se oculta automáticamente, y si se oculta tu página verás el motivo arriba de este panel.",
       "scene": "Con la plantilla Escena aparece la pestaña Escena: la parte de arriba de tu página como un lienzo por capas (fondo, foto, nombre, bio, stickers y textos), con imágenes, GIF y videos de tu galería de medios.",
-      "media": "Los videos se cargan recién cuando el visitante toca «Reproducir». Si tu página tiene sonido, quien entre verá primero «Entrar», porque los navegadores no reproducen audio sin un toque."
+      "media": "Los videos se cargan recién cuando el visitante toca «Reproducir». Si tu página tiene sonido, quien entre verá primero «Entrar», porque los navegadores no reproducen audio sin un toque.",
+      "live": "Cuando estás en directo en Twitch o Kick, tu página muestra «En vivo ahora» con un botón para verte. En Redes y enlaces puedes agregar tus páginas del bot (pedir canciones, propinas y tu colección de Sprites) si tienes esos módulos activos.",
+      "stats": "En Estadísticas ves cuántas visitas tuvo tu página por día y cuántos clics recibió cada red, enlace y video. No se guarda quién visitó ni datos personales, y tus propias visitas no cuentan."
     },
     "docsPrefix": "Más detalles en la documentación:",
     "docsLink": "Página personal"
@@ -262,7 +265,10 @@
     "photos": "Fotos",
     "close": "Cerrar",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "liveOn": "En vivo en {{platform}} ahora",
+    "watchLive": "Ver directo",
+    "onAir": "AL AIRE"
   },
   "errors": {
     "failed": "No se pudo completar. Vuelve a intentarlo.",
@@ -624,5 +630,40 @@
     "missing_one": "Un archivo de tus fotos o sonidos ya no está en tu galería y no se muestra. Cámbialo o quítalo.",
     "missing_other": "{{count}} archivos de tus fotos o sonidos ya no están en tu galería y no se muestran. Cámbialos o quítalos.",
     "missingShort": "ya no está en la galería"
+  },
+  "botLinks": {
+    "title": "Enlaces del bot",
+    "hint": "Tus páginas de Decatron que puedes mostrar en tu página. Solo aparecen los módulos que tienes activos, y nada se muestra hasta que lo agregas.",
+    "none": "No tienes módulos con página pública activos (Song Request, propinas o una colección de Sprites con al menos uno marcado).",
+    "sr": "Pedir canciones",
+    "tip": "Propinas",
+    "sprites": "Mi colección de Sprites",
+    "add": "Agregar a mi página",
+    "remove": "Quitar de mi página"
+  },
+  "stats": {
+    "notOpen": "Las visitas y los clics se cuentan cuando tu página esté abierta al público. Mientras tanto verás todo en cero.",
+    "range": "Período",
+    "lastDays_one": "Último día",
+    "lastDays_other": "Últimos {{count}} días",
+    "privacy": "Solo contadores por día: no se guarda quién visitó. Tus visitas no cuentan.",
+    "visits_one": "visitas en el último día",
+    "visits_other": "visitas en los últimos {{count}} días",
+    "clicksTotal_one": "clics en el último día",
+    "clicksTotal_other": "clics en los últimos {{count}} días",
+    "visitsTitle": "Visitas por día",
+    "showTable": "Ver como tabla",
+    "showChart": "Ver gráfico",
+    "day": "Día",
+    "visitsCol": "Visitas",
+    "visitsCount_one": "{{count}} visita",
+    "visitsCount_other": "{{count}} visitas",
+    "noVisits": "Todavía no hay visitas en este período.",
+    "clicksTitle": "Clics por red, enlace y video",
+    "clicksHint": "Cuántas veces tocaron cada uno en el período elegido.",
+    "noClicks": "Todavía no hay clics en este período.",
+    "target": "Destino",
+    "clicksCol": "Clics",
+    "removed": "(ya no está en tu página)"
   }
 }

@@ -6,7 +6,7 @@ import TemplateRenderer from './TemplateRenderer';
 import { EntryGate, useAgeOk } from './AgeGate';
 import { MuteButton, usePageSound } from './PageSound';
 import ReportBar from './ReportBar';
-import { hasSound, usePageFonts, type PersonalPageContent } from './shared';
+import { hasSound, usePageFonts, withBotLinks, type BotLinkInfo, type LiveInfo, type PersonalPageContent } from './shared';
 
 // Página pública decatron.net/@nombre (subfases 5.1 y 5.2: puerta +18 y «Denunciar»). React Router no admite «@:param» dentro de un segmento,
 // así que la ruta es «/:atHandle» (las rutas fijas tienen prioridad) y acá se exige que empiece con @.
@@ -22,6 +22,21 @@ interface PublicResponse {
     canManage: boolean;
     isOwner: boolean;
     reportReasons: string[];
+    botLinks?: BotLinkInfo[];
+    live?: LiveInfo[];
+}
+
+const VISIT_KEY = (handle: string) => `decatron:pp-visit:${handle}`;
+const VISIT_MS = 30 * 60 * 1000;
+
+/** Avisa una visita o un clic sin esperar respuesta: si falla, la página sigue igual (5.5). */
+function sendHit(handle: string, body: { type: 'visit' | 'click'; target?: string }) {
+    try {
+        const url = `/api/public/personal-pages/${encodeURIComponent(handle)}/hit`;
+        const blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+        if (navigator.sendBeacon?.(url, blob)) return;
+        fetch(url, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => undefined);
+    } catch { /* las estadísticas nunca rompen la página */ }
 }
 
 type State =
@@ -59,6 +74,17 @@ export default function PersonalPagePublic() {
     }, [handle, isHandle, navigate]);
 
     const content = state.kind === 'ok' ? state.data.content : null;
+    // Una visita por navegador cada 30 minutos; quien administra la página no cuenta (el servidor también lo revisa)
+    const countable = state.kind === 'ok' && !state.data.canManage && !state.data.preview;
+    useEffect(() => {
+        if (!countable || !handle) return;
+        try {
+            const last = Number(localStorage.getItem(VISIT_KEY(handle)) ?? 0);
+            if (Date.now() - last < VISIT_MS) return;
+            localStorage.setItem(VISIT_KEY(handle), String(Date.now()));
+        } catch { /* sin storage: el servidor igual evita contar dos veces */ }
+        sendHit(handle, { type: 'visit' });
+    }, [countable, handle]);
     const sound = usePageSound(content?.sound);
     usePageFonts(content ? [content.font] : []);
 
@@ -114,8 +140,9 @@ export default function PersonalPagePublic() {
                     <Link to="/mi-pagina" className="underline font-semibold">{t('public.goToPanel')}</Link>
                 </div>
             )}
-            <TemplateRenderer content={data.content} channelPhotoUrl={data.channelPhotoUrl} handle={data.handle}
-                ageOk={ageOk || data.adult || data.canManage} onAgeConfirm={confirmAge} onLinkClick={sound.playClick} />
+            <TemplateRenderer content={withBotLinks(data.content, data.botLinks ?? [], key => t(`botLinks.${key}`))} channelPhotoUrl={data.channelPhotoUrl} handle={data.handle}
+                live={data.live} ageOk={ageOk || data.adult || data.canManage} onAgeConfirm={confirmAge}
+                onLinkClick={target => { sound.playClick(); if (countable && target) sendHit(data.handle, { type: 'click', target }); }} />
             {withSound && <MuteButton content={data.content} muted={sound.muted} onToggle={sound.toggleMute} />}
             {!data.isOwner && <ReportBar handle={data.handle} content={data.content} reasons={data.reportReasons ?? []} />}
         </>

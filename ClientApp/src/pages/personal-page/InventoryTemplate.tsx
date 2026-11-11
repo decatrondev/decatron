@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import { LINK_REL, PLATFORM_INITIALS, hostOf, pageParts, textOn, type TemplateProps } from './shared';
 import MediaBlocks from './MediaBlocks';
+import LiveStrip from './LiveStrip';
 
 // Plantilla «Inventario»: cada red o enlace es una casilla de inventario de juego, de 1×1, 2×1 o 2×2 (el tamaño del enlace).
 // Al tocar una casilla se abre su ficha con el botón para ir. Maqueta: .dev/plans/pagina-personal/maquetas/Inventario.dc.html
@@ -12,7 +13,7 @@ const PALETTES = {
 
 const SPAN: Record<string, [number, number]> = { normal: [1, 1], wide: [2, 1], big: [2, 2] };
 
-export default function InventoryTemplate({ content, channelPhotoUrl, labels, embedded }: TemplateProps) {
+export default function InventoryTemplate({ content, channelPhotoUrl, labels, embedded, live }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const parts = pageParts(content, channelPhotoUrl);
     const [selected, setSelected] = useState<string | null>(null);
@@ -35,6 +36,7 @@ export default function InventoryTemplate({ content, channelPhotoUrl, labels, em
                     </div>
                 </header>
 
+                <LiveStrip live={live} labels={labels} />
                 {parts.links.length === 0 ? <p className="in-empty">{labels.noLinks}</p> : (
                     <>
                         <div className="in-grid">

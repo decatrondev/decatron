@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import SceneCanvas, { SCENE_PALETTES } from './SceneCanvas';
 import MediaBlocks from './MediaBlocks';
+import LiveStrip from './LiveStrip';
 import { ADULT_KINDS, FONTS, PLATFORM_INITIALS, PLATFORM_NAMES, hostOf, textOn, type PageLabels, type TemplateProps } from './shared';
 
 // Plantilla «Escena» (subfase 5.1; con la escena por capas encendida, la cabecera es SceneCanvas, subfase 5.3). Maqueta: .dev/plans/pagina-personal/maquetas/Main.dc.html.
@@ -11,7 +12,7 @@ const PALETTES = SCENE_PALETTES;
 
 export type SceneLabels = PageLabels;
 
-export default function SceneTemplate({ content, channelPhotoUrl, labels, embedded }: TemplateProps) {
+export default function SceneTemplate({ content, channelPhotoUrl, labels, embedded, live }: TemplateProps) {
     const p = content.theme === 'light' ? PALETTES.light : PALETTES.dark;
     const font = FONTS[content.font] ?? FONTS.archivo;
     const accent = /^#[0-9a-f]{6}$/i.test(content.accent) ? content.accent : '#5B8CFF';
@@ -47,6 +48,7 @@ export default function SceneTemplate({ content, channelPhotoUrl, labels, embedd
                 </header>}
 
                 <main className="pp-body">
+                    <LiveStrip live={live} labels={labels} />
                     {networks.length > 0 && (
                         <ul className="pp-networks">
                             {networks.map(l => (
