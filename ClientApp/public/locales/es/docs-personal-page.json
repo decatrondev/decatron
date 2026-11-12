@@ -14,11 +14,6 @@
           {
             "t": "p",
             "x": "Es gratis. No está ligada a ningún otro módulo: la crea quien quiera tenerla."
-          },
-          {
-            "t": "note",
-            "kind": "info",
-            "x": "Por ahora las páginas se pueden preparar y publicar, pero solo las ven su dueño, quienes tienen control total del canal y el equipo de Decatron. Se abrirán al público cuando el equipo de Decatron lo habilite."
           }
         ]
       },
@@ -432,9 +427,8 @@
         "title": "Cuándo la ve el público",
         "blocks": [
           {
-            "t": "note",
-            "kind": "warning",
-            "x": "Por ahora tu página publicada solo la ven tú, quienes tienen control total y el equipo de Decatron (con un aviso de vista previa arriba). Se abrirá al público cuando el equipo de Decatron lo habilite."
+            "t": "p",
+            "x": "Cualquier persona con el enlace ve tu página publicada, sin necesidad de iniciar sesión. Lo que todavía no publicas (el borrador) solo lo ves tú en la vista previa de Mi página."
           },
           {
             "t": "p",

@@ -2,7 +2,7 @@
 
 Cada canal puede tener su propia página en `decatron.net/@nombre`: un enlace corto con las redes, la foto y el estilo del streamer. Es gratis y no está ligada a ningún otro módulo. Este documento cubre la subfase 5.1 (la base y las cinco plantillas: Escena, Credencial, Canal de TV, Inventario y Póster) la 5.2 (contenido para mayores de 18, dominios y denuncias) la 5.3 (escena por capas) la 5.4 (videos, fotos y sonidos), la 5.5 (en vivo, enlaces del bot y estadísticas) y la 5.10 (efectos).
 
-> **Todavía no está abierta al público.** Mientras `PersonalPages:PublicOpen` sea `false` (por defecto), una página publicada solo la ven su dueño, quienes tienen `control_total` en ese canal y los dueños del sistema, con un aviso de vista previa. Las protecciones de la subfase 5.2 ya están; abrirla es solo cambiar esa clave.
+> **Abierta al público desde el 2026-11-11** (`PersonalPages:PublicOpen=true`). Con la clave en `false`, una página publicada solo la ven su dueño, quienes tienen `control_total` en ese canal y los dueños del sistema, con un aviso de vista previa.
 
 ## Modelo de datos
 
@@ -115,7 +115,7 @@ Aceptar una apelación (`transfer`) da el nombre a quien la envió (y le crea la
 
 | Clave | Por defecto | Descripción |
 |---|---|---|
-| `PersonalPages:PublicOpen` | `false` | Abre las páginas al público |
+| `PersonalPages:PublicOpen` | `false` (en producción `true` desde 2026-11-11, en `appsettings.Secrets.json`) | Abre las páginas al público |
 | `PersonalPages:PublicAssetsPath` | `/var/www/html/decatron/personal-page-assets` | Carpeta de las fotos subidas (el usuario del backend tiene que poder escribir) |
 
 ## Pruebas

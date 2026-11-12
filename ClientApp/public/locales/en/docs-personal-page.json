@@ -14,11 +14,6 @@
           {
             "t": "p",
             "x": "It is free. It is not tied to any other module: anyone who wants one can create it."
-          },
-          {
-            "t": "note",
-            "kind": "info",
-            "x": "For now pages can be prepared and published, but only their owner, people with full control of the channel and the Decatron team can see them. They will open to the public when the Decatron team enables it."
           }
         ]
       },
@@ -432,9 +427,8 @@
         "title": "When the public sees it",
         "blocks": [
           {
-            "t": "note",
-            "kind": "warning",
-            "x": "For now your published page can only be seen by you, people with full control and the Decatron team (with a preview notice at the top). It will open to the public when the Decatron team enables it."
+            "t": "p",
+            "x": "Anyone with the link can see your published page, without signing in. What you haven't published yet (the draft) is only visible to you in the My page preview."
           },
           {
             "t": "p",

@@ -2,7 +2,7 @@
 
 Each channel can have its own page at `decatron.net/@name`: a short link with the streamer's socials, photo and style. It is free and not tied to any other module. This document covers sub-phase 5.1 (the base and the five templates: Scene, Badge, TV channel, Inventory, Poster) 5.2 (18+ content, domains and reports) 5.3 (layered scene) 5.4 (videos, photos and sounds), 5.5 (live, bot links and stats) and 5.10 (effects).
 
-> **Not open to the public yet.** While `PersonalPages:PublicOpen` is `false` (the default), a published page is only visible to its owner, people with `control_total` on that channel and system owners, with a preview banner. The sub-phase 5.2 protections are in place; opening it only takes changing that key.
+> **Open to the public since 2026-11-11** (`PersonalPages:PublicOpen=true`). With the key set to `false`, a published page is only visible to its owner, people with `control_total` on that channel and system owners, with a preview banner.
 
 ## Data model
 
@@ -115,7 +115,7 @@ Accepting an appeal (`transfer`) gives the name to the requester (creating their
 
 | Key | Default | Description |
 |---|---|---|
-| `PersonalPages:PublicOpen` | `false` | Opens pages to the public |
+| `PersonalPages:PublicOpen` | `false` (in production `true` since 2026-11-11, in `appsettings.Secrets.json`) | Opens pages to the public |
 | `PersonalPages:PublicAssetsPath` | `/var/www/html/decatron/personal-page-assets` | Folder for uploaded photos (must be writable by the backend user) |
 
 ## Tests
